@@ -1,7 +1,9 @@
-import '../wallet/wallet.dart';
+// import '../wallet/wallet.dart';
 
 class SelectiveDisclosure {
-  final Wallet _wallet;
+  //final Wallet _wallet;
 
-  SelectiveDisclosure(this._wallet);
+  SelectiveDisclosure(
+     //this._wallet
+    );
 }
