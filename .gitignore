@@ -67,3 +67,5 @@ pubspec.lock
 # https://dart.dev/guides/libraries/private-files#pubspeclock.
 pubspec.lock.failed_tracker
 .failed_tracker
+
+*.iml

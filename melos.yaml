@@ -1,0 +1,9 @@
+name: affinidi_ssi
+
+packages:
+  - "./"
+
+
+scripts:
+  analyze:
+    exec: dart analyze .
