@@ -69,3 +69,4 @@ pubspec.lock.failed_tracker
 .failed_tracker
 
 *.iml
+.test-results.json

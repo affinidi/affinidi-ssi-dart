@@ -5,5 +5,5 @@ packages:
 
 
 scripts:
-  analyze:
-    exec: dart analyze .
+  test:
+    exec: dart test -r github --file-reporter json:.test-results.json
