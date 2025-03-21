@@ -1,7 +1,6 @@
-name: Dart
+name: check
 
-on:
-  push:
+on: 
   pull_request:
 
 jobs:
@@ -17,17 +16,6 @@ jobs:
       # - uses: dart-lang/setup-dart@v1
       - uses: dart-lang/setup-dart@v1.7.1
 
-      - name: Install dependencies
-        run: dart pub get
-
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
-
-      - name: Analyze project source
-        run: dart analyze
-
-      - name: Run tests
-        run: dart test
       - uses: bluefireteam/melos-action@v3
       - run: melos format --output=none --set-exit-if-changed .
       - run: melos analyze
