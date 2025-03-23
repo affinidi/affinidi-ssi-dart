@@ -1,11 +1,15 @@
-enum KeyType { secp256k1, p256 }
+enum KeyType { secp256k1, ed25519 }
 
 enum HashingAlgorithm { sha256, sha512 }
 
-enum AlgorithmSuite {
-  es256k("ES256K", "EcdsaSecp256k1Signature2019");
+enum SignatureScheme {
+  es256k("ES256K", "EcdsaSecp256k1Signature2019", KeyType.secp256k1,
+      HashingAlgorithm.sha256);
 
   final String jwtName;
   final String w3cName;
-  const AlgorithmSuite(this.jwtName, this.w3cName);
+  final KeyType keyType;
+  final HashingAlgorithm? hashingAlgorithm;
+  const SignatureScheme(
+      this.jwtName, this.w3cName, this.keyType, this.hashingAlgorithm);
 }

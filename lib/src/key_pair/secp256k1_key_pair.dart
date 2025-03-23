@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:bip32/bip32.dart';
 
 import 'key_pair.dart';
+import '../digest_utils.dart';
 import '../types.dart';
 
 class Secp256k1KeyPair implements KeyPair {
@@ -23,20 +24,18 @@ class Secp256k1KeyPair implements KeyPair {
   Future<KeyType> getKeyType() async => KeyType.secp256k1;
 
   @override
-  Future<AlgorithmSuite> getAlgorithmSuite() async => AlgorithmSuite.es256k;
-
-  @override
   Future<Uint8List> sign(
     Uint8List data, {
-    HashingAlgorithm hashingAlgorithm = HashingAlgorithm.sha256,
+    SignatureScheme? signatureScheme,
   }) async {
-    if (hashingAlgorithm != HashingAlgorithm.sha256) {
+    signatureScheme ??= SignatureScheme.es256k;
+    if (signatureScheme != SignatureScheme.es256k) {
       throw ArgumentError(
-          "Unsupported hashing algorithm. Currently only SHA-256 is supported with secp256k1");
+          "Unsupported signature scheme. Currently only es256k is supported with secp256k1");
     }
-    final digest = KeyPair.getDigest(
+    final digest = DigestUtils.getDigest(
       data,
-      hashingAlgorithm: hashingAlgorithm,
+      hashingAlgorithm: signatureScheme.hashingAlgorithm!,
     );
     return _node.sign(digest);
   }
@@ -45,11 +44,16 @@ class Secp256k1KeyPair implements KeyPair {
   Future<bool> verify(
     Uint8List data, {
     required Uint8List signature,
-    HashingAlgorithm hashingAlgorithm = HashingAlgorithm.sha256,
+    SignatureScheme? signatureScheme,
   }) async {
-    final digest = KeyPair.getDigest(
+    signatureScheme ??= SignatureScheme.es256k;
+    if (signatureScheme != SignatureScheme.es256k) {
+      throw ArgumentError(
+          "Unsupported signature scheme. Currently only es256k is supported with secp256k1");
+    }
+    final digest = DigestUtils.getDigest(
       data,
-      hashingAlgorithm: hashingAlgorithm,
+      hashingAlgorithm: signatureScheme.hashingAlgorithm!,
     );
     return _node.verify(digest, signature);
   }

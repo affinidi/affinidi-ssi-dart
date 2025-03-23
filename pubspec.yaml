@@ -6,7 +6,6 @@ repository: https://github.com/affinidi/affinidi-ssi-dart
 environment:
   sdk: ^3.6.1
 
-
 dependencies:
   pointycastle: ^3.9.1
   bip32: ^2.0.0

@@ -32,7 +32,7 @@ void main() {
       final accountNumber = 1234;
       final wallet = Bip32Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
-      final keyPair = await wallet.deriveKeyPair(derivedKeyId);
+      final keyPair = await wallet.createKeyPair(derivedKeyId);
 
       final signature = await keyPair.sign(dataToSign);
 

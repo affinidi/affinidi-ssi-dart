@@ -30,7 +30,7 @@ void main() async {
   // from derived key pair
   print("Signing and verifying from profile key");
   final profileKeyId = "1234-0";
-  final profileKeyPair = await wallet.deriveKeyPair(profileKeyId);
+  final profileKeyPair = await wallet.createKeyPair(profileKeyId);
   final profileSignature = await profileKeyPair.sign(data);
   print('profile signature: ${hexEncode(profileSignature)}');
   final isProfileSignatureValid =
@@ -47,7 +47,7 @@ void main() async {
   // second profile key
   print("Signing and verifying from second profile key");
   final profileKeyId2 = "1234-1";
-  final profileKeyPair2 = await wallet.deriveKeyPair(profileKeyId2);
+  final profileKeyPair2 = await wallet.createKeyPair(profileKeyId2);
   final profileSignature2 = await profileKeyPair2.sign(data);
   print('profile signature 2: ${hexEncode(profileSignature2)}');
   final isProfileSignature2Valid =
