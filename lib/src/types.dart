@@ -9,7 +9,7 @@ enum SignatureScheme {
   final String jwtName;
   final String w3cName;
   final KeyType keyType;
-  final HashingAlgorithm? hashingAlgorithm;
+  final HashingAlgorithm hashingAlgorithm;
   const SignatureScheme(
       this.jwtName, this.w3cName, this.keyType, this.hashingAlgorithm);
 }

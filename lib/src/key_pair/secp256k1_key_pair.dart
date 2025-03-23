@@ -35,7 +35,7 @@ class Secp256k1KeyPair implements KeyPair {
     }
     final digest = DigestUtils.getDigest(
       data,
-      hashingAlgorithm: signatureScheme.hashingAlgorithm!,
+      hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
     return _node.sign(digest);
   }
@@ -53,7 +53,7 @@ class Secp256k1KeyPair implements KeyPair {
     }
     final digest = DigestUtils.getDigest(
       data,
-      hashingAlgorithm: signatureScheme.hashingAlgorithm!,
+      hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
     return _node.verify(digest, signature);
   }
