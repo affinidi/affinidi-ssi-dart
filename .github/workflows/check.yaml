@@ -20,10 +20,8 @@ jobs:
       - run: melos format --output=none --set-exit-if-changed .
       - run: melos analyze
       - run: melos test
+
+
       - uses: romeovs/lcov-reporter-action@v0.3.1
         with:
-          lcov-file: ./coverage/lcov.info      
-
-      - name: Update Coverage Badge
-        if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-        uses: we-cli/coverage-badge-action@main          
+          lcov-file: ./coverage/lcov.info

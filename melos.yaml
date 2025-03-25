@@ -7,6 +7,6 @@ packages:
 scripts:
   test:
     name: test
-    description: test with coverage
+    description: "test with coverage"
     exec: dart run coverage:test_with_coverage
    
