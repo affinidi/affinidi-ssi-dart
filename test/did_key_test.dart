@@ -22,7 +22,7 @@ void main() {
       final keyPair = await wallet.getKeyPair(rootKeyId);
       final didKey = await DidKey.create(keyPair);
       final actualDid = await didKey.getDid();
-      final actualKeyType = await wallet.getKeyType();
+      final actualKeyType = await keyPair.getKeyType();
 
       expect(actualDid, expectedDid);
       expect(actualKeyType, expectedKeyType);
@@ -33,7 +33,7 @@ void main() {
 
       final wallet = Bip32Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
-      final keyPair = await wallet.deriveKeyPair(derivedKeyId);
+      final keyPair = await wallet.createKeyPair(derivedKeyId);
       final didKey = await DidKey.create(keyPair);
       final actualDid = await didKey.getDid();
 
@@ -50,7 +50,7 @@ void main() {
       final keyPair = await wallet.getKeyPair(rootKeyId);
       final didKey = await DidKey.create(keyPair);
       final actualDid = await didKey.getDid();
-      final actualKeyType = await wallet.getKeyType();
+      final actualKeyType = await keyPair.getKeyType();
 
       expect(actualDid, isNot(equals(expectedDid)));
       expect(actualKeyType, expectedKeyType);
