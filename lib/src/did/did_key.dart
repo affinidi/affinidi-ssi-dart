@@ -24,13 +24,13 @@ class DidKey implements Did {
   static const commonDidKeyPrefix = 'did:key:z';
   static const Map<KeyType, String> _didKeyPrefixes = {
     KeyType.secp256k1: '${commonDidKeyPrefix}Q3s',
-    KeyType.p256: '${commonDidKeyPrefix}Dna',
+    KeyType.ed25519: '${commonDidKeyPrefix}6Mk',
   };
 
-  // TODO: validate multicode of p256
+  // TODO: validate multicode of ed25519
   static const Map<KeyType, List<int>> _didKeyMulticodes = {
     KeyType.secp256k1: [231, 1],
-    KeyType.p256: [18, 0],
+    KeyType.ed25519: [237, 0],
   };
 
   @override

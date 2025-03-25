@@ -12,7 +12,7 @@ class Bip32Wallet implements Wallet {
   static const rootKeyId = "0-0";
 
   final Map<String, Secp256k1KeyPair> _keyMap;
-  // NOTE: How to export the key map for persistance, PEM?
+  // TODO: Export the key map for recovery. Use PEM as format?
 
   Bip32Wallet._(this._keyMap);
 
@@ -21,13 +21,6 @@ class Bip32Wallet implements Wallet {
     final rootNode = BIP32.fromSeed(seed);
     final rootKeyPair = Secp256k1KeyPair(node: rootNode, keyId: rootKeyId);
     Map<String, Secp256k1KeyPair> keyMap = {rootKeyId: rootKeyPair};
-    return Bip32Wallet._(keyMap);
-  }
-
-  factory Bip32Wallet.fromKeyMap(Map<String, Secp256k1KeyPair> keyMap) {
-    if (!keyMap.containsKey(rootKeyId)) {
-      throw Exception("Root key doesn't exists in provided key map");
-    }
     return Bip32Wallet._(keyMap);
   }
 
@@ -47,21 +40,17 @@ class Bip32Wallet implements Wallet {
     return Bip32Wallet._(keyMap);
   }
 
+  // TODO: recover from key map
+  // factory Bip32Wallet.fromKeyMap(Map<String, String> backup) {
+  //   if (!backup.containsKey(rootKeyId)) {
+  //     throw Exception("Root key doesn't exists in provided backup key map");
+  //   }
+  // }
+
   @override
   Future<bool> hasKey(String keyId) {
     return Future.value(_keyMap.containsKey(keyId));
   }
-
-  @override
-  Future<KeyType> getKeyType() => Future.value(KeyType.secp256k1);
-
-  @override
-  Future<HashingAlgorithm> getHashingAlgorithm() =>
-      Future.value(HashingAlgorithm.sha256);
-
-  @override
-  Future<AlgorithmSuite> getAlgorithmSuite() =>
-      Future.value(AlgorithmSuite.es256k);
 
   @override
   Future<Uint8List> sign(
@@ -69,7 +58,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
   }) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.sign(data, hashingAlgorithm: HashingAlgorithm.sha256);
+    return keyPair.sign(data, signatureScheme: SignatureScheme.es256k);
   }
 
   @override
@@ -80,11 +69,15 @@ class Bip32Wallet implements Wallet {
   }) {
     final keyPair = _getKeyPair(keyId);
     return keyPair.verify(data,
-        signature: signature, hashingAlgorithm: HashingAlgorithm.sha256);
+        signature: signature, signatureScheme: SignatureScheme.es256k);
   }
 
   @override
-  Future<Secp256k1KeyPair> deriveKeyPair(String keyId) {
+  Future<Secp256k1KeyPair> createKeyPair(String keyId, {KeyType? keyType}) {
+    if (keyType != null && keyType != KeyType.secp256k1) {
+      throw ArgumentError(
+          "Only secp256k1 key type is supported for Bip32Wallet");
+    }
     if (_keyMap.containsKey(keyId)) {
       print("fount existing key, returning it");
       return Future.value(_keyMap[keyId]);
