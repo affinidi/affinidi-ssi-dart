@@ -9,7 +9,7 @@ When contributing to this repository, please first discuss the change you wish t
 
 1. Ensure the pipeline checks are finished successfully.
 2. Ensure the pull request doesn't contain redundant comments, console.log, etc.
-3. Ensure your code is covered with unit and integration tests (NOTE: no mocks/stubs in integration tests).
+3. Ensure your code is covered with unit and integration tests (no mocks/stubs in integration tests).
 4. Avoid adding comments to explain what code does, code should be self-explanatory and clean.
 5. Avoid using variable names like `i` or abbreviations - names should be simple and unambiguous.
 

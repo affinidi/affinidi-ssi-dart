@@ -1,15 +1,18 @@
 import 'dart:typed_data';
 
-import '../types.dart';
+import 'did.dart';
 
 // TODO: DID peer
-class DidWeb {
-  static Future<String> getDid(Uint8List publicKey,
-      {KeyType keyType = KeyType.secp256k1}) async {
+class DidWeb implements Did {
+  Future<String> getDid() {
     throw UnimplementedError();
   }
 
-  static Uint8List getPublicKey(String didKey) {
+  Future<String> getDidWithKeyId() {
+    throw UnimplementedError();
+  }
+
+  Future<Uint8List> getPublicKey() {
     throw UnimplementedError();
   }
 }
