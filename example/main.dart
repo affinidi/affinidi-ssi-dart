@@ -29,6 +29,7 @@ void main() async {
 
   // from derived key pair
   print("Signing and verifying from profile key");
+  // NOTE: how to know what is the next available account index?
   final profileKeyId = "1234-0";
   final profileKeyPair = await wallet.createKeyPair(profileKeyId);
   final profileSignature = await profileKeyPair.sign(data);

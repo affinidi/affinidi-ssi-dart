@@ -16,7 +16,6 @@ class Bip32Wallet implements Wallet {
 
   Bip32Wallet._(this._keyMap);
 
-  // NOTE: What else we might need to get key pair from seed?
   factory Bip32Wallet.fromSeed(Uint8List seed) {
     final rootNode = BIP32.fromSeed(seed);
     final rootKeyPair = Secp256k1KeyPair(node: rootNode, keyId: rootKeyId);

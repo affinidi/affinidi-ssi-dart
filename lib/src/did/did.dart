@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 abstract interface class Did {
-  // NOTE: do these need to be async?
+  // TODO: update interface to support multi key did methods
   Future<String> getDid();
   Future<String> getDidWithKeyId();
   Future<Uint8List> getPublicKey();
