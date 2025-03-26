@@ -6,4 +6,7 @@ packages:
 
 scripts:
   test:
-    exec: dart test -r github --file-reporter json:.test-results.json
+    name: test
+    description: "test with coverage"
+    exec: dart run coverage:test_with_coverage
+   
