@@ -79,18 +79,15 @@ class Bip32Wallet implements Wallet {
           "Only secp256k1 key type is supported for Bip32Wallet");
     }
     if (_keyMap.containsKey(keyId)) {
-      print("fount existing key, returning it");
       return Future.value(_keyMap[keyId]);
     }
     if (!_keyMap.containsKey(rootKeyId)) {
       throw Exception('Root key pair is missing');
     }
     var (accountNumber, accountKeyId) = _validateKeyId(keyId);
-    print("generating account $accountNumber key $accountKeyId");
 
     final derivationPath =
         _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
-    print("derivation path: $derivationPath");
     var rootNode = _keyMap[rootKeyId]!.getBip32Node();
     var node = Secp256k1KeyPair(
         node: rootNode.derivePath(derivationPath), keyId: keyId);
