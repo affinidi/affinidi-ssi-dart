@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:base_codecs/base_codecs.dart';
-import 'package:affinidi_ssi/ssi.dart';
+import 'package:affinidi_ssi/affinidi_ssi.dart';
 
 void main() async {
   final seed = hexDecode(
