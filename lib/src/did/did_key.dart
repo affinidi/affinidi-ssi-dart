@@ -30,7 +30,7 @@ class DidKey implements Did {
   // TODO: validate multicode of ed25519
   static const Map<KeyType, List<int>> _didKeyMulticodes = {
     KeyType.secp256k1: [231, 1],
-    KeyType.ed25519: [237, 0],
+    KeyType.ed25519: [237, 1],
   };
 
   @override
