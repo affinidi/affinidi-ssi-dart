@@ -10,7 +10,8 @@ class DidKey implements Did {
   final String _did;
   DidKey(this._did);
 
-  static Future<DidKey> create(KeyPair keyPair) async {
+  static Future<DidKey> create(List<KeyPair> keyPairs) async {
+    var keyPair = keyPairs[0];
     final keyType = await keyPair.getKeyType();
     final publicKey = await keyPair.getPublicKey();
     final multicodec = _didKeyMulticodes[keyType]!;
@@ -26,8 +27,7 @@ class DidKey implements Did {
     KeyType.secp256k1: '${commonDidKeyPrefix}Q3s',
     KeyType.ed25519: '${commonDidKeyPrefix}6Mk',
   };
-
-  // TODO: validate multicode of ed25519
+  
   static const Map<KeyType, List<int>> _didKeyMulticodes = {
     KeyType.secp256k1: [231, 1],
     KeyType.ed25519: [237, 1],

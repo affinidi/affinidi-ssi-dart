@@ -14,9 +14,9 @@ import 'did.dart';
  }
 
  enum Numalgo2Prefix {
-  AUTHENTICATION("V"),
-  KEY_AGREEMENT("E"),
-  SERVICE("S");
+  authentication("V"),
+  keyAgreement("E"),
+  service("S");
 
   final String value;
   const Numalgo2Prefix(this.value);
@@ -35,7 +35,7 @@ class DidPeer implements Did {
 
   static String _getDidPeerMultibasePart(List<int> pubKeyBytes, KeyType keyType) {
     final multicodec = _keyMulticodes[keyType]!;
-    return 'z${base58Bitcoin.encode(Uint8List.fromList(multicodec + pubKeyBytes))}';
+    return 'z${base58Bitcoin.encode(Uint8List.fromList([...multicodec, ...pubKeyBytes]))}';
   }
 
   static String _buildServiceEncoded(String? serviceEndpoint) {
@@ -50,7 +50,7 @@ class DidPeer implements Did {
       'a': ['didcomm/v2'], // accept
     });
 
-    return ".${Numalgo2Prefix.SERVICE.value}${base64UrlEncode(utf8.encode(jsonString)).replaceAll('=', '')}";
+    return ".${Numalgo2Prefix.service.value}${base64UrlEncode(utf8.encode(jsonString)).replaceAll('=', '')}";
   }
 
   static String _pubKeysToPeerDid(List<BaseKey> signingKeys, [List<BaseKey>? agreementKeys, String? serviceEndpoint]) {
@@ -62,8 +62,8 @@ class DidPeer implements Did {
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
 
-    String encSep = '.${Numalgo2Prefix.KEY_AGREEMENT.value}';
-    String authSep = '.${Numalgo2Prefix.AUTHENTICATION.value}';
+    String encSep = '.${Numalgo2Prefix.keyAgreement.value}';
+    String authSep = '.${Numalgo2Prefix.authentication.value}';
 
     bool isAgreementNotEmpty = agreementKeys != null && agreementKeys.isNotEmpty;
 
@@ -78,21 +78,29 @@ class DidPeer implements Did {
     return '${_didTypePrefixes[DidPeerType.peer2]}$agreementKeysStr$authKeysStr$serviceStr';
   }
 
-  static String _pubKeyToPeerDid(List<int> pubKeyBytes, KeyType keyType, DidPeerType didType, [String? serviceEndpoint]) {
-    BaseKey baseKey = BaseKey(pubKeyBytes, keyType);
+  static String _pubKeyToPeerDid(List<BaseKey> baseKeys, [String? serviceEndpoint]) {
+    // bool isDid0 = keyPairs.length == 1 && serviceEndpoint == null;
+    DidPeerType didType = baseKeys.length == 1 && serviceEndpoint == null ? DidPeerType.peer0 : DidPeerType.peer2;
 
     if (didType != DidPeerType.peer0) {
-      return _pubKeysToPeerDid([baseKey], [baseKey], serviceEndpoint);
+      return _pubKeysToPeerDid(baseKeys, baseKeys, serviceEndpoint);
     } else {
-      return _pubKeysToPeerDid([baseKey]);
+      return _pubKeysToPeerDid(baseKeys);
     }
   }
 
-  static Future<DidPeer> create(KeyPair keyPair, DidPeerType didType, [String? serviceEndpoint]) async {
-    final keyType = await keyPair.getKeyType();
-    final pubKeyBytes = await keyPair.getPublicKey();
+  static Future<DidPeer> create(List<KeyPair> keyPairs, [String? serviceEndpoint]) async {
+    List<BaseKey> baseKeys = [];
 
-    final did = _pubKeyToPeerDid(pubKeyBytes, keyType, didType, serviceEndpoint);
+    for (var keyPair in keyPairs) {
+      final keyType = await keyPair.getKeyType();
+      final pubKeyBytes = await keyPair.getPublicKey();
+      BaseKey baseKey = BaseKey(pubKeyBytes, keyType);
+
+      baseKeys.add(baseKey);
+    }
+
+    final did = _pubKeyToPeerDid(baseKeys, serviceEndpoint);
     return DidPeer(did);
   }
 
@@ -122,7 +130,7 @@ class DidPeer implements Did {
       for (var key in keys) {
         var prefix = key[0];
         var keyPart = key.substring(1);
-        if (prefix == Numalgo2Prefix.AUTHENTICATION.value) {
+        if (prefix == Numalgo2Prefix.authentication.value) {
           signinKeys.add(keyPart);
         }
       }
@@ -138,16 +146,16 @@ class DidPeer implements Did {
 
   @override
   Future<String> getDidWithKeyId() {
-    String mutlibaseKey = _getFirstMultiBaseSigninKey(_did);
-    return Future.value("$_did#$mutlibaseKey");
+    String multiBaseKey = _getFirstMultiBaseSigninKey(_did);
+    return Future.value("$_did#$multiBaseKey");
   }
 
   @override
   Future<Uint8List> getPublicKey() {
-    String mutlibaseKey = _getFirstMultiBaseSigninKey(_did);
+    String multiBaseKey = _getFirstMultiBaseSigninKey(_did);
 
     final keyType = _keyTypePrefixes.entries
-        .where((e) => mutlibaseKey.startsWith(e.value))
+        .where((e) => multiBaseKey.startsWith(e.value))
         .map((e) => e.key)
         .firstOrNull;
 
@@ -156,7 +164,7 @@ class DidPeer implements Did {
     }
 
     final multicode = _keyMulticodes[keyType]!;
-    final bytes = base58BitcoinDecode(mutlibaseKey);
+    final bytes = base58BitcoinDecode(multiBaseKey);
 
     return Future.value(bytes.sublist(multicode.length));
   }

@@ -21,10 +21,8 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final didPeer = await DidPeer.create(keyPair, DidPeerType.peer0);
+      final didPeer = await DidPeer.create([keyPair]);
       final actualDid = await didPeer.getDid();
-      print('actualDid');
-      print(actualDid);
       final actualKeyType = await keyPair.getKeyType();
 
       expect(actualDid, expectedDid);
@@ -37,10 +35,8 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
       final keyPair = await wallet.createKeyPair(derivedKeyId);
-      final didPeer = await DidPeer.create(keyPair, DidPeerType.peer2);
+      final didPeer = await DidPeer.create([keyPair, keyPair], 'https://denys.com/income');
       final actualDid = await didPeer.getDid();
-      print('actualDid');
-      print(actualDid);
 
       expect(actualDid, startsWith(expectedDidPeerPrefix));
     });
@@ -84,7 +80,7 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final didPeer = await DidPeer.create(keyPair, DidPeerType.peer0);
+      final didPeer = await DidPeer.create([keyPair]);
       final actualPublicKey = await didPeer.getPublicKey();
 
       expect(actualPublicKey, expectedPublicKey);
