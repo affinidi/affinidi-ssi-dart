@@ -1,0 +1,23 @@
+name: sdjwt_demo
+description: A professional demonstration application for the SD-JWT library, showcasing selective disclosure JWT functionality.
+version: 0.1.0
+publish_to: "none"
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  sdjwt_sdk:
+    path: ../
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

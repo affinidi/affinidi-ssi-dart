@@ -1,0 +1,38 @@
+{
+    "payloads": {
+        "simple_data": {
+            "name": "Alice",
+            "age": 30,
+            "email": "alice@example.com"
+        },
+        "payload_with_array": {
+            "name": "Alice",
+            "hobbies": [
+                "reading",
+                "traveling",
+                "gardening"
+            ]
+        },
+        "nested_data": {
+            "name": "Alice",
+            "address": {
+                "street": "123 Main St",
+                "city": "Wonderland",
+                "zipcode": "12345"
+            }
+        },
+        "nested_data_with_array": {
+            "name": "Alice",
+            "education": [
+                {
+                    "degree": "B.Sc.",
+                    "year": 2015
+                },
+                {
+                    "degree": "M.Sc.",
+                    "year": 2018
+                }
+            ]
+        }
+    }
+}

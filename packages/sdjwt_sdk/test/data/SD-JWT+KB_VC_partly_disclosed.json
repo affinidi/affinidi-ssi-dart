@@ -1,0 +1,205 @@
+{
+    "simple_data": {
+        "sd_jwt": {
+            "data": {
+                "name": "Alice",
+                "age": 30,
+                "email": "alice@example.com"
+            },
+            "header": {
+                "typ": "sd+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "age": 30,
+                "email": "alice@example.com",
+                "_sd": [
+                    "S0ysH5yLOk4Yi31CbPy4I3kAyQFNCfWcNGHgxtTX7lo"
+                ],
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_issuer_private_key"
+        },
+        "disclosures": [
+            {
+                "salt": "2326603b2c51f9db",
+                "key": "name",
+                "value": "Alice"
+            }
+        ],
+        "kb_jwt": {
+            "header": {
+                "typ": "kb+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "iat": "1516239022",
+                "aud": "did:example:verifier",
+                "nonce": "random_nonce",
+                "sd_hash": "b2bfdff5d8018d3ddc98772b730ad01ad01ccf703068980d6872e467d590bf2c",
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_holder_private_key",
+            "serialized_value": "eyJ0eXAiOiJzZCtqd3QiLCJhbGciOiJFUzI1NiJ9.eyJhZ2UiOjMwLCJlbWFpbCI6ImFsaWNlQGV4YW1wbGUuY29tIiwiX3NkIjpbIk9ncldhYVpqVnQtakQtTzRHbXNOa0U0YTFObTY4ZjctOFdxT3BpN2hoT1kiXSwiX3NkX2FsZyI6IlNIQS0yNTYifQ.ATuLAiTkZ64KcvaUKVrCD9ZBXTJObRoILOnWvpE5V0UQ9O7BdfiLflkgEGt0SiBEFUd36-2RUSp_UjWVwy63oQ~WyJiNDhlNDc5YmVmMzFjNWU0IiwibmFtZSIsIkFsaWNlIl0~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOiIxNTE2MjM5MDIyIiwiYXVkIjoiZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJub25jZSI6InJhbmRvbV9ub25jZSIsInNkX2hhc2giOiJiMmJmZGZmNWQ4MDE4ZDNkZGM5ODc3MmI3MzBhZDAxYWQwMWNjZjcwMzA2ODk4MGQ2ODcyZTQ2N2Q1OTBiZjJjIiwiX3NkX2FsZyI6IlNIQS0yNTYifQ.xNe6rwqOpkp_pQtd9ZGw6fd6-iFwfDBa4Q5CX1ob1RrBv1KAr5yNhHwJtoY2ZH2VPNfPR_ifDWoV0I2ZdFX02g"
+        }
+    },
+    "payload_with_array": {
+        "data": {
+            "name": "Alice",
+            "hobbies": [
+                "reading",
+                "traveling",
+                "gardening"
+            ]
+        },
+        "sd_jwt": {
+            "header": {
+                "typ": "sd+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "hobbies": [
+                    "reading",
+                    "traveling",
+                    "gardening"
+                ],
+                "_sd": [
+                    "UEK10LaFiwAvhYI5aO0D8aiitF8TZoa7HXogBCSML-E"
+                ],
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_issuer_private_key"
+        },
+        "disclosures": [
+            {
+                "salt": "4ae94ebc5da650f7",
+                "key": "name",
+                "value": "Alice"
+            }
+        ],
+        "kb_jwt": {
+            "header": {
+                "typ": "kb+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "iat": "1516239022",
+                "aud": "did:example:verifier",
+                "nonce": "random_nonce",
+                "sd_hash": "75f37fdf9bdc9cf7db76fbd6eced98ed6b1aa7ddf439beeb52538cecae036577",
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_holder_private_key",
+            "serialized_value": "eyJ0eXAiOiJzZCtqd3QiLCJhbGciOiJFUzI1NiJ9.eyJob2JiaWVzIjpbInJlYWRpbmciLCJ0cmF2ZWxpbmciLCJnYXJkZW5pbmciXSwiX3NkIjpbIk9jbE1oTHdZSmtLV09NYk5pSE9ISG5jZkRDOEhQSEV2NFlDTnZBcjRQTGsiXSwiX3NkX2FsZyI6IlNIQS0yNTYifQ.ojjRCoKJWcW8uuC0ey-0ldF2xiOspOT_E2K-FWpLHafxhKZ239l_pQDmjo93bfX7OSpZ-wspTOuif_JxoTgllA~WyIyOTg5ZGNjMjViN2Y3MDE0IiwibmFtZSIsIkFsaWNlIl0~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOiIxNTE2MjM5MDIyIiwiYXVkIjoiZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJub25jZSI6InJhbmRvbV9ub25jZSIsInNkX2hhc2giOiI3NWYzN2ZkZjliZGM5Y2Y3ZGI3NmZiZDZlY2VkOThlZDZiMWFhN2RkZjQzOWJlZWI1MjUzOGNlY2FlMDM2NTc3IiwiX3NkX2FsZyI6IlNIQS0yNTYifQ.m7t7Sm_2nwi6znyr1wQo8KqYnMTuFzrZHQqR7_T6J-tuOaHfwWv9G_1n8iGbdwNYuqNbBD5EdtsyPzagrmFqWw"
+        }
+    },
+    "nested_data": {
+        "data": {
+            "name": "Alice",
+            "address": {
+                "street": "123 Main St",
+                "city": "Wonderland",
+                "zipcode": "12345"
+            }
+        },
+        "sd_jwt": {
+            "header": {
+                "typ": "sd+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "address": {
+                    "street": "123 Main St",
+                    "city": "Wonderland",
+                    "zipcode": "12345"
+                },
+                "_sd": [
+                    "v7SRJx1SxrKVEOhOdL_EBqS-CbQHWXgG3YE4z56vXeo"
+                ],
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_issuer_private_key"
+        },
+        "disclosures": [
+            {
+                "salt": "d49ca90cc47533c6",
+                "key": "name",
+                "value": "Alice"
+            }
+        ],
+        "kb_jwt": {
+            "header": {
+                "typ": "kb+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "iat": "1516239022",
+                "aud": "did:example:verifier",
+                "nonce": "random_nonce",
+                "sd_hash": "b2bfdff5d8018d3ddc98772b730ad01ad01ccf703068980d6872e467d590bf2c"
+            },
+            "signature": "placeholder_signature_using_holder_private_key",
+            "serialized_value": "eyJ0eXAiOiJzZCtqd3QiLCJhbGciOiJFUzI1NiJ9.eyJob2JiaWVzIjpbInJlYWRpbmciLCJ0cmF2ZWxpbmciLCJnYXJkZW5pbmciXSwiX3NkIjpbInF1RFoxWjUtTXVtLVVYRDY3dWhPbzJZZDI1R3dCZUYwX3RjcXRocGNvRWsiXSwiX3NkX2FsZyI6IlNIQS0yNTYifQ.aKCE96Npq09sBRiCVLxWxvrudG0lbCLEDsnCJW0nF46J1KL0WBzZch8T5sQLB3tq9w_5MnLKnGjxk_W_2f4a6A~WyIwNzJkMzYxMWIwYTVmYjEwIiwibmFtZSIsIkFsaWNlIl0~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOiIxNTE2MjM5MDIyIiwiYXVkIjoiZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJub25jZSI6InJhbmRvbV9ub25jZSIsInNkX2hhc2giOiJiMmJmZGZmNWQ4MDE4ZDNkZGM5ODc3MmI3MzBhZDAxYWQwMWNjZjcwMzA2ODk4MGQ2ODcyZTQ2N2Q1OTBiZjJjIiwiX3NkX2FsZyI6IlNIQS0yNTYifQ.D4ZyvBmfHut1AeRdJceTZaakwJ2JE85ZYAHGAklEG0jppMKKEZyEDgC6ax9sOHn_nKbFsRE8EmmRJuj7TcFTxg"
+        }
+    },
+    "nested_data_with_array": {
+        "data": {
+            "name": "Alice",
+            "education": [
+                {
+                    "degree": "B.Sc.",
+                    "year": 2015
+                },
+                {
+                    "degree": "M.Sc.",
+                    "year": 2018
+                }
+            ]
+        },
+        "sd_jwt": {
+            "header": {
+                "typ": "sd+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "education": [
+                    {
+                        "degree": "B.Sc.",
+                        "year": 2015
+                    },
+                    {
+                        "degree": "M.Sc.",
+                        "year": 2018
+                    }
+                ],
+                "_sd": [
+                    "k79CORclBIk25NukRXLWnZHLtPslm4eTu2pcAc6wVVM"
+                ],
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_issuer_private_key"
+        },
+        "disclosures": [
+            {
+                "salt": "10f4be139261a36c",
+                "key": "name",
+                "value": "Alice"
+            }
+        ],
+        "kb_jwt": {
+            "header": {
+                "typ": "kb+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "iat": "1516239022",
+                "aud": "did:example:verifier",
+                "nonce": "random_nonce",
+                "sd_hash": "322d7d507fc55b21ee565459cb519859b4eef33a7ca5903e4b704dbc2ad76593",
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_holder_private_key",
+            "serialized_value": "eyJ0eXAiOiJzZCtqd3QiLCJhbGciOiJFUzI1NiJ9.eyJlZHVjYXRpb24iOlt7ImRlZ3JlZSI6IkIuU2MuIiwieWVhciI6MjAxNX0seyJkZWdyZWUiOiJNLlNjLiIsInllYXIiOjIwMTh9XSwiX3NkIjpbIjQ4cXhYLU9ucXptRk01SF9Tdmh2T0dWRFczMTlTUmJHR2dLdW5jRW0yLXMiXSwiX3NkX2FsZyI6IlNIQS0yNTYifQ._R8BdCkwqZP9hiVc1PF_bdARbUgpPfvfNw7IOOiheWsIhmrAu9FE6C6v2t4mdwt6Lvh-LjhvvoYoMSAz_bP3zQ~WyJjMzc2YjQyMDYyMzY2ZDAwIiwibmFtZSIsIkFsaWNlIl0~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOiIxNTE2MjM5MDIyIiwiYXVkIjoiZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJub25jZSI6InJhbmRvbV9ub25jZSIsInNkX2hhc2giOiIzMjJkN2Q1MDdmYzU1YjIxZWU1NjU0NTljYjUxOTg1OWI0ZWVmMzNhN2NhNTkwM2U0YjcwNGRiYzJhZDc2NTkzIiwiX3NkX2FsZyI6IlNIQS0yNTYifQ.y8zwvKVj6tapZ0JCG9rfrSEKWTNH7-h3PZVQGbRqV0pZJUo-DRvTbQOd9FwGU-Rrpgc9Y9xmpKAfu3udFJsPiw"
+        }
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "issuer_key_pair": {
+        "private_jwk": {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": "pFoDdHiPBVKC2pwKhG--xTAYGA7yF-XzrDKBW9K1eQE",
+            "y": "64Lqk3fx4bHPnwx1nv7THpUPFcL3-eo-ZwO5z3DPeV4",
+            "d": "F6TyF306WDlu2HpM8fkRIt33SpGMtHdnvR9WDf332vQ"
+        },
+        "public_jwk": {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": "pFoDdHiPBVKC2pwKhG--xTAYGA7yF-XzrDKBW9K1eQE",
+            "y": "64Lqk3fx4bHPnwx1nv7THpUPFcL3-eo-ZwO5z3DPeV4"
+        }
+    },
+
+    
+    "holder_key_pair": {
+        "private_jwk": {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": "rB2cVkCrbSUDghbgl7noiI_vdkcow5MnlmdUFk763-U",
+            "y": "Krjkk6ZIICc2PeV9wNpgOJnSW_4h23c6gL6G31ZcaT4",
+            "d": "FbFkTJ0DdQ_6zgaLQrhZpdgXgVPl1IfahzxVdvPY9iI"
+        },
+        "public_jwk": {
+            "kty": "EC",
+            "crv": "P-256",
+            "x": "rB2cVkCrbSUDghbgl7noiI_vdkcow5MnlmdUFk763-U",
+            "y": "Krjkk6ZIICc2PeV9wNpgOJnSW_4h23c6gL6G31ZcaT4"
+        }
+    }
+}

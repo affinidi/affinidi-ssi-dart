@@ -2,7 +2,10 @@ name: affinidi_ssi
 
 packages:
   - "./"
+  - packages/**
 
+ignore:
+  - packages/sdjwt_sdk/example
 
 scripts:
   test:

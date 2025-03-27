@@ -33,7 +33,9 @@ jobs:
       # You can specify other versions if desired, see documentation here:
       # https://github.com/dart-lang/setup-dart/blob/main/README.md
       # - uses: dart-lang/setup-dart@v1
-      - uses: dart-lang/setup-dart@v1.7.1
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
 
       - uses: bluefireteam/melos-action@v3
         with:

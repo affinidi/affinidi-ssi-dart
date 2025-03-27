@@ -1,0 +1,227 @@
+{
+    "simple_data": {
+        "sd_jwt": {
+            "data": {
+                "name": "Alice",
+                "age": 30,
+                "email": "alice@example.com"
+            },
+            "header": {
+                "typ": "sd+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "_sd": [
+                    "T6TeTrPu77o5tvfIib-mxc7BKMcqFOJvWb57_WfrimE",
+                    "_XsErY434emAVWYITMlcwSGAa5cqhGhU01nHupES5rA",
+                    "nzvp5wlVcR6FkVMtVGi4-S7zIlmux-iMXgFeo7GHcks"
+                ],
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_issuer_public_key"
+        },
+        "disclosures": [
+            {
+                "salt": "4338f9857dd55419",
+                "key": "name",
+                "value": "Alice"
+            },
+            {
+                "salt": "57b48f0f566043cc",
+                "key": "age",
+                "value": 30
+            },
+            {
+                "salt": "125f4affe5909261",
+                "key": "email",
+                "value": "alice@example.com"
+            }
+        ],
+        "kb_jwt": {
+            "header": {
+                "typ": "kb+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "iat": "1516239022",
+                "aud": "did:example:verifier",
+                "nonce": "random_nonce",
+                "sd_hash": "131f40fe92a94392347bd1f3f5f6ea997afe680da4a00dbce7dd6927af9ea132"
+            },
+            "signature": "placeholder_signature_using_holder_private_key",
+            "serialized_value": "eyJ0eXAiOiJzZCtqd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiNFBLal9nbXVQX09FdTMwMkdEVkYxdHFQNW15UF9fV01kRUhKQXdTR1FLYyIsIllUUFlpNFNqZUZ0YU9yOEhZZVlsWXVBR204bHZjem1NNDE2NGFsQlhBWUUiLCJtSDd2STBYRmJZOUdYd1RVUkpCMlF6YmZMel9BZFZNdzdZQzFhbmZTREtVIl0sIl9zZF9hbGciOiJTSEEtMjU2In0.Myt7zDBUK7lIkoYrBsd-hCNf9opEU2bq5RrN-_tqDiXYNSctqFZmupB7efoE0Bl9Q_2cTYru-jeO3moJ5ccgZQ~WyJhYWY0ZTllM2I1ZjQzNDAxIiwibmFtZSIsIkFsaWNlIl0~WyJkNWI2MzRkYWE5NjZkYWY3IiwiYWdlIiwzMF0~WyIyNGExNTk4NDlhMTFjNDMzIiwiZW1haWwiLCJhbGljZUBleGFtcGxlLmNvbSJd~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOiIxNTE2MjM5MDIyIiwiYXVkIjoiZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJub25jZSI6InJhbmRvbV9ub25jZSIsInNkX2hhc2giOiIxMzFmNDBmZTkyYTk0MzkyMzQ3YmQxZjNmNWY2ZWE5OTdhZmU2ODBkYTRhMDBkYmNlN2RkNjkyN2FmOWVhMTMyIiwiX3NkX2FsZyI6IlNIQS0yNTYifQ.WNhaX6DReFDxmne9o9QGjODXW7edB6_sDlCWGA1TPgUffxi-1d9qmDEybM4_TQuECiFbVyX2N80S5DIiPvwx1Q"
+        }
+    },
+    "payload_with_array": {
+        "data": {
+            "name": "Alice",
+            "hobbies": [
+                "reading",
+                "traveling",
+                "gardening"
+            ]
+        },
+        "sd_jwt": {
+            "header": {
+                "typ": "sd+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "_sd": [
+                    "Hi2By5RWYs3N_0fRsqmJNSWHI24XlGhKRZBGvi4wMBU",
+                    "I6SIPwEyQEUOVgKV3p4LegNYkZX39AtNTA9hX5fOQfs"
+                ],
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_issuer_public_key"
+        },
+        "disclosures": [
+            {
+                "salt": "d1f54f8d31f8710a",
+                "key": "name",
+                "value": "Alice"
+            },
+            {
+                "salt": "075a253af88e3719",
+                "key": "hobbies",
+                "value": [
+                    "reading",
+                    "traveling",
+                    "swimming"
+                ]
+            }
+        ],
+        "kb_jwt": {
+            "header": {
+                "typ": "kb+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "iat": "1516239022",
+                "aud": "did:example:verifier",
+                "nonce": "random_nonce",
+                "sd_hash": "10bfb9fad61f92636728ef31f3ca979455eff6430dcc50f557cf3d71c305f1d39"
+            },
+            "signature": "placeholder_signature_using_holder_private_key",
+            "serialized_value": "eyJ0eXAiOiJzZCtqd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiQW12THRpRjFCd0R6T3F5REZrMmc1cWRlbHFZTHNEMktBcktQbmpTTU9wSSIsIldUMXpNMHRHT3FEUHAwbkFaQ21XTUhpX09sZWlRRE1EU0FRTmZnQWQ1YmMiXSwiX3NkX2FsZyI6IlNIQS0yNTYifQ.IFkCJj4Y_vSEOgB2p0jcY5jAYN5Jl9PBJgU984fwxCwTZ0LKAkrcqlaeDHZCKfS1S7U55vHVoFHs-9xD1R1o0g~WyJhMjNjOTdlNWU0MGYxZDZjIiwibmFtZSIsIkFsaWNlIl0~WyJlZWVlNWMwZTQ0YWE5NjU5IiwiaG9iYmllcyIsWyJyZWFkaW5nIiwidHJhdmVsaW5nIiwiZ2FyZGVuaW5nIl1d~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOiIxNTE2MjM5MDIyIiwiYXVkIjoiZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJub25jZSI6InJhbmRvbV9ub25jZSIsInNkX2hhc2giOiIxMGJmYjlmYWQ2MWY5MjYzNjcyOGVmMzFmM2NhOTc5NDU1ZWZmNjQzMGRjYzUwZjU1N2NmM2Q3MWMzMDVmMWQzOSIsIl9zZF9hbGciOiJTSEEtMjU2In0.MMr-2hFpAZAyJbYxkHGsTjR-c25_1vQM7gQPt8NYxq-SbQG3mvFLaQZL43mqOt1wR_N65jVK2F2q0RDLDKk0og"
+        }
+    },
+    "nested_data": {
+        "data": {
+            "name": "Alice",
+            "address": {
+                "street": "123 Main St",
+                "city": "Wonderland",
+                "zipcode": "12345"
+            }
+        },
+        "sd_jwt": {
+            "header": {
+                "typ": "sd+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "_sd": [
+                    "JxnlX9osrf1ka2p8JfL_vPlV9xyQxLb24wzW8tpffic",
+                    "g5VhBUjldDEpTV_M6gXUrr5VHC0ERdOXZViEtcia-cA"
+                ],
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_issuer_public_key"
+        },
+        "disclosures": [
+            {
+                "salt": "ac1ed4de58751342",
+                "key": "name",
+                "value": "Alice"
+            },
+            {
+                "salt": "11f91fc59254357d",
+                "key": "address",
+                "value": {
+                    "street": "123 Main St",
+                    "city": "Wonderland",
+                    "zip": "12345"
+                }
+            }
+        ],
+        "kb_jwt": {
+            "header": {
+                "typ": "kb+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "iat": "1516239022",
+                "aud": "did:example:verifier",
+                "nonce": "random_nonce",
+                "sd_hash": "885624922f45ce261ac885739c0aed3454780003287acc3ab2a70b99a8b92d1d"
+            },
+            "signature": "placeholder_signature_using_holder_private_key",
+            "serialized_value": "eyJ0eXAiOiJzZCtqd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiX2MxdEd2WnkyZWkwbm8yUG10a1FDQ0U1dWs0OHVFalBueGdPRmVuSHRGRSIsInhkdWZFR1Z2dEl6Z1Bmd3pvVGpMaDdINk5XUUpUeUZHRzFYTDROclFuaWciXSwiX3NkX2FsZyI6IlNIQS0yNTYifQ.fEJlqANP5FFHwWTVXTi6mPRZKOuItHWXehW-xBqJc1u4DdPqNV9c8LQ8uMj_Otfi5EPprMXD8cmPWmh_5Niz_Q~WyJmYzY2ZjIwODhhYWE4N2Y2IiwibmFtZSIsIkFsaWNlIl0~WyIyOTlmNGU3YTliOTA5MWFkIiwiYWRkcmVzcyIseyJzdHJlZXQiOiIxMjMgTWFpbiBTdCIsImNpdHkiOiJXb25kZXJsYW5kIiwiemlwY29kZSI6IjEyMzQ1In1d~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOiIxNTE2MjM5MDIyIiwiYXVkIjoiZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJub25jZSI6InJhbmRvbV9ub25jZSIsInNkX2hhc2giOiI4ODU2MjQ5MjJmNDVjZTI2MWFjODg1NzM5YzBhZWQzNDU0NzgwMDAzMjg3YWNjM2FiMmE3MGI5OWE4YjkyZDFkIiwiX3NkX2FsZyI6IlNIQS0yNTYifQ.D_r6uTqHGXEZW-rPfGFnJjpM1xN5Q703I4UVWUfTmXxfp4kCfOcmOk9f2eKztCrnrGHPFvvmlaBcrH-w84_G0g"
+        }
+    },
+    "nested_data_with_array": {
+        "data": {
+            "name": "Alice",
+            "education": [
+                {
+                    "degree": "B.Sc.",
+                    "year": 2015
+                },
+                {
+                    "degree": "M.Sc.",
+                    "year": 2018
+                }
+            ]
+        },
+        "sd_jwt": {
+            "header": {
+                "typ": "sd+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "_sd": [
+                    "VNgP_QvnSku8DhrfKwGjKG5fCj5rMdzskXsYUKuYKGI",
+                    "mQ9sDnEA3zgpDTHccEH5NljzEu_me0DwqMowA3rc4ns"
+                ],
+                "_sd_alg": "SHA-256"
+            },
+            "signature": "placeholder_signature_using_issuer_public_key"
+        },
+        "disclosures": [
+            {
+                "salt": "a6c9f7f1b265e76e",
+                "key": "name",
+                "value": "Alice"
+            },
+            {
+                "salt": "b3619335059bf9f4",
+                "key": "education",
+                "value": [
+                    {
+                        "degree": "B.Sc.",
+                        "year": 2010
+                    },
+                    {
+                        "degree": "M.Sc.",
+                        "year": 2015
+                    }
+                ]
+            }
+        ],
+        "kb_jwt": {
+            "header": {
+                "typ": "kb+jwt",
+                "alg": "ES256"
+            },
+            "payload": {
+                "iat": "1516239022",
+                "aud": "did:example:verifier",
+                "nonce": "random_nonce",
+                "sd_hash": "dac06b9d7333b5c3064fda19ebbad0de790ccba8d002e047bf8d6057acf3df6b"
+            },
+            "signature": "placeholder_signature_using_holder_private_key",
+            "serialized_value": "eyJ0eXAiOiJzZCtqd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsicWJvWnB4ckp1OU5HNldFU0RZcXZraDIxZ1dPT00yeTBmcGoxb0hwaERMSSIsInl3VjZnazJoYnpQaTB6b1d1R0daUXdLQThYalBtZTdVajJoQ3VtdzRSY28iXSwiX3NkX2FsZyI6IlNIQS0yNTYifQ.1Fk3OQib_BXnSW32AJYw8pwvUoVs29SE7mYBqsBjkYdnGY5E_seScWvqynznf7PnnHYK92BMsBpZ1mUuh3Q8-g~WyIzZmJiMzJiMDE4MjNjM2EzIiwibmFtZSIsIkFsaWNlIl0~WyJiNDk1OWQ4ZDFiZTA2OWJhIiwiZWR1Y2F0aW9uIixbeyJkZWdyZWUiOiJCLlNjLiIsInllYXIiOjIwMTV9LHsiZGVncmVlIjoiTS5TYy4iLCJ5ZWFyIjoyMDE4fV1d~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJFUzI1NiJ9.eyJpYXQiOiIxNTE2MjM5MDIyIiwiYXVkIjoiZGlkOmV4YW1wbGU6dmVyaWZpZXIiLCJub25jZSI6InJhbmRvbV9ub25jZSIsInNkX2hhc2giOiJkYWMwNmI5ZDczMzNiNWMzMDY0ZmRhMTllYmJhZDBkZTc5MGNjYmE4ZDAwMmUwNDdiZjhkNjA1N2FjZjNkZjZiIiwiX3NkX2FsZyI6IlNIQS0yNTYifQ.lFFmxw-UJ8ptC011fvGwmiqKbZ6eSMcdaxtTEU8sDShW-NONVTVYiaZRNBkd6xdSeqfF64JDtzK8Wr9Jy-KjPQ"
+        }
+    }
+}
