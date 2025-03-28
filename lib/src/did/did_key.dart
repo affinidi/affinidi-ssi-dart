@@ -9,7 +9,8 @@ import 'did.dart';
 
 import 'did_document.dart';
 
-Future<DidDocument> _buildEDDoc(List<String> context, String id, String keyPart) {
+Future<DidDocument> _buildEDDoc(
+    List<String> context, String id, String keyPart) {
   var multiCodecXKey =
       ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
   if (!multiCodecXKey.startsWith('6LS')) {
@@ -41,7 +42,8 @@ Future<DidDocument> _buildEDDoc(List<String> context, String id, String keyPart)
       capabilityInvocation: [verificationKeyId]));
 }
 
-Future<DidDocument> _buildXDoc(List<String> context, String id, String keyPart) {
+Future<DidDocument> _buildXDoc(
+    List<String> context, String id, String keyPart) {
   String verificationKeyId = '$id#z$keyPart';
   var verification = VerificationMethod(
       id: verificationKeyId,
@@ -73,6 +75,7 @@ Future<DidDocument> _buildOtherDoc(
       capabilityInvocation: [verificationKeyId],
       keyAgreement: [verificationKeyId]));
 }
+
 class DidKey implements Did {
   final String _did;
   DidKey(this._did);
@@ -131,7 +134,8 @@ class DidKey implements Did {
     } else if (keyPart.startsWith('2J9')) {
       return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
     } else {
-      throw UnimplementedError('Only Ed25519 and X25519 keys are supported now');
+      throw UnimplementedError(
+          'Only Ed25519 and X25519 keys are supported now');
     }
   }
 
@@ -140,7 +144,7 @@ class DidKey implements Did {
     KeyType.secp256k1: '${commonDidKeyPrefix}Q3s',
     KeyType.ed25519: '${commonDidKeyPrefix}6Mk',
   };
-  
+
   static const Map<KeyType, List<int>> _didKeyMulticodes = {
     KeyType.secp256k1: [231, 1],
     KeyType.ed25519: [237, 1],

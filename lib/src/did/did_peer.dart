@@ -27,8 +27,7 @@ enum Numalgo2Prefix {
 }
 
 final RegExp peerDIDPattern = RegExp(
-  r'^did:peer:(([0](z)[1-9a-km-zA-HJ-NP-Z]+)|([2](\.[AEVID](z)[1-9a-km-zA-HJ-NP-Z]+)+)+(\.(S)[0-9a-zA-Z]*)?)'
-);
+    r'^did:peer:(([0](z)[1-9a-km-zA-HJ-NP-Z]+)|([2](\.[AEVID](z)[1-9a-km-zA-HJ-NP-Z]+)+)+(\.(S)[0-9a-zA-Z]*)?)');
 
 bool isPeerDID(String peerDID) {
   return peerDIDPattern.hasMatch(peerDID);
@@ -56,21 +55,20 @@ Future<DidDocument> _resolveDidPeer0(String did) {
     return _buildEDDoc(contextEdward, did, keyPart);
   } else if (keyPart.startsWith('6LS')) {
     return _buildXDoc(contextedX, did, keyPart);
-  // } else if (keyPart.startsWith('Dn')) {
-  //   return _buildOtherDoc(context2, id, keyPart, 'P256Key2021');
-  // } else if (keyPart.startsWith('Q3s')) {
-  //   return _buildOtherDoc(context2, id, keyPart, 'Secp256k1Key2021');
-  // } else if (keyPart.startsWith('82')) {
-  //   return _buildOtherDoc(context2, id, keyPart, 'P384Key2021');
-  // } else if (keyPart.startsWith('2J9')) {
-  //   return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
+    // } else if (keyPart.startsWith('Dn')) {
+    //   return _buildOtherDoc(context2, id, keyPart, 'P256Key2021');
+    // } else if (keyPart.startsWith('Q3s')) {
+    //   return _buildOtherDoc(context2, id, keyPart, 'Secp256k1Key2021');
+    // } else if (keyPart.startsWith('82')) {
+    //   return _buildOtherDoc(context2, id, keyPart, 'P384Key2021');
+    // } else if (keyPart.startsWith('2J9')) {
+    //   return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
   } else {
     throw UnimplementedError('Only Ed25519 and X25519 keys are supported now');
   }
 }
 
 Future<DidDocument> _resolveDidPeer2(String did) {
-
   String keysPart = did.substring(11);
 
   List<String> authenticationKeys = [];
@@ -84,19 +82,17 @@ Future<DidDocument> _resolveDidPeer2(String did) {
     var keyPart = key.substring(1);
     if (prefix == Numalgo2Prefix.service.value) {
       serviceString = key.substring(1);
-
     } else if (prefix == Numalgo2Prefix.authentication.value) {
       authenticationKeys.add(keyPart);
-
     } else if (prefix == Numalgo2Prefix.keyAgreement.value) {
       agreementKeys.add(keyPart);
-
     } else {
       throw UnimplementedError("Unknown prefix: $prefix.");
     }
   }
 
-  return _buildMultiKeysDoc(did, agreementKeys, authenticationKeys, serviceString);
+  return _buildMultiKeysDoc(
+      did, agreementKeys, authenticationKeys, serviceString);
 }
 
 Future<DidDocument> resolveDidPeer(String did) {
@@ -112,7 +108,8 @@ Future<DidDocument> resolveDidPeer(String did) {
   }
 }
 
-Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys, List<String> authenticationKeys, String? serviceStr) {
+Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
+    List<String> authenticationKeys, String? serviceStr) {
   var context = [
     "https://www.w3.org/ns/did/v1",
     'https://ns.did.ai/suites/multikey-2021/v1/'
@@ -125,7 +122,6 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys, L
 
   List<ServiceEndpoint>? service;
   if (serviceStr != null) {
-
     int paddingNeeded = (4 - serviceStr.length % 4) % 4;
     String padded = serviceStr + ('=' * paddingNeeded);
 
@@ -144,15 +140,16 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys, L
 
   for (var agreementKey in agreementKeys) {
     i++;
-    var type = agreementKey.startsWith('z6LS') ? 'X25519KeyAgreementKey2020' : 'Ed25519VerificationKey2020';
+    var type = agreementKey.startsWith('z6LS')
+        ? 'X25519KeyAgreementKey2020'
+        : 'Ed25519VerificationKey2020';
 
     String kid = '#key-$i';
     var verification = VerificationMethod(
-      id: kid,
-      controller: did,
-      type: type, // Multikey ?
-      publicKeyMultibase: agreementKey
-    );
+        id: kid,
+        controller: did,
+        type: type, // Multikey ?
+        publicKeyMultibase: agreementKey);
 
     verificationMethod.add(verification);
     keyAgreement.add(kid);
@@ -160,15 +157,16 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys, L
 
   for (var authenticationKey in authenticationKeys) {
     i++;
-    var type = authenticationKey.startsWith('z6LS') ? 'X25519KeyAgreementKey2020' : 'Ed25519VerificationKey2020';
+    var type = authenticationKey.startsWith('z6LS')
+        ? 'X25519KeyAgreementKey2020'
+        : 'Ed25519VerificationKey2020';
 
     String kid = '#key-$i';
     var verification = VerificationMethod(
-      id: kid,
-      controller: did,
-      type: type, // Multikey ?
-      publicKeyMultibase: authenticationKey
-    );
+        id: kid,
+        controller: did,
+        type: type, // Multikey ?
+        publicKeyMultibase: authenticationKey);
 
     verificationMethod.add(verification);
     assertionMethod.add(kid);
@@ -176,17 +174,17 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys, L
   }
 
   return Future.value(DidDocument(
-    context: context,
-    id: did,
-    verificationMethod: verificationMethod,
-    assertionMethod: assertionMethod,
-    keyAgreement: keyAgreement,
-    authentication: authentication,
-    service: service
-  ));
+      context: context,
+      id: did,
+      verificationMethod: verificationMethod,
+      assertionMethod: assertionMethod,
+      keyAgreement: keyAgreement,
+      authentication: authentication,
+      service: service));
 }
 
-Future<DidDocument> _buildEDDoc(List<String> context, String id, String keyPart) {
+Future<DidDocument> _buildEDDoc(
+    List<String> context, String id, String keyPart) {
   var multiCodecXKey =
       ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
   if (!multiCodecXKey.startsWith('6LS')) {
@@ -218,7 +216,8 @@ Future<DidDocument> _buildEDDoc(List<String> context, String id, String keyPart)
       capabilityInvocation: [verificationKeyId]));
 }
 
-Future<DidDocument> _buildXDoc(List<String> context, String id, String keyPart) {
+Future<DidDocument> _buildXDoc(
+    List<String> context, String id, String keyPart) {
   String verificationKeyId = '$id#z$keyPart';
   var verification = VerificationMethod(
       id: verificationKeyId,
@@ -243,9 +242,13 @@ class DidPeer implements Did {
     }
   }
 
-  static String _getDidPeerMultibasePart(List<int> pubKeyBytes, KeyType keyType) {
+  static String _getDidPeerMultibasePart(
+      List<int> pubKeyBytes, KeyType keyType) {
     final multicodec = _keyMulticodes[keyType]!;
-    return 'z${base58Bitcoin.encode(Uint8List.fromList([...multicodec, ...pubKeyBytes]))}';
+    return 'z${base58Bitcoin.encode(Uint8List.fromList([
+          ...multicodec,
+          ...pubKeyBytes
+        ]))}';
   }
 
   static String _buildServiceEncoded(String? serviceEndpoint) {
@@ -263,34 +266,49 @@ class DidPeer implements Did {
     return ".${Numalgo2Prefix.service.value}${base64UrlEncode(utf8.encode(jsonString)).replaceAll('=', '')}";
   }
 
-  static String _pubKeysToPeerDid(List<BaseKey> signingKeys, [List<BaseKey>? agreementKeys, String? serviceEndpoint]) {
-    bool isDid0 = signingKeys.length == 1 && (agreementKeys == null && serviceEndpoint == null);
+  static String _pubKeysToPeerDid(List<BaseKey> signingKeys,
+      [List<BaseKey>? agreementKeys, String? serviceEndpoint]) {
+    bool isDid0 = signingKeys.length == 1 &&
+        (agreementKeys == null && serviceEndpoint == null);
 
     if (isDid0) {
       dynamic signingKey = signingKeys[0];
-      var multibase = _getDidPeerMultibasePart(signingKey.pubKeyBytes, signingKey.keyType);
+      var multibase =
+          _getDidPeerMultibasePart(signingKey.pubKeyBytes, signingKey.keyType);
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
 
     String encSep = '.${Numalgo2Prefix.keyAgreement.value}';
     String authSep = '.${Numalgo2Prefix.authentication.value}';
 
-    bool isAgreementNotEmpty = agreementKeys != null && agreementKeys.isNotEmpty;
+    bool isAgreementNotEmpty =
+        agreementKeys != null && agreementKeys.isNotEmpty;
 
     String agreementKeysStr = isAgreementNotEmpty
-        ? encSep + agreementKeys.map((key) => _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType)).join(encSep)
+        ? encSep +
+            agreementKeys
+                .map((key) =>
+                    _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType))
+                .join(encSep)
         : '';
     String authKeysStr = signingKeys.isNotEmpty
-        ? authSep + signingKeys.map((key) => _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType)).join(authSep)
+        ? authSep +
+            signingKeys
+                .map((key) =>
+                    _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType))
+                .join(authSep)
         : '';
     String serviceStr = _buildServiceEncoded(serviceEndpoint);
 
     return '${_didTypePrefixes[DidPeerType.peer2]}$agreementKeysStr$authKeysStr$serviceStr';
   }
 
-  static String _pubKeyToPeerDid(List<BaseKey> baseKeys, [String? serviceEndpoint]) {
+  static String _pubKeyToPeerDid(List<BaseKey> baseKeys,
+      [String? serviceEndpoint]) {
     // bool isDid0 = keyPairs.length == 1 && serviceEndpoint == null;
-    DidPeerType didType = baseKeys.length == 1 && serviceEndpoint == null ? DidPeerType.peer0 : DidPeerType.peer2;
+    DidPeerType didType = baseKeys.length == 1 && serviceEndpoint == null
+        ? DidPeerType.peer0
+        : DidPeerType.peer2;
 
     if (didType != DidPeerType.peer0) {
       return _pubKeysToPeerDid(baseKeys, baseKeys, serviceEndpoint);
@@ -299,7 +317,8 @@ class DidPeer implements Did {
     }
   }
 
-  static Future<DidPeer> create(List<KeyPair> keyPairs, [String? serviceEndpoint]) async {
+  static Future<DidPeer> create(List<KeyPair> keyPairs,
+      [String? serviceEndpoint]) async {
     List<BaseKey> baseKeys = [];
 
     for (var keyPair in keyPairs) {
@@ -337,7 +356,7 @@ class DidPeer implements Did {
     KeyType.ed25519: [237, 1],
   };
 
-  static const Map<DidPeerType,String> _didTypePrefixes = {
+  static const Map<DidPeerType, String> _didTypePrefixes = {
     DidPeerType.peer0: 'did:peer:0',
     DidPeerType.peer2: 'did:peer:2',
   };

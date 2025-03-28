@@ -18,7 +18,8 @@ class Ed25519KeyPair implements KeyPair {
   Future<String> getKeyId() async => _keyId;
 
   @override
-  Future<Uint8List> getPublicKey() async => Uint8List.fromList(ed.public(_privateKey).bytes);
+  Future<Uint8List> getPublicKey() async =>
+      Uint8List.fromList(ed.public(_privateKey).bytes);
 
   @override
   Future<KeyType> getKeyType() async => KeyType.ed25519;

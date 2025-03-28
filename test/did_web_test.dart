@@ -13,8 +13,7 @@ void main() {
 
   group('Test DID', () {
     test('the main did key should match to the expected value', () async {
-      final expectedDid =
-          'did:web:test.com';
+      final expectedDid = 'did:web:test.com';
       final expectedKeyType = KeyType.secp256k1;
 
       final wallet = Bip32Wallet.fromSeed(seed);
@@ -39,6 +38,5 @@ void main() {
 
       expect(actualDid, startsWith(expectedDidWebPrefix));
     });
-
   });
 }
