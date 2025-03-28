@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-03-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`affinidi_ssi` - `v1.0.0-dev.6`](#affinidi_ssi---v100-dev6)
+
+---
+
+#### `affinidi_ssi` - `v1.0.0-dev.6`
+
+ - **FEAT**: add edward curve add did peer (#7).
+
+## 1.0.0-dev.6
+
+ - **FEAT**: add edward curve add did peer (#7).
+
+
 ## 2025-03-26
 
 ### Changes

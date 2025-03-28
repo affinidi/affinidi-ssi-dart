@@ -7,9 +7,9 @@ import '../key_pair/key_pair.dart';
 import '../types.dart';
 import '../utility.dart';
 
-import 'did.dart';
-
 import 'did_document.dart';
+
+import 'did.dart';
 
 class BaseKey {
   KeyType keyType;
@@ -93,19 +93,6 @@ Future<DidDocument> _resolveDidPeer2(String did) {
 
   return _buildMultiKeysDoc(
       did, agreementKeys, authenticationKeys, serviceString);
-}
-
-Future<DidDocument> resolveDidPeer(String did) {
-  if (!isPeerDID(did)) {
-    throw Exception('`$did` Does not match peer DID regexp.');
-  }
-
-  bool isPeer0 = did[9] == '0';
-  if (isPeer0) {
-    return _resolveDidPeer0(did);
-  } else {
-    return _resolveDidPeer2(did);
-  }
 }
 
 Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
