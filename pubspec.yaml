@@ -11,6 +11,8 @@ dependencies:
   bip32: ^2.0.0
   base_codecs: ^1.0.1
   meta: ^1.16.0
+  ed25519_edwards: ^0.3.1
+  ed25519_hd_key: ^2.2.0
 
 dev_dependencies:
   coverage: ^1.11.1

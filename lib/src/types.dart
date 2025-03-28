@@ -1,4 +1,4 @@
-enum KeyType { secp256k1, ed25519 }
+enum KeyType { secp256k1, ed25519, x25519 }
 
 enum HashingAlgorithm { sha256, sha512 }
 
@@ -17,3 +17,5 @@ enum SignatureScheme {
   const SignatureScheme(
       this.jwtName, this.w3cName, this.keyType, this.hashingAlgorithm);
 }
+
+enum DidPeerType { peer0, peer2 }
