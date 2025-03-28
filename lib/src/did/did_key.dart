@@ -27,7 +27,7 @@ class DidKey implements Did {
     KeyType.secp256k1: '${commonDidKeyPrefix}Q3s',
     KeyType.ed25519: '${commonDidKeyPrefix}6Mk',
   };
-  
+
   static const Map<KeyType, List<int>> _didKeyMulticodes = {
     KeyType.secp256k1: [231, 1],
     KeyType.ed25519: [237, 1],

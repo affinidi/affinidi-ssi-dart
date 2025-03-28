@@ -35,7 +35,8 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
       final keyPair = await wallet.createKeyPair(derivedKeyId);
-      final didPeer = await DidPeer.create([keyPair, keyPair], 'https://denys.com/income');
+      final didPeer =
+          await DidPeer.create([keyPair, keyPair], 'https://denys.com/income');
       final actualDid = await didPeer.getDid();
 
       expect(actualDid, startsWith(expectedDidPeerPrefix));

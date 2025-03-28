@@ -7,13 +7,13 @@ import '../key_pair/key_pair.dart';
 import '../types.dart';
 import 'did.dart';
 
- class BaseKey {
-   KeyType keyType;
-   List<int> pubKeyBytes;
-   BaseKey(this.pubKeyBytes, this.keyType);
- }
+class BaseKey {
+  KeyType keyType;
+  List<int> pubKeyBytes;
+  BaseKey(this.pubKeyBytes, this.keyType);
+}
 
- enum Numalgo2Prefix {
+enum Numalgo2Prefix {
   authentication("V"),
   keyAgreement("E"),
   service("S");
@@ -33,9 +33,13 @@ class DidPeer implements Did {
     }
   }
 
-  static String _getDidPeerMultibasePart(List<int> pubKeyBytes, KeyType keyType) {
+  static String _getDidPeerMultibasePart(
+      List<int> pubKeyBytes, KeyType keyType) {
     final multicodec = _keyMulticodes[keyType]!;
-    return 'z${base58Bitcoin.encode(Uint8List.fromList([...multicodec, ...pubKeyBytes]))}';
+    return 'z${base58Bitcoin.encode(Uint8List.fromList([
+          ...multicodec,
+          ...pubKeyBytes
+        ]))}';
   }
 
   static String _buildServiceEncoded(String? serviceEndpoint) {
@@ -53,34 +57,49 @@ class DidPeer implements Did {
     return ".${Numalgo2Prefix.service.value}${base64UrlEncode(utf8.encode(jsonString)).replaceAll('=', '')}";
   }
 
-  static String _pubKeysToPeerDid(List<BaseKey> signingKeys, [List<BaseKey>? agreementKeys, String? serviceEndpoint]) {
-    bool isDid0 = signingKeys.length == 1 && (agreementKeys == null && serviceEndpoint == null);
+  static String _pubKeysToPeerDid(List<BaseKey> signingKeys,
+      [List<BaseKey>? agreementKeys, String? serviceEndpoint]) {
+    bool isDid0 = signingKeys.length == 1 &&
+        (agreementKeys == null && serviceEndpoint == null);
 
     if (isDid0) {
       dynamic signingKey = signingKeys[0];
-      var multibase = _getDidPeerMultibasePart(signingKey.pubKeyBytes, signingKey.keyType);
+      var multibase =
+          _getDidPeerMultibasePart(signingKey.pubKeyBytes, signingKey.keyType);
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
 
     String encSep = '.${Numalgo2Prefix.keyAgreement.value}';
     String authSep = '.${Numalgo2Prefix.authentication.value}';
 
-    bool isAgreementNotEmpty = agreementKeys != null && agreementKeys.isNotEmpty;
+    bool isAgreementNotEmpty =
+        agreementKeys != null && agreementKeys.isNotEmpty;
 
     String agreementKeysStr = isAgreementNotEmpty
-        ? encSep + agreementKeys.map((key) => _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType)).join(encSep)
+        ? encSep +
+            agreementKeys
+                .map((key) =>
+                    _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType))
+                .join(encSep)
         : '';
     String authKeysStr = signingKeys.isNotEmpty
-        ? authSep + signingKeys.map((key) => _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType)).join(authSep)
+        ? authSep +
+            signingKeys
+                .map((key) =>
+                    _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType))
+                .join(authSep)
         : '';
     String serviceStr = _buildServiceEncoded(serviceEndpoint);
 
     return '${_didTypePrefixes[DidPeerType.peer2]}$agreementKeysStr$authKeysStr$serviceStr';
   }
 
-  static String _pubKeyToPeerDid(List<BaseKey> baseKeys, [String? serviceEndpoint]) {
+  static String _pubKeyToPeerDid(List<BaseKey> baseKeys,
+      [String? serviceEndpoint]) {
     // bool isDid0 = keyPairs.length == 1 && serviceEndpoint == null;
-    DidPeerType didType = baseKeys.length == 1 && serviceEndpoint == null ? DidPeerType.peer0 : DidPeerType.peer2;
+    DidPeerType didType = baseKeys.length == 1 && serviceEndpoint == null
+        ? DidPeerType.peer0
+        : DidPeerType.peer2;
 
     if (didType != DidPeerType.peer0) {
       return _pubKeysToPeerDid(baseKeys, baseKeys, serviceEndpoint);
@@ -89,7 +108,8 @@ class DidPeer implements Did {
     }
   }
 
-  static Future<DidPeer> create(List<KeyPair> keyPairs, [String? serviceEndpoint]) async {
+  static Future<DidPeer> create(List<KeyPair> keyPairs,
+      [String? serviceEndpoint]) async {
     List<BaseKey> baseKeys = [];
 
     for (var keyPair in keyPairs) {
@@ -114,7 +134,7 @@ class DidPeer implements Did {
     KeyType.ed25519: [237, 1],
   };
 
-  static const Map<DidPeerType,String> _didTypePrefixes = {
+  static const Map<DidPeerType, String> _didTypePrefixes = {
     DidPeerType.peer0: 'did:peer:0',
     DidPeerType.peer2: 'did:peer:2',
   };
