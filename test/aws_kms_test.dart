@@ -16,7 +16,8 @@ void main() {
     final testData = Uint8List.fromList('test data'.codeUnits);
 
     setUp(() async {
-      final credentials = AwsClientCredentials(accessKey: 'test', secretKey: 'test');
+      final credentials =
+          AwsClientCredentials(accessKey: 'test', secretKey: 'test');
 
       final kmsClient = kms.KMS(
         region: 'ap-southeast-1',
@@ -29,17 +30,18 @@ void main() {
       keyId = keyPair.keyId;
     });
 
-
     test('Verifies data with valid signature', () async {
       final signature = await wallet.sign(testData, keyId: keyId);
-      final isValid = await wallet.verify(testData, signature: signature, keyId: keyId);
+      final isValid =
+          await wallet.verify(testData, signature: signature, keyId: keyId);
 
       expect(isValid, isTrue);
     });
 
     test('Fails verification with invalid signature', () async {
       final invalidSignature = Uint8List.fromList(List.filled(256, 0));
-      final isValid = await wallet.verify(testData, signature: invalidSignature, keyId: keyId);
+      final isValid = await wallet.verify(testData,
+          signature: invalidSignature, keyId: keyId);
 
       expect(isValid, isFalse);
     });

@@ -19,7 +19,8 @@ class KmsWallet implements Wallet {
   }
 
   @override
-  Future<bool> verify(Uint8List data, {required Uint8List signature, required String keyId}) async {
+  Future<bool> verify(Uint8List data,
+      {required Uint8List signature, required String keyId}) async {
     final keyPair = await getKeyPair(keyId);
     return keyPair.verify(data, signature: signature);
   }

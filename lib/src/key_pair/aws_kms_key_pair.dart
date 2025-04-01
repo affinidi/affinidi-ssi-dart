@@ -28,7 +28,8 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
-  Future<Uint8List> sign(Uint8List data, {SignatureScheme? signatureScheme}) async {
+  Future<Uint8List> sign(Uint8List data,
+      {SignatureScheme? signatureScheme}) async {
     final response = await kmsClient.sign(
       keyId: keyId,
       message: data,
@@ -39,7 +40,8 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
-  Future<bool> verify(Uint8List data, {required Uint8List signature, SignatureScheme? signatureScheme}) async {
+  Future<bool> verify(Uint8List data,
+      {required Uint8List signature, SignatureScheme? signatureScheme}) async {
     try {
       final response = await kmsClient.verify(
         keyId: keyId,
