@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 
+import '../credentials/exceptions/ssi_exception.dart';
+import '../credentials/exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../types.dart';
 import '../utility.dart';
@@ -173,13 +175,20 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
 }
 
 Future<DidDocument> _buildEDDoc(
-    List<String> context, String id, String keyPart) {
+  List<String> context,
+  String id,
+  String keyPart,
+) {
   var multiCodecXKey =
       ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
   if (!multiCodecXKey.startsWith('6LS')) {
-    throw Exception(
-        'Something went wrong during conversion from Ed25515 to curve25519 key');
+    throw SsiException(
+      message:
+          'Something went wrong during conversion from Ed25515 to curve25519 key',
+      code: SsiExceptionType.invalidDidPeer.code,
+    );
   }
+
   String verificationKeyId = '$id#$keyPart';
   String agreementKeyId = '$id#z$multiCodecXKey';
 
@@ -227,7 +236,10 @@ class DidPeer {
         return entry.key;
       }
     }
-    throw Exception("Unknown did peer type `$did`");
+    throw SsiException(
+      message: 'Unknown did peer type `$did`',
+      code: SsiExceptionType.invalidDidDocument.code,
+    );
   }
 
   static String _computeMultibase(
@@ -322,7 +334,10 @@ class DidPeer {
     String? serviceEndpoint,
   }) async {
     if (keyPairs.isEmpty) {
-      throw Exception('At least one key must be provided');
+      throw SsiException(
+        message: 'At least one key must be provided',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
     }
 
     List<BaseKey> baseKeys = [];
@@ -367,7 +382,10 @@ class DidPeer {
 
   static Future<DidDocument> resolve(String did) {
     if (!isPeerDID(did)) {
-      throw Exception('`$did` Does not match peer DID regexp.');
+      throw SsiException(
+        message: '`$did` Does not match peer DID regexp.',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
     }
 
     bool isPeer0 = did[9] == '0';

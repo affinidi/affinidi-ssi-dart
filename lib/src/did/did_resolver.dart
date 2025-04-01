@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../credentials/exceptions/ssi_exception.dart';
+import '../credentials/exceptions/ssi_exception_type.dart';
 import 'did_document.dart';
 import 'did_key.dart';
 import 'did_peer.dart';
@@ -23,8 +25,11 @@ Future<DidDocument> resolveDidDocument(
     return DidWeb.resolve(did);
   } else {
     if (resolverAddress == null) {
-      throw Exception(
-          'The did con only be resolved using universal resolver, therefore the resolver address is required');
+      throw SsiException(
+        message:
+            'The did con only be resolved using universal resolver, therefore the resolver address is required',
+        code: SsiExceptionType.unableToResolveDid.code,
+      );
     }
     try {
       var res = await http
@@ -34,10 +39,16 @@ Future<DidDocument> resolveDidDocument(
         var didResolution = jsonDecode(res.body);
         return DidDocument.fromJson(didResolution['didDocument']);
       } else {
-        throw Exception('Bad status code ${res.statusCode}');
+        throw SsiException(
+          message: 'Bad status code ${res.statusCode}',
+          code: SsiExceptionType.unableToResolveDid.code,
+        );
       }
     } catch (e) {
-      throw Exception('Something went wrong during resolving: $e');
+      throw SsiException(
+        message: 'Something went wrong during resolving: $e',
+        code: SsiExceptionType.unableToResolveDid.code,
+      );
     }
   }
 }

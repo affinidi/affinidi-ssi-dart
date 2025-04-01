@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../credentials/exceptions/ssi_exception.dart';
+import '../credentials/exceptions/ssi_exception_type.dart';
 import '../types.dart';
 
 Map<String, dynamic> credentialToMap(dynamic credential) {
@@ -10,8 +12,11 @@ Map<String, dynamic> credentialToMap(dynamic credential) {
   } else if (credential is Map<dynamic, dynamic>) {
     return credential.map((key, value) => MapEntry(key as String, value));
   } else {
-    throw Exception(
-        'Unknown datatype ${credential.runtimeType} for $credential. Only String or Map<String, dynamic> accepted');
+    throw SsiException(
+      message:
+          'Unknown datatype ${credential.runtimeType} for $credential. Only String or Map<String, dynamic> accepted',
+      code: SsiExceptionType.invalidDidDocument.code,
+    );
   }
 }
 
@@ -227,8 +232,11 @@ class DidDocument implements JsonObject {
       } else if (entry is String) {
         if (veriMap.containsKey(entry)) newList.add(veriMap[entry]);
       } else {
-        throw Exception(
-            'Element $entry has unsupported Datatype ${entry.runtimeType}');
+        throw SsiException(
+          message:
+              'Element $entry has unsupported Datatype ${entry.runtimeType}',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
       }
     }
     return newList;
@@ -395,8 +403,10 @@ class VerificationMethod implements JsonObject {
       this.publicKeyJwk,
       this.publicKeyMultibase}) {
     if (publicKeyJwk == null && publicKeyMultibase == null) {
-      throw Exception(
-          'Verification Method must have an entry for a public key');
+      throw SsiException(
+        message: 'Verification Method must have an entry for a public key',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
     }
   }
 
@@ -422,8 +432,10 @@ class VerificationMethod implements JsonObject {
     publicKeyMultibase = method['publicKeyMultibase'];
 
     if (publicKeyJwk == null && publicKeyMultibase == null) {
-      throw Exception(
-          'Verification Method must have an entry for a public key');
+      throw SsiException(
+        message: 'Verification Method must have an entry for a public key',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
     }
   }
 
@@ -445,7 +457,10 @@ class VerificationMethod implements JsonObject {
   //     publicKeyJwk!['kid'] = (id.startsWith('#') ? controller + id : id);
   //     return this;
   //   } else {
-  //     throw Exception('Cant find key in this Verification Method');
+  //         throw SsiException(
+  //    message: 'Cant find key in this Verification Method',
+  //    code: SsiExceptionType.invalidDidDocument.code,
+  //  );
   //   }
   // }
 
@@ -529,6 +544,9 @@ List<String> extractStringOrSet(Map<String, dynamic> document, String field) {
       return strList;
 
     default:
-      throw Exception('$field must be a String or a List');
+      throw SsiException(
+        message: '$field must be a String or a List',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
   }
 }

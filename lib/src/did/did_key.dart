@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 
+import '../credentials/exceptions/ssi_exception.dart';
+import '../credentials/exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../types.dart';
 import '../utility.dart';
@@ -12,8 +14,11 @@ Future<DidDocument> _buildEDDoc(
   var multiCodecXKey =
       ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
   if (!multiCodecXKey.startsWith('6LS')) {
-    throw Exception(
-        'Something went wrong during conversion from Ed25515 to curve25519 key');
+    throw SsiException(
+      message:
+          'Something went wrong during conversion from Ed25515 to curve25519 key',
+      code: SsiExceptionType.invalidDidKey.code,
+    );
   }
   String verificationKeyId = '$id#z$keyPart';
   String agreementKeyId = '$id#z$multiCodecXKey';
@@ -106,11 +111,18 @@ class DidKey {
 
   static Future<DidDocument> resolve(String did) {
     if (!did.startsWith('did:key')) {
-      throw Exception(
-          'Expected did to start with `did:key`. However `$did` did not');
+      throw SsiException(
+        message: 'Expected did to start with `did:key`. However `$did` did not',
+        code: SsiExceptionType.invalidDidKey.code,
+      );
     }
     var splited = did.split(':');
-    if (splited.length != 3) throw Exception('malformed did: `$did`');
+    if (splited.length != 3) {
+      throw SsiException(
+        message: 'malformed did: `$did`',
+        code: SsiExceptionType.invalidDidKey.code,
+      );
+    }
 
     String keyPart = splited[2];
     var multibaseIndicator = keyPart[0];

@@ -1,5 +1,7 @@
 import 'package:http/http.dart';
 
+import '../credentials/exceptions/ssi_exception.dart';
+import '../credentials/exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import 'did_document.dart';
 
@@ -40,7 +42,10 @@ class DidWeb {
     if (res.statusCode == 200) {
       return DidDocument.fromJson(res.body);
     } else {
-      throw Exception('Cant\'t fetch did-document for $didToResolve');
+      throw SsiException(
+        message: 'Cant\'t fetch did-document for $didToResolve',
+        code: SsiExceptionType.invalidDidWeb.code,
+      );
     }
   }
 }
