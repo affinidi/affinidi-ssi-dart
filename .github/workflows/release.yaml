@@ -1,49 +1,9 @@
-
-name: release
-
-on: 
+on:
   push:
     branches:
-        - main
+      - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    environment: main
-    concurrency: release
-    if: ${{ !contains(github.event.head_commit.message, 'chore(release)') }}
-    steps:
-      - name: Generate token from app token #https://github.com/tibdex/github-app-token
-        id: generate_token
-        uses: tibdex/github-app-token@v2
-        with:
-          app_id: ${{ secrets.RELEASE_BOT_APP_ID }}
-          private_key: ${{ secrets.RELEASE_BOT_PKEY }}
-
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ steps.generate_token.outputs.token }}
-      - name: configure git
-        run: |
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
-          
-      # Note: This workflow uses the latest stable version of the Dart SDK.
-      # You can specify other versions if desired, see documentation here:
-      # https://github.com/dart-lang/setup-dart/blob/main/README.md
-      # - uses: dart-lang/setup-dart@v1
-      - uses: dart-lang/setup-dart@v1.7.1
-
-      - uses: bluefireteam/melos-action@v3
-        with:
-            run-versioning: true
-            publish-dry-run: true
-            tag: true
-            create-pr: false
-        env: 
-            GH_TOKEN: ${{ steps.generate_token.outputs.token }}
-
-      - name: Push Tags
-        run: git push --follow-tags
-
+  dart-pipeline:
+    uses: affinidi/pipeline-dart/.github/workflows/release.yaml@main
+    secrets: inherit
