@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
-import 'package:aws_signature_v4/aws_signature_v4.dart';
 
 import 'key_pair.dart';
 import '../types.dart';
