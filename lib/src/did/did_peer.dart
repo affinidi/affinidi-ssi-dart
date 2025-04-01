@@ -136,11 +136,12 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
         : 'Ed25519VerificationKey2020';
 
     String kid = '#key-$i';
-    var verification = VerificationMethod(
-        id: kid,
-        controller: did,
-        type: type, // Multikey ?
-        publicKeyMultibase: agreementKey);
+    var verification = VerificationMethodMultibase(
+      id: kid,
+      controller: did,
+      type: type, // Multikey ?
+      publicKeyMultibase: base58Bitcoin.decode(agreementKey.substring(1)),
+    );
 
     verificationMethod.add(verification);
     keyAgreement.add(kid);
@@ -153,25 +154,29 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
         : 'Ed25519VerificationKey2020';
 
     String kid = '#key-$i';
-    var verification = VerificationMethod(
-        id: kid,
-        controller: did,
-        type: type, // Multikey ?
-        publicKeyMultibase: authenticationKey);
+    var verification = VerificationMethodMultibase(
+      id: kid,
+      controller: did,
+      type: type, // Multikey ?
+      publicKeyMultibase: base58Bitcoin.decode(authenticationKey.substring(1)),
+    );
 
     verificationMethod.add(verification);
     assertionMethod.add(kid);
     authentication.add(kid);
   }
 
-  return Future.value(DidDocument(
+  return Future.value(
+    DidDocument(
       context: context,
       id: did,
       verificationMethod: verificationMethod,
       assertionMethod: assertionMethod,
       keyAgreement: keyAgreement,
       authentication: authentication,
-      service: service));
+      service: service,
+    ),
+  );
 }
 
 Future<DidDocument> _buildEDDoc(
@@ -192,18 +197,20 @@ Future<DidDocument> _buildEDDoc(
   String verificationKeyId = '$id#$keyPart';
   String agreementKeyId = '$id#z$multiCodecXKey';
 
-  var verification = VerificationMethod(
-      id: verificationKeyId,
-      controller: id,
-      type: 'Ed25519VerificationKey2020',
-      publicKeyMultibase: 'z$keyPart');
+  var verification = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: 'Ed25519VerificationKey2020',
+    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+  );
   // var keyAgreement = VerificationMethod(
   //     id: agreementKeyId,
   //     controller: id,
   //     type: 'X25519KeyAgreementKey2020',
   //     publicKeyMultibase: 'z$multiCodecXKey');
 
-  return Future.value(DidDocument(
+  return Future.value(
+    DidDocument(
       context: context,
       id: id,
       verificationMethod: [verification],
@@ -211,22 +218,31 @@ Future<DidDocument> _buildEDDoc(
       keyAgreement: [agreementKeyId],
       authentication: [verificationKeyId],
       capabilityDelegation: [verificationKeyId],
-      capabilityInvocation: [verificationKeyId]));
+      capabilityInvocation: [verificationKeyId],
+    ),
+  );
 }
 
 Future<DidDocument> _buildXDoc(
-    List<String> context, String id, String keyPart) {
+  List<String> context,
+  String id,
+  String keyPart,
+) {
   String verificationKeyId = '$id#z$keyPart';
-  var verification = VerificationMethod(
-      id: verificationKeyId,
-      controller: id,
-      type: 'X25519KeyAgreementKey2020',
-      publicKeyMultibase: 'z$keyPart');
-  return Future.value(DidDocument(
+  var verification = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: 'X25519KeyAgreementKey2020',
+    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+  );
+  return Future.value(
+    DidDocument(
       context: context,
       id: id,
       verificationMethod: [verification],
-      keyAgreement: [verificationKeyId]));
+      keyAgreement: [verificationKeyId],
+    ),
+  );
 }
 
 class DidPeer {
@@ -246,10 +262,17 @@ class DidPeer {
     Uint8List pubKeyBytes,
     KeyType keyType,
   ) {
-    final multicodec = _keyMulticodes[keyType]!;
     return base58Bitcoin.encode(
-      Uint8List.fromList([...multicodec, ...pubKeyBytes]),
+      _computeMultibaseUint8List(pubKeyBytes, keyType),
     );
+  }
+
+  static Uint8List _computeMultibaseUint8List(
+    Uint8List pubKeyBytes,
+    KeyType keyType,
+  ) {
+    final multicodec = _keyMulticodes[keyType]!;
+    return Uint8List.fromList([...multicodec, ...pubKeyBytes]);
   }
 
   static String _getDidPeerMultibasePart(
@@ -356,11 +379,11 @@ class DidPeer {
     for (var i = 0; i < keyPairs.length; i++) {
       final keyPair = keyPairs[i];
       verificationMethods.add(
-        VerificationMethod(
+        VerificationMethodMultibase(
           id: did,
           controller: 'key$i', // FIXME should come from the outside
           type: 'Multikey',
-          publicKeyMultibase: _computeMultibase(
+          publicKeyMultibase: _computeMultibaseUint8List(
             await keyPair.getPublicKey(),
             await keyPair.getKeyType(),
           ),

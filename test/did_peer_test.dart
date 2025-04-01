@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:affinidi_ssi/affinidi_ssi.dart';
 import 'package:base_codecs/base_codecs.dart';
 import 'package:test/test.dart';
@@ -58,14 +60,48 @@ void main() {
     });
 
     test('public key derived from did should be the same', () async {
-      final expectedPublicKey =
-          "6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy";
+      final expectedPublicKey = Uint8List.fromList([
+        237,
+        1,
+        143,
+        233,
+        105,
+        63,
+        143,
+        166,
+        42,
+        67,
+        5,
+        161,
+        64,
+        185,
+        118,
+        76,
+        94,
+        224,
+        30,
+        69,
+        89,
+        99,
+        116,
+        79,
+        225,
+        130,
+        4,
+        180,
+        251,
+        148,
+        130,
+        73,
+        48,
+        138
+      ]);
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
       final doc = await DidPeer.create([keyPair]);
-      final actualPublicKey = doc.verificationMethod[0].publicKeyMultibase;
+      final actualPublicKey = doc.verificationMethod[0].asMultibase();
 
       expect(actualPublicKey, expectedPublicKey);
     });

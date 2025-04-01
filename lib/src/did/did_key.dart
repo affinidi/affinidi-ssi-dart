@@ -10,9 +10,13 @@ import '../utility.dart';
 import 'did_document.dart';
 
 Future<DidDocument> _buildEDDoc(
-    List<String> context, String id, String keyPart) {
-  var multiCodecXKey =
-      ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
+  List<String> context,
+  String id,
+  String keyPart,
+) {
+  var multiCodecXKey = ed25519PublicToX25519Public(
+    base58Bitcoin.decode(keyPart).sublist(2),
+  );
   if (!multiCodecXKey.startsWith('6LS')) {
     throw SsiException(
       message:
@@ -23,52 +27,69 @@ Future<DidDocument> _buildEDDoc(
   String verificationKeyId = '$id#z$keyPart';
   String agreementKeyId = '$id#z$multiCodecXKey';
 
-  var verification = VerificationMethod(
-      id: verificationKeyId,
-      controller: id,
-      type: 'Ed25519VerificationKey2020',
-      publicKeyMultibase: 'z$keyPart');
-  var keyAgreement = VerificationMethod(
-      id: agreementKeyId,
-      controller: id,
-      type: 'X25519KeyAgreementKey2020',
-      publicKeyMultibase: 'z$multiCodecXKey');
+  var verification = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: 'Ed25519VerificationKey2020',
+    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+  );
+  var keyAgreement = VerificationMethodMultibase(
+    id: agreementKeyId,
+    controller: id,
+    type: 'X25519KeyAgreementKey2020',
+    publicKeyMultibase: base58Bitcoin.decode(multiCodecXKey),
+  );
 
-  return Future.value(DidDocument(
-      context: context,
-      id: id,
-      verificationMethod: [verification, keyAgreement],
-      assertionMethod: [verificationKeyId],
-      keyAgreement: [agreementKeyId],
-      authentication: [verificationKeyId],
-      capabilityDelegation: [verificationKeyId],
-      capabilityInvocation: [verificationKeyId]));
+  return Future.value(
+    DidDocument(
+        context: context,
+        id: id,
+        verificationMethod: [verification, keyAgreement],
+        assertionMethod: [verificationKeyId],
+        keyAgreement: [agreementKeyId],
+        authentication: [verificationKeyId],
+        capabilityDelegation: [verificationKeyId],
+        capabilityInvocation: [verificationKeyId]),
+  );
 }
 
 Future<DidDocument> _buildXDoc(
-    List<String> context, String id, String keyPart) {
+  List<String> context,
+  String id,
+  String keyPart,
+) {
   String verificationKeyId = '$id#z$keyPart';
-  var verification = VerificationMethod(
-      id: verificationKeyId,
-      controller: id,
-      type: 'X25519KeyAgreementKey2020',
-      publicKeyMultibase: 'z$keyPart');
-  return Future.value(DidDocument(
+  var verification = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: 'X25519KeyAgreementKey2020',
+    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+  );
+  return Future.value(
+    DidDocument(
       context: context,
       id: id,
       verificationMethod: [verification],
-      keyAgreement: [verificationKeyId]));
+      keyAgreement: [verificationKeyId],
+    ),
+  );
 }
 
 Future<DidDocument> _buildOtherDoc(
-    List<String> context, String id, String keyPart, String type) {
+  List<String> context,
+  String id,
+  String keyPart,
+  String type,
+) {
   String verificationKeyId = '$id#z$keyPart';
-  var verification = VerificationMethod(
-      id: verificationKeyId,
-      controller: id,
-      type: type,
-      publicKeyMultibase: 'z$keyPart');
-  return Future.value(DidDocument(
+  var verification = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: type,
+    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+  );
+  return Future.value(
+    DidDocument(
       context: context,
       id: id,
       verificationMethod: [verification],
@@ -76,7 +97,9 @@ Future<DidDocument> _buildOtherDoc(
       authentication: [verificationKeyId],
       capabilityDelegation: [verificationKeyId],
       capabilityInvocation: [verificationKeyId],
-      keyAgreement: [verificationKeyId]));
+      keyAgreement: [verificationKeyId],
+    ),
+  );
 }
 
 class DidKey {
@@ -95,11 +118,11 @@ class DidKey {
     return DidDocument(
       id: did,
       verificationMethod: [
-        VerificationMethod(
+        VerificationMethodMultibase(
           id: did,
           controller: keyId,
           type: 'Multikey',
-          publicKeyMultibase: multibase,
+          publicKeyMultibase: Uint8List.fromList([...multicodec, ...publicKey]),
         )
       ],
       authentication: [keyId],

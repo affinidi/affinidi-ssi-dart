@@ -20,7 +20,8 @@ Future<DidDocument> resolveDidDocument(
   if (did.startsWith('did:key')) {
     return DidKey.resolve(did);
   } else if (did.startsWith('did:peer')) {
-    return DidPeer.resolve(did);
+    throw Exception();
+    // return DidPeer.resolve(did);
   } else if (did.startsWith('did:web')) {
     return DidWeb.resolve(did);
   } else {
