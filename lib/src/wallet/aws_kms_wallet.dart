@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:affinidi_ssi/src/key_pair/key_pair.dart';
+import 'package:ssi/src/key_pair/key_pair.dart';
 
 import 'wallet.dart';
 import '../types.dart';

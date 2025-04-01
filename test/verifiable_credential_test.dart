@@ -1,6 +1,6 @@
-import 'package:affinidi_ssi/affinidi_ssi.dart';
-import 'package:affinidi_ssi/src/credentials/exceptions/ssi_exception.dart';
-import 'package:affinidi_ssi/src/credentials/exceptions/ssi_exception_type.dart';
+import 'package:ssi/ssi.dart';
+import 'package:ssi/src/credentials/exceptions/ssi_exception.dart';
+import 'package:ssi/src/credentials/exceptions/ssi_exception_type.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/verifiable_credentials_data_fixtures.dart';
