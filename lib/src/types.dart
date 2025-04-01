@@ -1,4 +1,4 @@
-enum KeyType { secp256k1, ed25519, x25519 }
+enum KeyType { secp256k1, ed25519, x25519, rsa }
 
 enum HashingAlgorithm { sha256, sha512 }
 

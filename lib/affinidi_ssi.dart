@@ -4,6 +4,7 @@
 library;
 
 export 'src/wallet/wallet.dart';
+export 'src/wallet/aws_kms_wallet.dart';
 export 'src/wallet/bip32_wallet.dart';
 export 'src/wallet/bip32_ed25519_wallet.dart';
 export 'src/key_pair/key_pair.dart';

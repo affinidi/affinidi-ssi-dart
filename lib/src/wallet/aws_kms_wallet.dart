@@ -1,47 +1,59 @@
 import 'dart:typed_data';
 
-import 'package:affinidi_ssi/src/key_pair/key_pair.dart';
+import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
+import 'package:aws_signature_v4/aws_signature_v4.dart';
+
+import 'package:affinidi_ssi/src/key_pair/aws_kms_key_pair.dart';
 
 import 'wallet.dart';
 import '../types.dart';
 
-// TODO: Implement AWS KMS wallet
+class KmsWallet implements Wallet {
+  final kms.KMS kmsClient;
 
-class AwsKmsWallet implements Wallet {
+  KmsWallet(this.kmsClient);
+
   @override
-  Future<bool> hasKey(String keyId) {
-    throw UnimplementedError();
+  Future<Uint8List> sign(Uint8List data, {required String keyId}) async {
+    final keyPair = await getKeyPair(keyId);
+    return keyPair.sign(data);
   }
 
   @override
-  Future<Uint8List> sign(
-    Uint8List data, {
-    required String keyId,
-  }) {
-    throw UnimplementedError();
+  Future<bool> verify(Uint8List data, {required Uint8List signature, required String keyId}) async {
+    final keyPair = await getKeyPair(keyId);
+    return keyPair.verify(data, signature: signature);
   }
 
   @override
-  Future<bool> verify(
-    Uint8List data, {
-    required Uint8List signature,
-    required String keyId,
-  }) {
-    throw UnimplementedError();
+  Future<Uint8List> getPublicKey(String keyId) async {
+    final keyPair = await getKeyPair(keyId);
+    return keyPair.getPublicKey();
   }
 
   @override
-  Future<KeyPair> createKeyPair(String keyId, {KeyType? keyType}) {
-    throw UnimplementedError();
+  Future<bool> hasKey(String keyId) async {
+    try {
+      await kmsClient.describeKey(keyId: keyId);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
-  Future<Uint8List> getPublicKey(String keyId) {
-    throw UnimplementedError();
+  Future<KmsKeyPair> createKeyPair(String keyId, {KeyType? keyType}) async {
+    final response = await kmsClient.createKey(
+      keyUsage: kms.KeyUsageType.signVerify,
+      customerMasterKeySpec: kms.CustomerMasterKeySpec.rsa_2048,
+    );
+    final newKeyId = response.keyMetadata?.keyId ?? '';
+
+    return KmsKeyPair(kmsClient, newKeyId);
   }
 
   @override
-  Future<KeyPair> getKeyPair(String keyId) async {
-    throw UnimplementedError();
+  Future<KmsKeyPair> getKeyPair(String keyId) async {
+    return KmsKeyPair(kmsClient, keyId);
   }
 }
