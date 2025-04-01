@@ -15,11 +15,11 @@ Packages with breaking changes:
 
 Packages with other changes:
 
- - [`affinidi_ssi` - `v1.0.0-dev.8`](#affinidi_ssi---v100-dev8)
+ - [`ssi` - `v1.0.0-dev.8`](#ssi---v100-dev8)
 
 ---
 
-#### `affinidi_ssi` - `v1.0.0-dev.8`
+#### `ssi` - `v1.0.0-dev.8`
 
  - **FEAT**: VC interfaces.
 
@@ -40,11 +40,11 @@ Packages with breaking changes:
 
 Packages with other changes:
 
- - [`affinidi_ssi` - `v1.0.0-dev.7`](#affinidi_ssi---v100-dev7)
+ - [`ssi` - `v1.0.0-dev.7`](#ssi---v100-dev7)
 
 ---
 
-#### `affinidi_ssi` - `v1.0.0-dev.7`
+#### `ssi` - `v1.0.0-dev.7`
 
  - **FEAT**: add base resolution and did web (#8).
 
@@ -65,11 +65,11 @@ Packages with breaking changes:
 
 Packages with other changes:
 
- - [`affinidi_ssi` - `v1.0.0-dev.6`](#affinidi_ssi---v100-dev6)
+ - [`ssi` - `v1.0.0-dev.6`](#ssi---v100-dev6)
 
 ---
 
-#### `affinidi_ssi` - `v1.0.0-dev.6`
+#### `ssi` - `v1.0.0-dev.6`
 
  - **FEAT**: add edward curve add did peer (#7).
 
@@ -90,11 +90,11 @@ Packages with breaking changes:
 
 Packages with other changes:
 
- - [`affinidi_ssi` - `v1.0.0-dev.5`](#affinidi_ssi---v100-dev5)
+ - [`ssi` - `v1.0.0-dev.5`](#ssi---v100-dev5)
 
 ---
 
-#### `affinidi_ssi` - `v1.0.0-dev.5`
+#### `ssi` - `v1.0.0-dev.5`
 
  - **FIX**: linting and  packaging issues (#5).
  - **FIX**: implement did.
@@ -121,11 +121,11 @@ Packages with breaking changes:
 
 Packages with other changes:
 
- - [`affinidi_ssi` - `v1.0.0-dev.4`](#affinidi_ssi---v100-dev4)
+ - [`ssi` - `v1.0.0-dev.4`](#ssi---v100-dev4)
 
 ---
 
-#### `affinidi_ssi` - `v1.0.0-dev.4`
+#### `ssi` - `v1.0.0-dev.4`
 
  - **FIX**: format.
 
