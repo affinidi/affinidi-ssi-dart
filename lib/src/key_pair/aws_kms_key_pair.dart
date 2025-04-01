@@ -52,7 +52,6 @@ class KmsKeyPair implements KeyPair {
     } on kms.KMSInvalidSignatureException {
       return false; // Return false when signature is invalid
     } catch (e) {
-      print('Error verifying signature: $e');
       rethrow; // Rethrow unexpected errors
     }
   }
