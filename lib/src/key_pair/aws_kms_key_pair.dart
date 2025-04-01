@@ -38,7 +38,7 @@ class KmsKeyPair implements KeyPair {
     return Uint8List.fromList(response.signature ?? []);
   }
 
-  // @override
+  @override
   Future<bool> verify(Uint8List data, {required Uint8List signature, SignatureScheme? signatureScheme}) async {
     try {
       final response = await kmsClient.verify(
