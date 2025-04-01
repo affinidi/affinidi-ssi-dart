@@ -59,4 +59,8 @@ class Secp256k1KeyPair implements KeyPair {
   }
 
   BIP32 getBip32Node() => _node;
+
+  @override
+  List<SignatureScheme> get supportedSignatureSchemes =>
+      [SignatureScheme.es256k];
 }
