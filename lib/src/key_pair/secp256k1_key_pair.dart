@@ -15,6 +15,9 @@ class Secp256k1KeyPair implements KeyPair {
         _keyId = keyId;
 
   @override
+  get privateKey => _node.privateKey;
+
+  @override
   Future<String> getKeyId() async => _keyId;
 
   @override
@@ -30,8 +33,7 @@ class Secp256k1KeyPair implements KeyPair {
   }) async {
     signatureScheme ??= SignatureScheme.es256k;
     if (signatureScheme != SignatureScheme.es256k) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only es256k is supported with secp256k1");
+      throw ArgumentError("Unsupported signature scheme. Currently only es256k is supported with secp256k1");
     }
     final digest = DigestUtils.getDigest(
       data,
@@ -48,8 +50,7 @@ class Secp256k1KeyPair implements KeyPair {
   }) async {
     signatureScheme ??= SignatureScheme.es256k;
     if (signatureScheme != SignatureScheme.es256k) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only es256k is supported with secp256k1");
+      throw ArgumentError("Unsupported signature scheme. Currently only es256k is supported with secp256k1");
     }
     final digest = DigestUtils.getDigest(
       data,
@@ -61,6 +62,5 @@ class Secp256k1KeyPair implements KeyPair {
   BIP32 getBip32Node() => _node;
 
   @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      [SignatureScheme.es256k];
+  List<SignatureScheme> get supportedSignatureSchemes => [SignatureScheme.es256k];
 }

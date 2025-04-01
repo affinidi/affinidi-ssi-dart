@@ -15,11 +15,13 @@ class Ed25519KeyPair implements KeyPair {
         _keyId = keyId;
 
   @override
+  get privateKey => Uint8List.fromList(_privateKey.bytes);
+
+  @override
   Future<String> getKeyId() async => _keyId;
 
   @override
-  Future<Uint8List> getPublicKey() async =>
-      Uint8List.fromList(ed.public(_privateKey).bytes);
+  Future<Uint8List> getPublicKey() async => Uint8List.fromList(ed.public(_privateKey).bytes);
 
   @override
   Future<KeyType> getKeyType() async => KeyType.ed25519;
@@ -31,8 +33,7 @@ class Ed25519KeyPair implements KeyPair {
   }) async {
     signatureScheme ??= SignatureScheme.ed25519sha256;
     if (signatureScheme != SignatureScheme.ed25519sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only ed25519sha256 is supported with ed25519");
+      throw ArgumentError("Unsupported signature scheme. Currently only ed25519sha256 is supported with ed25519");
     }
     final digest = DigestUtils.getDigest(
       data,
@@ -50,8 +51,7 @@ class Ed25519KeyPair implements KeyPair {
   }) async {
     signatureScheme ??= SignatureScheme.ed25519sha256;
     if (signatureScheme != SignatureScheme.ed25519sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only ed25519sha256 is supported with secp256k1");
+      throw ArgumentError("Unsupported signature scheme. Currently only ed25519sha256 is supported with secp256k1");
     }
     final digest = DigestUtils.getDigest(
       data,
@@ -64,6 +64,5 @@ class Ed25519KeyPair implements KeyPair {
   Uint8List getSeed() => ed.seed(_privateKey);
 
   @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      const [SignatureScheme.es256k];
+  List<SignatureScheme> get supportedSignatureSchemes => const [SignatureScheme.es256k];
 }
