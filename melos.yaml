@@ -1,4 +1,4 @@
-name: affinidi_ssi
+name: ssi
 
 packages:
   - "./"
