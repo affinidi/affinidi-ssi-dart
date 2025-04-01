@@ -1,8 +1,6 @@
 name: checks
-
-on: 
+on:
   pull_request:
-     
 jobs:
   dart-pipeline:
     uses: affinidi/pipeline-dart/.github/workflows/checks.yaml@main

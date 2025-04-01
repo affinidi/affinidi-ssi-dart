@@ -10,9 +10,7 @@
 # 'package:lints/core.yaml'. These are just the most critical lints
 # (the recommended set includes the core lints).
 # The core lints are also what is used by pub.dev for scoring packages.
-
 include: package:lints/recommended.yaml
-
 linter:
   rules:
     - avoid_print
@@ -29,6 +27,3 @@ analyzer:
 
 # For additional information about configuring this file, see
 # https://dart.dev/guides/language/analysis-options
-
-
-
