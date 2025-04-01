@@ -1,12 +1,6 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
 import '../types.dart';
-
-import 'did_key.dart';
-import 'did_peer.dart';
-import 'did_web.dart';
 
 Map<String, dynamic> credentialToMap(dynamic credential) {
   if (credential is String) {
@@ -22,32 +16,52 @@ Map<String, dynamic> credentialToMap(dynamic credential) {
 }
 
 class DidDocument implements JsonObject {
-  List<String>? context;
+  List<String> context;
   late String id;
-  List<String>? alsoKnownAs;
-  dynamic controller;
-  List<VerificationMethod>? verificationMethod;
-  List<dynamic>? authentication;
-  List<dynamic>? assertionMethod;
-  List<dynamic>? keyAgreement;
-  List<dynamic>? capabilityInvocation;
-  List<dynamic>? capabilityDelegation;
-  List<ServiceEndpoint>? service;
+  List<String> alsoKnownAs;
+  List<String> controller;
+  List<VerificationMethod> verificationMethod;
+  List<dynamic> authentication;
+  List<dynamic> assertionMethod;
+  List<dynamic> keyAgreement;
+  List<dynamic> capabilityInvocation;
+  List<dynamic> capabilityDelegation;
+  List<ServiceEndpoint> service;
 
-  DidDocument(
-      {this.context,
-      required this.id,
-      this.alsoKnownAs,
-      this.controller,
-      this.verificationMethod,
-      this.authentication,
-      this.keyAgreement,
-      this.service,
-      this.assertionMethod,
-      this.capabilityDelegation,
-      this.capabilityInvocation});
+  DidDocument({
+    context,
+    required this.id,
+    alsoKnownAs,
+    controller,
+    verificationMethod,
+    authentication,
+    keyAgreement,
+    service,
+    assertionMethod,
+    capabilityDelegation,
+    capabilityInvocation,
+  })  : context = context ?? [],
+        alsoKnownAs = alsoKnownAs ?? [],
+        controller = controller ?? [],
+        verificationMethod = verificationMethod ?? [],
+        authentication = authentication ?? [],
+        keyAgreement = keyAgreement ?? [],
+        service = service ?? [],
+        assertionMethod = assertionMethod ?? [],
+        capabilityDelegation = capabilityDelegation ?? [],
+        capabilityInvocation = capabilityInvocation ?? [];
 
-  DidDocument.fromJson(dynamic jsonObject) {
+  DidDocument.fromJson(dynamic jsonObject)
+      : context = [],
+        alsoKnownAs = [],
+        controller = [],
+        verificationMethod = [],
+        authentication = [],
+        keyAgreement = [],
+        service = [],
+        assertionMethod = [],
+        capabilityDelegation = [],
+        capabilityInvocation = [] {
     var document = credentialToMap(jsonObject);
     if (document.containsKey('@context')) {
       context = document['@context'].cast<String>();
@@ -60,19 +74,15 @@ class DidDocument implements JsonObject {
     if (document.containsKey('alsoKnownAs')) {
       alsoKnownAs = document['alsoKnownAs'].cast<String>();
     }
-    controller = document['controller'];
-    if (controller != null) {
-      if (controller is! String || controller is! List) {
-        throw Exception('controller must be a String or a List');
-      }
-    }
+
+    context = extractStringOrSet(document, "context");
 
     if (document.containsKey('verificationMethod')) {
       List tmp = document['verificationMethod'];
       if (tmp.isNotEmpty) {
         verificationMethod = [];
         for (var v in tmp) {
-          verificationMethod!.add(VerificationMethod.fromJson(v));
+          verificationMethod.add(VerificationMethod.fromJson(v));
         }
       }
     }
@@ -83,9 +93,9 @@ class DidDocument implements JsonObject {
         authentication = [];
         for (var v in tmp) {
           if (v is String) {
-            authentication!.add(v);
+            authentication.add(v);
           } else if (v is Map<String, dynamic>) {
-            authentication!.add(VerificationMethod.fromJson(v));
+            authentication.add(VerificationMethod.fromJson(v));
           } else {
             throw FormatException('unknown Datatype');
           }
@@ -99,9 +109,9 @@ class DidDocument implements JsonObject {
         keyAgreement = [];
         for (var v in tmp) {
           if (v is String) {
-            keyAgreement!.add(v);
+            keyAgreement.add(v);
           } else if (v is Map<String, dynamic>) {
-            keyAgreement!.add(VerificationMethod.fromJson(v));
+            keyAgreement.add(VerificationMethod.fromJson(v));
           } else {
             throw FormatException('unknown Datatype');
           }
@@ -115,9 +125,9 @@ class DidDocument implements JsonObject {
         assertionMethod = [];
         for (var v in tmp) {
           if (v is String) {
-            assertionMethod!.add(v);
+            assertionMethod.add(v);
           } else if (v is Map<String, dynamic>) {
-            assertionMethod!.add(VerificationMethod.fromJson(v));
+            assertionMethod.add(VerificationMethod.fromJson(v));
           } else {
             throw FormatException('unknown Datatype');
           }
@@ -131,9 +141,9 @@ class DidDocument implements JsonObject {
         capabilityInvocation = [];
         for (var v in tmp) {
           if (v is String) {
-            capabilityInvocation!.add(v);
+            capabilityInvocation.add(v);
           } else if (v is Map<String, dynamic>) {
-            capabilityInvocation!.add(VerificationMethod.fromJson(v));
+            capabilityInvocation.add(VerificationMethod.fromJson(v));
           } else {
             throw FormatException('unknown Datatype');
           }
@@ -147,9 +157,9 @@ class DidDocument implements JsonObject {
         capabilityDelegation = [];
         for (var v in tmp) {
           if (v is String) {
-            capabilityDelegation!.add(v);
+            capabilityDelegation.add(v);
           } else if (v is Map<String, dynamic>) {
-            capabilityDelegation!.add(VerificationMethod.fromJson(v));
+            capabilityDelegation.add(VerificationMethod.fromJson(v));
           } else {
             throw FormatException('unknown Datatype');
           }
@@ -162,7 +172,7 @@ class DidDocument implements JsonObject {
       if (tmp.isNotEmpty) {
         service = [];
         for (var v in tmp) {
-          service!.add(ServiceEndpoint.fromJson(v));
+          service.add(ServiceEndpoint.fromJson(v));
         }
       }
     }
@@ -170,7 +180,7 @@ class DidDocument implements JsonObject {
 
   /// Resolve all keys given by their ids to their VerificationMethod from verification method section
   DidDocument resolveKeyIds() {
-    if (verificationMethod == null || verificationMethod!.isEmpty) {
+    if (verificationMethod.isEmpty) {
       return this;
     }
     var newDdo = DidDocument(
@@ -181,7 +191,7 @@ class DidDocument implements JsonObject {
         service: service,
         verificationMethod: verificationMethod);
     Map<String, VerificationMethod> veriMap = {};
-    for (var v in verificationMethod!) {
+    for (var v in verificationMethod) {
       veriMap[v.id] = v;
       if (v.id.contains('#')) {
         var s = v.id.split('#');
@@ -191,20 +201,20 @@ class DidDocument implements JsonObject {
         }
       }
     }
-    if (assertionMethod != null && assertionMethod!.isNotEmpty) {
-      newDdo.assertionMethod = _resolveIds(veriMap, assertionMethod!);
+    if (assertionMethod.isNotEmpty) {
+      newDdo.assertionMethod = _resolveIds(veriMap, assertionMethod);
     }
-    if (keyAgreement != null && keyAgreement!.isNotEmpty) {
-      newDdo.keyAgreement = _resolveIds(veriMap, keyAgreement!);
+    if (keyAgreement.isNotEmpty) {
+      newDdo.keyAgreement = _resolveIds(veriMap, keyAgreement);
     }
-    if (authentication != null && authentication!.isNotEmpty) {
-      newDdo.authentication = _resolveIds(veriMap, authentication!);
+    if (authentication.isNotEmpty) {
+      newDdo.authentication = _resolveIds(veriMap, authentication);
     }
-    if (capabilityInvocation != null && capabilityInvocation!.isNotEmpty) {
-      newDdo.capabilityInvocation = _resolveIds(veriMap, capabilityInvocation!);
+    if (capabilityInvocation.isNotEmpty) {
+      newDdo.capabilityInvocation = _resolveIds(veriMap, capabilityInvocation);
     }
-    if (capabilityDelegation != null && capabilityDelegation!.isNotEmpty) {
-      newDdo.capabilityDelegation = _resolveIds(veriMap, capabilityDelegation!);
+    if (capabilityDelegation.isNotEmpty) {
+      newDdo.capabilityDelegation = _resolveIds(veriMap, capabilityDelegation);
     }
     return newDdo;
   }
@@ -233,27 +243,27 @@ class DidDocument implements JsonObject {
   //       alsoKnownAs: alsoKnownAs,
   //       service: service);
 
-  //   if (verificationMethod != null && verificationMethod!.isNotEmpty) {
+  //   if (verificationMethod != null && verificationMethod.isNotEmpty) {
   //     List<VerificationMethod> newVm = [];
-  //     for (var entry in verificationMethod!) {
+  //     for (var entry in verificationMethod) {
   //       newVm.add(entry.toPublicKeyJwk());
   //     }
   //     newDdo.verificationMethod = newVm;
   //   }
-  //   if (assertionMethod != null && assertionMethod!.isNotEmpty) {
-  //     newDdo.assertionMethod = _convertKeys(assertionMethod!);
+  //   if (assertionMethod != null && assertionMethod.isNotEmpty) {
+  //     newDdo.assertionMethod = _convertKeys(assertionMethod);
   //   }
-  //   if (keyAgreement != null && keyAgreement!.isNotEmpty) {
-  //     newDdo.keyAgreement = _convertKeys(keyAgreement!);
+  //   if (keyAgreement != null && keyAgreement.isNotEmpty) {
+  //     newDdo.keyAgreement = _convertKeys(keyAgreement);
   //   }
-  //   if (authentication != null && authentication!.isNotEmpty) {
-  //     newDdo.authentication = _convertKeys(authentication!);
+  //   if (authentication != null && authentication.isNotEmpty) {
+  //     newDdo.authentication = _convertKeys(authentication);
   //   }
-  //   if (capabilityInvocation != null && capabilityInvocation!.isNotEmpty) {
-  //     newDdo.capabilityInvocation = _convertKeys(capabilityInvocation!);
+  //   if (capabilityInvocation != null && capabilityInvocation.isNotEmpty) {
+  //     newDdo.capabilityInvocation = _convertKeys(capabilityInvocation);
   //   }
-  //   if (capabilityDelegation != null && capabilityDelegation!.isNotEmpty) {
-  //     newDdo.capabilityDelegation = _convertKeys(capabilityDelegation!);
+  //   if (capabilityDelegation != null && capabilityDelegation.isNotEmpty) {
+  //     newDdo.capabilityDelegation = _convertKeys(capabilityDelegation);
   //   }
   //   return newDdo;
   // }
@@ -274,19 +284,19 @@ class DidDocument implements JsonObject {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> jsonObject = {};
     jsonObject['id'] = id;
-    if (alsoKnownAs != null) jsonObject['alsoKnownAs'] = alsoKnownAs;
-    if (controller != null) jsonObject['controller'] = controller;
-    if (verificationMethod != null && verificationMethod!.isNotEmpty) {
+    if (alsoKnownAs.isNotEmpty) jsonObject['alsoKnownAs'] = alsoKnownAs;
+    if (controller.isNotEmpty) jsonObject['controller'] = controller;
+    if (verificationMethod.isNotEmpty) {
       List tmp = [];
-      for (var v in verificationMethod!) {
+      for (var v in verificationMethod) {
         tmp.add(v.toJson());
       }
       jsonObject['verificationMethod'] = tmp;
     }
 
-    if (authentication != null && authentication!.isNotEmpty) {
+    if (authentication.isNotEmpty) {
       List tmp = [];
-      for (var v in authentication!) {
+      for (var v in authentication) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -298,9 +308,9 @@ class DidDocument implements JsonObject {
       jsonObject['authentication'] = tmp;
     }
 
-    if (capabilityDelegation != null && capabilityDelegation!.isNotEmpty) {
+    if (capabilityDelegation.isNotEmpty) {
       List tmp = [];
-      for (var v in capabilityDelegation!) {
+      for (var v in capabilityDelegation) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -312,9 +322,9 @@ class DidDocument implements JsonObject {
       jsonObject['capabilityDelegation'] = tmp;
     }
 
-    if (capabilityInvocation != null && capabilityInvocation!.isNotEmpty) {
+    if (capabilityInvocation.isNotEmpty) {
       List tmp = [];
-      for (var v in capabilityInvocation!) {
+      for (var v in capabilityInvocation) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -326,9 +336,9 @@ class DidDocument implements JsonObject {
       jsonObject['capabilityInvocation'] = tmp;
     }
 
-    if (keyAgreement != null && keyAgreement!.isNotEmpty) {
+    if (keyAgreement.isNotEmpty) {
       List tmp = [];
-      for (var v in keyAgreement!) {
+      for (var v in keyAgreement) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -340,9 +350,9 @@ class DidDocument implements JsonObject {
       jsonObject['keyAgreement'] = tmp;
     }
 
-    if (assertionMethod != null && assertionMethod!.isNotEmpty) {
+    if (assertionMethod.isNotEmpty) {
       List tmp = [];
-      for (var v in assertionMethod!) {
+      for (var v in assertionMethod) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -354,9 +364,9 @@ class DidDocument implements JsonObject {
       jsonObject['assertionMethod'] = tmp;
     }
 
-    if (service != null && service!.isNotEmpty) {
+    if (service.isNotEmpty) {
       List tmp = [];
-      for (var v in service!) {
+      for (var v in service) {
         tmp.add(v.toJson());
       }
       jsonObject['service'] = tmp;
@@ -505,34 +515,20 @@ class ServiceEndpoint implements JsonObject {
   }
 }
 
-/// Resolves the Did-Document for [did].
-///
-/// Resolving if did:key can be done internally, for all other did-methods an URL [resolverAddress] to an instance of a universal resolver is needed.
-Future<DidDocument> resolveDidDocument(String did,
-    [String? resolverAddress]) async {
-  if (did.startsWith('did:key')) {
-    return DidKey.resolve(did);
-  } else if (did.startsWith('did:peer')) {
-    return DidPeer.resolve(did);
-  } else if (did.startsWith('did:web')) {
-    return DidWeb.resolve(did);
-  } else {
-    if (resolverAddress == null) {
-      throw Exception(
-          'The did con only be resolved using universal resolver, therefore the resolver address is required');
-    }
-    try {
-      var res = await http
-          .get(Uri.parse('$resolverAddress/1.0/identifiers/$did'))
-          .timeout(Duration(seconds: 30));
-      if (res.statusCode == 200) {
-        var didResolution = jsonDecode(res.body);
-        return DidDocument.fromJson(didResolution['didDocument']);
-      } else {
-        throw Exception('Bad status code ${res.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Something went wrong during resolving: $e');
-    }
+List<String> extractStringOrSet(Map<String, dynamic> document, String field) {
+  final jsonValue = document[field];
+
+  switch (jsonValue) {
+    case null:
+      return [];
+
+    case String str:
+      return [str];
+
+    case List<String> strList:
+      return strList;
+
+    default:
+      throw Exception('$field must be a String or a List');
   }
 }

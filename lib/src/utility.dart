@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:x25519/src/curve25519.dart' as x25519;
 import 'package:base_codecs/base_codecs.dart';
+import 'package:x25519/src/curve25519.dart' as x25519;
 
 //ported from https://github.com/oasisprotocol/ed25519/blob/master/extra/x25519/x25519.go
 String ed25519PublicToX25519Public(List<int> ed25519Public) {

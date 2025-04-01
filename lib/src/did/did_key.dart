@@ -5,8 +5,6 @@ import 'package:base_codecs/base_codecs.dart';
 import '../key_pair/key_pair.dart';
 import '../types.dart';
 import '../utility.dart';
-import 'did.dart';
-
 import 'did_document.dart';
 
 Future<DidDocument> _buildEDDoc(
@@ -76,20 +74,34 @@ Future<DidDocument> _buildOtherDoc(
       keyAgreement: [verificationKeyId]));
 }
 
-class DidKey implements Did {
-  final String _did;
-  DidKey(this._did);
-
-  static Future<DidKey> create(List<KeyPair> keyPairs) async {
+class DidKey {
+  static Future<DidDocument> create(List<KeyPair> keyPairs) async {
     var keyPair = keyPairs[0];
     final keyType = await keyPair.getKeyType();
     final publicKey = await keyPair.getPublicKey();
     final multicodec = _didKeyMulticodes[keyType]!;
-    final did = '$commonDidKeyPrefix${base58BitcoinEncode(Uint8List.fromList([
-          ...multicodec,
-          ...publicKey
-        ]))}';
-    return DidKey(did);
+    final multibase = base58BitcoinEncode(
+      Uint8List.fromList([...multicodec, ...publicKey]),
+    );
+    final did = '$commonDidKeyPrefix$multibase';
+    final keyId = '$did#$multibase';
+
+    // FIXME double check the doc
+    return DidDocument(
+      id: did,
+      verificationMethod: [
+        VerificationMethod(
+          id: did,
+          controller: keyId,
+          type: 'Multikey',
+          publicKeyMultibase: multibase,
+        )
+      ],
+      authentication: [keyId],
+      assertionMethod: [keyId],
+      capabilityInvocation: [keyId],
+      capabilityDelegation: [keyId],
+    );
   }
 
   static Future<DidDocument> resolve(String did) {
@@ -140,46 +152,14 @@ class DidKey implements Did {
   }
 
   static const commonDidKeyPrefix = 'did:key:z';
-  static const Map<KeyType, String> _didKeyPrefixes = {
-    KeyType.secp256k1: '${commonDidKeyPrefix}Q3s',
-    KeyType.ed25519: '${commonDidKeyPrefix}6Mk',
-  };
+
+  // static const Map<KeyType, String> _didKeyPrefixes = {
+  //   KeyType.secp256k1: '${commonDidKeyPrefix}Q3s',
+  //   KeyType.ed25519: '${commonDidKeyPrefix}6Mk',
+  // };
 
   static const Map<KeyType, List<int>> _didKeyMulticodes = {
     KeyType.secp256k1: [231, 1],
     KeyType.ed25519: [237, 1],
   };
-
-  @override
-  Future<String> getDid() {
-    return Future.value(_did);
-  }
-
-  @override
-  Future<String> getDidWithKeyId() {
-    return Future.value("$_did#${_did.substring("did:key:".length)}");
-  }
-
-  @override
-  Future<Uint8List> getPublicKey() {
-    final keyType = _didKeyPrefixes.entries
-        .where((e) => _did.startsWith(e.value))
-        .map((e) => e.key)
-        .firstOrNull;
-
-    if (keyType == null) {
-      throw FormatException('Unsupported DID key format');
-    }
-
-    final multicode = _didKeyMulticodes[keyType]!;
-    final bytes = base58BitcoinDecode(
-      _did.substring(commonDidKeyPrefix.length),
-    );
-    return Future.value(bytes.sublist(multicode.length));
-  }
-
-  @override
-  String toString() {
-    return _did;
-  }
 }
