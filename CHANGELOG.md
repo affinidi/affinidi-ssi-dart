@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-04-01
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`affinidi_ssi` - `v1.0.0-dev.8`](#affinidi_ssi---v100-dev8)
+
+---
+
+#### `affinidi_ssi` - `v1.0.0-dev.8`
+
+ - **FEAT**: VC interfaces.
+
+## 1.0.0-dev.8
+
+ - **FEAT**: VC interfaces.
+
+
 ## 2025-03-28
 
 ### Changes
