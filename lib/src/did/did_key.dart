@@ -42,14 +42,15 @@ Future<DidDocument> _buildEDDoc(
 
   return Future.value(
     DidDocument(
-        context: context,
-        id: id,
-        verificationMethod: [verification, keyAgreement],
-        assertionMethod: [verificationKeyId],
-        keyAgreement: [agreementKeyId],
-        authentication: [verificationKeyId],
-        capabilityDelegation: [verificationKeyId],
-        capabilityInvocation: [verificationKeyId]),
+      context: context,
+      id: id,
+      verificationMethod: [verification, keyAgreement],
+      assertionMethod: [verificationKeyId],
+      keyAgreement: [agreementKeyId],
+      authentication: [verificationKeyId],
+      capabilityDelegation: [verificationKeyId],
+      capabilityInvocation: [verificationKeyId],
+    ),
   );
 }
 

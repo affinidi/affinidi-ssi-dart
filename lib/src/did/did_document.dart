@@ -305,6 +305,7 @@ class DidDocument implements JsonObject {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> jsonObject = {};
     jsonObject['id'] = id;
+    if (context.isNotEmpty) jsonObject['@context'] = context;
     if (alsoKnownAs.isNotEmpty) jsonObject['alsoKnownAs'] = alsoKnownAs;
     if (controller.isNotEmpty) jsonObject['controller'] = controller;
     if (verificationMethod.isNotEmpty) {
