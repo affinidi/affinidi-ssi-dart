@@ -3,18 +3,21 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../types.dart';
 import '../utility.dart';
-
 import 'did_document.dart';
-
-import 'did.dart';
 
 class BaseKey {
   KeyType keyType;
-  List<int> pubKeyBytes;
-  BaseKey(this.pubKeyBytes, this.keyType);
+  Uint8List pubKeyBytes;
+
+  BaseKey(
+    this.pubKeyBytes,
+    this.keyType,
+  );
 }
 
 enum Numalgo2Prefix {
@@ -23,11 +26,12 @@ enum Numalgo2Prefix {
   service("S");
 
   final String value;
+
   const Numalgo2Prefix(this.value);
 }
 
 final RegExp peerDIDPattern = RegExp(
-    r'^did:peer:(([0](z)[1-9a-km-zA-HJ-NP-Z]+)|([2](\.[AEVID](z)[1-9a-km-zA-HJ-NP-Z]+)+)+(\.(S)[0-9a-zA-Z]*)?)');
+    r'^did:peer:((0(z)[1-9a-km-zA-HJ-NP-Z]+)|(2(\.[AEVID](z)[1-9a-km-zA-HJ-NP-Z]+)+)+(\.(S)[0-9a-zA-Z]*)?)');
 
 bool isPeerDID(String peerDID) {
   return peerDIDPattern.hasMatch(peerDID);
@@ -171,13 +175,20 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
 }
 
 Future<DidDocument> _buildEDDoc(
-    List<String> context, String id, String keyPart) {
+  List<String> context,
+  String id,
+  String keyPart,
+) {
   var multiCodecXKey =
       ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
   if (!multiCodecXKey.startsWith('6LS')) {
-    throw Exception(
-        'Something went wrong during conversion from Ed25515 to curve25519 key');
+    throw SsiException(
+      message:
+          'Something went wrong during conversion from Ed25515 to curve25519 key',
+      code: SsiExceptionType.invalidDidPeer.code,
+    );
   }
+
   String verificationKeyId = '$id#$keyPart';
   String agreementKeyId = '$id#z$multiCodecXKey';
 
@@ -218,24 +229,37 @@ Future<DidDocument> _buildXDoc(
       keyAgreement: [verificationKeyId]));
 }
 
-class DidPeer implements Did {
-  final String _did;
-  late DidPeerType _didType;
-  DidPeer(did) : _did = did {
-    if (_did.startsWith(_didTypePrefixes[DidPeerType.peer0]!)) {
-      _didType = DidPeerType.peer0;
-    } else {
-      _didType = DidPeerType.peer2;
+class DidPeer {
+  static DidPeerType determineType(String did) {
+    for (final entry in _didTypePrefixes.entries) {
+      if (did.startsWith(entry.value)) {
+        return entry.key;
+      }
     }
+    throw SsiException(
+      message: 'Unknown did peer type `$did`',
+      code: SsiExceptionType.invalidDidDocument.code,
+    );
+  }
+
+  static String _computeMultibase(
+    Uint8List pubKeyBytes,
+    KeyType keyType,
+  ) {
+    final multicodec = _keyMulticodes[keyType]!;
+    return base58Bitcoin.encode(
+      Uint8List.fromList([...multicodec, ...pubKeyBytes]),
+    );
   }
 
   static String _getDidPeerMultibasePart(
-      List<int> pubKeyBytes, KeyType keyType) {
-    final multicodec = _keyMulticodes[keyType]!;
-    return 'z${base58Bitcoin.encode(Uint8List.fromList([
-          ...multicodec,
-          ...pubKeyBytes
-        ]))}';
+    Uint8List pubKeyBytes,
+    KeyType keyType,
+  ) {
+    return 'z${_computeMultibase(
+      pubKeyBytes,
+      keyType,
+    )}';
   }
 
   static String _buildServiceEncoded(String? serviceEndpoint) {
@@ -304,8 +328,18 @@ class DidPeer implements Did {
     }
   }
 
-  static Future<DidPeer> create(List<KeyPair> keyPairs,
-      [String? serviceEndpoint]) async {
+  //FIXME should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
+  static Future<DidDocument> create(
+    List<KeyPair> keyPairs, {
+    String? serviceEndpoint,
+  }) async {
+    if (keyPairs.isEmpty) {
+      throw SsiException(
+        message: 'At least one key must be provided',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
+    }
+
     List<BaseKey> baseKeys = [];
 
     for (var keyPair in keyPairs) {
@@ -317,12 +351,41 @@ class DidPeer implements Did {
     }
 
     final did = _pubKeyToPeerDid(baseKeys, serviceEndpoint);
-    return DidPeer(did);
+
+    final verificationMethods = <VerificationMethod>[];
+    for (var i = 0; i < keyPairs.length; i++) {
+      final keyPair = keyPairs[i];
+      verificationMethods.add(
+        VerificationMethod(
+          id: did,
+          controller: 'key$i', // FIXME should come from the outside
+          type: 'Multikey',
+          publicKeyMultibase: _computeMultibase(
+            await keyPair.getPublicKey(),
+            await keyPair.getKeyType(),
+          ),
+        ),
+      );
+    }
+
+    // FIXME should match arguments
+    final keyId = verificationMethods[0].id;
+    return DidDocument(
+      id: did,
+      verificationMethod: verificationMethods,
+      authentication: [keyId],
+      assertionMethod: [keyId],
+      capabilityInvocation: [keyId],
+      capabilityDelegation: [keyId],
+    );
   }
 
   static Future<DidDocument> resolve(String did) {
     if (!isPeerDID(did)) {
-      throw Exception('`$did` Does not match peer DID regexp.');
+      throw SsiException(
+        message: '`$did` Does not match peer DID regexp.',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
     }
 
     bool isPeer0 = did[9] == '0';
@@ -333,10 +396,10 @@ class DidPeer implements Did {
     }
   }
 
-  static const Map<KeyType, String> _keyTypePrefixes = {
-    KeyType.x25519: '6LS',
-    KeyType.ed25519: '6Mk',
-  };
+  // static const Map<KeyType, String> _keyTypePrefixes = {
+  //   KeyType.x25519: '6LS',
+  //   KeyType.ed25519: '6Mk',
+  // };
 
   static const Map<KeyType, List<int>> _keyMulticodes = {
     KeyType.x25519: [236, 1],
@@ -347,59 +410,4 @@ class DidPeer implements Did {
     DidPeerType.peer0: 'did:peer:0',
     DidPeerType.peer2: 'did:peer:2',
   };
-
-  String _getFirstMultiBaseSigninKey(String did) {
-    if (_didType == DidPeerType.peer0) {
-      return did.substring("did:peer:0z".length);
-    } else {
-      String keysPart = did.substring(11);
-      var keys = keysPart.split('.');
-      List<String> signinKeys = [];
-
-      for (var key in keys) {
-        var prefix = key[0];
-        var keyPart = key.substring(1);
-        if (prefix == Numalgo2Prefix.authentication.value) {
-          signinKeys.add(keyPart);
-        }
-      }
-
-      return signinKeys[0].substring(1);
-    }
-  }
-
-  @override
-  Future<String> getDid() {
-    return Future.value(_did);
-  }
-
-  @override
-  Future<String> getDidWithKeyId() {
-    String multiBaseKey = _getFirstMultiBaseSigninKey(_did);
-    return Future.value("$_did#$multiBaseKey");
-  }
-
-  @override
-  Future<Uint8List> getPublicKey() {
-    String multiBaseKey = _getFirstMultiBaseSigninKey(_did);
-
-    final keyType = _keyTypePrefixes.entries
-        .where((e) => multiBaseKey.startsWith(e.value))
-        .map((e) => e.key)
-        .firstOrNull;
-
-    if (keyType == null) {
-      throw FormatException('Unsupported DID key format');
-    }
-
-    final multicode = _keyMulticodes[keyType]!;
-    final bytes = base58BitcoinDecode(multiBaseKey);
-
-    return Future.value(bytes.sublist(multicode.length));
-  }
-
-  @override
-  String toString() {
-    return _did;
-  }
 }

@@ -6,7 +6,6 @@ library;
 export 'src/credentials/factories/verifiable_credential_factory.dart';
 export 'src/credentials/models/credential_schema.dart';
 export 'src/credentials/models/verifiable_credential.dart';
-export 'src/did/did.dart';
 export 'src/did/did_key.dart';
 export 'src/did/did_peer.dart';
 export 'src/did/did_web.dart';
