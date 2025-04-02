@@ -214,25 +214,13 @@ Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
 
 /// Returns a decoded varint staring at the first byte of [varint] and the
 /// number of bytes read.
-(Uint8List, int) decodeVarint(
+(Uint8List decoded, int readBytes) decodeVarint(
   Uint8List varint, {
   int start = 0,
 }) {
-  if (varint.isEmpty) {
+  if (varint.isEmpty || start >= varint.length) {
     throw FormatException('Empty input');
   }
-
-  List<int> content = [];
-  int i = start;
-  bool shouldContinue = true;
-  while (i < varint.length && shouldContinue) {
-    final value = varint[i] & 0x7F;
-    content.insert(0, value);
-
-    shouldContinue = (varint[i] & 0x80) > 0;
-    i++;
-  }
-  final readBytes = i - start;
 
   Map<int, int> masks = {
     7: 0x01,
@@ -245,10 +233,14 @@ Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
   };
 
   List<int> intValue = [];
-  var leftOver = content[content.length - 1];
+
+  var i = start + 1;
+  int leftOver = varint[start] & 0x7F;
   var leftOverLen = 7;
-  for (int i = content.length - 2; i >= 0; i--) {
-    final packedByte = content[i];
+
+  var hasNext = (varint[start] & 0x80) > 0;
+  while (hasNext && i < varint.length) {
+    final packedByte = varint[i] & 0x7F;
 
     final byte = leftOver | ((packedByte & masks[leftOverLen]!) << leftOverLen);
     intValue.insert(0, byte);
@@ -256,16 +248,24 @@ Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
     leftOver = packedByte >> (8 - leftOverLen);
     leftOverLen -= 1;
 
-    if (leftOverLen == 0 && i > 0) {
-      leftOver = content[i - 1];
+    hasNext = (varint[i] & 0x80) > 0;
+    i++;
+
+    if (leftOverLen == 0 && i < varint.length - 1 && hasNext) {
+      leftOver = varint[i + 1];
       leftOverLen = 7;
-      i--;
+      i++;
     }
   }
   if (leftOver > 0) {
     intValue.insert(0, leftOver);
   }
 
+  if (hasNext) {
+    throw FormatException('End reached without complete varint');
+  }
+
+  final readBytes = i - start;
   return (Uint8List.fromList(intValue), readBytes);
 }
 

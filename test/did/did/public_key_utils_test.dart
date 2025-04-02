@@ -35,6 +35,21 @@ void main() {
         8,
       );
     });
+
+    test('decode should throw exception end of stream', () async {
+      shouldThrow() => decodeVarint(Uint8List.fromList([0xFF]));
+
+      expect(
+        shouldThrow,
+        throwsA(
+          isA<FormatException>().having(
+            (error) => error.message,
+            'message',
+            'End reached without complete varint',
+          ),
+        ),
+      );
+    });
   });
 
   group('Test multi-base', () {
