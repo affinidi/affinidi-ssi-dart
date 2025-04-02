@@ -19,8 +19,7 @@ Map<String, dynamic> jsonToMap(dynamic input) {
       if (key is! String) {
         throw SsiException(
           message:
-          'jsonToMap: unsupported datatype ${key
-              .runtimeType} for `$key`, keys must be String,',
+              'jsonToMap: unsupported datatype ${key.runtimeType} for `$key`, keys must be String,',
           code: SsiExceptionType.invalidDidDocument.code,
         );
       }
@@ -29,8 +28,7 @@ Map<String, dynamic> jsonToMap(dynamic input) {
   } else {
     throw SsiException(
       message:
-      'jsonToMap: unknown datatype ${input
-          .runtimeType} for `$input`. Only String or Map<String, dynamic> accepted',
+          'jsonToMap: unknown datatype ${input.runtimeType} for `$input`. Only String or Map<String, dynamic> accepted',
       code: SsiExceptionType.invalidDidDocument.code,
     );
   }
@@ -61,8 +59,7 @@ class DidDocument implements JsonObject {
     assertionMethod,
     capabilityDelegation,
     capabilityInvocation,
-  })
-      : context = context ?? [],
+  })  : context = context ?? [],
         alsoKnownAs = alsoKnownAs ?? [],
         controller = controller ?? [],
         verificationMethod = verificationMethod ?? [],
@@ -251,7 +248,7 @@ class DidDocument implements JsonObject {
       } else {
         throw SsiException(
           message:
-          'Element $entry has unsupported Datatype ${entry.runtimeType}',
+              'Element $entry has unsupported Datatype ${entry.runtimeType}',
           code: SsiExceptionType.invalidDidDocument.code,
         );
       }
