@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/did/public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -140,7 +141,7 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
       id: kid,
       controller: did,
       type: type, // Multikey ?
-      publicKeyMultibase: base58Bitcoin.decode(agreementKey.substring(1)),
+      publicKeyMultibase: agreementKey,
     );
 
     verificationMethod.add(verification);
@@ -158,7 +159,7 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
       id: kid,
       controller: did,
       type: type, // Multikey ?
-      publicKeyMultibase: base58Bitcoin.decode(authenticationKey.substring(1)),
+      publicKeyMultibase: authenticationKey,
     );
 
     verificationMethod.add(verification);
@@ -201,7 +202,7 @@ Future<DidDocument> _buildEDDoc(
     id: verificationKeyId,
     controller: id,
     type: 'Ed25519VerificationKey2020',
-    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+    publicKeyMultibase: 'z$keyPart',
   );
   // var keyAgreement = VerificationMethod(
   //     id: agreementKeyId,
@@ -233,7 +234,7 @@ Future<DidDocument> _buildXDoc(
     id: verificationKeyId,
     controller: id,
     type: 'X25519KeyAgreementKey2020',
-    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+    publicKeyMultibase: 'z$keyPart',
   );
   return Future.value(
     DidDocument(
@@ -258,33 +259,6 @@ class DidPeer {
     );
   }
 
-  static String _computeMultibase(
-    Uint8List pubKeyBytes,
-    KeyType keyType,
-  ) {
-    return base58Bitcoin.encode(
-      _computeMultibaseUint8List(pubKeyBytes, keyType),
-    );
-  }
-
-  static Uint8List _computeMultibaseUint8List(
-    Uint8List pubKeyBytes,
-    KeyType keyType,
-  ) {
-    final multicodec = _keyMulticodes[keyType]!;
-    return Uint8List.fromList([...multicodec, ...pubKeyBytes]);
-  }
-
-  static String _getDidPeerMultibasePart(
-    Uint8List pubKeyBytes,
-    KeyType keyType,
-  ) {
-    return 'z${_computeMultibase(
-      pubKeyBytes,
-      keyType,
-    )}';
-  }
-
   static String _buildServiceEncoded(String? serviceEndpoint) {
     if (serviceEndpoint == null) {
       return '';
@@ -307,8 +281,9 @@ class DidPeer {
 
     if (isDid0) {
       dynamic signingKey = signingKeys[0];
-      var multibase =
-          _getDidPeerMultibasePart(signingKey.pubKeyBytes, signingKey.keyType);
+      final multibase = toMultibase(
+        toMultikey(signingKey.pubKeyBytes, signingKey.keyType),
+      );
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
 
@@ -321,15 +296,21 @@ class DidPeer {
     String agreementKeysStr = isAgreementNotEmpty
         ? encSep +
             agreementKeys
-                .map((key) =>
-                    _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType))
+                .map(
+                  (key) => toMultibase(
+                    toMultikey(key.pubKeyBytes, key.keyType),
+                  ),
+                )
                 .join(encSep)
         : '';
     String authKeysStr = signingKeys.isNotEmpty
         ? authSep +
             signingKeys
-                .map((key) =>
-                    _getDidPeerMultibasePart(key.pubKeyBytes, key.keyType))
+                .map(
+                  (key) => toMultibase(
+                    toMultikey(key.pubKeyBytes, key.keyType),
+                  ),
+                )
                 .join(authSep)
         : '';
     String serviceStr = _buildServiceEncoded(serviceEndpoint);
@@ -383,9 +364,11 @@ class DidPeer {
           id: did,
           controller: 'key$i', // FIXME should come from the outside
           type: 'Multikey',
-          publicKeyMultibase: _computeMultibaseUint8List(
-            await keyPair.getPublicKey(),
-            await keyPair.getKeyType(),
+          publicKeyMultibase: toMultibase(
+            toMultikey(
+              await keyPair.getPublicKey(),
+              await keyPair.getKeyType(),
+            ),
           ),
         ),
       );
@@ -423,11 +406,6 @@ class DidPeer {
   //   KeyType.x25519: '6LS',
   //   KeyType.ed25519: '6Mk',
   // };
-
-  static const Map<KeyType, List<int>> _keyMulticodes = {
-    KeyType.x25519: [236, 1],
-    KeyType.ed25519: [237, 1],
-  };
 
   static const Map<DidPeerType, String> _didTypePrefixes = {
     DidPeerType.peer0: 'did:peer:0',

@@ -5,13 +5,27 @@ import 'package:base_codecs/base_codecs.dart';
 import 'package:elliptic/elliptic.dart' as elliptic;
 import 'package:pointycastle/src/utils.dart' as p_utils;
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
+import '../types.dart';
+
 Uint8List _multibaseToUint8List(String multibase) {
-  final indicator =
-  switch
-  if (multibase.startsWith('z')) {
-    return base58BitcoinDecode(multibase.substring(1));
-  } else {
-    throw UnimplementedError('Unsupported multibase indicator ${multibase[0]}');
+  if (multibase.isEmpty) {
+    throw SsiException(
+      message: 'Empty multibase',
+      code: SsiExceptionType.invalidDidDocument.code,
+    );
+  }
+
+  final indicator = multibase[0];
+  switch (indicator) {
+    case 'z':
+      return base58BitcoinDecode(multibase.substring(1));
+
+    default:
+      throw UnimplementedError(
+        'Unsupported multibase indicator ${multibase[0]}',
+      );
   }
 }
 
@@ -227,4 +241,27 @@ Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
   }
 
   return (Uint8List.fromList(intValue), readBytes);
+}
+
+String toMultibase(Uint8List multibase) {
+  return 'z${base58BitcoinEncode(multibase)}';
+}
+
+const Map<KeyType, List<int>> keyIndicators = {
+  KeyType.x25519: [236, 1],
+  KeyType.ed25519: [237, 1],
+};
+
+Uint8List toMultikey(
+  Uint8List pubKeyBytes,
+  KeyType keyType,
+) {
+  if (!keyIndicators.containsKey(keyType)) {
+    throw SsiException(
+      message: "toMultikey: $keyType not supported",
+      code: SsiExceptionType.other.code,
+    );
+  }
+  final indicator = keyIndicators[keyType]!;
+  return Uint8List.fromList([...indicator, ...pubKeyBytes]);
 }

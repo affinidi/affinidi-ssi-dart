@@ -444,8 +444,8 @@ abstract class VerificationMethod implements JsonObject {
   /// Returns the public key as a JWK representation
   Jwk asJwk();
 
-  /// Returns the public key verification
-  Uint8List asMultibase();
+  /// Returns the public key as a multikey representation
+  Uint8List asMultikey();
 
   static VerificationMethod fromJson(dynamic input) {
     var json = jsonToMap(input);
@@ -466,12 +466,11 @@ abstract class VerificationMethod implements JsonObject {
         publicKeyJwk: jwk,
       );
     } else if (publicKeyMultibase != null) {
-      final multibase = _multibaseToUint8List(publicKeyMultibase);
       return VerificationMethodMultibase(
         id: id,
         type: type,
         controller: controller,
-        publicKeyMultibase: multibase,
+        publicKeyMultibase: publicKeyMultibase,
       );
     }
 
@@ -538,7 +537,7 @@ class VerificationMethodJwk extends VerificationMethod {
   }
 
   @override
-  Uint8List asMultibase() {
+  Uint8List asMultikey() {
     // TODO: implement asMultibase
     throw UnimplementedError();
   }
@@ -554,30 +553,33 @@ class VerificationMethodJwk extends VerificationMethod {
 }
 
 class VerificationMethodMultibase extends VerificationMethod {
-  final Uint8List publicKeyMultibase;
+  late final Uint8List publicKeyMultikey;
+  final String publicKeyMultibase;
 
   VerificationMethodMultibase({
     required super.id,
     required super.controller,
     required super.type,
     required this.publicKeyMultibase,
-  });
-
-  @override
-  Jwk asJwk() {
-    return Jwk.fromJson(multikeyToJwk(publicKeyMultibase));
+  }) {
+    publicKeyMultikey = _multibaseToUint8List(publicKeyMultibase);
   }
 
   @override
-  Uint8List asMultibase() {
-    return publicKeyMultibase;
+  Jwk asJwk() {
+    return Jwk.fromJson(multikeyToJwk(publicKeyMultikey));
+  }
+
+  @override
+  Uint8List asMultikey() {
+    return publicKeyMultikey;
   }
 
   @override
   Map<String, dynamic> toJson() {
     final jsonObject = super.toJson();
 
-    jsonObject['publicKeyMultibase'] = _multibaseToString(publicKeyMultibase);
+    jsonObject['publicKeyMultibase'] = publicKeyMultibase;
 
     return jsonObject;
   }
@@ -671,8 +673,4 @@ Uint8List _multibaseToUint8List(String multibase) {
   }
 
   return base58BitcoinDecode(multibase.substring(1));
-}
-
-String _multibaseToString(Uint8List multibase) {
-  return 'z${base58BitcoinEncode(multibase)}';
 }

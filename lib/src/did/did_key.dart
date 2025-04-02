@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/did/public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -31,13 +32,13 @@ Future<DidDocument> _buildEDDoc(
     id: verificationKeyId,
     controller: id,
     type: 'Ed25519VerificationKey2020',
-    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+    publicKeyMultibase: 'z$keyPart',
   );
   var keyAgreement = VerificationMethodMultibase(
     id: agreementKeyId,
     controller: id,
     type: 'X25519KeyAgreementKey2020',
-    publicKeyMultibase: base58Bitcoin.decode(multiCodecXKey),
+    publicKeyMultibase: 'z$multiCodecXKey',
   );
 
   return Future.value(
@@ -64,7 +65,7 @@ Future<DidDocument> _buildXDoc(
     id: verificationKeyId,
     controller: id,
     type: 'X25519KeyAgreementKey2020',
-    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+    publicKeyMultibase: 'z$keyPart',
   );
   return Future.value(
     DidDocument(
@@ -87,7 +88,7 @@ Future<DidDocument> _buildOtherDoc(
     id: verificationKeyId,
     controller: id,
     type: type,
-    publicKeyMultibase: base58Bitcoin.decode(keyPart),
+    publicKeyMultibase: 'z$keyPart',
   );
   return Future.value(
     DidDocument(
@@ -109,7 +110,7 @@ class DidKey {
     final keyType = await keyPair.getKeyType();
     final publicKey = await keyPair.getPublicKey();
     final multicodec = _didKeyMulticodes[keyType]!;
-    final multibase = base58BitcoinEncode(
+    final multibase = toMultibase(
       Uint8List.fromList([...multicodec, ...publicKey]),
     );
     final did = '$commonDidKeyPrefix$multibase';
@@ -123,7 +124,7 @@ class DidKey {
           id: did,
           controller: keyId,
           type: 'Multikey',
-          publicKeyMultibase: Uint8List.fromList([...multicodec, ...publicKey]),
+          publicKeyMultibase: multibase,
         )
       ],
       authentication: [keyId],
@@ -187,7 +188,7 @@ class DidKey {
     }
   }
 
-  static const commonDidKeyPrefix = 'did:key:z';
+  static const commonDidKeyPrefix = 'did:key:';
 
   // static const Map<KeyType, String> _didKeyPrefixes = {
   //   KeyType.secp256k1: '${commonDidKeyPrefix}Q3s',
