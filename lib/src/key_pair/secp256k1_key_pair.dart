@@ -15,7 +15,8 @@ class Secp256k1KeyPair implements KeyPair {
         _keyId = keyId;
 
   @override
-  get privateKey => _node.privateKey;
+  get privateKey =>
+      _node.privateKey ?? (throw Exception("Private key is missing"));
 
   @override
   Future<String> getKeyId() async => _keyId;

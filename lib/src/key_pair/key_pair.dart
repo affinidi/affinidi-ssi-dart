@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import '../types.dart';
 
 abstract interface class KeyPair {
-  Uint8List? get privateKey;
+  Uint8List get privateKey;
 
   List<SignatureScheme> get supportedSignatureSchemes;
 
