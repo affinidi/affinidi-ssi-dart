@@ -1,12 +1,9 @@
-import 'dart:typed_data';
-
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/did/public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
-import '../types.dart';
 import '../utility.dart';
 import 'did_document.dart';
 
@@ -109,10 +106,8 @@ class DidKey {
     var keyPair = keyPairs[0];
     final keyType = await keyPair.getKeyType();
     final publicKey = await keyPair.getPublicKey();
-    final multicodec = _didKeyMulticodes[keyType]!;
-    final multibase = toMultiBase(
-      Uint8List.fromList([...multicodec, ...publicKey]),
-    );
+    final multiKey = toMultikey(publicKey, keyType);
+    final multibase = toMultiBase(multiKey);
     final did = '$commonDidKeyPrefix$multibase';
     final keyId = '$did#$multibase';
 
@@ -189,14 +184,4 @@ class DidKey {
   }
 
   static const commonDidKeyPrefix = 'did:key:';
-
-  // static const Map<KeyType, String> _didKeyPrefixes = {
-  //   KeyType.secp256k1: '${commonDidKeyPrefix}Q3s',
-  //   KeyType.ed25519: '${commonDidKeyPrefix}6Mk',
-  // };
-
-  static const Map<KeyType, List<int>> _didKeyMulticodes = {
-    KeyType.secp256k1: [231, 1],
-    KeyType.ed25519: [237, 1],
-  };
 }
