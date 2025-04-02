@@ -218,3 +218,60 @@ BigInt bytesToUnsignedInt(Uint8List bytes) {
 }
 
 Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
+
+/// Returns a decoded varint staring at the first byte of [varint] and the
+/// number of bytes read.
+(Uint8List, int) decodeVarint(
+  Uint8List varint, {
+  int start = 0,
+}) {
+  if (varint.isEmpty) {
+    throw FormatException('Empty input');
+  }
+
+  List<int> content = [];
+  int i = start;
+  bool shouldContinue = true;
+  while (i < varint.length && shouldContinue) {
+    final value = varint[i] & 0x7F;
+    content.insert(0, value);
+
+    shouldContinue = (varint[i] & 0x80) > 0;
+    i++;
+  }
+  final readBytes = i - start;
+
+  Map<int, int> masks = {
+    7: 0x01,
+    6: 0x03,
+    5: 0x07,
+    4: 0x0F,
+    3: 0x1F,
+    2: 0x3F,
+    1: 0x7F,
+  };
+
+  List<int> intValue = [];
+  var leftOver = content[content.length - 1];
+  var leftOverLen = 7;
+  for (int i = content.length - 2; i >= 0; i--) {
+    final packedByte = content[i];
+
+    final byte = leftOver | ((packedByte & masks[leftOverLen]!) << leftOverLen);
+    intValue.insert(0, byte);
+
+    leftOver = packedByte >> (8 - leftOverLen);
+    leftOverLen -= 1;
+
+    if (leftOverLen == 0 && i > 0) {
+      leftOver = content[i - 1];
+      leftOverLen = 7;
+      i--;
+    }
+  }
+  if (leftOver > 0) {
+    intValue.insert(0, leftOver);
+  }
+
+  return (Uint8List.fromList(intValue), readBytes);
+}
