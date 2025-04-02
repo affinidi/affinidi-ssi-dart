@@ -20,8 +20,8 @@ class Secp256k1KeyPair implements KeyPair {
   Uint8List get privateKey =>
       _node.privateKey ??
       (throw SsiException(
-        message: 'Private key is missing',
-        code: SsiExceptionType.privateKeyisMissing.code,
+        message: 'Key pair mssing private key',
+        code: SsiExceptionType.keyPairMissingPrivateKey.code,
       ));
 
   @override
