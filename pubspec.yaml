@@ -1,6 +1,6 @@
 name: ssi
 description: Affinidi SSI library
-version: 1.0.0-dev.9
+version: 1.0.0-dev.10
 repository: https://github.com/affinidi/affinidi-ssi-dart
 environment:
   sdk: ^3.6.1

@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v1.0.0-dev.10`](#ssi---v100-dev10)
+
+---
+
+#### `ssi` - `v1.0.0-dev.10`
+
+ - **FEAT**: DID handling refactoring (#11).
+
+## 1.0.0-dev.10
+
+ - **FEAT**: DID handling refactoring (#11).
+
+
+## 2025-04-02
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v1.0.0-dev.9`](#ssi---v100-dev9)
 
 ---
