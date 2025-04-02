@@ -3,6 +3,9 @@ enum SsiExceptionType {
   /// The Verifiable Credential Object Data Model is not supported
   unableToParseVerifiableCredential(code: 'unable_to_parse'),
 
+  /// KeyPair missing private key
+  keyPairMissingPrivateKey(code: 'key_pair_missing_private_key'),
+
   /// An error occurred while trying to resolve a did
   unableToResolveDid(code: 'unable_to_resolve_did'),
 
