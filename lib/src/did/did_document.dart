@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 
-import '../credentials/exceptions/ssi_exception.dart';
-import '../credentials/exceptions/ssi_exception_type.dart';
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 
 /// Converts [input] to a `Map<String, dynamic>`

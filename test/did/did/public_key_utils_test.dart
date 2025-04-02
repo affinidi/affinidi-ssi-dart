@@ -1,8 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/did/public_key_utils.dart';
-import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
