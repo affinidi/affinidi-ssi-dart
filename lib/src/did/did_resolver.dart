@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../credentials/exceptions/ssi_exception.dart';
-import '../credentials/exceptions/ssi_exception_type.dart';
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import 'did_document.dart';
 import 'did_key.dart';
 import 'did_peer.dart';

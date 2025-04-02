@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import '../credentials/exceptions/ssi_exception.dart';
-import '../credentials/exceptions/ssi_exception_type.dart';
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 
 Map<String, dynamic> credentialToMap(dynamic credential) {

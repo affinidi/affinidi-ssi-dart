@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 
-import '../credentials/exceptions/ssi_exception.dart';
-import '../credentials/exceptions/ssi_exception_type.dart';
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../types.dart';
 import '../utility.dart';
