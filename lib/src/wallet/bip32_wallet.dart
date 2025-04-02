@@ -12,7 +12,6 @@ class Bip32Wallet implements Wallet {
   static const rootKeyId = "0-0";
 
   final Map<String, Secp256k1KeyPair> _keyMap;
-  // TODO: Export the key map for recovery. Use PEM as format?
 
   Bip32Wallet._(this._keyMap);
 

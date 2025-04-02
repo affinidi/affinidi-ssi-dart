@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:base_codecs/base_codecs.dart';
-import 'package:affinidi_ssi/affinidi_ssi.dart';
+import 'package:ssi/ssi.dart';
 
 void main() async {
   final seed = hexDecode(
@@ -22,7 +22,7 @@ void main() async {
 
   // did
   final rootKeyPair = await wallet.getKeyPair(rootKeyId);
-  final rootDidKey = await DidKey.create(rootKeyPair);
+  final rootDidKey = await DidKey.create([rootKeyPair]);
   print('root did: $rootDidKey');
   final rootPublicKeyFromDid = await rootDidKey.getPublicKey();
   print('public key from root did: ${hexEncode(rootPublicKeyFromDid)}');
@@ -40,7 +40,7 @@ void main() async {
       'check if profile signature is valid by public key: $isProfileSignatureValid');
 
   // did
-  final profileDidKey = await DidKey.create(profileKeyPair);
+  final profileDidKey = await DidKey.create([profileKeyPair]);
   print('profile did: $profileDidKey');
   final profilePublicKeyFromDid = await profileDidKey.getPublicKey();
   print('public key from profile did: ${hexEncode(profilePublicKeyFromDid)}');
