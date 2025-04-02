@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/did/public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -424,7 +425,7 @@ class Jwk {
     }
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, String> toJson() {
     return doc;
   }
 }
@@ -564,8 +565,7 @@ class VerificationMethodMultibase extends VerificationMethod {
 
   @override
   Jwk asJwk() {
-    // TODO: implement asJwk
-    throw UnimplementedError();
+    return Jwk.fromJson(multikeyToJwk(publicKeyMultibase));
   }
 
   @override

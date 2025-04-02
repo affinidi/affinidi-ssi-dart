@@ -6,6 +6,8 @@ import 'package:elliptic/elliptic.dart' as elliptic;
 import 'package:pointycastle/src/utils.dart' as p_utils;
 
 Uint8List _multibaseToUint8List(String multibase) {
+  final indicator =
+  switch
   if (multibase.startsWith('z')) {
     return base58BitcoinDecode(multibase.substring(1));
   } else {
@@ -26,21 +28,20 @@ String multibaseToBase64Url(String multibase) {
   return base64UrlEncode(_multibaseToUint8List(multibase));
 }
 
-Map<String, dynamic> multibaseKeyToJwk(String multibaseKey) {
-  var key = _multibaseToUint8List(multibaseKey);
-  var indicator = key.sublist(0, 2);
+Map<String, dynamic> multikeyToJwk(Uint8List multikey) {
+  final indicator = multikey.sublist(0, 2);
+  final key = multikey.sublist(2);
 
-  switch (indicator) {
-    case [0xED, 0x01]:
-  }
-  var indicatorHex = bytesToHex(indicator);
-  key = key.sublist(2);
+  final indicatorHex = hex.encode(indicator);
+
+  // see https://www.w3.org/TR/cid-1.0/#Multikey for indicators
+  // FIXME add validations for length
   Map<String, dynamic> jwk = {};
-  if (indicatorHex == 'ed01') {
+  if (indicatorHex == 'ED01') {
     jwk['kty'] = 'OKP';
     jwk['crv'] = 'Ed25519';
     jwk['x'] = removePaddingFromBase64(base64UrlEncode(key));
-  } else if (indicatorHex == 'ec01') {
+  } else if (indicatorHex == 'EC01') {
     jwk['kty'] = 'OKP';
     jwk['crv'] = 'X25519';
     jwk['x'] = removePaddingFromBase64(base64UrlEncode(key));
@@ -132,17 +133,6 @@ String jwkToMultiBase(Map<String, dynamic> jwk) {
   }
 }
 
-// if (keyType == KeyType.p521) {
-// c = getP521();
-// prefix = [130, 36];
-// } else if (keyType == KeyType.p384) {
-// c = getP384();
-// prefix = [129, 36];
-// } else {
-// c = getP256();
-// prefix = [128, 36];
-// }
-
 /// Converts json-String [credential] to dart Map.
 Map<String, dynamic> credentialToMap(dynamic credential) {
   if (credential is String) {
@@ -169,43 +159,6 @@ String removePaddingFromBase64(String base64Input) {
     base64Input = base64Input.substring(0, base64Input.length - 1);
   }
   return base64Input;
-}
-
-/// If present, removes the 0x from the start of a hex-string.
-String strip0x(String hex) {
-  if (hex.startsWith('0x')) return hex.substring(2);
-  return hex;
-}
-
-/// Converts the [bytes] given as a list of integers into a hexadecimal
-/// representation.
-///
-/// If any of the bytes is outside of the range [0, 256], the method will throw.
-/// The outcome of this function will prefix a 0 if it would otherwise not be
-/// of even length. If [include0x] is set, it will prefix "0x" to the hexadecimal
-/// representation. If [forcePadLength] is set, the hexadecimal representation
-/// will be expanded with zeroes until the desired length is reached. The "0x"
-/// prefix does not count for the length.
-String bytesToHex(
-  Uint8List bytes, {
-  bool include0x = false,
-  int? forcePadLength,
-  bool padToEvenLength = false,
-}) {
-  var encoded = hex.encode(bytes);
-
-  if (forcePadLength != null) {
-    assert(forcePadLength >= encoded.length);
-
-    final padding = forcePadLength - encoded.length;
-    encoded = ('0' * padding) + encoded;
-  }
-
-  if (padToEvenLength && encoded.length % 2 != 0) {
-    encoded = '0$encoded';
-  }
-
-  return (include0x ? '0x' : '') + encoded;
 }
 
 Uint8List unsignedIntToBytes(BigInt number) {
