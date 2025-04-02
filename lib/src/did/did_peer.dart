@@ -15,8 +15,10 @@ class BaseKey {
   KeyType keyType;
   Uint8List pubKeyBytes;
 
-  BaseKey(this.pubKeyBytes,
-      this.keyType,);
+  BaseKey(
+    this.pubKeyBytes,
+    this.keyType,
+  );
 }
 
 enum Numalgo2Prefix {
@@ -178,15 +180,17 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
   );
 }
 
-Future<DidDocument> _buildEDDoc(List<String> context,
-    String id,
-    String keyPart,) {
+Future<DidDocument> _buildEDDoc(
+  List<String> context,
+  String id,
+  String keyPart,
+) {
   var multiCodecXKey =
-  ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
+      ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
   if (!multiCodecXKey.startsWith('6LS')) {
     throw SsiException(
       message:
-      'Something went wrong during conversion from Ed25515 to curve25519 key',
+          'Something went wrong during conversion from Ed25515 to curve25519 key',
       code: SsiExceptionType.invalidDidPeer.code,
     );
   }
@@ -220,9 +224,11 @@ Future<DidDocument> _buildEDDoc(List<String> context,
   );
 }
 
-Future<DidDocument> _buildXDoc(List<String> context,
-    String id,
-    String keyPart,) {
+Future<DidDocument> _buildXDoc(
+  List<String> context,
+  String id,
+  String keyPart,
+) {
   String verificationKeyId = '$id#z$keyPart';
   var verification = VerificationMethodMultibase(
     id: verificationKeyId,
@@ -265,8 +271,7 @@ class DidPeer {
       'a': ['didcomm/v2'], // accept
     });
 
-    return ".${Numalgo2Prefix.service.value}${base64UrlEncode(
-        utf8.encode(jsonString)).replaceAll('=', '')}";
+    return ".${Numalgo2Prefix.service.value}${base64UrlEncode(utf8.encode(jsonString)).replaceAll('=', '')}";
   }
 
   static String _pubKeysToPeerDid(List<BaseKey> signingKeys,
@@ -290,30 +295,27 @@ class DidPeer {
 
     String agreementKeysStr = isAgreementNotEmpty
         ? encSep +
-        agreementKeys
-            .map(
-              (key) =>
-              toMultiBase(
-                toMultikey(key.pubKeyBytes, key.keyType),
-              ),
-        )
-            .join(encSep)
+            agreementKeys
+                .map(
+                  (key) => toMultiBase(
+                    toMultikey(key.pubKeyBytes, key.keyType),
+                  ),
+                )
+                .join(encSep)
         : '';
     String authKeysStr = signingKeys.isNotEmpty
         ? authSep +
-        signingKeys
-            .map(
-              (key) =>
-              toMultiBase(
-                toMultikey(key.pubKeyBytes, key.keyType),
-              ),
-        )
-            .join(authSep)
+            signingKeys
+                .map(
+                  (key) => toMultiBase(
+                    toMultikey(key.pubKeyBytes, key.keyType),
+                  ),
+                )
+                .join(authSep)
         : '';
     String serviceStr = _buildServiceEncoded(serviceEndpoint);
 
-    return '${_didTypePrefixes[DidPeerType
-        .peer2]}$agreementKeysStr$authKeysStr$serviceStr';
+    return '${_didTypePrefixes[DidPeerType.peer2]}$agreementKeysStr$authKeysStr$serviceStr';
   }
 
   static String _pubKeyToPeerDid(List<BaseKey> baseKeys,
@@ -331,7 +333,8 @@ class DidPeer {
   }
 
   //FIXME should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
-  static Future<DidDocument> create(List<KeyPair> keyPairs, {
+  static Future<DidDocument> create(
+    List<KeyPair> keyPairs, {
     String? serviceEndpoint,
   }) async {
     if (keyPairs.isEmpty) {
