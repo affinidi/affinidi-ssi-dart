@@ -110,7 +110,7 @@ class DidKey {
     final keyType = await keyPair.getKeyType();
     final publicKey = await keyPair.getPublicKey();
     final multicodec = _didKeyMulticodes[keyType]!;
-    final multibase = toMultibase(
+    final multibase = toMultiBase(
       Uint8List.fromList([...multicodec, ...publicKey]),
     );
     final did = '$commonDidKeyPrefix$multibase';

@@ -9,23 +9,45 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 
+enum MultiBase {
+  base58bitcoin,
+  base64UrlNoPad,
+}
+
 Uint8List multiBaseToUint8List(String multibase) {
   if (multibase.isEmpty) {
     throw SsiException(
-      message: 'Empty multibase',
+      message: 'Empty multi-base',
       code: SsiExceptionType.invalidDidDocument.code,
     );
   }
 
   final indicator = multibase[0];
+  final encodedData = multibase.substring(1);
   switch (indicator) {
     case 'z':
-      return base58BitcoinDecode(multibase.substring(1));
+      return base58BitcoinDecode(encodedData);
+
+    case 'u':
+      return base64Url.decode(encodedData);
 
     default:
       throw UnimplementedError(
         'Unsupported multibase indicator ${multibase[0]}',
       );
+  }
+}
+
+String toMultiBase(
+  Uint8List multibase, {
+  MultiBase base = MultiBase.base58bitcoin,
+}) {
+  switch (base) {
+    case MultiBase.base58bitcoin:
+      return 'z${base58BitcoinEncode(multibase)}';
+
+    case MultiBase.base64UrlNoPad:
+      return 'u${removePaddingFromBase64(base64UrlEncode(multibase))}';
   }
 }
 
@@ -245,10 +267,6 @@ Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
   }
 
   return (Uint8List.fromList(intValue), readBytes);
-}
-
-String toMultibase(Uint8List multibase) {
-  return 'z${base58BitcoinEncode(multibase)}';
 }
 
 enum MultiKeyIndicator {

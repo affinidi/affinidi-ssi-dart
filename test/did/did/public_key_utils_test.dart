@@ -36,6 +36,26 @@ void main() {
       );
     });
   });
+
+  group('Test multi-base', () {
+    test('base58', () async {
+      final input = Uint8List.fromList([1, 2, 3]);
+
+      final encoded = toMultiBase(input);
+      final decoded = multiBaseToUint8List(encoded);
+
+      expect(decoded, input);
+    });
+
+    test('base64', () async {
+      final input = Uint8List.fromList([1, 2, 3]);
+
+      final encoded = toMultiBase(input, base: MultiBase.base64UrlNoPad);
+      final decoded = multiBaseToUint8List(encoded);
+
+      expect(decoded, input);
+    });
+  });
 }
 
 void _testDecode(List<int> varint, List<int> expected, int expectedLen) {

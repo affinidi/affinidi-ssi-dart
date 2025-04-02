@@ -449,7 +449,7 @@ abstract class VerificationMethod implements JsonObject {
 
   /// Returns the public key as a multibase encoded multikey
   String asMultiBase() {
-    return toMultibase(asMultiKey());
+    return toMultiBase(asMultiKey());
   }
 
   static VerificationMethod fromJson(dynamic input) {
