@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-04-02
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.9`](#ssi---v100-dev9)
+
+---
+
+#### `ssi` - `v1.0.0-dev.9`
+
+ - **FIX**: checks ci reference (#18).
+ - **FIX**: linting and  packaging issues (#5).
+ - **FIX**: implement did.
+ - **FIX**: signature scheme (#2).
+ - **FIX**: format.
+ - **FEAT**: name package & setup ci (#14).
+ - **FEAT**: VC interfaces.
+ - **FEAT**: add base resolution and did web (#8).
+ - **FEAT**: add edward curve add did peer (#7).
+
+## 1.0.0-dev.9
+
+ - **FIX**: checks ci reference (#18).
+ - **FIX**: linting and  packaging issues (#5).
+ - **FIX**: implement did.
+ - **FIX**: signature scheme (#2).
+ - **FIX**: format.
+ - **FEAT**: name package & setup ci (#14).
+ - **FEAT**: VC interfaces.
+ - **FEAT**: add base resolution and did web (#8).
+ - **FEAT**: add edward curve add did peer (#7).
+
+
 ## 2025-04-01
 
 ### Changes
