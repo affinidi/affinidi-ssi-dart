@@ -102,49 +102,71 @@ Map<String, dynamic> multikeyToJwk(Uint8List multikey) {
   return jwk;
 }
 
-String jwkToMultiBase(Map<String, dynamic> jwk) {
+Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
   var crv = jwk['crv'];
-  if (crv == 'Ed25519') {
-    return 'z${base58BitcoinEncode(Uint8List.fromList([
-          237,
-          1
-        ] + base64Decode(addPaddingToBase64(jwk['x']))))}';
-  } else if (crv == 'P-256') {
-    var c = elliptic.getP256();
-    var compressedHex = c.publicKeyToCompressedHex(elliptic.PublicKey(
-        c,
-        bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['x']))),
-        bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['y'])))));
-    var compressedBytes = hexDecode(compressedHex);
-    return 'z${base58BitcoinEncode(Uint8List.fromList([
-          128,
-          36
-        ] + compressedBytes))}';
-  } else if (crv == 'P-384') {
-    var c = elliptic.getP384();
-    var compressedHex = c.publicKeyToCompressedHex(elliptic.PublicKey(
-        c,
-        bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['x']))),
-        bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['y'])))));
-    var compressedBytes = hexDecode(compressedHex);
-    return 'z${base58BitcoinEncode(Uint8List.fromList([
-          129,
-          36
-        ] + compressedBytes))}';
-  } else if (crv == 'P-521') {
-    var c = elliptic.getP521();
-    var compressedHex = c.publicKeyToCompressedHex(elliptic.PublicKey(
-        c,
-        bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['x']))),
-        bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['y'])))));
-    var compressedBytes = hexDecode(compressedHex);
-    return 'z${base58BitcoinEncode(Uint8List.fromList([
-          130,
-          36
-        ] + compressedBytes))}';
-  } else {
-    throw Exception('unsupported curve $crv');
+
+  switch (crv) {
+    case 'Ed25519':
+      return Uint8List.fromList(
+        MultiKeyIndicator.ed25519.indicator +
+            base64Decode(
+              addPaddingToBase64(jwk['x']),
+            ),
+      );
+
+    case 'secp256k1':
+    case 'P-256K':
+      return _ecJwkToMultiKey(
+        jwk: jwk,
+        curve: elliptic.getSecp256k1(),
+        multikeyIndicator: MultiKeyIndicator.secp256k1.indicator,
+      );
+
+    case 'P-256':
+      return _ecJwkToMultiKey(
+        jwk: jwk,
+        curve: elliptic.getP256(),
+        multikeyIndicator: MultiKeyIndicator.p256.indicator,
+      );
+
+    case 'P-384':
+      return _ecJwkToMultiKey(
+        jwk: jwk,
+        curve: elliptic.getP384(),
+        multikeyIndicator: MultiKeyIndicator.p384.indicator,
+      );
+
+    case 'P-521':
+      return _ecJwkToMultiKey(
+        jwk: jwk,
+        curve: elliptic.getP521(),
+        multikeyIndicator: MultiKeyIndicator.p521.indicator,
+      );
+
+    default:
+      throw SsiException(
+        message: 'jwkToMultikey: unsupported curve $crv',
+        code: SsiExceptionType.other.code,
+      );
   }
+}
+
+Uint8List _ecJwkToMultiKey({
+  required elliptic.Curve curve,
+  required Map<String, dynamic> jwk,
+  required List<int> multikeyIndicator,
+}) {
+  var compressedHex = curve.publicKeyToCompressedHex(
+    elliptic.PublicKey(
+      curve,
+      bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['x']))),
+      bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['y']))),
+    ),
+  );
+  var compressedBytes = hexDecode(compressedHex);
+  return Uint8List.fromList(
+    multikeyIndicator + compressedBytes,
+  );
 }
 
 /// Converts json-String [credential] to dart Map.
@@ -247,10 +269,29 @@ String toMultibase(Uint8List multibase) {
   return 'z${base58BitcoinEncode(multibase)}';
 }
 
-const Map<KeyType, List<int>> keyIndicators = {
-  KeyType.x25519: [236, 1],
-  KeyType.ed25519: [237, 1],
-};
+enum MultiKeyIndicator {
+  x25519(KeyType.x25519, [0xEC, 0x01]),
+  ed25519(KeyType.ed25519, [0xED, 0x01]),
+  secp256k1(KeyType.secp256k1, [0xE7, 0x01]),
+  p256(KeyType.p256, [0x80, 0x24]),
+  p384(KeyType.p384, [0x81, 0x24]),
+  p521(KeyType.p521, [0x82, 0x24]);
+
+  final List<int> indicator;
+  final KeyType keyType;
+
+  const MultiKeyIndicator(this.keyType, this.indicator);
+}
+
+final Map<KeyType, MultiKeyIndicator> keyIndicators = _initKeyIndicatorsMap();
+
+Map<KeyType, MultiKeyIndicator> _initKeyIndicatorsMap() {
+  final Map<KeyType, MultiKeyIndicator> map = {};
+  for (final keyIndicator in MultiKeyIndicator.values) {
+    map[keyIndicator.keyType] = keyIndicator;
+  }
+  return map;
+}
 
 Uint8List toMultikey(
   Uint8List pubKeyBytes,
@@ -263,5 +304,5 @@ Uint8List toMultikey(
     );
   }
   final indicator = keyIndicators[keyType]!;
-  return Uint8List.fromList([...indicator, ...pubKeyBytes]);
+  return Uint8List.fromList([...indicator.indicator, ...pubKeyBytes]);
 }

@@ -441,11 +441,16 @@ abstract class VerificationMethod implements JsonObject {
     required this.type,
   });
 
-  /// Returns the public key as a JWK representation
+  /// Returns the public key as a JWK
   Jwk asJwk();
 
-  /// Returns the public key as a multikey representation
+  /// Returns the public key as a raw multikey
   Uint8List asMultikey();
+
+  /// Returns the public key as a multibase encoded multikey
+  String asMultibase() {
+    return toMultibase(asMultikey());
+  }
 
   static VerificationMethod fromJson(dynamic input) {
     var json = jsonToMap(input);
@@ -538,8 +543,7 @@ class VerificationMethodJwk extends VerificationMethod {
 
   @override
   Uint8List asMultikey() {
-    // TODO: implement asMultibase
-    throw UnimplementedError();
+    return jwkToMultiKey(publicKeyJwk.toJson());
   }
 
   @override
