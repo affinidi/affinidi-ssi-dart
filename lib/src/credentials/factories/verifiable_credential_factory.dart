@@ -1,5 +1,5 @@
-import '../exceptions/ssi_exception.dart';
-import '../exceptions/ssi_exception_type.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/jwt_vc_data_model_v11_parser.dart';
 import '../parsers/sdjwt_data_model_v20_parser.dart';

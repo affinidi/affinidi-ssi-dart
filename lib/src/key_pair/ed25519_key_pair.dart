@@ -15,6 +15,9 @@ class Ed25519KeyPair implements KeyPair {
         _keyId = keyId;
 
   @override
+  Uint8List get privateKey => Uint8List.fromList(_privateKey.bytes);
+
+  @override
   Future<String> getKeyId() async => _keyId;
 
   @override
