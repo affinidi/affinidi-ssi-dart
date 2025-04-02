@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import 'key_pair.dart';
 import '../digest_utils.dart';
 import '../types.dart';
@@ -15,8 +17,12 @@ class Secp256k1KeyPair implements KeyPair {
         _keyId = keyId;
 
   @override
-  get privateKey =>
-      _node.privateKey ?? (throw Exception("Private key is missing"));
+  Uint8List get privateKey =>
+      _node.privateKey ??
+      (throw SsiException(
+        message: 'Private key is missing',
+        code: SsiExceptionType.privateKeyisMissing.code,
+      ));
 
   @override
   Future<String> getKeyId() async => _keyId;
