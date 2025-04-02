@@ -42,7 +42,7 @@ String multibaseToBase64Url(String multibase) {
   return base64UrlEncode(_multibaseToUint8List(multibase));
 }
 
-Map<String, dynamic> multikeyToJwk(Uint8List multikey) {
+Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
   final indicator = multikey.sublist(0, 2);
   final key = multikey.sublist(2);
 

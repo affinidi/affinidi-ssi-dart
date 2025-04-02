@@ -19,7 +19,8 @@ Map<String, dynamic> jsonToMap(dynamic input) {
       if (key is! String) {
         throw SsiException(
           message:
-              'jsonToMap: unsupported datatype ${key.runtimeType} for `$key`, keys must be String,',
+          'jsonToMap: unsupported datatype ${key
+              .runtimeType} for `$key`, keys must be String,',
           code: SsiExceptionType.invalidDidDocument.code,
         );
       }
@@ -28,7 +29,8 @@ Map<String, dynamic> jsonToMap(dynamic input) {
   } else {
     throw SsiException(
       message:
-          'jsonToMap: unknown datatype ${input.runtimeType} for `$input`. Only String or Map<String, dynamic> accepted',
+      'jsonToMap: unknown datatype ${input
+          .runtimeType} for `$input`. Only String or Map<String, dynamic> accepted',
       code: SsiExceptionType.invalidDidDocument.code,
     );
   }
@@ -59,7 +61,8 @@ class DidDocument implements JsonObject {
     assertionMethod,
     capabilityDelegation,
     capabilityInvocation,
-  })  : context = context ?? [],
+  })
+      : context = context ?? [],
         alsoKnownAs = alsoKnownAs ?? [],
         controller = controller ?? [],
         verificationMethod = verificationMethod ?? [],
@@ -248,7 +251,7 @@ class DidDocument implements JsonObject {
       } else {
         throw SsiException(
           message:
-              'Element $entry has unsupported Datatype ${entry.runtimeType}',
+          'Element $entry has unsupported Datatype ${entry.runtimeType}',
           code: SsiExceptionType.invalidDidDocument.code,
         );
       }
@@ -445,11 +448,11 @@ abstract class VerificationMethod implements JsonObject {
   Jwk asJwk();
 
   /// Returns the public key as a raw multikey
-  Uint8List asMultikey();
+  Uint8List asMultiKey();
 
   /// Returns the public key as a multibase encoded multikey
-  String asMultibase() {
-    return toMultibase(asMultikey());
+  String asMultiBase() {
+    return toMultibase(asMultiKey());
   }
 
   static VerificationMethod fromJson(dynamic input) {
@@ -542,7 +545,7 @@ class VerificationMethodJwk extends VerificationMethod {
   }
 
   @override
-  Uint8List asMultikey() {
+  Uint8List asMultiKey() {
     return jwkToMultiKey(publicKeyJwk.toJson());
   }
 
@@ -566,16 +569,16 @@ class VerificationMethodMultibase extends VerificationMethod {
     required super.type,
     required this.publicKeyMultibase,
   }) {
-    publicKeyMultikey = _multibaseToUint8List(publicKeyMultibase);
+    publicKeyMultikey = _multiBaseToUint8List(publicKeyMultibase);
   }
 
   @override
   Jwk asJwk() {
-    return Jwk.fromJson(multikeyToJwk(publicKeyMultikey));
+    return Jwk.fromJson(multiKeyToJwk(publicKeyMultikey));
   }
 
   @override
-  Uint8List asMultikey() {
+  Uint8List asMultiKey() {
     return publicKeyMultikey;
   }
 
@@ -668,13 +671,13 @@ String _extractString(Map<String, dynamic> json, String fieldName) {
   return fieldName;
 }
 
-Uint8List _multibaseToUint8List(String multibase) {
-  if (!multibase.startsWith('z')) {
+Uint8List _multiBaseToUint8List(String multiBase) {
+  if (!multiBase.startsWith('z')) {
     throw SsiException(
-      message: 'Unsupported multibase indicator ${multibase[0]}',
+      message: 'Unsupported multibase indicator ${multiBase[0]}',
       code: SsiExceptionType.invalidDidDocument.code,
     );
   }
 
-  return base58BitcoinDecode(multibase.substring(1));
+  return base58BitcoinDecode(multiBase.substring(1));
 }

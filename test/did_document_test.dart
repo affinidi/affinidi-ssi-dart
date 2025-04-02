@@ -38,7 +38,7 @@ void main() {
 
       final expectedMultibase =
           'z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu';
-      expect(vm.asMultibase(), expectedMultibase);
+      expect(vm.asMultiBase(), expectedMultibase);
     });
 
     test('JWK conversion for secp256k1', () async {
@@ -76,7 +76,7 @@ void main() {
 
       final expectedMultibase =
           'zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
-      expect(vm.asMultibase(), expectedMultibase);
+      expect(vm.asMultiBase(), expectedMultibase);
     });
   });
 }

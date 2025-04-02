@@ -106,7 +106,7 @@ void main() {
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
       final doc = await DidKey.create([keyPair]);
-      final actualPublicKey = doc.verificationMethod[0].asMultikey();
+      final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
     });
