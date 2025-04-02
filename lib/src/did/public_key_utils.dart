@@ -9,7 +9,7 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 
-Uint8List _multibaseToUint8List(String multibase) {
+Uint8List multiBaseToUint8List(String multibase) {
   if (multibase.isEmpty) {
     throw SsiException(
       message: 'Empty multibase',
@@ -36,10 +36,6 @@ bool isUri(String uri) {
   } catch (_) {
     return false;
   }
-}
-
-String multibaseToBase64Url(String multibase) {
-  return base64UrlEncode(_multibaseToUint8List(multibase));
 }
 
 Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
@@ -167,20 +163,6 @@ Uint8List _ecJwkToMultiKey({
   return Uint8List.fromList(
     multikeyIndicator + compressedBytes,
   );
-}
-
-/// Converts json-String [credential] to dart Map.
-Map<String, dynamic> credentialToMap(dynamic credential) {
-  if (credential is String) {
-    return jsonDecode(credential);
-  } else if (credential is Map<String, dynamic>) {
-    return credential;
-  } else if (credential is Map<dynamic, dynamic>) {
-    return credential.map((key, value) => MapEntry(key as String, value));
-  } else {
-    throw Exception(
-        'Unknown datatype ${credential.runtimeType} for $credential. Only String or Map<String, dynamic> accepted');
-  }
 }
 
 String addPaddingToBase64(String base64Input) {
