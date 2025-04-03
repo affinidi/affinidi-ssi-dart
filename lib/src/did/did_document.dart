@@ -452,7 +452,7 @@ abstract class VerificationMethod implements JsonObject {
     return toMultiBase(asMultiKey());
   }
 
-  static VerificationMethod fromJson(dynamic input) {
+  factory VerificationMethod.fromJson(dynamic input) {
     var json = jsonToMap(input);
 
     final id = _extractString(json, 'id');
