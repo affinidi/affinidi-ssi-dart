@@ -565,9 +565,7 @@ class VerificationMethodMultibase extends VerificationMethod {
     required super.controller,
     required super.type,
     required this.publicKeyMultibase,
-  }) {
-    publicKeyMultikey = _multiBaseToUint8List(publicKeyMultibase);
-  }
+  }) : _publicKeyMultikey = _multiBaseToUint8List(publicKeyMultibase);
 
   @override
   Jwk asJwk() {
