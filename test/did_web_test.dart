@@ -21,7 +21,7 @@ void main() {
       final keyPair = await wallet.getKeyPair(rootKeyId);
       final doc = await DidWeb.create([keyPair], 'did:web:test.com');
       final actualDid = doc.id;
-      final actualKeyType = await keyPair.getKeyType();
+      final actualKeyType = await keyPair.publicKeyType;
 
       expect(actualDid, expectedDid);
       expect(actualKeyType, expectedKeyType);

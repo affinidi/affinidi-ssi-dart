@@ -104,8 +104,8 @@ Future<DidDocument> _buildOtherDoc(
 class DidKey {
   static Future<DidDocument> create(List<KeyPair> keyPairs) async {
     var keyPair = keyPairs[0];
-    final keyType = await keyPair.getKeyType();
-    final publicKey = await keyPair.getPublicKey();
+    final keyType = await keyPair.publicKeyType;
+    final publicKey = await keyPair.publicKey;
     final multiKey = toMultikey(publicKey, keyType);
     final multibase = toMultiBase(multiKey);
     final did = '$commonDidKeyPrefix$multibase';

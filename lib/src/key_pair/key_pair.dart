@@ -3,15 +3,13 @@ import 'dart:typed_data';
 import '../types.dart';
 
 abstract interface class KeyPair {
-  Uint8List get privateKey;
+  Future<String> get id;
 
   List<SignatureScheme> get supportedSignatureSchemes;
 
-  Future<Uint8List> getPublicKey();
+  Future<Uint8List> get publicKey;
 
-  Future<KeyType> getKeyType();
-
-  Future<String> getKeyId();
+  Future<KeyType> get publicKeyType;
 
   Future<Uint8List> sign(
     Uint8List data, {
@@ -19,8 +17,8 @@ abstract interface class KeyPair {
   });
 
   Future<bool> verify(
-    Uint8List data, {
-    required Uint8List signature,
+    Uint8List data,
+    Uint8List signature, {
     SignatureScheme? signatureScheme,
   });
 }

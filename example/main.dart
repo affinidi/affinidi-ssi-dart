@@ -24,7 +24,7 @@ void main() async {
   final rootKeyPair = await wallet.getKeyPair(rootKeyId);
   final rootDidKey = await DidKey.create([rootKeyPair]);
   print('root did: $rootDidKey');
-  final rootPublicKeyFromDid = await rootDidKey.getPublicKey();
+  final rootPublicKeyFromDid = await rootDidKey.publicKey;
   print('public key from root did: ${hexEncode(rootPublicKeyFromDid)}');
 
   // from derived key pair
@@ -42,7 +42,7 @@ void main() async {
   // did
   final profileDidKey = await DidKey.create([profileKeyPair]);
   print('profile did: $profileDidKey');
-  final profilePublicKeyFromDid = await profileDidKey.getPublicKey();
+  final profilePublicKeyFromDid = await profileDidKey.publicKey;
   print('public key from profile did: ${hexEncode(profilePublicKeyFromDid)}');
 
   // second profile key
