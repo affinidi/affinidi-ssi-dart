@@ -66,8 +66,11 @@ class Bip32Wallet implements Wallet {
     required String keyId,
   }) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.verify(data,
-        signature: signature, signatureScheme: SignatureScheme.es256k);
+    return keyPair.verify(
+      data,
+      signature,
+      signatureScheme: SignatureScheme.es256k,
+    );
   }
 
   @override
@@ -97,7 +100,7 @@ class Bip32Wallet implements Wallet {
   @override
   Future<Uint8List> getPublicKey(String keyId) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.getPublicKey();
+    return keyPair.publicKey;
   }
 
   @override
