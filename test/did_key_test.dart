@@ -20,7 +20,7 @@ void main() {
       final keyPair = await wallet.getKeyPair(rootKeyId);
       final doc = await DidKey.create([keyPair]);
       final actualDid = doc.id;
-      final actualKeyType = await keyPair.getKeyType();
+      final actualKeyType = await keyPair.publicKeyType;
 
       final expectedDidDocString =
           '{"id":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","verificationMethod":[{"id":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","controller":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","type":"Secp256k1Key2021","publicKeyMultibase":"zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"}],"authentication":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"capabilityDelegation":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"capabilityInvocation":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"keyAgreement":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"assertionMethod":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"]}';
@@ -54,7 +54,7 @@ void main() {
       final keyPair = await wallet.getKeyPair(rootKeyId);
       final doc = await DidKey.create([keyPair]);
       final actualDid = doc.id;
-      final actualKeyType = await keyPair.getKeyType();
+      final actualKeyType = await keyPair.publicKeyType;
 
       expect(actualDid, isNot(equals(expectedDid)));
       expect(actualKeyType, expectedKeyType);

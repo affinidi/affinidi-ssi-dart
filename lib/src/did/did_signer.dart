@@ -20,9 +20,9 @@ class DidSigner {
 
   String get did => _didDocument.id;
 
-  Future<Uint8List> get publicKey => _keyPair.getPublicKey();
+  Future<Uint8List> get publicKey => _keyPair.publicKey;
 
-  Future<KeyType> get keyType => _keyPair.getKeyType();
+  Future<KeyType> get keyType => _keyPair.publicKeyType;
 
   /// The identifier of the key inside the DID document
   String get keyId => didKeyId;
