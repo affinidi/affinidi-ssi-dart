@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v1.0.0-dev.11`](#ssi---v100-dev11)
+
+---
+
+#### `ssi` - `v1.0.0-dev.11`
+
+ - **FIX**: cut new release & fix workflow name.
+
+## 1.0.0-dev.11
+
+ - **FIX**: cut new release & fix workflow name.
+
+
+## 2025-04-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v1.0.0-dev.10`](#ssi---v100-dev10)
 
 ---
