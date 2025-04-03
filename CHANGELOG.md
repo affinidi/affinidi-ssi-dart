@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-04-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.10`](#ssi---v100-dev10)
+
+---
+
+#### `ssi` - `v1.0.0-dev.10`
+
+ - **FEAT**: DID handling refactoring (#11).
+
+
 ## 2025-04-02
 
 ### Changes
