@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
-import 'public_key_utils.dart';
-
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import 'public_key_utils.dart';
 
 /// Converts [input] to a `Map<String, dynamic>`
 Map<String, dynamic> jsonToMap(dynamic input) {
@@ -565,7 +563,7 @@ class VerificationMethodMultibase extends VerificationMethod {
     required super.controller,
     required super.type,
     required this.publicKeyMultibase,
-  }) : _publicKeyMultikey = _multiBaseToUint8List(publicKeyMultibase);
+  }) : publicKeyMultikey = multiBaseToUint8List(publicKeyMultibase);
 
   @override
   Jwk asJwk() {
@@ -664,15 +662,4 @@ String _extractString(Map<String, dynamic> json, String fieldName) {
     );
   }
   return fieldName;
-}
-
-Uint8List _multiBaseToUint8List(String multiBase) {
-  if (!multiBase.startsWith('z')) {
-    throw SsiException(
-      message: 'Unsupported multibase indicator ${multiBase[0]}',
-      code: SsiExceptionType.invalidDidDocument.code,
-    );
-  }
-
-  return base58BitcoinDecode(multiBase.substring(1));
 }
