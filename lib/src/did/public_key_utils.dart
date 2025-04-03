@@ -51,14 +51,7 @@ String toMultiBase(
   }
 }
 
-bool isUri(String uri) {
-  try {
-    Uri.parse(uri);
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
+bool isUri(String uri) => Uri.tryParse(uri) != null;
 
 Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
   final indicator = multikey.sublist(0, 2);
