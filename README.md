@@ -1,8 +1,8 @@
 # Affinidi Dart SSI
 
-Affinidi Dart SSI package provides libraries and tools for implementing Self-Sovereign Identity (SSI), a fundamental concept of managing digital identities in a decentralised manner. The Affinidi Dart SSI also offers additional libraries to enable selective disclosure using SD-JWT specification for enhanced security and privacy in the data-sharing process.
+Affinidi Dart SSI package provides libraries and tools for implementing Self-Sovereign Identity (SSI), a fundamental concept of managing digital identities in a decentralised manner.
 
-It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1.0/) methods to represent an entity's identity in the decentralised ecosystem and leverages different key management solutions and standards for generating and managing cryptographic keys associated with the digital wallet.
+It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1.0/) methods to represent an entity's identity in the decentralised ecosystem. It leverages different key management solutions and standards for generating and managing cryptographic keys associated with the digital wallet.
 
 ## Table of Contents
 
@@ -21,17 +21,17 @@ Affinidi Dart SSI package supports the following DID methods to prove control of
 
 - did:key - a self-contained and portable Decentralised Identifier (DID).
 
-- did:peer - a Decentralised Identifier (DID) method designed for a secured peer-to-peer communication.
+- did:peer - a Decentralised Identifier (DID) method designed for secured peer-to-peer communication.
 
 - did:web - relies on Domain Name System (DNS) and HTTPS to prove control of an identity through domain name ownership.
 
-Each DID method serves as a means of resolving the DID document for signing and verifying [Verifiable Credentials (VCs)](https://www.w3.org/TR/vc-data-model/).
+Each DID method provides different ways to store and manage DID documents containing information associated with the DID, such as service endpoints and public keys for encrypting and verifying data.
 
 ## Supported Key Management
 
 Affinidi Dart SSI package supports the following key management solutions for securely managing keys associated with the digital wallet.
 
-- **BIP32** - a standard for creating Hierarchical Deterministic (HD) wallets and generate multiple keys from a single seed. It primarily supports the secp256k1 elliptic curve.
+- **BIP32** - a standard for creating Hierarchical Deterministic (HD) wallets and generating multiple keys from a single seed. It primarily supports the secp256k1 elliptic curve.
 
 - **SLIP0010** - extends the BIP32 standard, enabling support for other types of elliptic curve cryptography.
 
@@ -48,11 +48,13 @@ dependencies:
   affinidi_dart_ssi: ^<version_number>
 ```
 
-Then run the command below to install the package.
+Then, run the command below to install the package.
 
 ```bash
 dart pub get
 ```
+
+Visit the pub.dev install page of the Affinidi SSI Dart package for more information.
 
 ## Usage
 
@@ -61,14 +63,6 @@ After successfully installing the package, import it into your Dart code.
 ```dart
 
 ```
-
-## Published on
-
-The Affinidi Dart SSI and Selective Disclosure JWT (SD-JWT) packages are published on pub.dev repository.
-
-- <dart_ssi_pub_dev_link>
-
-- <sd-jwt_pub_dev_link>
 
 ## Support & feedback
 
