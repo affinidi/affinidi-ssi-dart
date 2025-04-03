@@ -657,7 +657,7 @@ List<String> extractStringOrSet(Map<String, dynamic> document, String field) {
   }
 }
 
-/// Check that [json] has a `String` field named [id] and return the value
+/// Check that [json] has a `String` field named [fieldName] and return the value
 String _extractString(Map<String, dynamic> json, String fieldName) {
   if (!json.containsKey(fieldName) || json[fieldName] is! String) {
     throw SsiException(
