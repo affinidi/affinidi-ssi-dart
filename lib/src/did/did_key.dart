@@ -1,5 +1,5 @@
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/did/public_key_utils.dart';
+import 'public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
