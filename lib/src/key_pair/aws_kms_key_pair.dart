@@ -18,8 +18,8 @@ class KmsKeyPair implements KeyPair {
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [
-    SignatureScheme.rsaSsaPkcs1V1_5Sha256,
-  ];
+        SignatureScheme.rsaSsaPkcs1V1_5Sha256,
+      ];
 
   @override
   Future<Uint8List> getPublicKey() async {
@@ -38,11 +38,14 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
-  Future<Uint8List> sign(Uint8List data, {SignatureScheme? signatureScheme}) async {
-    final selectedScheme = signatureScheme ?? SignatureScheme.rsaSsaPkcs1V1_5Sha256;
+  Future<Uint8List> sign(Uint8List data,
+      {SignatureScheme? signatureScheme}) async {
+    final selectedScheme =
+        signatureScheme ?? SignatureScheme.rsaSsaPkcs1V1_5Sha256;
 
     if (selectedScheme.kmsSigningAlgorithm == null) {
-      throw UnsupportedError("Signature scheme ${selectedScheme.name} is not supported by AWS KMS.");
+      throw UnsupportedError(
+          "Signature scheme ${selectedScheme.name} is not supported by AWS KMS.");
     }
 
     final response = await kmsClient.sign(
@@ -58,10 +61,12 @@ class KmsKeyPair implements KeyPair {
   @override
   Future<bool> verify(Uint8List data,
       {required Uint8List signature, SignatureScheme? signatureScheme}) async {
-    final selectedScheme = signatureScheme ?? SignatureScheme.rsaSsaPkcs1V1_5Sha256;
+    final selectedScheme =
+        signatureScheme ?? SignatureScheme.rsaSsaPkcs1V1_5Sha256;
 
     if (selectedScheme.kmsSigningAlgorithm == null) {
-      throw UnsupportedError("Signature scheme ${selectedScheme.name} is not supported by AWS KMS.");
+      throw UnsupportedError(
+          "Signature scheme ${selectedScheme.name} is not supported by AWS KMS.");
     }
 
     try {
