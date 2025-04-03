@@ -1,7 +1,7 @@
 // import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:affinidi_ssi/affinidi_ssi.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -19,8 +19,8 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final didKey = await DidWeb.create([keyPair], 'did:web:test.com');
-      final actualDid = await didKey.getDid();
+      final doc = await DidWeb.create([keyPair], 'did:web:test.com');
+      final actualDid = doc.id;
       final actualKeyType = await keyPair.getKeyType();
 
       expect(actualDid, expectedDid);
@@ -33,8 +33,8 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
       final keyPair = await wallet.createKeyPair(derivedKeyId);
-      final didKey = await DidWeb.create([keyPair], 'did:web:test.com');
-      final actualDid = await didKey.getDid();
+      final doc = await DidWeb.create([keyPair], 'did:web:test.com');
+      final actualDid = doc.id;
 
       expect(actualDid, startsWith(expectedDidWebPrefix));
     });

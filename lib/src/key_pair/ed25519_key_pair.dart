@@ -15,6 +15,9 @@ class Ed25519KeyPair implements KeyPair {
         _keyId = keyId;
 
   @override
+  Uint8List get privateKey => Uint8List.fromList(_privateKey.bytes);
+
+  @override
   Future<String> getKeyId() async => _keyId;
 
   @override
@@ -62,4 +65,8 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   Uint8List getSeed() => ed.seed(_privateKey);
+
+  @override
+  List<SignatureScheme> get supportedSignatureSchemes =>
+      const [SignatureScheme.es256k];
 }

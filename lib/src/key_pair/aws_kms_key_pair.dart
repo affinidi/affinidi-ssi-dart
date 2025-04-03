@@ -12,6 +12,16 @@ class KmsKeyPair implements KeyPair {
   KmsKeyPair(this.kmsClient, this.keyId);
 
   @override
+  Uint8List get privateKey {
+    throw UnsupportedError('AWS KMS does not provide access to private keys.');
+  }
+
+  @override
+  List<SignatureScheme> get supportedSignatureSchemes => [
+    SignatureScheme.rsaSsaPkcs1V1_5Sha256,
+  ];
+
+  @override
   Future<Uint8List> getPublicKey() async {
     final response = await kmsClient.getPublicKey(keyId: keyId);
     return Uint8List.fromList(response.publicKey ?? []);
@@ -28,27 +38,39 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
-  Future<Uint8List> sign(Uint8List data,
-      {SignatureScheme? signatureScheme}) async {
+  Future<Uint8List> sign(Uint8List data, {SignatureScheme? signatureScheme}) async {
+    final selectedScheme = signatureScheme ?? SignatureScheme.rsaSsaPkcs1V1_5Sha256;
+
+    if (selectedScheme.kmsSigningAlgorithm == null) {
+      throw UnsupportedError("Signature scheme ${selectedScheme.name} is not supported by AWS KMS.");
+    }
+
     final response = await kmsClient.sign(
       keyId: keyId,
       message: data,
       messageType: kms.MessageType.raw,
-      signingAlgorithm: kms.SigningAlgorithmSpec.rsassaPkcs1V1_5Sha_256,
+      signingAlgorithm: selectedScheme.kmsSigningAlgorithm!,
     );
+
     return Uint8List.fromList(response.signature ?? []);
   }
 
   @override
   Future<bool> verify(Uint8List data,
       {required Uint8List signature, SignatureScheme? signatureScheme}) async {
+    final selectedScheme = signatureScheme ?? SignatureScheme.rsaSsaPkcs1V1_5Sha256;
+
+    if (selectedScheme.kmsSigningAlgorithm == null) {
+      throw UnsupportedError("Signature scheme ${selectedScheme.name} is not supported by AWS KMS.");
+    }
+
     try {
       final response = await kmsClient.verify(
         keyId: keyId,
         message: data,
         messageType: kms.MessageType.raw,
         signature: signature,
-        signingAlgorithm: kms.SigningAlgorithmSpec.rsassaPkcs1V1_5Sha_256,
+        signingAlgorithm: selectedScheme.kmsSigningAlgorithm!,
       );
       return response.signatureValid ?? false;
     } on kms.KMSInvalidSignatureException {

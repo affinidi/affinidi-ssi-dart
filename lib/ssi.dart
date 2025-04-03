@@ -1,0 +1,19 @@
+/// Support for doing something awesome.
+///
+/// More dartdocs go here.
+library;
+
+export 'src/credentials/factories/verifiable_credential_factory.dart';
+export 'src/credentials/models/credential_schema.dart';
+export 'src/credentials/models/verifiable_credential.dart';
+export 'src/did/did_key.dart';
+export 'src/did/did_peer.dart';
+export 'src/did/did_web.dart';
+export 'src/key_pair/ed25519_key_pair.dart';
+export 'src/key_pair/key_pair.dart';
+export 'src/key_pair/secp256k1_key_pair.dart';
+export 'src/types.dart';
+export 'src/wallet/bip32_ed25519_wallet.dart';
+export 'src/wallet/bip32_wallet.dart';
+export 'src/wallet/aws_kms_wallet.dart';
+export 'src/wallet/wallet.dart';

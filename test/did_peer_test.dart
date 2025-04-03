@@ -1,7 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:base_codecs/base_codecs.dart';
-import 'package:affinidi_ssi/affinidi_ssi.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -21,8 +19,8 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final didPeer = await DidPeer.create([keyPair]);
-      final actualDid = await didPeer.getDid();
+      final doc = await DidPeer.create([keyPair]);
+      final actualDid = doc.id;
       final actualKeyType = await keyPair.getKeyType();
 
       final expectedDidDocString =
@@ -44,9 +42,11 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
       final keyPair = await wallet.createKeyPair(derivedKeyId);
-      final didPeer =
-          await DidPeer.create([keyPair, keyPair], 'https://denys.com/income');
-      final actualDid = await didPeer.getDid();
+      final doc = await DidPeer.create(
+        [keyPair, keyPair],
+        serviceEndpoint: 'https://denys.com/income',
+      );
+      final actualDid = doc.id;
 
       final expectedDidDocString =
           '{"id":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","verificationMethod":[{"id":"#key-1","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-2","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-3","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-4","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"}],"authentication":["#key-3","#key-4"],"keyAgreement":["#key-1","#key-2"],"assertionMethod":["#key-3","#key-4"],"service":[{"id":"new-id","type":"DIDCommMessaging","serviceEndpoint":"https://denys.com/income"}]}';
@@ -58,46 +58,14 @@ void main() {
     });
 
     test('public key derived from did should be the same', () async {
-      final expectedPublicKey = Uint8List.fromList([
-        143,
-        233,
-        105,
-        63,
-        143,
-        166,
-        42,
-        67,
-        5,
-        161,
-        64,
-        185,
-        118,
-        76,
-        94,
-        224,
-        30,
-        69,
-        89,
-        99,
-        116,
-        79,
-        225,
-        130,
-        4,
-        180,
-        251,
-        148,
-        130,
-        73,
-        48,
-        138
-      ]);
+      final expectedPublicKey =
+          "6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy";
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final didPeer = await DidPeer.create([keyPair]);
-      final actualPublicKey = await didPeer.getPublicKey();
+      final doc = await DidPeer.create([keyPair]);
+      final actualPublicKey = doc.verificationMethod[0].publicKeyMultibase;
 
       expect(actualPublicKey, expectedPublicKey);
     });
