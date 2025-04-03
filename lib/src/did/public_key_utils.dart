@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:elliptic/elliptic.dart' as elliptic;
-import 'package:pointycastle/src/utils.dart' as p_utils;
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -75,37 +74,29 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
     jwk['crv'] = 'P-256';
     var c = elliptic.getP256();
     var pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(
-        pub.X < BigInt.zero ? intToBytes(pub.X) : unsignedIntToBytes(pub.X)));
-    jwk['y'] = removePaddingFromBase64(base64UrlEncode(
-        pub.Y < BigInt.zero ? intToBytes(pub.Y) : unsignedIntToBytes(pub.Y)));
+    jwk['x'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.X)));
+    jwk['y'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.Y)));
   } else if (indicatorHex == 'E701') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'secp256k1';
     var c = elliptic.getSecp256k1();
     var pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(
-        pub.X < BigInt.zero ? intToBytes(pub.X) : unsignedIntToBytes(pub.X)));
-    jwk['y'] = removePaddingFromBase64(base64UrlEncode(
-        pub.Y < BigInt.zero ? intToBytes(pub.Y) : unsignedIntToBytes(pub.Y)));
+    jwk['x'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.X)));
+    jwk['y'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.Y)));
   } else if (indicatorHex == '8124') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'P-384';
     var c = elliptic.getP384();
     var pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(
-        pub.X < BigInt.zero ? intToBytes(pub.X) : unsignedIntToBytes(pub.X)));
-    jwk['y'] = removePaddingFromBase64(base64UrlEncode(
-        pub.Y < BigInt.zero ? intToBytes(pub.Y) : unsignedIntToBytes(pub.Y)));
+    jwk['x'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.X)));
+    jwk['y'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.Y)));
   } else if (indicatorHex == '8224') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'P-521';
     var c = elliptic.getP521();
     var pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(
-        pub.X < BigInt.zero ? intToBytes(pub.X) : unsignedIntToBytes(pub.X)));
-    jwk['y'] = removePaddingFromBase64(base64UrlEncode(
-        pub.Y < BigInt.zero ? intToBytes(pub.Y) : unsignedIntToBytes(pub.Y)));
+    jwk['x'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.X)));
+    jwk['y'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.Y)));
   } else {
     throw UnimplementedError(
         'Unsupported multicodec indicator 0x$indicatorHex');
@@ -170,8 +161,8 @@ Uint8List _ecJwkToMultiKey({
   var compressedHex = curve.publicKeyToCompressedHex(
     elliptic.PublicKey(
       curve,
-      bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['x']))),
-      bytesToUnsignedInt(base64Decode(addPaddingToBase64(jwk['y']))),
+      decodeBigInt(base64Decode(addPaddingToBase64(jwk['x']))),
+      decodeBigInt(base64Decode(addPaddingToBase64(jwk['y']))),
     ),
   );
   var compressedBytes = hexDecode(compressedHex);
@@ -193,17 +184,6 @@ String removePaddingFromBase64(String base64Input) {
   }
   return base64Input;
 }
-
-Uint8List unsignedIntToBytes(BigInt number) {
-  assert(!number.isNegative);
-  return p_utils.encodeBigIntAsUnsigned(number);
-}
-
-BigInt bytesToUnsignedInt(Uint8List bytes) {
-  return p_utils.decodeBigIntWithSign(1, bytes);
-}
-
-Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
 
 /// Returns a decoded varint staring at the first byte of [varint] and the
 /// number of bytes read.
@@ -298,4 +278,32 @@ Uint8List toMultikey(
   }
   final indicator = keyIndicators[keyType]!;
   return Uint8List.fromList([...indicator.indicator, ...pubKeyBytes]);
+}
+
+final b256 = BigInt.from(256);
+
+Uint8List encodeBigInt(BigInt number) {
+  // see https://github.com/dart-lang/sdk/issues/32803
+  // Not handling negative numbers. Decide how you want to do that.
+  int bytes = (number.bitLength + 7) >> 3;
+
+  var result = Uint8List(bytes);
+  for (int i = 0; i < bytes; i++) {
+    result[bytes - 1 - i] = number.remainder(b256).toInt();
+    number = number >> 8;
+  }
+
+  return result;
+}
+
+BigInt decodeBigInt(Uint8List bytes) {
+  // see https://github.com/dart-lang/sdk/issues/32803
+  BigInt result = BigInt.zero;
+
+  for (final byte in bytes) {
+    // reading in big-endian, so we essentially concat the new byte to the end
+    result = (result << 8) | BigInt.from(byte & 0xff);
+  }
+
+  return result;
 }
