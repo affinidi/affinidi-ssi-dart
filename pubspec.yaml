@@ -14,6 +14,7 @@ dependencies:
   x25519: ^0.1.1
   http: ^1.1.0
   jwt_decoder: ^2.0.1
+  json_ld_processor: ^1.0.4
 dev_dependencies:
   coverage: ^1.11.1
   lints: ^5.0.0

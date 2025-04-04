@@ -59,6 +59,10 @@ class ParsedVcDataModelV11 implements VerifiableCredential {
 
   @override
   dynamic toJson() => _jsonDataModel;
+
+  @override
+  // TODO: implement context
+  List<String> get context => throw UnimplementedError();
 }
 
 enum VcDataModelV11Key {

@@ -69,6 +69,10 @@ class JwtVcDataModelV11 implements VerifiableCredential {
 
   @override
   dynamic toJson() => _jsonDataModel;
+
+  @override
+  // TODO: implement context
+  List<String> get context => throw UnimplementedError();
 }
 
 enum _JwtVcDataModelV11Key {

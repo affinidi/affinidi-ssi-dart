@@ -60,6 +60,10 @@ class ParsedVcDataModelV20 implements VerifiableCredential {
     return DateTime.parse(
         _jsonDataModel[VcDataModelV20Key.validUntil.key] as String);
   }
+
+  @override
+  // TODO: implement context
+  List<String> get context => throw UnimplementedError();
 }
 
 enum VcDataModelV20Key {

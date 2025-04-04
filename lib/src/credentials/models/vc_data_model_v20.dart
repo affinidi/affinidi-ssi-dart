@@ -40,6 +40,10 @@ class VcDataModelV20 implements VerifiableCredential {
   @override
   // TODO: implement validUntil
   DateTime? get validUntil => throw UnimplementedError();
+
+  @override
+  // TODO: implement context
+  List<String> get context => throw UnimplementedError();
 // @context
 // String id;
 
