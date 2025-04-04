@@ -17,6 +17,7 @@ dependencies:
   aws_signature_v4: ^0.6.4
   shared_aws_api: ^2.0.2
   jwt_decoder: ^2.0.1
+  elliptic: ^0.3.11
 dev_dependencies:
   coverage: ^1.11.1
   lints: ^5.0.0

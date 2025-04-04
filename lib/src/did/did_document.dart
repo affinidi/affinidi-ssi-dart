@@ -1,20 +1,32 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import 'public_key_utils.dart';
 
-Map<String, dynamic> credentialToMap(dynamic credential) {
-  if (credential is String) {
-    return jsonDecode(credential);
-  } else if (credential is Map<String, dynamic>) {
-    return credential;
-  } else if (credential is Map<dynamic, dynamic>) {
-    return credential.map((key, value) => MapEntry(key as String, value));
+/// Converts [input] to a `Map<String, dynamic>`
+Map<String, dynamic> jsonToMap(dynamic input) {
+  if (input is String) {
+    return jsonDecode(input);
+  } else if (input is Map<String, dynamic>) {
+    return input;
+  } else if (input is Map<dynamic, dynamic>) {
+    return input.map((key, value) {
+      if (key is! String) {
+        throw SsiException(
+          message:
+              'jsonToMap: unsupported datatype ${key.runtimeType} for `$key`, keys must be String,',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
+      }
+      return MapEntry(key, value);
+    });
   } else {
     throw SsiException(
       message:
-          'Unknown datatype ${credential.runtimeType} for $credential. Only String or Map<String, dynamic> accepted',
+          'jsonToMap: unknown datatype ${input.runtimeType} for `$input`. Only String or Map<String, dynamic> accepted',
       code: SsiExceptionType.invalidDidDocument.code,
     );
   }
@@ -67,7 +79,7 @@ class DidDocument implements JsonObject {
         assertionMethod = [],
         capabilityDelegation = [],
         capabilityInvocation = [] {
-    var document = credentialToMap(jsonObject);
+    var document = jsonToMap(jsonObject);
     if (document.containsKey('@context')) {
       context = document['@context'].cast<String>();
     }
@@ -292,6 +304,7 @@ class DidDocument implements JsonObject {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> jsonObject = {};
     jsonObject['id'] = id;
+    if (context.isNotEmpty) jsonObject['@context'] = context;
     if (alsoKnownAs.isNotEmpty) jsonObject['alsoKnownAs'] = alsoKnownAs;
     if (controller.isNotEmpty) jsonObject['controller'] = controller;
     if (verificationMethod.isNotEmpty) {
@@ -389,54 +402,85 @@ class DidDocument implements JsonObject {
   }
 }
 
-class VerificationMethod implements JsonObject {
-  late String id;
-  late String controller;
-  late String type;
-  Map<String, dynamic>? publicKeyJwk;
-  String? publicKeyMultibase;
+// TODO define better structure
+class Jwk {
+  late final Map<String, String> doc;
 
-  VerificationMethod(
-      {required this.id,
-      required this.controller,
-      required this.type,
-      this.publicKeyJwk,
-      this.publicKeyMultibase}) {
-    if (publicKeyJwk == null && publicKeyMultibase == null) {
-      throw SsiException(
-        message: 'Verification Method must have an entry for a public key',
-        code: SsiExceptionType.invalidDidDocument.code,
+  Jwk.fromJson(dynamic input) {
+    final map = jsonToMap(input);
+
+    try {
+      doc = map.map((key, value) => MapEntry(key, value as String));
+    } catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        SsiException(
+          message: 'Invalid JWK',
+          code: SsiExceptionType.invalidDidDocument.code,
+          originalMessage: error.toString(),
+        ),
+        stackTrace,
       );
     }
   }
 
-  VerificationMethod.fromJson(dynamic jsonObject) {
-    var method = credentialToMap(jsonObject);
-    if (method.containsKey('id')) {
-      id = method['id'];
-    } else {
-      throw FormatException('id property is needed in Verification Method');
-    }
-    if (method.containsKey('type')) {
-      type = method['type'];
-    } else {
-      throw FormatException('type property is needed in Verification Method');
-    }
-    if (method.containsKey('controller')) {
-      controller = method['controller'];
-    } else {
-      throw FormatException(
-          'controller property is needed in Verification Method');
-    }
-    publicKeyJwk = method['publicKeyJwk'];
-    publicKeyMultibase = method['publicKeyMultibase'];
+  Map<String, String> toJson() {
+    return doc;
+  }
+}
 
-    if (publicKeyJwk == null && publicKeyMultibase == null) {
-      throw SsiException(
-        message: 'Verification Method must have an entry for a public key',
-        code: SsiExceptionType.invalidDidDocument.code,
+abstract class VerificationMethod implements JsonObject {
+  final String id;
+  final String controller;
+  final String type;
+
+  VerificationMethod({
+    required this.id,
+    required this.controller,
+    required this.type,
+  });
+
+  /// Returns the public key as a JWK
+  Jwk asJwk();
+
+  /// Returns the public key as a raw multikey
+  Uint8List asMultiKey();
+
+  /// Returns the public key as a multibase encoded multikey
+  String asMultiBase() {
+    return toMultiBase(asMultiKey());
+  }
+
+  factory VerificationMethod.fromJson(dynamic input) {
+    var json = jsonToMap(input);
+
+    final id = _extractString(json, 'id');
+    final type = _extractString(json, 'type');
+    final controller = _extractString(json, 'controller');
+
+    final publicKeyJwk = json['publicKeyJwk'];
+    final publicKeyMultibase = json['publicKeyMultibase'];
+
+    if (publicKeyJwk != null) {
+      final jwk = Jwk.fromJson(publicKeyJwk);
+      return VerificationMethodJwk(
+        id: id,
+        type: type,
+        controller: controller,
+        publicKeyJwk: jwk,
+      );
+    } else if (publicKeyMultibase != null) {
+      return VerificationMethodMultibase(
+        id: id,
+        type: type,
+        controller: controller,
+        publicKeyMultibase: publicKeyMultibase,
       );
     }
+
+    throw SsiException(
+      message: 'Verification Method must have an entry for a public key',
+      code: SsiExceptionType.invalidDidDocument.code,
+    );
   }
 
   /// Convert a multibase key to Json web Key
@@ -470,16 +514,74 @@ class VerificationMethod implements JsonObject {
     jsonObject['id'] = id;
     jsonObject['controller'] = controller;
     jsonObject['type'] = type;
-    if (publicKeyMultibase != null) {
-      jsonObject['publicKeyMultibase'] = publicKeyMultibase;
-    }
-    if (publicKeyJwk != null) jsonObject['publicKeyJwk'] = publicKeyJwk;
+
     return jsonObject;
   }
 
   @override
   String toString() {
     return jsonEncode(toJson());
+  }
+}
+
+class VerificationMethodJwk extends VerificationMethod {
+  final Jwk publicKeyJwk;
+
+  VerificationMethodJwk({
+    required super.id,
+    required super.controller,
+    required super.type,
+    required this.publicKeyJwk,
+  });
+
+  @override
+  Jwk asJwk() {
+    return publicKeyJwk;
+  }
+
+  @override
+  Uint8List asMultiKey() {
+    return jwkToMultiKey(publicKeyJwk.toJson());
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final jsonObject = super.toJson();
+
+    jsonObject['publicKeyJwk'] = publicKeyJwk.toJson();
+
+    return jsonObject;
+  }
+}
+
+class VerificationMethodMultibase extends VerificationMethod {
+  late final Uint8List publicKeyMultikey;
+  final String publicKeyMultibase;
+
+  VerificationMethodMultibase({
+    required super.id,
+    required super.controller,
+    required super.type,
+    required this.publicKeyMultibase,
+  }) : publicKeyMultikey = multiBaseToUint8List(publicKeyMultibase);
+
+  @override
+  Jwk asJwk() {
+    return Jwk.fromJson(multiKeyToJwk(publicKeyMultikey));
+  }
+
+  @override
+  Uint8List asMultiKey() {
+    return publicKeyMultikey;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final jsonObject = super.toJson();
+
+    jsonObject['publicKeyMultibase'] = publicKeyMultibase;
+
+    return jsonObject;
   }
 }
 
@@ -493,7 +595,7 @@ class ServiceEndpoint implements JsonObject {
       {required this.id, required this.type, required this.serviceEndpoint});
 
   ServiceEndpoint.fromJson(dynamic jsonObject) {
-    var se = credentialToMap(jsonObject);
+    var se = jsonToMap(jsonObject);
     if (se.containsKey('id')) {
       id = se['id'];
     } else {
@@ -549,4 +651,15 @@ List<String> extractStringOrSet(Map<String, dynamic> document, String field) {
         code: SsiExceptionType.invalidDidDocument.code,
       );
   }
+}
+
+/// Check that [json] has a `String` field named [fieldName] and return the value
+String _extractString(Map<String, dynamic> json, String fieldName) {
+  if (!json.containsKey(fieldName) || json[fieldName] is! String) {
+    throw SsiException(
+      message: '`$fieldName` property is needed in Verification Method',
+      code: SsiExceptionType.invalidDidDocument.code,
+    );
+  }
+  return fieldName;
 }
