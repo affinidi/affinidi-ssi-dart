@@ -58,7 +58,7 @@ class ParsedVcDataModelV1 implements VerifiableCredential {
       List<String>.from(_jsonDataModel[VcDataModelV1Key.type.key] as List);
 
   @override
-  dynamic toJson() => _jsonDataModel;
+  Map<String, dynamic>  toJson() => _jsonDataModel;
 
   @override
   // TODO: implement context

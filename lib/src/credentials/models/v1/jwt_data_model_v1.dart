@@ -19,48 +19,48 @@ class JwtVcDataModelV1 implements VerifiableCredential {
 
   @override
   DateTime? get validUntil =>
-      _jsonDataModel.containsKey(_JwtVcDataModelV11Key.validUntil.key)
+      _jsonDataModel.containsKey(_JwtVcDataModelV1Key.validUntil.key)
           ? _fromSecondsSinceEpoch(
-              _jsonDataModel[_JwtVcDataModelV11Key.validUntil.key] as int,
+              _jsonDataModel[_JwtVcDataModelV1Key.validUntil.key] as int,
               isUtc: true)
           : null;
 
   @override
   String get issuer =>
-      _jsonDataModel[_JwtVcDataModelV11Key.issuer.key] as String;
+      _jsonDataModel[_JwtVcDataModelV1Key.issuer.key] as String;
 
   @override
   List<CredentialSchema> get credentialSchema =>
-      (_jsonDataModel[_JwtVcDataModelV11Key.verifiableCredential.key] as Map<
+      (_jsonDataModel[_JwtVcDataModelV1Key.verifiableCredential.key] as Map<
                   String,
-                  dynamic>?)?[_JwtVcDataModelV11Key.credentialSchema.key] !=
+                  dynamic>?)?[_JwtVcDataModelV1Key.credentialSchema.key] !=
               null
           ? [
-              CredentialSchema.fromJson((_jsonDataModel[_JwtVcDataModelV11Key
+              CredentialSchema.fromJson((_jsonDataModel[_JwtVcDataModelV1Key
                           .verifiableCredential.key] as Map<String, dynamic>)[
-                      _JwtVcDataModelV11Key.credentialSchema.key]
+                      _JwtVcDataModelV1Key.credentialSchema.key]
                   as Map<String, dynamic>)
             ]
           : [];
 
   @override
   Map<String, dynamic> get credentialSubject =>
-      (_jsonDataModel[_JwtVcDataModelV11Key.verifiableCredential.key] as Map<
-              String, dynamic>)[_JwtVcDataModelV11Key.credentialSubject.key]
+      (_jsonDataModel[_JwtVcDataModelV1Key.verifiableCredential.key] as Map<
+              String, dynamic>)[_JwtVcDataModelV1Key.credentialSubject.key]
           as Map<String, dynamic>;
 
   @override
-  String get id => _jsonDataModel[_JwtVcDataModelV11Key.id.key] as String;
+  String get id => _jsonDataModel[_JwtVcDataModelV1Key.id.key] as String;
 
   @override
   DateTime get validFrom => _fromSecondsSinceEpoch(
-      _jsonDataModel[_JwtVcDataModelV11Key.issuanceDate.key] as int,
+      _jsonDataModel[_JwtVcDataModelV1Key.issuanceDate.key] as int,
       isUtc: true);
 
   @override
   List<String> get type => List<String>.from(
-      (_jsonDataModel[_JwtVcDataModelV11Key.verifiableCredential.key]
-          as Map<String, dynamic>)[_JwtVcDataModelV11Key.type.key] as List);
+      (_jsonDataModel[_JwtVcDataModelV1Key.verifiableCredential.key]
+          as Map<String, dynamic>)[_JwtVcDataModelV1Key.type.key] as List);
 
   DateTime _fromSecondsSinceEpoch(int secondsSinceEpoch,
           {bool isUtc = false}) =>
@@ -68,14 +68,14 @@ class JwtVcDataModelV1 implements VerifiableCredential {
           isUtc: isUtc);
 
   @override
-  dynamic toJson() => _jsonDataModel;
+  Map<String, dynamic> toJson() => _jsonDataModel;
 
   @override
   // TODO: implement context
   List<String> get context => throw UnimplementedError();
 }
 
-enum _JwtVcDataModelV11Key {
+enum _JwtVcDataModelV1Key {
   verifiableCredential('vc'),
   validUntil('exp'),
   issuer('iss'),
@@ -86,7 +86,7 @@ enum _JwtVcDataModelV11Key {
   credentialSubject('credentialSubject'),
   ;
 
-  const _JwtVcDataModelV11Key(this.key);
+  const _JwtVcDataModelV1Key(this.key);
 
   final String key;
 }

@@ -3,7 +3,7 @@ import '../verifiable_credential.dart';
 
 // TODO must implement adapter functions where needed to the generic VerifiableCredential
 // TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
-class VcDataModelV2 implements VerifiableCredential {
+class VcDataModelV2 implements VerifiableCredential<Map<String, dynamic>> {
   @override
   // TODO: implement credentialSchema
   List<CredentialSchema> get credentialSchema => throw UnimplementedError();
@@ -25,7 +25,7 @@ class VcDataModelV2 implements VerifiableCredential {
   get rawData => throw UnimplementedError();
 
   @override
-  toJson() {
+  Map<String, dynamic>  toJson() {
     // TODO: implement toJson
     throw UnimplementedError();
   }

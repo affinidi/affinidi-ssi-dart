@@ -1,22 +1,23 @@
-import '../credential_schema.dart';
-import '../verifiable_credential.dart';
+import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
+import 'package:ssi/src/credentials/models/vc_data_model_v2_key.dart';
 
-// TODO must implement VcDataModelV20 (which is not yet fully defined)
-class ParsedVcDataModelV2 implements VerifiableCredential {
+import '../../../../ssi.dart';
+
+class ParsedVcDataModelV2 extends VcDataModelV2 {
   ParsedVcDataModelV2(Map<String, dynamic> data)
       : _jsonDataModel = Map<String, dynamic>.unmodifiable(data),
         _rawData = Map<String, dynamic>.unmodifiable(data);
 
   final Map<String, dynamic> _jsonDataModel;
 
-  final dynamic _rawData;
+  final Map<String, dynamic> _rawData;
 
   @override
-  dynamic get rawData => _rawData;
+  Map<String, dynamic> get rawData => _rawData;
 
   @override
   List<CredentialSchema> get credentialSchema {
-    final data = _jsonDataModel[VcDataModelV20Key.credentialSchema.key];
+    final data = _jsonDataModel[VcDataModelV2Key.credentialSchema.key];
     if (data == null) return [];
 
     if (data is List) {
@@ -31,56 +32,37 @@ class ParsedVcDataModelV2 implements VerifiableCredential {
 
   @override
   Map<String, dynamic> get credentialSubject =>
-      _jsonDataModel[VcDataModelV20Key.credentialSubject.key]
+      _jsonDataModel[VcDataModelV2Key.credentialSubject.key]
           as Map<String, dynamic>;
 
   @override
-  String get id => _jsonDataModel[VcDataModelV20Key.id.key] as String;
+  String get id => _jsonDataModel[VcDataModelV2Key.id.key] as String;
 
   @override
   DateTime get validFrom =>
-      DateTime.parse(_jsonDataModel[VcDataModelV20Key.validFrom.key] as String);
+      DateTime.parse(_jsonDataModel[VcDataModelV2Key.validFrom.key] as String);
 
   @override
-  String get issuer => _jsonDataModel[VcDataModelV20Key.issuer.key] as String;
+  String get issuer => _jsonDataModel[VcDataModelV2Key.issuer.key] as String;
 
   @override
-  dynamic toJson() => _jsonDataModel;
+  Map<String, dynamic> toJson() => _jsonDataModel;
 
   @override
   List<String> get type =>
-      List<String>.from(_jsonDataModel[VcDataModelV20Key.type.key] as List);
+      List<String>.from(_jsonDataModel[VcDataModelV2Key.type.key] as List);
 
   @override
   DateTime? get validUntil {
-    if (!_jsonDataModel.containsKey(VcDataModelV20Key.validUntil.key)) {
+    if (!_jsonDataModel.containsKey(VcDataModelV2Key.validUntil.key)) {
       return null;
     }
 
     return DateTime.parse(
-        _jsonDataModel[VcDataModelV20Key.validUntil.key] as String);
+        _jsonDataModel[VcDataModelV2Key.validUntil.key] as String);
   }
 
   @override
   // TODO: implement context
   List<String> get context => throw UnimplementedError();
-}
-
-enum VcDataModelV20Key {
-  context(key: '@context'),
-  proof,
-  id,
-  credentialSchema,
-  credentialSubject,
-  issuer,
-  type,
-  validFrom,
-  validUntil,
-  ;
-
-  final String? _key;
-
-  String get key => _key ?? name;
-
-  const VcDataModelV20Key({String? key}) : _key = key;
 }

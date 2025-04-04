@@ -3,10 +3,9 @@ import 'credential_schema.dart';
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
 /// Verifiable credentials can be used to build verifiable presentations, which can also be cryptographically verifiable.
-abstract interface class VerifiableCredential {
+abstract interface class VerifiableCredential<RawDataType> {
   /// Returns the VerifiableCredential issuer
   List<String> get context;
-
   /// Returns the VerifiableCredential issuer.
   // FIXME issuer can be an entity with an id or a string
   String get issuer;
@@ -45,8 +44,8 @@ abstract interface class VerifiableCredential {
   DateTime? get validUntil;
 
   /// Returns a json representation of the original data provided to create the VerifiableCredential
-  dynamic toJson();
+  Map<String, dynamic> toJson();
 
   /// Returns the original input provided to create the VerifiableCredential
-  dynamic get rawData;
+  RawDataType get rawData;
 }

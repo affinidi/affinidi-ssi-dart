@@ -10,12 +10,15 @@ import '../parsers/vc_data_model_v2_with_proof_parser.dart';
 
 /// Factory class supporting multiple parsers to convert data into a [VerifiableCredential]
 final class VerifiableCredentialFactory {
-  static final _credentialDataModelParsers = <VcDataModelParser>[
-    VcDataModelV1WithProofParser(),
-    VcDataModelV2WithProofParser(),
-    JwtVcDataModelV1Parser(),
-    SdJwtDataModelV2Parser(),
-  ];
+  //parser to type map where Type tells what dat type is expected by parser
+  //the problem is, dart uses type erasures and during runtime the type info
+  //is not stored for generics.
+  static final _credentialDataModelParsersMap = <VcDataModelParser, Type>{
+    VcDataModelV1WithProofParser() : <String, dynamic>{}.runtimeType,
+    VcDataModelV2WithProofParser() : <String, dynamic>{}.runtimeType,
+    JwtVcDataModelV1Parser() : "".runtimeType,
+    SdJwtDataModelV2Parser() : "".runtimeType
+  };
 
   /// Returns a [VerifiableCredential] instance.
   ///
@@ -23,10 +26,10 @@ final class VerifiableCredentialFactory {
   /// - **unableToParseVerifiableCredential**:
   ///  - Thrown if it is unable to parse the provided data
   static VerifiableCredential create(Object rawData) {
-    for (final parser in _credentialDataModelParsers) {
-      if (parser.canParse(rawData)) {
+    for (final parserEntry in _credentialDataModelParsersMap.entries) {
+      if (parserEntry.value == rawData.runtimeType && parserEntry.key.canParse(rawData)) {
         try {
-          return parser.parse(rawData);
+          return parserEntry.key.parse(rawData);
         } catch (error, stackTrace) {
           Error.throwWithStackTrace(
               SsiException(
