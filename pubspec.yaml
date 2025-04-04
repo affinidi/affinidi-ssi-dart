@@ -13,6 +13,9 @@ dependencies:
   ed25519_hd_key: ^2.2.0
   x25519: ^0.1.1
   http: ^1.1.0
+  aws_kms_api: ^2.0.0
+  aws_signature_v4: ^0.6.4
+  shared_aws_api: ^2.0.2
   jwt_decoder: ^2.0.1
 dev_dependencies:
   coverage: ^1.11.1
