@@ -12,76 +12,50 @@ class KmsKeyPair implements KeyPair {
   KmsKeyPair(this.kmsClient, this.keyId);
 
   @override
-  Uint8List get privateKey {
-    throw UnsupportedError('AWS KMS does not provide access to private keys.');
-  }
+  Future<String> get id async => keyId;
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [
-        SignatureScheme.rsaSsaPkcs1V1_5Sha256,
+        SignatureScheme.ed25519sha256,
       ];
 
   @override
-  Future<Uint8List> getPublicKey() async {
+  Future<Uint8List> get publicKey async {
     final response = await kmsClient.getPublicKey(keyId: keyId);
     return Uint8List.fromList(response.publicKey ?? []);
   }
 
   @override
-  Future<KeyType> getKeyType() async {
-    return KeyType.rsa;
-  }
-
-  @override
-  Future<String> getKeyId() async {
-    return keyId;
-  }
+  Future<KeyType> get publicKeyType async => KeyType.rsa;
 
   @override
   Future<Uint8List> sign(Uint8List data,
       {SignatureScheme? signatureScheme}) async {
-    final selectedScheme =
-        signatureScheme ?? SignatureScheme.rsaSsaPkcs1V1_5Sha256;
-
-    if (selectedScheme.kmsSigningAlgorithm == null) {
-      throw UnsupportedError(
-          "Signature scheme ${selectedScheme.name} is not supported by AWS KMS.");
-    }
-
     final response = await kmsClient.sign(
       keyId: keyId,
       message: data,
       messageType: kms.MessageType.raw,
-      signingAlgorithm: selectedScheme.kmsSigningAlgorithm!,
+      signingAlgorithm: kms.SigningAlgorithmSpec.rsassaPkcs1V1_5Sha_256,
     );
-
     return Uint8List.fromList(response.signature ?? []);
   }
 
   @override
-  Future<bool> verify(Uint8List data,
-      {required Uint8List signature, SignatureScheme? signatureScheme}) async {
-    final selectedScheme =
-        signatureScheme ?? SignatureScheme.rsaSsaPkcs1V1_5Sha256;
-
-    if (selectedScheme.kmsSigningAlgorithm == null) {
-      throw UnsupportedError(
-          "Signature scheme ${selectedScheme.name} is not supported by AWS KMS.");
-    }
-
+  Future<bool> verify(Uint8List data, Uint8List signature,
+      {SignatureScheme? signatureScheme}) async {
     try {
       final response = await kmsClient.verify(
         keyId: keyId,
         message: data,
         messageType: kms.MessageType.raw,
         signature: signature,
-        signingAlgorithm: selectedScheme.kmsSigningAlgorithm!,
+        signingAlgorithm: kms.SigningAlgorithmSpec.rsassaPkcs1V1_5Sha_256,
       );
       return response.signatureValid ?? false;
     } on kms.KMSInvalidSignatureException {
-      return false; // Return false when signature is invalid
+      return false;
     } catch (e) {
-      rethrow; // Rethrow unexpected errors
+      rethrow;
     }
   }
 }

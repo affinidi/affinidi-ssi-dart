@@ -36,7 +36,7 @@ void main() {
           await wallet.verify(testData, signature: signature, keyId: keyId);
 
       expect(isValid, isTrue);
-    }, skip: 'Unskip when localstack is added to pipeline');
+    });
 
     test('Fails verification with invalid signature', () async {
       final invalidSignature = Uint8List.fromList(List.filled(256, 0));
@@ -44,6 +44,6 @@ void main() {
           signature: invalidSignature, keyId: keyId);
 
       expect(isValid, isFalse);
-    }, skip: 'Unskip when localstack is added to pipeline');
+    });
   });
 }
