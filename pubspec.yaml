@@ -3,7 +3,7 @@ description: Affinidi SSI library
 version: 1.0.0-dev.13
 repository: https://github.com/affinidi/affinidi-ssi-dart
 environment:
-  sdk: ^3.6.1
+  sdk: ^3.6.0
 dependencies:
   pointycastle: ^3.9.1
   bip32: ^2.0.0
