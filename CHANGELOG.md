@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-04-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.14`](#ssi---v100-dev14)
+
+---
+
+#### `ssi` - `v1.0.0-dev.14`
+
+ - **FEAT**: lower dart supported version to 3.6.0 (#20).
+
+## 1.0.0-dev.14
+
+ - **FEAT**: lower dart supported version to 3.6.0 (#20).
+
+
 ## 2025-04-03
 
 ### Changes
