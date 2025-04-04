@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v1.0.0-dev.15`](#ssi---v100-dev15)
+
+---
+
+#### `ssi` - `v1.0.0-dev.15`
+
+ - **FEAT**: validate AWS KMS wallet support (#13).
+
+## 1.0.0-dev.15
+
+ - **FEAT**: validate AWS KMS wallet support (#13).
+
+
+## 2025-04-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v1.0.0-dev.14`](#ssi---v100-dev14)
 
 ---
