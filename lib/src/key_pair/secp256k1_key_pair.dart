@@ -2,36 +2,28 @@ import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
 
-import '../exceptions/ssi_exception.dart';
-import '../exceptions/ssi_exception_type.dart';
-import 'key_pair.dart';
 import '../digest_utils.dart';
 import '../types.dart';
+import 'key_pair.dart';
 
 class Secp256k1KeyPair implements KeyPair {
   final String _keyId;
   final BIP32 _node;
 
-  Secp256k1KeyPair({required BIP32 node, required String keyId})
-      : _node = node,
+  Secp256k1KeyPair({
+    required BIP32 node,
+    required String keyId,
+  })  : _node = node,
         _keyId = keyId;
 
   @override
-  Uint8List get privateKey =>
-      _node.privateKey ??
-      (throw SsiException(
-        message: 'Key pair missing private key',
-        code: SsiExceptionType.keyPairMissingPrivateKey.code,
-      ));
+  Future<String> get id => Future.value(_keyId);
 
   @override
-  Future<String> getKeyId() async => _keyId;
+  Future<Uint8List> get publicKey => Future.value(_node.publicKey);
 
   @override
-  Future<Uint8List> getPublicKey() async => _node.publicKey;
-
-  @override
-  Future<KeyType> getKeyType() async => KeyType.secp256k1;
+  Future<KeyType> get publicKeyType => Future.value(KeyType.secp256k1);
 
   @override
   Future<Uint8List> sign(
@@ -52,8 +44,8 @@ class Secp256k1KeyPair implements KeyPair {
 
   @override
   Future<bool> verify(
-    Uint8List data, {
-    required Uint8List signature,
+    Uint8List data,
+    Uint8List signature, {
     SignatureScheme? signatureScheme,
   }) async {
     signatureScheme ??= SignatureScheme.es256k;

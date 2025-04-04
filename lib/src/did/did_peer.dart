@@ -343,8 +343,8 @@ class DidPeer {
     List<BaseKey> baseKeys = [];
 
     for (var keyPair in keyPairs) {
-      final keyType = await keyPair.getKeyType();
-      final pubKeyBytes = await keyPair.getPublicKey();
+      final keyType = await keyPair.publicKeyType;
+      final pubKeyBytes = await keyPair.publicKey;
       BaseKey baseKey = BaseKey(pubKeyBytes, keyType);
 
       baseKeys.add(baseKey);
@@ -361,8 +361,8 @@ class DidPeer {
           controller: 'key$i', // FIXME should come from the outside
           type: 'Multikey',
           publicKeyMultibase: _computeMultibase(
-            await keyPair.getPublicKey(),
-            await keyPair.getKeyType(),
+            await keyPair.publicKey,
+            await keyPair.publicKeyType,
           ),
         ),
       );

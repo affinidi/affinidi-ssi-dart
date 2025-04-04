@@ -38,7 +38,7 @@ void main() {
 
       final actual = await keyPair.verify(
         dataToSign,
-        signature: signature,
+        signature,
       );
 
       expect(actual, isTrue);

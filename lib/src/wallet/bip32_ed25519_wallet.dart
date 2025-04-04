@@ -1,12 +1,11 @@
 import 'dart:typed_data';
 
-import 'package:ed25519_hd_key/ed25519_hd_key.dart';
-// import 'package:meta/meta.dart';
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
+import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 
-import 'wallet.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../types.dart';
+import 'wallet.dart';
 
 class Bip32Ed25519Wallet implements Wallet {
   static const baseDerivationPath = "m/44'/60'/0'/0'/0'";
@@ -46,8 +45,11 @@ class Bip32Ed25519Wallet implements Wallet {
     required String keyId,
   }) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.verify(data,
-        signature: signature, signatureScheme: SignatureScheme.ed25519sha256);
+    return keyPair.verify(
+      data,
+      signature,
+      signatureScheme: SignatureScheme.ed25519sha256,
+    );
   }
 
   @override
@@ -81,7 +83,7 @@ class Bip32Ed25519Wallet implements Wallet {
   @override
   Future<Uint8List> getPublicKey(String keyId) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.getPublicKey();
+    return keyPair.publicKey;
   }
 
   @override

@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v1.0.0-dev.13`](#ssi---v100-dev13)
+
+---
+
+#### `ssi` - `v1.0.0-dev.13`
+
+ - **FEAT**: Remove privateKey from KeyPair interface (#21).
+
+## 1.0.0-dev.13
+
+ - **FEAT**: Remove privateKey from KeyPair interface (#21).
+
+
+## 2025-04-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v1.0.0-dev.12`](#ssi---v100-dev12)
 
 ---
