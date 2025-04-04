@@ -1,4 +1,4 @@
-enum KeyType { secp256k1, ed25519, x25519, rsa }
+enum KeyType { secp256k1, ed25519, x25519, p256, p384, p521, rsa }
 
 enum HashingAlgorithm { sha256, sha512 }
 
@@ -15,6 +15,7 @@ enum SignatureScheme {
   final String? w3cName;
   final KeyType keyType;
   final HashingAlgorithm hashingAlgorithm;
+
   const SignatureScheme(
       this.jwtName, this.w3cName, this.keyType, this.hashingAlgorithm);
 }
@@ -23,7 +24,9 @@ enum DidPeerType { peer0, peer2 }
 
 abstract class JsonObject {
   JsonObject.fromJson(dynamic jsonData);
+
   Map<String, dynamic> toJson();
+
   @override
   String toString();
 }
