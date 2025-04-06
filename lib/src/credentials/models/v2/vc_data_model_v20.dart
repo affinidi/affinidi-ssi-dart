@@ -1,5 +1,5 @@
-import 'credential_schema.dart';
-import 'verifiable_credential.dart';
+import '../credential_schema.dart';
+import '../verifiable_credential.dart';
 
 // TODO must implement adapter functions where needed to the generic VerifiableCredential
 class VcDataModelV20 implements VerifiableCredential {

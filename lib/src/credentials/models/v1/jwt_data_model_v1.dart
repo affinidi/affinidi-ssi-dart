@@ -1,12 +1,12 @@
 import 'package:jwt_decoder/jwt_decoder.dart';
 
-import 'credential_schema.dart';
-import 'verifiable_credential.dart';
+import '../credential_schema.dart';
+import '../verifiable_credential.dart';
 
 /// Allows creating a VcDataModel from a JWT token containing an VcDataModel version 1.1
 /// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
-class JwtVcDataModelV11 implements VerifiableCredential {
-  JwtVcDataModelV11(String jwtString)
+class JwtVcDataModelV1 implements VerifiableCredential {
+  JwtVcDataModelV1(String jwtString)
       : _jsonDataModel = Map.unmodifiable(JwtDecoder.decode(jwtString)),
         _rawData = jwtString;
 

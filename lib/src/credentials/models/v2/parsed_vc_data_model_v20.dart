@@ -1,5 +1,5 @@
-import 'credential_schema.dart';
-import 'verifiable_credential.dart';
+import '../credential_schema.dart';
+import '../verifiable_credential.dart';
 
 // TODO must implement VcDataModelV20 (which is not yet fully defined)
 class ParsedVcDataModelV20 implements VerifiableCredential {

@@ -4,33 +4,8 @@ import 'dart:typed_data';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import '../util/json_util.dart';
 import 'public_key_utils.dart';
-
-/// Converts [input] to a `Map<String, dynamic>`
-Map<String, dynamic> jsonToMap(dynamic input) {
-  if (input is String) {
-    return jsonDecode(input);
-  } else if (input is Map<String, dynamic>) {
-    return input;
-  } else if (input is Map<dynamic, dynamic>) {
-    return input.map((key, value) {
-      if (key is! String) {
-        throw SsiException(
-          message:
-              'jsonToMap: unsupported datatype ${key.runtimeType} for `$key`, keys must be String,',
-          code: SsiExceptionType.invalidDidDocument.code,
-        );
-      }
-      return MapEntry(key, value);
-    });
-  } else {
-    throw SsiException(
-      message:
-          'jsonToMap: unknown datatype ${input.runtimeType} for `$input`. Only String or Map<String, dynamic> accepted',
-      code: SsiExceptionType.invalidDidDocument.code,
-    );
-  }
-}
 
 class DidDocument implements JsonObject {
   List<String> context;
@@ -453,9 +428,9 @@ abstract class VerificationMethod implements JsonObject {
   factory VerificationMethod.fromJson(dynamic input) {
     var json = jsonToMap(input);
 
-    final id = _extractString(json, 'id');
-    final type = _extractString(json, 'type');
-    final controller = _extractString(json, 'controller');
+    final id = getMandatoryString(json, 'id');
+    final type = getMandatoryString(json, 'type');
+    final controller = getMandatoryString(json, 'controller');
 
     final publicKeyJwk = json['publicKeyJwk'];
     final publicKeyMultibase = json['publicKeyMultibase'];
@@ -651,15 +626,4 @@ List<String> extractStringOrSet(Map<String, dynamic> document, String field) {
         code: SsiExceptionType.invalidDidDocument.code,
       );
   }
-}
-
-/// Check that [json] has a `String` field named [fieldName] and return the value
-String _extractString(Map<String, dynamic> json, String fieldName) {
-  if (!json.containsKey(fieldName) || json[fieldName] is! String) {
-    throw SsiException(
-      message: '`$fieldName` property is needed in Verification Method',
-      code: SsiExceptionType.invalidDidDocument.code,
-    );
-  }
-  return fieldName;
 }

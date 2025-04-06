@@ -12,6 +12,9 @@ enum SsiExceptionType {
   /// The DID Document is not valid
   invalidDidDocument(code: 'invalid_did_document'),
 
+  /// The JSON document is invalid
+  invalidJson(code: 'invalid_json'),
+
   /// The did:peer or document is invalid
   invalidDidPeer(code: 'invalid_did_peer'),
 

@@ -116,8 +116,8 @@ class DidKey {
       id: did,
       verificationMethod: [
         VerificationMethodMultibase(
-          id: did,
-          controller: keyId,
+          id: keyId,
+          controller: did,
           type: 'Multikey',
           publicKeyMultibase: multibase,
         )

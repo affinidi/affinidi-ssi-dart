@@ -1,5 +1,6 @@
-import 'credential_schema.dart';
-import 'verifiable_credential.dart';
+import '../../../util/json_util.dart';
+import '../credential_schema.dart';
+import '../verifiable_credential.dart';
 
 // TODO must implement adapter functions where needed to the generic VerifiableCredential
 // TODO decide what to do with "holder"
@@ -32,6 +33,10 @@ class VcDataModelV1 implements VerifiableCredential {
   @override
   DateTime? get validUntil => expirationDate;
 
+  Map<String, dynamic> holder;
+
+  Map<String, dynamic> proof;
+
   VcDataModelV1({
     required this.context,
     required this.id,
@@ -41,8 +46,12 @@ class VcDataModelV1 implements VerifiableCredential {
     required this.type,
     this.issuanceDate,
     this.expirationDate,
+    Map<String, String>? holder,
+    Map<String, String>? proof,
   })  : credentialSchema = credentialSchema ?? [],
-        credentialSubject = credentialSubject ?? {};
+        credentialSubject = credentialSubject ?? {},
+        holder = holder ?? {},
+        proof = proof ?? {};
 
   @override
   // TODO: implement rawData
@@ -68,14 +77,69 @@ class VcDataModelV1 implements VerifiableCredential {
 
     final expDate = expirationDate;
     if (expDate != null) {
-      json['issuanceDate'] = expDate.toIso8601String();
+      json['expirationDate'] = expDate.toIso8601String();
     }
 
     if (credentialSubject.isNotEmpty) {
       json['credentialSubject'] = credentialSubject;
     }
 
+    if (holder.isNotEmpty) {
+      json['holder'] = holder;
+    }
+
+    if (proof.isNotEmpty) {
+      json['proof'] = proof;
+    }
+
     return json;
+  }
+
+  VcDataModelV1.fromJson(dynamic input)
+      : context = [],
+        credentialSchema = [],
+        credentialSubject = {},
+        holder = {},
+        id = "",
+        issuer = "",
+        type = [],
+        proof = {} {
+    final json = jsonToMap(input);
+
+    context = getMandatoryStringList(json, '@context');
+    id = getMandatoryString(json, 'id');
+    issuer = getMandatoryString(json, 'issuer');
+    type = getMandatoryStringList(json, 'type', allowSingleValue: true);
+
+    // if (holder.isNotEmpty) {
+    //   json['holder'] = holder;
+    // }
+
+    issuanceDate = getDateTime(json, 'issuanceDate');
+    expirationDate = getDateTime(json, 'expirationDate');
+
+    // FIXME handle arrays of subjects
+    credentialSubject = Map.of(json['credentialSubject']);
+
+    switch (json['credentialSchema']) {
+      case Map m:
+        credentialSchema = [CredentialSchema.fromJson(jsonToMap(m))];
+
+      case List l:
+        credentialSchema = l
+            .map((e) => CredentialSchema.fromJson(jsonToMap(e)))
+            .toList(growable: true);
+    }
+
+    // FIXME handle simple string
+    if (json['holder'] != null && json['holder'] is Map) {
+      holder = Map.of(json['holder']);
+    }
+
+    // FIXME use a typed object
+    if (json['proof'] != null && json['proof'] is Map) {
+      proof = Map.of(json['proof']);
+    }
   }
 
   dynamic _encodeCredentialSchema(
