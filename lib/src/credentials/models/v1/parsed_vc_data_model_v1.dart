@@ -1,8 +1,8 @@
 import '../credential_schema.dart';
 import '../verifiable_credential.dart';
 
-class ParsedVcDataModelV11 implements VerifiableCredential {
-  ParsedVcDataModelV11(Map<String, dynamic> data)
+class ParsedVcDataModelV1 implements VerifiableCredential {
+  ParsedVcDataModelV1(Map<String, dynamic> data)
       : _jsonDataModel = Map<String, dynamic>.unmodifiable(data),
         _rawData = Map<String, dynamic>.unmodifiable(data);
 
@@ -34,7 +34,7 @@ class ParsedVcDataModelV11 implements VerifiableCredential {
     if (data is List) {
       return data
           .map((schema) =>
-          CredentialSchema.fromJson(schema as Map<String, dynamic>))
+              CredentialSchema.fromJson(schema as Map<String, dynamic>))
           .toList();
     }
 
@@ -44,15 +44,14 @@ class ParsedVcDataModelV11 implements VerifiableCredential {
   @override
   Map<String, dynamic> get credentialSubject =>
       _jsonDataModel[VcDataModelV1Key.credentialSubject.key]
-      as Map<String, dynamic>;
+          as Map<String, dynamic>;
 
   @override
   String get id => _jsonDataModel[VcDataModelV1Key.id.key] as String;
 
   @override
-  DateTime get validFrom =>
-      DateTime.parse(
-          _jsonDataModel[VcDataModelV1Key.issuanceDate.key] as String);
+  DateTime get validFrom => DateTime.parse(
+      _jsonDataModel[VcDataModelV1Key.issuanceDate.key] as String);
 
   @override
   List<String> get type =>

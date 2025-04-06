@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:json_ld_processor/json_ld_processor.dart';
 import 'package:pointycastle/api.dart';
 

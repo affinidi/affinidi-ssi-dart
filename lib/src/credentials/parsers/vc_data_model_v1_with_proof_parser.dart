@@ -26,6 +26,6 @@ final class VcDataModelV1WithProofParser implements VcDataModelParser {
   /// It can throw in case the data cannot be converted to a valid [VerifiableCredential]
   @override
   VerifiableCredential parse(Object data) {
-    return ParsedVcDataModelV11(data as Map<String, dynamic>);
+    return ParsedVcDataModelV1(data as Map<String, dynamic>);
   }
 }
