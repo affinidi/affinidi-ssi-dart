@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:elliptic/elliptic.dart' as elliptic;
+import 'package:ssi/src/util/base64_util.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -28,7 +28,7 @@ Uint8List multiBaseToUint8List(String multibase) {
       return base58BitcoinDecode(encodedData);
 
     case 'u':
-      return base64Url.decode(encodedData);
+      return base64UrlNoPadDecode(encodedData);
 
     default:
       throw UnimplementedError(
@@ -46,7 +46,7 @@ String toMultiBase(
       return 'z${base58BitcoinEncode(multibase)}';
 
     case MultiBase.base64UrlNoPad:
-      return 'u${removePaddingFromBase64(base64UrlEncode(multibase))}';
+      return 'u${base64UrlNoPadEncode(multibase)}';
   }
 }
 
@@ -64,39 +64,39 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
   if (indicatorHex == 'ED01') {
     jwk['kty'] = 'OKP';
     jwk['crv'] = 'Ed25519';
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(key));
+    jwk['x'] = base64UrlNoPadEncode(key);
   } else if (indicatorHex == 'EC01') {
     jwk['kty'] = 'OKP';
     jwk['crv'] = 'X25519';
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(key));
+    jwk['x'] = base64UrlNoPadEncode(key);
   } else if (indicatorHex == '8024') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'P-256';
     var c = elliptic.getP256();
     var pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.X)));
-    jwk['y'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.Y)));
+    jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
+    jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
   } else if (indicatorHex == 'E701') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'secp256k1';
     var c = elliptic.getSecp256k1();
     var pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.X)));
-    jwk['y'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.Y)));
+    jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
+    jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
   } else if (indicatorHex == '8124') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'P-384';
     var c = elliptic.getP384();
     var pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.X)));
-    jwk['y'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.Y)));
+    jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
+    jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
   } else if (indicatorHex == '8224') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'P-521';
     var c = elliptic.getP521();
     var pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.X)));
-    jwk['y'] = removePaddingFromBase64(base64UrlEncode(encodeBigInt(pub.Y)));
+    jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
+    jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
   } else {
     throw UnimplementedError(
         'Unsupported multicodec indicator 0x$indicatorHex');
@@ -110,10 +110,7 @@ Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
   switch (crv) {
     case 'Ed25519':
       return Uint8List.fromList(
-        MultiKeyIndicator.ed25519.indicator +
-            base64Decode(
-              addPaddingToBase64(jwk['x']),
-            ),
+        MultiKeyIndicator.ed25519.indicator + base64UrlNoPadDecode(jwk['x']),
       );
 
     case 'secp256k1':
@@ -161,28 +158,14 @@ Uint8List _ecJwkToMultiKey({
   var compressedHex = curve.publicKeyToCompressedHex(
     elliptic.PublicKey(
       curve,
-      decodeBigInt(base64Decode(addPaddingToBase64(jwk['x']))),
-      decodeBigInt(base64Decode(addPaddingToBase64(jwk['y']))),
+      decodeBigInt(base64UrlNoPadDecode(jwk['x'])),
+      decodeBigInt(base64UrlNoPadDecode(jwk['y'])),
     ),
   );
   var compressedBytes = hexDecode(compressedHex);
   return Uint8List.fromList(
     multikeyIndicator + compressedBytes,
   );
-}
-
-String addPaddingToBase64(String base64Input) {
-  while (base64Input.length % 4 != 0) {
-    base64Input += '=';
-  }
-  return base64Input;
-}
-
-String removePaddingFromBase64(String base64Input) {
-  while (base64Input.endsWith('=')) {
-    base64Input = base64Input.substring(0, base64Input.length - 1);
-  }
-  return base64Input;
 }
 
 /// Returns a decoded varint staring at the first byte of [varint] and the

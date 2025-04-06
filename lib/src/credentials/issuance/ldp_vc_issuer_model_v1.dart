@@ -5,6 +5,7 @@ import 'package:json_ld_processor/json_ld_processor.dart';
 import 'package:pointycastle/api.dart';
 
 import '../../did/did_signer.dart';
+import '../../util/base64_util.dart';
 import '../models/v1/vc_data_model_v1.dart';
 
 final _sha256 = Digest('SHA-256');
@@ -70,7 +71,7 @@ class LdpVcdm1Issuer {
   /// Compute a JWS that is compatible with what our [BE outputs](https://gitlab.com/affinidi/foundational/genesis/libs/core/tiny-lds-ecdsa-secp256k1-2019/-/blob/main/src/secp256k1key.ts?ref_type=heads#L49)
   static Future<String> _computeAffinidJws(
       Uint8List payloadToSign, DidSigner signer) async {
-    final encodedHeader = base64EncodeNoPad(
+    final encodedHeader = base64UrlNoPadEncode(
       utf8.encode(
         jsonEncode(
           {
@@ -86,20 +87,8 @@ class LdpVcdm1Issuer {
       utf8.encode(encodedHeader) + utf8.encode('.') + payloadToSign,
     );
 
-    final jws = base64EncodeNoPad(await signer.sign(jwsToSign));
+    final jws = base64UrlNoPadEncode(await signer.sign(jwsToSign));
 
     return '$encodedHeader..$jws';
   }
-}
-
-//FIXME move somewhere common
-String base64EncodeNoPad(Uint8List input) {
-  final b64Padded = base64UrlEncode(input);
-
-  int lastNoPadIndex = b64Padded.length - 1;
-  while (lastNoPadIndex > 0 && b64Padded[lastNoPadIndex] == '=') {
-    lastNoPadIndex--;
-  }
-
-  return b64Padded.substring(0, lastNoPadIndex + 1);
 }
