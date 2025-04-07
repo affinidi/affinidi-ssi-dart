@@ -15,4 +15,5 @@ export 'src/key_pair/secp256k1_key_pair.dart';
 export 'src/types.dart';
 export 'src/wallet/bip32_ed25519_wallet.dart';
 export 'src/wallet/bip32_wallet.dart';
+export 'src/wallet/aws_kms_wallet.dart';
 export 'src/wallet/wallet.dart';

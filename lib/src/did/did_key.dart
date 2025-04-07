@@ -1,18 +1,20 @@
-import 'dart:typed_data';
-
 import 'package:base_codecs/base_codecs.dart';
+import 'public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
-import '../types.dart';
 import '../utility.dart';
 import 'did_document.dart';
 
 Future<DidDocument> _buildEDDoc(
-    List<String> context, String id, String keyPart) {
-  var multiCodecXKey =
-      ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
+  List<String> context,
+  String id,
+  String keyPart,
+) {
+  var multiCodecXKey = ed25519PublicToX25519Public(
+    base58Bitcoin.decode(keyPart).sublist(2),
+  );
   if (!multiCodecXKey.startsWith('6LS')) {
     throw SsiException(
       message:
@@ -23,18 +25,21 @@ Future<DidDocument> _buildEDDoc(
   String verificationKeyId = '$id#z$keyPart';
   String agreementKeyId = '$id#z$multiCodecXKey';
 
-  var verification = VerificationMethod(
-      id: verificationKeyId,
-      controller: id,
-      type: 'Ed25519VerificationKey2020',
-      publicKeyMultibase: 'z$keyPart');
-  var keyAgreement = VerificationMethod(
-      id: agreementKeyId,
-      controller: id,
-      type: 'X25519KeyAgreementKey2020',
-      publicKeyMultibase: 'z$multiCodecXKey');
+  var verification = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: 'Ed25519VerificationKey2020',
+    publicKeyMultibase: 'z$keyPart',
+  );
+  var keyAgreement = VerificationMethodMultibase(
+    id: agreementKeyId,
+    controller: id,
+    type: 'X25519KeyAgreementKey2020',
+    publicKeyMultibase: 'z$multiCodecXKey',
+  );
 
-  return Future.value(DidDocument(
+  return Future.value(
+    DidDocument(
       context: context,
       id: id,
       verificationMethod: [verification, keyAgreement],
@@ -42,33 +47,48 @@ Future<DidDocument> _buildEDDoc(
       keyAgreement: [agreementKeyId],
       authentication: [verificationKeyId],
       capabilityDelegation: [verificationKeyId],
-      capabilityInvocation: [verificationKeyId]));
+      capabilityInvocation: [verificationKeyId],
+    ),
+  );
 }
 
 Future<DidDocument> _buildXDoc(
-    List<String> context, String id, String keyPart) {
+  List<String> context,
+  String id,
+  String keyPart,
+) {
   String verificationKeyId = '$id#z$keyPart';
-  var verification = VerificationMethod(
-      id: verificationKeyId,
-      controller: id,
-      type: 'X25519KeyAgreementKey2020',
-      publicKeyMultibase: 'z$keyPart');
-  return Future.value(DidDocument(
+  var verification = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: 'X25519KeyAgreementKey2020',
+    publicKeyMultibase: 'z$keyPart',
+  );
+  return Future.value(
+    DidDocument(
       context: context,
       id: id,
       verificationMethod: [verification],
-      keyAgreement: [verificationKeyId]));
+      keyAgreement: [verificationKeyId],
+    ),
+  );
 }
 
 Future<DidDocument> _buildOtherDoc(
-    List<String> context, String id, String keyPart, String type) {
+  List<String> context,
+  String id,
+  String keyPart,
+  String type,
+) {
   String verificationKeyId = '$id#z$keyPart';
-  var verification = VerificationMethod(
-      id: verificationKeyId,
-      controller: id,
-      type: type,
-      publicKeyMultibase: 'z$keyPart');
-  return Future.value(DidDocument(
+  var verification = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: type,
+    publicKeyMultibase: 'z$keyPart',
+  );
+  return Future.value(
+    DidDocument(
       context: context,
       id: id,
       verificationMethod: [verification],
@@ -76,7 +96,9 @@ Future<DidDocument> _buildOtherDoc(
       authentication: [verificationKeyId],
       capabilityDelegation: [verificationKeyId],
       capabilityInvocation: [verificationKeyId],
-      keyAgreement: [verificationKeyId]));
+      keyAgreement: [verificationKeyId],
+    ),
+  );
 }
 
 class DidKey {
@@ -84,10 +106,8 @@ class DidKey {
     var keyPair = keyPairs[0];
     final keyType = await keyPair.publicKeyType;
     final publicKey = await keyPair.publicKey;
-    final multicodec = _didKeyMulticodes[keyType]!;
-    final multibase = base58BitcoinEncode(
-      Uint8List.fromList([...multicodec, ...publicKey]),
-    );
+    final multiKey = toMultikey(publicKey, keyType);
+    final multibase = toMultiBase(multiKey);
     final did = '$commonDidKeyPrefix$multibase';
     final keyId = '$did#$multibase';
 
@@ -95,7 +115,7 @@ class DidKey {
     return DidDocument(
       id: did,
       verificationMethod: [
-        VerificationMethod(
+        VerificationMethodMultibase(
           id: did,
           controller: keyId,
           type: 'Multikey',
@@ -163,15 +183,5 @@ class DidKey {
     }
   }
 
-  static const commonDidKeyPrefix = 'did:key:z';
-
-  // static const Map<KeyType, String> _didKeyPrefixes = {
-  //   KeyType.secp256k1: '${commonDidKeyPrefix}Q3s',
-  //   KeyType.ed25519: '${commonDidKeyPrefix}6Mk',
-  // };
-
-  static const Map<KeyType, List<int>> _didKeyMulticodes = {
-    KeyType.secp256k1: [231, 1],
-    KeyType.ed25519: [237, 1],
-  };
+  static const commonDidKeyPrefix = 'did:key:';
 }
