@@ -131,7 +131,7 @@ If you face any issues or have suggestions, please don't hesitate to contact us 
 
 ### Reporting technical issues
 
-If you have a technical issue with the Affinidi TDK's codebase, you can also create an issue directly in GitHub.
+If you have a technical issue with the Affinidi Dart SSI's codebase, you can also create an issue directly in GitHub.
 
 1. Ensure the bug was not already reported by searching on GitHub under
    [Issues](https://github.com/affinidi/affinidi-ssi-dart/issues).
