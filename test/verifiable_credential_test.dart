@@ -1,3 +1,6 @@
+import 'package:ssi/src/credentials/verifier/jwt_vc_data_model_v11_verifier.dart';
+import 'package:ssi/src/credentials/verifier/vc_data_model_v11_verifier.dart';
+import 'package:ssi/src/credentials/verifier/vc_data_model_v20_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
@@ -12,6 +15,7 @@ void main() {
         var data =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
         final verifiableCredential = VerifiableCredentialFactory.create(data);
+        final vcDataModelVerifier =  VcDataModelV11Verifier();
         test(
           'it retrieves the correct issuer',
           () {
@@ -70,6 +74,13 @@ void main() {
         );
 
         test(
+          'it should return true for checkexpiry',
+           () {
+              expect(vcDataModelVerifier.checkExpiry(verifiableCredential), true);
+            },
+        );
+
+        test(
           'it holds the original json data provided to create the instance',
           () {
             expect(
@@ -124,6 +135,7 @@ void main() {
     group('and receiving a JWT token', () {
       var data = VerifiableCredentialDataFixtures.jwtCredentialDataModelV11;
       final verifiableCredential = VerifiableCredentialFactory.create(data);
+      final vcDataModelVerifier =  JwtVcDataModelV11Verifier();
 
       test(
         'it retrieves the correct issuer',
@@ -182,6 +194,13 @@ void main() {
       );
 
       test(
+        'it should return false for checkexpiry',
+        () {
+        expect(vcDataModelVerifier.checkExpiry(verifiableCredential), false);
+        }
+      );
+
+      test(
         'it holds the original json data provided to create the instance',
         () {
           expect(
@@ -216,6 +235,7 @@ void main() {
         var data =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV20;
         final verifiableCredential = VerifiableCredentialFactory.create(data);
+        final vcDataModelVerifier =  VcDataModelV20Verifier();
         test(
           'it retrieves the correct issuer',
           () {
@@ -275,6 +295,14 @@ void main() {
           () {
             expect(verifiableCredential.validUntil,
                 DateTime.utc(2020, 02, 01, 19, 25, 24, 0));
+          },
+        );
+
+        test(
+          'it should return true for checkexpiry',
+          () {
+              expect(vcDataModelVerifier.checkExpiry(verifiableCredential),
+               true);
           },
         );
 
