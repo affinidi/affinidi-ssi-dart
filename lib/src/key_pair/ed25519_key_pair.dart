@@ -2,27 +2,32 @@ import 'dart:typed_data';
 
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 
-import 'key_pair.dart';
 import '../digest_utils.dart';
 import '../types.dart';
+import 'key_pair.dart';
 
 class Ed25519KeyPair implements KeyPair {
   final String _keyId;
   final dynamic _privateKey;
 
-  Ed25519KeyPair({required dynamic privateKey, required String keyId})
-      : _privateKey = privateKey,
+  Ed25519KeyPair({
+    required dynamic privateKey,
+    required String keyId,
+  })  : _privateKey = privateKey,
         _keyId = keyId;
 
   @override
-  Future<String> getKeyId() async => _keyId;
+  Future<String> get id => Future.value(_keyId);
 
   @override
-  Future<Uint8List> getPublicKey() async =>
-      Uint8List.fromList(ed.public(_privateKey).bytes);
+  Future<Uint8List> get publicKey => Future.value(
+        Uint8List.fromList(
+          ed.public(_privateKey).bytes,
+        ),
+      );
 
   @override
-  Future<KeyType> getKeyType() async => KeyType.ed25519;
+  Future<KeyType> get publicKeyType => Future.value(KeyType.ed25519);
 
   @override
   Future<Uint8List> sign(
@@ -44,8 +49,8 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   Future<bool> verify(
-    Uint8List data, {
-    required Uint8List signature,
+    Uint8List data,
+    Uint8List signature, {
     SignatureScheme? signatureScheme,
   }) async {
     signatureScheme ??= SignatureScheme.ed25519sha256;

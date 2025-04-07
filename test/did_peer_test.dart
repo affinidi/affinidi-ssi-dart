@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
@@ -21,15 +22,15 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final didPeer = await DidPeer.create([keyPair]);
-      final actualDid = await didPeer.getDid();
-      final actualKeyType = await keyPair.getKeyType();
+      final doc = await DidPeer.create([keyPair]);
+      final actualDid = doc.id;
+      final actualKeyType = await keyPair.publicKeyType;
 
-      final expectedDidDocString =
-          '{"id":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","verificationMethod":[{"id":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","controller":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"}],"authentication":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"capabilityDelegation":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"capabilityInvocation":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"keyAgreement":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#z6LSrY3Na7Bkq7f3ktzajpR7vQ4YCjyw9KCT1Y2tnjLLZsV5"],"assertionMethod":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"]}';
+      final expectedDidDoc = jsonDecode(
+          '{"@context": ["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/ed25519-2020/v1"], "id":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","verificationMethod":[{"id":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","controller":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"}],"authentication":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"capabilityDelegation":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"capabilityInvocation":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"keyAgreement":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#z6LSrY3Na7Bkq7f3ktzajpR7vQ4YCjyw9KCT1Y2tnjLLZsV5"],"assertionMethod":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"]}');
       final resolvedDidDocument = await DidPeer.resolve(actualDid);
       expect(resolvedDidDocument.id, expectedDid);
-      expect(resolvedDidDocument.toString(), expectedDidDocString);
+      expect(resolvedDidDocument.toJson(), expectedDidDoc);
 
       expect(actualDid, expectedDid);
       expect(actualKeyType, expectedKeyType);
@@ -44,21 +45,25 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
       final keyPair = await wallet.createKeyPair(derivedKeyId);
-      final didPeer =
-          await DidPeer.create([keyPair, keyPair], 'https://denys.com/income');
-      final actualDid = await didPeer.getDid();
+      final doc = await DidPeer.create(
+        [keyPair, keyPair],
+        serviceEndpoint: 'https://denys.com/income',
+      );
+      final actualDid = doc.id;
 
       final expectedDidDocString =
-          '{"id":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","verificationMethod":[{"id":"#key-1","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-2","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-3","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-4","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"}],"authentication":["#key-3","#key-4"],"keyAgreement":["#key-1","#key-2"],"assertionMethod":["#key-3","#key-4"],"service":[{"id":"new-id","type":"DIDCommMessaging","serviceEndpoint":"https://denys.com/income"}]}';
+          '{"@context":["https://www.w3.org/ns/did/v1","https://ns.did.ai/suites/multikey-2021/v1/"],"id":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","verificationMethod":[{"id":"#key-1","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-2","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-3","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-4","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"}],"authentication":["#key-3","#key-4"],"keyAgreement":["#key-1","#key-2"],"assertionMethod":["#key-3","#key-4"],"service":[{"id":"new-id","type":"DIDCommMessaging","serviceEndpoint":"https://denys.com/income"}]}';
       final resolvedDidDocument = await DidPeer.resolve(actualDid);
       expect(resolvedDidDocument.id, expectedDid);
-      expect(resolvedDidDocument.toString(), expectedDidDocString);
+      expect(resolvedDidDocument.toJson(), jsonDecode(expectedDidDocString));
 
       expect(actualDid, startsWith(expectedDidPeerPrefix));
     });
 
     test('public key derived from did should be the same', () async {
       final expectedPublicKey = Uint8List.fromList([
+        237,
+        1,
         143,
         233,
         105,
@@ -96,8 +101,8 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final didPeer = await DidPeer.create([keyPair]);
-      final actualPublicKey = await didPeer.getPublicKey();
+      final doc = await DidPeer.create([keyPair]);
+      final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
     });

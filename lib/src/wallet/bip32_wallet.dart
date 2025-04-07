@@ -13,30 +13,23 @@ class Bip32Wallet implements Wallet {
 
   final Map<String, Secp256k1KeyPair> _keyMap;
 
-  Bip32Wallet._(this._keyMap);
+  Bip32Wallet._(BIP32 node)
+      : _keyMap = {rootKeyId: Secp256k1KeyPair(node: node, keyId: rootKeyId)};
 
   factory Bip32Wallet.fromSeed(Uint8List seed) {
     final rootNode = BIP32.fromSeed(seed);
-    final rootKeyPair = Secp256k1KeyPair(node: rootNode, keyId: rootKeyId);
-    Map<String, Secp256k1KeyPair> keyMap = {rootKeyId: rootKeyPair};
-    return Bip32Wallet._(keyMap);
+    return Bip32Wallet._(rootNode);
   }
 
   factory Bip32Wallet.fromPrivateKey(Uint8List privateKey) {
     // TODO: validate if chainCode is correct
     final chainCode = Uint8List(0);
     final rootNode = BIP32.fromPrivateKey(privateKey, chainCode);
-    final rootKeyPair = Secp256k1KeyPair(node: rootNode, keyId: rootKeyId);
-    Map<String, Secp256k1KeyPair> keyMap = {rootKeyId: rootKeyPair};
-    return Bip32Wallet._(keyMap);
+    return Bip32Wallet._(rootNode);
   }
 
   @visibleForTesting
-  factory Bip32Wallet.fromBip32Node(BIP32 node) {
-    final rootKeyPair = Secp256k1KeyPair(node: node, keyId: rootKeyId);
-    Map<String, Secp256k1KeyPair> keyMap = {rootKeyId: rootKeyPair};
-    return Bip32Wallet._(keyMap);
-  }
+  factory Bip32Wallet.fromBip32Node(BIP32 node) => Bip32Wallet._(node);
 
   // TODO: recover from key map
   // factory Bip32Wallet.fromKeyMap(Map<String, String> backup) {
@@ -66,8 +59,11 @@ class Bip32Wallet implements Wallet {
     required String keyId,
   }) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.verify(data,
-        signature: signature, signatureScheme: SignatureScheme.es256k);
+    return keyPair.verify(
+      data,
+      signature,
+      signatureScheme: SignatureScheme.es256k,
+    );
   }
 
   @override
@@ -97,7 +93,7 @@ class Bip32Wallet implements Wallet {
   @override
   Future<Uint8List> getPublicKey(String keyId) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.getPublicKey();
+    return keyPair.publicKey;
   }
 
   @override
