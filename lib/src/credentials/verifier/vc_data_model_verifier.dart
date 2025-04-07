@@ -3,8 +3,8 @@ import 'package:ssi/src/credentials/models/verifiable_credential.dart';
 abstract class VcDataModelVerifier {
   /// check if the [data] provided is expired or not
   bool checkExpiry(VerifiableCredential data) {
-    DateTime now = DateTime.now();
     if (data.validFrom != null && data.validUntil != null) {
+      DateTime now = DateTime.now();
       DateTime? validFrom = data.validFrom;
       DateTime? validUntil = data.validUntil;
 
@@ -14,5 +14,5 @@ abstract class VcDataModelVerifier {
   }
 
   /// check integrity verification of [data]
-  bool checkIntegrityVerification(Object data);
+  bool checkIntegrityVerification(VerifiableCredential data);
 }
