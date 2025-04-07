@@ -15,7 +15,7 @@ void main() {
         var data =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
         final verifiableCredential = VerifiableCredentialFactory.create(data);
-        final vcDataModelVerifier =  VcDataModelV11Verifier();
+        final vcDataModelVerifier = VcDataModelV11Verifier();
         test(
           'it retrieves the correct issuer',
           () {
@@ -75,9 +75,9 @@ void main() {
 
         test(
           'it should return true for checkexpiry',
-           () {
-              expect(vcDataModelVerifier.checkExpiry(verifiableCredential), true);
-            },
+          () {
+            expect(vcDataModelVerifier.checkExpiry(verifiableCredential), true);
+          },
         );
 
         test(
@@ -135,7 +135,7 @@ void main() {
     group('and receiving a JWT token', () {
       var data = VerifiableCredentialDataFixtures.jwtCredentialDataModelV11;
       final verifiableCredential = VerifiableCredentialFactory.create(data);
-      final vcDataModelVerifier =  JwtVcDataModelV11Verifier();
+      final vcDataModelVerifier = JwtVcDataModelV11Verifier();
 
       test(
         'it retrieves the correct issuer',
@@ -193,12 +193,9 @@ void main() {
         },
       );
 
-      test(
-        'it should return false for checkexpiry',
-        () {
+      test('it should return false for checkexpiry', () {
         expect(vcDataModelVerifier.checkExpiry(verifiableCredential), false);
-        }
-      );
+      });
 
       test(
         'it holds the original json data provided to create the instance',
@@ -235,7 +232,7 @@ void main() {
         var data =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV20;
         final verifiableCredential = VerifiableCredentialFactory.create(data);
-        final vcDataModelVerifier =  VcDataModelV20Verifier();
+        final vcDataModelVerifier = VcDataModelV20Verifier();
         test(
           'it retrieves the correct issuer',
           () {
@@ -301,8 +298,7 @@ void main() {
         test(
           'it should return true for checkexpiry',
           () {
-              expect(vcDataModelVerifier.checkExpiry(verifiableCredential),
-               true);
+            expect(vcDataModelVerifier.checkExpiry(verifiableCredential), true);
           },
         );
 
