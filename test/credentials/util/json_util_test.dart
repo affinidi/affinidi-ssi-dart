@@ -1,10 +1,3 @@
-import 'dart:convert';
-
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
-import 'package:ssi/src/util/json_util.dart';
-import 'package:test/test.dart';
-
 void main() {
   // group('Test getters', () {
   //   test('getObjectWithIdList, single item with id', () async {
