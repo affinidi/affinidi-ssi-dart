@@ -6,7 +6,8 @@ import 'key_pair.dart';
 import '../types.dart';
 
 const _signatureSchemeToKmsAlgorithm = {
-  SignatureScheme.rsa: kms.SigningAlgorithmSpec.rsassaPkcs1V1_5Sha_256,
+  SignatureScheme.rsa_pkcs1_sha256:
+      kms.SigningAlgorithmSpec.rsassaPkcs1V1_5Sha_256,
 };
 
 kms.SigningAlgorithmSpec signingAlgorithmForScheme(SignatureScheme scheme) {
@@ -25,7 +26,7 @@ class KmsKeyPair implements KeyPair {
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [
-        SignatureScheme.rsa,
+        SignatureScheme.rsa_pkcs1_sha256,
       ];
 
   @override
@@ -40,9 +41,9 @@ class KmsKeyPair implements KeyPair {
   @override
   Future<Uint8List> sign(Uint8List data,
       {SignatureScheme? signatureScheme}) async {
-    signatureScheme ??= SignatureScheme.rsa;
+    signatureScheme ??= SignatureScheme.rsa_pkcs1_sha256;
 
-    if (signatureScheme != SignatureScheme.rsa) {
+    if (signatureScheme != SignatureScheme.rsa_pkcs1_sha256) {
       throw ArgumentError(
           "Unsupported signature scheme. Currently only RSA is supported with SHA256");
     }
@@ -59,9 +60,9 @@ class KmsKeyPair implements KeyPair {
   @override
   Future<bool> verify(Uint8List data, Uint8List signature,
       {SignatureScheme? signatureScheme}) async {
-    signatureScheme ??= SignatureScheme.rsa;
+    signatureScheme ??= SignatureScheme.rsa_pkcs1_sha256;
 
-    if (signatureScheme != SignatureScheme.rsa) {
+    if (signatureScheme != SignatureScheme.rsa_pkcs1_sha256) {
       throw ArgumentError(
           "Unsupported signature scheme. Currently only RSA is supported with SHA256");
     }

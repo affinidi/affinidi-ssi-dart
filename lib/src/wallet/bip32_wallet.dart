@@ -49,7 +49,8 @@ class Bip32Wallet implements Wallet {
     required String keyId,
   }) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.sign(data, signatureScheme: SignatureScheme.es256k);
+    return keyPair.sign(data,
+        signatureScheme: SignatureScheme.ecdsa_secp256r1_sha256);
   }
 
   @override
@@ -62,7 +63,7 @@ class Bip32Wallet implements Wallet {
     return keyPair.verify(
       data,
       signature,
-      signatureScheme: SignatureScheme.es256k,
+      signatureScheme: SignatureScheme.ecdsa_secp256r1_sha256,
     );
   }
 

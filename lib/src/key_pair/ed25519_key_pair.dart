@@ -34,8 +34,8 @@ class Ed25519KeyPair implements KeyPair {
     Uint8List data, {
     SignatureScheme? signatureScheme,
   }) async {
-    signatureScheme ??= SignatureScheme.ed25519sha256;
-    if (signatureScheme != SignatureScheme.ed25519sha256) {
+    signatureScheme ??= SignatureScheme.ed25519_sha256;
+    if (signatureScheme != SignatureScheme.ed25519_sha256) {
       throw ArgumentError(
           "Unsupported signature scheme. Currently only ed25519sha256 is supported with ed25519");
     }
@@ -53,8 +53,8 @@ class Ed25519KeyPair implements KeyPair {
     Uint8List signature, {
     SignatureScheme? signatureScheme,
   }) async {
-    signatureScheme ??= SignatureScheme.ed25519sha256;
-    if (signatureScheme != SignatureScheme.ed25519sha256) {
+    signatureScheme ??= SignatureScheme.ed25519_sha256;
+    if (signatureScheme != SignatureScheme.ed25519_sha256) {
       throw ArgumentError(
           "Unsupported signature scheme. Currently only ed25519sha256 is supported with secp256k1");
     }
@@ -70,5 +70,5 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes =>
-      const [SignatureScheme.es256k];
+      const [SignatureScheme.ed25519_sha256];
 }
