@@ -1,20 +1,20 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:jose_plus/jose.dart';
+import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
+import 'package:jose_plus/jose.dart' as jose;
 
 import 'did_document.dart';
 import 'did_resolver.dart';
+import 'public_key_utils.dart';
 import 'verifier.dart';
 
 class DidVerifier implements Verifier {
   final String _algorithm;
-  final String _kid;
-  final VerificationMethod _verificationMethod;
+  final String _kId;
+  final Map<String, dynamic> _jwk;
 
-  DidVerifier._(this._algorithm, this._kid, this._verificationMethod);
-
-  @override
-  String get keyId => _kid;
+  DidVerifier._(this._algorithm, this._kId, this._jwk);
 
   static Future<DidVerifier> create({
     required String algorithm,
@@ -38,45 +38,52 @@ class DidVerifier implements Verifier {
           'Verification method with id $kid not found in DID Document for $issuerDid');
     }
 
-    return DidVerifier._(algorithm, kid, verificationMethod);
+    final Jwk jwk = verificationMethod.asJwk();
+    final Map<String, dynamic> jwkMap = Map<String, dynamic>.from(jwk.toJson());
+
+    return DidVerifier._(algorithm, kid, jwkMap);
   }
 
   @override
   bool isAllowedAlgorithm(String algorithm) {
-    final jwk = _verificationMethod.asJwk();
-    final crv = jwk.toJson()['crv'];
+    if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
+      return algorithm == 'EdDSA' || algorithm == 'Ed25519';
+    }
 
-    switch (crv) {
-      case 'Ed25519':
-        return algorithm == 'EdDSA' || algorithm == 'Ed25519';
-      case 'secp256k1':
-        return algorithm == 'ES256K';
-      case 'P-256':
-        return algorithm == 'ES256';
-      default:
-        return false;
+    try {
+      final jose.JsonWebKey? publicKey = jose.JsonWebKey.fromJson(_jwk);
+      return publicKey!.usableForAlgorithm(algorithm);
+    } catch (_) {
+      return false;
     }
   }
 
   @override
   bool verify(Uint8List data, Uint8List signature) {
     try {
-      final Jwk jwk = _verificationMethod.asJwk();
-      final Map<String, dynamic> jwkMap =
-          Map<String, dynamic>.from(jwk.toJson());
-
-      if (!jwkMap.containsKey('kid')) {
-        jwkMap['kid'] = _verificationMethod.id;
+      if (!_jwk.containsKey('kid')) {
+        _jwk['kid'] = _kId;
       }
 
-      final publicKey = JsonWebKey.fromJson(jwkMap);
+      // Handle Ed25519 keys
+      if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
+        if (_algorithm != 'EdDSA') {
+          return false;
+        }
+        final publicKeyBytes =
+            base64Url.decode(addPaddingToBase64(_jwk['x'] as String));
+        return ed.verify(ed.PublicKey(publicKeyBytes), data, signature);
+      }
+
+      // For other key types, use the jose library
+      final publicKey = jose.JsonWebKey.fromJson(_jwk);
 
       if (publicKey == null) {
         throw ArgumentError('failed to create JsonWebKey from jwkMap');
       }
 
       return publicKey.verify(data, signature, algorithm: _algorithm);
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
