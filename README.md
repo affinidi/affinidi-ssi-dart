@@ -123,7 +123,7 @@ void main() async {
 }
 ```
 
-For more sample usage, go to the [example folder](docs/example/).
+For more sample usage, go to the [example folder](example).
 
 ## Support & feedback
 
