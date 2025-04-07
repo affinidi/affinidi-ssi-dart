@@ -18,6 +18,5 @@ abstract class EmbeddedProofSuite<SuiteOptions> {
 
   Future<VerificationResult> verifyProof(
     Map<String, dynamic> document,
-    SuiteOptions options,
   );
 }
