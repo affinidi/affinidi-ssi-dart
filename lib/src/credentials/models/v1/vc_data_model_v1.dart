@@ -106,10 +106,15 @@ class VcDataModelV1 implements VerifiableCredential {
         proof = {} {
     final json = jsonToMap(input);
 
-    context = getMandatoryStringList(json, '@context');
+    context = getStringList(json, '@context', mandatory: true);
     id = getMandatoryString(json, 'id');
     issuer = getMandatoryString(json, 'issuer');
-    type = getMandatoryStringList(json, 'type', allowSingleValue: true);
+    type = getStringList(
+      json,
+      'type',
+      allowSingleValue: true,
+      mandatory: true,
+    );
 
     // if (holder.isNotEmpty) {
     //   json['holder'] = holder;

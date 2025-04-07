@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'dart:typed_data';
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/issuance/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/src/credentials/issuance/ldp_vc_issuer_model_v1.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/did/did_signer.dart';
@@ -39,18 +40,20 @@ void main() {
             "type": "JsonSchemaValidator2018"
           })
         ],
-        issuanceDate: DateTime.parse("2023-01-01T09:51:00.272Z"),
-        issuer:
-            "did:elem:EiBOH3jRdJZmRE4ew_lKc0RgSDsZphs3ddXmz2MHfKHXcQ;elem:initial-state=eyJwcm90ZWN0ZWQiOiJleUp2Y0dWeVlYUnBiMjRpT2lKamNtVmhkR1VpTENKcmFXUWlPaUlqY0hKcGJXRnllU0lzSW1Gc1p5STZJa1ZUTWpVMlN5SjkiLCJwYXlsb2FkIjoiZXlKQVkyOXVkR1Y0ZENJNkltaDBkSEJ6T2k4dmR6TnBaQzV2Y21jdmMyVmpkWEpwZEhrdmRqSWlMQ0p3ZFdKc2FXTkxaWGtpT2x0N0ltbGtJam9pSTNCeWFXMWhjbmtpTENKMWMyRm5aU0k2SW5OcFoyNXBibWNpTENKMGVYQmxJam9pVTJWamNESTFObXN4Vm1WeWFXWnBZMkYwYVc5dVMyVjVNakF4T0NJc0luQjFZbXhwWTB0bGVVaGxlQ0k2SWpBeVl6QTBaR00yTUdRME1UWmtaRFl3TkdJNVlUQTJaV0l3WkRObE5USTNOVEpsT1RNM1pXSXpabVUwTmpRMlpUQXdOV1ZqTnpjd1l6YzJObUl4TWpBNU5pSjlMSHNpYVdRaU9pSWpjbVZqYjNabGNua2lMQ0oxYzJGblpTSTZJbkpsWTI5MlpYSjVJaXdpZEhsd1pTSTZJbE5sWTNBeU5UWnJNVlpsY21sbWFXTmhkR2x2Ymt0bGVUSXdNVGdpTENKd2RXSnNhV05MWlhsSVpYZ2lPaUl3TXpKaU5ETmpZV0ZtTkRBellXTmxOV0ZtTWpBd1ptSmlPRGxsWm1Oa1pEYzJNVEF4TWpSak5UUXpZVFEwT1dNMU1USTBNelUzTWprd1lURmtOalU0TVRZaWZWMHNJbUYxZEdobGJuUnBZMkYwYVc5dUlqcGJJaU53Y21sdFlYSjVJbDBzSW1GemMyVnlkR2x2YmsxbGRHaHZaQ0k2V3lJamNISnBiV0Z5ZVNKZGZRIiwic2lnbmF0dXJlIjoiRWVlaGxnajdjVnA0N0dHRXBUNEZieFV1WG1VY1dXZktHQkI2aUxnQTgtd3BLcXViSHVEeVJYQzQ4SldMMjZQRzVZV0xtZFRwcV8wVHNkVmhVMlEwYUEifQ",
+        issuanceDate: DateTime.now(),
+        issuer: signer.did,
       );
 
-      final credential = await LdpVcdm1Issuer.issue(
-        unsignedCredential: unsignedCredential,
-        signer: signer,
+      final proofSuite = EcdsaSecp256k1Signature2019();
+      final proof = await proofSuite.createProof(
+        unsignedCredential.toJson(),
+        // FIXME what other naming convetion could we use
+        EcdsaSecp256k1Signature2019Options(signer: signer),
       );
 
-      print("------------------------");
-      print(jsonEncode(credential.toJson()));
+      unsignedCredential.proof = proof.toJson();
+
+      print(jsonEncode(unsignedCredential.toJson()));
     });
   });
 }
@@ -64,7 +67,7 @@ Future<DidSigner> _initSigner(Uint8List seed) async {
     didDocument: doc,
     didKeyId: doc.verificationMethod[0].id,
     keyPair: keyPair,
-    signatureScheme: SignatureScheme.es256k,
+    signatureScheme: SignatureScheme.ecdsa_secp256r1_sha256,
   );
   return signer;
 }

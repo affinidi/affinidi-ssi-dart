@@ -41,7 +41,7 @@ String? getString(Map<String, dynamic> json, String fieldName) {
   return json[fieldName];
 }
 
-/// Return [fieldName] as `String`.Throws an exception if the field
+/// Return [fieldName] as `String`. Throws an exception if the field
 /// value is not a string or the field does not exist.
 String getMandatoryString(Map<String, dynamic> json, String fieldName) {
   if (!json.containsKey(fieldName) || json[fieldName] is! String) {
@@ -53,13 +53,20 @@ String getMandatoryString(Map<String, dynamic> json, String fieldName) {
   return json[fieldName];
 }
 
-/// Return [fieldName] as `List<String>`, or throw an exception
-List<String> getMandatoryStringList(
+/// Return [fieldName] as `List<String>`
+List<String> getStringList(
   Map<String, dynamic> json,
   String fieldName, {
   bool allowSingleValue = false,
+  bool mandatory = false,
 }) {
-  if (!json.containsKey(fieldName)) {
+  var fieldExists = json.containsKey(fieldName);
+
+  if (!fieldExists && !mandatory) {
+    return [];
+  }
+
+  if (!fieldExists && mandatory) {
     throw SsiException(
       message: '`$fieldName` property is mandatory',
       code: SsiExceptionType.invalidJson.code,
@@ -116,6 +123,42 @@ DateTime? getDateTime(
         message: '`$fieldName` must be a valid date time',
         code: SsiExceptionType.invalidJson.code,
       );
+  }
+}
+
+/// Add an optional field to [json] if [fieldValue] is not null
+void addOptional(
+  Map<String, dynamic> json,
+  String fieldName,
+  dynamic fieldValue,
+) {
+  if (fieldValue != null) {
+    json[fieldName] = fieldValue;
+  }
+}
+
+void addList<E>(
+  Map<String, dynamic> json,
+  String fieldName,
+  List<E> list, {
+  bool mandatory = false,
+  bool allowSingleValue = false,
+}) {
+  if (list.isEmpty && !mandatory) {
+    return;
+  }
+
+  if (list.isEmpty && mandatory) {
+    throw SsiException(
+      message: '`$fieldName` must not be empty',
+      code: SsiExceptionType.invalidJson.code,
+    );
+  }
+
+  if (list.length == 1 && allowSingleValue) {
+    json[fieldName] = list.first;
+  } else {
+    json[fieldName] = list;
   }
 }
 

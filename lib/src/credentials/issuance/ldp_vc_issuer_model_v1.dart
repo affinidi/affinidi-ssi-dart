@@ -10,8 +10,9 @@ import '../models/v1/vc_data_model_v1.dart';
 
 final _sha256 = Digest('SHA-256');
 
-class LdpVcdm1Issuer {
-  static Future<VcDataModelV1> issue({
+class LdVcDm1 {
+  /// Prepare a signed VC using embedded proof
+  Future<VcDataModelV1> issueEmbeddedProof({
     required VcDataModelV1 unsignedCredential,
     required DidSigner signer,
   }) async {
@@ -70,7 +71,9 @@ class LdpVcdm1Issuer {
 
   /// Compute a JWS that is compatible with what our [BE outputs](https://gitlab.com/affinidi/foundational/genesis/libs/core/tiny-lds-ecdsa-secp256k1-2019/-/blob/main/src/secp256k1key.ts?ref_type=heads#L49)
   static Future<String> _computeAffinidJws(
-      Uint8List payloadToSign, DidSigner signer) async {
+    Uint8List payloadToSign,
+    DidSigner signer,
+  ) async {
     final encodedHeader = base64UrlNoPadEncode(
       utf8.encode(
         jsonEncode(
