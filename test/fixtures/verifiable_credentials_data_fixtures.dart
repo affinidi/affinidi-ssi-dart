@@ -1,3 +1,5 @@
+import '../../lib/src/types.dart';
+
 class VerifiableCredentialDataFixtures {
   static Map<String, dynamic> get credentialWithProofDataModelV11 => {
         '@context': [
@@ -18,7 +20,7 @@ class VerifiableCredentialDataFixtures {
         'expirationDate': '2024-07-18T20:16:05.648',
         'issuer': 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa',
         'proof': {
-          'type': 'EcdsaSecp256k1Signature2019',
+          'type': SignatureScheme.ecdsa_secp256r1_sha256.w3cName,
           'created': '2024-07-16T18:16:05Z',
           'proofPurpose': 'assertionMethod',
           'verificationMethod':
