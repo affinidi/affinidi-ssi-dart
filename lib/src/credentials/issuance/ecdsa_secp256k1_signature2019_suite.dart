@@ -12,6 +12,7 @@ import '../../util/base64_util.dart';
 
 final _sha256 = Digest('SHA-256');
 
+// FIXME what other naming convention could we use
 class EcdsaSecp256k1Signature2019Options {
   final DidSigner signer;
   final ProofPurpose proofPurpose;
@@ -59,9 +60,29 @@ class EcdsaSecp256k1Signature2019
   }
 
   @override
-  Future<VerificationResult> verifyProof(Map<String, dynamic> document) async {
-    // TODO: implement verifyProof
-    throw UnimplementedError();
+  Future<VerificationResult> verifyProof(
+    Map<String, dynamic> document,
+    EcdsaSecp256k1Signature2019Options options,
+  ) async {
+    final copy = Map.of(document);
+    final proof = copy.remove('proof');
+
+    if (proof == null || proof is! Map<String, dynamic>) {
+      return VerificationResult(
+        isValid: false,
+        issues: ['invalid or missing proof'],
+      );
+    }
+
+    final originalJws = proof.remove('jws');
+    proof["@context"] = _securityContext;
+
+    final actualJws = await _computeVcHash(proof, copy)
+        .then((hash) => _computeAffinidJws(hash, options.signer));
+
+    return VerificationResult(
+      isValid: originalJws == actualJws,
+    );
   }
 
   static Future<Uint8List> _computeVcHash(

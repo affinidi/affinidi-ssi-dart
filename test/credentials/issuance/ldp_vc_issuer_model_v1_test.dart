@@ -47,13 +47,18 @@ void main() {
       final proofSuite = EcdsaSecp256k1Signature2019();
       final proof = await proofSuite.createProof(
         unsignedCredential.toJson(),
-        // FIXME what other naming convetion could we use
         EcdsaSecp256k1Signature2019Options(signer: signer),
       );
 
       unsignedCredential.proof = proof.toJson();
 
-      print(jsonEncode(unsignedCredential.toJson()));
+      final verificationResult = await proofSuite.verifyProof(
+        unsignedCredential.toJson(),
+        EcdsaSecp256k1Signature2019Options(signer: signer),
+      );
+
+      expect(verificationResult.isValid, true);
+      expect(verificationResult.issues, isEmpty);
     });
   });
 }
