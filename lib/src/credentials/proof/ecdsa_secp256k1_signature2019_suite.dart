@@ -3,9 +3,9 @@ import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
 import 'package:pointycastle/api.dart';
-import 'package:ssi/src/credentials/issuance/embedded_proof.dart';
-import 'package:ssi/src/credentials/issuance/embedded_proof_suite.dart';
-import 'package:ssi/src/credentials/issuance/proof_purpose.dart';
+import 'package:ssi/src/credentials/proof/embedded_proof.dart';
+import 'package:ssi/src/credentials/proof/embedded_proof_suite.dart';
+import 'package:ssi/src/credentials/proof/proof_purpose.dart';
 import 'package:ssi/src/did/did_signer.dart';
 import 'package:ssi/src/did/did_verifier.dart';
 

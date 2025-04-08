@@ -2,6 +2,7 @@ import '../credential_schema.dart';
 import '../verifiable_credential.dart';
 
 // TODO must implement adapter functions where needed to the generic VerifiableCredential
+// TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
 class VcDataModelV2 implements VerifiableCredential {
   @override
   // TODO: implement credentialSchema

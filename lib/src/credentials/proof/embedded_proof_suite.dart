@@ -1,4 +1,4 @@
-import 'package:ssi/src/credentials/issuance/embedded_proof.dart';
+import 'embedded_proof.dart';
 
 class VerificationResult {
   final bool isValid;
@@ -19,4 +19,8 @@ abstract class EmbeddedProofSuite<SuiteOptions> {
   Future<VerificationResult> verifyProof(
     Map<String, dynamic> document,
   );
+
+  static verifyEmbeddedProof(Map<String, dynamic> vc) {
+    // identitfy the right suite to use
+  }
 }

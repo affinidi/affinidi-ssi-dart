@@ -1,3 +1,5 @@
+import '../../../exceptions/ssi_exception.dart';
+import '../../../exceptions/ssi_exception_type.dart';
 import '../../../util/json_util.dart';
 import '../credential_schema.dart';
 import '../verifiable_credential.dart';
@@ -5,6 +7,7 @@ import '../verifiable_credential.dart';
 // TODO(cm) must implement adapter functions where needed to the generic VerifiableCredential
 // TODO(cm) decide what to do with "holder"
 // TODO(cm): add validation against the VCDM1 schema somewhere
+// TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
 class VcDataModelV1 implements VerifiableCredential {
   @override
   List<String> context;
@@ -135,6 +138,12 @@ class VcDataModelV1 implements VerifiableCredential {
         credentialSchema = l
             .map((e) => CredentialSchema.fromJson(jsonToMap(e)))
             .toList(growable: true);
+
+      default:
+        throw SsiException(
+          message: 'invalid credentialSchema',
+          code: SsiExceptionType.invalidJson.code,
+        );
     }
 
     // FIXME handle simple string
