@@ -3,8 +3,8 @@ import 'package:ssi/src/credentials/verifier/vc_data_model_verifier.dart';
 
 final class JwtVcDataModelV11Verifier extends VcDataModelVerifier {
   @override
-  bool checkIntegrityVerification(VerifiableCredential data) {
-    // TODO: implement checkIntegrityVerification
+  Future<bool> verifyIntegrity(VerifiableCredential data) {
+    // TODO: implement verifyIntegrity
     throw UnimplementedError();
   }
 }

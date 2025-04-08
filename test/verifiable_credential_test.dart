@@ -74,9 +74,10 @@ void main() {
         );
 
         test(
-          'it should return true for checkexpiry',
-          () {
-            expect(vcDataModelVerifier.checkExpiry(verifiableCredential), true);
+          'it should return false for verifyExpiry',
+          () async {
+            expect(await vcDataModelVerifier.verifyExpiry(verifiableCredential),
+                false);
           },
         );
 
@@ -193,8 +194,9 @@ void main() {
         },
       );
 
-      test('it should return false for checkexpiry', () {
-        expect(vcDataModelVerifier.checkExpiry(verifiableCredential), false);
+      test('it should return true for verifyExpiry', () async {
+        expect(
+            await vcDataModelVerifier.verifyExpiry(verifiableCredential), true);
       });
 
       test(
@@ -296,9 +298,10 @@ void main() {
         );
 
         test(
-          'it should return true for checkexpiry',
-          () {
-            expect(vcDataModelVerifier.checkExpiry(verifiableCredential), true);
+          'it should return false for verifyExpiry',
+          () async {
+            expect(await vcDataModelVerifier.verifyExpiry(verifiableCredential),
+                false);
           },
         );
 

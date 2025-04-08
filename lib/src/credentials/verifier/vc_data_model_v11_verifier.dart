@@ -3,8 +3,8 @@ import 'package:ssi/ssi.dart';
 
 final class VcDataModelV11Verifier extends VcDataModelVerifier {
   @override
-  bool checkIntegrityVerification(VerifiableCredential data) {
-    // TODO: implement checkIntegrityVerification
+  Future<bool> verifyIntegrity(VerifiableCredential data) {
+    // TODO: implement verifyIntegrity
     throw UnimplementedError();
   }
 }
