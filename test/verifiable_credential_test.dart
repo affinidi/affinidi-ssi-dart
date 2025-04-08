@@ -1,6 +1,6 @@
-import 'package:ssi/src/credentials/verifier/jwt_vc_data_model_v11_verifier.dart';
-import 'package:ssi/src/credentials/verifier/vc_data_model_v11_verifier.dart';
-import 'package:ssi/src/credentials/verifier/vc_data_model_v20_verifier.dart';
+import 'package:ssi/src/credentials/verifier/jwt_vc_data_model_v1_verifier.dart';
+import 'package:ssi/src/credentials/verifier/vc_data_model_v1_verifier.dart';
+import 'package:ssi/src/credentials/verifier/vc_data_model_v2_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
@@ -15,7 +15,7 @@ void main() {
         var data =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
         final verifiableCredential = VerifiableCredentialFactory.create(data);
-        final vcDataModelVerifier = VcDataModelV11Verifier();
+        final vcDataModelVerifier = VcDataModelV1Verifier();
         test(
           'it retrieves the correct issuer',
           () {
@@ -136,7 +136,7 @@ void main() {
     group('and receiving a JWT token', () {
       var data = VerifiableCredentialDataFixtures.jwtCredentialDataModelV11;
       final verifiableCredential = VerifiableCredentialFactory.create(data);
-      final vcDataModelVerifier = JwtVcDataModelV11Verifier();
+      final vcDataModelVerifier = JwtVcDataModelV1Verifier();
 
       test(
         'it retrieves the correct issuer',
@@ -234,7 +234,7 @@ void main() {
         var data =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV20;
         final verifiableCredential = VerifiableCredentialFactory.create(data);
-        final vcDataModelVerifier = VcDataModelV20Verifier();
+        final vcDataModelVerifier = VcDataModelV2Verifier();
         test(
           'it retrieves the correct issuer',
           () {

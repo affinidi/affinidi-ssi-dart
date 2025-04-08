@@ -1,7 +1,7 @@
 import 'package:ssi/src/credentials/verifier/vc_data_model_verifier.dart';
 import 'package:ssi/ssi.dart';
 
-final class VcDataModelV11Verifier extends VcDataModelVerifier {
+final class VcDataModelV1Verifier extends VcDataModelVerifier {
   @override
   Future<bool> verifyIntegrity(VerifiableCredential data) {
     // TODO: implement verifyIntegrity
