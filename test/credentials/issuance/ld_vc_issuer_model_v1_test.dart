@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/issuance/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
-import 'package:ssi/src/did/did_signer.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
