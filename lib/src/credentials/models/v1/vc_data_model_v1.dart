@@ -2,8 +2,9 @@ import '../../../util/json_util.dart';
 import '../credential_schema.dart';
 import '../verifiable_credential.dart';
 
-// TODO must implement adapter functions where needed to the generic VerifiableCredential
-// TODO decide what to do with "holder"
+// TODO(cm) must implement adapter functions where needed to the generic VerifiableCredential
+// TODO(cm) decide what to do with "holder"
+// TODO(cm): add validation against the VCDM1 schema somewhere
 class VcDataModelV1 implements VerifiableCredential {
   @override
   List<String> context;
