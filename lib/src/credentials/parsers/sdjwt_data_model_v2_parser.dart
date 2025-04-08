@@ -1,10 +1,10 @@
-import '../models/parsed_vc_data_model_v20.dart';
-import '../models/sdjwt_data_model_v20.dart';
+import '../models/v2/parsed_vc_data_model_v2.dart';
+import '../models/v2/sdjwt_data_model_v2.dart';
 import '../models/verifiable_credential.dart';
 import 'vc_data_model_parser.dart';
 
-/// Class to parse and convert a json representation of a [SdjwtDataModelV20]
-final class SdJwtDataModelV20Parser implements VcDataModelParser {
+/// Class to parse and convert a json representation of a [SdjwtDataModelV2]
+final class SdJwtDataModelV2Parser implements VcDataModelParser {
   static const _v2ContextUrl = 'https://www.w3.org/ns/credentials/v2';
 
   bool _hasV2Context(Object data) {
@@ -28,8 +28,8 @@ final class SdJwtDataModelV20Parser implements VcDataModelParser {
   /// Attempts to parse [data] and return a [VerifiableCredential]
   /// It can throw in case the data cannot be converted to a valid [VerifiableCredential]
   @override
-  SdjwtDataModelV20 parse(Object data) {
+  SdjwtDataModelV2 parse(Object data) {
     // call the sdjwt lib parse code
-    return SdjwtDataModelV20(data as Map<String, dynamic>);
+    return SdjwtDataModelV2(data as Map<String, dynamic>);
   }
 }

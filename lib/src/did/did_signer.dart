@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
-import '../../ssi.dart';
+import '../key_pair/key_pair.dart';
+import '../types.dart';
 import 'did_document.dart';
 
 class DidSigner {

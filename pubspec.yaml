@@ -19,6 +19,7 @@ dependencies:
   jwt_decoder: ^2.0.1
   elliptic: ^0.3.11
   jose_plus: ^0.4.6
+  json_ld_processor: ^1.0.4
 dev_dependencies:
   coverage: ^1.11.1
   lints: ^5.0.0

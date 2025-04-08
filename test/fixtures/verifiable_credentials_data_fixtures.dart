@@ -1,4 +1,4 @@
-import '../../lib/src/types.dart';
+import 'package:ssi/src/types.dart';
 
 class VerifiableCredentialDataFixtures {
   static Map<String, dynamic> get credentialWithProofDataModelV11 => {

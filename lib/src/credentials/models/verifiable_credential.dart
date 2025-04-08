@@ -4,10 +4,15 @@ import 'credential_schema.dart';
 ///
 /// Verifiable credentials can be used to build verifiable presentations, which can also be cryptographically verifiable.
 abstract interface class VerifiableCredential {
+  /// Returns the VerifiableCredential issuer
+  List<String> get context;
+
   /// Returns the VerifiableCredential issuer.
+  // FIXME issuer can be an entity with an id or a string
   String get issuer;
 
   /// Returns a list of VerifiableCredential types.
+  // FIXME should be changed to a Set
   List<String> get type;
 
   /// Returns a Map representing the VerifiableCredential Subject.

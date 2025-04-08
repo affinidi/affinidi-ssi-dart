@@ -1,29 +1,34 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:jose_plus/jose.dart' as jose;
+import 'package:ssi/src/did/verifier.dart';
+import 'package:ssi/src/util/base64_util.dart';
 
+import '../types.dart';
 import 'did_document.dart';
 import 'did_resolver.dart';
-import 'public_key_utils.dart';
-import 'verifier.dart';
 
+//FIXME we should check proofPurpose
 class DidVerifier implements Verifier {
-  final String _algorithm;
+  final SignatureScheme _algorithm;
   final String _kId;
   final Map<String, dynamic> _jwk;
 
   DidVerifier._(this._algorithm, this._kId, this._jwk);
 
   static Future<DidVerifier> create({
-    required String algorithm,
+    required SignatureScheme algorithm,
     required String kid,
     required String issuerDid,
     String? resolverAddress,
   }) async {
-    final didDocument =
-        await resolveDidDocument(issuerDid, resolverAddress: resolverAddress);
+    final didDocument = await resolveDidDocument(
+      issuerDid,
+      resolverAddress: resolverAddress,
+    );
+
+    // TODO check if kid is somehow related to issuerDid
 
     VerificationMethod? verificationMethod;
     for (var method in didDocument.verificationMethod) {
@@ -67,12 +72,17 @@ class DidVerifier implements Verifier {
 
       // Handle Ed25519 keys
       if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
-        if (_algorithm != 'EdDSA') {
+        if (_algorithm.jwtName != 'EdDSA') {
           return false;
         }
-        final publicKeyBytes =
-            base64Url.decode(addPaddingToBase64(_jwk['x'] as String));
+
+        final publicKeyBytes = base64UrlNoPadDecode(_jwk['x']);
         return ed.verify(ed.PublicKey(publicKeyBytes), data, signature);
+      }
+
+      // the library uses the old crv value P-256K
+      if (_jwk['crv'] == 'secp256k1') {
+        _jwk['crv'] = 'P-256K';
       }
 
       // For other key types, use the jose library
@@ -82,7 +92,7 @@ class DidVerifier implements Verifier {
         throw ArgumentError('failed to create JsonWebKey from jwkMap');
       }
 
-      return publicKey.verify(data, signature, algorithm: _algorithm);
+      return publicKey.verify(data, signature, algorithm: _algorithm.jwtName);
     } catch (_) {
       return false;
     }

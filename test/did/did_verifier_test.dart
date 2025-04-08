@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:ssi/src/did/did_verifier.dart';
+import 'package:ssi/src/types.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -13,7 +14,7 @@ void main() {
     test('should correctly handle algorithm support for Ed25519 keys',
         () async {
       final verifier = await DidVerifier.create(
-        algorithm: 'EdDSA',
+        algorithm: SignatureScheme.eddsa_sha512,
         kid: kid,
         issuerDid: didKey,
       );
@@ -26,7 +27,7 @@ void main() {
 
     test('should reject invalid signatures for Ed25519 keys', () async {
       final verifier = await DidVerifier.create(
-        algorithm: 'EdDSA',
+        algorithm: SignatureScheme.eddsa_sha512,
         kid: kid,
         issuerDid: didKey,
       );
@@ -44,7 +45,7 @@ void main() {
 
     test('should handle algorithm mismatches correctly', () async {
       final wrongAlgVerifier = await DidVerifier.create(
-        algorithm: 'ES256K', // Wrong algorithm for Ed25519
+        algorithm: SignatureScheme.eddsa_sha512, // Wrong algorithm for Ed25519
         kid: kid,
         issuerDid: didKey,
       );
