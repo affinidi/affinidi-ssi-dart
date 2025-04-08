@@ -145,7 +145,7 @@ class EcdsaSecp256k1Signature2019
 
     //FIXME assuming fully qualified key id (which probably it should be :))
     final verifier = await DidVerifier.create(
-      algorithm: SignatureScheme.ecdsa_secp256r1_sha256,
+      algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
       kid: verificationMethod.toString(),
       issuerDid: verificationMethod.removeFragment().toString(),
     );

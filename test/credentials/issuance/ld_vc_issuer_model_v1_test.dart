@@ -79,7 +79,7 @@ Future<DidSigner> _initSigner(Uint8List seed) async {
     didDocument: doc,
     didKeyId: doc.verificationMethod[0].id,
     keyPair: keyPair,
-    signatureScheme: SignatureScheme.ecdsa_secp256r1_sha256,
+    signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
   );
   return signer;
 }
