@@ -3,7 +3,7 @@ enum KeyType { secp256k1, ed25519, x25519, p256, p384, p521, rsa }
 enum HashingAlgorithm { sha256, sha512 }
 
 enum SignatureScheme {
-  ecdsa_secp256r1_sha256("ES256K", "EcdsaSecp256k1Signature2019",
+  ecdsa_secp256k1_sha256("ES256K", "EcdsaSecp256k1Signature2019",
       KeyType.secp256k1, HashingAlgorithm.sha256),
   eddsa_sha512("EdDSA", "Ed25519Signature2020", KeyType.ed25519,
       HashingAlgorithm.sha512),
