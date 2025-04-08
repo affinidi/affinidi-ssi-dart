@@ -2,8 +2,8 @@ import '../credential_schema.dart';
 import '../verifiable_credential.dart';
 
 // TODO must implement VcDataModelV20 (which is not yet fully defined)
-class ParsedVcDataModelV20 implements VerifiableCredential {
-  ParsedVcDataModelV20(Map<String, dynamic> data)
+class ParsedVcDataModelV2 implements VerifiableCredential {
+  ParsedVcDataModelV2(Map<String, dynamic> data)
       : _jsonDataModel = Map<String, dynamic>.unmodifiable(data),
         _rawData = Map<String, dynamic>.unmodifiable(data);
 

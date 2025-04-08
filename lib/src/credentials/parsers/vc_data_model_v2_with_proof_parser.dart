@@ -1,4 +1,4 @@
-import '../models/v2/parsed_vc_data_model_v20.dart';
+import '../models/v2/parsed_vc_data_model_v2.dart';
 import '../models/verifiable_credential.dart';
 import 'vc_data_model_parser.dart';
 
@@ -26,6 +26,6 @@ final class VcDataModelV2WithProofParser implements VcDataModelParser {
   /// It can throw in case the data cannot be converted to a valid [VerifiableCredential]
   @override
   VerifiableCredential parse(Object data) {
-    return ParsedVcDataModelV20(data as Map<String, dynamic>);
+    return ParsedVcDataModelV2(data as Map<String, dynamic>);
   }
 }

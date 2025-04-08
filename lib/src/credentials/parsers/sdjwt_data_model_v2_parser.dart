@@ -1,5 +1,5 @@
-import '../models/v2/parsed_vc_data_model_v20.dart';
-import '../models/v2/sdjwt_data_model_v20.dart';
+import '../models/v2/parsed_vc_data_model_v2.dart';
+import '../models/v2/sdjwt_data_model_v2.dart';
 import '../models/verifiable_credential.dart';
 import 'vc_data_model_parser.dart';
 
