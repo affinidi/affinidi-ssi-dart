@@ -20,7 +20,7 @@ class VerifiableCredentialDataFixtures {
         'expirationDate': '2024-07-18T20:16:05.648',
         'issuer': 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa',
         'proof': {
-          'type': SignatureScheme.ecdsa_secp256r1_sha256.w3cName,
+          'type': SignatureScheme.ecdsa_secp256k1_sha256.w3cName,
           'created': '2024-07-16T18:16:05Z',
           'proofPurpose': 'assertionMethod',
           'verificationMethod':
