@@ -3,6 +3,56 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-04-08
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.17`](#ssi---v100-dev17)
+
+---
+
+#### `ssi` - `v1.0.0-dev.17`
+
+ - **FIX**: wrong name for secp256 k 1 (#28).
+
+## 1.0.0-dev.17
+
+ - **FIX**: wrong name for secp256 k 1 (#28).
+
+
+## 2025-04-07
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.16`](#ssi---v100-dev16)
+
+---
+
+#### `ssi` - `v1.0.0-dev.16`
+
+ - **FEAT**: consolidate algo names (#23).
+
+## 1.0.0-dev.16
+
+ - **FEAT**: consolidate algo names (#23).
+
+
 ## 2025-04-04
 
 ### Changes

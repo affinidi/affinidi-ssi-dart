@@ -30,8 +30,8 @@ class Secp256k1KeyPair implements KeyPair {
     Uint8List data, {
     SignatureScheme? signatureScheme,
   }) async {
-    signatureScheme ??= SignatureScheme.es256k;
-    if (signatureScheme != SignatureScheme.es256k) {
+    signatureScheme ??= SignatureScheme.ecdsa_secp256k1_sha256;
+    if (signatureScheme != SignatureScheme.ecdsa_secp256k1_sha256) {
       throw ArgumentError(
           "Unsupported signature scheme. Currently only es256k is supported with secp256k1");
     }
@@ -48,8 +48,8 @@ class Secp256k1KeyPair implements KeyPair {
     Uint8List signature, {
     SignatureScheme? signatureScheme,
   }) async {
-    signatureScheme ??= SignatureScheme.es256k;
-    if (signatureScheme != SignatureScheme.es256k) {
+    signatureScheme ??= SignatureScheme.ecdsa_secp256k1_sha256;
+    if (signatureScheme != SignatureScheme.ecdsa_secp256k1_sha256) {
       throw ArgumentError(
           "Unsupported signature scheme. Currently only es256k is supported with secp256k1");
     }
@@ -64,5 +64,5 @@ class Secp256k1KeyPair implements KeyPair {
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes =>
-      [SignatureScheme.es256k];
+      [SignatureScheme.ecdsa_secp256k1_sha256];
 }
