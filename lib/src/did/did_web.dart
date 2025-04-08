@@ -5,13 +5,14 @@ import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import 'did_document.dart';
 
+/// Converts a `did:web` identifier into a [Uri] pointing to its DID document.
 Uri didWebToUri(String didWeb) {
-  var did = didWeb.replaceFirst('did:web:', '');
+  String did = didWeb.replaceFirst('did:web:', '');
   did = did.replaceAll(':', '/');
   did = did.replaceAll('%3A', ':');
   did = did.replaceAll('%2B', '/');
   did = 'https://$did';
-  var asUri = Uri.parse(did);
+  final asUri = Uri.parse(did);
   if (asUri.hasEmptyPath) {
     did = '$did/.well-known';
   }
@@ -20,7 +21,14 @@ Uri didWebToUri(String didWeb) {
   return Uri.parse(did);
 }
 
+/// A utility class for working with the "did:peer" method.
 class DidWeb {
+  /// Creates a new [DidDocument] for a given DID.
+  ///
+  /// [keyPairs] - A list of [KeyPair] objects.
+  /// [did] - The DID to create the document for.
+  ///
+  /// Returns a [DidDocument] object.
   // FIXME build proper DID document
   static Future<DidDocument> create(
     List<KeyPair> keyPairs,
@@ -31,10 +39,15 @@ class DidWeb {
     );
   }
 
+  /// Resolves a [DidDocument] for a given DID.
+  ///
+  /// [didToResolve] - The DID to resolve.
+  ///
+  /// Returns a [DidDocument] object.
   static Future<DidDocument> resolve(
     String didToResolve,
   ) async {
-    var res = await get(didWebToUri(didToResolve),
+    final res = await get(didWebToUri(didToResolve),
             headers: {'Accept': 'application/json'})
         .timeout(Duration(seconds: 30), onTimeout: () {
       return Response('Timeout', 408);
@@ -43,7 +56,7 @@ class DidWeb {
       return DidDocument.fromJson(res.body);
     } else {
       throw SsiException(
-        message: 'Cant\'t fetch did-document for $didToResolve',
+        message: 'Failed to fetch DID Web document for $didToResolve',
         code: SsiExceptionType.invalidDidWeb.code,
       );
     }
