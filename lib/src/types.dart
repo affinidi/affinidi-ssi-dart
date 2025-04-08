@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 enum KeyType { secp256k1, ed25519, x25519, p256, p384, p521, rsa }
 
 enum HashingAlgorithm { sha256, sha512 }
