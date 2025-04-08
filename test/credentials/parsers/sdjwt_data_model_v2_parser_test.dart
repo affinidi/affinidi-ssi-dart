@@ -2,7 +2,7 @@ import 'package:ssi/src/credentials/parsers/sdjwt_data_model_v2_parser.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('SdJwtDataModelV20Parser', () {
+  group('SdJwtDataModelV2Parser', () {
     late SdJwtDataModelV2Parser parser;
 
     setUp(() {

@@ -4,7 +4,7 @@ import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('VcDataModelV20WithProofParser', () {
+  group('VcDataModelV2WithProofParser', () {
     late VcDataModelV2WithProofParser parser;
 
     setUp(() {
