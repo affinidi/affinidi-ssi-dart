@@ -1,17 +1,15 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:json_ld_processor/json_ld_processor.dart';
 import 'package:pointycastle/api.dart';
 import 'package:ssi/src/credentials/issuance/embedded_proof.dart';
 import 'package:ssi/src/credentials/issuance/embedded_proof_suite.dart';
 import 'package:ssi/src/credentials/issuance/proof_purpose.dart';
-import 'package:ssi/src/did/did_document.dart';
-import 'package:ssi/src/did/did_resolver.dart';
 import 'package:ssi/src/did/did_signer.dart';
-import 'package:jose_plus/jose.dart' as jose;
+import 'package:ssi/src/did/did_verifier.dart';
 
+import '../../types.dart';
 import '../../util/base64_util.dart';
 
 final _sha256 = Digest('SHA-256');
@@ -70,88 +68,32 @@ class EcdsaSecp256k1Signature2019
     final copy = Map.of(document);
     final proof = copy.remove('proof');
 
-    if (proof == null ||
-        proof is! Map<String, dynamic> ||
-        !proof.containsKey('verificationMethod')) {
+    if (proof == null || proof is! Map<String, dynamic>) {
       return VerificationResult(
         isValid: false,
         issues: ['invalid or missing proof'],
       );
     }
 
-    String verificationMethodStr = proof['verificationMethod'];
     Uri verificationMethod;
     try {
-      verificationMethod = Uri.parse(verificationMethodStr);
+      verificationMethod = Uri.parse(proof['verificationMethod']);
     } catch (e) {
       return VerificationResult(
         isValid: false,
-        issues: ['invalid or missing proof'],
+        issues: ['invalid or missing proof.verificationMethod'],
       );
     }
-
-    var did = verificationMethod.removeFragment();
-    if (document['issuer'] != did.toString()) {
-      return VerificationResult(
-        isValid: false,
-        issues: ['issuer does not match proof'],
-      );
-    }
-
-    final doc = await resolveDidDocument(did.toString());
-    final matches = doc.verificationMethod.where(
-      (vm) => vm.id == verificationMethodStr,
-    );
-    if (matches.length != 1) {
-      return VerificationResult(
-        isValid: false,
-        issues: [
-          'DID document missing verification method from proof "$verificationMethodStr"'
-        ],
-      );
-    }
-
-    final jwk = matches.first.asJwk();
 
     final originalJws = proof.remove('jws');
     proof["@context"] = _securityContext;
 
     final isValid = await _computeVcHash(proof, copy)
-        .then((hash) => _verifyJws(originalJws, jwk, hash));
+        .then((hash) => _verifyJws(originalJws, verificationMethod, hash));
 
     return VerificationResult(
       isValid: isValid,
     );
-  }
-
-  static bool _verify(
-    Uint8List data,
-    Uint8List signature,
-    Jwk jwk,
-  ) {
-    try {
-      final jwkRaw = jwk.toJson();
-
-      // Handle Ed25519 keys
-      if (jwkRaw['kty'] == 'OKP' && jwkRaw['crv'] == 'Ed25519') {
-        final publicKeyBytes = base64UrlNoPadDecode(jwkRaw['x']!);
-        return ed.verify(ed.PublicKey(publicKeyBytes), data, signature);
-      }
-      if (jwkRaw['crv'] == 'secp256k1') {
-        jwkRaw['crv'] = 'P-256K';
-      }
-
-      // For other key types, use the jose library
-      final publicKey = jose.JsonWebKey.fromJson(jwkRaw);
-
-      if (publicKey == null) {
-        throw ArgumentError('failed to create JsonWebKey from jwkMap');
-      }
-
-      return publicKey.verify(data, signature, algorithm: 'ES256K');
-    } catch (_) {
-      return false;
-    }
   }
 
   static Future<Uint8List> _computeVcHash(
@@ -185,11 +127,11 @@ class EcdsaSecp256k1Signature2019
     return payloadToSign;
   }
 
-  static bool _verifyJws(
+  static Future<bool> _verifyJws(
     String jws,
-    Jwk jwk,
+    Uri verificationMethod,
     Uint8List payloadToSign,
-  ) {
+  ) async {
     final jwsParts = jws.split('..');
     // FIXME check if 2 parts
     final encodedHeader = jwsParts[0];
@@ -201,7 +143,13 @@ class EcdsaSecp256k1Signature2019
       utf8.encode(encodedHeader) + utf8.encode('.') + payloadToSign,
     );
 
-    return _verify(jwsToSign, signature, jwk);
+    //FIXME assuming fully qualified key id (which probably it should be :))
+    final verifier = await DidVerifier.create(
+      algorithm: SignatureScheme.ecdsa_secp256r1_sha256,
+      kid: verificationMethod.toString(),
+      issuerDid: verificationMethod.removeFragment().toString(),
+    );
+    return verifier.verify(jwsToSign, signature);
   }
 
   /// Compute a JWS that is compatible with what our [BE outputs](https://gitlab.com/affinidi/foundational/genesis/libs/core/tiny-lds-ecdsa-secp256k1-2019/-/blob/main/src/secp256k1key.ts?ref_type=heads#L49)
