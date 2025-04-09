@@ -14,10 +14,10 @@ final class VerifiableCredentialFactory {
   //the problem is, dart uses type erasures and during runtime the type info
   //is not stored for generics.
   static final _credentialDataModelParsersMap = <VcDataModelParser, Type>{
-    VcDataModelV1WithProofParser() : <String, dynamic>{}.runtimeType,
-    VcDataModelV2WithProofParser() : <String, dynamic>{}.runtimeType,
-    JwtVcDataModelV1Parser() : "".runtimeType,
-    SdJwtDataModelV2Parser() : "".runtimeType
+    VcDataModelV1WithProofParser(): <String, dynamic>{}.runtimeType,
+    VcDataModelV2WithProofParser(): <String, dynamic>{}.runtimeType,
+    JwtVcDataModelV1Parser(): "".runtimeType,
+    SdJwtDataModelV2Parser(): "".runtimeType
   };
 
   /// Returns a [VerifiableCredential] instance.
@@ -27,7 +27,8 @@ final class VerifiableCredentialFactory {
   ///  - Thrown if it is unable to parse the provided data
   static VerifiableCredential create(Object rawData) {
     for (final parserEntry in _credentialDataModelParsersMap.entries) {
-      if (parserEntry.value == rawData.runtimeType && parserEntry.key.canParse(rawData)) {
+      if (parserEntry.value == rawData.runtimeType &&
+          parserEntry.key.canParse(rawData)) {
         try {
           return parserEntry.key.parse(rawData);
         } catch (error, stackTrace) {

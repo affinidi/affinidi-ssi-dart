@@ -39,7 +39,6 @@ void main() {
         expect(parser.canParse(data), isTrue);
       });
 
-
       test('returns false for missing v2 context', () {
         final data = {
           '@context': ['https://www.w3.org/ns/credentials/v1'],
@@ -85,7 +84,6 @@ void main() {
               'name': 'Bachelor of Science and Arts'
             }
           },
-
           'proof': {'type': 'DataIntegrityProof'}
         };
 

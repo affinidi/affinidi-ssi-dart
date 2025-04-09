@@ -26,7 +26,6 @@ void main() {
     group('parse', () {
       test('successfully parses valid SD-JWT with VC 2.0 payload', () {
         //todo: add test body
-
       });
 
       test('throws when SD-JWT is invalid', () {

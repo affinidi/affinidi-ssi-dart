@@ -36,10 +36,11 @@ class JwtVcDataModelV1 implements VerifiableCredential {
                   dynamic>?)?[_JwtVcDataModelV1Key.credentialSchema.key] !=
               null
           ? [
-              CredentialSchema.fromJson((_jsonDataModel[_JwtVcDataModelV1Key
-                          .verifiableCredential.key] as Map<String, dynamic>)[
-                      _JwtVcDataModelV1Key.credentialSchema.key]
-                  as Map<String, dynamic>)
+              CredentialSchema.fromJson(
+                  (_jsonDataModel[_JwtVcDataModelV1Key.verifiableCredential.key]
+                              as Map<String, dynamic>)[
+                          _JwtVcDataModelV1Key.credentialSchema.key]
+                      as Map<String, dynamic>)
             ]
           : [];
 

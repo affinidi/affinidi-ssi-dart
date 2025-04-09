@@ -6,13 +6,14 @@ import '../models/v2/sdjwt_data_model_v2.dart';
 import '../models/verifiable_credential.dart';
 
 /// Class to parse and convert a json representation of a [SdjwtDataModelV2]
-final class SdJwtDataModelV2Parser extends VcDataModelParser<String, SdjwtDataModelV2> {
+final class SdJwtDataModelV2Parser
+    extends VcDataModelParser<String, SdjwtDataModelV2> {
+  final vcdm2Parser = VcDataModelV2WithProofParser();
 
-final vcdm2Parser = VcDataModelV2WithProofParser();
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   @override
   bool canParse(String data) {
-    if(data.trim().isEmpty){
+    if (data.trim().isEmpty) {
       return false;
     }
     return true;

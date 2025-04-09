@@ -6,6 +6,7 @@ import 'credential_schema.dart';
 abstract interface class VerifiableCredential<RawDataType> {
   /// Returns the VerifiableCredential issuer
   List<String> get context;
+
   /// Returns the VerifiableCredential issuer.
   // FIXME issuer can be an entity with an id or a string
   String get issuer;

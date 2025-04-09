@@ -8,7 +8,8 @@ import 'vc_data_model_parser.dart';
 //white paper reference: https://www.w3.org/TR/vc-data-model-2.0/
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-class VcDataModelV2WithProofParser extends VcDataModelParser<Map<String, dynamic>, ParsedVcDataModelV2> {
+class VcDataModelV2WithProofParser
+    extends VcDataModelParser<Map<String, dynamic>, ParsedVcDataModelV2> {
   static const _v2ContextUrl = 'https://www.w3.org/ns/credentials/v2';
 
   bool _hasV2Context(Map<String, dynamic> data) {
@@ -46,7 +47,6 @@ class VcDataModelV2WithProofParser extends VcDataModelParser<Map<String, dynamic
       );
     }
   }
-
 
   /// Validates if the provided data contains all required properties
   static void validate(Map<String, dynamic> data) {
@@ -88,7 +88,8 @@ class VcDataModelV2WithProofParser extends VcDataModelParser<Map<String, dynamic
     try {
       DateTime.parse(validFrom);
     } catch (e) {
-      throw FormatException('Invalid validFrom: must be a valid ISO 8601 date / dateTimeStamp');
+      throw FormatException(
+          'Invalid validFrom: must be a valid ISO 8601 date / dateTimeStamp');
     }
 
     final validUntil = data[VcDataModelV2Key.validUntil.key];

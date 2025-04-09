@@ -1,4 +1,3 @@
-
 enum VcDataModelV2Key {
   context(key: '@context'),
   proof,
@@ -8,8 +7,7 @@ enum VcDataModelV2Key {
   issuer,
   type,
   validFrom,
-  validUntil
-  ;
+  validUntil;
 
   final String? _key;
 

@@ -7,6 +7,4 @@ abstract class VcDataModelParser<T, V extends VerifiableCredential> {
   /// Attempts to parse [data] and return a [VerifiableCredential]
   /// It can throw in case the data cannot be converted to a valid [VerifiableCredential]
   VerifiableCredential parse(T data);
-
 }
-

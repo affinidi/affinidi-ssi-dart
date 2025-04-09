@@ -25,7 +25,7 @@ class VcDataModelV2 implements VerifiableCredential<Map<String, dynamic>> {
   get rawData => throw UnimplementedError();
 
   @override
-  Map<String, dynamic>  toJson() {
+  Map<String, dynamic> toJson() {
     // TODO: implement toJson
     throw UnimplementedError();
   }

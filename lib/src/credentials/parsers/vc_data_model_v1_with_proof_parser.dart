@@ -3,7 +3,8 @@ import '../models/verifiable_credential.dart';
 import 'vc_data_model_parser.dart';
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-final class VcDataModelV1WithProofParser extends VcDataModelParser<Map<String, dynamic>, ParsedVcDataModelV1> {
+final class VcDataModelV1WithProofParser
+    extends VcDataModelParser<Map<String, dynamic>, ParsedVcDataModelV1> {
   static const _v1ContextUrl = 'https://www.w3.org/2018/credentials/v1';
 
   bool _hasV1Context(Map<String, dynamic> data) {
