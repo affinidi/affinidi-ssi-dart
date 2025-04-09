@@ -5,6 +5,8 @@ import 'package:jose_plus/jose.dart' as jose;
 import 'package:ssi/src/did/verifier.dart';
 import 'package:ssi/src/util/base64_util.dart';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'did_document.dart';
 import 'did_resolver.dart';
@@ -45,7 +47,7 @@ class DidVerifier implements Verifier {
     // TODO(FTL-20742) check if kid is somehow related to issuerDid
 
     VerificationMethod? verificationMethod;
-    for (var method in didDocument.verificationMethod) {
+    for (final method in didDocument.verificationMethod) {
       if (method.id == kid || method.id.endsWith('#$kid')) {
         verificationMethod = method;
         break;
@@ -53,8 +55,11 @@ class DidVerifier implements Verifier {
     }
 
     if (verificationMethod == null) {
-      throw ArgumentError(
-          'Verification method with id $kid not found in DID Document for $issuerDid');
+      throw SsiException(
+        message:
+            'Verification method with id $kid not found in DID Document for $issuerDid',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
     }
 
     final Jwk jwk = verificationMethod.asJwk();
@@ -105,7 +110,10 @@ class DidVerifier implements Verifier {
       final publicKey = jose.JsonWebKey.fromJson(_jwk);
 
       if (publicKey == null) {
-        throw ArgumentError('failed to create JsonWebKey from jwkMap');
+        throw SsiException(
+          message: 'failed to create JsonWebKey from jwkMap',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
       }
 
       return publicKey.verify(data, signature, algorithm: _algorithm.jwtName);

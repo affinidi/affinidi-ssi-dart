@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:ssi/src/did/public_key_utils.dart';
+import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -42,7 +43,7 @@ void main() {
       expect(
         shouldThrow,
         throwsA(
-          isA<FormatException>().having(
+          isA<SsiException>().having(
             (error) => error.message,
             'message',
             'End reached without complete varint',

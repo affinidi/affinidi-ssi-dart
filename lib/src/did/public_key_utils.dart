@@ -31,8 +31,9 @@ Uint8List multiBaseToUint8List(String multibase) {
       return base64UrlNoPadDecode(encodedData);
 
     default:
-      throw UnimplementedError(
-        'Unsupported multibase indicator ${multibase[0]}',
+      throw SsiException(
+        message: 'Unsupported multibase indicator ${multibase[0]}',
+        code: SsiExceptionType.invalidDidDocument.code,
       );
   }
 }
@@ -98,8 +99,10 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
     jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
     jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
   } else {
-    throw UnimplementedError(
-        'Unsupported multicodec indicator 0x$indicatorHex');
+    throw SsiException(
+      message: 'Unsupported multicodec indicator 0x$indicatorHex',
+      code: SsiExceptionType.invalidDidDocument.code,
+    );
   }
   return jwk;
 }
@@ -218,7 +221,10 @@ Uint8List _ecJwkToMultiKey({
   }
 
   if (hasNext) {
-    throw FormatException('End reached without complete varint');
+    throw SsiException(
+      message: 'End reached without complete varint',
+      code: SsiExceptionType.invalidDidDocument.code,
+    );
   }
 
   final readBytes = i - start;
