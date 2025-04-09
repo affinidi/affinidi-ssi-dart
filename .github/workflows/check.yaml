@@ -3,5 +3,5 @@ on:
   pull_request:
 jobs:
   dart-pipeline:
-    uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
+    uses: affinidi/pipeline-dart/.github/workflows/check.yaml@feat/allow-injecting-ssh-key
     secrets: inherit
