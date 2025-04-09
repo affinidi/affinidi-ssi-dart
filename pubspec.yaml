@@ -20,9 +20,8 @@ dependencies:
   elliptic: ^0.3.11
   jose_plus: ^0.4.6
   json_ld_processor: ^1.0.4
-sdjwt:
-  git: https://github.com/affinidi/affinidi-sdjwt-dart.git
-  # path: ../affinidi-sdjwt-dart
+  sdjwt:
+    git: git@github.com:affinidi/affinidi-sdjwt-dart.git
 
 dev_dependencies:
   coverage: ^1.11.1
