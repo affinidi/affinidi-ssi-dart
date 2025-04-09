@@ -21,7 +21,7 @@ dependencies:
   jose_plus: ^0.4.6
   json_ld_processor: ^1.0.4
   sdjwt:
-    git: git@github.com:affinidi/affinidi-sdjwt-dart.git
+    git: https://github.com/affinidi/affinidi-sdjwt-dart.git
 
 dev_dependencies:
   coverage: ^1.11.1
