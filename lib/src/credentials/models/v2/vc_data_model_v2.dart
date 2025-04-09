@@ -1,8 +1,9 @@
-import 'credential_schema.dart';
-import 'verifiable_credential.dart';
+import '../credential_schema.dart';
+import '../verifiable_credential.dart';
 
 // TODO must implement adapter functions where needed to the generic VerifiableCredential
-class VcDataModelV11 implements VerifiableCredential {
+// TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
+class VcDataModelV2 implements VerifiableCredential {
   @override
   // TODO: implement credentialSchema
   List<CredentialSchema> get credentialSchema => throw UnimplementedError();
@@ -40,6 +41,10 @@ class VcDataModelV11 implements VerifiableCredential {
   @override
   // TODO: implement validUntil
   DateTime? get validUntil => throw UnimplementedError();
+
+  @override
+  // TODO: implement context
+  List<String> get context => throw UnimplementedError();
 // @context
 // String id;
 

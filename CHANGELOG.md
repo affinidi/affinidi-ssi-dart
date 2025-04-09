@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v1.0.0-dev.18`](#ssi---v100-dev18)
+
+---
+
+#### `ssi` - `v1.0.0-dev.18`
+
+ - **FEAT**: LDP VC Sign.
+
+## 1.0.0-dev.18
+
+ - **FEAT**: LDP VC Sign.
+
+
+## 2025-04-08
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v1.0.0-dev.17`](#ssi---v100-dev17)
 
 ---

@@ -13,6 +13,7 @@ import 'did_web.dart';
 ///
 /// Resolving if did:key can be done internally, for all other did-methods an URL [resolverAddress] to an instance of a universal resolver is needed.
 // FIXME add tests
+// FIXME should use an URI as input or dedicated Did model
 Future<DidDocument> resolveDidDocument(
   String did, {
   String? resolverAddress,
