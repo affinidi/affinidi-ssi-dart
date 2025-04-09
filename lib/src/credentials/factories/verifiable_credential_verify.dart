@@ -12,7 +12,6 @@ final class CredentialVerifier {
   }) : customVerifiers = customVerifier ?? [];
 
   Future<VerificationResult> verify(VerifiableCredential data) async {
-    var isValid = true;
     List<String> issues = [];
 
     final verifier = getVcVerifier(data);
@@ -20,21 +19,18 @@ final class CredentialVerifier {
     bool integrityValid = await verifier.verifyIntegrity(data);
 
     if (!expiryValid) {
-      isValid = false;
       issues.add('expiry verification failed');
     }
     if (!integrityValid) {
-      isValid = false;
       issues.add('integrity verification failed');
     }
 
     for (final customVerifier in customVerifiers) {
       var verifResult = (await customVerifier.verify(data));
-      isValid = isValid && verifResult.isValid;
       issues.addAll(verifResult.issues);
     }
 
-    return VerificationResult(isValid: isValid, issues: issues);
+    return VerificationResult(isValid: issues.isEmpty, issues: issues);
   }
 
   VcDataModelVerifier getVcVerifier(VerifiableCredential vc) {
