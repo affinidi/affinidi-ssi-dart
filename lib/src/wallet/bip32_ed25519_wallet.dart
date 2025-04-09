@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
+import 'package:ssi/src/exceptions/ssi_exception.dart';
+import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -116,8 +118,8 @@ class Bip32Ed25519Wallet implements Wallet {
     // option 1: keyId is composed as `{accountNumber}-{accountKeyId}`
     // option 2: separate the identifiers and require both
     // option 3: use the full derivation path as keyId
-    var accountNumber = 0;
-    var accountKeyId = 0;
+    int accountNumber = 0;
+    int accountKeyId = 0;
     try {
       List<String> parts = keyId.split("-");
       accountNumber = int.parse(parts[0]);

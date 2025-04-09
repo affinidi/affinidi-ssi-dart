@@ -68,11 +68,18 @@ class Ed25519KeyPair implements KeyPair {
       );
     }
 
+    if (signatureScheme != SignatureScheme.ed25519_sha256) {
+      throw SsiException(
+        message:
+            'Unsupported signature scheme. Only ed25519sha256 is supported with ed25519.',
+        code: SsiExceptionType.other.code,
+      );
+    }
+
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
-
     return ed.verify(ed.public(_privateKey), digest, signature);
   }
 
