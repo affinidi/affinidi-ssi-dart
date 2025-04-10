@@ -4,7 +4,7 @@ import 'package:ssi/src/credentials/presentations/models/parsed_vp.dart';
 import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 
 class LdVpDataModelV2 extends VpDataModelV2
-    implements ParsedVerifiablePresentation<String, VpDataModelV2> {
+    implements ParsedVerifiablePresentation<String> {
   String? _serialized;
 
   LdVpDataModelV2({

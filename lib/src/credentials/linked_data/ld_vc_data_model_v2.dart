@@ -4,7 +4,7 @@ import 'package:ssi/src/credentials/models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
 
 class LdVcDataModelV2 extends VcDataModelV2
-    implements ParsedVerifiableCredential<String, VcDataModelV2> {
+    implements ParsedVerifiableCredential<String> {
   String? _serialized;
 
   LdVcDataModelV2({

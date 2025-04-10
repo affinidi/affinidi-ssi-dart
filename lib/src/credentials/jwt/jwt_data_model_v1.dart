@@ -6,7 +6,7 @@ import 'package:ssi/ssi.dart';
 /// Allows creating a VcDataModel from a JWT token containing an VcDataModel version 1.1
 /// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
 class JwtVcDataModelV1 extends VcDataModelV1
-    implements ParsedVerifiableCredential<String, VcDataModelV1> {
+    implements ParsedVerifiableCredential<String> {
   final JWS _jws;
 
   JwtVcDataModelV1({

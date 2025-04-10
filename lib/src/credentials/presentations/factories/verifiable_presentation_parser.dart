@@ -1,11 +1,11 @@
 import 'package:ssi/src/credentials/factories/vc_suite.dart';
-import 'package:ssi/src/credentials/presentations/linked_data/ld_dm_v1_suite.dart';
+import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v1_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/parsed_vp.dart';
 import 'package:ssi/src/credentials/presentations/models/verifiable_presentation.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 
-import '../linked_data/ld_dm_v2_suite.dart';
+import '../linked_data/ld_vp_dm_v2_suite.dart';
 
 /// Factory class supporting multiple parsers to convert data into a [VerifiableCredential]
 final class VerifiableCredentialParser {
