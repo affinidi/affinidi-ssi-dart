@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/exceptions/ssi_exception.dart';
+import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -126,6 +128,28 @@ void main() {
       expect(actualDid.id.startsWith('did:key:zDn'), isTrue);
       expect(actualDid.verificationMethod.length, 1);
       expect(actualDid.verificationMethod[0].type, 'P256Key2021');
+    });
+  });
+
+  group("When resolving did key with", () {
+    group("using did:test", () {
+      test("it throws invalid did key exception", () async {
+        expect(
+          () => DidKey.resolve("did:test:something"),
+          throwsA(isA<SsiException>().having(
+              (e) => e.code, "code", SsiExceptionType.invalidDidKey.code)),
+        );
+      });
+    });
+
+    group("using misformatted did", () {
+      test("it throws invalid did key exception", () async {
+        expect(
+          () => DidKey.resolve("did:key:something:sometimes"),
+          throwsA(isA<SsiException>().having(
+              (e) => e.code, "code", SsiExceptionType.invalidDidKey.code)),
+        );
+      });
     });
   });
 }
