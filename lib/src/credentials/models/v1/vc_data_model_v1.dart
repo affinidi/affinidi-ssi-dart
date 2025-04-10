@@ -59,11 +59,11 @@ class VcDataModelV1 implements VerifiableCredential {
 
   @override
   // TODO: implement rawData
-  get rawData => throw UnimplementedError();
+  dynamic get rawData => throw UnimplementedError();
 
   @override
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> json = {};
+    final json = <String, dynamic>{};
 
     json['@context'] = context;
     json['id'] = id;
@@ -104,8 +104,8 @@ class VcDataModelV1 implements VerifiableCredential {
         credentialSchema = [],
         credentialSubject = {},
         holder = {},
-        id = "",
-        issuer = "",
+        id = '',
+        issuer = '',
         type = [],
         proof = {} {
     final json = jsonToMap(input);
@@ -128,7 +128,8 @@ class VcDataModelV1 implements VerifiableCredential {
     expirationDate = getDateTime(json, 'expirationDate');
 
     // FIXME handle arrays of subjects
-    credentialSubject = Map.of(json['credentialSubject']);
+    credentialSubject =
+        Map.of(json['credentialSubject'] as Map<String, dynamic>);
 
     switch (json['credentialSchema']) {
       case Map m:
@@ -148,12 +149,12 @@ class VcDataModelV1 implements VerifiableCredential {
 
     // FIXME handle simple string
     if (json['holder'] != null && json['holder'] is Map) {
-      holder = Map.of(json['holder']);
+      holder = Map.of(json['holder'] as Map<String, dynamic>);
     }
 
     // FIXME use a typed object
     if (json['proof'] != null && json['proof'] is Map) {
-      proof = Map.of(json['proof']);
+      proof = Map.of(json['proof'] as Map<String, dynamic>);
     }
   }
 
@@ -164,7 +165,7 @@ class VcDataModelV1 implements VerifiableCredential {
       return credentialSchema.first.toJson();
     }
 
-    return credentialSchema.fold(
+    return credentialSchema.fold<List<Map<String, dynamic>>>(
       [],
       (list, cs) {
         list.add(cs.toJson());

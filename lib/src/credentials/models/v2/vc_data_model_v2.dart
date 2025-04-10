@@ -22,10 +22,10 @@ class VcDataModelV2 implements VerifiableCredential {
 
   @override
   // TODO: implement rawData
-  get rawData => throw UnimplementedError();
+  dynamic get rawData => throw UnimplementedError();
 
   @override
-  toJson() {
+  void toJson() {
     // TODO: implement toJson
     throw UnimplementedError();
   }
