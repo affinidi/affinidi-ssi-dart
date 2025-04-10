@@ -19,20 +19,13 @@ Uri didWebToUri(String didWeb) {
   return Uri.parse(did);
 }
 
-final RegExp didWebPattern =
-    RegExp(r'^did:web:[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*$');
-
-bool isDidWeb(String didWeb) {
-  return didWebPattern.hasMatch(didWeb);
-}
-
 class DidWeb {
   static Future<DidDocument> resolve(
     String didToResolve,
   ) async {
-    if (!isDidWeb(didToResolve)) {
+    if (!didToResolve.startsWith('did:web')) {
       throw SsiException(
-        message: '`$didToResolve` does not match did:web regex',
+        message: '`$didToResolve` is not did:web DID',
         code: SsiExceptionType.invalidDidWeb.code,
       );
     }
