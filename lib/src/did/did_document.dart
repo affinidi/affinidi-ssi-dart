@@ -67,7 +67,7 @@ class DidDocument implements JsonObject {
       alsoKnownAs = document['alsoKnownAs'].cast<String>();
     }
 
-    context = extractStringOrSet(document, "context");
+    context = extractStringOrSet(document, "@context");
 
     if (document.containsKey('verificationMethod')) {
       List tmp = document['verificationMethod'];

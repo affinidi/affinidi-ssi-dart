@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/exceptions/ssi_exception.dart';
+import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -109,6 +111,28 @@ void main() {
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
+    });
+  });
+
+  group("When resolving did key with", () {
+    group("using did:test", () {
+      test("it throws invalid did key exception", () async {
+        expect(
+          () => DidKey.resolve("did:test:something"),
+          throwsA(isA<SsiException>().having(
+              (e) => e.code, "code", SsiExceptionType.invalidDidKey.code)),
+        );
+      });
+    });
+
+    group("using misformatted did", () {
+      test("it throws invalid did key exception", () async {
+        expect(
+          () => DidKey.resolve("did:key:something:sometimes"),
+          throwsA(isA<SsiException>().having(
+              (e) => e.code, "code", SsiExceptionType.invalidDidKey.code)),
+        );
+      });
     });
   });
 }
