@@ -1,42 +1,42 @@
-// import 'dart:typed_data';
+import 'dart:convert';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
+import 'package:ssi/src/exceptions/ssi_exception.dart';
+import 'package:ssi/src/exceptions/ssi_exception_type.dart';
+
 import 'package:test/test.dart';
 
 void main() {
-  final seed = hexDecode(
-    'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
-  );
-
-  final accountNumber = 24567;
-
-  group('Test DID', () {
-    test('the main did key should match to the expected value', () async {
-      final expectedDid = 'did:web:test.com';
-      final expectedKeyType = KeyType.secp256k1;
-
-      final wallet = Bip32Wallet.fromSeed(seed);
-      final rootKeyId = "0-0";
-      final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidWeb.create([keyPair], 'did:web:test.com');
-      final actualDid = doc.id;
-      final actualKeyType = await keyPair.publicKeyType;
-
-      expect(actualDid, expectedDid);
-      expect(actualKeyType, expectedKeyType);
+  group('Test DidWeb', () {
+    test('converts did:web:example.com to expected URI', () {
+      final uri = didWebToUri('did:web:example.com');
+      expect(uri.toString(), 'https://example.com/.well-known/did.json');
     });
 
-    test('a derived did keys should start with did:web', () async {
-      final expectedDidWebPrefix = 'did:web';
+    test('converts nested did:web:example.com:user to correct URI', () {
+      final uri = didWebToUri('did:web:example.com:user');
+      expect(uri.toString(), 'https://example.com/user/did.json');
+    });
 
-      final wallet = Bip32Wallet.fromSeed(seed);
-      final derivedKeyId = "$accountNumber-0";
-      final keyPair = await wallet.createKeyPair(derivedKeyId);
-      final doc = await DidWeb.create([keyPair], 'did:web:test.com');
-      final actualDid = doc.id;
+    test('resolves did:web successfully', () async {
+      final did = 'did:web:demo.spruceid.com'; // JWK-based
+      // final did = 'did:web:identity.foundation'; // Base58-based
+      // final did = ? // publicKeyMultibase-based
+      final doc = await DidWeb.resolve(did);
 
-      expect(actualDid, startsWith(expectedDidWebPrefix));
+      expect(doc.id, equals(did));
+      expect(doc.toJson(), contains('id'));
+      expect(doc.toJson(), contains('verificationMethod'));
+    });
+
+    test('should throw SsiException on non-200 response', () async {
+      final did = 'did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2';
+
+      expectLater(
+        DidWeb.resolve(did),
+        throwsA(isA<SsiException>().having(
+            (e) => e.code, 'code', SsiExceptionType.invalidDidWeb.code)),
+      );
     });
   });
 }
