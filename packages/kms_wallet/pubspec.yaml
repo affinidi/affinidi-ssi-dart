@@ -1,14 +1,14 @@
-name: kms_wallet
+name: ssi_kms_wallet
 description: Example of Affinidi SSI wallet initialized with AWS KMS
 version: 1.0.0-dev.1
-publish_to: none
 
 environment:
   sdk: ^3.6.0
 
+resolution: workspace
+
 dependencies:
-  ssi:
-    path: ../../
+  ssi: ^1.0.0
   aws_kms_api: ^2.0.0
   aws_signature_v4: ^0.6.4
   shared_aws_api: ^2.0.2
