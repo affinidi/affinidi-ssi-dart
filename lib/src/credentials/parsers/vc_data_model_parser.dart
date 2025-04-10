@@ -1,3 +1,4 @@
+import '../../../ssi.dart';
 import '../models/parsed_vc.dart';
 
 @Deprecated('Use suites')
