@@ -1,7 +1,6 @@
 import 'package:sdjwt/sdjwt.dart';
+import 'package:ssi/src/credentials/models/parsed_vc.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-
-import '../models/parsed_vc.dart';
 
 class SdJwtDataModelV2 extends VcDataModelV2
     implements ParsedVerifiableCredential<String, VcDataModelV2> {

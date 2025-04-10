@@ -1,43 +1,37 @@
-import 'dart:convert';
-import 'dart:developer' as developer;
-
+import 'package:ssi/src/credentials/models/verifiable_data.dart';
+import 'package:ssi/src/credentials/parsers/ld_parser.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 
 import '../../did/did_signer.dart';
 import '../factories/vc_suite.dart';
-import '../models/parsed_vc.dart';
 import '../models/verifiable_credential.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 
 abstract class LdOptions {}
 
-typedef ParseFunction<Model extends ParsedVerifiableCredential<String, dynamic>>
-    = Model Function(String input);
-
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-abstract class LdBaseSuite<
-        VCDM extends VerifiableCredential,
-        Model extends ParsedVerifiableCredential<String, VCDM>,
+abstract class LdBaseSuite<VDM extends VerifiableData, Model extends VDM,
         Options extends LdOptions>
-    implements VerifiableCredentialSuite<String, VCDM, Model, Options> {
+    extends VerifiableCredentialSuite<String, VDM, Model, Options>
+    with LdParser {
   final String contextUrl;
-  final ParseFunction<Model> parser;
 
   final String proofKey;
   final String contextKey;
   final String issuerKey;
 
   LdBaseSuite({
-    required this.parser,
     required this.contextUrl,
     this.proofKey = 'proof',
     this.contextKey = '@context',
     this.issuerKey = 'issuer',
   });
 
-  bool _hasExpectedContext(Object data) {
-    if (data is! Map || !data.containsKey(contextKey)) return false;
+  @override
+  bool hasValidPayload(Map<String, dynamic> data) {
+    if (!data.containsKey(contextKey)) return false;
+    if (!data.containsKey(proofKey)) return false;
 
     final context = data[contextKey];
     return (context is List) && context.contains(contextUrl);
@@ -47,31 +41,14 @@ abstract class LdBaseSuite<
   bool canParse(Object input) {
     if (input is! String) return false;
 
-    // filter out JWT tokens
-    if (input.startsWith('ey')) return false;
-
-    // FIXME(cm) decoding twice in canParse and parse
-    Map data;
-    try {
-      data = jsonDecode(input);
-    } catch (e) {
-      developer.log(
-        "LdBaseSuite jsonDecode failed",
-        level: 500, // FINE
-      );
-      return false;
-    }
-
-    if (!_hasExpectedContext(data)) return false;
-
-    return data.containsKey(proofKey);
+    return canDecode(input);
   }
 
   Model fromJson(Map<String, dynamic> payload);
 
   @override
   Future<Model> issue(
-    VCDM vc,
+    VDM vc,
     DidSigner signer, {
     Options? options,
   }) async {
@@ -103,7 +80,7 @@ abstract class LdBaseSuite<
       );
     }
 
-    return parser(input);
+    return fromJson({...decode(input), 'serialized': input});
   }
 
   @override

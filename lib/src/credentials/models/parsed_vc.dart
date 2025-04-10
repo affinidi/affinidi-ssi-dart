@@ -1,6 +1,6 @@
-import 'verifiable_credential.dart';
+import 'package:ssi/src/credentials/models/verifiable_credential.dart';
 
-mixin ParsedVerifiableCredential<SerializedType, T extends VerifiableCredential>
-    on VerifiableCredential {
+mixin ParsedVerifiableCredential<SerializedType,
+    VDM extends VerifiableCredential> on VerifiableCredential {
   SerializedType get serialized;
 }

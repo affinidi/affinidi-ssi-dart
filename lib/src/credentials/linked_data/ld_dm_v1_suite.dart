@@ -16,7 +16,6 @@ final class LdVcDm1Suite
 
   LdVcDm1Suite()
       : super(
-          parser: LdVcDataModelV1.parse,
           contextUrl: VcDataModelV1.contextUrl,
         );
 }

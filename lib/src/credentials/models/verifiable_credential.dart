@@ -1,20 +1,15 @@
+import 'package:ssi/src/credentials/models/verifiable_data.dart';
+
 import 'credential_schema.dart';
 import 'credential_status.dart';
 
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
 /// Verifiable credentials can be used to build verifiable presentations, which can also be cryptographically verifiable.
-abstract interface class VerifiableCredential {
-  /// Returns the VerifiableCredential issuer
-  List<String> get context;
-
+abstract interface class VerifiableCredential extends VerifiableData {
   /// Returns the VerifiableCredential issuer.
   // FIXME issuer can be an entity with an id or a string
   String get issuer;
-
-  /// Returns a list of VerifiableCredential types.
-  // FIXME should be changed to a Set
-  List<String> get type;
 
   /// Returns a Map representing the VerifiableCredential Subject.
   ///
@@ -26,9 +21,6 @@ abstract interface class VerifiableCredential {
   /// }
   /// ```
   Map<String, dynamic> get credentialSubject;
-
-  /// Returns the VerifiableCredential id.
-  String? get id;
 
   /// Returns a list of VerifiableCredential schema.
   ///
@@ -52,6 +44,6 @@ abstract interface class VerifiableCredential {
   /// Returns null if not set
   DateTime? get validUntil;
 
-  /// Returns a json representation of the VerifiableCredential
-  Map<String, dynamic> toJson();
+  @override
+  VerifiableCredential.fromJson(super.input) : super.fromJson();
 }

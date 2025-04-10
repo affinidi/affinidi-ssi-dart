@@ -1,12 +1,10 @@
-import '../../../ssi.dart';
-import '../models/parsed_vc.dart';
+import 'package:ssi/src/credentials/models/verifiable_credential.dart';
+import 'package:ssi/src/credentials/models/verifiable_data.dart';
+import 'package:ssi/src/did/did_signer.dart';
 
 /// Class that contains operations to be done on encoded VCs
-abstract class VerifiableCredentialSuite<
-    SerializedType,
-    VCDM extends VerifiableCredential,
-    PDM extends ParsedVerifiableCredential<SerializedType, VCDM>,
-    Options> {
+abstract class VerifiableCredentialSuite<SerializedType,
+    VDM extends VerifiableData, PDM extends VDM, Options> {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   bool canParse(Object data);
 
@@ -22,7 +20,7 @@ abstract class VerifiableCredentialSuite<
 
   /// Prepare an Encoded VC based on the
   Future<PDM> issue(
-    VCDM vc,
+    VDM vd,
     DidSigner signer, {
     Options? options,
   });

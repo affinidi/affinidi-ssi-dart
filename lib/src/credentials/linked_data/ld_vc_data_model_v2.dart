@@ -1,9 +1,11 @@
-import '../models/parsed_vc.dart';
+import 'dart:convert';
+
+import 'package:ssi/src/credentials/models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
 
 class LdVcDataModelV2 extends VcDataModelV2
     implements ParsedVerifiableCredential<String, VcDataModelV2> {
-  String _serialized;
+  String? _serialized;
 
   LdVcDataModelV2({
     required super.context,
@@ -21,18 +23,13 @@ class LdVcDataModelV2 extends VcDataModelV2
   }) : _serialized = serialized;
 
   LdVcDataModelV2.fromJson(super.input)
-      : _serialized = "",
+      : _serialized = input['serialized'],
         // use parsing from VcDataModelV1
         super.fromJson();
 
-  /// Parse the input
-  factory LdVcDataModelV2.parse(String jsonStr) {
-    final result = LdVcDataModelV2.fromJson(jsonStr);
-    result._serialized = jsonStr;
-
-    return result;
-  }
-
   @override
-  String get serialized => _serialized;
+  String get serialized {
+    _serialized ??= jsonEncode(toJson());
+    return _serialized!;
+  }
 }

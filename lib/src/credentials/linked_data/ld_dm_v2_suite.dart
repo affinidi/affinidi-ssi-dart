@@ -16,7 +16,6 @@ final class LdVcDm2Suite
 
   LdVcDm2Suite()
       : super(
-          parser: LdVcDataModelV2.parse,
           contextUrl: VcDataModelV2.contextUrl,
         );
 }

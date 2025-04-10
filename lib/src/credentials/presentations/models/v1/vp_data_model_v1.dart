@@ -20,6 +20,8 @@ import '../../../../util/json_util.dart';
 /// );
 /// ```
 class VpDataModelV1 implements VerifiablePresentation {
+  static const String contextUrl = "https://www.w3.org/2018/credentials/v1";
+
   /// JSON-LD context, typically includes: `https://www.w3.org/2018/credentials/v1`
   List<String> context;
 
