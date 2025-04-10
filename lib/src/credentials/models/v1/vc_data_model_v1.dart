@@ -10,7 +10,7 @@ import '../verifiable_credential.dart';
 // TODO(cm): add validation against the VCDM1 schema somewhere
 // TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
 class VcDataModelV1 implements VerifiableCredential {
-  static const String contextUrl = "https://www.w3.org/ns/credentials/v2";
+  static const String contextUrl = "https://www.w3.org/2018/credentials/v1";
 
   @override
   List<String> context;
