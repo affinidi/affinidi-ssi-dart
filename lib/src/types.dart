@@ -2,6 +2,9 @@ enum KeyType { secp256k1, ed25519, x25519, p256, p384, p521, rsa }
 
 enum HashingAlgorithm { sha256, sha512 }
 
+// Prefer snake_case for `SignatureScheme` to make it more readable
+// ignore_for_file: constant_identifier_names
+
 enum SignatureScheme {
   ecdsa_secp256k1_sha256("ES256K", "EcdsaSecp256k1Signature2019",
       KeyType.secp256k1, HashingAlgorithm.sha256),
@@ -29,4 +32,23 @@ abstract class JsonObject {
 
   @override
   String toString();
+}
+
+/// Result of a verification
+class VerificationResult {
+  final List<String> errors;
+  final List<String> warnings;
+
+  VerificationResult.ok({List<String>? warnings})
+      : warnings = warnings ?? [],
+        errors = [];
+
+  VerificationResult.invalid({
+    required this.errors,
+    List<String>? warnings,
+  }) : warnings = warnings ?? [];
+
+  bool get isValid => errors.isEmpty;
+
+  bool get hasWarnings => warnings.isNotEmpty;
 }

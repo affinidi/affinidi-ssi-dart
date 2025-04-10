@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:ssi/src/types.dart';
 
 class VerifiableCredentialDataFixtures {
@@ -30,6 +32,9 @@ class VerifiableCredentialDataFixtures {
         }
       };
 
+  static String get credentialWithProofDataModelV11JsonEncoded =>
+      jsonEncode(credentialWithProofDataModelV11);
+
   static Map<String, dynamic> get credentialWithoutProofDataModelV11 => {
         '@context': [
           'https://www.w3.org/2018/credentials/v1',
@@ -50,16 +55,19 @@ class VerifiableCredentialDataFixtures {
         'issuer': 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa',
       };
 
+  static String get credentialWithProofDataModelV20String =>
+      jsonEncode(credentialWithProofDataModelV20);
+
   static Map<String, dynamic> get credentialWithProofDataModelV20 => {
         '@context': [
           'https://www.w3.org/ns/credentials/v2',
           'https://www.w3.org/ns/credentials/examples/v2'
         ],
-        'id': 'http://example.gov/credentials/3732',
+        'id': 'https://example.gov/credentials/3732',
         'type': ['VerifiableCredential', 'ExampleDegreeCredential'],
         'issuer': 'did:example:6fb1f712ebe12c27cc26eebfe11',
-        'validFrom': '2010-01-01T19:23:24Z',
-        'validUntil': '2020-02-01T19:25:24Z',
+        'validFrom': '2010-01-01T19:23:24.000Z',
+        'validUntil': '2020-02-01T19:25:24.000Z',
         'credentialSubject': {
           'id': 'https://subject.example/subject/3921',
           'degree': {
@@ -97,7 +105,7 @@ class VerifiableCredentialDataFixtures {
           'https://www.w3.org/ns/credentials/v2',
           'https://www.w3.org/ns/credentials/examples/v2'
         ],
-        'id': 'http://example.gov/credentials/3732',
+        'id': 'https://example.gov/credentials/3732',
         'type': ['VerifiableCredential', 'ExampleDegreeCredential'],
         'issuer': 'did:example:6fb1f712ebe12c27cc26eebfe11',
         'validFrom': '2010-01-01T19:23:24Z',
@@ -111,18 +119,25 @@ class VerifiableCredentialDataFixtures {
       };
 
   static String get jwtCredentialDataModelV11 =>
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJJc3N1ZXIgQyIsImp0aSI6InZjMyIsIm5iZiI6MTY3MDAwMDAwMCwidmMiOnsidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlByb2Zlc3Npb25DcmVkZW50aWFsIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoic3ViamVjdDMiLCJwb3NpdGlvbiI6IkRldmVsb3BlciJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoic2NoZW1hMyIsInR5cGUiOiJKc29uU2NoZW1hVmFsaWRhdG9yMjAxOCJ9fX0.HP_0y-TP2HCj9Ch7ftE7Nf7V0j_XT5TfSpxGXEWR2Ys';
+      'eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6a2V5OnpRM3NodDFaODU4d2hwVlFCdzJjSFBXZ3F2UzhNeHlSS05zZGpvWlJGWjJZM2hyVGgjelEzc2h0MVo4NTh3aHBWUUJ3MmNIUFdncXZTOE14eVJLTnNkam9aUkZaMlkzaHJUaCIsInR5cCI6IkpXVCJ9.eyJuYmYiOjEyNjIzMDQwMDAsImlzcyI6Imh0dHBzOi8vZXhhbXBsZS5lZHUvaXNzdWVycy81NjUwNDkiLCJqdGkiOiJodHRwOi8vZXhhbXBsZS5lZHUvY3JlZGVudGlhbHMvMzczMiIsInN1YiI6ImRpZDpleGFtcGxlOmViZmViMWY3MTJlYmM2ZjFjMjc2ZTEyZWMyMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvZXhhbXBsZXMvdjEiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlVuaXZlcnNpdHlEZWdyZWVDcmVkZW50aWFsIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoiZGlkOmV4YW1wbGU6ZWJmZWIxZjcxMmViYzZmMWMyNzZlMTJlYzIxIiwiZGVncmVlIjp7InR5cGUiOiJCYWNoZWxvckRlZ3JlZSIsIm5hbWUiOiJCYWNoZWxvciBvZiBTY2llbmNlIGFuZCBBcnRzIn19fX0.1oRBHqDYPJuaCKAZntxUBO13N6GDr4N2tInO9hnLgdMkREc7FVT5sOewkpMjbbK6G5wJa9FiCyLkpM1GyGw8_g';
+
+  static String get jwtCredentialDataModelV11InvalidSig =>
+      'eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6a2V5OnpRM3NodDFaODU4d2hwVlFCdzJjSFBXZ3F2UzhNeHlSS05zZGpvWlJGWjJZM2hyVGgjelEzc2h0MVo4NTh3aHBWUUJ3MmNIUFdncXZTOE14eVJLTnNkam9aUkZaMlkzaHJUaCIsInR5cCI6IkpXVCJ9.eyJuYmYiOjEyNjIzMDQwMDAsImlzcyI6Imh0dHBzOi8vZXhhbXBsZS5lZHUvaXNzdWVycy81NjUwNDkiLCJqdGkiOiJodHRwOi8vZXhhbXBsZS5lZHUvY3JlZGVudGlhbHMvMzczMiIsInN1YiI6ImRpZDpleGFtcGxlOmViZmViMWY3MTJlYmM2ZjFjMjc2ZTEyZWMyMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvZXhhbXBsZXMvdjEiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlVuaXZlcnNpdHlEZWdyZWVDcmVkZW50aWFsIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoiZGlkOmV4YW1wbGU6ZWJmZWIxZjcxMmViYzZmMWMyNzZlMTJlYzIxIiwiZGVncmVlIjp7InR5cGUiOiJCYWNoZWxvckRlZ3JlZSIsIm5hbWUiOiJCYWNoZWxvciBvZiBTY2llbmNlIGFuZCBBcnRzIn19fX0.1oRBHqDYPJuaCKAZntxUBO13N6GDr4N2tInO9hnLgdMkREc7FVT5sOewkpMjbbK6G5wJa9FiCyLkpM1GyGw7_g';
 
   static Map<String, dynamic> get jwtCredentialDataModelV11Decoded => {
-        'iss': 'Issuer C',
-        'jti': 'vc3',
-        'nbf': 1670000000,
-        'vc': {
-          'type': ['VerifiableCredential', 'ProfessionCredential'],
-          'credentialSubject': {'id': 'subject3', 'position': 'Developer'},
-          'credentialSchema': {
-            'id': 'schema3',
-            'type': 'JsonSchemaValidator2018'
+        "@context": [
+          "https://www.w3.org/2018/credentials/v1",
+          "https://www.w3.org/2018/credentials/examples/v1"
+        ],
+        "id": "http://example.edu/credentials/3732",
+        "type": ["VerifiableCredential", "UniversityDegreeCredential"],
+        "issuer": "https://example.edu/issuers/565049",
+        "issuanceDate": "2010-01-01T00:00:00.000Z",
+        "credentialSubject": {
+          "id": "did:example:ebfeb1f712ebc6f1c276e12ec21",
+          "degree": {
+            "type": "BachelorDegree",
+            "name": "Bachelor of Science and Arts"
           }
         }
       };
