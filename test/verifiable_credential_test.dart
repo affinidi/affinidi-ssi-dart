@@ -275,125 +275,110 @@ void main() {
     });
   });
 
-  // FIXME: add back
-  // group('When parsing verifiable credentials with a data model v2', () {
-  //   group('and receiving a json structure', () {
-  //     group('with a proof', () {
-  //       var data =
-  //           VerifiableCredentialDataFixtures.credentialWithProofDataModelV20;
-  //       final verifiableCredential = VerifiableCredentialParser.parse(data);
-  //       test(
-  //         'it retrieves the correct issuer',
-  //         () {
-  //           expect(verifiableCredential.issuer,
-  //               'did:example:6fb1f712ebe12c27cc26eebfe11');
-  //         },
-  //       );
-  //
-  //       test(
-  //         'it retrieves the correct type',
-  //         () {
-  //           expect(verifiableCredential.type,
-  //               ['VerifiableCredential', 'ExampleDegreeCredential']);
-  //         },
-  //       );
-  //
-  //       test(
-  //         'it retrieves the correct issuance date',
-  //         () {
-  //           expect(verifiableCredential.validFrom,
-  //               DateTime.utc(2010, 01, 01, 19, 23, 24, 0));
-  //         },
-  //       );
-  //
-  //       test(
-  //         'it retrieves the correct credentials subject',
-  //         () {
-  //           expect(verifiableCredential.credentialSubject['id'],
-  //               'https://subject.example/subject/3921');
-  //         },
-  //       );
-  //
-  //       test(
-  //         'it retrieves the correct id',
-  //         () {
-  //           expect(verifiableCredential.id,
-  //               'https://example.gov/credentials/3732');
-  //         },
-  //       );
-  //
-  //       test(
-  //         'it retrieves the correct schema',
-  //         () {
-  //           expect(verifiableCredential.credentialSchema.firstOrNull?.id,
-  //               'https://example.org/examples/degree.json');
-  //           expect(verifiableCredential.credentialSchema.firstOrNull?.type,
-  //               'JsonSchema');
-  //           expect(verifiableCredential.credentialSchema.lastOrNull?.id,
-  //               'https://example.org/examples/alumni.json');
-  //           expect(verifiableCredential.credentialSchema.lastOrNull?.type,
-  //               'JsonSchema');
-  //         },
-  //       );
-  //
-  //       test(
-  //         'it retrieves the correct valid until date',
-  //         () {
-  //           expect(verifiableCredential.validUntil,
-  //               DateTime.utc(2020, 02, 01, 19, 25, 24, 0));
-  //         },
-  //       );
-  //
-  //       test(
-  //         'it holds the original json data provided to create the instance',
-  //         () {
-  //           expect(
-  //               verifiableCredential.toJson(),
-  //               VerifiableCredentialDataFixtures
-  //                   .credentialWithProofDataModelV20);
-  //         },
-  //       );
-  //
-  //       test(
-  //         'it holds the original raw data provided to create the instance',
-  //         () {
-  //           expect(
-  //               verifiableCredential.serialized,
-  //               VerifiableCredentialDataFixtures
-  //                   .credentialWithProofDataModelV20);
-  //         },
-  //       );
-  //
-  //       group('and amending the initial input data identifier', () {
-  //         data['id'] = 'modified';
-  //
-  //         test(
-  //           'it does not update the verifiable credential identifier',
-  //           () {
-  //             expect(
-  //                 verifiableCredential.id,
-  //                 VerifiableCredentialDataFixtures
-  //                     .credentialWithProofDataModelV20['id']);
-  //           },
-  //         );
-  //       });
-  //     });
-  //
-  //     group('without a proof', () {
-  //       test(
-  //         'it throws an unknown format exception',
-  //         () {
-  //           expect(
-  //               () => VerifiableCredentialParser.parse(
-  //                   VerifiableCredentialDataFixtures
-  //                       .credentialWithoutProofDataModelV20),
-  //               throwsA(isA<SsiException>().having(
-  //                   (error) => error.code,
-  //                   'code',
-  //                   SsiExceptionType.unableToParseVerifiableCredential.code)));
-  //         },
-  //       );
-  //     });
-  //   });
-  // });
+  group('When parsing verifiable credentials with a data model v2', () {
+    group('and receiving a json structure', () {
+      group('with a proof', () {
+        var data = VerifiableCredentialDataFixtures
+            .credentialWithProofDataModelV20String;
+        final verifiableCredential = VerifiableCredentialParser.parse(data);
+        test(
+          'it retrieves the correct issuer',
+          () {
+            expect(verifiableCredential.issuer,
+                'did:example:6fb1f712ebe12c27cc26eebfe11');
+          },
+        );
+
+        test(
+          'it retrieves the correct type',
+          () {
+            expect(verifiableCredential.type,
+                ['VerifiableCredential', 'ExampleDegreeCredential']);
+          },
+        );
+
+        test(
+          'it retrieves the correct issuance date',
+          () {
+            expect(verifiableCredential.validFrom,
+                DateTime.utc(2010, 01, 01, 19, 23, 24, 0));
+          },
+        );
+
+        test(
+          'it retrieves the correct credentials subject',
+          () {
+            expect(verifiableCredential.credentialSubject['id'],
+                'https://subject.example/subject/3921');
+          },
+        );
+
+        test(
+          'it retrieves the correct id',
+          () {
+            expect(verifiableCredential.id,
+                'https://example.gov/credentials/3732');
+          },
+        );
+
+        test(
+          'it retrieves the correct schema',
+          () {
+            expect(verifiableCredential.credentialSchema.firstOrNull?.id,
+                'https://example.org/examples/degree.json');
+            expect(verifiableCredential.credentialSchema.firstOrNull?.type,
+                'JsonSchema');
+            expect(verifiableCredential.credentialSchema.lastOrNull?.id,
+                'https://example.org/examples/alumni.json');
+            expect(verifiableCredential.credentialSchema.lastOrNull?.type,
+                'JsonSchema');
+          },
+        );
+
+        test(
+          'it retrieves the correct valid until date',
+          () {
+            expect(verifiableCredential.validUntil,
+                DateTime.utc(2020, 02, 01, 19, 25, 24, 0));
+          },
+        );
+
+        test(
+          'it holds the original json data provided to create the instance',
+          () {
+            expect(
+                verifiableCredential.toJson(),
+                VerifiableCredentialDataFixtures
+                    .credentialWithProofDataModelV20);
+          },
+        );
+
+        test(
+          'it holds the original raw data provided to create the instance',
+          () {
+            expect(
+                verifiableCredential.serialized,
+                VerifiableCredentialDataFixtures
+                    .credentialWithProofDataModelV20String);
+          },
+        );
+      });
+
+      group('without a proof', () {
+        test(
+          'it throws an unknown format exception',
+          () {
+            expect(
+                () => VerifiableCredentialParser.parse(
+                    VerifiableCredentialDataFixtures
+                        .credentialWithoutProofDataModelV20),
+                throwsA(isA<SsiException>().having(
+                    (error) => error.code,
+                    'code',
+                    SsiExceptionType.unableToParseVerifiableCredential.code)));
+          },
+        );
+      });
+    });
+  });
 }

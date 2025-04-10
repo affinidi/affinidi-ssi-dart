@@ -5,6 +5,7 @@ import 'package:ssi/src/credentials/models/parsed_vc.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../jwt/jwt_dm_v1_suite.dart';
+import '../linked_data/ld_dm_v2_suite.dart';
 import '../models/verifiable_credential.dart';
 import '../sdjwt/sdjwt_dm_v2_suite.dart';
 
@@ -12,6 +13,7 @@ import '../sdjwt/sdjwt_dm_v2_suite.dart';
 final class VerifiableCredentialParser {
   static final _suites = <VerifiableCredentialSuite>[
     LdVcDm1Suite(),
+    LdVcDm2Suite(),
     JwtDm1Suite(),
     SdJwtDm2Suite(),
   ];
