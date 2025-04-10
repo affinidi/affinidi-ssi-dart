@@ -24,6 +24,12 @@ enum SsiExceptionType {
   /// The did:key is invalid
   invalidDidKey(code: 'invalid_did_key'),
 
+  /// The vc is invalid
+  invalidVC(code: 'invalid_vc'),
+
+  /// The encoding can't be parsed
+  invalidEncoding(code: 'invalid_encoding'),
+
   /// An unknown error has occurred.
   other(code: 'other'),
   ;
