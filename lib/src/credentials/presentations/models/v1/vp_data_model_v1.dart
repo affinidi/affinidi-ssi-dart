@@ -1,5 +1,5 @@
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
-import 'package:ssi/src/credentials/presentations/models/verification_presentation.dart';
+import 'package:ssi/src/credentials/presentations/models/verifiable_presentation.dart';
 import '../../../models/verifiable_credential.dart';
 import '../../../../util/json_util.dart';
 
@@ -19,7 +19,7 @@ import '../../../../util/json_util.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class VpDataModelV1 implements VerificationPresentation {
+class VpDataModelV1 implements VerifiablePresentation {
   /// JSON-LD context, typically includes: `https://www.w3.org/2018/credentials/v1`
   List<String> context;
 
