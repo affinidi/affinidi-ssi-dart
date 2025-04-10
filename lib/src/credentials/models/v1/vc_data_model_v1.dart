@@ -2,6 +2,7 @@ import '../../../exceptions/ssi_exception.dart';
 import '../../../exceptions/ssi_exception_type.dart';
 import '../../../util/json_util.dart';
 import '../credential_schema.dart';
+import '../credential_status.dart';
 import '../verifiable_credential.dart';
 
 // TODO(cm) must implement adapter functions where needed to the generic VerifiableCredential
@@ -13,10 +14,13 @@ class VcDataModelV1 implements VerifiableCredential {
   List<String> context;
 
   @override
-  String id;
+  String? id;
 
   @override
   List<CredentialSchema> credentialSchema;
+
+  @override
+  CredentialStatus? credentialStatus;
 
   @override
   Map<String, dynamic> credentialSubject;
@@ -43,7 +47,7 @@ class VcDataModelV1 implements VerifiableCredential {
 
   VcDataModelV1({
     required this.context,
-    required this.id,
+    this.id,
     List<CredentialSchema>? credentialSchema,
     Map<String, dynamic>? credentialSubject,
     required this.issuer,
@@ -52,48 +56,53 @@ class VcDataModelV1 implements VerifiableCredential {
     this.expirationDate,
     Map<String, String>? holder,
     Map<String, String>? proof,
+    this.credentialStatus,
   })  : credentialSchema = credentialSchema ?? [],
         credentialSubject = credentialSubject ?? {},
         holder = holder ?? {},
         proof = proof ?? {};
 
   @override
-  // TODO: implement rawData
-  dynamic get rawData => throw UnimplementedError();
-
-  @override
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json['@context'] = context;
-    json['id'] = id;
-    json['issuer'] = issuer;
-    json['type'] = type;
+    json[_P.context.key] = context;
+    json[_P.issuer.key] = issuer;
+    json[_P.type.key] = type;
+
+    if (id != null) {
+      json[_P.id.key] = id;
+    }
 
     if (credentialSchema.isNotEmpty) {
-      json['credentialSchema'] = _encodeCredentialSchema(credentialSchema);
+      json[_P.credentialSchema.key] = _encodeCredentialSchema(credentialSchema);
     }
 
     final issDate = issuanceDate;
     if (issDate != null) {
-      json['issuanceDate'] = issDate.toIso8601String();
+      json[_P.issuanceDate.key] = issDate.toIso8601String();
     }
 
     final expDate = expirationDate;
     if (expDate != null) {
-      json['expirationDate'] = expDate.toIso8601String();
+      json[_P.expirationDate.key] = expDate.toIso8601String();
     }
 
     if (credentialSubject.isNotEmpty) {
-      json['credentialSubject'] = credentialSubject;
+      json[_P.credentialSubject.key] = credentialSubject;
     }
 
     if (holder.isNotEmpty) {
-      json['holder'] = holder;
+      json[_P.holder.key] = holder;
     }
 
     if (proof.isNotEmpty) {
-      json['proof'] = proof;
+      json[_P.proof.key] = proof;
+    }
+
+    var credentialStatus = this.credentialStatus;
+    if (credentialStatus != null) {
+      json[_P.credentialStatus.key] = credentialStatus.toJson();
     }
 
     return json;
@@ -104,34 +113,28 @@ class VcDataModelV1 implements VerifiableCredential {
         credentialSchema = [],
         credentialSubject = {},
         holder = {},
-        id = '',
-        issuer = '',
+        issuer = "",
         type = [],
         proof = {} {
     final json = jsonToMap(input);
 
-    context = getStringList(json, '@context', mandatory: true);
-    id = getMandatoryString(json, 'id');
-    issuer = getMandatoryString(json, 'issuer');
+    context = getStringList(json, _P.context.key, mandatory: true);
+    id = getString(json, _P.id.key);
+    issuer = getMandatoryString(json, _P.issuer.key);
     type = getStringList(
       json,
-      'type',
+      _P.type.key,
       allowSingleValue: true,
       mandatory: true,
     );
 
-    // if (holder.isNotEmpty) {
-    //   json['holder'] = holder;
-    // }
-
-    issuanceDate = getDateTime(json, 'issuanceDate');
-    expirationDate = getDateTime(json, 'expirationDate');
+    issuanceDate = getDateTime(json, _P.issuanceDate.key);
+    expirationDate = getDateTime(json, _P.expirationDate.key);
 
     // FIXME handle arrays of subjects
-    credentialSubject =
-        Map.of(json['credentialSubject'] as Map<String, dynamic>);
+    credentialSubject = Map.of(json[_P.credentialSubject.key]);
 
-    switch (json['credentialSchema']) {
+    switch (json[_P.credentialSchema.key]) {
       case Map m:
         credentialSchema = [CredentialSchema.fromJson(jsonToMap(m))];
 
@@ -139,6 +142,9 @@ class VcDataModelV1 implements VerifiableCredential {
         credentialSchema = l
             .map((e) => CredentialSchema.fromJson(jsonToMap(e)))
             .toList(growable: true);
+
+      case null:
+        break;
 
       default:
         throw SsiException(
@@ -148,13 +154,18 @@ class VcDataModelV1 implements VerifiableCredential {
     }
 
     // FIXME handle simple string
-    if (json['holder'] != null && json['holder'] is Map) {
-      holder = Map.of(json['holder'] as Map<String, dynamic>);
+    if (json.containsKey(_P.holder.key) && json[_P.holder.key] is Map) {
+      holder = Map.of(json[_P.holder.key]);
     }
 
     // FIXME use a typed object
-    if (json['proof'] != null && json['proof'] is Map) {
-      proof = Map.of(json['proof'] as Map<String, dynamic>);
+    if (json.containsKey(_P.proof.key) && json[_P.proof.key] is Map) {
+      proof = Map.of(json[_P.proof.key]);
+    }
+
+    if (json.containsKey(_P.credentialStatus.key)) {
+      credentialStatus =
+          CredentialStatus.fromJson(input[_P.credentialStatus.key]);
     }
   }
 
@@ -173,4 +184,28 @@ class VcDataModelV1 implements VerifiableCredential {
       },
     );
   }
+}
+
+/// Shortcut to make the code easier to read, p comes from property
+typedef _P = VcDataModelV1Key;
+
+enum VcDataModelV1Key {
+  context(key: '@context'),
+  proof,
+  expirationDate,
+  issuer,
+  credentialSchema,
+  credentialSubject,
+  id,
+  type,
+  issuanceDate,
+  credentialStatus,
+  holder,
+  ;
+
+  final String? _key;
+
+  String get key => _key ?? name;
+
+  const VcDataModelV1Key({String? key}) : _key = key;
 }

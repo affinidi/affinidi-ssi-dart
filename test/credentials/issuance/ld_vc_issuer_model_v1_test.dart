@@ -55,7 +55,8 @@ void main() {
       );
 
       expect(verificationResult.isValid, true);
-      expect(verificationResult.issues, isEmpty);
+      expect(verificationResult.errors, isEmpty);
+      expect(verificationResult.warnings, isEmpty);
     });
 
     test('CWE issued must verify', () async {
@@ -65,7 +66,8 @@ void main() {
       );
 
       expect(verificationResult.isValid, true);
-      expect(verificationResult.issues, isEmpty);
+      expect(verificationResult.errors, isEmpty);
+      expect(verificationResult.warnings, isEmpty);
     });
   });
 }

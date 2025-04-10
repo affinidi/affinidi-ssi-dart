@@ -1,19 +1,21 @@
+import 'package:ssi/src/credentials/factories/vc_suite.dart';
+import 'package:ssi/src/credentials/linked_data/ld_dm_v1_suite.dart';
+import 'package:ssi/src/credentials/models/parsed_vc.dart';
+
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
+import '../jwt/jwt_dm_v1_suite.dart';
+import '../linked_data/ld_dm_v2_suite.dart';
 import '../models/verifiable_credential.dart';
-import '../parsers/jwt_vc_data_model_v1_parser.dart';
-import '../parsers/sdjwt_data_model_v2_parser.dart';
-import '../parsers/vc_data_model_parser.dart';
-import '../parsers/vc_data_model_v1_with_proof_parser.dart';
-import '../parsers/vc_data_model_v2_with_proof_parser.dart';
+import '../sdjwt/sdjwt_dm_v2_suite.dart';
 
 /// Factory class supporting multiple parsers to convert data into a [VerifiableCredential]
-final class VerifiableCredentialFactory {
-  static final _credentialDataModelParsers = <VcDataModelParser>[
-    VcDataModelV1WithProofParser(),
-    VcDataModelV2WithProofParser(),
-    JwtVcDataModelV1Parser(),
-    SdJwtDataModelV2Parser(),
+final class VerifiableCredentialParser {
+  static final _suites = <VerifiableCredentialSuite>[
+    LdVcDm1Suite(),
+    LdVcDm2Suite(),
+    JwtDm1Suite(),
+    SdJwtDm2Suite(),
   ];
 
   /// Returns a [VerifiableCredential] instance.
@@ -21,11 +23,11 @@ final class VerifiableCredentialFactory {
   /// A [SsiException] may be thrown with the following error code:
   /// - **unableToParseVerifiableCredential**:
   ///  - Thrown if it is unable to parse the provided data
-  static VerifiableCredential create(Object rawData) {
-    for (final parser in _credentialDataModelParsers) {
-      if (parser.canParse(rawData)) {
+  static ParsedVerifiableCredential parse(Object rawData) {
+    for (final suite in _suites) {
+      if (suite.canParse(rawData)) {
         try {
-          return parser.parse(rawData);
+          return suite.parse(rawData);
         } catch (error, stackTrace) {
           Error.throwWithStackTrace(
               SsiException(

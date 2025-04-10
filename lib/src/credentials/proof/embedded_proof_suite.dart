@@ -1,14 +1,5 @@
+import '../../types.dart';
 import 'embedded_proof.dart';
-
-class VerificationResult {
-  final bool isValid;
-  final List<String> issues;
-
-  VerificationResult({
-    required this.isValid,
-    List<String>? issues,
-  }) : issues = issues ?? [];
-}
 
 abstract class EmbeddedProofSuite<SuiteOptions> {
   Future<EmbeddedProof> createProof(
