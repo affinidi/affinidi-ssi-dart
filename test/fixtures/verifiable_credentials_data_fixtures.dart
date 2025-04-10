@@ -55,6 +55,9 @@ class VerifiableCredentialDataFixtures {
         'issuer': 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa',
       };
 
+  static String get credentialWithProofDataModelV20String =>
+      jsonEncode(credentialWithProofDataModelV20);
+
   static Map<String, dynamic> get credentialWithProofDataModelV20 => {
         '@context': [
           'https://www.w3.org/ns/credentials/v2',
@@ -63,8 +66,8 @@ class VerifiableCredentialDataFixtures {
         'id': 'https://example.gov/credentials/3732',
         'type': ['VerifiableCredential', 'ExampleDegreeCredential'],
         'issuer': 'did:example:6fb1f712ebe12c27cc26eebfe11',
-        'validFrom': '2010-01-01T19:23:24Z',
-        'validUntil': '2020-02-01T19:25:24Z',
+        'validFrom': '2010-01-01T19:23:24.000Z',
+        'validUntil': '2020-02-01T19:25:24.000Z',
         'credentialSubject': {
           'id': 'https://subject.example/subject/3921',
           'degree': {

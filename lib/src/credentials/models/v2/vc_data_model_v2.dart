@@ -31,15 +31,11 @@ class VcDataModelV2 implements VerifiableCredential {
   @override
   List<String> type;
 
-  DateTime? issuanceDate;
-
-  DateTime? expirationDate;
+  @override
+  DateTime? validFrom;
 
   @override
-  DateTime? get validFrom => issuanceDate;
-
-  @override
-  DateTime? get validUntil => expirationDate;
+  DateTime? validUntil;
 
   Map<String, dynamic> holder;
 
@@ -52,8 +48,8 @@ class VcDataModelV2 implements VerifiableCredential {
     Map<String, dynamic>? credentialSubject,
     required this.issuer,
     required this.type,
-    this.issuanceDate,
-    this.expirationDate,
+    this.validFrom,
+    this.validUntil,
     Map<String, String>? holder,
     Map<String, String>? proof,
     this.credentialStatus,
@@ -78,14 +74,14 @@ class VcDataModelV2 implements VerifiableCredential {
       json[_P.credentialSchema.key] = _encodeCredentialSchema(credentialSchema);
     }
 
-    final issDate = issuanceDate;
+    final issDate = validFrom;
     if (issDate != null) {
-      json[_P.issuanceDate.key] = issDate.toIso8601String();
+      json[_P.validFrom.key] = issDate.toIso8601String();
     }
 
-    final expDate = expirationDate;
+    final expDate = validUntil;
     if (expDate != null) {
-      json[_P.expirationDate.key] = expDate.toIso8601String();
+      json[_P.validUntil.key] = expDate.toIso8601String();
     }
 
     if (credentialSubject.isNotEmpty) {
@@ -128,8 +124,8 @@ class VcDataModelV2 implements VerifiableCredential {
       mandatory: true,
     );
 
-    issuanceDate = getDateTime(json, _P.issuanceDate.key);
-    expirationDate = getDateTime(json, _P.expirationDate.key);
+    validFrom = getDateTime(json, _P.validFrom.key);
+    validUntil = getDateTime(json, _P.validUntil.key);
 
     // FIXME handle arrays of subjects
     credentialSubject = Map.of(json[_P.credentialSubject.key]);
@@ -165,7 +161,7 @@ class VcDataModelV2 implements VerifiableCredential {
 
     if (json.containsKey(_P.credentialStatus.key)) {
       credentialStatus =
-          CredentialStatus.fromJson(input[_P.credentialStatus.key]);
+          CredentialStatus.fromJson(json[_P.credentialStatus.key]);
     }
   }
 
@@ -192,13 +188,13 @@ typedef _P = VcDataModelV1Key;
 enum VcDataModelV1Key {
   context(key: '@context'),
   proof,
-  expirationDate,
   issuer,
   credentialSchema,
   credentialSubject,
   id,
   type,
-  issuanceDate,
+  validFrom,
+  validUntil,
   credentialStatus,
   holder,
   ;
