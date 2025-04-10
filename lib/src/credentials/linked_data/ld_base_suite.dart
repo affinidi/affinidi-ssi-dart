@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+import 'package:ssi/src/exceptions/ssi_exception.dart';
+import 'package:ssi/src/exceptions/ssi_exception_type.dart';
+
 import '../../did/did_signer.dart';
-import '../../exceptions/ssi_exception.dart';
-import '../../exceptions/ssi_exception_type.dart';
 import '../factories/vc_suite.dart';
 import '../models/parsed_vc.dart';
 import '../models/verifiable_credential.dart';
@@ -11,14 +12,15 @@ import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 
 abstract class LdOptions {}
 
-typedef ParseFunction<Model extends ParsedVerifiableCredential<String>> = Model
-    Function(String input);
+typedef ParseFunction<Model extends ParsedVerifiableCredential<String, dynamic>>
+    = Model Function(String input);
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
 abstract class LdBaseSuite<
-    Model extends ParsedVerifiableCredential<String>,
-    Options extends LdOptions,
-    SerializedType> implements VerifiableCredentialSuite<String, Options> {
+        VCDM extends VerifiableCredential,
+        Model extends ParsedVerifiableCredential<String, VCDM>,
+        Options extends LdOptions>
+    implements VerifiableCredentialSuite<String, VCDM, Model, Options> {
   final String contextUrl;
   final ParseFunction<Model> parser;
 
@@ -65,9 +67,11 @@ abstract class LdBaseSuite<
     return data.containsKey(proofKey);
   }
 
+  Model fromJson(Map<String, dynamic> payload);
+
   @override
-  Future<String> issue(
-    VerifiableCredential vc,
+  Future<Model> issue(
+    VCDM vc,
     DidSigner signer, {
     Options? options,
   }) async {
@@ -87,27 +91,28 @@ abstract class LdBaseSuite<
 
     json[proofKey] = proof.toJson();
 
-    return jsonEncode(json);
+    return fromJson(json);
   }
 
   @override
-  ParsedVerifiableCredential<String> parse(Object input) {
+  Model parse(Object input) {
     if (input is! String) {
       throw SsiException(
         message: 'Only String is supported',
         code: SsiExceptionType.invalidEncoding.code,
       );
     }
+
     return parser(input);
   }
 
   @override
-  Future<bool> verifyIntegrity(String input) async {
+  Future<bool> verifyIntegrity(Model input) async {
     //TODO(cm): return verification result
     //TODO(cm): discover proof type
     final proofSuite = EcdsaSecp256k1Signature2019();
     final verificationResult = await proofSuite.verifyProof(
-      jsonDecode(input),
+      input.toJson(),
     );
 
     return verificationResult.isValid;

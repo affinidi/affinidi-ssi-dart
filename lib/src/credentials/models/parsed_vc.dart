@@ -1,6 +1,6 @@
 import 'verifiable_credential.dart';
 
-abstract class ParsedVerifiableCredential<SerializedType>
-    implements VerifiableCredential {
+mixin ParsedVerifiableCredential<SerializedType, T extends VerifiableCredential>
+    on VerifiableCredential {
   SerializedType get serialized;
 }

@@ -1,4 +1,5 @@
 import 'package:ssi/src/credentials/linked_data/ld_base_suite.dart';
+import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 
 import '../models/verifiable_credential.dart';
 import 'ld_vc_data_model_v2.dart';
@@ -6,12 +7,16 @@ import 'ld_vc_data_model_v2.dart';
 class LdVcDm2Options extends LdOptions {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-final class LdVcDm2Suite<LdVcDm1Options> extends LdBaseSuite {
-  static const String _v2ContextUrl = "https://www.w3.org/ns/credentials/v2";
+final class LdVcDm2Suite
+    extends LdBaseSuite<VcDataModelV2, LdVcDataModelV2, LdVcDm2Options> {
+  @override
+  LdVcDataModelV2 fromJson(Map<String, dynamic> input) {
+    return LdVcDataModelV2.fromJson(input);
+  }
 
   LdVcDm2Suite()
       : super(
           parser: LdVcDataModelV2.parse,
-          contextUrl: _v2ContextUrl,
+          contextUrl: VcDataModelV2.contextUrl,
         );
 }

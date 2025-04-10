@@ -11,7 +11,7 @@ import '../../exceptions/ssi_exception_type.dart';
 /// Allows creating a VcDataModel from a JWT token containing an VcDataModel version 1.1
 /// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
 class JwtVcDataModelV1 extends VcDataModelV1
-    implements ParsedVerifiableCredential<String> {
+    implements ParsedVerifiableCredential<String, VcDataModelV1> {
   String _serialized;
 
   JwtVcDataModelV1({
@@ -95,7 +95,7 @@ class JwtVcDataModelV1 extends VcDataModelV1
     return verifier.verify(toSign, base64UrlNoPadDecode(encodedSignature));
   }
 
-  static Future<String> encode(
+  static Future<JwtVcDataModelV1> encode(
     VerifiableCredential dataModel,
     DidSigner signer,
   ) async {
@@ -116,7 +116,7 @@ class JwtVcDataModelV1 extends VcDataModelV1
       await signer.sign(toSign),
     );
 
-    return '$encodedHeader.$encodedPayload.$signature';
+    return JwtVcDataModelV1.parse('$encodedHeader.$encodedPayload.$signature');
   }
 
   @override

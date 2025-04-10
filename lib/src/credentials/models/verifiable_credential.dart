@@ -52,6 +52,6 @@ abstract interface class VerifiableCredential {
   /// Returns null if not set
   DateTime? get validUntil;
 
-  /// Returns a json representation of the original data provided to create the VerifiableCredential
-  dynamic toJson();
+  /// Returns a json representation of the VerifiableCredential
+  Map<String, dynamic> toJson();
 }

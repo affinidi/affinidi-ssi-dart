@@ -2,7 +2,7 @@ import '../models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
 
 class LdVcDataModelV2 extends VcDataModelV2
-    implements ParsedVerifiableCredential<String> {
+    implements ParsedVerifiableCredential<String, VcDataModelV2> {
   String _serialized;
 
   LdVcDataModelV2({

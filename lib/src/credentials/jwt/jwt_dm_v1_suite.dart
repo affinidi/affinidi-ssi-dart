@@ -11,7 +11,9 @@ class JwtOptions {}
 
 /// Class to parse and convert JWT token strings into a [VerifiableCredential]
 final class JwtDm1Suite
-    implements VerifiableCredentialSuite<String, JwtOptions> {
+    implements
+        VerifiableCredentialSuite<String, VcDataModelV1, JwtVcDataModelV1,
+            JwtOptions> {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   /// [data] must be a valid jwt string with a header a payload and a signature
   @override
@@ -25,11 +27,18 @@ final class JwtDm1Suite
   /// It can throw in case the data cannot be converted to a valid [VerifiableCredential]
   @override
   JwtVcDataModelV1 parse(Object data) {
-    return JwtVcDataModelV1.parse(data as String);
+    if (data is! String) {
+      throw SsiException(
+        message: 'Only String is supported',
+        code: SsiExceptionType.invalidEncoding.code,
+      );
+    }
+
+    return JwtVcDataModelV1.parse(data);
   }
 
   @override
-  Future<String> issue(
+  Future<JwtVcDataModelV1> issue(
     VerifiableCredential vc,
     DidSigner signer, {
     JwtOptions? options,
@@ -45,9 +54,7 @@ final class JwtDm1Suite
   }
 
   @override
-  Future<bool> verifyIntegrity(String input) {
-    final jwtVc = parse(input);
-
-    return jwtVc.hasIntegrity;
+  Future<bool> verifyIntegrity(JwtVcDataModelV1 input) {
+    return input.hasIntegrity;
   }
 }
