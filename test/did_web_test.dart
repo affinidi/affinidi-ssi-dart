@@ -27,7 +27,7 @@ void main() {
       expect(doc.toJson(), contains('verificationMethod'));
     });
 
-    test('should throw SsiException on non-200 response', () async {
+    test('throws SsiException on non-200 response', () async {
       final did = 'did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2';
 
       expectLater(
