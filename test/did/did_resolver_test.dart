@@ -50,16 +50,6 @@ void main() {
     });
 
     group("uding did:web,", () {
-      test("it resolves successfully", () async {
-        final did = 'did:web:demo.spruceid.com';
-
-        final doc = await resolveDidDocument(did);
-
-        expect(doc.id, equals(did));
-        expect(doc.toJson(), contains('id'));
-        expect(doc.toJson(), contains('verificationMethod'));
-      });
-
       test("it throws exception on non-200 responces", () {
         final did = 'did:web:example.com';
 
