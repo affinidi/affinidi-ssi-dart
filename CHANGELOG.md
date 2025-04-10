@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-04-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.19`](#ssi---v100-dev19)
+
+---
+
+#### `ssi` - `v1.0.0-dev.19`
+
+ - **FIX**: export did document (#34).
+
+## 1.0.0-dev.19
+
+ - **FIX**: export did document (#34).
+
+
 ## 2025-04-08
 
 ### Changes

@@ -14,7 +14,6 @@ import '../../util/base64_util.dart';
 
 final _sha256 = Digest('SHA-256');
 
-// FIXME what other naming convention could we use
 class EcdsaSecp256k1Signature2019Options {
   final DidSigner signer;
   final ProofPurpose proofPurpose;
@@ -69,9 +68,8 @@ class EcdsaSecp256k1Signature2019
     final proof = copy.remove('proof');
 
     if (proof == null || proof is! Map<String, dynamic>) {
-      return VerificationResult(
-        isValid: false,
-        issues: ['invalid or missing proof'],
+      return VerificationResult.invalid(
+        errors: ['invalid or missing proof'],
       );
     }
 
@@ -79,9 +77,8 @@ class EcdsaSecp256k1Signature2019
     try {
       verificationMethod = Uri.parse(proof['verificationMethod']);
     } catch (e) {
-      return VerificationResult(
-        isValid: false,
-        issues: ['invalid or missing proof.verificationMethod'],
+      return VerificationResult.invalid(
+        errors: ['invalid or missing proof.verificationMethod'],
       );
     }
 
@@ -91,9 +88,13 @@ class EcdsaSecp256k1Signature2019
     final isValid = await _computeVcHash(proof, copy)
         .then((hash) => _verifyJws(originalJws, verificationMethod, hash));
 
-    return VerificationResult(
-      isValid: isValid,
-    );
+    if (!isValid) {
+      return VerificationResult.invalid(
+        errors: ['signature invalid'],
+      );
+    }
+
+    return VerificationResult.ok();
   }
 
   static Future<Uint8List> _computeVcHash(
