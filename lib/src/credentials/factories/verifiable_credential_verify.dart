@@ -1,44 +1,55 @@
-import 'package:ssi/src/credentials/proof/embedded_proof_suite.dart';
+import 'package:ssi/src/credentials/factories/vc_suite.dart';
+import 'package:ssi/src/credentials/jwt/jwt_dm_v1_suite.dart';
+import 'package:ssi/src/credentials/linked_data/ld_dm_v1_suite.dart';
+import 'package:ssi/src/credentials/models/parsed_vc.dart';
+import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/verifier/custom_verifier.dart';
-import 'package:ssi/src/credentials/verifier/jwt_vc_data_model_v1_verifier.dart';
-import 'package:ssi/src/credentials/verifier/vc_data_model_verifier.dart';
 import 'package:ssi/ssi.dart';
 
 final class CredentialVerifier {
+  final List<VerifiableCredentialSuite> suites;
   final List<CustomVerifier> customVerifiers;
 
   CredentialVerifier({
+    List<VerifiableCredentialSuite>? suites,
     List<CustomVerifier>? customVerifier,
-  }) : customVerifiers = customVerifier ?? [];
+  })  : suites = [LdVcDm1Suite(), JwtDm1Suite(), SdJwtDm2Suite()],
+        customVerifiers = customVerifier ?? [];
 
-  Future<VerificationResult> verify(VerifiableCredential data) async {
-    List<String> issues = [];
+  Future<VerificationResult> verify(ParsedVerifiableCredential data) async {
+    final result = VerificationResult.ok();
 
-    final verifier = getVcVerifier(data);
-    bool expiryValid = await verifier.verifyExpiry(data);
-    bool integrityValid = await verifier.verifyIntegrity(data);
-
-    if (!expiryValid) {
-      issues.add('expiry verification failed');
+    final vcSuite = getVcSuit(data);
+    if (vcSuite == null) {
+      return VerificationResult.invalid(
+          errors: ['No suitable suite found to handle the credential format.']);
     }
+
+    // bool expiryValid = await vcSuite.verifyExpiry(data);
+    bool integrityValid = await vcSuite.verifyIntegrity(data);
+
+    // if (!expiryValid) {
+    //   issues.add('expiry verification failed');
+    // }
     if (!integrityValid) {
-      issues.add('integrity verification failed');
+      result.errors.add('integrity verification failed');
     }
 
     for (final customVerifier in customVerifiers) {
       var verifResult = (await customVerifier.verify(data));
-      issues.addAll(verifResult.issues);
+      result.errors.addAll(verifResult.errors);
+      result.warnings.addAll(verifResult.warnings);
     }
 
-    return VerificationResult(isValid: issues.isEmpty, issues: issues);
+    return result;
   }
 
-  VcDataModelVerifier getVcVerifier(VerifiableCredential vc) {
-    //TODO: get verifier based on vc
-    switch (vc.type) {
-      case 'any':
-        return JwtVcDataModelV1Verifier();
+  VerifiableCredentialSuite? getVcSuit(ParsedVerifiableCredential vc) {
+    for (final suite in suites) {
+      if (suite.canParse(vc.serialized)) {
+        return suite;
+      }
     }
-    return JwtVcDataModelV1Verifier();
+    return null;
   }
 }
