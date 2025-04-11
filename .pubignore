@@ -17,6 +17,3 @@ analysis_options.yaml
 
 # Temporary or private files
 .env
-
-# Don't publish
-packages/

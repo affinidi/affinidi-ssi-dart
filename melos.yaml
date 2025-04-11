@@ -1,6 +1,5 @@
 name: ssi
 packages:
-  - packages/**
   - .
 scripts:
   test:

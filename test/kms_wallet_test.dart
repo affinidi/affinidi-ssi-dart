@@ -2,8 +2,9 @@ import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
 import 'package:shared_aws_api/shared.dart';
-import 'package:ssi_kms_wallet/kms_wallet.dart';
 import 'package:test/test.dart';
+
+import 'kms_wallet/kms_wallet.dart';
 
 void main() {
   group('Test KmsWallet', () {
