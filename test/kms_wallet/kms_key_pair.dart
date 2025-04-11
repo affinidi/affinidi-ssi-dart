@@ -15,11 +15,11 @@ kms.SigningAlgorithmSpec signingAlgorithmForScheme(SignatureScheme scheme) {
       (throw UnsupportedError('Unsupported signature scheme: $scheme'));
 }
 
-class SsiKmsKeyPair implements KeyPair {
+class KmsKeyPair implements KeyPair {
   final kms.KMS kmsClient;
   final String keyId;
 
-  SsiKmsKeyPair(this.kmsClient, this.keyId);
+  KmsKeyPair(this.kmsClient, this.keyId);
 
   @override
   Future<String> get id async => keyId;

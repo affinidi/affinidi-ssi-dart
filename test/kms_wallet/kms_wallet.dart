@@ -5,12 +5,12 @@ import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
 import 'package:ssi/src/types.dart';
 import 'package:ssi/src/wallet/wallet.dart';
 
-import 'ssi_kms_key_pair.dart';
+import 'kms_key_pair.dart';
 
-class SsiKmsWallet implements Wallet {
+class KmsWallet implements Wallet {
   final kms.KMS kmsClient;
 
-  SsiKmsWallet(this.kmsClient);
+  KmsWallet(this.kmsClient);
 
   @override
   Future<Uint8List> sign(Uint8List data, {required String keyId}) async {
@@ -45,7 +45,7 @@ class SsiKmsWallet implements Wallet {
   }
 
   @override
-  Future<SsiKmsKeyPair> createKeyPair(
+  Future<KmsKeyPair> createKeyPair(
     String keyId, {
     KeyType? keyType,
   }) async {
@@ -54,11 +54,11 @@ class SsiKmsWallet implements Wallet {
       customerMasterKeySpec: kms.CustomerMasterKeySpec.rsa_2048,
     );
     final newKeyId = response.keyMetadata?.keyId ?? '';
-    return SsiKmsKeyPair(kmsClient, newKeyId);
+    return KmsKeyPair(kmsClient, newKeyId);
   }
 
   @override
-  Future<SsiKmsKeyPair> getKeyPair(String keyId) async {
-    return SsiKmsKeyPair(kmsClient, keyId);
+  Future<KmsKeyPair> getKeyPair(String keyId) async {
+    return KmsKeyPair(kmsClient, keyId);
   }
 }
