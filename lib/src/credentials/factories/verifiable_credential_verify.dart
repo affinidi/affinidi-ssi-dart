@@ -1,10 +1,11 @@
-import 'package:ssi/src/credentials/factories/vc_suite.dart';
-import 'package:ssi/src/credentials/jwt/jwt_dm_v1_suite.dart';
-import 'package:ssi/src/credentials/linked_data/ld_dm_v1_suite.dart';
-import 'package:ssi/src/credentials/models/parsed_vc.dart';
-import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
-import 'package:ssi/src/credentials/verifier/custom_verifier.dart';
-import 'package:ssi/ssi.dart';
+import '../../../ssi.dart';
+import '../jwt/jwt_dm_v1_suite.dart';
+import '../linked_data/ld_dm_v1_suite.dart';
+import '../linked_data/ld_dm_v2_suite.dart';
+import '../models/parsed_vc.dart';
+import '../sdjwt/sdjwt_dm_v2_suite.dart';
+import '../verifier/custom_verifier.dart';
+import 'vc_suite.dart';
 
 final class CredentialVerifier {
   final List<VerifiableCredentialSuite> suites;
@@ -13,7 +14,12 @@ final class CredentialVerifier {
   CredentialVerifier({
     List<VerifiableCredentialSuite>? suites,
     List<CustomVerifier>? customVerifier,
-  })  : suites = [LdVcDm1Suite(), JwtDm1Suite(), SdJwtDm2Suite()],
+  })  : suites = [
+          LdVcDm1Suite(),
+          LdVcDm2Suite(),
+          JwtDm1Suite(),
+          SdJwtDm2Suite(),
+        ],
         customVerifiers = customVerifier ?? [];
 
   Future<VerificationResult> verify(ParsedVerifiableCredential data) async {
@@ -25,19 +31,19 @@ final class CredentialVerifier {
           errors: ['No suitable suite found to handle the credential format.']);
     }
 
-    bool expiryValid = await vcSuite.verifyExpiry(data);
+    var expiryValid = await vcSuite.verifyExpiry(data);
     if (!expiryValid) {
       result.errors.add('expiry verification failed');
     }
 
-    bool integrityValid = await vcSuite.verifyIntegrity(data.serialized);
+    var integrityValid = await vcSuite.verifyIntegrity(data.serialized);
 
     if (!integrityValid) {
       result.errors.add('integrity verification failed');
     }
 
     for (final customVerifier in customVerifiers) {
-      var verifResult = (await customVerifier.verify(data));
+      var verifResult = await customVerifier.verify(data);
       result.errors.addAll(verifResult.errors);
       result.warnings.addAll(verifResult.warnings);
     }
@@ -45,9 +51,9 @@ final class CredentialVerifier {
     return result;
   }
 
-  VerifiableCredentialSuite? getVcSuit(Object vc) {
+  VerifiableCredentialSuite? getVcSuit(dynamic vc) {
     for (final suite in suites) {
-      if (suite.canParse(vc)) {
+      if (suite.canParse(vc as Object)) {
         return suite;
       }
     }
