@@ -2,7 +2,7 @@ import 'package:ssi/src/credentials/factories/verifiable_credential_verify.dart'
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import '../../fixtures/verifiable_credentials_data_fixtures.dart';
+import 'fixtures/verifiable_credentials_data_fixtures.dart';
 
 void main() {
   group('CredentialVerifier', () {

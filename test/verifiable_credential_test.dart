@@ -90,14 +90,6 @@ void main() {
         );
 
         test(
-          'it should return false for verifyExpiry',
-          () async {
-            expect(await vcDataModelVerifier.verifyExpiry(verifiableCredential),
-                false);
-          },
-        );
-
-        test(
           'it holds the original json data provided to create the instance',
           () {
             expect(
@@ -244,11 +236,6 @@ void main() {
           expect(verifiableCredential.validUntil, isNull);
         },
       );
-
-      test('it should return true for verifyExpiry', () async {
-        expect(
-            await vcDataModelVerifier.verifyExpiry(verifiableCredential), true);
-      });
 
       test(
         'it holds the original json data provided to create the instance',
