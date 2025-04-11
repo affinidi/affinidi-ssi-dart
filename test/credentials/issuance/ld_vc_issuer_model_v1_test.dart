@@ -18,7 +18,7 @@ void main() {
     test('Create and verify proof', () async {
       DidSigner signer = await _initSigner(seed);
 
-      final unsignedCredential = VcDataModelV1(
+      final unsignedCredential = MutableVcDataModelV1(
         context: [
           "https://www.w3.org/2018/credentials/v1",
           "https://schema.affinidi.com/UserProfileV1-0.jsonld"

@@ -10,13 +10,13 @@ class LdVcDm2Options extends LdOptions {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
 final class LdVcDm2Suite
-    extends LdBaseSuite<VcDataModelV2View, LdVcDataModelV2, LdVcDm2Options>
+    extends LdBaseSuite<VcDataModelV2, LdVcDataModelV2, LdVcDm2Options>
     implements
-        VerifiableCredentialSuite<String, VcDataModelV2View, LdVcDataModelV2,
+        VerifiableCredentialSuite<String, VcDataModelV2, LdVcDataModelV2,
             LdVcDm2Options> {
   LdVcDm2Suite()
       : super(
-          contextUrl: VcDataModelV2.contextUrl,
+          contextUrl: MutableVcDataModelV2.contextUrl,
         );
 
   @override
@@ -24,7 +24,8 @@ final class LdVcDm2Suite
       _LdVcDataModelV2Impl.fromParsed(input, payload);
 }
 
-class _LdVcDataModelV2Impl extends VcDataModelV2 implements LdVcDataModelV2 {
+class _LdVcDataModelV2Impl extends MutableVcDataModelV2
+    implements LdVcDataModelV2 {
   final String _serialized;
 
   _LdVcDataModelV2Impl.fromParsed(String serialized, super.input)

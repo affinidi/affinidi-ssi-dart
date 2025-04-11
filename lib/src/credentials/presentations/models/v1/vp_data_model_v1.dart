@@ -111,10 +111,12 @@ class VpDataModelV1 implements VerifiablePresentation {
     if (credentials != null) {
       if (credentials is List) {
         verifiableCredential = credentials
-            .map((e) => VcDataModelV1.fromJson(jsonToMap(e)))
+            .map((e) => MutableVcDataModelV1.fromJson(jsonToMap(e)))
             .toList();
       } else if (credentials is Map) {
-        verifiableCredential = [VcDataModelV1.fromJson(jsonToMap(credentials))];
+        verifiableCredential = [
+          MutableVcDataModelV1.fromJson(jsonToMap(credentials))
+        ];
       }
     }
 

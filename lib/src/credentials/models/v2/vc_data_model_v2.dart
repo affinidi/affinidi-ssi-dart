@@ -9,7 +9,7 @@ import 'vc_data_model_v2_view.dart';
 // TODO(cm) decide what to do with "holder"
 // TODO(cm): add validation against the VCDM1 schema somewhere
 // TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
-class VcDataModelV2 implements VcDataModelV2View {
+class MutableVcDataModelV2 implements VcDataModelV2 {
   static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
 
   @override
@@ -44,7 +44,7 @@ class VcDataModelV2 implements VcDataModelV2View {
   @override
   Map<String, dynamic> proof;
 
-  VcDataModelV2({
+  MutableVcDataModelV2({
     required this.context,
     this.id,
     List<CredentialSchema>? credentialSchema,
@@ -107,7 +107,7 @@ class VcDataModelV2 implements VcDataModelV2View {
     return json;
   }
 
-  VcDataModelV2.fromJson(dynamic input)
+  MutableVcDataModelV2.fromJson(dynamic input)
       : context = [],
         credentialSchema = [],
         credentialSubject = {},

@@ -171,7 +171,7 @@ void main() {
       test(
         'it can encode & decode',
         () async {
-          final dataModel = VcDataModelV1.fromJson(
+          final dataModel = MutableVcDataModelV1.fromJson(
             VerifiableCredentialDataFixtures.credentialWithoutProofDataModelV11,
           );
 

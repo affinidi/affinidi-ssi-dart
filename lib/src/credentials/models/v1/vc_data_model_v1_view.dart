@@ -2,7 +2,7 @@ import '../credential_schema.dart';
 import '../credential_status.dart';
 import '../verifiable_credential.dart';
 
-abstract interface class VcDataModelV1View implements VerifiableCredential {
+abstract interface class VcDataModelV1 implements VerifiableCredential {
   @override
   List<String> get context;
 

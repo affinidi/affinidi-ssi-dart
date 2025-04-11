@@ -1,10 +1,11 @@
 import 'dart:convert';
 
+import 'package:ssi/src/credentials/models/v1/vc_data_model_v1_view.dart';
+
 import '../../../ssi.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../util/base64_util.dart';
-import '../models/v1/vc_data_model_v1.dart';
 import '../parsers/jwt_parser.dart';
 import '../suites/vc_suite.dart';
 import 'jwt_data_model_v1.dart';
