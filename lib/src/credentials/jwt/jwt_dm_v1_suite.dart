@@ -1,9 +1,8 @@
-import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
-import 'package:ssi/src/did/did_signer.dart';
-
+import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../factories/vc_suite.dart';
+import '../models/v1/vc_data_model_v1.dart';
 import '../models/verifiable_credential.dart';
 import 'jwt_data_model_v1.dart';
 
