@@ -1,6 +1,6 @@
 name: ssi
 description: Affinidi SSI library
-version: 1.0.0-dev.18
+version: 1.0.0-dev.19
 repository: https://github.com/affinidi/affinidi-ssi-dart
 environment:
   sdk: ^3.6.0
@@ -13,15 +13,17 @@ dependencies:
   ed25519_hd_key: ^2.2.0
   x25519: ^0.1.1
   http: ^1.1.0
-  jwt_decoder: ^2.0.1
   elliptic: ^0.3.11
   jose_plus: ^0.4.6
   json_ld_processor: ^1.0.4
+  sdjwt:
+    git: https://github.com/affinidi/affinidi-sdjwt-dart.git
 dev_dependencies:
   coverage: ^1.11.1
   lints: ^5.0.0
   melos: ^6.3.2
   test: ^1.24.0
+publish_to: none
 
 workspace:
   - packages/kms_wallet

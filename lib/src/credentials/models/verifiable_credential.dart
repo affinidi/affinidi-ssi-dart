@@ -1,4 +1,5 @@
 import 'credential_schema.dart';
+import 'credential_status.dart';
 
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
@@ -27,7 +28,7 @@ abstract interface class VerifiableCredential {
   Map<String, dynamic> get credentialSubject;
 
   /// Returns the VerifiableCredential id.
-  String get id;
+  String? get id;
 
   /// Returns a list of VerifiableCredential schema.
   ///
@@ -35,6 +36,13 @@ abstract interface class VerifiableCredential {
   ///
   /// See [CredentialSchema] for more details.
   List<CredentialSchema> get credentialSchema;
+
+  /// Returns the VerifiableCredential status.
+  ///
+  /// Returns null if not set.
+  ///
+  /// See [CredentialStatus] for more details.
+  CredentialStatus? get credentialStatus;
 
   /// Returns the date when the VerifiableCredential was issued.
   DateTime? get validFrom;
@@ -46,7 +54,4 @@ abstract interface class VerifiableCredential {
 
   /// Returns a json representation of the original data provided to create the VerifiableCredential
   dynamic toJson();
-
-  /// Returns the original input provided to create the VerifiableCredential
-  dynamic get rawData;
 }

@@ -8,7 +8,8 @@ environment:
 resolution: workspace
 
 dependencies:
-  ssi: ^1.0.0
+  ssi: ^1.0.0-dev.19
+  jwt_decoder: ^2.0.1
   aws_kms_api: ^2.0.0
   aws_signature_v4: ^0.6.4
   shared_aws_api: ^2.0.2
