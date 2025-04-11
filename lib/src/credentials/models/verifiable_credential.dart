@@ -1,12 +1,21 @@
-import 'package:ssi/src/credentials/models/verifiable_data.dart';
-
 import 'credential_schema.dart';
 import 'credential_status.dart';
+import 'doc_with_embedded_proof.dart';
 
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
 /// Verifiable credentials can be used to build verifiable presentations, which can also be cryptographically verifiable.
-abstract interface class VerifiableCredential extends VerifiableData {
+abstract interface class VerifiableCredential extends DocWithEmbeddedProof {
+  /// Returns the VerifiableCredential issuer
+  List<String> get context;
+
+  /// Returns the VerifiableCredential id.
+  String? get id;
+
+  /// Returns a list of VerifiableCredential types.
+  // FIXME should be changed to a Set
+  List<String> get type;
+
   /// Returns the VerifiableCredential issuer.
   // FIXME issuer can be an entity with an id or a string
   String get issuer;

@@ -1,9 +1,9 @@
-import '../../did/did_signer.dart';
-import '../models/verifiable_credential.dart';
+import '../../../did/did_signer.dart';
+import '../models/verifiable_presentation.dart';
 
 /// Class that contains operations to be done on encoded VCs
-abstract class VerifiableCredentialSuite<SerializedType,
-    VDM extends VerifiableCredential, PDM extends VDM, Options> {
+abstract class VerifiablePresentationSuite<SerializedType,
+    VDM extends VerifiablePresentation, PDM extends VDM, Options> {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   bool canParse(Object data);
 

@@ -1,20 +1,17 @@
-import 'package:ssi/src/credentials/models/verifiable_data.dart';
+import 'package:ssi/src/credentials/models/doc_with_embedded_proof.dart';
 import 'package:ssi/src/credentials/parsers/ld_parser.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 
 import '../../did/did_signer.dart';
-import '../factories/vc_suite.dart';
 import '../models/verifiable_credential.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 
 abstract class LdOptions {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-abstract class LdBaseSuite<VDM extends VerifiableData, Model extends VDM,
-        Options extends LdOptions>
-    extends VerifiableCredentialSuite<String, VDM, Model, Options>
-    with LdParser {
+abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
+    Options extends LdOptions> with LdParser {
   final String contextUrl;
 
   final String proofKey;
@@ -37,7 +34,6 @@ abstract class LdBaseSuite<VDM extends VerifiableData, Model extends VDM,
     return (context is List) && context.contains(contextUrl);
   }
 
-  @override
   bool canParse(Object input) {
     if (input is! String) return false;
 
@@ -46,7 +42,6 @@ abstract class LdBaseSuite<VDM extends VerifiableData, Model extends VDM,
 
   Model fromJson(Map<String, dynamic> payload);
 
-  @override
   Future<Model> issue(
     VDM vc,
     DidSigner signer, {
@@ -71,7 +66,6 @@ abstract class LdBaseSuite<VDM extends VerifiableData, Model extends VDM,
     return fromJson(json);
   }
 
-  @override
   Model parse(Object input) {
     if (input is! String) {
       throw SsiException(
@@ -83,7 +77,6 @@ abstract class LdBaseSuite<VDM extends VerifiableData, Model extends VDM,
     return fromJson({...decode(input), 'serialized': input});
   }
 
-  @override
   Future<bool> verifyIntegrity(Model input) async {
     //TODO(cm): return verification result
     //TODO(cm): discover proof type
