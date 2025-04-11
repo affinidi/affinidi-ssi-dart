@@ -11,8 +11,7 @@ import '../sdjwt/sdjwt_dm_v2_suite.dart';
 
 /// Factory class supporting multiple parsers to convert data into a [VerifiableCredential]
 final class VerifiableCredentialParser {
-  static final _suites = <VerifiableCredentialSuite<dynamic,
-      VerifiableCredential, ParsedVerifiableCredential, dynamic>>[
+  static final _suites = <VerifiableCredentialSuite>[
     LdVcDm1Suite(),
     LdVcDm2Suite(),
     JwtDm1Suite(),
