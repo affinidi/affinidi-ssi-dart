@@ -13,8 +13,12 @@ import 'sd_vc_dm_v2.dart';
 class SdJwtDm2Options {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-final class SdJwtDm2Suite extends VerifiableCredentialSuite<String,
-    VcDataModelV2, SdJwtDataModelV2, SdJwtDm2Options> with SdJwtParser {
+final class SdJwtDm2Suite
+    with
+        SdJwtParser
+    implements
+        VerifiableCredentialSuite<String, VcDataModelV2, SdJwtDataModelV2,
+            SdJwtDm2Options> {
   @override
   bool hasValidPayload(SdJwt data) {
     final context = data.payload[VcDataModelV2Key.context.key];

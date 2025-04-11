@@ -5,7 +5,6 @@ import '../models/doc_with_embedded_proof.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
-import '../suites/vc_suite.dart';
 
 abstract class LdOptions {}
 
@@ -41,6 +40,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
   }
 
   Model fromJson(Map<String, dynamic> payload);
+
   Model fromParsed(String input, Map<String, dynamic> payload);
 
   Future<Model> issue(

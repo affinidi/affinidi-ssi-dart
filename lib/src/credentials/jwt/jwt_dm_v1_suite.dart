@@ -12,8 +12,12 @@ import 'jwt_data_model_v1.dart';
 class JwtOptions {}
 
 /// Class to parse and convert JWT token strings into a [VerifiableCredential]
-final class JwtDm1Suite extends VerifiableCredentialSuite<String, VcDataModelV1,
-    JwtVcDataModelV1, JwtOptions> with JwtParser {
+final class JwtDm1Suite
+    with
+        JwtParser
+    implements
+        VerifiableCredentialSuite<String, VcDataModelV1, JwtVcDataModelV1,
+            JwtOptions> {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   /// [data] must be a valid jwt string with a header a payload and a signature
   @override

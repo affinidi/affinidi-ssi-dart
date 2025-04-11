@@ -1,4 +1,4 @@
-import '../factories/vc_suite.dart';
+import '../suites/vc_suite.dart';
 import '../models/v2/vc_data_model_v2.dart';
 import '../models/verifiable_credential.dart';
 import 'ld_base_suite.dart';

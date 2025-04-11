@@ -9,7 +9,7 @@ class VcIntegrityVerifier implements VcVerifier {
   Future<VerificationResult> verify(ParsedVerifiableCredential data) async {
     final vcSuite = VcSuites.getVcSuite(data);
 
-    var integrityValid = await vcSuite.verifyIntegrity(data.serialized);
+    var integrityValid = await vcSuite.verifyIntegrity(data);
 
     if (!integrityValid) {
       return Future.value(

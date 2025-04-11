@@ -4,10 +4,10 @@ import '../models/verifiable_credential.dart';
 
 /// Class that contains operations to be done on encoded VCs
 abstract interface class VerifiableCredentialSuite<
-SerializedType,
-VCDM extends VerifiableCredential,
-PVC extends ParsedVerifiableCredential<SerializedType>,
-Options> {
+    SerializedType,
+    VCDM extends VerifiableCredential,
+    PVC extends ParsedVerifiableCredential<SerializedType>,
+    Options> {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   bool canParse(Object data);
 
@@ -23,8 +23,8 @@ Options> {
 
   /// Prepare an Encoded VC based on the
   Future<PVC> issue(
-      VCDM vp,
-      DidSigner signer, {
-        Options? options,
-      });
+    VCDM vp,
+    DidSigner signer, {
+    Options? options,
+  });
 }

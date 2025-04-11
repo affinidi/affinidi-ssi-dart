@@ -1,4 +1,6 @@
 import 'dart:convert';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
 import '../models/parsed_vc.dart';
 import '../models/v1/vc_data_model_v1.dart';
 
@@ -34,5 +36,17 @@ class LdVcDataModelV1 extends VcDataModelV1
   String get serialized {
     _serialized ??= jsonEncode(toJson());
     return _serialized!;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final s = _serialized;
+    if (s == null) {
+      throw SsiException(
+        message: 'LdVcDataModelV1 is invalid, _serialized is null',
+        code: SsiExceptionType.invalidEncoding.code,
+      );
+    }
+    return jsonDecode(s);
   }
 }

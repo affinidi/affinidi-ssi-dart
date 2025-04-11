@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 import '../../fixtures/verifiable_credentials_data_fixtures.dart';
 
 void main() {
-  group('Test Encoding No Pad', () {
+  group('VC Integrity Verifier', () {
     test('Should pass for valid VC from CWE', () async {
       var data = VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe;
       final verifiableCredential = UniversalParser.parse(data);
