@@ -15,8 +15,9 @@ abstract class VerifiableData {
   /// Used by the mechanism to embed securing mechnism to verify the integrity of the verifiable data
   Map<String, dynamic> get proof;
 
-  /// Returns a json representation of the VerifiableCredential
+  /// JSON representation of the Data Model
   Map<String, dynamic> toJson();
 
+  /// Pareses "canonical" Data Model Json
   VerifiableData.fromJson(Map<String, dynamic> input);
 }

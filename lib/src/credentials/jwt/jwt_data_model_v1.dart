@@ -24,10 +24,10 @@ class JwtVcDataModelV1 extends VcDataModelV1
     required JWS jws,
   }) : _jws = jws;
 
-  JwtVcDataModelV1.fromJson(super.input)
-      : _jws = input['jws'],
+  JwtVcDataModelV1.fromJws(JWS jws)
+      : _jws = jws,
         // use parsing from VcDataModelV1
-        super.fromJson();
+        super.fromJson(jwtToJson(jws.payload));
 
   @override
   String get serialized => _jws.serialized;

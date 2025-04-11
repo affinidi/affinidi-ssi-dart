@@ -39,8 +39,7 @@ final class JwtDm1Suite extends VerifiableCredentialSuite<String, VcDataModelV1,
     }
 
     final jws = decode(data);
-    final vcPayload = JwtVcDataModelV1.jwtToJson(jws.payload);
-    return JwtVcDataModelV1.fromJson({...vcPayload, 'jws': jws});
+    return JwtVcDataModelV1.fromJws(jws);
   }
 
   @override
@@ -71,8 +70,7 @@ final class JwtDm1Suite extends VerifiableCredentialSuite<String, VcDataModelV1,
         signature: signature,
         serialized: serialized);
 
-    final vcPayload = JwtVcDataModelV1.jwtToJson(jws.payload);
-    return JwtVcDataModelV1.fromJson({...vcPayload, 'jws': jws});
+    return JwtVcDataModelV1.fromJws(jws);
   }
 
   @override
