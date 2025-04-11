@@ -1,6 +1,7 @@
 name: ssi
 packages:
-  - "./"
+  - packages/**
+  - .
 scripts:
   test:
     name: test

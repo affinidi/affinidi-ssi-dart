@@ -1,0 +1,22 @@
+# Dart-generated files
+.dart_tool/
+build/
+coverage/
+
+# Tests
+test/
+analysis_options.yaml
+
+# IDE configurations
+.idea/
+.vscode/
+
+# Git files
+.git/
+.gitignore
+
+# Temporary or private files
+.env
+
+# Don't publish
+packages/
