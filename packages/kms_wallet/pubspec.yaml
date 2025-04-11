@@ -1,6 +1,7 @@
 name: ssi_kms_wallet
 description: Example of Affinidi SSI wallet initialized with AWS KMS
 version: 1.0.0-dev.1
+repository: https://github.com/affinidi/affinidi-ssi-dart
 
 environment:
   sdk: ^3.6.0
