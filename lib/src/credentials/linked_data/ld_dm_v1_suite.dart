@@ -89,6 +89,22 @@ final class LdVcDm1Suite
 
     return verificationResult.isValid;
   }
+
+  @override
+  Future<bool> verifyExpiry(VerifiableCredential data) async {
+    DateTime now = DateTime.now();
+    DateTime? validFrom = data.validFrom;
+    DateTime? validUntil = data.validUntil;
+
+    if (validFrom != null && now.isBefore(validFrom)) {
+      return false;
+    }
+    if (validUntil != null && now.isAfter(validUntil)) {
+      return false;
+    }
+
+    return true;
+  }
 }
 
 final _proofSuite = EcdsaSecp256k1Signature2019();

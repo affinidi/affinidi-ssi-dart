@@ -50,4 +50,20 @@ final class JwtDm1Suite
 
     return jwtVc.hasIntegrity;
   }
+
+  @override
+  Future<bool> verifyExpiry(VerifiableCredential data) async {
+    DateTime now = DateTime.now();
+    DateTime? validFrom = data.validFrom;
+    DateTime? validUntil = data.validUntil;
+
+    if (validFrom != null && now.isBefore(validFrom)) {
+      return false;
+    }
+    if (validUntil != null && now.isAfter(validUntil)) {
+      return false;
+    }
+
+    return true;
+  }
 }

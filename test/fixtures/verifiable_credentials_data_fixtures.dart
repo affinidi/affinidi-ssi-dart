@@ -35,6 +35,37 @@ class VerifiableCredentialDataFixtures {
   static String get credentialWithProofDataModelV11JsonEncoded =>
       jsonEncode(credentialWithProofDataModelV11);
 
+  static Map<String, dynamic> get credentialWithValidProofDataModelV11 => {
+        '@context': [
+          "https://www.w3.org/2018/credentials/v1",
+          "https://schema.affinidi.com/EmailV1-0.jsonld"
+        ],
+        'id': "claimId:2b249d9d93f38e3a",
+        'type': ["VerifiableCredential", "Email"],
+        'credentialSchema': {
+          "id": "https://schema.affinidi.com/EmailV1-0.json",
+          "type": "JsonSchemaValidator2018"
+        },
+        'credentialSubject': {"email": "savani.j+dev21@affinidi.com"},
+        'holder': {
+          "id": "did:key:zQ3shjgjhNvjBGseaMQW9fKHMUtmf9oDU8LQNPa1Sxf79MJnf"
+        },
+        'issuanceDate': "2024-09-04T12:15:23.355Z",
+        'issuer': "did:key:zQ3shXLA2cHanJgCUsDfXxBi2BGnMLArHVz5NWoC9axr8pEy6",
+        "proof": {
+          "type": "EcdsaSecp256k1Signature2019",
+          "created": "2024-09-04T12:15:29Z",
+          "proofPurpose": "assertionMethod",
+          "verificationMethod":
+              "did:key:zQ3shXLA2cHanJgCUsDfXxBi2BGnMLArHVz5NWoC9axr8pEy6#zQ3shXLA2cHanJgCUsDfXxBi2BGnMLArHVz5NWoC9axr8pEy6",
+          "jws":
+              "eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..lN5GVttiM5den0qU1fcgc1QdCbHhmWgdI3iIp_VyprQtrzT9GK3eQyuT7-C1VBcD-AE7ZYWwdsMNcgsuUmH0Vg"
+        },
+      };
+
+  static String get credentialWithValidProofDataModelV11JsonEncoded =>
+      jsonEncode(credentialWithValidProofDataModelV11);
+
   static Map<String, dynamic> get credentialWithoutProofDataModelV11 => {
         '@context': [
           'https://www.w3.org/2018/credentials/v1',

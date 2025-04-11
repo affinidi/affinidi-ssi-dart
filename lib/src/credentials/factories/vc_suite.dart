@@ -22,4 +22,7 @@ abstract class VerifiableCredentialSuite<SerializedType, Options> {
     DidSigner signer, {
     Options? options,
   });
+
+  /// verify expiry of VC
+  Future<bool> verifyExpiry(VerifiableCredential data);
 }

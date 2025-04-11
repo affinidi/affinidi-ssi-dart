@@ -19,18 +19,19 @@ final class CredentialVerifier {
   Future<VerificationResult> verify(ParsedVerifiableCredential data) async {
     final result = VerificationResult.ok();
 
-    final vcSuite = getVcSuit(data);
+    final vcSuite = getVcSuit(data.serialized);
     if (vcSuite == null) {
       return VerificationResult.invalid(
           errors: ['No suitable suite found to handle the credential format.']);
     }
 
-    // bool expiryValid = await vcSuite.verifyExpiry(data);
-    bool integrityValid = await vcSuite.verifyIntegrity(data);
+    bool expiryValid = await vcSuite.verifyExpiry(data);
+    if (!expiryValid) {
+      result.errors.add('expiry verification failed');
+    }
 
-    // if (!expiryValid) {
-    //   issues.add('expiry verification failed');
-    // }
+    bool integrityValid = await vcSuite.verifyIntegrity(data.serialized);
+
     if (!integrityValid) {
       result.errors.add('integrity verification failed');
     }
@@ -44,9 +45,9 @@ final class CredentialVerifier {
     return result;
   }
 
-  VerifiableCredentialSuite? getVcSuit(ParsedVerifiableCredential vc) {
+  VerifiableCredentialSuite? getVcSuit(Object vc) {
     for (final suite in suites) {
-      if (suite.canParse(vc.serialized)) {
+      if (suite.canParse(vc)) {
         return suite;
       }
     }
