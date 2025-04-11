@@ -53,10 +53,6 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   /// Returns null if not set
   DateTime? get validUntil;
 
-  /// Pareses "canonical" Data Model Json
-  @override
-  VerifiableCredential.fromJson(Map<String, dynamic> input);
-
   /// JSON representation of the Data Model
   @override
   Map<String, dynamic> toJson();

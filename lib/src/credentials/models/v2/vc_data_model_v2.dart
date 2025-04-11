@@ -3,14 +3,13 @@ import '../../../exceptions/ssi_exception_type.dart';
 import '../../../util/json_util.dart';
 import '../credential_schema.dart';
 import '../credential_status.dart';
-import '../verifiable_credential.dart';
+import 'vc_data_model_v2_view.dart';
 
 // TODO(cm) must implement adapter functions where needed to the generic VerifiableCredential
 // TODO(cm) decide what to do with "holder"
 // TODO(cm): add validation against the VCDM1 schema somewhere
 // TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
-
-class VcDataModelV2 implements VerifiableCredential {
+class VcDataModelV2 implements VcDataModelV2View {
   static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
 
   @override

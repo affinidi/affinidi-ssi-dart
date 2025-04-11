@@ -1,6 +1,9 @@
-import '../suites/vc_suite.dart';
+import 'dart:convert';
+
 import '../models/v1/vc_data_model_v1.dart';
+import '../models/v1/vc_data_model_v1_view.dart';
 import '../models/verifiable_credential.dart';
+import '../suites/vc_suite.dart';
 import 'ld_base_suite.dart';
 import 'ld_vc_data_model_v1.dart';
 
@@ -8,25 +11,33 @@ class LdVcDm1Options extends LdOptions {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
 final class LdVcDm1Suite
-    extends LdBaseSuite<VcDataModelV1, LdVcDataModelV1, LdVcDm1Options>
+    extends LdBaseSuite<VcDataModelV1View, LdVcDataModelV1, LdVcDm1Options>
     implements
-        VerifiableCredentialSuite<String, VcDataModelV1, LdVcDataModelV1,
+        VerifiableCredentialSuite<String, VcDataModelV1View, LdVcDataModelV1,
             LdVcDm1Options> {
-  // @override
-  // LdVcDataModelV1 fromJson(Map<String, dynamic> input) {
-  //   return LdVcDataModelV1.fromJson(input);
-  // }
-
   LdVcDm1Suite()
       : super(
           contextUrl: VcDataModelV1.contextUrl,
         );
 
   @override
-  LdVcDataModelV1 fromJson(Map<String, dynamic> payload) =>
-      LdVcDataModelV1.fromJson(payload);
+  LdVcDataModelV1 fromParsed(String input, Map<String, dynamic> payload) =>
+      _LdVcDataModelV1Impl.fromParsed(input, payload);
+}
+
+class _LdVcDataModelV1Impl extends VcDataModelV1 implements LdVcDataModelV1 {
+  final String _serialized;
+
+  _LdVcDataModelV1Impl.fromParsed(String serialized, super.input)
+      : _serialized = serialized,
+        // use parsing from VcDataModelV1
+        super.fromJson();
 
   @override
-  LdVcDataModelV1 fromParsed(String input, Map<String, dynamic> payload) =>
-      LdVcDataModelV1.fromParsed(input, payload);
+  Map<String, dynamic> toJson() {
+    return jsonDecode(_serialized);
+  }
+
+  @override
+  String get serialized => _serialized;
 }
