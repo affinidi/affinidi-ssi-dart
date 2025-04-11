@@ -4,10 +4,10 @@ import 'dart:developer' as developer;
 import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
-import '../factories/vc_suite.dart';
 import '../models/parsed_vc.dart';
 import '../models/verifiable_credential.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
+import '../suites/vc_suite.dart';
 
 abstract class LdOptions {}
 

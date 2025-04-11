@@ -4,7 +4,8 @@ import '../verification/integrity_verifier.dart';
 import '../verification/vc_expiry_verifier.dart';
 import '../verification/vc_verifier.dart';
 
-final class CredentialVerifier {
+/// Allows verification of any supported VC encodings
+final class UniversalVerifier {
   final List<VcVerifier> customVerifiers;
 
   static final List<VcVerifier> defaultVerifiers = List.unmodifiable(
@@ -15,7 +16,7 @@ final class CredentialVerifier {
   );
 
   //FIXME add limit to types supported
-  CredentialVerifier({
+  UniversalVerifier({
     List<VcVerifier>? customVerifier,
   }) : customVerifiers = customVerifier ?? [];
 

@@ -3,7 +3,7 @@
 /// More dartdocs go here.
 library;
 
-export 'src/credentials/factories/verifiable_credential_parser.dart';
+export 'src/credentials/suites/universal_parser.dart';
 export 'src/credentials/models/credential_schema.dart';
 export 'src/credentials/models/verifiable_credential.dart';
 export 'src/did/did_key.dart';

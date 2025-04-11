@@ -1,14 +1,13 @@
-import 'package:ssi/src/credentials/models/parsed_vc.dart';
-import 'package:ssi/src/credentials/verification/vc_verifier.dart';
-import 'package:ssi/src/types.dart';
-
 import '../../exceptions/ssi_exception_type.dart';
-import '../factories/verifiable_credential_parser.dart';
+import '../../types.dart';
+import '../models/parsed_vc.dart';
+import '../suites/vc_suites.dart';
+import 'vc_verifier.dart';
 
 class VcIntegrityVerifier implements VcVerifier {
   @override
   Future<VerificationResult> verify(ParsedVerifiableCredential data) async {
-    final vcSuite = VerifiableCredentialParser.getVcSuite(data);
+    final vcSuite = VcSuites.getVcSuite(data);
 
     var integrityValid = await vcSuite.verifyIntegrity(data.serialized);
 
