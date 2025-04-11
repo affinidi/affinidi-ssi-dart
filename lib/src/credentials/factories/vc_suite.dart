@@ -2,7 +2,7 @@ import '../../../ssi.dart';
 import '../models/parsed_vc.dart';
 
 /// Class that contains operations to be done on encoded VCs
-abstract class VerifiableCredentialSuite<SerializedType, Options> {
+abstract interface class VerifiableCredentialSuite<SerializedType, Options> {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   bool canParse(Object data);
 
@@ -22,7 +22,4 @@ abstract class VerifiableCredentialSuite<SerializedType, Options> {
     DidSigner signer, {
     Options? options,
   });
-
-  /// verify expiry of VC
-  Future<bool> verifyExpiry(VerifiableCredential data);
 }
