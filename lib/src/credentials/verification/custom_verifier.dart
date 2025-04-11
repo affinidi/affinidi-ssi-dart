@@ -1,4 +1,4 @@
-import 'package:ssi/ssi.dart';
+import '../../../ssi.dart';
 
 abstract class CustomVerifier {
   Future<VerificationResult> verify(VerifiableCredential vc);

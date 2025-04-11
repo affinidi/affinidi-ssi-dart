@@ -30,6 +30,12 @@ enum SsiExceptionType {
   /// The encoding can't be parsed
   invalidEncoding(code: 'invalid_encoding'),
 
+  /// The vc is expired
+  expiredVC(code: 'expired_vc'),
+
+  /// Integrity verification failed
+  failedIntegrityVerification(code: 'integrity_verification_failed'),
+
   /// An unknown error has occurred.
   other(code: 'other'),
   ;

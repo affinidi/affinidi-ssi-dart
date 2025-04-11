@@ -4,12 +4,14 @@ import '../../exceptions/ssi_exception_type.dart';
 import '../factories/vc_suite.dart';
 import '../models/v1/vc_data_model_v1.dart';
 import '../models/verifiable_credential.dart';
+import '../verification/credential_expiry_verification.dart';
 import 'jwt_data_model_v1.dart';
 
 class JwtOptions {}
 
 /// Class to parse and convert JWT token strings into a [VerifiableCredential]
 final class JwtDm1Suite
+    with VerifiableCredentialExpiryVerification
     implements VerifiableCredentialSuite<String, JwtOptions> {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   /// [data] must be a valid jwt string with a header a payload and a signature
@@ -48,21 +50,5 @@ final class JwtDm1Suite
     final jwtVc = parse(input);
 
     return jwtVc.hasIntegrity;
-  }
-
-  @override
-  Future<bool> verifyExpiry(VerifiableCredential data) async {
-    DateTime now = DateTime.now();
-    DateTime? validFrom = data.validFrom;
-    DateTime? validUntil = data.validUntil;
-
-    if (validFrom != null && now.isBefore(validFrom)) {
-      return false;
-    }
-    if (validUntil != null && now.isAfter(validUntil)) {
-      return false;
-    }
-
-    return true;
   }
 }

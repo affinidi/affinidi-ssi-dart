@@ -8,6 +8,7 @@ import '../factories/vc_suite.dart';
 import '../models/parsed_vc.dart';
 import '../models/verifiable_credential.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
+import '../verification/credential_expiry_verification.dart';
 
 abstract class LdOptions {}
 
@@ -15,10 +16,10 @@ typedef ParseFunction<Model extends ParsedVerifiableCredential<String>> = Model
     Function(String input);
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-abstract class LdBaseSuite<
-    Model extends ParsedVerifiableCredential<String>,
-    Options extends LdOptions,
-    SerializedType> implements VerifiableCredentialSuite<String, Options> {
+abstract class LdBaseSuite<Model extends ParsedVerifiableCredential<String>,
+        Options extends LdOptions, SerializedType>
+    with VerifiableCredentialExpiryVerification
+    implements VerifiableCredentialSuite<String, Options> {
   final String contextUrl;
   final ParseFunction<Model> parser;
 
@@ -111,22 +112,6 @@ abstract class LdBaseSuite<
     );
 
     return verificationResult.isValid;
-  }
-
-  @override
-  Future<bool> verifyExpiry(VerifiableCredential data) async {
-    DateTime now = DateTime.now();
-    DateTime? validFrom = data.validFrom;
-    DateTime? validUntil = data.validUntil;
-
-    if (validFrom != null && now.isBefore(validFrom)) {
-      return false;
-    }
-    if (validUntil != null && now.isAfter(validUntil)) {
-      return false;
-    }
-
-    return true;
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:ssi/src/credentials/factories/verifiable_credential_verify.dart';
+import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +25,8 @@ void main() {
       var result = await verifier.verify(verifiableCredential);
 
       expect(result.isValid, false);
-      expect(result.errors, ['integrity verification failed']);
+      expect(
+          result.errors, [SsiExceptionType.failedIntegrityVerification.code]);
     });
 
     test('should pass verification for ld dm v1', () async {

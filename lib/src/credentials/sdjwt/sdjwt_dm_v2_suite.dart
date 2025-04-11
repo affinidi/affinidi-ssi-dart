@@ -11,12 +11,14 @@ import '../models/parsed_vc.dart';
 import '../models/v1/vc_data_model_v1.dart';
 import '../models/verifiable_credential.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
+import '../verification/credential_expiry_verification.dart';
 import 'sd_vc_dm_v2.dart';
 
 class SdJwtDm2Options {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
 final class SdJwtDm2Suite
+    with VerifiableCredentialExpiryVerification
     implements VerifiableCredentialSuite<String, SdJwtDm2Options> {
   static const _v2ContextUrl = 'https://www.w3.org/ns/credentials/v2';
 
@@ -92,21 +94,5 @@ final class SdJwtDm2Suite
     );
 
     return verificationResult.isValid;
-  }
-
-  @override
-  Future<bool> verifyExpiry(VerifiableCredential data) async {
-    DateTime now = DateTime.now();
-    DateTime? validFrom = data.validFrom;
-    DateTime? validUntil = data.validUntil;
-
-    if (validFrom != null && now.isBefore(validFrom)) {
-      return false;
-    }
-    if (validUntil != null && now.isAfter(validUntil)) {
-      return false;
-    }
-
-    return true;
   }
 }
