@@ -11,7 +11,7 @@ abstract class EmbeddedProofSuite<SuiteOptions> {
     Map<String, dynamic> document,
   );
 
-  static verifyEmbeddedProof(Map<String, dynamic> vc) {
+  static void verifyEmbeddedProof(Map<String, dynamic> vc) {
     // identitfy the right suite to use
   }
 }

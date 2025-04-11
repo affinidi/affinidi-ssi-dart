@@ -3,14 +3,14 @@ import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
 import 'package:pointycastle/api.dart';
-import 'package:ssi/src/credentials/proof/embedded_proof.dart';
-import 'package:ssi/src/credentials/proof/embedded_proof_suite.dart';
-import 'package:ssi/src/credentials/proof/proof_purpose.dart';
-import 'package:ssi/src/did/did_signer.dart';
-import 'package:ssi/src/did/did_verifier.dart';
 
+import '../../did/did_signer.dart';
+import '../../did/did_verifier.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
+import 'embedded_proof.dart';
+import 'embedded_proof_suite.dart';
+import 'proof_purpose.dart';
 
 final _sha256 = Digest('SHA-256');
 
@@ -26,8 +26,8 @@ class EcdsaSecp256k1Signature2019Options {
 
 class EcdsaSecp256k1Signature2019
     implements EmbeddedProofSuite<EcdsaSecp256k1Signature2019Options> {
-  static const _signatureType = "EcdsaSecp256k1Signature2019";
-  static const _securityContext = "https://w3id.org/security/v2";
+  static const _signatureType = 'EcdsaSecp256k1Signature2019';
+  static const _securityContext = 'https://w3id.org/security/v2';
 
   @override
   Future<EmbeddedProof> createProof(
@@ -36,11 +36,11 @@ class EcdsaSecp256k1Signature2019
   ) async {
     final created = DateTime.now();
     final proof = {
-      "@context": _securityContext,
-      "type": _signatureType,
-      "created": created.toIso8601String(),
-      "verificationMethod": options.signer.keyId,
-      "proofPurpose": options.proofPurpose.value,
+      '@context': _securityContext,
+      'type': _signatureType,
+      'created': created.toIso8601String(),
+      'verificationMethod': options.signer.keyId,
+      'proofPurpose': options.proofPurpose.value,
     };
 
     document.remove('proof');
@@ -75,7 +75,7 @@ class EcdsaSecp256k1Signature2019
 
     Uri verificationMethod;
     try {
-      verificationMethod = Uri.parse(proof['verificationMethod']);
+      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
     } catch (e) {
       return VerificationResult.invalid(
         errors: ['invalid or missing proof.verificationMethod'],
@@ -83,10 +83,10 @@ class EcdsaSecp256k1Signature2019
     }
 
     final originalJws = proof.remove('jws');
-    proof["@context"] = _securityContext;
+    proof['@context'] = _securityContext;
 
-    final isValid = await _computeVcHash(proof, copy)
-        .then((hash) => _verifyJws(originalJws, verificationMethod, hash));
+    final isValid = await _computeVcHash(proof, copy).then(
+        (hash) => _verifyJws(originalJws as String, verificationMethod, hash));
 
     if (!isValid) {
       return VerificationResult.invalid(

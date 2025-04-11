@@ -51,10 +51,10 @@ abstract class LdBaseSuite<
     // FIXME(cm) decoding twice in canParse and parse
     Map data;
     try {
-      data = jsonDecode(input);
+      data = jsonDecode(input) as Map<String, dynamic>;
     } catch (e) {
       developer.log(
-        "LdBaseSuite jsonDecode failed",
+        'LdBaseSuite jsonDecode failed',
         level: 500, // FINE
       );
       return false;
@@ -72,7 +72,7 @@ abstract class LdBaseSuite<
     Options? options,
   }) async {
     //TODO(cm): extend option to select proof suite
-    final json = vc.toJson();
+    var json = vc.toJson() as Map<String, dynamic>;
 
     // remove proof in case it's already there
     json.remove(proofKey);
@@ -81,7 +81,7 @@ abstract class LdBaseSuite<
     json[issuerKey] = signer.did;
 
     final proof = await _proofSuite.createProof(
-      vc.toJson(),
+      vc.toJson() as Map<String, dynamic>,
       EcdsaSecp256k1Signature2019Options(signer: signer),
     );
 
@@ -107,7 +107,7 @@ abstract class LdBaseSuite<
     //TODO(cm): discover proof type
     final proofSuite = EcdsaSecp256k1Signature2019();
     final verificationResult = await proofSuite.verifyProof(
-      jsonDecode(input),
+      jsonDecode(input) as Map<String, dynamic>,
     );
 
     return verificationResult.isValid;

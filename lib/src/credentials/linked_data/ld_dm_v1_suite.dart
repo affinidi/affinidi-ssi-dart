@@ -1,7 +1,6 @@
-import 'package:ssi/src/credentials/linked_data/ld_base_suite.dart';
-import 'package:ssi/src/credentials/linked_data/ld_vc_data_model_v1.dart';
-
 import '../models/verifiable_credential.dart';
+import 'ld_base_suite.dart';
+import 'ld_vc_data_model_v1.dart';
 
 class LdVcDm1Options extends LdOptions {}
 

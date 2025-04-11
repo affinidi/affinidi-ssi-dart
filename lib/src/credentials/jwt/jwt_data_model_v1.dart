@@ -1,12 +1,11 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/models/parsed_vc.dart';
-import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
-import 'package:ssi/src/util/base64_util.dart';
-import 'package:ssi/ssi.dart';
-
+import '../../../ssi.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
+import '../../util/base64_util.dart';
+import '../models/parsed_vc.dart';
+import '../models/v1/vc_data_model_v1.dart';
 
 /// Allows creating a VcDataModel from a JWT token containing an VcDataModel version 1.1
 /// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
@@ -30,7 +29,7 @@ class JwtVcDataModelV1 extends VcDataModelV1
   }) : _serialized = serialized;
 
   JwtVcDataModelV1.fromJson(super.input)
-      : _serialized = "",
+      : _serialized = '',
         super.fromJson();
 
   /// Parse the input without verifying the signature
@@ -44,13 +43,13 @@ class JwtVcDataModelV1 extends VcDataModelV1
       );
     }
 
-    final Map<String, dynamic> payload = jsonDecode(
+    final payload = jsonDecode(
       utf8.decode(
         base64UrlNoPadDecode(segments[1]),
       ),
-    );
+    ) as Map<String, dynamic>;
 
-    Map<String, dynamic> json = _jwtToJson(payload);
+    var json = _jwtToJson(payload);
 
     final result = JwtVcDataModelV1.fromJson(json);
     result._serialized = jwtString;
@@ -77,18 +76,18 @@ class JwtVcDataModelV1 extends VcDataModelV1
       utf8.decode(
         base64UrlNoPadDecode(encodedHeader),
       ),
-    );
+    ) as Map<String, dynamic>;
 
     final toSign = ascii.encode('$encodedHeader.$encodedPayload');
 
-    Uri did = Uri.parse(decodedHeader['kid']).removeFragment();
+    var did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
 
     //TODO(cm) add discovery
     final algorithm = SignatureScheme.ecdsa_secp256k1_sha256;
 
     final verifier = await DidVerifier.create(
       algorithm: algorithm,
-      kid: decodedHeader['kid'],
+      kid: decodedHeader['kid'] as String,
       issuerDid: did.toString(),
     );
 
@@ -124,14 +123,17 @@ class JwtVcDataModelV1 extends VcDataModelV1
 }
 
 Map<String, dynamic> _jwtToJson(Map<String, dynamic> payload) {
-  Map<String, dynamic> json = payload['vc'];
+  var json = payload['vc'] as Map<String, dynamic>;
 
   _jwtToJsonDate(payload, 'exp', json, _VC1.expirationDate.key);
   _jwtToJsonDate(payload, 'nbf', json, _VC1.issuanceDate.key);
   _jwtToJsonDynamic(payload, 'iss', json, _VC1.issuer.key);
-  if (payload.containsKey('sub')) {
-    json[_VC1.credentialSubject.key]['id'] = payload['sub'];
+  if (payload.containsKey('sub') &&
+      json[_VC1.credentialSubject.key] is Map<String, dynamic>) {
+    (json[_VC1.credentialSubject.key] as Map<String, dynamic>)['id'] =
+        payload['sub'];
   }
+
   _jwtToJsonDynamic(payload, 'jti', json, _VC1.id.key);
   return json;
 }
@@ -140,8 +142,8 @@ Map<String, dynamic> _jwtToJson(Map<String, dynamic> payload) {
   Map<String, dynamic> json,
   DidSigner signer,
 ) {
-  Map<String, dynamic> payload = {};
-  Map<String, dynamic> header = {
+  var payload = <String, dynamic>{};
+  var header = <String, dynamic>{
     'alg': signer.signatureScheme.jwtName,
     'kid': signer.keyId,
     'typ': 'JWT',
@@ -150,13 +152,13 @@ Map<String, dynamic> _jwtToJson(Map<String, dynamic> payload) {
   final exp = json.remove(_VC1.expirationDate.key);
   if (exp != null) {
     payload['exp'] =
-        (DateTime.parse(exp).millisecondsSinceEpoch / 1000).floor();
+        (DateTime.parse(exp as String).millisecondsSinceEpoch / 1000).floor();
   }
 
   final nbf = json.remove(_VC1.issuanceDate.key);
   if (nbf != null) {
     payload['nbf'] =
-        (DateTime.parse(nbf).millisecondsSinceEpoch / 1000).floor();
+        (DateTime.parse(nbf as String).millisecondsSinceEpoch / 1000).floor();
   }
 
   payload['iss'] = json.remove(_VC1.issuer.key);

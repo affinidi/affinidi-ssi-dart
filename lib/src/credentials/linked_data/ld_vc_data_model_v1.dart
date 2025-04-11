@@ -17,11 +17,11 @@ class LdVcDataModelV1 extends VcDataModelV1
     super.holder,
     super.proof,
     super.credentialStatus,
-    required serialized,
+    required String serialized,
   }) : _serialized = serialized;
 
   LdVcDataModelV1.fromJson(super.input)
-      : _serialized = "",
+      : _serialized = '',
         // use parsing from VcDataModelV1
         super.fromJson();
 
