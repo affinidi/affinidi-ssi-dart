@@ -56,7 +56,7 @@ final class CredentialVerifier {
     return result;
   }
 
-  VerifiableCredentialSuite? getVcSuit(ParsedVerifiableCredential vc) {
+  VerifiableCredentialSuite? getVcSuite(ParsedVerifiableCredential vc) {
     var suit = switch (vc) {
       LdVcDataModelV1() => LdVcDm1Suite<void>() as VerifiableCredentialSuite,
       LdVcDataModelV2() => LdVcDm2Suite<void>() as VerifiableCredentialSuite,
