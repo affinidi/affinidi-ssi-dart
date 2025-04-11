@@ -59,7 +59,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
 
     final proof = await _proofSuite.createProof(
       vc.toJson(),
-      EcdsaSecp256k1Signature2019Options(signer: signer),
+      EcdsaSecp256k1Signature2019CreateOptions(signer: signer),
     );
 
     json[proofKey] = proof.toJson();
@@ -84,6 +84,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
     final proofSuite = EcdsaSecp256k1Signature2019();
     final verificationResult = await proofSuite.verifyProof(
       input.toJson(),
+      EcdsaSecp256k1Signature2019VerifyOptions(),
     );
 
     return verificationResult.isValid;
