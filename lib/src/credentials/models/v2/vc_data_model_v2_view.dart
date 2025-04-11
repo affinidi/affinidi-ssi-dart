@@ -1,6 +1,3 @@
-import '../../../exceptions/ssi_exception.dart';
-import '../../../exceptions/ssi_exception_type.dart';
-import '../../../util/json_util.dart';
 import '../credential_schema.dart';
 import '../credential_status.dart';
 import '../verifiable_credential.dart';
