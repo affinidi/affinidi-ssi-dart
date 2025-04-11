@@ -17,10 +17,6 @@ final class LdVpDm1Suite
         );
 
   @override
-  LdVpDataModelV1 fromJson(Map<String, dynamic> payload) =>
-      LdVpDataModelV1.fromJson(payload);
-
-  @override
   LdVpDataModelV1 fromParsed(String input, Map<String, dynamic> payload) =>
       LdVpDataModelV1.fromParsed(input, payload);
 }

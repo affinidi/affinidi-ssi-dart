@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -39,8 +41,6 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
     return canDecode(input);
   }
 
-  Model fromJson(Map<String, dynamic> payload);
-
   Model fromParsed(String input, Map<String, dynamic> payload);
 
   Future<Model> issue(
@@ -64,7 +64,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
 
     json[proofKey] = proof.toJson();
 
-    return fromJson(json);
+    return fromParsed(jsonEncode(json), json);
   }
 
   Model parse(Object input) {

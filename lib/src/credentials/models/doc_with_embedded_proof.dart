@@ -12,7 +12,4 @@ abstract interface class DocWithEmbeddedProof {
 
   /// JSON representation of the Data Model
   Map<String, dynamic> toJson();
-
-  /// Pareses "canonical" Data Model Json
-  DocWithEmbeddedProof.fromJson(Map<String, dynamic> input);
 }

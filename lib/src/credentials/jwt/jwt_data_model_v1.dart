@@ -5,24 +5,9 @@ import '../parsers/jwt_parser.dart';
 
 /// Allows creating a VcDataModel from a JWT token containing an VcDataModel version 1.1
 /// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
-class JwtVcDataModelV1 extends VcDataModelV1
+class JwtVcDataModelV1 extends MutableVcDataModelV1
     implements ParsedVerifiableCredential<String> {
   final Jws _jws;
-
-  JwtVcDataModelV1({
-    required super.context,
-    required super.id,
-    super.credentialSchema,
-    super.credentialSubject,
-    required super.issuer,
-    required super.type,
-    super.issuanceDate,
-    super.expirationDate,
-    super.holder,
-    super.proof,
-    super.credentialStatus,
-    required Jws jws,
-  }) : _jws = jws;
 
   JwtVcDataModelV1.fromJws(Jws jws)
       : _jws = jws,

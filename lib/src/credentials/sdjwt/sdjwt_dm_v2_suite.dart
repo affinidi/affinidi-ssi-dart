@@ -17,12 +17,13 @@ final class SdJwtDm2Suite
     with
         SdJwtParser
     implements
-        VerifiableCredentialSuite<String, VcDataModelV2, SdJwtDataModelV2,
-            SdJwtDm2Options> {
+        VerifiableCredentialSuite<String, MutableVcDataModelV2,
+            SdJwtDataModelV2, SdJwtDm2Options> {
   @override
   bool hasValidPayload(SdJwt data) {
     final context = data.payload[VcDataModelV2Key.context.key];
-    return (context is List) && context.contains(VcDataModelV2.contextUrl);
+    return (context is List) &&
+        context.contains(MutableVcDataModelV2.contextUrl);
   }
 
   @override
@@ -45,7 +46,7 @@ final class SdJwtDm2Suite
 
   @override
   Future<SdJwtDataModelV2> issue(
-    VcDataModelV2 vc,
+    MutableVcDataModelV2 vc,
     DidSigner signer, {
     SdJwtDm2Options? options,
   }) async {
