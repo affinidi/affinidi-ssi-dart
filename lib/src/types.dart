@@ -39,14 +39,23 @@ class VerificationResult {
   final List<String> errors;
   final List<String> warnings;
 
-  VerificationResult.ok({List<String>? warnings})
-      : warnings = warnings ?? [],
-        errors = [];
+  VerificationResult._({
+    List<String>? errors,
+    List<String>? warnings,
+  })  : warnings = List.unmodifiable(warnings ?? []),
+        errors = List.unmodifiable(errors ?? []);
+
+  VerificationResult.ok({List<String>? warnings}) : this._(warnings: warnings);
 
   VerificationResult.invalid({
-    required this.errors,
+    required List<String> errors,
     List<String>? warnings,
-  }) : warnings = warnings ?? [];
+  }) : this._(errors: errors, warnings: warnings);
+
+  VerificationResult.fromFindings({
+    required List<String> errors,
+    List<String>? warnings,
+  }) : this._(errors: errors, warnings: warnings);
 
   bool get isValid => errors.isEmpty;
 

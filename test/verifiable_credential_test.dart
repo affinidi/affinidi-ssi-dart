@@ -27,7 +27,7 @@ void main() {
         var data =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
 
-        final verifiableCredential = VerifiableCredentialParser.parse(
+        final verifiableCredential = UniversalParser.parse(
           VerifiableCredentialDataFixtures
               .credentialWithProofDataModelV11JsonEncoded,
         );
@@ -129,9 +129,8 @@ void main() {
           'it throws an unknown format exception',
           () {
             expect(
-                () => VerifiableCredentialParser.parse(
-                    VerifiableCredentialDataFixtures
-                        .credentialWithoutProofDataModelV11),
+                () => UniversalParser.parse(VerifiableCredentialDataFixtures
+                    .credentialWithoutProofDataModelV11),
                 throwsA(isA<SsiException>().having(
                     (error) => error.code,
                     'code',
@@ -143,7 +142,7 @@ void main() {
 
     group('and receiving a JWT token', () {
       var data = VerifiableCredentialDataFixtures.jwtCredentialDataModelV11;
-      final verifiableCredential = VerifiableCredentialParser.parse(data);
+      final verifiableCredential = UniversalParser.parse(data);
 
       test(
         'it has correct signature',
@@ -158,7 +157,7 @@ void main() {
       test(
         'it has invalid signature',
         () async {
-          final verifiableCredential = VerifiableCredentialParser.parse(
+          final verifiableCredential = UniversalParser.parse(
               VerifiableCredentialDataFixtures
                   .jwtCredentialDataModelV11InvalidSig);
 
@@ -282,7 +281,7 @@ void main() {
       group('with a proof', () {
         var data = VerifiableCredentialDataFixtures
             .credentialWithProofDataModelV20String;
-        final verifiableCredential = VerifiableCredentialParser.parse(data);
+        final verifiableCredential = UniversalParser.parse(data);
         test(
           'it retrieves the correct issuer',
           () {
@@ -371,9 +370,8 @@ void main() {
           'it throws an unknown format exception',
           () {
             expect(
-                () => VerifiableCredentialParser.parse(
-                    VerifiableCredentialDataFixtures
-                        .credentialWithoutProofDataModelV20),
+                () => UniversalParser.parse(VerifiableCredentialDataFixtures
+                    .credentialWithoutProofDataModelV20),
                 throwsA(isA<SsiException>().having(
                     (error) => error.code,
                     'code',

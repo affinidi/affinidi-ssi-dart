@@ -40,6 +40,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
   }
 
   Model fromJson(Map<String, dynamic> payload);
+
   Model fromParsed(String input, Map<String, dynamic> payload);
 
   Future<Model> issue(

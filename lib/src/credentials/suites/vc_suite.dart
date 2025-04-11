@@ -3,7 +3,7 @@ import '../models/parsed_vc.dart';
 import '../models/verifiable_credential.dart';
 
 /// Class that contains operations to be done on encoded VCs
-abstract class VerifiableCredentialSuite<
+abstract interface class VerifiableCredentialSuite<
     SerializedType,
     VCDM extends VerifiableCredential,
     PVC extends ParsedVerifiableCredential<SerializedType>,

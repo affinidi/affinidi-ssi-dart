@@ -3,18 +3,22 @@ import 'package:sdjwt/sdjwt.dart';
 import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
-import '../factories/vc_suite.dart';
 import '../models/v2/vc_data_model_v2.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/sdjwt_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
+import '../suites/vc_suite.dart';
 import 'sd_vc_dm_v2.dart';
 
 class SdJwtDm2Options {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-final class SdJwtDm2Suite extends VerifiableCredentialSuite<String,
-    VcDataModelV2, SdJwtDataModelV2, SdJwtDm2Options> with SdJwtParser {
+final class SdJwtDm2Suite
+    with
+        SdJwtParser
+    implements
+        VerifiableCredentialSuite<String, VcDataModelV2, SdJwtDataModelV2,
+            SdJwtDm2Options> {
   @override
   bool hasValidPayload(SdJwt data) {
     final context = data.payload[VcDataModelV2Key.context.key];
