@@ -1,6 +1,6 @@
-import 'verifiable_credential.dart';
+import '../../../ssi.dart';
 
-abstract class ParsedVerifiableCredential<SerializedType>
+abstract interface class ParsedVerifiableCredential<SerializedType>
     implements VerifiableCredential {
   SerializedType get serialized;
 }

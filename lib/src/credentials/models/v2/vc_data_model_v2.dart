@@ -9,7 +9,10 @@ import '../verifiable_credential.dart';
 // TODO(cm) decide what to do with "holder"
 // TODO(cm): add validation against the VCDM1 schema somewhere
 // TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
+
 class VcDataModelV2 implements VerifiableCredential {
+  static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
+
   @override
   List<String> context;
 
@@ -39,6 +42,7 @@ class VcDataModelV2 implements VerifiableCredential {
 
   Map<String, dynamic> holder;
 
+  @override
   Map<String, dynamic> proof;
 
   VcDataModelV2({
@@ -184,9 +188,9 @@ class VcDataModelV2 implements VerifiableCredential {
 }
 
 /// Shortcut to make the code easier to read, p comes from property
-typedef _P = VcDataModelV1Key;
+typedef _P = VcDataModelV2Key;
 
-enum VcDataModelV1Key {
+enum VcDataModelV2Key {
   context(key: '@context'),
   proof,
   issuer,
@@ -204,5 +208,5 @@ enum VcDataModelV1Key {
 
   String get key => _key ?? name;
 
-  const VcDataModelV1Key({String? key}) : _key = key;
+  const VcDataModelV2Key({String? key}) : _key = key;
 }

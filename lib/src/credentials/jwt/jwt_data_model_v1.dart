@@ -1,17 +1,13 @@
-import 'dart:convert';
-
 import '../../../ssi.dart';
-import '../../exceptions/ssi_exception.dart';
-import '../../exceptions/ssi_exception_type.dart';
-import '../../util/base64_util.dart';
 import '../models/parsed_vc.dart';
 import '../models/v1/vc_data_model_v1.dart';
+import '../parsers/jwt_parser.dart';
 
 /// Allows creating a VcDataModel from a JWT token containing an VcDataModel version 1.1
 /// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
 class JwtVcDataModelV1 extends VcDataModelV1
     implements ParsedVerifiableCredential<String> {
-  String _serialized;
+  final Jws _jws;
 
   JwtVcDataModelV1({
     required super.context,
@@ -25,181 +21,94 @@ class JwtVcDataModelV1 extends VcDataModelV1
     super.holder,
     super.proof,
     super.credentialStatus,
-    required String serialized,
-  }) : _serialized = serialized;
+    required Jws jws,
+  }) : _jws = jws;
 
-  JwtVcDataModelV1.fromJson(super.input)
-      : _serialized = '',
-        super.fromJson();
-
-  /// Parse the input without verifying the signature
-  factory JwtVcDataModelV1.parse(String jwtString) {
-    final segments = jwtString.split('.');
-
-    if (segments.length != 3) {
-      throw SsiException(
-        message: 'Invalid JWT',
-        code: SsiExceptionType.invalidVC.code,
-      );
-    }
-
-    final payload = jsonDecode(
-      utf8.decode(
-        base64UrlNoPadDecode(segments[1]),
-      ),
-    ) as Map<String, dynamic>;
-
-    var json = _jwtToJson(payload);
-
-    final result = JwtVcDataModelV1.fromJson(json);
-    result._serialized = jwtString;
-
-    return result;
-  }
-
-  /// Check that the serialized CV passes the format's integrity checks
-  Future<bool> get hasIntegrity async {
-    final segments = _serialized.split('.');
-
-    if (segments.length != 3) {
-      throw SsiException(
-        message: 'Invalid JWT',
-        code: SsiExceptionType.invalidVC.code,
-      );
-    }
-
-    final encodedHeader = segments[0];
-    final encodedPayload = segments[1];
-    final encodedSignature = segments[2];
-
-    final decodedHeader = jsonDecode(
-      utf8.decode(
-        base64UrlNoPadDecode(encodedHeader),
-      ),
-    ) as Map<String, dynamic>;
-
-    final toSign = ascii.encode('$encodedHeader.$encodedPayload');
-
-    var did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
-
-    //TODO(cm) add discovery
-    final algorithm = SignatureScheme.ecdsa_secp256k1_sha256;
-
-    final verifier = await DidVerifier.create(
-      algorithm: algorithm,
-      kid: decodedHeader['kid'] as String,
-      issuerDid: did.toString(),
-    );
-
-    return verifier.verify(toSign, base64UrlNoPadDecode(encodedSignature));
-  }
-
-  static Future<String> encode(
-    VerifiableCredential dataModel,
-    DidSigner signer,
-  ) async {
-    final vcdm1 = dataModel as VcDataModelV1;
-
-    final (header, payload) = _vcToJwt(vcdm1.toJson(), signer);
-
-    final encodedHeader = base64UrlNoPadEncode(
-      utf8.encode(jsonEncode(header)),
-    );
-    final encodedPayload = base64UrlNoPadEncode(
-      utf8.encode(jsonEncode(payload)),
-    );
-
-    final toSign = ascii.encode('$encodedHeader.$encodedPayload');
-
-    final signature = base64UrlNoPadEncode(
-      await signer.sign(toSign),
-    );
-
-    return '$encodedHeader.$encodedPayload.$signature';
-  }
+  JwtVcDataModelV1.fromJws(Jws jws)
+      : _jws = jws,
+        // use parsing from VcDataModelV1
+        super.fromJson(jwtToJson(jws.payload));
 
   @override
-  String get serialized => _serialized;
-}
+  String get serialized => _jws.serialized;
 
-Map<String, dynamic> _jwtToJson(Map<String, dynamic> payload) {
-  var json = payload['vc'] as Map<String, dynamic>;
+  static Map<String, dynamic> jwtToJson(Map<String, dynamic> payload) {
+    final json = payload['vc'] as Map<String, dynamic>;
 
-  _jwtToJsonDate(payload, 'exp', json, _VC1.expirationDate.key);
-  _jwtToJsonDate(payload, 'nbf', json, _VC1.issuanceDate.key);
-  _jwtToJsonDynamic(payload, 'iss', json, _VC1.issuer.key);
-  if (payload.containsKey('sub') &&
-      json[_VC1.credentialSubject.key] is Map<String, dynamic>) {
-    (json[_VC1.credentialSubject.key] as Map<String, dynamic>)['id'] =
-        payload['sub'];
+    _jwtToJsonDate(payload, 'exp', json, _VC1.expirationDate.key);
+    _jwtToJsonDate(payload, 'nbf', json, _VC1.issuanceDate.key);
+    _jwtToJsonDynamic(payload, 'iss', json, _VC1.issuer.key);
+    if (payload.containsKey('sub')) {
+      (json[_VC1.credentialSubject.key] as Map<String, dynamic>)['id'] =
+          payload['sub'];
+    }
+    _jwtToJsonDynamic(payload, 'jti', json, _VC1.id.key);
+    return json;
   }
 
-  _jwtToJsonDynamic(payload, 'jti', json, _VC1.id.key);
-  return json;
-}
+  static (Map<String, dynamic> header, Map<String, dynamic> payload) vcToJwt(
+    Map<String, dynamic> json,
+    DidSigner signer,
+  ) {
+    final payload = <String, dynamic>{};
+    final header = <String, dynamic>{
+      'alg': signer.signatureScheme.jwtName,
+      'kid': signer.keyId,
+      'typ': 'JWT',
+    };
 
-(Map<String, dynamic> header, Map<String, dynamic> payload) _vcToJwt(
-  Map<String, dynamic> json,
-  DidSigner signer,
-) {
-  var payload = <String, dynamic>{};
-  var header = <String, dynamic>{
-    'alg': signer.signatureScheme.jwtName,
-    'kid': signer.keyId,
-    'typ': 'JWT',
-  };
+    final exp = json.remove(_VC1.expirationDate.key);
+    if (exp != null) {
+      payload['exp'] =
+          (DateTime.parse(exp as String).millisecondsSinceEpoch / 1000).floor();
+    }
 
-  final exp = json.remove(_VC1.expirationDate.key);
-  if (exp != null) {
-    payload['exp'] =
-        (DateTime.parse(exp as String).millisecondsSinceEpoch / 1000).floor();
+    final nbf = json.remove(_VC1.issuanceDate.key);
+    if (nbf != null) {
+      payload['nbf'] =
+          (DateTime.parse(nbf as String).millisecondsSinceEpoch / 1000).floor();
+    }
+
+    payload['iss'] = json.remove(_VC1.issuer.key);
+
+    final id = json.remove(_VC1.id.key);
+    if (id != null) {
+      payload['jti'] = id;
+    }
+
+    var credentialSubject = json['credentialSubject'];
+    if (credentialSubject is Map && credentialSubject.containsKey('id')) {
+      payload['sub'] = credentialSubject['id'];
+    }
+
+    payload['vc'] = json;
+
+    return (header, payload);
   }
 
-  final nbf = json.remove(_VC1.issuanceDate.key);
-  if (nbf != null) {
-    payload['nbf'] =
-        (DateTime.parse(nbf as String).millisecondsSinceEpoch / 1000).floor();
+  static void _jwtToJsonDynamic(
+    Map<String, dynamic> payload,
+    String payloadField,
+    Map<String, dynamic> json,
+    String jsonField,
+  ) {
+    if (payload[payloadField] != null) {
+      json[jsonField] = payload[payloadField];
+    }
   }
 
-  payload['iss'] = json.remove(_VC1.issuer.key);
-
-  final id = json.remove(_VC1.id.key);
-  if (id != null) {
-    payload['jti'] = id;
-  }
-
-  var credentialSubject = json['credentialSubject'];
-  if (credentialSubject is Map && credentialSubject.containsKey('id')) {
-    payload['sub'] = credentialSubject['id'];
-  }
-
-  payload['vc'] = json;
-
-  return (header, payload);
-}
-
-void _jwtToJsonDynamic(
-  Map<String, dynamic> payload,
-  String payloadField,
-  Map<String, dynamic> json,
-  String jsonField,
-) {
-  if (payload[payloadField] != null) {
-    json[jsonField] = payload[payloadField];
-  }
-}
-
-void _jwtToJsonDate(
-  Map<String, dynamic> payload,
-  String payloadField,
-  Map<String, dynamic> json,
-  String jsonField,
-) {
-  if (payload[payloadField] != null && payload[payloadField] is int) {
-    json[jsonField] = DateTime.fromMillisecondsSinceEpoch(
-      (payload[payloadField] as int) * 1000,
-      isUtc: true,
-    ).toIso8601String();
+  static void _jwtToJsonDate(
+    Map<String, dynamic> payload,
+    String payloadField,
+    Map<String, dynamic> json,
+    String jsonField,
+  ) {
+    if (payload[payloadField] != null && payload[payloadField] is int) {
+      json[jsonField] = DateTime.fromMillisecondsSinceEpoch(
+        (payload[payloadField] as int) * 1000,
+        isUtc: true,
+      ).toIso8601String();
+    }
   }
 }
 

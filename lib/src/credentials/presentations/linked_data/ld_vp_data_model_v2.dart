@@ -1,31 +1,28 @@
 import 'dart:convert';
-import '../models/parsed_vc.dart';
-import '../models/v1/vc_data_model_v1.dart';
 
-class LdVcDataModelV1 extends VcDataModelV1
-    implements ParsedVerifiableCredential<String> {
+import '../models/parsed_vp.dart';
+import '../models/v2/vp_data_model_v2.dart';
+
+class LdVpDataModelV2 extends VpDataModelV2
+    implements ParsedVerifiablePresentation<String> {
   String? _serialized;
 
-  LdVcDataModelV1({
+  LdVpDataModelV2({
     required super.context,
     required super.id,
-    super.credentialSchema,
-    super.credentialSubject,
-    required super.issuer,
+    required super.holder,
     required super.type,
-    super.issuanceDate,
-    super.expirationDate,
-    super.holder,
     super.proof,
-    super.credentialStatus,
+    super.verifiableCredential,
+    super.termsOfUse,
     required String serialized,
   }) : _serialized = serialized;
 
-  LdVcDataModelV1.fromJson(super.input)
+  LdVpDataModelV2.fromJson(super.input)
       : // use parsing from VcDataModelV1
         super.fromJson();
 
-  LdVcDataModelV1.fromParsed(String serialized, super.input)
+  LdVpDataModelV2.fromParsed(String serialized, super.input)
       : _serialized = serialized,
         // use parsing from VcDataModelV1
         super.fromJson();
