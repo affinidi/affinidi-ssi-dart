@@ -2,16 +2,16 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:sdjwt/sdjwt.dart';
-import 'package:ssi/src/credentials/factories/vc_suite.dart';
-import 'package:ssi/src/credentials/sdjwt/sd_vc_dm_v2.dart';
-import 'package:ssi/src/did/did_signer.dart';
 
+import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
+import '../factories/vc_suite.dart';
 import '../models/parsed_vc.dart';
 import '../models/v1/vc_data_model_v1.dart';
 import '../models/verifiable_credential.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
+import 'sd_vc_dm_v2.dart';
 
 class SdJwtDm2Options {}
 
@@ -36,11 +36,11 @@ final class SdJwtDm2Suite
 
     // FIXME(cm) decoding twice in canParse and parse
     try {
-      SdJwt jwt = SdJwt.parse(input);
+      var jwt = SdJwt.parse(input);
       if (!_hasV2Context(jwt)) return false;
     } catch (e) {
       developer.log(
-        "LdVcDm1Suite decode failed",
+        'LdVcDm1Suite decode failed',
         level: 500, // FINE
         error: e,
       );
@@ -67,7 +67,7 @@ final class SdJwtDm2Suite
       );
     }
 
-    SdJwt jwt = SdJwt.parse(input);
+    var jwt = SdJwt.parse(input);
     return SdJwtDataModelV2.fromSdJwt(jwt);
   }
 
@@ -79,7 +79,7 @@ final class SdJwtDm2Suite
   }) async {
     //TODO(cm): extend option to select proof suite
 
-    return "";
+    return '';
   }
 
   @override
@@ -88,7 +88,7 @@ final class SdJwtDm2Suite
     //TODO(cm): discover proof type
     final proofSuite = EcdsaSecp256k1Signature2019();
     final verificationResult = await proofSuite.verifyProof(
-      jsonDecode(input),
+      jsonDecode(input) as Map<String, dynamic>,
     );
 
     return verificationResult.isValid;

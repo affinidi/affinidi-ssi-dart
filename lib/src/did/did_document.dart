@@ -434,6 +434,7 @@ abstract class VerificationMethod implements JsonObject {
 
     final publicKeyJwk = json['publicKeyJwk'];
     final publicKeyMultibase = json['publicKeyMultibase'];
+    // NOTE: do we need to cover publicKeyBase58?
 
     if (publicKeyJwk != null) {
       final jwk = Jwk.fromJson(publicKeyJwk);

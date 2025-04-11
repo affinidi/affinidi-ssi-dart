@@ -20,7 +20,7 @@ class CredentialStatus {
   ///
   /// [json] must contain a 'type' field
   factory CredentialStatus.fromJson(Map<String, dynamic> json) {
-    final id = json['id'] != null ? Uri.parse(json['id']) : null;
+    final id = json['id'] != null ? Uri.parse(json['id'] as String) : null;
     final type = json['type'] as String;
 
     return CredentialStatus(id: id, type: type);
