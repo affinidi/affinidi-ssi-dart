@@ -147,7 +147,9 @@ void main() {
       test(
         'it has correct signature',
         () async {
-          expect(await (verifiableCredential as JwtVcDataModelV1).hasIntegrity,
+          expect(
+              await JwtDm1Suite()
+                  .verifyIntegrity(verifiableCredential as JwtVcDataModelV1),
               true);
         },
       );
@@ -159,8 +161,8 @@ void main() {
               VerifiableCredentialDataFixtures
                   .jwtCredentialDataModelV11InvalidSig);
 
-          var actualIntegrity =
-              await (verifiableCredential as JwtVcDataModelV1).hasIntegrity;
+          var actualIntegrity = await JwtDm1Suite()
+              .verifyIntegrity(verifiableCredential as JwtVcDataModelV1);
 
           expect(actualIntegrity, false);
         },
@@ -257,8 +259,8 @@ void main() {
       test(
         'it passes integrity check',
         () async {
-          var actualIntegrity =
-              await (verifiableCredential as JwtVcDataModelV1).hasIntegrity;
+          var actualIntegrity = await JwtDm1Suite()
+              .verifyIntegrity(verifiableCredential as JwtVcDataModelV1);
           expect(actualIntegrity, true);
         },
       );

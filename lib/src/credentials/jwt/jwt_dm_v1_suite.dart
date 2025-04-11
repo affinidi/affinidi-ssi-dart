@@ -1,52 +1,108 @@
-import '../../did/did_signer.dart';
+import 'dart:convert';
+
+import '../../../ssi.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
+import '../../util/base64_util.dart';
 import '../models/v1/vc_data_model_v1.dart';
-import '../models/verifiable_credential.dart';
+import '../parsers/jwt_parser.dart';
 import '../suites/vc_suite.dart';
 import 'jwt_data_model_v1.dart';
 
 class JwtOptions {}
 
 /// Class to parse and convert JWT token strings into a [VerifiableCredential]
-final class JwtDm1Suite
-    implements VerifiableCredentialSuite<String, JwtOptions> {
+final class JwtDm1Suite extends VerifiableCredentialSuite<String, VcDataModelV1,
+    JwtVcDataModelV1, JwtOptions> with JwtParser {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   /// [data] must be a valid jwt string with a header a payload and a signature
   @override
   bool canParse(Object data) {
     if (data is! String) return false;
 
-    return data.startsWith('ey') && data.split('.').length == 3;
+    return canDecode(data);
   }
 
   /// Attempts to parse [data] and return a [VerifiableCredential]
   /// It can throw in case the data cannot be converted to a valid [VerifiableCredential]
   @override
   JwtVcDataModelV1 parse(Object data) {
-    return JwtVcDataModelV1.parse(data as String);
-  }
-
-  @override
-  Future<String> issue(
-    VerifiableCredential vc,
-    DidSigner signer, {
-    JwtOptions? options,
-  }) {
-    if (vc is! VcDataModelV1) {
+    if (data is! String) {
       throw SsiException(
-        message: 'Only VCDM v1 is supported',
-        code: SsiExceptionType.other.code,
+        message: 'Only String is supported',
+        code: SsiExceptionType.invalidEncoding.code,
       );
     }
 
-    return JwtVcDataModelV1.encode(vc, signer);
+    final jws = decode(data);
+    return JwtVcDataModelV1.fromJws(jws);
   }
 
   @override
-  Future<bool> verifyIntegrity(String input) {
-    final jwtVc = parse(input);
+  Future<JwtVcDataModelV1> issue(
+    VcDataModelV1 vc,
+    DidSigner signer, {
+    JwtOptions? options,
+  }) async {
+    final (header, payload) = JwtVcDataModelV1.vcToJwt(vc.toJson(), signer);
 
-    return jwtVc.hasIntegrity;
+    final encodedHeader = base64UrlNoPadEncode(
+      utf8.encode(jsonEncode(header)),
+    );
+    final encodedPayload = base64UrlNoPadEncode(
+      utf8.encode(jsonEncode(payload)),
+    );
+
+    final toSign = ascii.encode('$encodedHeader.$encodedPayload');
+
+    final signature = base64UrlNoPadEncode(
+      await signer.sign(toSign),
+    );
+
+    final serialized = '$encodedHeader.$encodedPayload.$signature';
+    final jws = Jws(
+        header: header,
+        payload: payload,
+        signature: signature,
+        serialized: serialized);
+
+    return JwtVcDataModelV1.fromJws(jws);
+  }
+
+  @override
+  Future<bool> verifyIntegrity(JwtVcDataModelV1 input) async {
+    final segments = input.serialized.split('.');
+
+    if (segments.length != 3) {
+      throw SsiException(
+        message: 'Invalid JWT',
+        code: SsiExceptionType.invalidVC.code,
+      );
+    }
+
+    final encodedHeader = segments[0];
+    final encodedPayload = segments[1];
+    final encodedSignature = segments[2];
+
+    final decodedHeader = jsonDecode(
+      utf8.decode(
+        base64UrlNoPadDecode(encodedHeader),
+      ),
+    ) as Map<String, dynamic>;
+
+    final toSign = ascii.encode('$encodedHeader.$encodedPayload');
+
+    Uri did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
+
+    //TODO(cm) add discovery
+    final algorithm = SignatureScheme.ecdsa_secp256k1_sha256;
+
+    final verifier = await DidVerifier.create(
+      algorithm: algorithm,
+      kid: decodedHeader['kid'] as String,
+      issuerDid: did.toString(),
+    );
+
+    return verifier.verify(toSign, base64UrlNoPadDecode(encodedSignature));
   }
 }
