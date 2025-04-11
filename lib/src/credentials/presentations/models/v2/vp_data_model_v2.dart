@@ -1,7 +1,7 @@
 // import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'package:ssi/src/credentials/presentations/models/verifiable_presentation.dart';
-import '../../../models/verifiable_credential.dart';
 import '../../../../util/json_util.dart';
+import '../../../models/verifiable_credential.dart';
+import '../verifiable_presentation.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v2.0.
 ///
@@ -19,15 +19,18 @@ import '../../../../util/json_util.dart';
 /// );
 /// ```
 class VpDataModelV2 implements VerifiablePresentation {
-  static const String contextUrl = "https://www.w3.org/ns/credentials/v2";
+  static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
 
   /// JSON-LD context array. Must include `https://www.w3.org/ns/credentials/v2`
+  @override
   List<String> context;
 
   /// Optional identifier for the presentation
+  @override
   String? id;
 
   /// Type array. Must include `'VerifiablePresentation'`
+  @override
   List<String> type;
 
   /// Optional identifier of the entity presenting the credentials (usually a DID)
@@ -42,6 +45,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   List<VerifiableCredential> verifiableCredential;
 
   /// Cryptographic proof object (e.g. DataIntegrityProof, JWT, etc.)
+  @override
   Map<String, dynamic> proof;
 
   /// Creates a [VpDataModelV2] instance.
@@ -60,7 +64,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   /// Converts the VP to a JSON-serializable map.
   @override
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> json = {};
+    final json = <String, dynamic>{};
 
     json['@context'] = context;
     if (id != null) json['id'] = id;
@@ -100,7 +104,9 @@ class VpDataModelV2 implements VerifiablePresentation {
     final tou = json['termsOfUse'];
     if (tou != null) {
       if (tou is List) {
-        termsOfUse = tou.map((e) => Map<String, dynamic>.from(e)).toList();
+        termsOfUse = tou
+            .map((e) => Map<String, dynamic>.from(e as Map<String, dynamic>))
+            .toList();
       } else if (tou is Map) {
         termsOfUse = [Map<String, dynamic>.from(tou)];
       }
@@ -115,12 +121,11 @@ class VpDataModelV2 implements VerifiablePresentation {
         //     .toList();
       } else if (credentials is Map) {
         //TODO: implement VcDataModelV2.fromJson
-        // verifiableCredential = [VcDataModelV2.fromJson(jsonToMap(credentials))];
       }
     }
 
     if (json['proof'] != null && json['proof'] is Map) {
-      proof = Map.of(json['proof']);
+      proof = Map.of(json['proof'] as Map<String, dynamic>);
     }
   }
 }

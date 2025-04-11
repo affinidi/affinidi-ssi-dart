@@ -2,9 +2,10 @@ import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
 
-import '../key_pair/aws_kms_key_pair.dart';
-import '../types.dart';
-import 'wallet.dart';
+import 'package:ssi/src/types.dart';
+import 'package:ssi/src/wallet/wallet.dart';
+
+import 'kms_key_pair.dart';
 
 class KmsWallet implements Wallet {
   final kms.KMS kmsClient;

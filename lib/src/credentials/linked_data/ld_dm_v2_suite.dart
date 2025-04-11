@@ -1,8 +1,7 @@
-import 'package:ssi/src/credentials/linked_data/ld_base_suite.dart';
-import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-
 import '../factories/vc_suite.dart';
+import '../models/v2/vc_data_model_v2.dart';
 import '../models/verifiable_credential.dart';
+import 'ld_base_suite.dart';
 import 'ld_vc_data_model_v2.dart';
 
 class LdVcDm2Options extends LdOptions {}
@@ -13,13 +12,16 @@ final class LdVcDm2Suite
     implements
         VerifiableCredentialSuite<String, LdVcDataModelV2, LdVcDataModelV2,
             LdVcDm2Options> {
-  @override
-  LdVcDataModelV2 fromJson(Map<String, dynamic> input) {
-    return LdVcDataModelV2.fromJson(input);
-  }
-
   LdVcDm2Suite()
       : super(
           contextUrl: VcDataModelV2.contextUrl,
         );
+
+  @override
+  LdVcDataModelV2 fromJson(Map<String, dynamic> payload) =>
+      LdVcDataModelV2.fromJson(payload);
+
+  @override
+  LdVcDataModelV2 fromParsed(String input, Map<String, dynamic> payload) =>
+      LdVcDataModelV2.fromParsed(input, payload);
 }

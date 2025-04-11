@@ -12,8 +12,8 @@ abstract class VerifiablePresentationSuite<
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   bool canParse(Object data);
 
-  /// Attempts to parse [data] and return a [VerifiableCredential]
-  /// It can throw in case the data cannot be converted to a valid [VerifiableCredential]
+  /// Attempts to parse [data] and return a [ParsedVerifiablePresentation]
+  /// It can throw in case the data cannot be converted to a valid [ParsedVerifiablePresentation]
   ///
   /// Note: Implementers must check if the input can be parsed by the
   /// implementing suite

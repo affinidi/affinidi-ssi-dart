@@ -1,12 +1,11 @@
-import 'package:ssi/src/credentials/presentations/factories/vp_suite.dart';
-import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v1_suite.dart';
-import 'package:ssi/src/credentials/presentations/models/parsed_vp.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
-
+import '../../../exceptions/ssi_exception.dart';
+import '../../../exceptions/ssi_exception_type.dart';
+import '../linked_data/ld_vp_dm_v1_suite.dart';
 import '../linked_data/ld_vp_dm_v2_suite.dart';
+import '../models/parsed_vp.dart';
+import 'vp_suite.dart';
 
-/// Factory class supporting multiple parsers to convert data into a [VerifiableCredential]
+/// Factory class supporting multiple parsers to convert data into a [ParsedVerifiablePresentation]
 final class VerifiableCredentialParser {
   static final _suites = <VerifiablePresentationSuite>[
     LdVpDm1Suite(),

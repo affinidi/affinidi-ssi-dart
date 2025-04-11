@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/models/parsed_vc.dart';
+import '../models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
 
 class LdVcDataModelV2 extends VcDataModelV2
@@ -19,11 +19,15 @@ class LdVcDataModelV2 extends VcDataModelV2
     super.holder,
     super.proof,
     super.credentialStatus,
-    required serialized,
+    required String serialized,
   }) : _serialized = serialized;
 
   LdVcDataModelV2.fromJson(super.input)
-      : _serialized = input['serialized'],
+      : // use parsing from VcDataModelV2
+        super.fromJson();
+
+  LdVcDataModelV2.fromParsed(String serialized, super.input)
+      : _serialized = serialized,
         // use parsing from VcDataModelV1
         super.fromJson();
 

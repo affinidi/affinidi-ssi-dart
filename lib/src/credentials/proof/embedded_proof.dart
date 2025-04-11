@@ -32,7 +32,7 @@ class EmbeddedProof {
         previousProof = previousProof ?? List.empty();
 
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> json = {};
+    final json = <String, dynamic>{};
 
     addOptional(json, 'id', id);
     json['type'] = type;

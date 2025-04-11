@@ -1,24 +1,24 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/parsers/verifiable_data_parser.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
-import 'package:ssi/src/util/base64_util.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
+import '../../util/base64_util.dart';
+import 'verifiable_data_parser.dart';
 
-class JWS {
+class Jws {
   Map<String, dynamic> header;
   Map<String, dynamic> payload;
   String signature;
   String serialized;
 
-  JWS(
+  Jws(
       {required this.header,
       required this.payload,
       required this.signature,
       required this.serialized});
 }
 
-mixin JwtParser implements VerifiableDataParser<String, JWS> {
+mixin JwtParser implements VerifiableDataParser<String, Jws> {
   @override
   canDecode(input) {
     return input.startsWith('ey') &&
@@ -37,19 +37,19 @@ mixin JwtParser implements VerifiableDataParser<String, JWS> {
       );
     }
 
-    final Map<String, dynamic> header = jsonDecode(
+    final header = jsonDecode(
       utf8.decode(
         base64UrlNoPadDecode(segments[0]),
       ),
-    );
+    ) as Map<String, dynamic>;
 
-    final Map<String, dynamic> payload = jsonDecode(
+    final payload = jsonDecode(
       utf8.decode(
         base64UrlNoPadDecode(segments[1]),
       ),
-    );
+    ) as Map<String, dynamic>;
 
-    return JWS(
+    return Jws(
         header: header,
         payload: payload,
         signature: segments[2],

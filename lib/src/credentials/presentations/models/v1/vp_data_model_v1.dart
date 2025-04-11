@@ -1,7 +1,7 @@
-import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
-import 'package:ssi/src/credentials/presentations/models/verifiable_presentation.dart';
-import '../../../models/verifiable_credential.dart';
 import '../../../../util/json_util.dart';
+import '../../../models/v1/vc_data_model_v1.dart';
+import '../../../models/verifiable_credential.dart';
+import '../verifiable_presentation.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v1.1.
 ///
@@ -20,15 +20,18 @@ import '../../../../util/json_util.dart';
 /// );
 /// ```
 class VpDataModelV1 implements VerifiablePresentation {
-  static const String contextUrl = "https://www.w3.org/2018/credentials/v1";
+  static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
 
   /// JSON-LD context, typically includes: `https://www.w3.org/2018/credentials/v1`
+  @override
   List<String> context;
 
   /// Optional identifier for the presentation
+  @override
   String? id;
 
   /// Type array, mandatory field
+  @override
   List<String> type;
 
   /// Optional identifier of the holder (typically a DID)
@@ -40,6 +43,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   List<VerifiableCredential> verifiableCredential;
 
   /// Cryptographic proof created by the holder
+  @override
   Map<String, dynamic> proof;
 
   /// Creates a [VpDataModelV1] instance.
@@ -60,8 +64,9 @@ class VpDataModelV1 implements VerifiablePresentation {
         proof = proof ?? {};
 
   /// Converts the VP object to a JSON-compliant `Map`
+  @override
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> json = {};
+    final json = <String, dynamic>{};
 
     json['@context'] = context;
     if (id != null) json['id'] = id;
@@ -115,7 +120,7 @@ class VpDataModelV1 implements VerifiablePresentation {
 
     // Parse proof object if present
     if (json['proof'] != null && json['proof'] is Map) {
-      proof = Map.of(json['proof']);
+      proof = Map.of(json['proof'] as Map<String, dynamic>);
     }
   }
 }

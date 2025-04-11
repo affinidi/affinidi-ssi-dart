@@ -1,16 +1,12 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
-import 'package:ssi/src/credentials/parsers/jwt_parser.dart';
-import 'package:ssi/src/did/did_signer.dart';
-import 'package:ssi/src/did/did_verifier.dart';
-import 'package:ssi/src/types.dart';
-import 'package:ssi/src/util/base64_util.dart';
-
+import '../../../ssi.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
+import '../../util/base64_util.dart';
 import '../factories/vc_suite.dart';
-import '../models/verifiable_credential.dart';
+import '../models/v1/vc_data_model_v1.dart';
+import '../parsers/jwt_parser.dart';
 import 'jwt_data_model_v1.dart';
 
 class JwtOptions {}
@@ -64,7 +60,7 @@ final class JwtDm1Suite extends VerifiableCredentialSuite<String, VcDataModelV1,
     );
 
     final serialized = '$encodedHeader.$encodedPayload.$signature';
-    final jws = JWS(
+    final jws = Jws(
         header: header,
         payload: payload,
         signature: signature,
@@ -92,18 +88,18 @@ final class JwtDm1Suite extends VerifiableCredentialSuite<String, VcDataModelV1,
       utf8.decode(
         base64UrlNoPadDecode(encodedHeader),
       ),
-    );
+    ) as Map<String, dynamic>;
 
     final toSign = ascii.encode('$encodedHeader.$encodedPayload');
 
-    Uri did = Uri.parse(decodedHeader['kid']).removeFragment();
+    Uri did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
 
     //TODO(cm) add discovery
     final algorithm = SignatureScheme.ecdsa_secp256k1_sha256;
 
     final verifier = await DidVerifier.create(
       algorithm: algorithm,
-      kid: decodedHeader['kid'],
+      kid: decodedHeader['kid'] as String,
       issuerDid: did.toString(),
     );
 

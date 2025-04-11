@@ -1,10 +1,9 @@
-import 'package:ssi/src/credentials/models/doc_with_embedded_proof.dart';
-import 'package:ssi/src/credentials/parsers/ld_parser.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
-
 import '../../did/did_signer.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
+import '../models/doc_with_embedded_proof.dart';
 import '../models/verifiable_credential.dart';
+import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 
 abstract class LdOptions {}
@@ -41,6 +40,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
   }
 
   Model fromJson(Map<String, dynamic> payload);
+  Model fromParsed(String input, Map<String, dynamic> payload);
 
   Future<Model> issue(
     VDM vc,
@@ -48,7 +48,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
     Options? options,
   }) async {
     //TODO(cm): extend option to select proof suite
-    final json = vc.toJson();
+    var json = vc.toJson();
 
     // remove proof in case it's already there
     json.remove(proofKey);
@@ -74,7 +74,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
       );
     }
 
-    return fromJson({...decode(input), 'serialized': input});
+    return fromParsed(input, decode(input));
   }
 
   Future<bool> verifyIntegrity(Model input) async {

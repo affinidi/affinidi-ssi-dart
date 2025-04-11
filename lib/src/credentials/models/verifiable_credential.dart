@@ -5,7 +5,7 @@ import 'doc_with_embedded_proof.dart';
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
 /// Verifiable credentials can be used to build verifiable presentations, which can also be cryptographically verifiable.
-abstract interface class VerifiableCredential extends DocWithEmbeddedProof {
+abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   /// Returns the VerifiableCredential issuer
   List<String> get context;
 
@@ -55,7 +55,7 @@ abstract interface class VerifiableCredential extends DocWithEmbeddedProof {
 
   /// Pareses "canonical" Data Model Json
   @override
-  VerifiableCredential.fromJson(super.input) : super.fromJson();
+  VerifiableCredential.fromJson(Map<String, dynamic> input);
 
   /// JSON representation of the Data Model
   @override

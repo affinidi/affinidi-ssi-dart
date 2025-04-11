@@ -1,6 +1,5 @@
-import 'package:ssi/src/credentials/models/parsed_vc.dart';
-
 import '../../did/did_signer.dart';
+import '../models/parsed_vc.dart';
 import '../models/verifiable_credential.dart';
 
 /// Class that contains operations to be done on encoded VCs

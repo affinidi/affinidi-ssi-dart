@@ -1,14 +1,14 @@
 import 'package:sdjwt/sdjwt.dart';
-import 'package:ssi/src/credentials/factories/vc_suite.dart';
-import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'package:ssi/src/credentials/parsers/sdjwt_parser.dart';
-import 'package:ssi/src/credentials/sdjwt/sd_vc_dm_v2.dart';
-import 'package:ssi/src/did/did_signer.dart';
 
+import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
+import '../factories/vc_suite.dart';
+import '../models/v2/vc_data_model_v2.dart';
 import '../models/verifiable_credential.dart';
+import '../parsers/sdjwt_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
+import 'sd_vc_dm_v2.dart';
 
 class SdJwtDm2Options {}
 

@@ -1,5 +1,6 @@
 import 'verifiable_presentation.dart';
 
-mixin ParsedVerifiablePresentation<SerializedType> on VerifiablePresentation {
+abstract interface class ParsedVerifiablePresentation<SerializedType>
+    implements VerifiablePresentation {
   SerializedType get serialized;
 }

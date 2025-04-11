@@ -16,6 +16,7 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
   - [Usage](#usage)
   - [Support & feedback](#support--feedback)
   - [Contributing](#contributing)
+  - [Tests](#tests)
 
 ## Supported DID Methods
 
@@ -124,6 +125,14 @@ void main() async {
 ```
 
 For more sample usage, go to the [example folder](example).
+
+## Tests
+
+Make sure localstack with KMS is running in Docker, then run
+
+```bash
+dart test
+```
 
 ## Support & feedback
 

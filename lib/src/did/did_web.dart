@@ -2,7 +2,6 @@ import 'package:http/http.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
-import '../key_pair/key_pair.dart';
 import 'did_document.dart';
 
 Uri didWebToUri(String didWeb) {
@@ -21,24 +20,22 @@ Uri didWebToUri(String didWeb) {
 }
 
 class DidWeb {
-  // FIXME build proper DID document
-  static Future<DidDocument> create(
-    List<KeyPair> keyPairs,
-    String did,
-  ) async {
-    return DidDocument(
-      id: did,
-    );
-  }
-
   static Future<DidDocument> resolve(
     String didToResolve,
   ) async {
+    if (!didToResolve.startsWith('did:web')) {
+      throw SsiException(
+        message: '`$didToResolve` is not did:web DID',
+        code: SsiExceptionType.invalidDidWeb.code,
+      );
+    }
+
     var res = await get(didWebToUri(didToResolve),
             headers: {'Accept': 'application/json'})
         .timeout(Duration(seconds: 30), onTimeout: () {
       return Response('Timeout', 408);
     });
+
     if (res.statusCode == 200) {
       return DidDocument.fromJson(res.body);
     } else {

@@ -11,7 +11,7 @@ import '../verifiable_credential.dart';
 // TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
 
 class VcDataModelV2 implements VerifiableCredential {
-  static const String contextUrl = "https://www.w3.org/ns/credentials/v2";
+  static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
 
   @override
   List<String> context;
@@ -42,6 +42,7 @@ class VcDataModelV2 implements VerifiableCredential {
 
   Map<String, dynamic> holder;
 
+  @override
   Map<String, dynamic> proof;
 
   VcDataModelV2({
@@ -63,7 +64,7 @@ class VcDataModelV2 implements VerifiableCredential {
 
   @override
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> json = {};
+    final json = <String, dynamic>{};
 
     json[_P.context.key] = context;
     json[_P.issuer.key] = issuer;
@@ -112,7 +113,7 @@ class VcDataModelV2 implements VerifiableCredential {
         credentialSchema = [],
         credentialSubject = {},
         holder = {},
-        issuer = "",
+        issuer = '',
         type = [],
         proof = {} {
     final json = jsonToMap(input);
@@ -131,7 +132,8 @@ class VcDataModelV2 implements VerifiableCredential {
     validUntil = getDateTime(json, _P.validUntil.key);
 
     // FIXME handle arrays of subjects
-    credentialSubject = Map.of(json[_P.credentialSubject.key]);
+    credentialSubject =
+        Map.of(json[_P.credentialSubject.key] as Map<String, dynamic>);
 
     switch (json[_P.credentialSchema.key]) {
       case Map m:
@@ -154,17 +156,17 @@ class VcDataModelV2 implements VerifiableCredential {
 
     // FIXME handle simple string
     if (json.containsKey(_P.holder.key) && json[_P.holder.key] is Map) {
-      holder = Map.of(json[_P.holder.key]);
+      holder = Map.of(json[_P.holder.key] as Map<String, dynamic>);
     }
 
     // FIXME use a typed object
     if (json.containsKey(_P.proof.key) && json[_P.proof.key] is Map) {
-      proof = Map.of(json[_P.proof.key]);
+      proof = Map.of(json[_P.proof.key] as Map<String, dynamic>);
     }
 
     if (json.containsKey(_P.credentialStatus.key)) {
-      credentialStatus =
-          CredentialStatus.fromJson(json[_P.credentialStatus.key]);
+      credentialStatus = CredentialStatus.fromJson(
+          json[_P.credentialStatus.key] as Map<String, dynamic>);
     }
   }
 
@@ -176,7 +178,7 @@ class VcDataModelV2 implements VerifiableCredential {
     }
 
     return credentialSchema.fold(
-      [],
+      <Map<String, dynamic>>[],
       (list, cs) {
         list.add(cs.toJson());
         return list;

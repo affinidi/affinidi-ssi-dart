@@ -1,5 +1,6 @@
-import 'package:ssi/src/credentials/models/verifiable_credential.dart';
+import '../../../ssi.dart';
 
-mixin ParsedVerifiableCredential<SerializedType> on VerifiableCredential {
+abstract interface class ParsedVerifiableCredential<SerializedType>
+    implements VerifiableCredential {
   SerializedType get serialized;
 }
