@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import '../models/parsed_vp.dart';
 import '../models/v1/vp_data_model_v1.dart';
 
