@@ -1,24 +1,27 @@
-import 'package:ssi/src/credentials/suites/universal_verifier.dart';
+import 'package:ssi/src/credentials/verification/vc_integrity_verifier.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import 'fixtures/verifiable_credentials_data_fixtures.dart';
+import '../../fixtures/verifiable_credentials_data_fixtures.dart';
 
 void main() {
-  group('CredentialVerifier', () {
-    test('should pass verification for jwt dm v1', () async {
-      final verifier = UniversalVerifier();
-      var data = VerifiableCredentialDataFixtures.jwtCredentialDataModelV11;
+  group('Test Encoding No Pad', () {
+    test('Should pass for valid VC from CWE', () async {
+      var data = VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe;
       final verifiableCredential = UniversalParser.parse(data);
+
+      final verifier = VcIntegrityVerifier();
       var result = await verifier.verify(verifiableCredential);
 
       expect(result.isValid, true);
+      expect(result.errors, []);
+      expect(result.warnings, []);
     });
 
     test('should failed verification for jwt dm v1 for invalid signature',
         () async {
-      final verifier = UniversalVerifier();
+      final verifier = VcIntegrityVerifier();
       var data =
           VerifiableCredentialDataFixtures.jwtCredentialDataModelV11InvalidSig;
       final verifiableCredential = UniversalParser.parse(data);
@@ -27,16 +30,7 @@ void main() {
       expect(result.isValid, false);
       expect(
           result.errors, [SsiExceptionType.failedIntegrityVerification.code]);
-    });
-
-    test('should pass verification for ld dm v1', () async {
-      final verifier = UniversalVerifier();
-      var data = VerifiableCredentialDataFixtures
-          .credentialWithValidProofDataModelV11JsonEncoded;
-      final verifiableCredential = UniversalParser.parse(data);
-      var result = await verifier.verify(verifiableCredential);
-
-      expect(result.isValid, true);
+      expect(result.warnings, []);
     });
   });
 }

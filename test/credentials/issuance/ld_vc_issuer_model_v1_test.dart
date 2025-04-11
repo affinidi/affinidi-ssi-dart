@@ -7,6 +7,8 @@ import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../../fixtures/verifiable_credentials_data_fixtures.dart';
+
 void main() {
   final seed = hexDecode(
     'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
@@ -86,37 +88,6 @@ Future<DidSigner> _initSigner(Uint8List seed) async {
   return signer;
 }
 
-final cweResponse = jsonDecode(r'''
-{
-  "@context": [
-      "https://www.w3.org/2018/credentials/v1",
-      "https://schema.affinidi.com/UserProfileV1-0.jsonld"
-  ],
-  "id": "uuid:123456abcd",
-  "type": [
-      "VerifiableCredential",
-      "UserProfile"
-  ],
-  "credentialSubject": {
-      "Fname": "Fname",
-      "Lname": "Lame",
-      "Age": "22",
-      "Address": "Eihhornstr"
-  },
-  "credentialSchema": [
-      {
-          "id": "https://schema.affinidi.com/UserProfileV1-0.json",
-          "type": "JsonSchemaValidator2018"
-      }
-  ],
-  "issuanceDate": "2023-01-01T09:51:00.272Z",
-  "issuer": "did:key:zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT",
-  "proof": {
-      "type": "EcdsaSecp256k1Signature2019",
-      "created": "2025-04-03T18:25:33Z",
-      "verificationMethod": "did:key:zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT#zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT",
-      "proofPurpose": "assertionMethod",
-      "jws": "eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..F91qwvm_WdbWUAkQx8qSiCxyjyDV2N1nM0qAycnh67Rahe8hTxf0hR9Mi-SheY4DBKUxefXjUiG0RvpIl3h8tQ"
-  }
-}
-''');
+final cweResponse = jsonDecode(
+  VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe,
+);

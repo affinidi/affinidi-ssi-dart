@@ -1,6 +1,6 @@
 import '../../../ssi.dart';
 import '../models/parsed_vc.dart';
-import '../verification/integrity_verifier.dart';
+import '../verification/vc_integrity_verifier.dart';
 import '../verification/vc_expiry_verifier.dart';
 import '../verification/vc_verifier.dart';
 
@@ -17,8 +17,8 @@ final class UniversalVerifier {
 
   //FIXME add limit to types supported
   UniversalVerifier({
-    List<VcVerifier>? customVerifier,
-  }) : customVerifiers = customVerifier ?? [];
+    List<VcVerifier>? customVerifiers,
+  }) : customVerifiers = customVerifiers ?? [];
 
   Future<VerificationResult> verify(ParsedVerifiableCredential data) async {
     final errors = <String>[];
