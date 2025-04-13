@@ -6,6 +6,8 @@ import 'package:elliptic/ecdh.dart';
 import 'package:elliptic/elliptic.dart';
 
 import '../digest_utils.dart';
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'key_pair.dart';
 
@@ -13,6 +15,7 @@ class P256KeyPair implements KeyPair {
   final EllipticCurve _p256;
   final PrivateKey _privateKey;
   final String _keyId;
+  Uint8List? _publicKeyBytes;
 
   P256KeyPair._({
     required EllipticCurve p256,
@@ -38,8 +41,11 @@ class P256KeyPair implements KeyPair {
 
   @override
   Future<Uint8List> get publicKey async {
-    final bytes = hex.decode(await publicKeyHex);
-    return Future.value(Uint8List.fromList(bytes));
+    if (_publicKeyBytes == null) {
+      final bytes = hex.decode(await publicKeyHex);
+      _publicKeyBytes = Uint8List.fromList(bytes);
+    }
+    return Future.value(_publicKeyBytes!);
   }
 
   Future<String> get publicKeyHex {
@@ -56,8 +62,11 @@ class P256KeyPair implements KeyPair {
   }) async {
     signatureScheme ??= SignatureScheme.ecdsa_p256_sha256;
     if (signatureScheme != SignatureScheme.ecdsa_p256_sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256");
+      throw SsiException(
+        message:
+            "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256",
+        code: SsiExceptionType.other.code,
+      );
     }
     final digest = DigestUtils.getDigest(
       data,
@@ -75,8 +84,11 @@ class P256KeyPair implements KeyPair {
   }) async {
     signatureScheme ??= SignatureScheme.ecdsa_p256_sha256;
     if (signatureScheme != SignatureScheme.ecdsa_p256_sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256");
+      throw SsiException(
+        message:
+            "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256",
+        code: SsiExceptionType.other.code,
+      );
     }
     final digest = DigestUtils.getDigest(
       data,
