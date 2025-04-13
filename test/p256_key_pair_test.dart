@@ -26,8 +26,12 @@ void main() {
 
     test('P-256 key pair should sign data and verify signature', () async {
       final p256key = P256KeyPair.create(keyId: "123");
-      final publicKey = p256key.publicKey;
-      // TODO: check if public key matches a p256 key
+      final publicKey = await p256key.publicKey;
+      final publicKeyHex = await p256key.publicKeyHex;
+      final keyType = await p256key.publicKeyType;
+      expect(keyType, KeyType.p256);
+      expect(publicKey.length, 33); // Compressed P-256 key length
+      expect(publicKeyHex.length, 66); // Hex representation length
     });
   });
 
@@ -40,8 +44,9 @@ void main() {
       final secretBob =
           await keyPairBob.computeEcdhSecret(await keyPairAlice.publicKey);
 
-      // TODO: assert that secrets are the same
-      // TODO: check if secret makes sense
+      expect(secretAlice, equals(secretBob));
+      expect(secretAlice.length, 32); // P-256 ECDH secret length
+      expect(secretAlice, isNot(equals(Uint8List(32)))); // Ensure not all zeros
     });
 
     test('Compute ECDH shared secret with hex for encryption', () async {
@@ -54,8 +59,9 @@ void main() {
       final secretBob =
           await keyPairBob.computeEcdhSecretFromHex(alicePublicHex);
 
-      // TODO: assert that secrets are the same
-      // TODO: check if secret makes sense
+      expect(secretAlice, equals(secretBob));
+      expect(secretAlice.length, 32); // P-256 ECDH secret length
+      expect(secretAlice, isNot(equals(Uint8List(32)))); // Ensure not all zeros
     });
   });
 }

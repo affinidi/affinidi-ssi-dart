@@ -21,7 +21,7 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidKey.create([keyPair]);
+      final doc = await DidKey.create(keyPair);
       final actualDid = doc.id;
       final actualKeyType = await keyPair.publicKeyType;
 
@@ -41,7 +41,7 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
       final keyPair = await wallet.createKeyPair(derivedKeyId);
-      final doc = await DidKey.create([keyPair]);
+      final doc = await DidKey.create(keyPair);
       final actualDid = doc.id;
 
       expect(actualDid, startsWith(expectedDidKeyPrefix));
@@ -55,7 +55,7 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidKey.create([keyPair]);
+      final doc = await DidKey.create(keyPair);
       final actualDid = doc.id;
       final actualKeyType = await keyPair.publicKeyType;
 
@@ -105,7 +105,7 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidKey.create([keyPair]);
+      final doc = await DidKey.create(keyPair);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
@@ -120,7 +120,7 @@ void main() {
           'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + await p256key.publicKey))}';
       final expectedDid = await DidKey.resolve(expectedId);
       final expectedDidJson = expectedDid.toJson();
-      final actualDid = await DidKey.create([p256key]);
+      final actualDid = await DidKey.create(p256key);
       final actualDidJson = actualDid.toJson();
       expect(actualDidJson, expectedDidJson);
       expect(actualDid.id.startsWith('did:key:zDn'), isTrue);

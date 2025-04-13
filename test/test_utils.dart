@@ -5,7 +5,7 @@ import 'package:ssi/ssi.dart';
 Future<DidSigner> initSigner(Uint8List seed) async {
   final wallet = Bip32Wallet.fromSeed(seed);
   final keyPair = await wallet.createKeyPair("0-0");
-  final doc = await DidKey.create([keyPair]);
+  final doc = await DidKey.create(keyPair);
 
   final signer = DidSigner(
     didDocument: doc,

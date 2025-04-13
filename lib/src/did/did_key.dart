@@ -113,8 +113,7 @@ class DidKey {
     'https://ns.did.ai/suites/multikey-2021/v1/'
   ];
 
-  static Future<DidDocument> create(List<KeyPair> keyPairs) async {
-    var keyPair = keyPairs[0];
+  static Future<DidDocument> create(KeyPair keyPair) async {
     final keyType = await keyPair.publicKeyType;
     final publicKey = await keyPair.publicKey;
     final multiKey = toMultikey(publicKey, keyType);
