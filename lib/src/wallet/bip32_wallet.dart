@@ -12,9 +12,11 @@ class Bip32Wallet implements Wallet {
   static const rootKeyId = "0-0";
 
   final Map<String, Secp256k1KeyPair> _keyMap;
+  final BIP32 _rootNode;
 
   Bip32Wallet._(BIP32 node)
-      : _keyMap = {rootKeyId: Secp256k1KeyPair(node: node, keyId: rootKeyId)};
+      : _keyMap = {rootKeyId: Secp256k1KeyPair(node: node, keyId: rootKeyId)},
+        _rootNode = node;
 
   factory Bip32Wallet.fromSeed(Uint8List seed) {
     final rootNode = BIP32.fromSeed(seed);
@@ -83,9 +85,8 @@ class Bip32Wallet implements Wallet {
 
     final derivationPath =
         _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
-    var rootNode = _keyMap[rootKeyId]!.getBip32Node();
     var node = Secp256k1KeyPair(
-        node: rootNode.derivePath(derivationPath), keyId: keyId);
+        node: _rootNode.derivePath(derivationPath), keyId: keyId);
     _keyMap[keyId] = node;
 
     return Future.value(node);

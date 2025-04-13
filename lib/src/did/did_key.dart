@@ -102,6 +102,17 @@ Future<DidDocument> _buildOtherDoc(
 }
 
 class DidKey {
+  static const _context = [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/ed25519-2020/v1",
+    "https://w3id.org/security/suites/x25519-2020/v1"
+  ];
+
+  static const _context2 = [
+    "https://www.w3.org/ns/did/v1",
+    'https://ns.did.ai/suites/multikey-2021/v1/'
+  ];
+
   static Future<DidDocument> create(List<KeyPair> keyPairs) async {
     var keyPair = keyPairs[0];
     final keyType = await keyPair.publicKeyType;
@@ -109,24 +120,7 @@ class DidKey {
     final multiKey = toMultikey(publicKey, keyType);
     final multibase = toMultiBase(multiKey);
     final did = '$commonDidKeyPrefix$multibase';
-    final keyId = '$did#$multibase';
-
-    // FIXME double check the doc
-    return DidDocument(
-      id: did,
-      verificationMethod: [
-        VerificationMethodMultibase(
-          id: keyId,
-          controller: did,
-          type: 'Multikey',
-          publicKeyMultibase: multibase,
-        )
-      ],
-      authentication: [keyId],
-      assertionMethod: [keyId],
-      capabilityInvocation: [keyId],
-      capabilityDelegation: [keyId],
-    );
+    return _buildDoc(multibase, did);
   }
 
   static Future<DidDocument> resolve(String did) {
@@ -143,40 +137,28 @@ class DidKey {
         code: SsiExceptionType.invalidDidKey.code,
       );
     }
-
-    String keyPart = splited[2];
-    var multibaseIndicator = keyPart[0];
-    keyPart = keyPart.substring(1);
-
-    var context = [
-      "https://www.w3.org/ns/did/v1",
-      "https://w3id.org/security/suites/ed25519-2020/v1",
-      "https://w3id.org/security/suites/x25519-2020/v1"
-    ];
-
-    var context2 = [
-      "https://www.w3.org/ns/did/v1",
-      'https://ns.did.ai/suites/multikey-2021/v1/'
-    ];
-
-    var id = did;
-
+    String multibase = splited[2];
+    var multibaseIndicator = multibase[0];
     if (multibaseIndicator != 'z') {
       throw UnimplementedError('Only Base58 is supported yet');
     }
+    return _buildDoc(multibase, did);
+  }
 
+  static _buildDoc(String multibase, String id) {
+    final keyPart = multibase.substring(1);
     if (keyPart.startsWith('6Mk')) {
-      return _buildEDDoc(context, id, keyPart);
+      return _buildEDDoc(_context, id, keyPart);
     } else if (keyPart.startsWith('6LS')) {
-      return _buildXDoc(context, id, keyPart);
+      return _buildXDoc(_context, id, keyPart);
     } else if (keyPart.startsWith('Dn')) {
-      return _buildOtherDoc(context2, id, keyPart, 'P256Key2021');
+      return _buildOtherDoc(_context2, id, keyPart, 'P256Key2021');
     } else if (keyPart.startsWith('Q3s')) {
-      return _buildOtherDoc(context2, id, keyPart, 'Secp256k1Key2021');
+      return _buildOtherDoc(_context2, id, keyPart, 'Secp256k1Key2021');
     } else if (keyPart.startsWith('82')) {
-      return _buildOtherDoc(context2, id, keyPart, 'P384Key2021');
+      return _buildOtherDoc(_context2, id, keyPart, 'P384Key2021');
     } else if (keyPart.startsWith('2J9')) {
-      return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
+      return _buildOtherDoc(_context2, id, keyPart, 'P521Key2021');
     } else {
       throw UnimplementedError(
           'Only Ed25519 and X25519 keys are supported now');
