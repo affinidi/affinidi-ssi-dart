@@ -12,11 +12,10 @@ final class VerifiableCredentialParser {
     LdVpDm2Suite(),
   ];
 
-  /// Returns a [ParsedVerifiablePresentation] instance.
+  /// Parses raw data into a verifiable presentation.
   ///
-  /// A [SsiException] may be thrown with the following error code:
-  /// - **unableToParseVerifiableCredential**:
-  ///  - Thrown if it is unable to parse the provided data
+  /// Throws a [SsiException] with code [SsiExceptionType.unableToParseVerifiableCredential]
+  /// if the provided [rawData] cannot be parsed into a valid presentation.
   static ParsedVerifiablePresentation parse(Object rawData) {
     for (final suite in _suites) {
       if (suite.canParse(rawData)) {
