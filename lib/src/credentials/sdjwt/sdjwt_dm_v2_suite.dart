@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:sdjwt/sdjwt.dart';
+import 'package:ssi/src/credentials/sdjwt/sdjwt_did_verfier.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../exceptions/ssi_exception.dart';
@@ -57,32 +58,27 @@ final class SdJwtDm2Suite
 
   @override
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input) async {
-    final sdjwt = input.sdJwt;
+    final List<String> parts =
+        input.sdJwt.serialized.split('~').first.split('.');
 
-    final parts = sdjwt.serialized.split('~').first.split('.');
+    final headerJson = jsonDecode(utf8.decode(base64Url.decode(addBase64Padding(
+      parts[0],
+    ))));
+    final SignatureScheme algorithm =
+        SignatureScheme.fromString(headerJson['alg']);
 
-    final payloadJson = jsonDecode(
-      utf8.decode(base64Url.decode(addBase64Padding(parts[1]))),
+    final SdJwtDidVerifier verifier = await SdJwtDidVerifier.create(
+      algorithm: algorithm,
+      kid: headerJson['kid'],
+      issuerDid: input.issuer,
     );
 
-    final headerJson = jsonDecode(
-      utf8.decode(base64Url.decode(addBase64Padding(parts[0]))),
+    final SdJwt(:bool? isVerified) = SdJwtHandlerV1().verify(
+      sdJwt: input.sdJwt,
+      verifier: verifier,
     );
-    final alg = SdJwtSignAlgorithm.fromString(headerJson['alg']);
 
-    if (payloadJson['cnf'] == null) {
-      throw SsiException(
-          message: 'sdJwt should have a valid `cnf` claim',
-          code: SsiExceptionType.other.code);
-    }
-
-    final jwk = payloadJson['cnf']['jwk'];
-    final publicKey = SdPublicKey(jwk, alg);
-    final verifier = SDKeyVerifier(publicKey);
-    final sdJwyVerifier = SdJwtHandlerV1();
-    final result = sdJwyVerifier.verify(sdJwt: input.sdJwt, verifier: verifier);
-
-    return result.isVerified!;
+    return isVerified!;
   }
 
   String addBase64Padding(String str) {
