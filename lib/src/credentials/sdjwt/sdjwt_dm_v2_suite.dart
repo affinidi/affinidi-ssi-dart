@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:sdjwt/sdjwt.dart';
 import 'package:ssi/src/credentials/sdjwt/sdjwt_did_verfier.dart';
 import 'package:ssi/ssi.dart';
@@ -63,18 +61,12 @@ final class SdJwtDm2Suite
 
   @override
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input) async {
-    final List<String> parts =
-        input.sdJwt.serialized.split('~').first.split('.');
-
-    final headerJson = jsonDecode(utf8.decode(base64Url.decode(addBase64Padding(
-      parts[0],
-    ))));
     final SignatureScheme algorithm =
-        SignatureScheme.fromString(headerJson['alg']);
+        SignatureScheme.fromString(input.sdJwt.header['alg']);
 
     final SdJwtDidVerifier verifier = await SdJwtDidVerifier.create(
       algorithm: algorithm,
-      kid: headerJson['kid'],
+      kid: input.sdJwt.header['kid'],
       issuerDid: input.issuer,
     );
 
@@ -84,11 +76,5 @@ final class SdJwtDm2Suite
     );
 
     return isVerified!;
-  }
-
-  String addBase64Padding(String str) {
-    if (str.isEmpty) return str;
-    final padLength = 4 - (str.length % 4);
-    return padLength == 4 ? str : str + ('=' * padLength);
   }
 }
