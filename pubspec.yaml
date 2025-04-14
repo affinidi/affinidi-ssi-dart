@@ -19,6 +19,7 @@ dependencies:
   json_ld_processor: ^1.0.4
   sdjwt:
     git: https://github.com/affinidi/affinidi-sdjwt-dart.git
+  cryptography: ^2.7.0
 dev_dependencies:
   coverage: ^1.11.1
   lints: ^5.0.0

@@ -1,6 +1,12 @@
+import 'dart:convert';
+import 'package:convert/convert.dart';
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
+import 'package:elliptic/ecdh.dart';
+import 'package:elliptic/elliptic.dart';
+import 'package:cryptography/cryptography.dart' as crypto;
+
 import 'package:affinidi_tdk_cryptography/affinidi_tdk_cryptography.dart';
 
 import '../digest_utils.dart';
@@ -11,13 +17,15 @@ class Secp256k1KeyPair implements KeyPair {
   final String _keyId;
   final BIP32 _node;
   final CryptographyService _cryptographyService;
+  var _secp256k1;
 
   Secp256k1KeyPair({
     required BIP32 node,
     required String keyId,
   })  : _node = node,
         _keyId = keyId,
-        _cryptographyService = CryptographyService();
+        _cryptographyService = CryptographyService(),
+        _secp256k1 = getSecp256k1();
 
   @override
   Future<String> get id => Future.value(_keyId);
@@ -69,26 +77,92 @@ class Secp256k1KeyPair implements KeyPair {
   List<SignatureScheme> get supportedSignatureSchemes =>
       [SignatureScheme.ecdsa_secp256k1_sha256];
 
-  @override
-  Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
-    final privateKey = _node.privateKey;
-    if (privateKey == null) {
-      throw ArgumentError('Private key is null');
-    }
-    return _cryptographyService.encryptToBytes(privateKey, data);
+
+  PublicKey generateEphemeralKeyPair() {
+    var privateKey = _secp256k1.generatePrivateKey();
+    var publicKey = _secp256k1.privateToPublicKey(privateKey);
+    return publicKey;
   }
 
-  @override
-  Future<Uint8List> decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
+  Future<Uint8List> computeEcdhSecret(PublicKey publicKey) async {
+    var privateKey = PrivateKey.fromBytes(_secp256k1, _node.privateKey!);
+    final secret = computeSecret(privateKey, publicKey);
+    return Future.value(Uint8List.fromList(secret));
+  }
+
+  // @override
+  encrypt(Uint8List data, {PublicKey? publicKey}) async {
     final privateKey = _node.privateKey;
     if (privateKey == null) {
       throw ArgumentError('Private key is null');
     }
 
-    final decryptedBytes = await _cryptographyService.decryptFromBytes(privateKey, ivAndBytes);
-    if (decryptedBytes == null) {
+    PublicKey ephemeralPublicKey;
+    if (publicKey == null) {
+      ephemeralPublicKey = await generateEphemeralKeyPair();
+    } else {
+      ephemeralPublicKey = publicKey;
+    }
+
+    final sharedSecret = await computeEcdhSecret(ephemeralPublicKey);
+
+    final algorithm = crypto.Hkdf(
+      hmac: crypto.Hmac.sha256(),
+      outputLength: 32,
+    );
+
+    final secretKey = crypto.SecretKey(sharedSecret);
+
+    final derivedKey = await algorithm.deriveKey(
+      secretKey: secretKey,
+      nonce: Uint8List(12), // Use a nonce (e.g., 12-byte for AES-GCM)
+    );
+
+    final derivedKeyBytes = await derivedKey.extractBytes();
+
+    Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
+
+    final encryptedData = await _cryptographyService.encryptToBytes(symmetricKey, data);
+
+    var ephemeralPublicKeyBytes = hex.decode(ephemeralPublicKey.toHex());
+
+    return Uint8List.fromList(ephemeralPublicKeyBytes + encryptedData);
+  }
+
+
+  // @override
+  decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
+    final privateKey = _node.privateKey;
+    if (privateKey == null) {
+      throw ArgumentError('Private key is null');
+    }
+
+    // Extract the ephemeral public key and the encrypted data
+    final ephemeralPublicKeyBytes = ivAndBytes.sublist(0, 65);
+    final encryptedData = ivAndBytes.sublist(65);  // The rest is the encrypted data
+
+    var publicKeyHex = hex.encode(ephemeralPublicKeyBytes);
+
+    var ephemeralPublicKey = _secp256k1.hexToPublicKey(publicKeyHex);
+
+    final sharedSecret = await computeEcdhSecret(ephemeralPublicKey);
+
+    final algorithm = crypto.Hkdf(
+      hmac: crypto.Hmac.sha256(),
+      outputLength: 32,
+    );
+    final secretKey = crypto.SecretKey(sharedSecret);
+    final symmetricKey = await algorithm.deriveKey(
+      secretKey: secretKey,
+      nonce: Uint8List(12), // Same nonce used during encryption
+    );
+
+    final decryptedData = await _cryptographyService.decryptFromBytes(symmetricKey, encryptedData);
+
+    if (decryptedData == null) {
       throw UnimplementedError('Decryption failed, bytes are null');
     }
-    return decryptedBytes;
+
+    return decryptedData;
   }
 }

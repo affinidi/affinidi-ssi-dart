@@ -1,3 +1,5 @@
+import 'package:convert/convert.dart';
+
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -14,22 +16,32 @@ void main() {
 
   group('Test key pair encrypt decrypt', () {
     test('ed25519', () async {
+      Secp256k1KeyPair secp = Secp256k1KeyPair(
+        node: BIP32.fromPrivateKey(privateKey, Uint8List(32)), // Empty chain code
+        keyId: keyId,
+      );
 
-      Ed25519KeyPair ed = Ed25519KeyPair(privateKey: privateKey, keyId: keyId);
-
-      var encrypted = await ed.encrypt(data);
-      var decrypted = await ed.decrypt(encrypted);
+      // Encrypt with ephemeral key
+      var encrypted = await secp.encrypt(data);
+      // Decrypt the message
+      var decrypted = await secp.decrypt(encrypted);
 
       expect(decrypted, data);
+    }
 
+
+    test('Secp256k1', () async {
       Uint8List chainCode = Uint8List(32); // Empty chain code (32 bytes)
       Secp256k1KeyPair secp = Secp256k1KeyPair(
         node: BIP32.fromPrivateKey(privateKey, chainCode),
         keyId: keyId
       );
 
-      encrypted = await secp.encrypt(data);
-      decrypted = await secp.decrypt(encrypted);
+      var publicKey = secp.generateEphemeralKeyPair();
+      var secret = secp.computeEcdhSecret(publicKey);
+      var encrypted = await secp.encrypt(data);
+
+      var decrypted = await secp.decrypt(encrypted);
 
       expect(decrypted, data);
     });
