@@ -13,6 +13,9 @@ import '../digest_utils.dart';
 import '../types.dart';
 import 'key_pair.dart';
 
+var STATIC_HKD_NONCE = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
+var FULL_PUB_KEY_LENGTH = 64;
+
 class Secp256k1KeyPair implements KeyPair {
   final String _keyId;
   final BIP32 _node;
@@ -97,14 +100,14 @@ class Secp256k1KeyPair implements KeyPair {
       throw ArgumentError('Private key is null');
     }
 
-    PublicKey ephemeralPublicKey;
+    PublicKey publicKeyToUse;
     if (publicKey == null) {
-      ephemeralPublicKey = await generateEphemeralPubKey();
+      publicKeyToUse = await generateEphemeralPubKey();
     } else {
-      ephemeralPublicKey = _secp256k1.hexToPublicKey(hex.encode(publicKey));
+      publicKeyToUse = _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
     }
 
-    final sharedSecret = await computeEcdhSecret(ephemeralPublicKey);
+    final sharedSecret = await computeEcdhSecret(publicKeyToUse);
 
     final algorithm = crypto.Hkdf(
       hmac: crypto.Hmac.sha256(),
@@ -115,7 +118,7 @@ class Secp256k1KeyPair implements KeyPair {
 
     final derivedKey = await algorithm.deriveKey(
       secretKey: secretKey,
-      nonce: Uint8List(12), // Use a nonce (e.g., 12-byte for AES-GCM)
+      nonce: STATIC_HKD_NONCE,
     );
 
     final derivedKeyBytes = await derivedKey.extractBytes();
@@ -124,9 +127,9 @@ class Secp256k1KeyPair implements KeyPair {
 
     final encryptedData = await _cryptographyService.encryptToBytes(symmetricKey, data);
 
-    var ephemeralPublicKeyBytes = hex.decode(ephemeralPublicKey.toHex());
+    var publicKeyToUseBytes = hex.decode(publicKeyToUse.toHex());
 
-    return Uint8List.fromList(ephemeralPublicKeyBytes + encryptedData);
+    return Uint8List.fromList(publicKeyToUseBytes + encryptedData);
   }
 
 
@@ -138,14 +141,21 @@ class Secp256k1KeyPair implements KeyPair {
     }
 
     // Extract the ephemeral public key and the encrypted data
-    final ephemeralPublicKeyBytes = ivAndBytes.sublist(0, 65);
-    final encryptedData = ivAndBytes.sublist(65);  // The rest is the encrypted data
+    final ephemeralPublicKeyBytes = ivAndBytes.sublist(0, FULL_PUB_KEY_LENGTH + 1);
+    final encryptedData = ivAndBytes.sublist(FULL_PUB_KEY_LENGTH + 1);  // The rest is the encrypted data
 
-    var publicKeyHex = hex.encode(ephemeralPublicKeyBytes);
+    var pubKeyToUse;
+    if (publicKey == null) {
+      var pubKeyToUseBytes = ephemeralPublicKeyBytes;
+      var publicKeyHex = hex.encode(pubKeyToUseBytes);
+      pubKeyToUse = _secp256k1.hexToPublicKey(publicKeyHex);
+    } else {
+      var pubKeyToUseBytes = publicKey;
+      var publicKeyHex = hex.encode(pubKeyToUseBytes);
+      pubKeyToUse = _secp256k1.compressedHexToPublicKey(publicKeyHex);
+    }
 
-    var ephemeralPublicKey = _secp256k1.hexToPublicKey(publicKeyHex);
-
-    final sharedSecret = await computeEcdhSecret(ephemeralPublicKey);
+    final sharedSecret = await computeEcdhSecret(pubKeyToUse);
 
     final algorithm = crypto.Hkdf(
       hmac: crypto.Hmac.sha256(),
@@ -154,7 +164,7 @@ class Secp256k1KeyPair implements KeyPair {
     final secretKey = crypto.SecretKey(sharedSecret);
     final derivedKey = await algorithm.deriveKey(
       secretKey: secretKey,
-      nonce: Uint8List(12), // Same nonce used during encryption
+      nonce: STATIC_HKD_NONCE,
     );
 
     final derivedKeyBytes = await derivedKey.extractBytes();
