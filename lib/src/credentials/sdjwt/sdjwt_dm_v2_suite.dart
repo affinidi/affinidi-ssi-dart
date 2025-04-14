@@ -4,7 +4,6 @@ import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/v2/vc_data_model_v2.dart';
-import '../models/verifiable_credential.dart';
 import '../parsers/sdjwt_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../suites/vc_suite.dart';
