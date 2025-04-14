@@ -1,15 +1,17 @@
-/// Cryptographically verifiable data with embedded proof
+/// Cryptographically verifiable data with embedded proof.
 ///
-/// A class implementing this does not have to use embedded proofs, this
-/// interface only marks that it's possible to model embbedded proof.
+/// A class implementing this interface may use embedded proofs for
+/// cryptographic verification. This interface marks that it's possible
+/// to model an embedded proof within the data structure.
 ///
-/// This will be the root representation for both VerifiableCredentials and VerifiablePresentations
+/// This is the root representation for both [VerifiableCredential] and
+/// [VerifiablePresentation] types.
 abstract interface class DocWithEmbeddedProof {
-  /// Used by the mechanism to embed securing mechanism to verify the integrity of the verifiable data
+  /// The cryptographic proof used to verify the integrity of this data.
   ///
-  /// If map is empty then no embedded proof is present
+  /// If the map is empty, no embedded proof is present.
   Map<String, dynamic> get proof;
 
-  /// JSON representation of the Data Model
+  /// Converts this document to a JSON-serializable map.
   Map<String, dynamic> toJson();
 }

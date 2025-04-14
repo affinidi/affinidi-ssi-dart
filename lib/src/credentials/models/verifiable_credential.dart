@@ -4,56 +4,57 @@ import 'doc_with_embedded_proof.dart';
 
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
-/// Verifiable credentials can be used to build verifiable presentations, which can also be cryptographically verifiable.
+/// Verifiable credentials can be used to build verifiable presentations,
+/// which can also be cryptographically verifiable.
 abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
-  /// Returns the VerifiableCredential issuer
+  /// The context defining the schema for this credential.
   List<String> get context;
 
-  /// Returns the VerifiableCredential id.
+  /// The unique identifier for this credential.
   String? get id;
 
-  /// Returns a list of VerifiableCredential types.
+  /// The types describing the structure of this credential.
   // FIXME(FTL-20734) should be changed to a Set
   List<String> get type;
 
-  /// Returns the VerifiableCredential issuer.
+  /// The entity that issued this credential.
   // FIXME(FTL-20734) issuer can be an entity with an id or a string
   String get issuer;
 
-  /// Returns a Map representing the VerifiableCredential Subject.
+  /// The subject data contained in this credential.
   ///
-  /// Example of a VerifiableCredential Subject:<br/>
+  /// Example of a credential subject:
   /// ```
   /// {
-  ///   "id": "name",
+  ///   "id": "did:example:123",
   ///   "name": "John Doe",
   /// }
   /// ```
   Map<String, dynamic> get credentialSubject;
 
-  /// Returns a list of VerifiableCredential schema.
+  /// The schemas that define the structure of this credential.
   ///
   /// Returns null if not set.
   ///
   /// See [CredentialSchema] for more details.
   List<CredentialSchema> get credentialSchema;
 
-  /// Returns the VerifiableCredential status.
+  /// The status information for this credential.
   ///
   /// Returns null if not set.
   ///
   /// See [CredentialStatus] for more details.
   CredentialStatus? get credentialStatus;
 
-  /// Returns the date when the VerifiableCredential was issued.
+  /// The date when this credential was issued.
   DateTime? get validFrom;
 
-  /// Returns the VerifiableCredential expiry date.
+  /// The date when this credential expires.
   ///
-  /// Returns null if not set
+  /// Returns null if the credential does not expire.
   DateTime? get validUntil;
 
-  /// JSON representation of the Data Model
+  /// Converts this credential to a JSON-serializable map.
   @override
   Map<String, dynamic> toJson();
 }

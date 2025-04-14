@@ -6,31 +6,31 @@ import '../../models/doc_with_embedded_proof.dart';
 /// This interface defines common fields and behaviors for VP models,
 /// including both W3C VC Data Model v1.1 and v2.0 presentations.
 ///
-/// Implementations such as VpDataModelV1 and VpDataModelV2
+/// Implementations such as [VpDataModelV1] and [VpDataModelV2]
 /// should conform to this interface.
 abstract interface class VerifiablePresentation
     implements DocWithEmbeddedProof {
-  /// Returns the VerifiableCredential issuer
+  /// The context that defines the schema for this presentation.
   List<String> get context;
 
-  /// Returns the VerifiableCredential id.
+  /// The unique identifier for this presentation.
   String? get id;
 
-  /// Returns a list of VerifiableCredential types.
+  /// The types describing the structure of this presentation.
   // FIXME(FTL-20738) should be changed to a Set
   List<String> get type;
 
-  /// Optional DID or URI of the holder who generated the presentation.
+  /// The DID or URI of the holder who generated this presentation.
   String? get holder;
 
-  /// One or more verifiable credentials included in this presentation.
+  /// The verifiable credentials included in this presentation.
   List<VerifiableCredential> get verifiableCredential;
 
-  /// Pareses "canonical" Data Model Json
+  /// Creates a [VerifiablePresentation] from a JSON map.
   @override
   VerifiablePresentation.fromJson(Map<String, dynamic> input);
 
-  /// JSON representation of the Data Model
+  /// Converts this presentation to a JSON-serializable map.
   @override
   Map<String, dynamic> toJson();
 }
