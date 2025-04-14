@@ -5,12 +5,24 @@ import '../../exceptions/ssi_exception_type.dart';
 import '../../util/base64_util.dart';
 import 'verifiable_data_parser.dart';
 
+/// Represents a decoded JSON Web Signature.
+///
+/// Contains the parsed components of a JWS: header, payload, and signature,
+/// along with the original serialized form.
 class Jws {
+  /// The decoded JWS header containing metadata about the signature.
   Map<String, dynamic> header;
+
+  /// The decoded JWS payload containing the actual data.
   Map<String, dynamic> payload;
+
+  /// The base64url-encoded signature.
   String signature;
+
+  /// The original serialized JWS string.
   String serialized;
 
+  /// Creates a new [Jws] instance with the provided components.
   Jws(
       {required this.header,
       required this.payload,
@@ -18,16 +30,21 @@ class Jws {
       required this.serialized});
 }
 
+/// Mixin that provides functionality for parsing JWT/JWS formatted data.
+///
+/// Implements the [VerifiableDataParser] interface for JWS tokens,
+/// providing methods to check if a string is a valid JWT and to decode
+/// it into its component parts.
 mixin JwtParser implements VerifiableDataParser<String, Jws> {
   @override
-  canDecode(input) {
+  bool canDecode(String input) {
     return input.startsWith('ey') &&
         input.split('.').length == 3 &&
         input.split('~').length == 1;
   }
 
   @override
-  decode(input) {
+  Jws decode(String input) {
     final segments = input.split('.');
 
     if (segments.length != 3) {

@@ -1,24 +1,26 @@
-/// credentialStatus enables discovery of information about the current status
-/// of a verifiable credential, such as whether it is suspended or revoked.
+/// Provides information about the current status of a verifiable credential.
+///
+/// The credentialStatus enables discovery of information about whether
+/// a credential is suspended, revoked, or still valid.
 class CredentialStatus {
-  /// Returns the URL of the schema including domain and filename
+  /// The URL identifier for this status information.
   final Uri? id;
 
-  /// Returns stauts type
+  /// The type of status mechanism used.
   final String type;
 
   /// Creates a [CredentialStatus] instance.
   ///
-  /// [id] - Base URL where the schema is hosted
-  /// [type] - Name of the schema without extension
+  /// The [id] is the URL where status information can be found.
+  /// The [type] identifies the status mechanism being used.
   CredentialStatus({
     this.id,
     required this.type,
   });
 
-  /// Creates a [CredentialStatus] from JSON data
+  /// Creates a [CredentialStatus] from JSON data.
   ///
-  /// [json] must contain a 'type' field
+  /// The [json] must contain a 'type' field and may contain an 'id' field.
   factory CredentialStatus.fromJson(Map<String, dynamic> json) {
     final id = json['id'] != null ? Uri.parse(json['id'] as String) : null;
     final type = json['type'] as String;
@@ -26,9 +28,9 @@ class CredentialStatus {
     return CredentialStatus(id: id, type: type);
   }
 
-  /// Converts the [CredentialStatus] to JSON format
+  /// Converts this status to a JSON-serializable map.
   ///
-  /// Returns a map containing 'id' and 'type' fields
+  /// Returns a map containing the 'type' field and 'id' field if present.
   Map<String, dynamic> toJson() {
     final json = {
       'type': type,

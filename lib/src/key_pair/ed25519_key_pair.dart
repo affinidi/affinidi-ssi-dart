@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 
 import '../digest_utils.dart';
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'key_pair.dart';
 
@@ -36,14 +38,17 @@ class Ed25519KeyPair implements KeyPair {
   }) async {
     signatureScheme ??= SignatureScheme.ed25519_sha256;
     if (signatureScheme != SignatureScheme.ed25519_sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only ed25519sha256 is supported with ed25519");
+      throw SsiException(
+        message:
+            'Unsupported signature scheme. Only ed25519_sha256 is supported.',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
     }
+
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
-
     return ed.sign(_privateKey, digest);
   }
 
@@ -54,10 +59,15 @@ class Ed25519KeyPair implements KeyPair {
     SignatureScheme? signatureScheme,
   }) async {
     signatureScheme ??= SignatureScheme.ed25519_sha256;
+
     if (signatureScheme != SignatureScheme.ed25519_sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only ed25519sha256 is supported with secp256k1");
+      throw SsiException(
+        message:
+            'Unsupported signature scheme. Only ed25519_sha256 is supported',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
     }
+
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,

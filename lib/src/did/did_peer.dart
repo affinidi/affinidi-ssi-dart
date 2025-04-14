@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
-import 'public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -10,6 +9,7 @@ import '../key_pair/key_pair.dart';
 import '../types.dart';
 import '../utility.dart';
 import 'did_document.dart';
+import 'public_key_utils.dart';
 
 class BaseKey {
   KeyType keyType;
@@ -23,7 +23,9 @@ class BaseKey {
 
 enum Numalgo2Prefix {
   authentication("V"),
+
   keyAgreement("E"),
+
   service("S");
 
   final String value;
@@ -39,17 +41,17 @@ bool isPeerDID(String peerDID) {
 }
 
 Future<DidDocument> _resolveDidPeer0(String did) {
-  var multibaseIndicator = did[10];
+  final multibaseIndicator = did[10];
 
   if (multibaseIndicator != 'z') {
     throw UnimplementedError('Only Base58 is supported yet');
   }
 
-  var contextEdward = [
+  const contextEdward = [
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/ed25519-2020/v1"
   ];
-  var contextedX = [
+  const contextedX = [
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/x25519-2020/v1"
   ];
@@ -69,7 +71,10 @@ Future<DidDocument> _resolveDidPeer0(String did) {
     // } else if (keyPart.startsWith('2J9')) {
     //   return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
   } else {
-    throw UnimplementedError('Only Ed25519 and X25519 keys are supported now');
+    throw SsiException(
+      message: 'Only Ed25519 and X25519 keys are supported now',
+      code: SsiExceptionType.invalidDidPeer.code,
+    );
   }
 }
 
@@ -80,37 +85,43 @@ Future<DidDocument> _resolveDidPeer2(String did) {
   List<String> agreementKeys = [];
   String? serviceString;
 
-  var keys = keysPart.split('.');
-  for (var key in keys) {
-    var prefix = key[0];
+  final keys = keysPart.split('.');
+  for (final key in keys) {
+    final prefix = key[0];
+    final keyPart = key.substring(1);
 
-    var keyPart = key.substring(1);
-    if (prefix == Numalgo2Prefix.service.value) {
-      serviceString = key.substring(1);
-    } else if (prefix == Numalgo2Prefix.authentication.value) {
-      authenticationKeys.add(keyPart);
-    } else if (prefix == Numalgo2Prefix.keyAgreement.value) {
-      agreementKeys.add(keyPart);
-    } else {
-      throw UnimplementedError("Unknown prefix: $prefix.");
+    switch (prefix) {
+      case 'S':
+        serviceString = keyPart;
+        break;
+      case 'V':
+        authenticationKeys.add(keyPart);
+        break;
+      case 'E':
+        agreementKeys.add(keyPart);
+        break;
+      default:
+        throw SsiException(
+          message: 'Unknown prefix `$prefix` in peer DID.',
+          code: SsiExceptionType.invalidDidPeer.code,
+        );
     }
   }
-
   return _buildMultiKeysDoc(
       did, agreementKeys, authenticationKeys, serviceString);
 }
 
 Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
     List<String> authenticationKeys, String? serviceStr) {
-  var context = [
+  final context = [
     "https://www.w3.org/ns/did/v1",
     'https://ns.did.ai/suites/multikey-2021/v1/'
   ];
 
   List<VerificationMethod> verificationMethod = [];
-  List<dynamic> assertionMethod = [];
-  List<dynamic> keyAgreement = [];
-  List<dynamic> authentication = [];
+  List<String> assertionMethod = [];
+  List<String> keyAgreement = [];
+  List<String> authentication = [];
 
   List<ServiceEndpoint>? service;
   if (serviceStr != null) {
@@ -118,7 +129,7 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
     String padded = serviceStr + ('=' * paddingNeeded);
 
     Uint8List serviceList = base64Decode(padded);
-    dynamic serviceJson = json.decode(utf8.decode(serviceList));
+    final serviceJson = json.decode(utf8.decode(serviceList));
     serviceJson['serviceEndpoint'] = serviceJson['s'];
     serviceJson['accept'] = serviceJson['a'];
     serviceJson['type'] = serviceJson['t'];
@@ -128,16 +139,16 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
     service = [ServiceEndpoint.fromJson(serviceJson)];
   }
 
-  var i = 0;
+  int i = 0;
 
-  for (var agreementKey in agreementKeys) {
+  for (final agreementKey in agreementKeys) {
     i++;
-    var type = agreementKey.startsWith('z6LS')
+    final type = agreementKey.startsWith('z6LS')
         ? 'X25519KeyAgreementKey2020'
         : 'Ed25519VerificationKey2020';
 
-    String kid = '#key-$i';
-    var verification = VerificationMethodMultibase(
+    final kid = '#key-$i';
+    final verification = VerificationMethodMultibase(
       id: kid,
       controller: did,
       type: type, // Multikey ?
@@ -148,14 +159,14 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
     keyAgreement.add(kid);
   }
 
-  for (var authenticationKey in authenticationKeys) {
+  for (final authenticationKey in authenticationKeys) {
     i++;
-    var type = authenticationKey.startsWith('z6LS')
+    final type = authenticationKey.startsWith('z6LS')
         ? 'X25519KeyAgreementKey2020'
         : 'Ed25519VerificationKey2020';
 
-    String kid = '#key-$i';
-    var verification = VerificationMethodMultibase(
+    final kid = '#key-$i';
+    final verification = VerificationMethodMultibase(
       id: kid,
       controller: did,
       type: type, // Multikey ?
@@ -185,12 +196,11 @@ Future<DidDocument> _buildEDDoc(
   String id,
   String keyPart,
 ) {
-  var multiCodecXKey =
+  final multiCodecXKey =
       ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
   if (!multiCodecXKey.startsWith('6LS')) {
     throw SsiException(
-      message:
-          'Something went wrong during conversion from Ed25515 to curve25519 key',
+      message: 'Something went wrong during conversion',
       code: SsiExceptionType.invalidDidPeer.code,
     );
   }
@@ -198,7 +208,7 @@ Future<DidDocument> _buildEDDoc(
   String verificationKeyId = '$id#$keyPart';
   String agreementKeyId = '$id#z$multiCodecXKey';
 
-  var verification = VerificationMethodMultibase(
+  final verification = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
     type: 'Ed25519VerificationKey2020',
@@ -230,7 +240,7 @@ Future<DidDocument> _buildXDoc(
   String keyPart,
 ) {
   String verificationKeyId = '$id#z$keyPart';
-  var verification = VerificationMethodMultibase(
+  final verification = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
     type: 'X25519KeyAgreementKey2020',
@@ -332,7 +342,7 @@ class DidPeer {
     }
   }
 
-  //FIXME should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
+  //FIXME(FTL-20741) should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
   static Future<DidDocument> create(
     List<KeyPair> keyPairs, {
     String? serviceEndpoint,
@@ -346,7 +356,7 @@ class DidPeer {
 
     List<BaseKey> baseKeys = [];
 
-    for (var keyPair in keyPairs) {
+    for (final keyPair in keyPairs) {
       final keyType = await keyPair.publicKeyType;
       final pubKeyBytes = await keyPair.publicKey;
       BaseKey baseKey = BaseKey(pubKeyBytes, keyType);
@@ -357,12 +367,12 @@ class DidPeer {
     final did = _pubKeyToPeerDid(baseKeys, serviceEndpoint);
 
     final verificationMethods = <VerificationMethod>[];
-    for (var i = 0; i < keyPairs.length; i++) {
+    for (int i = 0; i < keyPairs.length; i++) {
       final keyPair = keyPairs[i];
       verificationMethods.add(
         VerificationMethodMultibase(
           id: did,
-          controller: 'key$i', // FIXME should come from the outside
+          controller: 'key$i', // FIXME(FTL-20741) should come from the outside
           type: 'Multikey',
           publicKeyMultibase: toMultiBase(
             toMultikey(
@@ -374,7 +384,7 @@ class DidPeer {
       );
     }
 
-    // FIXME should match arguments
+    // FIXME(FTL-20741) should match arguments
     final keyId = verificationMethods[0].id;
     return DidDocument(
       id: did,
@@ -401,7 +411,6 @@ class DidPeer {
       return _resolveDidPeer2(did);
     }
   }
-
   // static const Map<KeyType, String> _keyTypePrefixes = {
   //   KeyType.x25519: '6LS',
   //   KeyType.ed25519: '6Mk',

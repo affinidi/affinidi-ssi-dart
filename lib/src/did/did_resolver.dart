@@ -12,8 +12,8 @@ import 'did_web.dart';
 /// Resolves the Did-Document for [did].
 ///
 /// Resolving if did:key can be done internally, for all other did-methods an URL [resolverAddress] to an instance of a universal resolver is needed.
-// FIXME add tests
-// FIXME should use an URI as input or dedicated Did model
+// FIXME(FTL-20741) add tests
+// FIXME(FTL-20741) should use an URI as input or dedicated Did model
 Future<DidDocument> resolveDidDocument(
   String did, {
   String? resolverAddress,
@@ -33,11 +33,11 @@ Future<DidDocument> resolveDidDocument(
       );
     }
     try {
-      var res = await http
+      final res = await http
           .get(Uri.parse('$resolverAddress/1.0/identifiers/$did'))
           .timeout(Duration(seconds: 30));
       if (res.statusCode == 200) {
-        var didResolution = jsonDecode(res.body);
+        final didResolution = jsonDecode(res.body);
         return DidDocument.fromJson(didResolution['didDocument']);
       } else {
         throw SsiException(
@@ -45,10 +45,14 @@ Future<DidDocument> resolveDidDocument(
           code: SsiExceptionType.unableToResolveDid.code,
         );
       }
-    } catch (e) {
-      throw SsiException(
-        message: 'Something went wrong during resolving: $e',
-        code: SsiExceptionType.unableToResolveDid.code,
+    } catch (e, stackTrace) {
+      Error.throwWithStackTrace(
+        SsiException(
+          message: 'Failed to resolve DID: $did',
+          code: SsiExceptionType.unableToResolveDid.code,
+          originalMessage: e.toString(),
+        ),
+        stackTrace,
       );
     }
   }

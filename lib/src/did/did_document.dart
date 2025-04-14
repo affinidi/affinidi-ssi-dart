@@ -54,7 +54,7 @@ class DidDocument implements JsonObject {
         assertionMethod = [],
         capabilityDelegation = [],
         capabilityInvocation = [] {
-    var document = jsonToMap(jsonObject);
+    final document = jsonToMap(jsonObject);
     if (document.containsKey('@context')) {
       context = document['@context'].cast<String>();
     }
@@ -73,7 +73,7 @@ class DidDocument implements JsonObject {
       List tmp = document['verificationMethod'];
       if (tmp.isNotEmpty) {
         verificationMethod = [];
-        for (var v in tmp) {
+        for (final v in tmp) {
           verificationMethod.add(VerificationMethod.fromJson(v));
         }
       }
@@ -83,7 +83,7 @@ class DidDocument implements JsonObject {
       List tmp = document['authentication'];
       if (tmp.isNotEmpty) {
         authentication = [];
-        for (var v in tmp) {
+        for (final v in tmp) {
           if (v is String) {
             authentication.add(v);
           } else if (v is Map<String, dynamic>) {
@@ -99,7 +99,7 @@ class DidDocument implements JsonObject {
       List tmp = document['keyAgreement'];
       if (tmp.isNotEmpty) {
         keyAgreement = [];
-        for (var v in tmp) {
+        for (final v in tmp) {
           if (v is String) {
             keyAgreement.add(v);
           } else if (v is Map<String, dynamic>) {
@@ -115,7 +115,7 @@ class DidDocument implements JsonObject {
       List tmp = document['assertionMethod'];
       if (tmp.isNotEmpty) {
         assertionMethod = [];
-        for (var v in tmp) {
+        for (final v in tmp) {
           if (v is String) {
             assertionMethod.add(v);
           } else if (v is Map<String, dynamic>) {
@@ -147,7 +147,7 @@ class DidDocument implements JsonObject {
       List tmp = document['capabilityDelegation'];
       if (tmp.isNotEmpty) {
         capabilityDelegation = [];
-        for (var v in tmp) {
+        for (final v in tmp) {
           if (v is String) {
             capabilityDelegation.add(v);
           } else if (v is Map<String, dynamic>) {
@@ -163,7 +163,7 @@ class DidDocument implements JsonObject {
       List tmp = document['service'];
       if (tmp.isNotEmpty) {
         service = [];
-        for (var v in tmp) {
+        for (final v in tmp) {
           service.add(ServiceEndpoint.fromJson(v));
         }
       }
@@ -175,7 +175,7 @@ class DidDocument implements JsonObject {
     if (verificationMethod.isEmpty) {
       return this;
     }
-    var newDdo = DidDocument(
+    final newDdo = DidDocument(
         id: id,
         context: context,
         controller: controller,
@@ -183,10 +183,10 @@ class DidDocument implements JsonObject {
         service: service,
         verificationMethod: verificationMethod);
     Map<String, VerificationMethod> veriMap = {};
-    for (var v in verificationMethod) {
+    for (final v in verificationMethod) {
       veriMap[v.id] = v;
       if (v.id.contains('#')) {
-        var s = v.id.split('#');
+        final s = v.id.split('#');
         if (s.length == 2) {
           veriMap[s[1]] = v;
           veriMap['#${s[1]}'] = v;
@@ -213,7 +213,7 @@ class DidDocument implements JsonObject {
 
   List _resolveIds(Map<String, VerificationMethod> veriMap, List old) {
     List newList = [];
-    for (var entry in old) {
+    for (final entry in old) {
       if (entry is VerificationMethod) {
         newList.add(entry);
       } else if (entry is String) {
@@ -284,7 +284,7 @@ class DidDocument implements JsonObject {
     if (controller.isNotEmpty) jsonObject['controller'] = controller;
     if (verificationMethod.isNotEmpty) {
       List tmp = [];
-      for (var v in verificationMethod) {
+      for (final v in verificationMethod) {
         tmp.add(v.toJson());
       }
       jsonObject['verificationMethod'] = tmp;
@@ -292,7 +292,7 @@ class DidDocument implements JsonObject {
 
     if (authentication.isNotEmpty) {
       List tmp = [];
-      for (var v in authentication) {
+      for (final v in authentication) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -306,7 +306,7 @@ class DidDocument implements JsonObject {
 
     if (capabilityDelegation.isNotEmpty) {
       List tmp = [];
-      for (var v in capabilityDelegation) {
+      for (final v in capabilityDelegation) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -320,7 +320,7 @@ class DidDocument implements JsonObject {
 
     if (capabilityInvocation.isNotEmpty) {
       List tmp = [];
-      for (var v in capabilityInvocation) {
+      for (final v in capabilityInvocation) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -334,7 +334,7 @@ class DidDocument implements JsonObject {
 
     if (keyAgreement.isNotEmpty) {
       List tmp = [];
-      for (var v in keyAgreement) {
+      for (final v in keyAgreement) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -348,7 +348,7 @@ class DidDocument implements JsonObject {
 
     if (assertionMethod.isNotEmpty) {
       List tmp = [];
-      for (var v in assertionMethod) {
+      for (final v in assertionMethod) {
         if (v is VerificationMethod) {
           tmp.add(v.toJson());
         } else if (v is String) {
@@ -362,7 +362,7 @@ class DidDocument implements JsonObject {
 
     if (service.isNotEmpty) {
       List tmp = [];
-      for (var v in service) {
+      for (final v in service) {
         tmp.add(v.toJson());
       }
       jsonObject['service'] = tmp;
@@ -377,7 +377,7 @@ class DidDocument implements JsonObject {
   }
 }
 
-// TODO define better structure
+// TODO(FTL-20741) define better structure
 class Jwk {
   late final Map<String, String> doc;
 
@@ -426,7 +426,7 @@ abstract class VerificationMethod implements JsonObject {
   }
 
   factory VerificationMethod.fromJson(dynamic input) {
-    var json = jsonToMap(input);
+    final json = jsonToMap(input);
 
     final id = getMandatoryString(json, 'id');
     final type = getMandatoryString(json, 'type');
@@ -571,7 +571,7 @@ class ServiceEndpoint implements JsonObject {
       {required this.id, required this.type, required this.serviceEndpoint});
 
   ServiceEndpoint.fromJson(dynamic jsonObject) {
-    var se = jsonToMap(jsonObject);
+    final se = jsonToMap(jsonObject);
     if (se.containsKey('id')) {
       id = se['id'];
     } else {

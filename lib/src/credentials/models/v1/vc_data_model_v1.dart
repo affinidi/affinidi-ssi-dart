@@ -5,10 +5,7 @@ import '../credential_schema.dart';
 import '../credential_status.dart';
 import 'vc_data_model_v1_view.dart';
 
-// TODO(cm) must implement adapter functions where needed to the generic VerifiableCredential
-// TODO(cm) decide what to do with "holder"
-// TODO(cm): add validation against the VCDM1 schema somewhere
-// TODO(cm): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
+// TODO(FTL-20734): must match fields in the spec https://www.w3.org/TR/vc-data-model/
 class MutableVcDataModelV1 implements VcDataModelV1 {
   static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
 
@@ -137,7 +134,7 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
     issuanceDate = getDateTime(json, _P.issuanceDate.key);
     expirationDate = getDateTime(json, _P.expirationDate.key);
 
-    // FIXME handle arrays of subjects
+    // FIXME(FTL-20734) handle arrays of subjects
     credentialSubject =
         Map.of(json[_P.credentialSubject.key] as Map<String, dynamic>);
 
@@ -160,12 +157,12 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
         );
     }
 
-    // FIXME handle simple string
+    // FIXME(FTL-20734) handle simple string
     if (json.containsKey(_P.holder.key) && json[_P.holder.key] is Map) {
       holder = Map.of(json[_P.holder.key] as Map<String, dynamic>);
     }
 
-    // FIXME use a typed object
+    // FIXME(FTL-20734) use a typed object
     if (json.containsKey(_P.proof.key) && json[_P.proof.key] is Map) {
       proof = Map.of(json[_P.proof.key] as Map<String, dynamic>);
     }

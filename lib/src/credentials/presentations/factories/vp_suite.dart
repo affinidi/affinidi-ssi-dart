@@ -3,26 +3,31 @@ import 'package:ssi/src/credentials/presentations/models/parsed_vp.dart';
 import '../../../did/did_signer.dart';
 import '../models/verifiable_presentation.dart';
 
-/// Class that contains operations to be done on encoded VCs
+/// Defines operations for working with Verifiable Presentations.
 abstract class VerifiablePresentationSuite<
     SerializedType,
     VPDM extends VerifiablePresentation,
     PVP extends ParsedVerifiablePresentation<SerializedType>,
     Options> {
-  /// Checks if the [data] provided matches the right criteria to attempt a parse
+  /// Determines whether the provided [data] can be parsed by this suite.
   bool canParse(Object data);
 
-  /// Attempts to parse [data] and return a [ParsedVerifiablePresentation]
-  /// It can throw in case the data cannot be converted to a valid [ParsedVerifiablePresentation]
+  /// Parses the [data] into a verifiable presentation.
   ///
-  /// Note: Implementers must check if the input can be parsed by the
-  /// implementing suite
+  /// Throws an exception if the [data] cannot be converted to a valid
+  /// [ParsedVerifiablePresentation].
+  ///
+  /// Note: Implementers must check if the input can be parsed by this
+  /// suite before attempting to parse.
   PVP parse(Object data);
 
-  /// Verify the integrity of [input]
+  /// Verifies the cryptographic integrity of the [input] presentation.
   Future<bool> verifyIntegrity(PVP input);
 
-  /// Prepare an Encoded VC based on the
+  /// Issues a new presentation by signing the [vp] with the provided [signer].
+  ///
+  /// Returns a parsed verifiable presentation with the appropriate signature.
+  /// Optional [options] can customize the issuing process.
   Future<PVP> issue(
     VPDM vp,
     DidSigner signer, {

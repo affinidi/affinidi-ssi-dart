@@ -2,11 +2,11 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:elliptic/elliptic.dart' as elliptic;
-import 'package:ssi/src/util/base64_util.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import '../util/base64_util.dart';
 
 enum MultiBase {
   base58bitcoin,
@@ -72,29 +72,29 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
   } else if (indicatorHex == '8024') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'P-256';
-    var c = elliptic.getP256();
-    var pub = c.compressedHexToPublicKey(hex.encode(key));
+    final c = elliptic.getP256();
+    final pub = c.compressedHexToPublicKey(hex.encode(key));
     jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
     jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
   } else if (indicatorHex == 'E701') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'secp256k1';
-    var c = elliptic.getSecp256k1();
-    var pub = c.compressedHexToPublicKey(hex.encode(key));
+    final c = elliptic.getSecp256k1();
+    final pub = c.compressedHexToPublicKey(hex.encode(key));
     jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
     jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
   } else if (indicatorHex == '8124') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'P-384';
-    var c = elliptic.getP384();
-    var pub = c.compressedHexToPublicKey(hex.encode(key));
+    final c = elliptic.getP384();
+    final pub = c.compressedHexToPublicKey(hex.encode(key));
     jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
     jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
   } else if (indicatorHex == '8224') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'P-521';
-    var c = elliptic.getP521();
-    var pub = c.compressedHexToPublicKey(hex.encode(key));
+    final c = elliptic.getP521();
+    final pub = c.compressedHexToPublicKey(hex.encode(key));
     jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
     jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
   } else {
@@ -105,7 +105,7 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
 }
 
 Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
-  var crv = jwk['crv'];
+  final crv = jwk['crv'];
 
   switch (crv) {
     case 'Ed25519':
@@ -155,14 +155,14 @@ Uint8List _ecJwkToMultiKey({
   required Map<String, dynamic> jwk,
   required List<int> multikeyIndicator,
 }) {
-  var compressedHex = curve.publicKeyToCompressedHex(
+  final compressedHex = curve.publicKeyToCompressedHex(
     elliptic.PublicKey(
       curve,
       decodeBigInt(base64UrlNoPadDecode(jwk['x'])),
       decodeBigInt(base64UrlNoPadDecode(jwk['y'])),
     ),
   );
-  var compressedBytes = hexDecode(compressedHex);
+  final compressedBytes = hexDecode(compressedHex);
   return Uint8List.fromList(
     multikeyIndicator + compressedBytes,
   );
@@ -190,11 +190,11 @@ Uint8List _ecJwkToMultiKey({
 
   List<int> intValue = [];
 
-  var i = start + 1;
+  int i = start + 1;
   int leftOver = varint[start] & 0x7F;
-  var leftOverLen = 7;
+  int leftOverLen = 7;
 
-  var hasNext = (varint[start] & 0x80) > 0;
+  bool hasNext = (varint[start] & 0x80) > 0;
   while (hasNext && i < varint.length) {
     final packedByte = varint[i] & 0x7F;
 
@@ -256,7 +256,7 @@ Uint8List toMultikey(
   if (!keyIndicators.containsKey(keyType)) {
     throw SsiException(
       message: "toMultikey: $keyType not supported",
-      code: SsiExceptionType.other.code,
+      code: SsiExceptionType.invalidKeyType.code,
     );
   }
   final indicator = keyIndicators[keyType]!;
@@ -270,7 +270,7 @@ Uint8List encodeBigInt(BigInt number) {
   // Not handling negative numbers. Decide how you want to do that.
   int bytes = (number.bitLength + 7) >> 3;
 
-  var result = Uint8List(bytes);
+  final result = Uint8List(bytes);
   for (int i = 0; i < bytes; i++) {
     result[bytes - 1 - i] = number.remainder(b256).toInt();
     number = number >> 8;

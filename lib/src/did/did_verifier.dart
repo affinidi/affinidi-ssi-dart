@@ -2,14 +2,15 @@ import 'dart:typed_data';
 
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:jose_plus/jose.dart' as jose;
-import 'package:ssi/src/did/verifier.dart';
-import 'package:ssi/src/util/base64_util.dart';
 
+import '../did/verifier.dart';
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import '../util/base64_util.dart';
 import 'did_document.dart';
 import 'did_resolver.dart';
 
-//FIXME we should check proofPurpose
 class DidVerifier implements Verifier {
   final SignatureScheme _algorithm;
   final String _kId;
@@ -28,10 +29,10 @@ class DidVerifier implements Verifier {
       resolverAddress: resolverAddress,
     );
 
-    // TODO check if kid is somehow related to issuerDid
+    // TODO(FTL-20742) check if kid is somehow related to issuerDid
 
     VerificationMethod? verificationMethod;
-    for (var method in didDocument.verificationMethod) {
+    for (final method in didDocument.verificationMethod) {
       if (method.id == kid || method.id.endsWith('#$kid')) {
         verificationMethod = method;
         break;
@@ -39,11 +40,23 @@ class DidVerifier implements Verifier {
     }
 
     if (verificationMethod == null) {
-      throw ArgumentError(
-          'Verification method with id $kid not found in DID Document for $issuerDid');
+      throw SsiException(
+        message:
+            'Verification method with id $kid not found in DID Document for $issuerDid',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
     }
 
-    final Jwk jwk = verificationMethod.asJwk();
+    final Jwk jwk;
+    try {
+      jwk = verificationMethod.asJwk();
+    } catch (e) {
+      throw SsiException(
+        message: 'Failed to parse verification method as JWK',
+        originalMessage: e.toString(),
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
+    }
     final Map<String, dynamic> jwkMap = Map<String, dynamic>.from(jwk.toJson());
 
     return DidVerifier._(algorithm, kid, jwkMap);
@@ -54,7 +67,6 @@ class DidVerifier implements Verifier {
     if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
       return algorithm == 'EdDSA' || algorithm == 'Ed25519';
     }
-
     try {
       final jose.JsonWebKey? publicKey = jose.JsonWebKey.fromJson(_jwk);
       return publicKey!.usableForAlgorithm(algorithm);
@@ -70,30 +82,29 @@ class DidVerifier implements Verifier {
         _jwk['kid'] = _kId;
       }
 
-      // Handle Ed25519 keys
       if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
         if (_algorithm.jwtName != 'EdDSA') {
           return false;
         }
-
         final publicKeyBytes = base64UrlNoPadDecode(_jwk['x']);
         return ed.verify(ed.PublicKey(publicKeyBytes), data, signature);
       }
 
-      // the library uses the old crv value P-256K
       if (_jwk['crv'] == 'secp256k1') {
         _jwk['crv'] = 'P-256K';
       }
 
-      // For other key types, use the jose library
       final publicKey = jose.JsonWebKey.fromJson(_jwk);
 
       if (publicKey == null) {
-        throw ArgumentError('failed to create JsonWebKey from jwkMap');
+        throw SsiException(
+          message: 'failed to create JsonWebKey from jwkMap',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
       }
 
       return publicKey.verify(data, signature, algorithm: _algorithm.jwtName);
-    } catch (_) {
+    } catch (e) {
       return false;
     }
   }
