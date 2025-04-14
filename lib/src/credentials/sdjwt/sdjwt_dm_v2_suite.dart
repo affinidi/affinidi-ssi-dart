@@ -1,4 +1,10 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:jose_plus/jose.dart';
 import 'package:sdjwt/sdjwt.dart';
+import 'package:ssi/ssi.dart';
+import './../../util/base64_util.dart';
 
 import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
@@ -59,11 +65,37 @@ final class SdJwtDm2Suite
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input) async {
     //TODO(cm): return verification result
     //TODO(cm): discover proof type
-    final proofSuite = EcdsaSecp256k1Signature2019();
-    final verificationResult = await proofSuite.verifyProof(
-      input.sdJwt.payload,
+    final sdjwt = input.sdJwt;
+
+    final parts = sdjwt.serialized.split('~').first.split('.');
+
+    final payloadJson = jsonDecode(
+      utf8.decode(base64Url.decode(addBase64Padding(parts[1]))),
     );
 
-    return verificationResult.isValid;
+    final headerJson = jsonDecode(
+      utf8.decode(base64Url.decode(addBase64Padding(parts[0]))),
+    );
+    final alg = SdJwtSignAlgorithm.fromString(headerJson['alg']);
+
+    if (payloadJson['cnf'] == null) {
+      throw SsiException(
+          message: 'sdJwt should have a valid `cnf` claim',
+          code: SsiExceptionType.other.code);
+    }
+
+    final jwk = jsonEncode(payloadJson['cnf']['jwk']);
+    final publicKey = SdPublicKey(jwk, alg);
+    final verifier = SDKeyVerifier(publicKey);
+    final sdJwyVerifier = SdJwtHandlerV1();
+    final result = sdJwyVerifier.verify(sdJwt: input.sdJwt, verifier: verifier);
+
+    return result.isVerified!;
+  }
+
+  String addBase64Padding(String str) {
+    if (str.isEmpty) return str;
+    final padLength = 4 - (str.length % 4);
+    return padLength == 4 ? str : str + ('=' * padLength);
   }
 }

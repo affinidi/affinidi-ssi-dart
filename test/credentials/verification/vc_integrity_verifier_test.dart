@@ -32,5 +32,17 @@ void main() {
           result.errors, [SsiExceptionType.failedIntegrityVerification.code]);
       expect(result.warnings, []);
     });
+
+    test('should pass verification for sdjwt', () async {
+      final verifier = VcIntegrityVerifier();
+      var data = VerifiableCredentialDataFixtures.sdjwt;
+      final verifiableCredential = UniversalParser.parse(data);
+      var result = await verifier.verify(verifiableCredential);
+
+      expect(result.isValid, true);
+      expect(
+          result.errors, [SsiExceptionType.failedIntegrityVerification.code]);
+      expect(result.warnings, []);
+    });
   });
 }
