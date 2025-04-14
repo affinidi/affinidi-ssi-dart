@@ -23,7 +23,6 @@ mixin SdJwtParser implements VerifiableDataParser<String, SdJwt> {
     // filter out other strings
     if (!input.startsWith('ey')) return false;
 
-    // FIXME(cm) decoding twice in canParse and parse
     try {
       final jwt = SdJwt.parse(input);
       if (!hasValidPayload(jwt)) return false;

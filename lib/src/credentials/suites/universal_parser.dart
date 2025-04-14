@@ -13,6 +13,7 @@ final class UniversalParser {
   ///  - Thrown if it is unable to parse the provided data
   static ParsedVerifiableCredential parse(Object rawData) {
     for (final suite in VcSuites.suites) {
+      // FIXME(FTL-20737) decoding twice in canParse and parse
       if (suite.canParse(rawData)) {
         try {
           return suite.parse(rawData);

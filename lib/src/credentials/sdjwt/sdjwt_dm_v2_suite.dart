@@ -54,15 +54,14 @@ final class SdJwtDm2Suite
     DidSigner signer, {
     SdJwtDm2Options? options,
   }) async {
-    //TODO(cm): extend option to select proof suite
+    //TODO(FTL-20735): extend option to select proof suite
 
     throw UnimplementedError();
   }
 
   @override
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input) async {
-    //TODO(cm): return verification result
-    //TODO(cm): discover proof type
+    //TODO(FTL-20735): discover proof type
     final proofSuite = EcdsaSecp256k1Signature2019();
     final verificationResult = await proofSuite.verifyProof(
       input.sdJwt.payload,

@@ -111,7 +111,7 @@ class DidKey {
     final did = '$commonDidKeyPrefix$multibase';
     final keyId = '$did#$multibase';
 
-    // FIXME double check the doc
+    // FIXME(FTL-20741) double check the doc
     return DidDocument(
       id: did,
       verificationMethod: [

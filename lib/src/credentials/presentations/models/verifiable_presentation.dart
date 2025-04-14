@@ -17,7 +17,7 @@ abstract interface class VerifiablePresentation
   String? get id;
 
   /// The types describing the structure of this presentation.
-  // FIXME should be changed to a Set
+  // FIXME(FTL-20738) should be changed to a Set
   List<String> get type;
 
   /// The DID or URI of the holder who generated this presentation.

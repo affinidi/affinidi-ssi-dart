@@ -377,7 +377,7 @@ class DidDocument implements JsonObject {
   }
 }
 
-// TODO define better structure
+// TODO(FTL-20741) define better structure
 class Jwk {
   late final Map<String, String> doc;
 

@@ -14,11 +14,11 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   String? get id;
 
   /// The types describing the structure of this credential.
-  // FIXME should be changed to a Set
+  // FIXME(FTL-20734) should be changed to a Set
   List<String> get type;
 
   /// The entity that issued this credential.
-  // FIXME issuer can be an entity with an id or a string
+  // FIXME(FTL-20734) issuer can be an entity with an id or a string
   String get issuer;
 
   /// The subject data contained in this credential.

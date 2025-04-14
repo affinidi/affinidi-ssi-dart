@@ -20,7 +20,6 @@ mixin LdParser implements VerifiableDataParser<String, Map<String, dynamic>> {
     // filter out JWT tokens
     if (input.startsWith('ey')) return false;
 
-    // FIXME(cm) decoding twice in canParse and parse
     try {
       final data = jsonDecode(input) as Map<String, dynamic>;
       if (!hasValidPayload(data)) return false;
