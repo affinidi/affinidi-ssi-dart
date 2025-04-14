@@ -82,4 +82,19 @@ class KmsKeyPair implements KeyPair {
       rethrow;
     }
   }
+
+  // @override
+  // Future<Uint8List> encrypt(Uint8List data, { Uint8List? publicKey }) async {
+  //   TODO: add support
+  // }
+
+  // @override
+  // Future<Uint8List> decrypt(Uint8List data, { Uint8List? publicKey }) async {
+  //   TODO: add support
+  // }
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
 }
