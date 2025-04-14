@@ -12,7 +12,7 @@ void main() {
   final keyId = 'keyId';
   final data = Uint8List.fromList([1, 2, 3, 4]);
   final Uint8List privateKey = Uint8List.fromList([227, 35, 123, 65, 230, 94, 167, 239, 43, 209, 58, 97, 123, 14, 35, 244, 8, 115, 55, 216, 244, 132, 3, 14, 52, 56, 255, 214, 91, 83, 88, 177]);
-  final Uint8List privateKeyBob = Uint8List.fromList([227, 35, 123, 65, 230, 94, 167, 239, 43, 209, 58, 97, 123, 14, 35, 244, 8, 115, 55, 216, 244, 132, 3, 14, 52, 56, 255, 214, 91, 83, 88, 177]);
+  final Uint8List privateKeyBob = Uint8List.fromList([227, 35, 123, 65, 230, 94, 167, 239, 43, 209, 58, 167, 123, 14, 35, 244, 8, 115, 55, 216, 244, 132, 3, 14, 52, 56, 255, 214, 91, 83, 88, 177]);
   final Uint8List publicKey = Uint8List.fromList([154, 91, 111, 200, 105, 249, 92, 207, 158, 65, 234, 210, 123, 83, 171, 151, 40, 204, 225, 21, 100, 80, 98, 246, 210, 65, 29, 151, 214, 17, 13, 132]);
 
   group('Test key pair encrypt decrypt', () {
