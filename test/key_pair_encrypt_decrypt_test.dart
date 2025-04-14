@@ -27,7 +27,7 @@ void main() {
       var decrypted = await secp.decrypt(encrypted);
 
       expect(decrypted, data);
-    }
+    });
 
 
     test('Secp256k1', () async {
@@ -37,11 +37,13 @@ void main() {
         keyId: keyId
       );
 
-      var publicKey = secp.generateEphemeralKeyPair();
+      var publicKey = secp.generateEphemeralPubKey();
       var secret = secp.computeEcdhSecret(publicKey);
       var encrypted = await secp.encrypt(data);
 
       var decrypted = await secp.decrypt(encrypted);
+      print('decrypted!!');
+      print(decrypted);
 
       expect(decrypted, data);
     });

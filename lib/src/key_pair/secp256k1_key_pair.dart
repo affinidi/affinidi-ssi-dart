@@ -78,7 +78,7 @@ class Secp256k1KeyPair implements KeyPair {
       [SignatureScheme.ecdsa_secp256k1_sha256];
 
 
-  PublicKey generateEphemeralKeyPair() {
+  PublicKey generateEphemeralPubKey() {
     var privateKey = _secp256k1.generatePrivateKey();
     var publicKey = _secp256k1.privateToPublicKey(privateKey);
     return publicKey;
@@ -91,7 +91,7 @@ class Secp256k1KeyPair implements KeyPair {
   }
 
   // @override
-  encrypt(Uint8List data, {PublicKey? publicKey}) async {
+  encrypt(Uint8List data, {Uint8List? publicKey}) async {
     final privateKey = _node.privateKey;
     if (privateKey == null) {
       throw ArgumentError('Private key is null');
@@ -99,9 +99,9 @@ class Secp256k1KeyPair implements KeyPair {
 
     PublicKey ephemeralPublicKey;
     if (publicKey == null) {
-      ephemeralPublicKey = await generateEphemeralKeyPair();
+      ephemeralPublicKey = await generateEphemeralPubKey();
     } else {
-      ephemeralPublicKey = publicKey;
+      ephemeralPublicKey = _secp256k1.hexToPublicKey(hex.encode(publicKey));
     }
 
     final sharedSecret = await computeEcdhSecret(ephemeralPublicKey);
@@ -152,10 +152,14 @@ class Secp256k1KeyPair implements KeyPair {
       outputLength: 32,
     );
     final secretKey = crypto.SecretKey(sharedSecret);
-    final symmetricKey = await algorithm.deriveKey(
+    final derivedKey = await algorithm.deriveKey(
       secretKey: secretKey,
       nonce: Uint8List(12), // Same nonce used during encryption
     );
+
+    final derivedKeyBytes = await derivedKey.extractBytes();
+
+    Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
     final decryptedData = await _cryptographyService.decryptFromBytes(symmetricKey, encryptedData);
 
