@@ -62,6 +62,7 @@ final class SdJwtDm2Suite
     final proofSuite = EcdsaSecp256k1Signature2019();
     final verificationResult = await proofSuite.verifyProof(
       input.sdJwt.payload,
+      EcdsaSecp256k1Signature2019VerifyOptions(),
     );
 
     return verificationResult.isValid;
