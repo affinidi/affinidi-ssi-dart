@@ -1,18 +1,12 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:jose_plus/jose.dart';
 import 'package:sdjwt/sdjwt.dart';
 import 'package:ssi/ssi.dart';
-import './../../util/base64_util.dart';
 
-import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/v2/vc_data_model_v2.dart';
-import '../models/verifiable_credential.dart';
 import '../parsers/sdjwt_parser.dart';
-import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../suites/vc_suite.dart';
 import 'sd_vc_dm_v2.dart';
 
@@ -63,8 +57,6 @@ final class SdJwtDm2Suite
 
   @override
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input) async {
-    //TODO(cm): return verification result
-    //TODO(cm): discover proof type
     final sdjwt = input.sdJwt;
 
     final parts = sdjwt.serialized.split('~').first.split('.');
@@ -84,7 +76,7 @@ final class SdJwtDm2Suite
           code: SsiExceptionType.other.code);
     }
 
-    final jwk = jsonEncode(payloadJson['cnf']['jwk']);
+    final jwk = payloadJson['cnf']['jwk'];
     final publicKey = SdPublicKey(jwk, alg);
     final verifier = SDKeyVerifier(publicKey);
     final sdJwyVerifier = SdJwtHandlerV1();
