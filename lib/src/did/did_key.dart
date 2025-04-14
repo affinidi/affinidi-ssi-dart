@@ -1,11 +1,11 @@
 import 'package:base_codecs/base_codecs.dart';
-import 'public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../utility.dart';
 import 'did_document.dart';
+import 'public_key_utils.dart';
 
 /// Builds a DID document for Ed25519 keys.
 ///

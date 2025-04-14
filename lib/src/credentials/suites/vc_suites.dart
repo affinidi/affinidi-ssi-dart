@@ -10,8 +10,17 @@ import '../sdjwt/enveloped_vc_suite.dart';
 import '../sdjwt/sdjwt_dm_v2_suite.dart';
 import 'vc_suite.dart';
 
-/// Place to store all supported VcSuites
+/// Registry of all supported Verifiable Credential suites.
+///
+/// This class provides access to the various suite implementations that can
+/// be used for working with different types of Verifiable Credentials.
 class VcSuites {
+  /// List of all available credential suite implementations.
+  ///
+  /// Includes support for:
+  /// - Linked Data credentials (v1 and v2)
+  /// - JWT-based credentials (v1)
+  /// - SD-JWT credentials (v2)
   static final suites = <VerifiableCredentialSuite>[
     EnvelopedVcDm2Suite(),
     LdVcDm1Suite(),
@@ -20,7 +29,13 @@ class VcSuites {
     SdJwtDm2Suite(),
   ];
 
-  /// Return the suite that matches [vc]
+  /// Returns the appropriate suite for the given credential.
+  ///
+  /// [vc] - The parsed verifiable credential to find a suite for.
+  ///
+  /// Returns the matching VerifiableCredentialSuite for the credential type.
+  ///
+  /// Throws [SsiException] if no suite is available for the credential type.
   static VerifiableCredentialSuite getVcSuite(ParsedVerifiableCredential vc) {
     return switch (vc) {
       LdVcDataModelV1() => LdVcDm1Suite() as VerifiableCredentialSuite,

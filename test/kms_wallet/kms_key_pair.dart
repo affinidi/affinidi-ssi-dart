@@ -3,9 +3,8 @@ import 'dart:typed_data';
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
-
-import 'package:ssi/src/types.dart';
 import 'package:ssi/src/key_pair/key_pair.dart';
+import 'package:ssi/src/types.dart';
 
 const _signatureSchemeToKmsAlgorithm = {
   SignatureScheme.rsa_pkcs1_sha256:
