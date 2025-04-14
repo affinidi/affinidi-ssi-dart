@@ -13,11 +13,11 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   String? get id;
 
   /// Returns a list of VerifiableCredential types.
-  // FIXME should be changed to a Set
+  // FIXME(FTL-20734) should be changed to a Set
   List<String> get type;
 
   /// Returns the VerifiableCredential issuer.
-  // FIXME issuer can be an entity with an id or a string
+  // FIXME(FTL-20734) issuer can be an entity with an id or a string
   String get issuer;
 
   /// Returns a Map representing the VerifiableCredential Subject.

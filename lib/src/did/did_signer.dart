@@ -10,7 +10,7 @@ class DidSigner {
   final DidDocument _didDocument;
   final String didKeyId;
 
-  // TODO validations, eg. keyId in doc, signature scheme supported, etc.
+  // TODO(FTL-20741) validations, eg. keyId in doc, signature scheme supported, etc.
   DidSigner({
     required DidDocument didDocument,
     required this.didKeyId,

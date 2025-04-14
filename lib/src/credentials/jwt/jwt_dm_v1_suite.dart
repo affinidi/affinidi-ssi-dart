@@ -99,7 +99,7 @@ final class JwtDm1Suite
 
     Uri did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
 
-    //TODO(cm) add discovery
+    //TODO(FTL-20735) add discovery
     final algorithm = SignatureScheme.ecdsa_secp256k1_sha256;
 
     final verifier = await DidVerifier.create(

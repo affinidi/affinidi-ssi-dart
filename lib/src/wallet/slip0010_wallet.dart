@@ -5,7 +5,7 @@ import 'package:ssi/src/key_pair/key_pair.dart';
 import 'wallet.dart';
 import '../types.dart';
 
-// TODO: Implement SLIP-0010 wallet
+// TODO(FTL-20739): Implement SLIP-0010 wallet
 
 class Slip0010Wallet implements Wallet {
   @override

@@ -9,7 +9,6 @@ import '../types.dart';
 import 'did_document.dart';
 import 'did_resolver.dart';
 
-//FIXME we should check proofPurpose
 class DidVerifier implements Verifier {
   final SignatureScheme _algorithm;
   final String _kId;
@@ -28,7 +27,7 @@ class DidVerifier implements Verifier {
       resolverAddress: resolverAddress,
     );
 
-    // TODO check if kid is somehow related to issuerDid
+    // TODO(FTL-20742) check if kid is somehow related to issuerDid
 
     VerificationMethod? verificationMethod;
     for (var method in didDocument.verificationMethod) {

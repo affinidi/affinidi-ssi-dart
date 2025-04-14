@@ -17,7 +17,7 @@ abstract interface class VerifiablePresentation
   String? get id;
 
   /// Returns a list of VerifiableCredential types.
-  // FIXME should be changed to a Set
+  // FIXME(FTL-20738) should be changed to a Set
   List<String> get type;
 
   /// Optional DID or URI of the holder who generated the presentation.

@@ -6,6 +6,8 @@ import 'package:pointycastle/api.dart';
 
 import '../../did/did_signer.dart';
 import '../../did/did_verifier.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'embedded_proof.dart';
@@ -151,7 +153,13 @@ class EcdsaSecp256k1Signature2019
     Uint8List payloadToSign,
   ) async {
     final jwsParts = jws.split('..');
-    // FIXME check if 2 parts
+    if (jwsParts.length != 2) {
+      throw SsiException(
+        message: 'Invalid jws format',
+        code: SsiExceptionType.other.code,
+      );
+    }
+
     final encodedHeader = jwsParts[0];
     final encodedSingature = jwsParts[1];
 
