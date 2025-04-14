@@ -15,7 +15,6 @@ final class UniversalVerifier {
     ],
   );
 
-  //FIXME add limit to types supported
   UniversalVerifier({
     List<VcVerifier>? customVerifiers,
   }) : customVerifiers = customVerifiers ?? [];

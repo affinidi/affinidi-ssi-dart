@@ -332,7 +332,7 @@ class DidPeer {
     }
   }
 
-  //FIXME should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
+  //FIXME(FTL-20741) should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
   static Future<DidDocument> create(
     List<KeyPair> keyPairs, {
     String? serviceEndpoint,
@@ -362,7 +362,7 @@ class DidPeer {
       verificationMethods.add(
         VerificationMethodMultibase(
           id: did,
-          controller: 'key$i', // FIXME should come from the outside
+          controller: 'key$i', // FIXME(FTL-20741) should come from the outside
           type: 'Multikey',
           publicKeyMultibase: toMultiBase(
             toMultikey(
@@ -374,7 +374,7 @@ class DidPeer {
       );
     }
 
-    // FIXME should match arguments
+    // FIXME(FTL-20741) should match arguments
     final keyId = verificationMethods[0].id;
     return DidDocument(
       id: did,

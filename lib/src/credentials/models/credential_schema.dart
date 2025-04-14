@@ -11,35 +11,35 @@
 /// );
 /// ```
 class CredentialSchema {
-  /// Returns the URL of the schema including domain and filename
+  /// The URL of the schema including domain and filename.
   final String id;
 
-  /// Returns the schema type of validator used
+  /// The schema type of validator used.
   ///
-  /// Usually 'JsonSchemaValidator2018' for JSON Schema validation
+  /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
   final String type;
 
   /// Creates a [CredentialSchema] instance.
   ///
-  /// [domain] - Base URL where the schema is hosted
-  /// [schema] - Name of the schema without extension
-  /// [type] - Schema validation type, defaults to 'JsonSchemaValidator2018'
+  /// The [domain] is the base URL where the schema is hosted.
+  /// The [schema] is the name of the schema without extension.
+  /// The [type] is the schema validation type, defaults to 'JsonSchemaValidator2018'.
   CredentialSchema({
     required String domain,
     required String schema,
     this.type = 'JsonSchemaValidator2018',
   }) : id = '$domain/$schema.json';
 
-  /// Creates a [CredentialSchema] from JSON data
+  /// Creates a [CredentialSchema] from JSON data.
   ///
-  /// [json] must contain 'id' and 'type' fields
+  /// The [json] must contain 'id' and 'type' fields.
   CredentialSchema.fromJson(Map<String, dynamic> json)
       : id = json['id'] as String,
         type = json['type'] as String;
 
-  /// Converts the schema to JSON format
+  /// Converts this schema to a JSON-serializable map.
   ///
-  /// Returns a map containing 'id' and 'type' fields
+  /// Returns a map containing 'id' and 'type' fields.
   Map<String, dynamic> toJson() => {
         'id': id,
         'type': type,

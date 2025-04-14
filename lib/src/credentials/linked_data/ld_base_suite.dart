@@ -48,7 +48,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
     DidSigner signer, {
     Options? options,
   }) async {
-    //TODO(cm): extend option to select proof suite
+    //TODO(FTL-20735): extend option to select proof suite
     var json = vc.toJson();
 
     // remove proof in case it's already there
@@ -59,7 +59,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
 
     final proof = await _proofSuite.createProof(
       vc.toJson(),
-      EcdsaSecp256k1Signature2019Options(signer: signer),
+      EcdsaSecp256k1Signature2019CreateOptions(signer: signer),
     );
 
     json[proofKey] = proof.toJson();
@@ -79,11 +79,11 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
   }
 
   Future<bool> verifyIntegrity(Model input) async {
-    //TODO(cm): return verification result
-    //TODO(cm): discover proof type
+    //TODO(FTL-20735): discover proof type
     final proofSuite = EcdsaSecp256k1Signature2019();
     final verificationResult = await proofSuite.verifyProof(
       input.toJson(),
+      EcdsaSecp256k1Signature2019VerifyOptions(),
     );
 
     return verificationResult.isValid;

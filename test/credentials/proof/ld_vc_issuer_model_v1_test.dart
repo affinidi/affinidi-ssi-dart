@@ -47,13 +47,18 @@ void main() {
       final proofSuite = EcdsaSecp256k1Signature2019();
       final proof = await proofSuite.createProof(
         unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019Options(signer: signer),
+        EcdsaSecp256k1Signature2019CreateOptions(
+          signer: signer,
+        ),
       );
 
       unsignedCredential.proof = proof.toJson();
 
       final verificationResult = await proofSuite.verifyProof(
         unsignedCredential.toJson(),
+        EcdsaSecp256k1Signature2019VerifyOptions(
+          customDocumentLoader: _testLoadDocument,
+        ),
       );
 
       expect(verificationResult.isValid, true);
@@ -65,6 +70,9 @@ void main() {
       final proofSuite = EcdsaSecp256k1Signature2019();
       final verificationResult = await proofSuite.verifyProof(
         cweResponse,
+        EcdsaSecp256k1Signature2019VerifyOptions(
+          customDocumentLoader: _testLoadDocument,
+        ),
       );
 
       expect(verificationResult.isValid, true);
@@ -91,3 +99,14 @@ Future<DidSigner> _initSigner(Uint8List seed) async {
 final cweResponse = jsonDecode(
   VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe,
 );
+
+final _userProfile = jsonDecode(r'''
+{"@context":{"UserProfile":{"@id":"https://schema.affinidi.com/UserProfileV1-0.jsonld","@context":{"@version":1.1,"@protected":true}},"Fname":{"@id":"schema-id:Fname","@type":"https://schema.org/Text"},"Lname":{"@id":"schema-id:Lname","@type":"https://schema.org/Text"},"Age":{"@id":"schema-id:Age","@type":"https://schema.org/Text"},"Address":{"@id":"schema-id:Address","@type":"https://schema.org/Text"}}}
+''');
+
+Future<Map<String, dynamic>?> _testLoadDocument(Uri url) {
+  if (url.toString() == 'https://schema.affinidi.com/UserProfileV1-0.jsonld') {
+    return Future.value(_userProfile);
+  }
+  return Future.value(null);
+}
