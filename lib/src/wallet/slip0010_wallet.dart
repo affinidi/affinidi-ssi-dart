@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/key_pair/key_pair.dart';
-
-import 'wallet.dart';
+import '../key_pair/key_pair.dart';
 import '../types.dart';
+import 'wallet.dart';
 
 // TODO(FTL-20739): Implement SLIP-0010 wallet
 
