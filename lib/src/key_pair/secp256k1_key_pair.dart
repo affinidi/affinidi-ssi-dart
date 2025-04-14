@@ -13,8 +13,7 @@ import '../digest_utils.dart';
 import '../types.dart';
 import 'key_pair.dart';
 
-var STATIC_HKD_NONCE = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
-var FULL_PUB_KEY_LENGTH = 64;
+import './_const.dart';
 
 class Secp256k1KeyPair implements KeyPair {
   final String _keyId;
