@@ -141,6 +141,8 @@ class DidKey {
     if (multibaseIndicator != 'z') {
       throw UnimplementedError('Only Base58 is supported yet');
     }
+
+    // FIXME(FTL-20741) double check the doc
     return _buildDoc(multibase, did);
   }
 

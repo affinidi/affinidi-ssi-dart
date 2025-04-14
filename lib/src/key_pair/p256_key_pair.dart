@@ -42,13 +42,13 @@ class P256KeyPair implements KeyPair {
   @override
   Future<Uint8List> get publicKey async {
     if (_publicKeyBytes == null) {
-      final bytes = hex.decode(await publicKeyHex);
+      final bytes = hex.decode(await _publicKeyHex);
       _publicKeyBytes = Uint8List.fromList(bytes);
     }
     return Future.value(_publicKeyBytes!);
   }
 
-  Future<String> get publicKeyHex {
+  Future<String> get _publicKeyHex {
     return Future.value(_privateKey.publicKey.toCompressedHex());
   }
 
