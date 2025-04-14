@@ -22,37 +22,43 @@ import '../verifiable_presentation.dart';
 class VpDataModelV1 implements VerifiablePresentation {
   static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
 
-  /// JSON-LD context, typically includes: `https://www.w3.org/2018/credentials/v1`
+  /// The JSON-LD context for this presentation.
+  ///
+  /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
   List<String> context;
 
-  /// Optional identifier for the presentation
+  /// The optional identifier for this presentation.
   @override
   String? id;
 
-  /// Type array, mandatory field
+  /// The type definitions for this presentation.
+  ///
+  /// Must include 'VerifiablePresentation'.
   @override
   List<String> type;
 
-  /// Optional identifier of the holder (typically a DID)
+  /// The identifier of the holder presenting the credentials.
+  ///
+  /// Typically a DID.
   @override
   String? holder;
 
-  /// One or more embedded Verifiable Credentials
+  /// The list of verifiable credentials embedded in this presentation.
   @override
   List<VerifiableCredential> verifiableCredential;
 
-  /// Cryptographic proof created by the holder
+  /// The cryptographic proof created by the holder.
   @override
   Map<String, dynamic> proof;
 
   /// Creates a [VpDataModelV1] instance.
   ///
-  /// [context] – JSON-LD context array (required)
-  /// [type] – Types array (must include `'VerifiablePresentation'`)
-  /// [holder] – Identifier for the presenter (optional)
-  /// [verifiableCredential] – List of embedded credentials (optional)
-  /// [proof] – Cryptographic proof (optional)
+  /// The [context] is the JSON-LD context array (required).
+  /// The [type] is an array that must include 'VerifiablePresentation'.
+  /// The [holder] is an identifier for the presenter (optional).
+  /// The [verifiableCredential] is a list of embedded credentials (optional).
+  /// The [proof] is a cryptographic proof (optional).
   VpDataModelV1({
     required this.context,
     this.id,
@@ -63,7 +69,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   })  : verifiableCredential = verifiableCredential ?? [],
         proof = proof ?? {};
 
-  /// Converts the VP object to a JSON-compliant `Map`
+  /// Converts this presentation to a JSON-serializable map.
   @override
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -85,10 +91,10 @@ class VpDataModelV1 implements VerifiablePresentation {
     return json;
   }
 
-  /// Creates a [VpDataModelV1] from JSON or a JSON-like input
+  /// Creates a [VpDataModelV1] from JSON input.
   ///
-  /// [input] can be a JSON string or a `Map<String, dynamic>`.
-  /// Validates and parses mandatory and optional fields.
+  /// The [input] can be a JSON string or a [Map<String, dynamic>].
+  /// Parses both mandatory and optional fields.
   VpDataModelV1.fromJson(dynamic input)
       : context = [],
         type = [],

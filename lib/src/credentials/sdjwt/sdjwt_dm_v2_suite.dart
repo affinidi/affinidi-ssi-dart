@@ -10,9 +10,14 @@ import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../suites/vc_suite.dart';
 import 'sd_vc_dm_v2.dart';
 
+/// Options for SD-JWT Data Model v2 operations.
 class SdJwtDm2Options {}
 
-/// Class to parse and convert a json representation of a [VerifiableCredential]
+/// Suite for working with W3C VC Data Model v2 credentials in SD-JWT format.
+///
+/// Provides methods to parse, validate, and issue Verifiable Credentials
+/// represented as Selective Disclosure JWT (SD-JWT) according to the
+/// W3C Data Model v2 specification.
 final class SdJwtDm2Suite
     with
         SdJwtParser
