@@ -12,7 +12,7 @@ void main() {
   const testEd25519KeyId1 = 'ed25519-key-1';
   const nonExistentKeyId = 'non-existent-key';
 
-  group('GenericWallet Tests', () {
+  group('GenericWallet', () {
     late GenericWallet wallet;
     late InMemoryKeyStore keyStore; // Use specific type for direct manipulation
 
