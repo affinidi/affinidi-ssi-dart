@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../types.dart';
 import 'wallet.dart';
@@ -17,7 +19,7 @@ class Bip32Ed25519Wallet implements Wallet {
 
   static Future<Bip32Ed25519Wallet> fromSeed(Uint8List seed) async {
     KeyData master = await ED25519_HD_KEY.getMasterKeyFromSeed(seed);
-    var privateKey = ed.newKeyFromSeed(Uint8List.fromList(master.key));
+    final privateKey = ed.newKeyFromSeed(Uint8List.fromList(master.key));
     final rootKeyPair =
         Ed25519KeyPair(privateKey: privateKey, keyId: rootKeyId);
     Map<String, Ed25519KeyPair> keyMap = {rootKeyId: rootKeyPair};
@@ -55,26 +57,33 @@ class Bip32Ed25519Wallet implements Wallet {
   @override
   Future<Ed25519KeyPair> createKeyPair(String keyId, {KeyType? keyType}) async {
     if (keyType != null && keyType != KeyType.ed25519) {
-      throw ArgumentError(
-          "Only ed25519 key type is supported for Bip32Ed25519Wallet");
+      throw SsiException(
+        message:
+            'Unsupported key type. Only ed25519 key type is supported for Bip32Ed25519Wallet.',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
     }
     if (_keyMap.containsKey(keyId)) {
       return Future.value(_keyMap[keyId]);
     }
     if (!_keyMap.containsKey(rootKeyId)) {
-      throw Exception('Root key pair is missing');
+      throw SsiException(
+        message: 'Root key pair is missing.',
+        code: SsiExceptionType.keyPairMissingPrivateKey.code,
+      );
     }
-    var (accountNumber, accountKeyId) = _validateKeyId(keyId);
+    final (accountNumber, accountKeyId) = _validateKeyId(keyId);
 
     final derivationPath =
         _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
-    var seedBytes = _keyMap[rootKeyId]!.getSeed();
+    final seedBytes = _keyMap[rootKeyId]!.getSeed();
 
     KeyData derived =
         await ED25519_HD_KEY.derivePath(derivationPath, seedBytes.toList());
-    var derivedPrivateKey = ed.newKeyFromSeed(Uint8List.fromList(derived.key));
+    final derivedPrivateKey =
+        ed.newKeyFromSeed(Uint8List.fromList(derived.key));
 
-    var keyPair = Ed25519KeyPair(privateKey: derivedPrivateKey, keyId: keyId);
+    final keyPair = Ed25519KeyPair(privateKey: derivedPrivateKey, keyId: keyId);
     _keyMap[keyId] = keyPair;
 
     return Future.value(keyPair);
@@ -95,7 +104,10 @@ class Bip32Ed25519Wallet implements Wallet {
     if (_keyMap.containsKey(keyId)) {
       return _keyMap[keyId]!;
     } else {
-      throw ArgumentError('Invalid Key ID: $keyId');
+      throw SsiException(
+        message: 'Invalid Key ID: $keyId',
+        code: SsiExceptionType.keyPairMissingPrivateKey.code,
+      );
     }
   }
 
@@ -111,9 +123,14 @@ class Bip32Ed25519Wallet implements Wallet {
       accountNumber = int.parse(parts[0]);
       accountKeyId = int.parse(parts[1]);
     } catch (e) {
-      throw FormatException(
-          "For Bip32Ed25519Wallet the keyId is composed as {accountNumber}-{accountKeyId}, where both accountNumber and accountKeyId are positive integers");
+      throw SsiException(
+        message:
+            'keyId must be in format {accountNumber}-{accountKeyId}, both positive integers.',
+        originalMessage: e.toString(),
+        code: SsiExceptionType.other.code,
+      );
     }
+
     return (accountNumber, accountKeyId);
   }
 

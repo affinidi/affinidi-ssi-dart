@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:bip32/bip32.dart';
 import 'package:meta/meta.dart';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import 'wallet.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
@@ -70,21 +72,26 @@ class Bip32Wallet implements Wallet {
   @override
   Future<Secp256k1KeyPair> createKeyPair(String keyId, {KeyType? keyType}) {
     if (keyType != null && keyType != KeyType.secp256k1) {
-      throw ArgumentError(
-          "Only secp256k1 key type is supported for Bip32Wallet");
+      throw SsiException(
+        message: 'Only secp256k1 key type is supported for Bip32Wallet',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
     }
     if (_keyMap.containsKey(keyId)) {
       return Future.value(_keyMap[keyId]);
     }
     if (!_keyMap.containsKey(rootKeyId)) {
-      throw Exception('Root key pair is missing');
+      throw SsiException(
+        message: 'Root key pair is missing.',
+        code: SsiExceptionType.keyPairMissingPrivateKey.code,
+      );
     }
-    var (accountNumber, accountKeyId) = _validateKeyId(keyId);
+    final (accountNumber, accountKeyId) = _validateKeyId(keyId);
 
     final derivationPath =
         _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
-    var rootNode = _keyMap[rootKeyId]!.getBip32Node();
-    var node = Secp256k1KeyPair(
+    final rootNode = _keyMap[rootKeyId]!.getBip32Node();
+    final node = Secp256k1KeyPair(
         node: rootNode.derivePath(derivationPath), keyId: keyId);
     _keyMap[keyId] = node;
 
@@ -106,7 +113,10 @@ class Bip32Wallet implements Wallet {
     if (_keyMap.containsKey(keyId)) {
       return _keyMap[keyId]!;
     } else {
-      throw ArgumentError('Invalid Key ID: $keyId');
+      throw SsiException(
+        message: 'Invalid Key ID: $keyId',
+        code: SsiExceptionType.invalidKeyType.code,
+      );
     }
   }
 
@@ -122,8 +132,12 @@ class Bip32Wallet implements Wallet {
       accountNumber = int.parse(parts[0]);
       accountKeyId = int.parse(parts[1]);
     } catch (e) {
-      throw FormatException(
-          "For Bip32Wallet the keyId is composed as {accountNumber}-{accountKeyId}, where both accountNumber and accountKeyId are positive integers");
+      throw SsiException(
+        message:
+            'For Bip32Ed25519Wallet the keyId is composed as {accountNumber}-{accountKeyId}, where both accountNumber and accountKeyId are positive integers',
+        originalMessage: e.toString(),
+        code: SsiExceptionType.other.code,
+      );
     }
     return (accountNumber, accountKeyId);
   }

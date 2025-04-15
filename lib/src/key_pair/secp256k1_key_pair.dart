@@ -10,6 +10,8 @@ import 'package:cryptography/cryptography.dart' as crypto;
 import 'package:affinidi_tdk_cryptography/affinidi_tdk_cryptography.dart';
 
 import '../digest_utils.dart';
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'key_pair.dart';
 
@@ -44,14 +46,20 @@ class Secp256k1KeyPair implements KeyPair {
     SignatureScheme? signatureScheme,
   }) async {
     signatureScheme ??= SignatureScheme.ecdsa_secp256k1_sha256;
+
     if (signatureScheme != SignatureScheme.ecdsa_secp256k1_sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only es256k is supported with secp256k1");
+      throw SsiException(
+        message:
+            'Unsupported signature scheme. Only ecdsa_secp256k1_sha256 is supported.',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
     }
+
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
+
     return _node.sign(digest);
   }
 
@@ -63,9 +71,13 @@ class Secp256k1KeyPair implements KeyPair {
   }) async {
     signatureScheme ??= SignatureScheme.ecdsa_secp256k1_sha256;
     if (signatureScheme != SignatureScheme.ecdsa_secp256k1_sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only es256k is supported with secp256k1");
+      throw SsiException(
+        message:
+            'Unsupported signature scheme. Only ecdsa_secp256k1_sha256 is supported.',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
     }
+
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,

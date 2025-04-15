@@ -1,18 +1,18 @@
 import 'package:base_codecs/base_codecs.dart';
-import 'public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../utility.dart';
 import 'did_document.dart';
+import 'public_key_utils.dart';
 
 Future<DidDocument> _buildEDDoc(
   List<String> context,
   String id,
   String keyPart,
 ) {
-  var multiCodecXKey = ed25519PublicToX25519Public(
+  final multiCodecXKey = ed25519PublicToX25519Public(
     base58Bitcoin.decode(keyPart).sublist(2),
   );
   if (!multiCodecXKey.startsWith('6LS')) {
@@ -25,13 +25,13 @@ Future<DidDocument> _buildEDDoc(
   String verificationKeyId = '$id#z$keyPart';
   String agreementKeyId = '$id#z$multiCodecXKey';
 
-  var verification = VerificationMethodMultibase(
+  final verification = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
     type: 'Ed25519VerificationKey2020',
     publicKeyMultibase: 'z$keyPart',
   );
-  var keyAgreement = VerificationMethodMultibase(
+  final keyAgreement = VerificationMethodMultibase(
     id: agreementKeyId,
     controller: id,
     type: 'X25519KeyAgreementKey2020',
@@ -58,12 +58,13 @@ Future<DidDocument> _buildXDoc(
   String keyPart,
 ) {
   String verificationKeyId = '$id#z$keyPart';
-  var verification = VerificationMethodMultibase(
+  final verification = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
     type: 'X25519KeyAgreementKey2020',
     publicKeyMultibase: 'z$keyPart',
   );
+
   return Future.value(
     DidDocument(
       context: context,
@@ -81,12 +82,13 @@ Future<DidDocument> _buildOtherDoc(
   String type,
 ) {
   String verificationKeyId = '$id#z$keyPart';
-  var verification = VerificationMethodMultibase(
+  final verification = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
     type: type,
     publicKeyMultibase: 'z$keyPart',
   );
+
   return Future.value(
     DidDocument(
       context: context,
@@ -103,7 +105,14 @@ Future<DidDocument> _buildOtherDoc(
 
 class DidKey {
   static Future<DidDocument> create(List<KeyPair> keyPairs) async {
-    var keyPair = keyPairs[0];
+    if (keyPairs.isEmpty) {
+      throw SsiException(
+        message: 'At least one key pair is required to create a DID',
+        code: SsiExceptionType.invalidDidKey.code,
+      );
+    }
+
+    final keyPair = keyPairs[0];
     final keyType = await keyPair.publicKeyType;
     final publicKey = await keyPair.publicKey;
     final multiKey = toMultikey(publicKey, keyType);
@@ -132,38 +141,42 @@ class DidKey {
   static Future<DidDocument> resolve(String did) {
     if (!did.startsWith('did:key')) {
       throw SsiException(
-        message: 'Expected did to start with `did:key`. However `$did` did not',
+        message: 'Expected DID to start with `did:key`, got `$did` instead.',
         code: SsiExceptionType.invalidDidKey.code,
       );
     }
-    var splited = did.split(':');
+
+    final splited = did.split(':');
     if (splited.length != 3) {
       throw SsiException(
-        message: 'malformed did: `$did`',
+        message: 'Malformed DID: `$did`',
         code: SsiExceptionType.invalidDidKey.code,
       );
     }
 
     String keyPart = splited[2];
-    var multibaseIndicator = keyPart[0];
+    final multibaseIndicator = keyPart[0];
     keyPart = keyPart.substring(1);
 
-    var context = [
+    if (multibaseIndicator != 'z') {
+      throw SsiException(
+        message: 'Only base58 (multibase `z`) encoding is supported.',
+        code: SsiExceptionType.invalidDidKey.code,
+      );
+    }
+
+    final context = [
       "https://www.w3.org/ns/did/v1",
       "https://w3id.org/security/suites/ed25519-2020/v1",
       "https://w3id.org/security/suites/x25519-2020/v1"
     ];
 
-    var context2 = [
+    final context2 = [
       "https://www.w3.org/ns/did/v1",
       'https://ns.did.ai/suites/multikey-2021/v1/'
     ];
 
-    var id = did;
-
-    if (multibaseIndicator != 'z') {
-      throw UnimplementedError('Only Base58 is supported yet');
-    }
+    final id = did;
 
     if (keyPart.startsWith('6Mk')) {
       return _buildEDDoc(context, id, keyPart);
@@ -178,10 +191,14 @@ class DidKey {
     } else if (keyPart.startsWith('2J9')) {
       return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
     } else {
-      throw UnimplementedError(
-          'Only Ed25519 and X25519 keys are supported now');
+      throw SsiException(
+        message:
+            'Unsupported key type. Only Ed25519 and X25519 are fully supported.',
+        code: SsiExceptionType.invalidDidKey.code,
+      );
     }
   }
 
+  /// The common prefix for all "did:key" DIDs.
   static const commonDidKeyPrefix = 'did:key:';
 }

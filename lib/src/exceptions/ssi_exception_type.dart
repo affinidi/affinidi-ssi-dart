@@ -36,6 +36,12 @@ enum SsiExceptionType {
   /// Integrity verification failed
   failedIntegrityVerification(code: 'integrity_verification_failed'),
 
+  /// Unsupported signature scheme
+  unsupportedSignatureScheme(code: 'unsupported_signature_scheme'),
+
+  /// Invalid key type
+  invalidKeyType(code: 'invalid_key_type'),
+
   /// An unknown error has occurred.
   other(code: 'other'),
   ;

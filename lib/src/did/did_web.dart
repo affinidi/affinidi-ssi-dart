@@ -5,12 +5,12 @@ import '../exceptions/ssi_exception_type.dart';
 import 'did_document.dart';
 
 Uri didWebToUri(String didWeb) {
-  var did = didWeb.replaceFirst('did:web:', '');
+  String did = didWeb.replaceFirst('did:web:', '');
   did = did.replaceAll(':', '/');
   did = did.replaceAll('%3A', ':');
   did = did.replaceAll('%2B', '/');
   did = 'https://$did';
-  var asUri = Uri.parse(did);
+  final asUri = Uri.parse(did);
   if (asUri.hasEmptyPath) {
     did = '$did/.well-known';
   }
@@ -40,7 +40,7 @@ class DidWeb {
       return DidDocument.fromJson(res.body);
     } else {
       throw SsiException(
-        message: 'Cant\'t fetch did-document for $didToResolve',
+        message: 'Failed to fetch DID Web document for $didToResolve',
         code: SsiExceptionType.invalidDidWeb.code,
       );
     }

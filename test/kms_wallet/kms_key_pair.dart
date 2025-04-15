@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
+import 'package:ssi/src/exceptions/ssi_exception.dart';
+import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 
 import 'package:ssi/src/types.dart';
 import 'package:ssi/src/key_pair/key_pair.dart';
@@ -12,7 +14,10 @@ const _signatureSchemeToKmsAlgorithm = {
 
 kms.SigningAlgorithmSpec signingAlgorithmForScheme(SignatureScheme scheme) {
   return _signatureSchemeToKmsAlgorithm[scheme] ??
-      (throw UnsupportedError('Unsupported signature scheme: $scheme'));
+      (throw SsiException(
+        message: 'Unsupported signature scheme: $scheme',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      ));
 }
 
 class KmsKeyPair implements KeyPair {
@@ -44,8 +49,11 @@ class KmsKeyPair implements KeyPair {
     signatureScheme ??= SignatureScheme.rsa_pkcs1_sha256;
 
     if (signatureScheme != SignatureScheme.rsa_pkcs1_sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only RSA is supported with SHA256");
+      throw SsiException(
+        message:
+            "Unsupported signature scheme. Currently only RSA is supported with SHA256",
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
     }
 
     final response = await kmsClient.sign(
@@ -61,11 +69,6 @@ class KmsKeyPair implements KeyPair {
   Future<bool> verify(Uint8List data, Uint8List signature,
       {SignatureScheme? signatureScheme}) async {
     signatureScheme ??= SignatureScheme.rsa_pkcs1_sha256;
-
-    if (signatureScheme != SignatureScheme.rsa_pkcs1_sha256) {
-      throw ArgumentError(
-          "Unsupported signature scheme. Currently only RSA is supported with SHA256");
-    }
 
     try {
       final response = await kmsClient.verify(

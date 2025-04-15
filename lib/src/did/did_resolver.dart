@@ -33,11 +33,11 @@ Future<DidDocument> resolveDidDocument(
       );
     }
     try {
-      var res = await http
+      final res = await http
           .get(Uri.parse('$resolverAddress/1.0/identifiers/$did'))
           .timeout(Duration(seconds: 30));
       if (res.statusCode == 200) {
-        var didResolution = jsonDecode(res.body);
+        final didResolution = jsonDecode(res.body);
         return DidDocument.fromJson(didResolution['didDocument']);
       } else {
         throw SsiException(
@@ -45,10 +45,14 @@ Future<DidDocument> resolveDidDocument(
           code: SsiExceptionType.unableToResolveDid.code,
         );
       }
-    } catch (e) {
-      throw SsiException(
-        message: 'Something went wrong during resolving: $e',
-        code: SsiExceptionType.unableToResolveDid.code,
+    } catch (e, stackTrace) {
+      Error.throwWithStackTrace(
+        SsiException(
+          message: 'Failed to resolve DID: $did',
+          code: SsiExceptionType.unableToResolveDid.code,
+          originalMessage: e.toString(),
+        ),
+        stackTrace,
       );
     }
   }
