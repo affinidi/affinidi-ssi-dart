@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
