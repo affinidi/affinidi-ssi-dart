@@ -63,9 +63,8 @@ class P256KeyPair implements KeyPair {
     signatureScheme ??= SignatureScheme.ecdsa_p256_sha256;
     if (signatureScheme != SignatureScheme.ecdsa_p256_sha256) {
       throw SsiException(
-        message:
-            "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256",
-        code: SsiExceptionType.other.code,
+        message: "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256",
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
     final digest = DigestUtils.getDigest(
@@ -85,9 +84,8 @@ class P256KeyPair implements KeyPair {
     signatureScheme ??= SignatureScheme.ecdsa_p256_sha256;
     if (signatureScheme != SignatureScheme.ecdsa_p256_sha256) {
       throw SsiException(
-        message:
-            "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256",
-        code: SsiExceptionType.other.code,
+        message: "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256",
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
     final digest = DigestUtils.getDigest(
@@ -100,8 +98,7 @@ class P256KeyPair implements KeyPair {
   }
 
   @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      [SignatureScheme.ecdsa_p256_sha256];
+  List<SignatureScheme> get supportedSignatureSchemes => [SignatureScheme.ecdsa_p256_sha256];
 
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
     final publicKeyObj = _p256.compressedHexToPublicKey(hex.encode(publicKey));

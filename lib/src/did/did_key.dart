@@ -29,8 +29,7 @@ Future<DidDocument> _buildEDDoc(
   );
   if (!multiCodecXKey.startsWith('6LS')) {
     throw SsiException(
-      message:
-          'Something went wrong during conversion from Ed25515 to curve25519 key',
+      message: 'Something went wrong during conversion from Ed25515 to curve25519 key',
       code: SsiExceptionType.invalidDidKey.code,
     );
   }
@@ -144,10 +143,7 @@ class DidKey {
     "https://w3id.org/security/suites/x25519-2020/v1"
   ];
 
-  static const _context2 = [
-    "https://www.w3.org/ns/did/v1",
-    'https://ns.did.ai/suites/multikey-2021/v1/'
-  ];
+  static const _context2 = ["https://www.w3.org/ns/did/v1", 'https://ns.did.ai/suites/multikey-2021/v1/'];
 
   static Future<DidDocument> create(KeyPair keyPair) async {
     final keyType = await keyPair.publicKeyType;
@@ -188,22 +184,8 @@ class DidKey {
       );
     }
 
-    String keyPart = splited[2];
-    final multibaseIndicator = keyPart[0];
-    keyPart = keyPart.substring(1);
-
-    final context = [
-      "https://www.w3.org/ns/did/v1",
-      "https://w3id.org/security/suites/ed25519-2020/v1",
-      "https://w3id.org/security/suites/x25519-2020/v1"
-    ];
-
-    final context2 = [
-      "https://www.w3.org/ns/did/v1",
-      'https://ns.did.ai/suites/multikey-2021/v1/'
-    ];
-
-    final id = did;
+    String multibase = splited[2];
+    final multibaseIndicator = multibase[0];
 
     if (multibaseIndicator != 'z') {
       throw SsiException(
@@ -229,11 +211,10 @@ class DidKey {
     } else if (keyPart.startsWith('82')) {
       return _buildOtherDoc(_context2, id, keyPart, 'P384Key2021');
     } else if (keyPart.startsWith('2J9')) {
-      return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
+      return _buildOtherDoc(_context2, id, keyPart, 'P521Key2021');
     }
     throw SsiException(
-      message:
-          'Unsupported key type. Only Ed25519 and X25519 are fully supported.',
+      message: 'Unsupported key type. Only Ed25519 and X25519 are fully supported.',
       code: SsiExceptionType.invalidDidKey.code,
     );
   }

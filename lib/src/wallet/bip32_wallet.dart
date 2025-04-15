@@ -22,6 +22,8 @@ class Bip32Wallet implements Wallet {
 
   /// The map of key identifiers to key pairs.
   final Map<String, Secp256k1KeyPair> _keyMap;
+
+  /// The BIP32 node of the root key pair.
   final BIP32 _rootNode;
 
   /// Creates a new [Bip32Wallet] instance with the given BIP32 node.
@@ -88,8 +90,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
   }) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.sign(data,
-        signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256);
+    return keyPair.sign(data, signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256);
   }
 
   /// Verifies a signature using the specified key.
@@ -143,10 +144,8 @@ class Bip32Wallet implements Wallet {
     }
     final (accountNumber, accountKeyId) = _validateKeyId(keyId);
 
-    final derivationPath =
-        _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
-    var node = Secp256k1KeyPair(
-        node: _rootNode.derivePath(derivationPath), keyId: keyId);
+    final derivationPath = _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
+    var node = Secp256k1KeyPair(node: _rootNode.derivePath(derivationPath), keyId: keyId);
     _keyMap[keyId] = node;
 
     return Future.value(node);
@@ -227,8 +226,7 @@ class Bip32Wallet implements Wallet {
   /// [accountKeyId] - The account key ID.
   ///
   /// Returns the complete derivation path.
-  static String _buildDerivationPath(
-      String baseDerivationPath, int accountNumber, int accountKeyId) {
+  static String _buildDerivationPath(String baseDerivationPath, int accountNumber, int accountKeyId) {
     List<String> parts = baseDerivationPath.split('/');
     parts[3] = "$accountNumber'";
     parts[5] = "$accountKeyId";
