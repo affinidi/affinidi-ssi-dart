@@ -9,7 +9,7 @@ void main() {
   final seed = Uint8List.fromList(List.generate(32, (index) => index + 1));
   final dataToSign = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
 
-  group('Bip32Ed25519Wallet Tests', () {
+  group('Bip32Ed25519Wallet', () {
     late Bip32Ed25519Wallet wallet;
 
     setUp(() async {
@@ -24,7 +24,7 @@ void main() {
     });
 
     test('createKeyPair should derive a new Ed25519 key pair', () async {
-      const newKeyId = '1-1';
+      const newKeyId = '1-0';
       expect(await wallet.hasKey(newKeyId), isFalse);
 
       final newKeyPair = await wallet.createKeyPair(newKeyId);
@@ -38,9 +38,10 @@ void main() {
       expect(await sameKeyPair.id, await newKeyPair.id);
     });
 
-     test('createKeyPair should throw for unsupported key type', () async {
+    test('createKeyPair should throw for unsupported key type', () async {
       expect(
-        () async => await wallet.createKeyPair('2-1', keyType: KeyType.secp256k1),
+        () async =>
+            await wallet.createKeyPair('2-1', keyType: KeyType.secp256k1),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
@@ -58,7 +59,7 @@ void main() {
           SsiExceptionType.other.code, // Based on current implementation
         )),
       );
-       expect(
+      expect(
         () async => await wallet.createKeyPair('1'),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
@@ -66,7 +67,7 @@ void main() {
           SsiExceptionType.other.code, // Based on current implementation
         )),
       );
-       expect(
+      expect(
         () async => await wallet.createKeyPair('1-'),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
@@ -75,7 +76,6 @@ void main() {
         )),
       );
     });
-
 
     test('getKeyPair should retrieve existing key pairs', () async {
       const derivedKeyId = '1-2';
@@ -94,7 +94,8 @@ void main() {
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType.keyPairMissingPrivateKey.code, // Based on implementation
+          SsiExceptionType
+              .keyPairMissingPrivateKey.code, // Based on implementation
         )),
       );
     });
@@ -109,13 +110,14 @@ void main() {
       expect(retrievedPubKey.length, 32); // Ed25519 public key size
     });
 
-     test('getPublicKey should throw for non-existent keyId', () async {
+    test('getPublicKey should throw for non-existent keyId', () async {
       expect(
         () async => await wallet.getPublicKey('99-98'),
-         throwsA(isA<SsiException>().having(
+        throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType.keyPairMissingPrivateKey.code, // Based on implementation
+          SsiExceptionType
+              .keyPairMissingPrivateKey.code, // Based on implementation
         )),
       );
     });
@@ -125,47 +127,71 @@ void main() {
       await wallet.createKeyPair(derivedKeyId);
 
       // Sign with root key
-      final rootSignature = await wallet.sign(dataToSign, keyId: Bip32Ed25519Wallet.rootKeyId);
-      expect(await wallet.verify(dataToSign, signature: rootSignature, keyId: Bip32Ed25519Wallet.rootKeyId), isTrue);
+      final rootSignature =
+          await wallet.sign(dataToSign, keyId: Bip32Ed25519Wallet.rootKeyId);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: rootSignature, keyId: Bip32Ed25519Wallet.rootKeyId),
+          isTrue);
 
       // Sign with derived key
-      final derivedSignature = await wallet.sign(dataToSign, keyId: derivedKeyId);
-      expect(await wallet.verify(dataToSign, signature: derivedSignature, keyId: derivedKeyId), isTrue);
+      final derivedSignature =
+          await wallet.sign(dataToSign, keyId: derivedKeyId);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: derivedSignature, keyId: derivedKeyId),
+          isTrue);
 
       // Verification should fail with wrong key
-      expect(await wallet.verify(dataToSign, signature: rootSignature, keyId: derivedKeyId), isFalse);
-      expect(await wallet.verify(dataToSign, signature: derivedSignature, keyId: Bip32Ed25519Wallet.rootKeyId), isFalse);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: rootSignature, keyId: derivedKeyId),
+          isFalse);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: derivedSignature, keyId: Bip32Ed25519Wallet.rootKeyId),
+          isFalse);
 
       // Verification should fail with tampered data
-      final tamperedData = Uint8List.fromList(dataToSign)..add(10);
-      expect(await wallet.verify(tamperedData, signature: derivedSignature, keyId: derivedKeyId), isFalse);
+      final tamperedData = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      expect(
+          await wallet.verify(tamperedData,
+              signature: derivedSignature, keyId: derivedKeyId),
+          isFalse);
 
       // Verification should fail with tampered signature
       final tamperedSignature = Uint8List.fromList(derivedSignature);
       tamperedSignature[0] = tamperedSignature[0] ^ 0xFF; // Flip first byte
-      expect(await wallet.verify(dataToSign, signature: tamperedSignature, keyId: derivedKeyId), isFalse);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: tamperedSignature, keyId: derivedKeyId),
+          isFalse);
     });
 
-     test('sign should throw for non-existent keyId', () async {
+    test('sign should throw for non-existent keyId', () async {
       expect(
         () async => await wallet.sign(dataToSign, keyId: '99-97'),
-         throwsA(isA<SsiException>().having(
+        throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType.keyPairMissingPrivateKey.code, // Based on implementation
+          SsiExceptionType
+              .keyPairMissingPrivateKey.code, // Based on implementation
         )),
       );
     });
 
-     test('verify should throw for non-existent keyId', () async {
-       // Need a valid signature first
-       final rootSignature = await wallet.sign(dataToSign, keyId: Bip32Ed25519Wallet.rootKeyId);
+    test('verify should throw for non-existent keyId', () async {
+      // Need a valid signature first
+      final rootSignature =
+          await wallet.sign(dataToSign, keyId: Bip32Ed25519Wallet.rootKeyId);
       expect(
-        () async => await wallet.verify(dataToSign, signature: rootSignature, keyId: '99-96'),
-         throwsA(isA<SsiException>().having(
+        () async => await wallet.verify(dataToSign,
+            signature: rootSignature, keyId: '99-96'),
+        throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType.keyPairMissingPrivateKey.code, // Based on implementation
+          SsiExceptionType
+              .keyPairMissingPrivateKey.code, // Based on implementation
         )),
       );
     });
@@ -177,7 +203,7 @@ void main() {
       expect(await wallet.hasKey('5-5'), isTrue);
     });
 
-     test('Derived keys should be consistent', () async {
+    test('Derived keys should be consistent', () async {
       const keyId = '4-2';
       final keyPair1 = await wallet.createKeyPair(keyId);
       final pubKey1 = await keyPair1.publicKey;
@@ -190,7 +216,7 @@ void main() {
       expect(pubKey1, equals(pubKey2));
     });
 
-     test('Different derivation paths should produce different keys', () async {
+    test('Different derivation paths should produce different keys', () async {
       const keyId1 = '6-1';
       const keyId2 = '6-2'; // Same account, different key index
       const keyId3 = '7-1'; // Different account
