@@ -12,7 +12,7 @@ void main() {
 
   final accountNumber = 24567;
 
-  group('Test DID', () {
+  group('did:key with BIP32', () {
     test('the main did key should match to the expected value', () async {
       final expectedDid =
           'did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2';
@@ -21,7 +21,7 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidKey.create([keyPair]);
+      final doc = await DidKey.create(keyPair);
       final actualDid = doc.id;
       final actualKeyType = await keyPair.publicKeyType;
 
@@ -41,7 +41,7 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
       final keyPair = await wallet.createKeyPair(derivedKeyId);
-      final doc = await DidKey.create([keyPair]);
+      final doc = await DidKey.create(keyPair);
       final actualDid = doc.id;
 
       expect(actualDid, startsWith(expectedDidKeyPrefix));
@@ -55,7 +55,7 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidKey.create([keyPair]);
+      final doc = await DidKey.create(keyPair);
       final actualDid = doc.id;
       final actualKeyType = await keyPair.publicKeyType;
 
@@ -105,10 +105,27 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final rootKeyId = "0-0";
       final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidKey.create([keyPair]);
+      final doc = await DidKey.create(keyPair);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
+    });
+  });
+
+  group('did:key with P256', () {
+    test('generated did document is as expected', () async {
+      final p256key = P256KeyPair.create(keyId: "123");
+      final prefix = [128, 36];
+      final expectedId =
+          'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + await p256key.publicKey))}';
+      final expectedDid = await DidKey.resolve(expectedId);
+      final expectedDidJson = expectedDid.toJson();
+      final actualDid = await DidKey.create(p256key);
+      final actualDidJson = actualDid.toJson();
+      expect(actualDidJson, expectedDidJson);
+      expect(actualDid.id.startsWith('did:key:zDn'), isTrue);
+      expect(actualDid.verificationMethod.length, 1);
+      expect(actualDid.verificationMethod[0].type, 'P256Key2021');
     });
   });
 }

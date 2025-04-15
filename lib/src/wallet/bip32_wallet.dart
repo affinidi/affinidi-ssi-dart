@@ -23,11 +23,15 @@ class Bip32Wallet implements Wallet {
   /// The map of key identifiers to key pairs.
   final Map<String, Secp256k1KeyPair> _keyMap;
 
+  /// The BIP32 node of the root key pair.
+  final BIP32 _rootNode;
+
   /// Creates a new [Bip32Wallet] instance with the given BIP32 node.
   ///
   /// [node] - The BIP32 node to use as the root node.
   Bip32Wallet._(BIP32 node)
-      : _keyMap = {rootKeyId: Secp256k1KeyPair(node: node, keyId: rootKeyId)};
+      : _keyMap = {rootKeyId: Secp256k1KeyPair(node: node, keyId: rootKeyId)},
+        _rootNode = node;
 
   /// Creates a new [Bip32Wallet] instance from a seed.
   ///
@@ -143,9 +147,8 @@ class Bip32Wallet implements Wallet {
 
     final derivationPath =
         _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
-    final rootNode = _keyMap[rootKeyId]!.getBip32Node();
-    final node = Secp256k1KeyPair(
-        node: rootNode.derivePath(derivationPath), keyId: keyId);
+    var node = Secp256k1KeyPair(
+        node: _rootNode.derivePath(derivationPath), keyId: keyId);
     _keyMap[keyId] = node;
 
     return Future.value(node);
