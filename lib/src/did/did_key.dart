@@ -1,12 +1,24 @@
 import 'package:base_codecs/base_codecs.dart';
+import 'public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../utility.dart';
 import 'did_document.dart';
-import 'public_key_utils.dart';
 
+/// Builds a DID document for Ed25519 keys.
+///
+/// This function creates a DID document with both verification and key agreement methods
+/// by converting the Ed25519 public key to an X25519 key.
+///
+/// [context] - The context list for the DID document
+/// [id] - The DID identifier
+/// [keyPart] - The key part of the DID
+///
+/// Returns a [DidDocument]
+///
+/// Throws [SsiException] if the conversion fails.
 Future<DidDocument> _buildEDDoc(
   List<String> context,
   String id,
@@ -52,6 +64,16 @@ Future<DidDocument> _buildEDDoc(
   );
 }
 
+/// Builds a DID document for X25519 keys.
+///
+/// This function creates a DID document with a key agreement method
+/// for X25519 keys.
+///
+/// [context] - The context list for the DID document
+/// [id] - The DID identifier
+/// [keyPart] - The key part of the DID
+///
+/// Returns a [DidDocument].
 Future<DidDocument> _buildXDoc(
   List<String> context,
   String id,
@@ -64,7 +86,6 @@ Future<DidDocument> _buildXDoc(
     type: 'X25519KeyAgreementKey2020',
     publicKeyMultibase: 'z$keyPart',
   );
-
   return Future.value(
     DidDocument(
       context: context,
@@ -75,6 +96,17 @@ Future<DidDocument> _buildXDoc(
   );
 }
 
+/// Builds a DID document for other key types.
+///
+/// This function creates a DID document with a verification method
+/// for various key types like P256, Secp256k1, etc.
+///
+/// [context] - The context list for the DID document
+/// [id] - The DID identifier
+/// [keyPart] - The key part of the DID
+/// [type] - The key type
+///
+/// Returns a [DidDocument].
 Future<DidDocument> _buildOtherDoc(
   List<String> context,
   String id,
@@ -88,7 +120,6 @@ Future<DidDocument> _buildOtherDoc(
     type: type,
     publicKeyMultibase: 'z$keyPart',
   );
-
   return Future.value(
     DidDocument(
       context: context,
@@ -103,7 +134,20 @@ Future<DidDocument> _buildOtherDoc(
   );
 }
 
+/// A utility class for working with the "did:key" method.
+///
+/// This class provides methods to create and resolve DIDs using the "did:key" method.
 class DidKey {
+  /// Creates a DID document from a list of key pairs.
+  ///
+  /// This method takes a list of key pairs and creates a DID document using the
+  /// first key pair in the list.
+  ///
+  /// [keyPairs] A list of key pairs, where the first one will be used to create the DID
+  ///
+  /// Returns a [DidDocument].
+  ///
+  /// Throws [SsiException] if the key pair is invalid
   static Future<DidDocument> create(List<KeyPair> keyPairs) async {
     if (keyPairs.isEmpty) {
       throw SsiException(
@@ -111,7 +155,6 @@ class DidKey {
         code: SsiExceptionType.invalidDidKey.code,
       );
     }
-
     final keyPair = keyPairs[0];
     final keyType = await keyPair.publicKeyType;
     final publicKey = await keyPair.publicKey;
@@ -138,6 +181,21 @@ class DidKey {
     );
   }
 
+  /// Resolves a DID string to a DID document.
+  ///
+  /// Supports the following key types:
+  /// - Ed25519
+  /// - X25519
+  /// - P256
+  /// - Secp256k1
+  /// - P384
+  /// - P521
+  ///
+  /// [did] - The DID string to resolve
+  ///
+  /// Returns a [DidDocument]
+  ///
+  /// Throws [SsiException] if the Did is invalid.
   static Future<DidDocument> resolve(String did) {
     if (!did.startsWith('did:key')) {
       throw SsiException(
@@ -145,11 +203,10 @@ class DidKey {
         code: SsiExceptionType.invalidDidKey.code,
       );
     }
-
     final splited = did.split(':');
     if (splited.length != 3) {
       throw SsiException(
-        message: 'Malformed DID: `$did`',
+        message: 'malformed DID: `$did`',
         code: SsiExceptionType.invalidDidKey.code,
       );
     }
@@ -157,13 +214,6 @@ class DidKey {
     String keyPart = splited[2];
     final multibaseIndicator = keyPart[0];
     keyPart = keyPart.substring(1);
-
-    if (multibaseIndicator != 'z') {
-      throw SsiException(
-        message: 'Only base58 (multibase `z`) encoding is supported.',
-        code: SsiExceptionType.invalidDidKey.code,
-      );
-    }
 
     final context = [
       "https://www.w3.org/ns/did/v1",
@@ -178,6 +228,13 @@ class DidKey {
 
     final id = did;
 
+    if (multibaseIndicator != 'z') {
+      throw SsiException(
+        message: 'Only base58 (multibase `z`) encoding is supported.',
+        code: SsiExceptionType.invalidDidKey.code,
+      );
+    }
+
     if (keyPart.startsWith('6Mk')) {
       return _buildEDDoc(context, id, keyPart);
     } else if (keyPart.startsWith('6LS')) {
@@ -190,15 +247,13 @@ class DidKey {
       return _buildOtherDoc(context2, id, keyPart, 'P384Key2021');
     } else if (keyPart.startsWith('2J9')) {
       return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
-    } else {
-      throw SsiException(
-        message:
-            'Unsupported key type. Only Ed25519 and X25519 are fully supported.',
-        code: SsiExceptionType.invalidDidKey.code,
-      );
     }
+    throw SsiException(
+      message:
+          'Unsupported key type. Only Ed25519 and X25519 are fully supported.',
+      code: SsiExceptionType.invalidDidKey.code,
+    );
   }
 
-  /// The common prefix for all "did:key" DIDs.
   static const commonDidKeyPrefix = 'did:key:';
 }

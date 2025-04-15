@@ -4,6 +4,7 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import 'did_document.dart';
 
+/// Converts a `did:web` identifier into a [Uri] pointing to its DID document.
 Uri didWebToUri(String didWeb) {
   String did = didWeb.replaceFirst('did:web:', '');
   did = did.replaceAll(':', '/');
@@ -19,7 +20,13 @@ Uri didWebToUri(String didWeb) {
   return Uri.parse(did);
 }
 
+/// A utility class for working with the "did:peer" method.
 class DidWeb {
+  /// Resolves a [DidDocument] for a given DID.
+  ///
+  /// [didToResolve] - The DID to resolve.
+  ///
+  /// Returns a [DidDocument] object.
   static Future<DidDocument> resolve(
     String didToResolve,
   ) async {
