@@ -6,12 +6,14 @@ import '../linked_data/ld_dm_v2_suite.dart';
 import '../linked_data/ld_vc_data_model_v1.dart';
 import '../linked_data/ld_vc_data_model_v2.dart';
 import '../models/parsed_vc.dart';
+import '../sdjwt/enveloped_vc_suite.dart';
 import '../sdjwt/sdjwt_dm_v2_suite.dart';
 import 'vc_suite.dart';
 
 /// Place to store all supported VcSuites
 class VcSuites {
   static final suites = <VerifiableCredentialSuite>[
+    EnvelopedVcDm2Suite(),
     LdVcDm1Suite(),
     LdVcDm2Suite(),
     JwtDm1Suite(),

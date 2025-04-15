@@ -32,4 +32,6 @@ abstract interface class VerifiableCredentialSuite<
     DidSigner signer, {
     Options? options,
   });
+
+  dynamic present(ParsedVC input);
 }

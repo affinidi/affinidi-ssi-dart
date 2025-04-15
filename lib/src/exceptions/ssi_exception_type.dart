@@ -42,6 +42,9 @@ enum SsiExceptionType {
   /// Unsupported signature scheme
   unsupportedSignatureScheme(code: 'unsupported_signature_scheme'),
 
+  /// Unsupported signature scheme
+  unsupportedEnvelopeVCOperation(code: 'unsupported_enveloped_vc_operation'),
+
   /// Invalid key type
   invalidKeyType(code: 'invalid_key_type'),
 

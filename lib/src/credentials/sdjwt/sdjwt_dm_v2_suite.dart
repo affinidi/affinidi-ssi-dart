@@ -8,6 +8,7 @@ import '../models/v2/vc_data_model_v2.dart';
 import '../models/v2/vc_data_model_v2_view.dart';
 import '../parsers/sdjwt_parser.dart';
 import '../suites/vc_suite.dart';
+import 'enveloped_vc_suite.dart';
 import 'sdjwt_did_verfier.dart';
 
 /// Options for SD-JWT Data Model v2 operations.
@@ -78,6 +79,10 @@ final class SdJwtDm2Suite
 
     return isVerified!;
   }
+
+  @override
+  String present(SdJwtDataModelV2 input) =>
+      EnvelopedVcDm2Suite().present(input);
 }
 
 abstract interface class SdJwtDataModelV2

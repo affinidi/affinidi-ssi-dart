@@ -112,4 +112,9 @@ final class JwtDm1Suite
 
     return verifier.verify(toSign, base64UrlNoPadDecode(encodedSignature));
   }
+
+  @override
+  String present(JwtVcDataModelV1 input) {
+    return input.serialized;
+  }
 }

@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
 import '../../../models/parsed_vc.dart';
+import '../../../suites/vc_suites.dart';
 import 'vp_data_model_v2_view.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v2.0.
@@ -93,7 +94,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
 
     if (verifiableCredential.isNotEmpty) {
       json['verifiableCredential'] =
-          verifiableCredential.map((vc) => vc.toJson()).toList();
+          verifiableCredential.map(presentVC).toList();
     }
 
     if (proof.isNotEmpty) {
@@ -155,4 +156,9 @@ ParsedVerifiableCredential parseVC(dynamic e) {
   }
 
   return UniversalParser.parse(encoded);
+}
+
+dynamic presentVC(ParsedVerifiableCredential credential) {
+  final suite = VcSuites.getVcSuite(credential);
+  return suite.present(credential);
 }
