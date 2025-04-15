@@ -149,6 +149,31 @@ void main() {
   ]);
 
   group('Test key pair encrypt decrypt', () {
+    test('p256 without pub key', () async {
+      P256KeyPair p256Key = P256KeyPair.create(keyId: keyId);
+      // Encrypt with ephemeral key
+      var encrypted = await p256Key.encrypt(data);
+      // Decrypt the message
+      var decrypted = await p256Key.decrypt(encrypted);
+
+      expect(decrypted, data);
+    });
+
+    test('p256 with pub key parameter', () async {
+      P256KeyPair p256KeyAlice = P256KeyPair.create(keyId: keyId);
+      P256KeyPair p256KeyBob = P256KeyPair.create(keyId: keyId);
+
+      var bobPubKey = await p256KeyBob.publicKey;
+      var encryptedByAlice = await p256KeyAlice.encrypt(data,
+          publicKey: bobPubKey);
+
+      var alicePubKey = await p256KeyAlice.publicKey;
+      var decryptedByBob = await p256KeyBob.decrypt(encryptedByAlice,
+          publicKey: alicePubKey);
+
+      expect(decryptedByBob, data);
+    });
+
     test('ed25519 without pub key', () async {
       Ed25519KeyPair edKey = Ed25519KeyPair(
           privateKey: ed.newKeyFromSeed(edSeedAlice), keyId: keyId);
