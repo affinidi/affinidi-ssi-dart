@@ -21,7 +21,20 @@ enum SignatureScheme {
   final HashingAlgorithm hashingAlgorithm;
 
   const SignatureScheme(
-      this.jwtName, this.w3cName, this.keyType, this.hashingAlgorithm);
+    this.jwtName,
+    this.w3cName,
+    this.keyType,
+    this.hashingAlgorithm,
+  );
+
+  factory SignatureScheme.fromString(String value) =>
+      SignatureScheme.values.firstWhere(
+        (sigSch) =>
+            sigSch.name.toLowerCase() == value.toLowerCase() ||
+            sigSch.jwtName?.toLowerCase() == value.toLowerCase() ||
+            sigSch.w3cName?.toLowerCase() == value.toLowerCase(),
+        orElse: () => throw ArgumentError('Invalid algorithm: $value'),
+      );
 }
 
 enum DidPeerType { peer0, peer2 }
