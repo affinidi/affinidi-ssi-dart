@@ -137,6 +137,8 @@ Future<DidDocument> _buildOtherDoc(
 ///
 /// This class provides methods to create and resolve DIDs using the "did:key" method.
 class DidKey {
+  /// Creates a DID document from a list of key pairs.
+
   static const _context = [
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/ed25519-2020/v1",
@@ -145,12 +147,21 @@ class DidKey {
 
   static const _context2 = ["https://www.w3.org/ns/did/v1", 'https://ns.did.ai/suites/multikey-2021/v1/'];
 
+  /// This method takes a list of key pairs and creates a DID document using the
+  /// first key pair in the list.
+  ///
+  /// [keyPairs] A list of key pairs, where the first one will be used to create the DID
+  ///
+  /// Returns a [DidDocument].
+  ///
+  /// Throws [SsiException] if the key pair is invalid
   static Future<DidDocument> create(KeyPair keyPair) async {
     final keyType = await keyPair.publicKeyType;
     final publicKey = await keyPair.publicKey;
     final multiKey = toMultikey(publicKey, keyType);
     final multibase = toMultiBase(multiKey);
     final did = '$commonDidKeyPrefix$multibase';
+    // FIXME(FTL-20741) double check the doc
     return _buildDoc(multibase, did);
   }
 
@@ -194,7 +205,6 @@ class DidKey {
       );
     }
 
-    // FIXME(FTL-20741) double check the doc
     return _buildDoc(multibase, did);
   }
 
