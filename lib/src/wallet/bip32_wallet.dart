@@ -2,12 +2,12 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:bip32/bip32.dart';
-import 'package:ssi/src/wallet/key_store/key_store_interface.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
+import 'key_store/key_store_interface.dart';
 import 'wallet.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with secp256k1 keys.
