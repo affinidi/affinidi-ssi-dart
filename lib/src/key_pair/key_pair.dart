@@ -13,6 +13,12 @@ abstract interface class KeyPair {
   /// Returns the public key as a [Uint8List].
   Future<Uint8List> get publicKey;
 
+  /// Returns the public key as a hex [String].
+  Future<String> get publicKeyHex;
+
+  /// Returns the private key as a hex [String].
+  Future<String> get privateKeyHex;
+
   /// Returns the type of the public key.
   Future<KeyType> get publicKeyType;
 

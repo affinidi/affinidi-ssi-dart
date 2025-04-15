@@ -45,9 +45,30 @@ class P256KeyPair implements KeyPair {
     );
   }
 
+  /// Creates a [P256KeyPair] instance from a private key hex string.
+  ///
+  /// [keyId] - The identifier for the key pair.
+  /// [privateKeyHex] - The private key encoded as a hex string.
+  factory P256KeyPair.fromPrivateKeyHex({
+    required String keyId,
+    required String privateKeyHex,
+  }) {
+    final p256 = getP256();
+    final privateKey = PrivateKey.fromHex(p256, privateKeyHex);
+    return P256KeyPair._(
+      p256: p256,
+      privateKey: privateKey,
+      keyId: keyId,
+    );
+  }
+
   /// Returns the identifier of the key pair.
   @override
   Future<String> get id => Future.value(_keyId);
+
+  /// Returns the type of the public key.
+  @override
+  Future<KeyType> get publicKeyType => Future.value(KeyType.p256);
 
   /// Retrieves the public key in compressed format.
   ///
@@ -55,19 +76,27 @@ class P256KeyPair implements KeyPair {
   @override
   Future<Uint8List> get publicKey async {
     if (_publicKeyBytes == null) {
-      final bytes = hex.decode(await _publicKeyHex);
+      final bytes = hex.decode(await publicKeyHex);
       _publicKeyBytes = Uint8List.fromList(bytes);
     }
     return Future.value(_publicKeyBytes!);
   }
 
-  Future<String> get _publicKeyHex {
+  /// Retrieves the public key in compressed hex format.
+  ///
+  /// Returns the key as a [String].
+  @override
+  Future<String> get publicKeyHex {
     return Future.value(_privateKey.publicKey.toCompressedHex());
   }
 
-  /// Returns the type of the public key.
+  /// Retrieves the private key in hex format.
+  ///
+  /// Returns the key as a [String].
   @override
-  Future<KeyType> get publicKeyType => Future.value(KeyType.p256);
+  Future<String> get privateKeyHex {
+    return Future.value(_privateKey.toHex());
+  }
 
   /// Signs the provided data using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
   ///

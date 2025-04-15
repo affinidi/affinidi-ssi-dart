@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:base_codecs/base_codecs.dart';
 import 'package:bip32/bip32.dart';
 
 import '../digest_utils.dart';
@@ -29,8 +30,13 @@ class Secp256k1KeyPair implements KeyPair {
   })  : _node = node,
         _keyId = keyId;
 
+  /// Returns the identifier of the key pair.
   @override
   Future<String> get id => Future.value(_keyId);
+
+  /// Returns the type of the public key.
+  @override
+  Future<KeyType> get publicKeyType => Future.value(KeyType.secp256k1);
 
   /// Retrieves the public key.
   ///
@@ -38,8 +44,26 @@ class Secp256k1KeyPair implements KeyPair {
   @override
   Future<Uint8List> get publicKey => Future.value(_node.publicKey);
 
+  /// Retrieves the public key hex encoded.
+  ///
+  /// Returns the key as [String].
   @override
-  Future<KeyType> get publicKeyType => Future.value(KeyType.secp256k1);
+  Future<String> get publicKeyHex => Future.value(hex.encode(_node.publicKey));
+
+  /// Retrieves the private key in hex format.
+  ///
+  /// Returns the key as a [String].
+  @override
+  Future<String> get privateKeyHex {
+    final privateKey = _node.privateKey;
+    if (privateKey == null) {
+      throw SsiException(
+        message: 'Private key missing.',
+        code: SsiExceptionType.keyPairMissingPrivateKey.code,
+      );
+    }
+    return Future.value(hex.encode(privateKey));
+  }
 
   /// Signs the provided data using secp256k1.
   ///

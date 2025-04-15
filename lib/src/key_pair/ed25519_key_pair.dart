@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:base_codecs/base_codecs.dart';
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 
 import '../digest_utils.dart';
@@ -17,18 +18,22 @@ class Ed25519KeyPair implements KeyPair {
   final String _keyId;
 
   /// The private key.
-  final dynamic _privateKey;
+  final ed.PrivateKey _privateKey;
 
   /// Constructs an [Ed25519KeyPair] from a [privateKey] and its associated [keyId].
   Ed25519KeyPair({
-    required dynamic privateKey,
+    required Uint8List privateKey,
     required String keyId,
-  })  : _privateKey = privateKey,
+  })  : _privateKey = ed.PrivateKey(privateKey),
         _keyId = keyId;
 
   /// Returns the identifier of this key pair.
   @override
   Future<String> get id => Future.value(_keyId);
+
+  /// Returns the type of the public key.
+  @override
+  Future<KeyType> get publicKeyType => Future.value(KeyType.ed25519);
 
   /// Retrieves the public key.
   ///
@@ -40,8 +45,20 @@ class Ed25519KeyPair implements KeyPair {
         ),
       );
 
+  /// Retrieves the public key hex encoded.
+  ///
+  /// Returns the key as [String].
   @override
-  Future<KeyType> get publicKeyType => Future.value(KeyType.ed25519);
+  Future<String> get publicKeyHex async =>
+      Future.value(hex.encode(await publicKey));
+
+  /// Retrieves the private key in hex format.
+  ///
+  /// Returns the key as a [String].
+  @override
+  Future<String> get privateKeyHex {
+    return Future.value(hex.encode(Uint8List.fromList(_privateKey.bytes)));
+  }
 
   /// Signs the provided data using Ed25519.
   ///

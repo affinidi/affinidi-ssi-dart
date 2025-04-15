@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import '../key_pair/p256_key_pair.dart';
@@ -45,9 +46,13 @@ class GenericWallet implements Wallet {
       throw ArgumentError("Key already exists: $keyId");
     }
     if (keyType == KeyType.p256) {
-      final keyPair = Future.value(P256KeyPair.create(keyId: keyId));
-      // TODO: Get value from key pair
-      _keyStore.set(keyId, value);
+      final keyPair = P256KeyPair.create(keyId: keyId);
+      final privateKeyHex = await keyPair.privateKeyHex;
+      final storedData = jsonEncode({
+        'type': KeyType.p256.name,
+        'privateKeyHex': privateKeyHex,
+      });
+      await _keyStore.set(keyId, storedData);
       return keyPair;
     }
     throw ArgumentError("Only p256 key type is supported for GenericWallet");
@@ -56,10 +61,25 @@ class GenericWallet implements Wallet {
   @override
   Future<KeyPair> getKeyPair(String keyId) async {
     final storedKeyPair = await _keyStore.get(keyId);
-    if (storedKeyPair != null) {
+    if (storedKeyPair == null) {
       throw ArgumentError("Key not found: $keyId");
     }
-    // TODO: deserialize key pair
+    final keyData = jsonDecode(storedKeyPair) as Map<String, dynamic>;
+    final keyTypeStr = keyData['type'] as String?;
+    final privateKeyHex = keyData['privateKeyHex'] as String?;
+
+    if (keyTypeStr == null || privateKeyHex == null) {
+      throw ArgumentError("Invalid stored key data for key: $keyId");
+    }
+
+    if (keyTypeStr == KeyType.p256.name) {
+      return P256KeyPair.fromPrivateKeyHex(
+        keyId: keyId,
+        privateKeyHex: privateKeyHex,
+      );
+    }
+
+    throw ArgumentError("Unsupported key type stored for key: $keyId");
   }
 
   @override

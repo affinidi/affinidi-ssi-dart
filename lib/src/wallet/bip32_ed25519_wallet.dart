@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 
 import '../exceptions/ssi_exception.dart';
@@ -33,9 +32,8 @@ class Bip32Ed25519Wallet implements Wallet {
   /// Returns a [Future] that completes with the newly created wallet.
   static Future<Bip32Ed25519Wallet> fromSeed(Uint8List seed) async {
     KeyData master = await ED25519_HD_KEY.getMasterKeyFromSeed(seed);
-    var privateKey = ed.newKeyFromSeed(Uint8List.fromList(master.key));
-    final rootKeyPair =
-        Ed25519KeyPair(privateKey: privateKey, keyId: rootKeyId);
+    final rootKeyPair = Ed25519KeyPair(
+        privateKey: Uint8List.fromList(master.key), keyId: rootKeyId);
     Map<String, Ed25519KeyPair> keyMap = {rootKeyId: rootKeyPair};
     return Bip32Ed25519Wallet._(keyMap);
   }
@@ -125,11 +123,9 @@ class Bip32Ed25519Wallet implements Wallet {
 
     KeyData derived =
         await ED25519_HD_KEY.derivePath(derivationPath, seedBytes.toList());
-    final derivedPrivateKey =
-        ed.newKeyFromSeed(Uint8List.fromList(derived.key));
 
     final keyPair = Ed25519KeyPair(
-      privateKey: derivedPrivateKey,
+      privateKey: Uint8List.fromList(derived.key),
       keyId: keyId,
     );
     _keyMap[keyId] = keyPair;
