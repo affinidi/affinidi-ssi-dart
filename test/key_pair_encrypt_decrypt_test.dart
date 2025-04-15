@@ -113,7 +113,40 @@ void main() {
     64,
     18
   ]);
-  // final Uint8List edSeedBob = Uint8List.fromList([13, 36, 195, 44, 220, 172, 66, 97, 46, 102, 231, 86, 39, 125, 84, 16, 164, 17, 101, 182, 174, 121, 215, 121, 110, 94, 219, 86, 89, 176, 187, 129]);
+  final Uint8List edSeedBob = Uint8List.fromList([
+    13,
+    36,
+    195,
+    44,
+    220,
+    172,
+    66,
+    97,
+    46,
+    102,
+    231,
+    86,
+    39,
+    125,
+    84,
+    16,
+    164,
+    17,
+    101,
+    182,
+    174,
+    121,
+    215,
+    121,
+    110,
+    94,
+    219,
+    86,
+    89,
+    176,
+    187,
+    129
+  ]);
 
   group('Test key pair encrypt decrypt', () {
     test('ed25519', () async {
@@ -127,18 +160,22 @@ void main() {
       expect(decrypted, data);
     });
 
-    // test('ed25519 with pub key parameter', () async {
-    //   Ed25519KeyPair edAlice = Ed25519KeyPair(privateKey: ed.newKeyFromSeed(edSeedAlice), keyId: keyId);
-    //   Ed25519KeyPair edBob = Ed25519KeyPair(privateKey: ed.newKeyFromSeed(edSeedBob), keyId: keyId);
+    test('ed25519 with pub key parameter', () async {
+      Ed25519KeyPair edAlice = Ed25519KeyPair(
+          privateKey: ed.newKeyFromSeed(edSeedAlice), keyId: keyId);
+      Ed25519KeyPair edBob = Ed25519KeyPair(
+          privateKey: ed.newKeyFromSeed(edSeedBob), keyId: keyId);
 
-    //   var bobPubKey = await edBob.publicKey;
-    //   var encryptedByAlice = await edAlice.encrypt(data, publicKey: bobPubKey);
+      var bobPubKey = await edBob.ed25519KeyToX25519PublicKey();
+      var encryptedByAlice = await edAlice.encrypt(data,
+          publicKey: Uint8List.fromList(bobPubKey.bytes));
 
-    //   var alicePubKey = await edAlice.publicKey;
-    //   var decryptedByBob = await edBob.decrypt(encryptedByAlice, publicKey: alicePubKey);
+      var alicePubKey = await edAlice.ed25519KeyToX25519PublicKey();
+      var decryptedByBob = await edBob.decrypt(encryptedByAlice,
+          publicKey: Uint8List.fromList(alicePubKey.bytes));
 
-    //   expect(decryptedByBob, data);
-    // });
+      expect(decryptedByBob, data);
+    });
 
     test('Secp256k1 without pub key', () async {
       Uint8List chainCode = Uint8List(32); // Empty chain code (32 bytes)

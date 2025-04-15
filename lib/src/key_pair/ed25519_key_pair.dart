@@ -103,7 +103,6 @@ class Ed25519KeyPair implements KeyPair {
     return Future.value(Uint8List.fromList(secret));
   }
 
-  // NOTE: using without conversion to and from x25519 https://www.reddit.com/r/crypto/comments/j02krx/using_ed25519_with_ecdh/?rdt=43776
   // @override
   encrypt(Uint8List data, {Uint8List? publicKey}) async {
     final privateKey = _privateKey;
@@ -186,5 +185,13 @@ class Ed25519KeyPair implements KeyPair {
     }
 
     return decryptedData;
+  }
+
+  Future<crypto.SimplePublicKey> ed25519KeyToX25519PublicKey() async {
+    var privateKeyForX25519 =
+        _privateKey.bytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);
+    final algorithm = crypto.X25519();
+    final keyPair = await algorithm.newKeyPairFromSeed(privateKeyForX25519);
+    return await keyPair.extractPublicKey();
   }
 }
