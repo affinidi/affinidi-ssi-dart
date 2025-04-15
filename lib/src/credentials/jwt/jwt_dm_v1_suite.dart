@@ -1,14 +1,16 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/models/v1/vc_data_model_v1_view.dart';
-
 import '../../../ssi.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../util/base64_util.dart';
+import '../models/parsed_vc.dart';
+import '../models/v1/vc_data_model_v1.dart';
+import '../models/v1/vc_data_model_v1_view.dart';
 import '../parsers/jwt_parser.dart';
 import '../suites/vc_suite.dart';
-import 'jwt_data_model_v1.dart';
+
+part 'jwt_data_model_v1.dart';
 
 class JwtOptions {}
 
@@ -40,7 +42,7 @@ final class JwtDm1Suite
     }
 
     final jws = decode(data);
-    return JwtVcDataModelV1.fromJws(jws);
+    return _JwtVcDataModelV1.fromJws(jws);
   }
 
   @override
@@ -49,7 +51,7 @@ final class JwtDm1Suite
     DidSigner signer, {
     JwtOptions? options,
   }) async {
-    final (header, payload) = JwtVcDataModelV1.vcToJwt(vc.toJson(), signer);
+    final (header, payload) = JwtVcDataModelV1.vcToJws(vc.toJson(), signer);
 
     final encodedHeader = base64UrlNoPadEncode(
       utf8.encode(jsonEncode(header)),
@@ -71,7 +73,7 @@ final class JwtDm1Suite
         signature: signature,
         serialized: serialized);
 
-    return JwtVcDataModelV1.fromJws(jws);
+    return _JwtVcDataModelV1.fromJws(jws);
   }
 
   @override
@@ -97,7 +99,7 @@ final class JwtDm1Suite
 
     final toSign = ascii.encode('$encodedHeader.$encodedPayload');
 
-    Uri did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
+    final did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
 
     //TODO(FTL-20735) add discovery
     final algorithm = SignatureScheme.ecdsa_secp256k1_sha256;

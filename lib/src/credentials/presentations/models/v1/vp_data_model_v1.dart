@@ -1,7 +1,9 @@
+import 'dart:convert';
+
+import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
-import '../../../models/v1/vc_data_model_v1.dart';
-import '../../../models/verifiable_credential.dart';
-import '../verifiable_presentation.dart';
+import '../../../models/parsed_vc.dart';
+import 'vp_data_model_v1_view.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v1.1.
 ///
@@ -19,7 +21,7 @@ import '../verifiable_presentation.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class VpDataModelV1 implements VerifiablePresentation {
+class MutableVpDataModelV1 implements VpDataModelV1 {
   static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
 
   /// The JSON-LD context for this presentation.
@@ -46,7 +48,7 @@ class VpDataModelV1 implements VerifiablePresentation {
 
   /// The list of verifiable credentials embedded in this presentation.
   @override
-  List<VerifiableCredential> verifiableCredential;
+  List<ParsedVerifiableCredential> verifiableCredential;
 
   /// The cryptographic proof created by the holder.
   @override
@@ -59,12 +61,12 @@ class VpDataModelV1 implements VerifiablePresentation {
   /// The [holder] is an identifier for the presenter (optional).
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
-  VpDataModelV1({
+  MutableVpDataModelV1({
     required this.context,
     this.id,
     required this.type,
     this.holder,
-    List<VerifiableCredential>? verifiableCredential,
+    List<ParsedVerifiableCredential>? verifiableCredential,
     Map<String, dynamic>? proof,
   })  : verifiableCredential = verifiableCredential ?? [],
         proof = proof ?? {};
@@ -95,7 +97,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   ///
   /// The [input] can be a JSON string or a [Map<String, dynamic>].
   /// Parses both mandatory and optional fields.
-  VpDataModelV1.fromJson(dynamic input)
+  MutableVpDataModelV1.fromJson(dynamic input)
       : context = [],
         type = [],
         verifiableCredential = [],
@@ -116,13 +118,9 @@ class VpDataModelV1 implements VerifiablePresentation {
     final credentials = json['verifiableCredential'];
     if (credentials != null) {
       if (credentials is List) {
-        verifiableCredential = credentials
-            .map((e) => MutableVcDataModelV1.fromJson(jsonToMap(e)))
-            .toList();
+        verifiableCredential = credentials.map(parseVC).toList();
       } else if (credentials is Map) {
-        verifiableCredential = [
-          MutableVcDataModelV1.fromJson(jsonToMap(credentials))
-        ];
+        verifiableCredential = [parseVC(credentials)];
       }
     }
 
@@ -131,4 +129,15 @@ class VpDataModelV1 implements VerifiablePresentation {
       proof = Map.of(json['proof'] as Map<String, dynamic>);
     }
   }
+}
+
+ParsedVerifiableCredential parseVC(dynamic e) {
+  String encoded;
+  if (e is! String) {
+    encoded = jsonEncode(e);
+  } else {
+    encoded = e;
+  }
+
+  return UniversalParser.parse(encoded);
 }

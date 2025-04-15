@@ -1,13 +1,11 @@
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
-import '../jwt/jwt_data_model_v1.dart';
 import '../jwt/jwt_dm_v1_suite.dart';
 import '../linked_data/ld_dm_v1_suite.dart';
 import '../linked_data/ld_dm_v2_suite.dart';
 import '../linked_data/ld_vc_data_model_v1.dart';
 import '../linked_data/ld_vc_data_model_v2.dart';
 import '../models/parsed_vc.dart';
-import '../sdjwt/sd_vc_dm_v2.dart';
 import '../sdjwt/sdjwt_dm_v2_suite.dart';
 import 'vc_suite.dart';
 

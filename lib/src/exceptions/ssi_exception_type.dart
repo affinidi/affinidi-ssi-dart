@@ -3,6 +3,9 @@ enum SsiExceptionType {
   /// The Verifiable Credential Object Data Model is not supported
   unableToParseVerifiableCredential(code: 'unable_to_parse'),
 
+  /// The Verifiable Presentation Object Data Model is not supported
+  unableToParseVerifiablePresentation(code: 'unable_to_parse_presentation'),
+
   /// KeyPair missing private key
   keyPairMissingPrivateKey(code: 'key_pair_missing_private_key'),
 

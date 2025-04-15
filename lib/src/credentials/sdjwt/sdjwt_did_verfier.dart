@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:sdjwt/sdjwt.dart' show Verifier;
-import 'package:ssi/ssi.dart' hide Verifier;
+
+import '../../../ssi.dart' hide Verifier;
 
 class SdJwtDidVerifier implements Verifier {
   final DidVerifier _delegate;

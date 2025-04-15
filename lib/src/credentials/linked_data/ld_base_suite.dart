@@ -11,7 +11,7 @@ import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 abstract class LdOptions {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
+abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     Options extends LdOptions> with LdParser {
   final String contextUrl;
 
@@ -44,7 +44,7 @@ abstract class LdBaseSuite<VDM extends DocWithEmbeddedProof, Model extends VDM,
   Model fromParsed(String input, Map<String, dynamic> payload);
 
   Future<Model> issue(
-    VDM vc,
+    VC vc,
     DidSigner signer, {
     Options? options,
   }) async {

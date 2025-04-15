@@ -16,8 +16,8 @@ void main() {
       var result = await verifier.verify(verifiableCredential);
 
       expect(result.isValid, true);
-      expect(result.errors, []);
-      expect(result.warnings, []);
+      expect(result.errors, <String>[]);
+      expect(result.warnings, <String>[]);
     });
 
     test('Should not yet be valid', () async {
@@ -32,7 +32,7 @@ void main() {
       expect(result.isValid, false);
       expect(result.errors,
           ['vc is not yet valid, validFrom: "2023-01-01 09:51:00.272Z"']);
-      expect(result.warnings, []);
+      expect(result.warnings, <String>[]);
     });
 
     test('Should be expired', () async {
@@ -47,7 +47,7 @@ void main() {
       expect(result.isValid, false);
       expect(result.errors,
           ['vc is no longer valid, validUntil: "3024-01-01 12:00:00.000Z"']);
-      expect(result.warnings, []);
+      expect(result.warnings, <String>[]);
     });
   });
 }

@@ -15,8 +15,8 @@ void main() {
       var result = await verifier.verify(verifiableCredential);
 
       expect(result.isValid, true);
-      expect(result.errors, []);
-      expect(result.warnings, []);
+      expect(result.errors, <String>[]);
+      expect(result.warnings, <String>[]);
     });
 
     test('should failed verification for jwt dm v1 for invalid signature',
@@ -30,7 +30,7 @@ void main() {
       expect(result.isValid, false);
       expect(
           result.errors, [SsiExceptionType.failedIntegrityVerification.code]);
-      expect(result.warnings, []);
+      expect(result.warnings, <String>[]);
     });
 
     test('should pass verification for sdjwt', () async {

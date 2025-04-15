@@ -5,8 +5,8 @@ import '../models/verifiable_credential.dart';
 /// Defines operations for working with encoded Verifiable Credentials.
 abstract interface class VerifiableCredentialSuite<
     SerializedType,
-    VCDM extends VerifiableCredential,
-    PVC extends ParsedVerifiableCredential<SerializedType>,
+    VC extends VerifiableCredential,
+    ParsedVC extends ParsedVerifiableCredential<SerializedType>,
     Options> {
   /// Determines whether the provided [data] can be parsed by this suite.
   bool canParse(Object data);
@@ -18,17 +18,17 @@ abstract interface class VerifiableCredentialSuite<
   ///
   /// Note: Implementers must check if the input can be parsed by this
   /// suite before attempting to parse.
-  PVC parse(Object data);
+  ParsedVC parse(Object data);
 
   /// Verifies the cryptographic integrity of the [input] credential.
-  Future<bool> verifyIntegrity(PVC input);
+  Future<bool> verifyIntegrity(ParsedVC input);
 
-  /// Issues a new credential by signing the [vp] with the provided [signer].
+  /// Issues a new credential by signing the [vc] with the provided [signer].
   ///
   /// Returns a parsed verifiable credential with the appropriate signature.
   /// Optional [options] can customize the issuing process.
-  Future<PVC> issue(
-    VCDM vp,
+  Future<ParsedVC> issue(
+    VC vc,
     DidSigner signer, {
     Options? options,
   });
