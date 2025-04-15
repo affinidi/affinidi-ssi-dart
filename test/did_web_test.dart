@@ -24,7 +24,11 @@ void main() {
 
       expect(doc.id, equals(did));
       expect(doc.toJson(), contains('id'));
-      expect(doc.toJson(), contains('verificationMethod'));
+      expect(doc.toJson(), contains('id'));
+      expect(
+        doc.context.hasUrlContext(Uri.parse('https://www.w3.org/ns/did/v1')),
+        true,
+      );
     });
 
     test('throws SsiException on non-200 response', () async {
