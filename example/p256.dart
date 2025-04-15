@@ -16,7 +16,7 @@ void main() async {
 
   // Verify signature
   print('Verifying signature...');
-  final verifification = await p256key.verify(dataToSign, signature);
+  final verification = await p256key.verify(dataToSign, signature);
   assert(verifification, "Verification failed");
   print('Verification succeeded');
 
