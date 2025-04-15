@@ -16,7 +16,7 @@ PublicKey generateEphemeralPubKey(EllipticCurve curve) {
 }
 
 Future<Uint8List> computeEcdhSecret(
-    PrivateKey privateKey, PublicKey publicKey, EllipticCurve curve) async {
+    PrivateKey privateKey, PublicKey publicKey) async {
   final secret = computeSecret(privateKey, publicKey);
   return Uint8List.fromList(secret);
 }
@@ -34,7 +34,7 @@ Future<Uint8List> encryptData({
       : curve.compressedHexToPublicKey(hex.encode(publicKeyBytes));
 
   final sharedSecret =
-      await computeEcdhSecret(privateKey, publicKeyToUse, curve);
+      await computeEcdhSecret(privateKey, publicKeyToUse);
 
   final algorithm = crypto.Hkdf(
     hmac: crypto.Hmac.sha256(),
@@ -72,7 +72,7 @@ Future<Uint8List> decryptData({
       ? curve.hexToPublicKey(hex.encode(ephemeralPublicKeyBytes))
       : curve.compressedHexToPublicKey(hex.encode(publicKeyBytes));
 
-  final sharedSecret = await computeEcdhSecret(privateKey, pubKeyToUse, curve);
+  final sharedSecret = await computeEcdhSecret(privateKey, pubKeyToUse);
 
   final algorithm = crypto.Hkdf(
     hmac: crypto.Hmac.sha256(),
