@@ -27,6 +27,27 @@ class Ed25519KeyPair implements KeyPair {
   })  : _privateKey = ed.PrivateKey(privateKey),
         _keyId = keyId;
 
+  factory Ed25519KeyPair.fromSeed({
+    required Uint8List seed,
+    required String keyId,
+  }) {
+    final privateKey = ed.newKeyFromSeed(seed);
+    return Ed25519KeyPair(
+      privateKey: Uint8List.fromList(privateKey.bytes),
+      keyId: keyId,
+    );
+  }
+
+  factory Ed25519KeyPair.create({
+    required String keyId,
+  }) {
+    final keyPair = ed.generateKey();
+    return Ed25519KeyPair(
+      privateKey: Uint8List.fromList(keyPair.privateKey.bytes),
+      keyId: keyId,
+    );
+  }
+
   /// Returns the identifier of this key pair.
   @override
   Future<String> get id => Future.value(_keyId);

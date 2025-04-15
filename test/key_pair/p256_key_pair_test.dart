@@ -23,12 +23,26 @@ void main() {
       expect(actual, isFalse);
     });
 
+    test('Verification should fail if data is different', () async {
+      final p256key = P256KeyPair.create(keyId: "123");
+      final signature = await p256key.sign(dataToSign);
+
+      final differentData = Uint8List.fromList([3, 2, 1]);
+
+      final actual = await p256key.verify(differentData, signature);
+      expect(actual, isFalse);
+    });
+
     test('P-256 key pair should sign data and verify signature', () async {
       final p256key = P256KeyPair.create(keyId: "123");
       final publicKey = await p256key.publicKey;
       final keyType = await p256key.publicKeyType;
+      final publicKeyHex = await p256key.publicKeyHex;
+      final privateKeyHex = await p256key.privateKeyHex;
       expect(keyType, KeyType.p256);
       expect(publicKey.length, 33); // Compressed P-256 key length
+      expect(publicKeyHex.length, 66); // 33 bytes * 2 hex chars/byte
+      expect(privateKeyHex.length, 66); // 33 bytes * 2 hex chars/byte
     });
   });
 
