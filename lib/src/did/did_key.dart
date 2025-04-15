@@ -139,7 +139,18 @@ Future<DidDocument> _buildOtherDoc(
 /// This class provides methods to create and resolve DIDs using the "did:key" method.
 class DidKey {
   /// Creates a DID document from a list of key pairs.
-  ///
+
+  static const _context = [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/suites/ed25519-2020/v1",
+    "https://w3id.org/security/suites/x25519-2020/v1"
+  ];
+
+  static const _context2 = [
+    "https://www.w3.org/ns/did/v1",
+    'https://ns.did.ai/suites/multikey-2021/v1/'
+  ];
+
   /// This method takes a list of key pairs and creates a DID document using the
   /// first key pair in the list.
   ///
@@ -148,37 +159,14 @@ class DidKey {
   /// Returns a [DidDocument].
   ///
   /// Throws [SsiException] if the key pair is invalid
-  static Future<DidDocument> create(List<KeyPair> keyPairs) async {
-    if (keyPairs.isEmpty) {
-      throw SsiException(
-        message: 'At least one key pair is required to create a DID',
-        code: SsiExceptionType.invalidDidKey.code,
-      );
-    }
-    final keyPair = keyPairs[0];
+  static Future<DidDocument> create(KeyPair keyPair) async {
     final keyType = await keyPair.publicKeyType;
     final publicKey = await keyPair.publicKey;
     final multiKey = toMultikey(publicKey, keyType);
     final multibase = toMultiBase(multiKey);
     final did = '$commonDidKeyPrefix$multibase';
-    final keyId = '$did#$multibase';
-
     // FIXME(FTL-20741) double check the doc
-    return DidDocument(
-      id: did,
-      verificationMethod: [
-        VerificationMethodMultibase(
-          id: keyId,
-          controller: did,
-          type: 'Multikey',
-          publicKeyMultibase: multibase,
-        )
-      ],
-      authentication: [keyId],
-      assertionMethod: [keyId],
-      capabilityInvocation: [keyId],
-      capabilityDelegation: [keyId],
-    );
+    return _buildDoc(multibase, did);
   }
 
   /// Resolves a DID string to a DID document.
@@ -211,22 +199,8 @@ class DidKey {
       );
     }
 
-    String keyPart = splited[2];
-    final multibaseIndicator = keyPart[0];
-    keyPart = keyPart.substring(1);
-
-    final context = [
-      "https://www.w3.org/ns/did/v1",
-      "https://w3id.org/security/suites/ed25519-2020/v1",
-      "https://w3id.org/security/suites/x25519-2020/v1"
-    ];
-
-    final context2 = [
-      "https://www.w3.org/ns/did/v1",
-      'https://ns.did.ai/suites/multikey-2021/v1/'
-    ];
-
-    final id = did;
+    String multibase = splited[2];
+    final multibaseIndicator = multibase[0];
 
     if (multibaseIndicator != 'z') {
       throw SsiException(
@@ -235,18 +209,23 @@ class DidKey {
       );
     }
 
+    return _buildDoc(multibase, did);
+  }
+
+  static _buildDoc(String multibase, String id) {
+    final keyPart = multibase.substring(1);
     if (keyPart.startsWith('6Mk')) {
-      return _buildEDDoc(context, id, keyPart);
+      return _buildEDDoc(_context, id, keyPart);
     } else if (keyPart.startsWith('6LS')) {
-      return _buildXDoc(context, id, keyPart);
+      return _buildXDoc(_context, id, keyPart);
     } else if (keyPart.startsWith('Dn')) {
-      return _buildOtherDoc(context2, id, keyPart, 'P256Key2021');
+      return _buildOtherDoc(_context2, id, keyPart, 'P256Key2021');
     } else if (keyPart.startsWith('Q3s')) {
-      return _buildOtherDoc(context2, id, keyPart, 'Secp256k1Key2021');
+      return _buildOtherDoc(_context2, id, keyPart, 'Secp256k1Key2021');
     } else if (keyPart.startsWith('82')) {
-      return _buildOtherDoc(context2, id, keyPart, 'P384Key2021');
+      return _buildOtherDoc(_context2, id, keyPart, 'P384Key2021');
     } else if (keyPart.startsWith('2J9')) {
-      return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
+      return _buildOtherDoc(_context2, id, keyPart, 'P521Key2021');
     }
     throw SsiException(
       message:

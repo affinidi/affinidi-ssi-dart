@@ -103,11 +103,6 @@ class Secp256k1KeyPair implements KeyPair {
     return _node.verify(digest, signature);
   }
 
-  /// Retrieves the underlying BIP32 node.
-  ///
-  /// Returns the [BIP32] node containing the key material.
-  BIP32 getBip32Node() => _node;
-
   @override
   List<SignatureScheme> get supportedSignatureSchemes =>
       [SignatureScheme.ecdsa_secp256k1_sha256];
