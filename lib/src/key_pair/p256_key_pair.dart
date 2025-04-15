@@ -149,17 +149,4 @@ class P256KeyPair implements KeyPair {
     final secret = computeSecret(_privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
   }
-
-  /// Computes the Elliptic Curve Diffie-Hellman (ECDH) shared secret from a
-  /// hex-encoded public key.
-  ///
-  /// [publicKeyHex] - The hex-encoded public key of the other party
-  ///   (in compressed format).
-  ///
-  /// Returns the computed shared secret as a [Uint8List].
-  Future<Uint8List> computeEcdhSecretFromHex(String publicKeyHex) async {
-    final publicKeyObj = _p256.compressedHexToPublicKey(publicKeyHex);
-    final secret = computeSecret(_privateKey, publicKeyObj);
-    return Future.value(Uint8List.fromList(secret));
-  }
 }

@@ -46,20 +46,5 @@ void main() {
       expect(secretAlice.length, 32); // P-256 ECDH secret length
       expect(secretAlice, isNot(equals(Uint8List(32)))); // Ensure not all zeros
     });
-
-    test('Compute ECDH shared secret with hex for encryption', () async {
-      final keyPairAlice = P256KeyPair.create(keyId: "alice");
-      final alicePublicHex = hex.encode(await keyPairAlice.publicKey);
-      final keyPairBob = P256KeyPair.create(keyId: "bob");
-      final bobPublicHex = hex.encode(await keyPairBob.publicKey);
-      final secretAlice =
-          await keyPairAlice.computeEcdhSecretFromHex(bobPublicHex);
-      final secretBob =
-          await keyPairBob.computeEcdhSecretFromHex(alicePublicHex);
-
-      expect(secretAlice, equals(secretBob));
-      expect(secretAlice.length, 32); // P-256 ECDH secret length
-      expect(secretAlice, isNot(equals(Uint8List(32)))); // Ensure not all zeros
-    });
   });
 }
