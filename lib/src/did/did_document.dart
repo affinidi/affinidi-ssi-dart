@@ -57,17 +57,19 @@ class DidDocument implements JsonObject {
     final document = jsonToMap(jsonObject);
     if (document.containsKey('@context')) {
       context = document['@context'].cast<String>();
+    } else {
+      context = extractStringOrSet(document, "context");
     }
+
     if (document.containsKey('id')) {
       id = document['id'];
     } else {
       throw FormatException('id property needed in did document');
     }
+    
     if (document.containsKey('alsoKnownAs')) {
       alsoKnownAs = document['alsoKnownAs'].cast<String>();
     }
-
-    context = extractStringOrSet(document, "@context");
 
     if (document.containsKey('verificationMethod')) {
       List tmp = document['verificationMethod'];
@@ -220,8 +222,7 @@ class DidDocument implements JsonObject {
         if (veriMap.containsKey(entry)) newList.add(veriMap[entry]);
       } else {
         throw SsiException(
-          message:
-              'Element $entry has unsupported Datatype ${entry.runtimeType}',
+          message: 'Element $entry has unsupported Datatype ${entry.runtimeType}',
           code: SsiExceptionType.invalidDidDocument.code,
         );
       }
@@ -567,8 +568,7 @@ class ServiceEndpoint implements JsonObject {
   late dynamic serviceEndpoint;
   late dynamic accept;
 
-  ServiceEndpoint(
-      {required this.id, required this.type, required this.serviceEndpoint});
+  ServiceEndpoint({required this.id, required this.type, required this.serviceEndpoint});
 
   ServiceEndpoint.fromJson(dynamic jsonObject) {
     final se = jsonToMap(jsonObject);
@@ -585,8 +585,7 @@ class ServiceEndpoint implements JsonObject {
     if (se.containsKey('serviceEndpoint')) {
       serviceEndpoint = se['serviceEndpoint'];
     } else {
-      throw FormatException(
-          'serviceEndpoint property is needed in serviceEndpoint');
+      throw FormatException('serviceEndpoint property is needed in serviceEndpoint');
     }
     if (se.containsKey('accept')) {
       accept = se['accept'];
