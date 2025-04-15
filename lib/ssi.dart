@@ -13,6 +13,8 @@ export 'src/did/did_signer.dart';
 export 'src/did/did_verifier.dart';
 export 'src/did/did_web.dart';
 export 'src/did/verifier.dart';
+export 'src/exceptions/ssi_exception.dart';
+export 'src/exceptions/ssi_exception_type.dart';
 export 'src/key_pair/ed25519_key_pair.dart';
 export 'src/key_pair/key_pair.dart';
 export 'src/key_pair/p256_key_pair.dart';
