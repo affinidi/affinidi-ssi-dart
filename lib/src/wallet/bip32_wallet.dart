@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:base_codecs/base_codecs.dart';
 import 'package:bip32/bip32.dart';
-import 'package:meta/meta.dart';
+import 'package:ssi/src/wallet/key_store/key_store_interface.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -57,15 +58,31 @@ class Bip32Wallet implements Wallet {
     return Bip32Wallet._(rootNode);
   }
 
-  @visibleForTesting
-  factory Bip32Wallet.fromBip32Node(BIP32 node) => Bip32Wallet._(node);
-
-  // TODO: recover from key map
-  // factory Bip32Wallet.fromKeyMap(Map<String, String> backup) {
-  //   if (!backup.containsKey(rootKeyId)) {
-  //     throw Exception("Root key doesn't exists in provided backup key map");
-  //   }
-  // }
+  /// Creates a new [Bip32Wallet] instance from a KeyStore by retrieving the seed.
+  ///
+  /// [keyStore] - The KeyStore to use to fetch the seed.
+  /// [seedKey] - The key under which the hex-encoded seed is stored in the KeyStore.
+  ///             Defaults to 'bip32_secp256k1_seed'.
+  ///
+  /// Returns a [Future] that completes with the new [Bip32Wallet] instance.
+  /// Throws [ArgumentError] if the seed is not found in the KeyStore under [seedKey].
+  static Future<Bip32Wallet> createFromKeyStore(
+    KeyStore keyStore, {
+    String seedKey = 'bip32_secp256k1_seed',
+  }) async {
+    final seedHex = await keyStore.get(seedKey);
+    if (seedHex == null) {
+      throw ArgumentError(
+          'Seed not found in KeyStore under the key "$seedKey". Cannot create Bip32Wallet.');
+    }
+    try {
+      final seedBytes = hex.decode(seedHex);
+      return Bip32Wallet.fromSeed(seedBytes);
+    } catch (e) {
+      throw ArgumentError(
+          'Failed to decode seed from hex stored under key "$seedKey": ${e.toString()}');
+    }
+  }
 
   /// Checks if a key with the specified identifier exists in the wallet.
   ///
