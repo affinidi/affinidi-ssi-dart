@@ -60,7 +60,7 @@ class EcdsaSecp256k1Signature2019
 
     final cacheLoadDocument = _cacheLoadDocument(options.customDocumentLoader);
     final jws = await _computeVcHash(proof, document, cacheLoadDocument).then(
-      (hash) => _computeAffinidJws(hash, options.signer),
+      (hash) => _computeJws(hash, options.signer),
     );
 
     proof.remove('@context');
@@ -178,8 +178,7 @@ class EcdsaSecp256k1Signature2019
     return verifier.verify(jwsToSign, signature);
   }
 
-  /// Compute a JWS that is compatible with what our [BE outputs](https://gitlab.com/affinidi/foundational/genesis/libs/core/tiny-lds-ecdsa-secp256k1-2019/-/blob/main/src/secp256k1key.ts?ref_type=heads#L49)
-  static Future<String> _computeAffinidJws(
+  static Future<String> _computeJws(
     Uint8List payloadToSign,
     DidSigner signer,
   ) async {

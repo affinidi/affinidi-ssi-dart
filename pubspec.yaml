@@ -5,20 +5,19 @@ repository: https://github.com/affinidi/affinidi-ssi-dart
 environment:
   sdk: ^3.6.0
 dependencies:
-  pointycastle: ^3.9.1
-  bip32: ^2.0.0
   base_codecs: ^1.0.1
-  meta: ^1.15.0
-  ecdsa: ^0.1.2
+  bip32: ^2.0.0
   ed25519_edwards: ^0.3.1
   ed25519_hd_key: ^2.2.0
-  x25519: ^0.1.1
   http: ^1.1.0
   elliptic: ^0.3.11
   jose_plus: ^0.4.6
   json_ld_processor: ^1.0.4
+  meta: ^1.15.0
+  pointycastle: ^3.9.1
   sdjwt:
     git: https://github.com/affinidi/affinidi-sdjwt-dart.git
+  x25519: ^0.1.1
 dev_dependencies:
   coverage: ^1.11.1
   lints: ^5.0.0

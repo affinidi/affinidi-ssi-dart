@@ -5,17 +5,34 @@ import 'package:jose_plus/jose.dart' as jose;
 import 'package:ssi/src/did/verifier.dart';
 import 'package:ssi/src/util/base64_util.dart';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'did_document.dart';
 import 'did_resolver.dart';
 
 class DidVerifier implements Verifier {
+  /// The signature scheme to use for verification.
   final SignatureScheme _algorithm;
+
+  /// The key ID used for verification.
   final String _kId;
+
+  /// The JSON Web Key (JWK) containing the public key information.
   final Map<String, dynamic> _jwk;
 
   DidVerifier._(this._algorithm, this._kId, this._jwk);
 
+  /// Creates a new [DidVerifier] instance.
+  ///
+  /// [algorithm] - The signature scheme to use for verification.
+  /// [kid] - The key ID to use for verification.
+  /// [issuerDid] - The DID of the issuer.
+  /// [resolverAddress] - Optional address of the DID resolver.
+  ///
+  /// Returns a new [DidVerifier] instance.
+  ///
+  /// Throws [SsiException] if there is an error resolving the DID document.
   static Future<DidVerifier> create({
     required SignatureScheme algorithm,
     required String kid,
@@ -30,7 +47,7 @@ class DidVerifier implements Verifier {
     // TODO(FTL-20742) check if kid is somehow related to issuerDid
 
     VerificationMethod? verificationMethod;
-    for (var method in didDocument.verificationMethod) {
+    for (final method in didDocument.verificationMethod) {
       if (method.id == kid || method.id.endsWith('#$kid')) {
         verificationMethod = method;
         break;
@@ -38,8 +55,11 @@ class DidVerifier implements Verifier {
     }
 
     if (verificationMethod == null) {
-      throw ArgumentError(
-          'Verification method with id $kid not found in DID Document for $issuerDid');
+      throw SsiException(
+        message:
+            'Verification method with id $kid not found in DID Document for $issuerDid',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
     }
 
     final Jwk jwk = verificationMethod.asJwk();
@@ -48,6 +68,7 @@ class DidVerifier implements Verifier {
     return DidVerifier._(algorithm, kid, jwkMap);
   }
 
+  /// Checks if the specified algorithm is supported by this verifier.
   @override
   bool isAllowedAlgorithm(String algorithm) {
     if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
@@ -62,6 +83,7 @@ class DidVerifier implements Verifier {
     }
   }
 
+  /// Verifies that the signature matches the data.
   @override
   bool verify(Uint8List data, Uint8List signature) {
     try {
@@ -88,7 +110,10 @@ class DidVerifier implements Verifier {
       final publicKey = jose.JsonWebKey.fromJson(_jwk);
 
       if (publicKey == null) {
-        throw ArgumentError('failed to create JsonWebKey from jwkMap');
+        throw SsiException(
+          message: 'failed to create JsonWebKey from jwkMap',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
       }
 
       return publicKey.verify(data, signature, algorithm: _algorithm.jwtName);

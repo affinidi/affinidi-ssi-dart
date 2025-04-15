@@ -32,22 +32,16 @@ Future<DidDocument> resolveDidDocument(
         code: SsiExceptionType.unableToResolveDid.code,
       );
     }
-    try {
-      var res = await http
-          .get(Uri.parse('$resolverAddress/1.0/identifiers/$did'))
-          .timeout(Duration(seconds: 30));
-      if (res.statusCode == 200) {
-        var didResolution = jsonDecode(res.body);
-        return DidDocument.fromJson(didResolution['didDocument']);
-      } else {
-        throw SsiException(
-          message: 'Bad status code ${res.statusCode}',
-          code: SsiExceptionType.unableToResolveDid.code,
-        );
-      }
-    } catch (e) {
+
+    final res = await http
+        .get(Uri.parse('$resolverAddress/1.0/identifiers/$did'))
+        .timeout(Duration(seconds: 30));
+    if (res.statusCode == 200) {
+      final didResolution = jsonDecode(res.body);
+      return DidDocument.fromJson(didResolution['didDocument']);
+    } else {
       throw SsiException(
-        message: 'Something went wrong during resolving: $e',
+        message: 'Bad status code ${res.statusCode}',
         code: SsiExceptionType.unableToResolveDid.code,
       );
     }

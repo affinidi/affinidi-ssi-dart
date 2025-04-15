@@ -1,9 +1,10 @@
+// ignore_for_file: constant_identifier_names
+
 enum KeyType { secp256k1, ed25519, x25519, p256, p384, p521, rsa }
 
 enum HashingAlgorithm { sha256, sha512 }
 
 // Prefer snake_case for `SignatureScheme` to make it more readable
-// ignore_for_file: constant_identifier_names
 
 enum SignatureScheme {
   ecdsa_secp256k1_sha256("ES256K", "EcdsaSecp256k1Signature2019",
@@ -22,7 +23,20 @@ enum SignatureScheme {
   final HashingAlgorithm hashingAlgorithm;
 
   const SignatureScheme(
-      this.jwtName, this.w3cName, this.keyType, this.hashingAlgorithm);
+    this.jwtName,
+    this.w3cName,
+    this.keyType,
+    this.hashingAlgorithm,
+  );
+
+  factory SignatureScheme.fromString(String value) =>
+      SignatureScheme.values.firstWhere(
+        (sigSch) =>
+            sigSch.name.toLowerCase() == value.toLowerCase() ||
+            sigSch.jwtName?.toLowerCase() == value.toLowerCase() ||
+            sigSch.w3cName?.toLowerCase() == value.toLowerCase(),
+        orElse: () => throw ArgumentError('Invalid algorithm: $value'),
+      );
 }
 
 enum DidPeerType { peer0, peer2 }

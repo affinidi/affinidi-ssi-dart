@@ -3,26 +3,51 @@ import 'dart:typed_data';
 import 'package:bip32/bip32.dart';
 import 'package:meta/meta.dart';
 
-import 'wallet.dart';
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
+import 'wallet.dart';
 
+/// A wallet implementation that supports BIP32 key derivation with secp256k1 keys.
+///
+/// This wallet can create and manage multiple key pairs derived from a single seed.
+/// It supports signing and verifying messages using secp256k1 signature scheme.
 class Bip32Wallet implements Wallet {
+  /// The base derivation path.
   static const baseDerivationPath = "m/44'/60'/0'/0/0";
+
+  /// The identifier for the root key pair.
   static const rootKeyId = "0-0";
 
+  /// The map of key identifiers to key pairs.
   final Map<String, Secp256k1KeyPair> _keyMap;
   final BIP32 _rootNode;
 
+  /// Creates a new [Bip32Wallet] instance with the given BIP32 node.
+  ///
+  /// [node] - The BIP32 node to use as the root node.
   Bip32Wallet._(BIP32 node)
       : _keyMap = {rootKeyId: Secp256k1KeyPair(node: node, keyId: rootKeyId)},
         _rootNode = node;
 
+  /// Creates a new [Bip32Wallet] instance from a seed.
+  ///
+  /// [seed] - The seed to use for key derivation.
+  ///
+  /// Returns a new [Bip32Wallet] instance.
   factory Bip32Wallet.fromSeed(Uint8List seed) {
     final rootNode = BIP32.fromSeed(seed);
     return Bip32Wallet._(rootNode);
   }
 
+  /// Creates a new [Bip32Wallet] instance from a private key.
+  ///
+  /// [privateKey] - The private key to use.
+  ///
+  /// Returns a new [Bip32Wallet] instance.
+  ///
+  /// This is a TODO item that needs to be addressed.
   factory Bip32Wallet.fromPrivateKey(Uint8List privateKey) {
     // TODO: validate if chainCode is correct
     final chainCode = Uint8List(0);
@@ -40,11 +65,23 @@ class Bip32Wallet implements Wallet {
   //   }
   // }
 
+  /// Checks if a key with the specified identifier exists in the wallet.
+  ///
+  /// [keyId] - The identifier of the key to check.
+  ///
+  /// Returns a [Future] that completes with `true` if the key exists,
+  /// `false` otherwise.
   @override
   Future<bool> hasKey(String keyId) {
     return Future.value(_keyMap.containsKey(keyId));
   }
 
+  /// Signs the provided data using the specified key.
+  ///
+  /// [data] - The data to be signed.
+  /// [keyId] - The identifier of the key to use for signing.
+  ///
+  /// Returns a [Future] that completes with the signature as a [Uint8List].
   @override
   Future<Uint8List> sign(
     Uint8List data, {
@@ -55,6 +92,14 @@ class Bip32Wallet implements Wallet {
         signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256);
   }
 
+  /// Verifies a signature using the specified key.
+  ///
+  /// [data] - The data that was signed.
+  /// [signature] - The signature to verify.
+  /// [keyId] - The identifier of the key to use for verification.
+  ///
+  /// Returns a [Future] that completes with `true` if the signature is valid,
+  /// `false` otherwise.
   @override
   Future<bool> verify(
     Uint8List data, {
@@ -69,19 +114,34 @@ class Bip32Wallet implements Wallet {
     );
   }
 
+  /// Creates a new key pair with the specified identifier.
+  ///
+  /// [keyId] - The identifier for the new key pair in the format `{accountNumber}-{accountKeyId}`.
+  /// [keyType] - The type of key to create.
+  ///
+  /// Returns a [Future] that completes with the newly created [Secp256k1KeyPair].
+  ///
+  /// Throws an [SsiException] if:
+  /// - Unsupported key type
+  /// - The root key pair is missing
   @override
   Future<Secp256k1KeyPair> createKeyPair(String keyId, {KeyType? keyType}) {
     if (keyType != null && keyType != KeyType.secp256k1) {
-      throw ArgumentError(
-          "Only secp256k1 key type is supported for Bip32Wallet");
+      throw SsiException(
+        message: 'Only secp256k1 key type is supported for Bip32Wallet',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
     }
     if (_keyMap.containsKey(keyId)) {
       return Future.value(_keyMap[keyId]);
     }
     if (!_keyMap.containsKey(rootKeyId)) {
-      throw Exception('Root key pair is missing');
+      throw SsiException(
+        message: 'Root key pair is missing.',
+        code: SsiExceptionType.keyPairMissingPrivateKey.code,
+      );
     }
-    var (accountNumber, accountKeyId) = _validateKeyId(keyId);
+    final (accountNumber, accountKeyId) = _validateKeyId(keyId);
 
     final derivationPath =
         _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
@@ -92,25 +152,52 @@ class Bip32Wallet implements Wallet {
     return Future.value(node);
   }
 
+  /// Retrieves the public key for the specified key.
+  ///
+  /// [keyId] - The identifier of the key.
+  ///
+  /// Returns a [Future] that completes with the public key as a [Uint8List].
   @override
   Future<Uint8List> getPublicKey(String keyId) {
     final keyPair = _getKeyPair(keyId);
     return keyPair.publicKey;
   }
 
+  /// Retrieves the key pair with the specified identifier.
+  ///
+  /// [keyId] - The identifier of the key pair to retrieve.
+  ///
+  /// Returns a [Future] that completes with the [Secp256k1KeyPair].
   @override
   Future<Secp256k1KeyPair> getKeyPair(String keyId) async {
     return Future.value(_getKeyPair(keyId));
   }
 
+  /// Retrieves the key pair with the specified identifier.
+  ///
+  /// [keyId] - The identifier of the key pair to retrieve.
+  ///
+  /// Returns the [Secp256k1KeyPair].
+  ///
+  /// Throws an [ArgumentError] if the key is invalid.
   Secp256k1KeyPair _getKeyPair(String keyId) {
     if (_keyMap.containsKey(keyId)) {
       return _keyMap[keyId]!;
     } else {
-      throw ArgumentError('Invalid Key ID: $keyId');
+      throw SsiException(
+        message: 'Invalid Key ID: $keyId',
+        code: SsiExceptionType.invalidKeyType.code,
+      );
     }
   }
 
+  /// Validates and parses a key identifier.
+  ///
+  /// [keyId] - The key identifier to validate and parse.
+  ///
+  /// Returns a tuple containing the account number and account key ID.
+  ///
+  /// Throws an [SsiException] if the key ID format is invalid.
   static (int, int) _validateKeyId(String keyId) {
     // NOTE: agree on approach for multikey support
     // option 1: keyId is composed as `{accountNumber}-{accountKeyId}`
@@ -123,12 +210,23 @@ class Bip32Wallet implements Wallet {
       accountNumber = int.parse(parts[0]);
       accountKeyId = int.parse(parts[1]);
     } catch (e) {
-      throw FormatException(
-          "For Bip32Wallet the keyId is composed as {accountNumber}-{accountKeyId}, where both accountNumber and accountKeyId are positive integers");
+      throw SsiException(
+        message:
+            'For Bip32Ed25519Wallet the keyId is composed as {accountNumber}-{accountKeyId}, where both accountNumber and accountKeyId are positive integers',
+        originalMessage: e.toString(),
+        code: SsiExceptionType.other.code,
+      );
     }
     return (accountNumber, accountKeyId);
   }
 
+  /// Builds a derivation path from the base path and account information.
+  ///
+  /// [baseDerivationPath] - The base derivation path.
+  /// [accountNumber] - The account number.
+  /// [accountKeyId] - The account key ID.
+  ///
+  /// Returns the complete derivation path.
   static String _buildDerivationPath(
       String baseDerivationPath, int accountNumber, int accountKeyId) {
     List<String> parts = baseDerivationPath.split('/');

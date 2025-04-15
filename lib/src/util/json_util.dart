@@ -60,7 +60,7 @@ List<String> getStringList(
   bool allowSingleValue = false,
   bool mandatory = false,
 }) {
-  var fieldExists = json.containsKey(fieldName);
+  final fieldExists = json.containsKey(fieldName);
 
   if (!fieldExists && !mandatory) {
     return [];
@@ -100,7 +100,7 @@ DateTime? getDateTime(
   String fieldName, {
   bool mandatory = false,
 }) {
-  var fieldExists = json.containsKey(fieldName);
+  final fieldExists = json.containsKey(fieldName);
 
   if (!fieldExists && !mandatory) {
     return null;

@@ -1,11 +1,11 @@
 import 'package:sdjwt/sdjwt.dart';
+import 'package:ssi/src/credentials/sdjwt/sdjwt_did_verfier.dart';
+import 'package:ssi/ssi.dart';
 
-import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/v2/vc_data_model_v2.dart';
 import '../parsers/sdjwt_parser.dart';
-import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../suites/vc_suite.dart';
 import 'sd_vc_dm_v2.dart';
 
@@ -61,13 +61,20 @@ final class SdJwtDm2Suite
 
   @override
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input) async {
-    //TODO(FTL-20735): discover proof type
-    final proofSuite = EcdsaSecp256k1Signature2019();
-    final verificationResult = await proofSuite.verifyProof(
-      input.sdJwt.payload,
-      EcdsaSecp256k1Signature2019VerifyOptions(),
+    final SignatureScheme algorithm =
+        SignatureScheme.fromString(input.sdJwt.header['alg']);
+
+    final SdJwtDidVerifier verifier = await SdJwtDidVerifier.create(
+      algorithm: algorithm,
+      kid: input.sdJwt.header['kid'],
+      issuerDid: input.issuer,
     );
 
-    return verificationResult.isValid;
+    final SdJwt(:bool? isVerified) = SdJwtHandlerV1().verify(
+      sdJwt: input.sdJwt,
+      verifier: verifier,
+    );
+
+    return isVerified!;
   }
 }
