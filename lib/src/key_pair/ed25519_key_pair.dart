@@ -5,7 +5,6 @@ import 'package:x25519/x25519.dart' as x25519;
 import 'package:cryptography/cryptography.dart' as crypto;
 import 'package:affinidi_tdk_cryptography/affinidi_tdk_cryptography.dart';
 
-
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -92,14 +91,14 @@ class Ed25519KeyPair implements KeyPair {
 
   List<int> generateEphemeralPubKey() {
     var eKeyPair = x25519.generateKeyPair();
-    var privateKey = eKeyPair.privateKey;
     var publicKey = eKeyPair.publicKey;
 
     return publicKey;
   }
 
   Future<Uint8List> computeEcdhSecret(List<int> publicKey) async {
-    var privateKeyForX25519 = _privateKey.bytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);
+    var privateKeyForX25519 =
+        _privateKey.bytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);
     final secret = x25519.X25519(privateKeyForX25519, publicKey);
     return Future.value(Uint8List.fromList(secret));
   }
@@ -137,11 +136,11 @@ class Ed25519KeyPair implements KeyPair {
 
     Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
-    final encryptedData = await _cryptographyService.encryptToBytes(symmetricKey, data);
+    final encryptedData =
+        await _cryptographyService.encryptToBytes(symmetricKey, data);
 
     return Uint8List.fromList(publicKeyToUse + encryptedData);
   }
-
 
   // @override
   decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
@@ -151,8 +150,10 @@ class Ed25519KeyPair implements KeyPair {
     }
 
     // Extract the ephemeral public key and the encrypted data
-    final ephemeralPublicKeyBytes = ivAndBytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);
-    final encryptedData = ivAndBytes.sublist(COMPRESSED_PUB_KEY_LENGTH);  // The rest is the encrypted data
+    final ephemeralPublicKeyBytes =
+        ivAndBytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);
+    final encryptedData = ivAndBytes
+        .sublist(COMPRESSED_PUB_KEY_LENGTH); // The rest is the encrypted data
 
     var pubKeyToUse;
     if (publicKey == null) {
@@ -177,7 +178,8 @@ class Ed25519KeyPair implements KeyPair {
 
     Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
-    final decryptedData = await _cryptographyService.decryptFromBytes(symmetricKey, encryptedData);
+    final decryptedData = await _cryptographyService.decryptFromBytes(
+        symmetricKey, encryptedData);
 
     if (decryptedData == null) {
       throw UnimplementedError('Decryption failed, bytes are null');

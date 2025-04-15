@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'dart:typed_data';
 
@@ -91,7 +90,6 @@ class Secp256k1KeyPair implements KeyPair {
   List<SignatureScheme> get supportedSignatureSchemes =>
       [SignatureScheme.ecdsa_secp256k1_sha256];
 
-
   PublicKey generateEphemeralPubKey() {
     var privateKey = _secp256k1.generatePrivateKey();
     var publicKey = _secp256k1.privateToPublicKey(privateKey);
@@ -115,7 +113,8 @@ class Secp256k1KeyPair implements KeyPair {
     if (publicKey == null) {
       publicKeyToUse = await generateEphemeralPubKey();
     } else {
-      publicKeyToUse = _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
+      publicKeyToUse =
+          _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
     }
 
     final sharedSecret = await computeEcdhSecret(publicKeyToUse);
@@ -136,13 +135,13 @@ class Secp256k1KeyPair implements KeyPair {
 
     Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
-    final encryptedData = await _cryptographyService.encryptToBytes(symmetricKey, data);
+    final encryptedData =
+        await _cryptographyService.encryptToBytes(symmetricKey, data);
 
     var publicKeyToUseBytes = hex.decode(publicKeyToUse.toHex());
 
     return Uint8List.fromList(publicKeyToUseBytes + encryptedData);
   }
-
 
   // @override
   decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
@@ -152,8 +151,10 @@ class Secp256k1KeyPair implements KeyPair {
     }
 
     // Extract the ephemeral public key and the encrypted data
-    final ephemeralPublicKeyBytes = ivAndBytes.sublist(0, FULL_PUB_KEY_LENGTH + 1);
-    final encryptedData = ivAndBytes.sublist(FULL_PUB_KEY_LENGTH + 1);  // The rest is the encrypted data
+    final ephemeralPublicKeyBytes =
+        ivAndBytes.sublist(0, FULL_PUB_KEY_LENGTH + 1);
+    final encryptedData = ivAndBytes
+        .sublist(FULL_PUB_KEY_LENGTH + 1); // The rest is the encrypted data
 
     var pubKeyToUse;
     if (publicKey == null) {
@@ -182,7 +183,8 @@ class Secp256k1KeyPair implements KeyPair {
 
     Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
-    final decryptedData = await _cryptographyService.decryptFromBytes(symmetricKey, encryptedData);
+    final decryptedData = await _cryptographyService.decryptFromBytes(
+        symmetricKey, encryptedData);
 
     if (decryptedData == null) {
       throw UnimplementedError('Decryption failed, bytes are null');
