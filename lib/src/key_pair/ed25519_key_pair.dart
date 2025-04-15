@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:x25519/x25519.dart' as x25519;
 import 'package:cryptography/cryptography.dart' as crypto;
-import 'package:affinidi_tdk_cryptography/affinidi_tdk_cryptography.dart';
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
@@ -12,18 +11,19 @@ import '../types.dart';
 import 'key_pair.dart';
 
 import './_const.dart';
+import './_encryption_utils.dart';
 
 class Ed25519KeyPair implements KeyPair {
   final String _keyId;
   final dynamic _privateKey;
-  final CryptographyService _cryptographyService;
+  final _encryptionUtils;
 
   Ed25519KeyPair({
     required dynamic privateKey,
     required String keyId,
   })  : _privateKey = privateKey,
         _keyId = keyId,
-        _cryptographyService = CryptographyService();
+        _encryptionUtils = EncryptionUtils();
 
   @override
   Future<String> get id => Future.value(_keyId);
@@ -103,7 +103,7 @@ class Ed25519KeyPair implements KeyPair {
     return Future.value(Uint8List.fromList(secret));
   }
 
-  // @override
+  @override
   encrypt(Uint8List data, {Uint8List? publicKey}) async {
     final privateKey = _privateKey;
     if (privateKey == null) {
@@ -135,13 +135,12 @@ class Ed25519KeyPair implements KeyPair {
 
     Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
-    final encryptedData =
-        await _cryptographyService.encryptToBytes(symmetricKey, data);
+    final encryptedData = _encryptionUtils.encryptToBytes(symmetricKey, data);
 
     return Uint8List.fromList(publicKeyToUse + encryptedData);
   }
 
-  // @override
+  @override
   decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
     final privateKey = _privateKey;
     if (privateKey == null) {
@@ -177,8 +176,8 @@ class Ed25519KeyPair implements KeyPair {
 
     Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
-    final decryptedData = await _cryptographyService.decryptFromBytes(
-        symmetricKey, encryptedData);
+    final decryptedData =
+        _encryptionUtils.decryptFromBytes(symmetricKey, encryptedData);
 
     if (decryptedData == null) {
       throw UnimplementedError('Decryption failed, bytes are null');

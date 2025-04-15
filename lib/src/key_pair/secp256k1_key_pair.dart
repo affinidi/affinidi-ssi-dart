@@ -1,12 +1,7 @@
-import 'package:convert/convert.dart';
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
-import 'package:elliptic/ecdh.dart';
 import 'package:elliptic/elliptic.dart';
-import 'package:cryptography/cryptography.dart' as crypto;
-
-import 'package:affinidi_tdk_cryptography/affinidi_tdk_cryptography.dart';
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
@@ -14,12 +9,11 @@ import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'key_pair.dart';
 
-import './_const.dart';
+import './_ecdh_utils.dart' as ecdh_utils;
 
 class Secp256k1KeyPair implements KeyPair {
   final String _keyId;
   final BIP32 _node;
-  final CryptographyService _cryptographyService;
   var _secp256k1;
 
   Secp256k1KeyPair({
@@ -27,7 +21,6 @@ class Secp256k1KeyPair implements KeyPair {
     required String keyId,
   })  : _node = node,
         _keyId = keyId,
-        _cryptographyService = CryptographyService(),
         _secp256k1 = getSecp256k1();
 
   @override
@@ -90,106 +83,33 @@ class Secp256k1KeyPair implements KeyPair {
   List<SignatureScheme> get supportedSignatureSchemes =>
       [SignatureScheme.ecdsa_secp256k1_sha256];
 
-  PublicKey generateEphemeralPubKey() {
-    var privateKey = _secp256k1.generatePrivateKey();
-    var publicKey = _secp256k1.privateToPublicKey(privateKey);
-    return publicKey;
-  }
-
-  Future<Uint8List> computeEcdhSecret(PublicKey publicKey) async {
-    var privateKey = PrivateKey.fromBytes(_secp256k1, _node.privateKey!);
-    final secret = computeSecret(privateKey, publicKey);
-    return Future.value(Uint8List.fromList(secret));
-  }
-
-  // @override
+  @override
   encrypt(Uint8List data, {Uint8List? publicKey}) async {
     final privateKey = _node.privateKey;
     if (privateKey == null) {
       throw ArgumentError('Private key is null');
     }
 
-    PublicKey publicKeyToUse;
-    if (publicKey == null) {
-      publicKeyToUse = await generateEphemeralPubKey();
-    } else {
-      publicKeyToUse =
-          _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
-    }
-
-    final sharedSecret = await computeEcdhSecret(publicKeyToUse);
-
-    final algorithm = crypto.Hkdf(
-      hmac: crypto.Hmac.sha256(),
-      outputLength: 32,
+    return ecdh_utils.encryptData(
+      data: data,
+      privateKeyBytes: privateKey,
+      publicKeyBytes: publicKey,
+      curve: _secp256k1,
     );
-
-    final secretKey = crypto.SecretKey(sharedSecret);
-
-    final derivedKey = await algorithm.deriveKey(
-      secretKey: secretKey,
-      nonce: STATIC_HKD_NONCE,
-    );
-
-    final derivedKeyBytes = await derivedKey.extractBytes();
-
-    Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
-
-    final encryptedData =
-        await _cryptographyService.encryptToBytes(symmetricKey, data);
-
-    var publicKeyToUseBytes = hex.decode(publicKeyToUse.toHex());
-
-    return Uint8List.fromList(publicKeyToUseBytes + encryptedData);
   }
 
-  // @override
+  @override
   decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
     final privateKey = _node.privateKey;
     if (privateKey == null) {
       throw ArgumentError('Private key is null');
     }
 
-    // Extract the ephemeral public key and the encrypted data
-    final ephemeralPublicKeyBytes =
-        ivAndBytes.sublist(0, FULL_PUB_KEY_LENGTH + 1);
-    final encryptedData = ivAndBytes
-        .sublist(FULL_PUB_KEY_LENGTH + 1); // The rest is the encrypted data
-
-    var pubKeyToUse;
-    if (publicKey == null) {
-      var pubKeyToUseBytes = ephemeralPublicKeyBytes;
-      var publicKeyHex = hex.encode(pubKeyToUseBytes);
-      pubKeyToUse = _secp256k1.hexToPublicKey(publicKeyHex);
-    } else {
-      var pubKeyToUseBytes = publicKey;
-      var publicKeyHex = hex.encode(pubKeyToUseBytes);
-      pubKeyToUse = _secp256k1.compressedHexToPublicKey(publicKeyHex);
-    }
-
-    final sharedSecret = await computeEcdhSecret(pubKeyToUse);
-
-    final algorithm = crypto.Hkdf(
-      hmac: crypto.Hmac.sha256(),
-      outputLength: 32,
+    return ecdh_utils.decryptData(
+      encryptedPackage: ivAndBytes,
+      privateKeyBytes: privateKey,
+      publicKeyBytes: publicKey,
+      curve: _secp256k1,
     );
-    final secretKey = crypto.SecretKey(sharedSecret);
-    final derivedKey = await algorithm.deriveKey(
-      secretKey: secretKey,
-      nonce: STATIC_HKD_NONCE,
-    );
-
-    final derivedKeyBytes = await derivedKey.extractBytes();
-
-    Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
-
-    final decryptedData = await _cryptographyService.decryptFromBytes(
-        symmetricKey, encryptedData);
-
-    if (decryptedData == null) {
-      throw UnimplementedError('Decryption failed, bytes are null');
-    }
-
-    return decryptedData;
   }
 }

@@ -149,7 +149,7 @@ void main() {
   ]);
 
   group('Test key pair encrypt decrypt', () {
-    test('ed25519', () async {
+    test('ed25519 without pub key', () async {
       Ed25519KeyPair edKey = Ed25519KeyPair(
           privateKey: ed.newKeyFromSeed(edSeedAlice), keyId: keyId);
       // Encrypt with ephemeral key
