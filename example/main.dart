@@ -16,7 +16,8 @@ void main() async {
   print('data to sign: ${hexEncode(data)}');
   final signature = await wallet.sign(data, keyId: rootKeyId);
   print('signature: ${hexEncode(signature)}');
-  final isRootSignatureValid = await wallet.verify(data, signature: signature, keyId: rootKeyId);
+  final isRootSignatureValid =
+      await wallet.verify(data, signature: signature, keyId: rootKeyId);
   print('check if root signature is valid: $isRootSignatureValid');
 
   // did
@@ -31,8 +32,10 @@ void main() async {
   final profileKeyPair = await wallet.createKeyPair(profileKeyId);
   final profileSignature = await profileKeyPair.sign(data);
   print('profile signature: ${hexEncode(profileSignature)}');
-  final isProfileSignatureValid = await profileKeyPair.verify(data, profileSignature);
-  print('check if profile signature is valid by public key: $isProfileSignatureValid');
+  final isProfileSignatureValid =
+      await profileKeyPair.verify(data, profileSignature);
+  print(
+      'check if profile signature is valid by public key: $isProfileSignatureValid');
 
   // did
   final profileDidKey = await DidKey.create(profileKeyPair);
@@ -44,6 +47,8 @@ void main() async {
   final profileKeyPair2 = await wallet.createKeyPair(profileKeyId2);
   final profileSignature2 = await profileKeyPair2.sign(data);
   print('profile signature 2: ${hexEncode(profileSignature2)}');
-  final isProfileSignature2Valid = await profileKeyPair2.verify(data, profileSignature2);
-  print('check if profile signature 2 is valid by public key: $isProfileSignature2Valid');
+  final isProfileSignature2Valid =
+      await profileKeyPair2.verify(data, profileSignature2);
+  print(
+      'check if profile signature 2 is valid by public key: $isProfileSignature2Valid');
 }

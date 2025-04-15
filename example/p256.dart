@@ -29,12 +29,15 @@ void main() async {
 
   // Compute ECDH (Elliptic Curve Diffie-Hellman) for encryption
   print('Computing ECDH secret...');
-  final secretAlice = await keyPairAlice.computeEcdhSecret(await keyPairBob.publicKey);
+  final secretAlice =
+      await keyPairAlice.computeEcdhSecret(await keyPairBob.publicKey);
   print('Alice secret: $secretAlice');
-  final secretBob = await keyPairBob.computeEcdhSecret(await keyPairAlice.publicKey);
+  final secretBob =
+      await keyPairBob.computeEcdhSecret(await keyPairAlice.publicKey);
   print('Bob secret: $secretBob');
 
   // Comparing secrets
-  assert(secretAlice == secretBob, 'Both Alice and Bob must have the same secret');
+  assert(
+      secretAlice == secretBob, 'Both Alice and Bob must have the same secret');
   print('Success. Alice and Bob secrets are the same.');
 }
