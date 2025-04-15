@@ -1,14 +1,14 @@
 import 'dart:typed_data';
 import 'dart:convert';
 
+import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart'; // For testing invalid data
 import 'package:test/test.dart';
 
 void main() {
   final dataToSign = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
   const testKeyId1 = 'p256-key-1';
-  const testKeyId2 = 'p256-key-2';
+  const testEd25519KeyId1 = 'ed25519-key-1';
   const nonExistentKeyId = 'non-existent-key';
 
   group('GenericWallet Tests', () {
@@ -37,6 +37,44 @@ void main() {
       expect(decodedData['privateKeyHex'], isA<String>());
     });
 
+    test('createKeyPair should default to P256 key pair if type is null',
+        () async {
+      const defaultKeyId = 'default-key';
+      expect(await wallet.hasKey(defaultKeyId), isFalse);
+
+      // Call without specifying keyType
+      final newKeyPair = await wallet.createKeyPair(defaultKeyId);
+      expect(await wallet.hasKey(defaultKeyId), isTrue);
+      expect(await newKeyPair.id, defaultKeyId);
+      expect(await newKeyPair.publicKeyType,
+          KeyType.p256); // Should default to P256
+
+      // Check storage
+      final storedData = await keyStore.get(defaultKeyId);
+      expect(storedData, isNotNull);
+      final decodedData = jsonDecode(storedData!);
+      expect(decodedData['type'], KeyType.p256.name);
+    });
+
+    test('createKeyPair should create an Ed25519 key pair', () async {
+      expect(await wallet.hasKey(testEd25519KeyId1), isFalse);
+
+      final newKeyPair = await wallet.createKeyPair(testEd25519KeyId1,
+          keyType: KeyType.ed25519);
+      expect(await wallet.hasKey(testEd25519KeyId1), isTrue);
+      expect(await newKeyPair.id, testEd25519KeyId1);
+      expect(await newKeyPair.publicKeyType, KeyType.ed25519);
+
+      // Check if key is actually stored
+      final storedData = await keyStore.get(testEd25519KeyId1);
+      expect(storedData, isNotNull);
+      final decodedData = jsonDecode(storedData!);
+      expect(decodedData['type'], KeyType.ed25519.name);
+      expect(decodedData['privateKeyHex'], isA<String>());
+      // Ensure stored hex decodes to 64 bytes (Ed25519 private+public key size)
+      expect(hex.decode(decodedData['privateKeyHex']), hasLength(64));
+    });
+
     test('createKeyPair should throw for existing keyId', () async {
       await wallet.createKeyPair(testKeyId1,
           keyType: KeyType.p256); // Create first
@@ -50,17 +88,12 @@ void main() {
     test('createKeyPair should throw for unsupported key type', () async {
       expect(
         () async =>
-            await wallet.createKeyPair(testKeyId1, keyType: KeyType.ed25519),
-        throwsArgumentError,
-      );
-      expect(
-        () async =>
             await wallet.createKeyPair(testKeyId1, keyType: KeyType.secp256k1),
         throwsArgumentError,
       );
       expect(
-        // Also test null keyType if implementation requires it explicitly
-        () async => await wallet.createKeyPair(testKeyId1),
+        () async =>
+            await wallet.createKeyPair(testKeyId1, keyType: KeyType.rsa),
         throwsArgumentError,
       );
     });
@@ -72,6 +105,17 @@ void main() {
 
       expect(await retrievedKeyPair.id, testKeyId1);
       expect(await retrievedKeyPair.publicKeyType, KeyType.p256);
+      // Compare public keys to ensure it's the same key material
+      expect(await retrievedKeyPair.publicKey, await createdKeyPair.publicKey);
+    });
+
+    test('getKeyPair should retrieve existing Ed25519 key pair', () async {
+      final createdKeyPair = await wallet.createKeyPair(testEd25519KeyId1,
+          keyType: KeyType.ed25519);
+      final retrievedKeyPair = await wallet.getKeyPair(testEd25519KeyId1);
+
+      expect(await retrievedKeyPair.id, testEd25519KeyId1);
+      expect(await retrievedKeyPair.publicKeyType, KeyType.ed25519);
       // Compare public keys to ensure it's the same key material
       expect(await retrievedKeyPair.publicKey, await createdKeyPair.publicKey);
     });
@@ -107,7 +151,7 @@ void main() {
     test('getKeyPair should throw for unsupported stored key type', () async {
       // Manually insert data with unsupported type
       await keyStore.set(testKeyId1,
-          jsonEncode({'type': 'ed25519', 'privateKeyHex': 'abcdef123456'}));
+          jsonEncode({'type': 'secp256k1', 'privateKeyHex': 'abcdef123456'}));
       expect(
         () async => await wallet.getKeyPair(testKeyId1),
         throwsArgumentError,
@@ -122,7 +166,15 @@ void main() {
       final retrievedPubKey = await wallet.getPublicKey(testKeyId1);
       expect(retrievedPubKey, equals(expectedPubKey));
       // P256 compressed public key size
-      expect(retrievedPubKey.length, 33);
+      expect(retrievedPubKey.length, 33); // P256 size
+
+      // Test Ed25519 key
+      final edKeyPair = await wallet.createKeyPair(testEd25519KeyId1,
+          keyType: KeyType.ed25519);
+      final edExpectedPubKey = await edKeyPair.publicKey;
+      final edRetrievedPubKey = await wallet.getPublicKey(testEd25519KeyId1);
+      expect(edRetrievedPubKey, equals(edExpectedPubKey));
+      expect(edRetrievedPubKey.length, 32); // Ed25519 public key size
     });
 
     test('getPublicKey should throw for non-existent keyId', () async {
@@ -133,38 +185,62 @@ void main() {
     });
 
     test('sign and verify should work correctly', () async {
+      // Create keys of both types
       await wallet.createKeyPair(testKeyId1, keyType: KeyType.p256);
-      await wallet.createKeyPair(testKeyId2,
-          keyType: KeyType.p256); // Create a second key
+      await wallet.createKeyPair(testEd25519KeyId1, keyType: KeyType.ed25519);
 
       // Sign with key 1
-      final signature1 = await wallet.sign(dataToSign, keyId: testKeyId1);
+      final p256Signature = await wallet.sign(dataToSign, keyId: testKeyId1);
+      final ed25519Signature =
+          await wallet.sign(dataToSign, keyId: testEd25519KeyId1);
 
       // Verify with key 1 (should succeed)
       expect(
           await wallet.verify(dataToSign,
-              signature: signature1, keyId: testKeyId1),
+              signature: p256Signature, keyId: testKeyId1),
+          isTrue);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: ed25519Signature, keyId: testEd25519KeyId1),
           isTrue);
 
       // Verify with key 2 (should fail)
+      // Cross-verification (P256 sig with Ed25519 key and vice-versa) should fail
       expect(
           await wallet.verify(dataToSign,
-              signature: signature1, keyId: testKeyId2),
+              signature: p256Signature, keyId: testEd25519KeyId1),
+          isFalse);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: ed25519Signature, keyId: testKeyId1),
           isFalse);
 
       // Verify with tampered data (should fail)
       final tamperedData = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(
           await wallet.verify(tamperedData,
-              signature: signature1, keyId: testKeyId1),
+              signature: p256Signature, keyId: testKeyId1),
+          isFalse);
+      expect(
+          await wallet.verify(tamperedData,
+              signature: ed25519Signature, keyId: testEd25519KeyId1),
           isFalse);
 
       // Verify with tampered signature (should fail)
-      final tamperedSignature = Uint8List.fromList(signature1);
-      tamperedSignature[0] = tamperedSignature[0] ^ 0xFF; // Flip first byte
+      final tamperedP256Signature = Uint8List.fromList(p256Signature);
+      tamperedP256Signature[0] =
+          tamperedP256Signature[0] ^ 0xFF; // Flip first byte
       expect(
           await wallet.verify(dataToSign,
-              signature: tamperedSignature, keyId: testKeyId1),
+              signature: tamperedP256Signature, keyId: testKeyId1),
+          isFalse);
+
+      final tamperedEd25519Signature = Uint8List.fromList(ed25519Signature);
+      tamperedEd25519Signature[0] =
+          tamperedEd25519Signature[0] ^ 0xFF; // Flip first byte
+      expect(
+          await wallet.verify(dataToSign,
+              signature: tamperedEd25519Signature, keyId: testEd25519KeyId1),
           isFalse);
     });
 

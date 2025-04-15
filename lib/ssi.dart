@@ -23,4 +23,6 @@ export 'src/types.dart';
 export 'src/wallet/bip32_ed25519_wallet.dart';
 export 'src/wallet/bip32_wallet.dart';
 export 'src/wallet/generic_wallet.dart';
+export 'src/wallet/key_store/in_memory_key_store.dart';
+export 'src/wallet/key_store/key_store_interface.dart';
 export 'src/wallet/wallet.dart';

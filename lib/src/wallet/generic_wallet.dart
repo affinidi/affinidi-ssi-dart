@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:base_codecs/base_codecs.dart';
+
+import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/p256_key_pair.dart';
-import 'key_store/in_memory_key_store.dart';
 import 'key_store/key_store_interface.dart';
 import 'wallet.dart';
 import '../key_pair/key_pair.dart';
@@ -11,8 +13,7 @@ import '../types.dart';
 class GenericWallet implements Wallet {
   final KeyStore _keyStore;
 
-  GenericWallet([KeyStore? keyStore])
-      : _keyStore = keyStore ?? InMemoryKeyStore();
+  GenericWallet(KeyStore keyStore) : _keyStore = keyStore;
 
   @override
   Future<bool> hasKey(String keyId) {
@@ -45,6 +46,9 @@ class GenericWallet implements Wallet {
     if (await _keyStore.contains(keyId)) {
       throw ArgumentError("Key already exists: $keyId");
     }
+
+    keyType ??= KeyType.p256; // Default to P256 if not specified
+
     if (keyType == KeyType.p256) {
       final keyPair = P256KeyPair.create(keyId: keyId);
       final privateKeyHex = await keyPair.privateKeyHex;
@@ -54,8 +58,19 @@ class GenericWallet implements Wallet {
       });
       await _keyStore.set(keyId, storedData);
       return keyPair;
+    } else if (keyType == KeyType.ed25519) {
+      final keyPair = Ed25519KeyPair.create(keyId: keyId);
+      final privateKeyHex = await keyPair.privateKeyHex;
+      final storedData = jsonEncode({
+        'type': KeyType.ed25519.name,
+        'privateKeyHex': privateKeyHex,
+      });
+      await _keyStore.set(keyId, storedData);
+      return keyPair;
     }
-    throw ArgumentError("Only p256 key type is supported for GenericWallet");
+
+    throw ArgumentError(
+        "Only p256 and ed25519 key types are supported for GenericWallet");
   }
 
   @override
@@ -76,6 +91,11 @@ class GenericWallet implements Wallet {
       return P256KeyPair.fromPrivateKeyHex(
         keyId: keyId,
         privateKeyHex: privateKeyHex,
+      );
+    } else if (keyTypeStr == KeyType.ed25519.name) {
+      return Ed25519KeyPair(
+        privateKey: Uint8List.fromList(hex.decode(privateKeyHex)),
+        keyId: keyId,
       );
     }
 
