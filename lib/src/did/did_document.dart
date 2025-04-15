@@ -131,7 +131,7 @@ class DidDocument implements JsonObject {
       List tmp = document['capabilityInvocation'];
       if (tmp.isNotEmpty) {
         capabilityInvocation = [];
-        for (var v in tmp) {
+        for (final v in tmp) {
           if (v is String) {
             capabilityInvocation.add(v);
           } else if (v is Map<String, dynamic>) {
@@ -231,7 +231,7 @@ class DidDocument implements JsonObject {
 
   /// If keys are given as multibase-keys convert to Json web keys (this format is widely used in this package)
   // DidDocument convertAllKeysToJwk() {
-  //   var newDdo = DidDocument(
+  //   final newDdo = DidDocument(
   //       id: id,
   //       context: context,
   //       controller: controller,
@@ -240,7 +240,7 @@ class DidDocument implements JsonObject {
 
   //   if (verificationMethod != null && verificationMethod.isNotEmpty) {
   //     List<VerificationMethod> newVm = [];
-  //     for (var entry in verificationMethod) {
+  //     for (final entry in verificationMethod) {
   //       newVm.add(entry.toPublicKeyJwk());
   //     }
   //     newDdo.verificationMethod = newVm;
@@ -265,7 +265,7 @@ class DidDocument implements JsonObject {
 
   // List _convertKeys(List old) {
   //   List newList = [];
-  //   for (var entry in old) {
+  //   for (final entry in old) {
   //     if (entry is VerificationMethod) {
   //       newList.add(entry.toPublicKeyJwk());
   //     } else {
@@ -462,7 +462,7 @@ abstract class VerificationMethod implements JsonObject {
   /// Convert a multibase key to Json web Key
   // VerificationMethod toPublicKeyJwk() {
   //   if (publicKeyMultibase != null) {
-  //     var pkJwk = multibaseKeyToJwk(publicKeyMultibase!);
+  //     final pkJwk = multibaseKeyToJwk(publicKeyMultibase!);
   //     // TIMTAM#4 - if the id is relative, prepend the controller
   //     //            prepended controller, so that the key is fully qualified
   //     pkJwk['kid'] = (id.startsWith('#') ? controller + id : id);

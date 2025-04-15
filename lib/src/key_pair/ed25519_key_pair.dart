@@ -13,11 +13,19 @@ import 'key_pair.dart';
 import './_const.dart';
 import './_encryption_utils.dart';
 
+/// A [KeyPair] implementation using the Ed25519 signature scheme.
+///
+/// This key pair supports signing and verifying data using Ed25519.
+/// It does not support any other signature schemes.
 class Ed25519KeyPair implements KeyPair {
+  /// The key identifier.
   final String _keyId;
+
+  /// The private key.
   final dynamic _privateKey;
   final _encryptionUtils;
 
+  /// Constructs an [Ed25519KeyPair] from a [privateKey] and its associated [keyId].
   Ed25519KeyPair({
     required dynamic privateKey,
     required String keyId,
@@ -25,9 +33,13 @@ class Ed25519KeyPair implements KeyPair {
         _keyId = keyId,
         _encryptionUtils = EncryptionUtils();
 
+  /// Returns the identifier of this key pair.
   @override
   Future<String> get id => Future.value(_keyId);
 
+  /// Retrieves the public key.
+  ///
+  /// Returns the key as [Uint8List].
   @override
   Future<Uint8List> get publicKey => Future.value(
         Uint8List.fromList(
@@ -38,6 +50,15 @@ class Ed25519KeyPair implements KeyPair {
   @override
   Future<KeyType> get publicKeyType => Future.value(KeyType.ed25519);
 
+  /// Signs the provided data using Ed25519.
+  ///
+  /// [data] - The data to be signed.
+  /// [signatureScheme] - The signature scheme to use.
+  ///
+  /// Returns a [Future] that completes with the signature as a [Uint8List].
+  ///
+  /// Throws [SsiException] if an unsupported [signatureScheme] is passed or
+  /// if the signing operation fails.
   @override
   Future<Uint8List> sign(
     Uint8List data, {
@@ -51,14 +72,24 @@ class Ed25519KeyPair implements KeyPair {
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
-
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
+
     return ed.sign(_privateKey, digest);
   }
 
+  /// Verifies a signature using Ed25519.
+  ///
+  /// [data] - The data that was signed.
+  /// [signature] - The signature to verify.
+  /// [signatureScheme] - The signature scheme to use.
+  ///
+  /// Returns a [Future] that completes with `true` if the signature is valid,
+  /// `false` otherwise.
+  ///
+  /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   @override
   Future<bool> verify(
     Uint8List data,
@@ -66,25 +97,32 @@ class Ed25519KeyPair implements KeyPair {
     SignatureScheme? signatureScheme,
   }) async {
     signatureScheme ??= SignatureScheme.ed25519_sha256;
-
     if (signatureScheme != SignatureScheme.ed25519_sha256) {
       throw SsiException(
         message:
-            'Unsupported signature scheme. Only ed25519_sha256 is supported',
+            'Unsupported signature scheme. Only ed25519_sha256 is supported.',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
 
+    if (signatureScheme != SignatureScheme.ed25519_sha256) {
+      throw SsiException(
+        message:
+            'Unsupported signature scheme. Only ed25519_sha256 is supported.',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
+    }
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
-
     return ed.verify(ed.public(_privateKey), digest, signature);
   }
 
+  /// Returns the original seed used to derive the Ed25519 key pair.
   Uint8List getSeed() => ed.seed(_privateKey);
 
+  /// Returns the supported signature schemes for this key pair.
   @override
   List<SignatureScheme> get supportedSignatureSchemes =>
       const [SignatureScheme.ed25519_sha256];

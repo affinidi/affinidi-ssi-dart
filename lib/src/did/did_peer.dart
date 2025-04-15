@@ -11,47 +11,80 @@ import '../utility.dart';
 import 'did_document.dart';
 import 'public_key_utils.dart';
 
+/// Represents a base key with its type and public key bytes.
 class BaseKey {
+  /// The type of the key e.g., Ed25519
   KeyType keyType;
+
+  /// The public key bytes
   Uint8List pubKeyBytes;
 
+  /// Creates a new [BaseKey] instance.
+  ///
+  /// [pubKeyBytes] - The public key bytes.
+  /// [keyType] - The type of the key.
   BaseKey(
     this.pubKeyBytes,
     this.keyType,
   );
 }
 
+/// Enum representing the prefixes used in encoding for peer DIDs.
+///
+/// These prefixes are used to identify different components in a peer DID:
+/// - [authentication] - Used for authentication keys (prefix "V")
+/// - [keyAgreement] - Used for key agreement keys (prefix "E")
+/// - [service] - Used for service endpoints (prefix "S")
+
 enum Numalgo2Prefix {
+  /// Prefix for authentication keys.
   authentication("V"),
 
+  /// Prefix for key agreement keys.
   keyAgreement("E"),
 
+  /// Prefix for service entries.
   service("S");
 
+  /// String value of the prefix.
   final String value;
 
+  /// Creates a new [Numalgo2Prefix] instance.
+  ///
+  /// [value] - The string value of the prefix.
   const Numalgo2Prefix(this.value);
 }
 
 final RegExp peerDIDPattern = RegExp(
     r'^did:peer:((0(z)[1-9a-km-zA-HJ-NP-Z]+)|(2(\.[AEVID](z)[1-9a-km-zA-HJ-NP-Z]+)+)+(\.(S)[0-9a-zA-Z]*)?)');
 
+/// Validates if a given string matches the peer DID.
+///
+/// [peerDID] - The string to validate.
+///
+/// Returns `true` if the string matches the peer DID pattern, `false` otherwise.
 bool isPeerDID(String peerDID) {
   return peerDIDPattern.hasMatch(peerDID);
 }
 
+/// Resolves a numalgo0 peer DID to a DID document.
+///
+/// Supports only Base58 encoded keys.
 Future<DidDocument> _resolveDidPeer0(String did) {
   final multibaseIndicator = did[10];
 
   if (multibaseIndicator != 'z') {
-    throw UnimplementedError('Only Base58 is supported yet');
+    throw SsiException(
+      message: 'Only Base58 is supported yet',
+      code: SsiExceptionType.invalidDidPeer.code,
+    );
   }
 
-  const contextEdward = [
+  final contextEdward = [
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/ed25519-2020/v1"
   ];
-  const contextedX = [
+  const contextEdX = [
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/x25519-2020/v1"
   ];
@@ -61,7 +94,7 @@ Future<DidDocument> _resolveDidPeer0(String did) {
   if (keyPart.startsWith('6Mk')) {
     return _buildEDDoc(contextEdward, did, keyPart);
   } else if (keyPart.startsWith('6LS')) {
-    return _buildXDoc(contextedX, did, keyPart);
+    return _buildXDoc(contextEdX, did, keyPart);
     // } else if (keyPart.startsWith('Dn')) {
     //   return _buildOtherDoc(context2, id, keyPart, 'P256Key2021');
     // } else if (keyPart.startsWith('Q3s')) {
@@ -73,11 +106,12 @@ Future<DidDocument> _resolveDidPeer0(String did) {
   } else {
     throw SsiException(
       message: 'Only Ed25519 and X25519 keys are supported now',
-      code: SsiExceptionType.invalidDidPeer.code,
+      code: SsiExceptionType.unsupportedSignatureScheme.code,
     );
   }
 }
 
+/// Resolves a numalgo2 peer DID to a DID document.
 Future<DidDocument> _resolveDidPeer2(String did) {
   String keysPart = did.substring(11);
 
@@ -89,7 +123,6 @@ Future<DidDocument> _resolveDidPeer2(String did) {
   for (final key in keys) {
     final prefix = key[0];
     final keyPart = key.substring(1);
-
     switch (prefix) {
       case 'S':
         serviceString = keyPart;
@@ -107,10 +140,19 @@ Future<DidDocument> _resolveDidPeer2(String did) {
         );
     }
   }
+
   return _buildMultiKeysDoc(
       did, agreementKeys, authenticationKeys, serviceString);
 }
 
+/// Builds a DID document for a multi-key peer DID.
+///
+/// [did] - The DID identifier.
+/// [agreementKeys] - The list of agreement keys.
+/// [authenticationKeys] - The list of authentication keys.
+/// [serviceStr] - The service string.
+///
+/// Returns a [DidDocument].
 Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
     List<String> authenticationKeys, String? serviceStr) {
   final context = [
@@ -139,7 +181,7 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
     service = [ServiceEndpoint.fromJson(serviceJson)];
   }
 
-  int i = 0;
+  var i = 0;
 
   for (final agreementKey in agreementKeys) {
     i++;
@@ -147,7 +189,7 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
         ? 'X25519KeyAgreementKey2020'
         : 'Ed25519VerificationKey2020';
 
-    final kid = '#key-$i';
+    String kid = '#key-$i';
     final verification = VerificationMethodMultibase(
       id: kid,
       controller: did,
@@ -165,7 +207,7 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
         ? 'X25519KeyAgreementKey2020'
         : 'Ed25519VerificationKey2020';
 
-    final kid = '#key-$i';
+    String kid = '#key-$i';
     final verification = VerificationMethodMultibase(
       id: kid,
       controller: did,
@@ -191,6 +233,7 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
   );
 }
 
+/// Builds a DID Document for ED25519 keys.
 Future<DidDocument> _buildEDDoc(
   List<String> context,
   String id,
@@ -214,7 +257,7 @@ Future<DidDocument> _buildEDDoc(
     type: 'Ed25519VerificationKey2020',
     publicKeyMultibase: 'z$keyPart',
   );
-  // var keyAgreement = VerificationMethod(
+  // final keyAgreement = VerificationMethod(
   //     id: agreementKeyId,
   //     controller: id,
   //     type: 'X25519KeyAgreementKey2020',
@@ -234,6 +277,7 @@ Future<DidDocument> _buildEDDoc(
   );
 }
 
+/// Builds a DID Document for X25519 keys.
 Future<DidDocument> _buildXDoc(
   List<String> context,
   String id,
@@ -256,7 +300,17 @@ Future<DidDocument> _buildXDoc(
   );
 }
 
+/// A utility class for working with the "did:peer" method.
+///
+/// This class provides methods to create and resolve DIDs using the "did:peer" method.
 class DidPeer {
+  /// Determines the type of a DID based on its prefix.
+  ///
+  /// [did] - The DID to determine the type of.
+  ///
+  /// Returns a [DidPeerType].
+  ///
+  /// Throws [SsiException] if the DID is not a valid peer DID.
   static DidPeerType determineType(String did) {
     for (final entry in _didTypePrefixes.entries) {
       if (did.startsWith(entry.value)) {
@@ -342,6 +396,14 @@ class DidPeer {
     }
   }
 
+  /// Creates a DID Document for a list of key pairs.
+  ///
+  /// [keyPairs] - The list of key pairs.
+  /// [serviceEndpoint] - Optional service endpoint.
+  ///
+  /// Returns a [DidDocument].
+  ///
+  /// Throws [SsiException] if empty key pairs.
   //FIXME(FTL-20741) should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
   static Future<DidDocument> create(
     List<KeyPair> keyPairs, {
@@ -367,7 +429,7 @@ class DidPeer {
     final did = _pubKeyToPeerDid(baseKeys, serviceEndpoint);
 
     final verificationMethods = <VerificationMethod>[];
-    for (int i = 0; i < keyPairs.length; i++) {
+    for (var i = 0; i < keyPairs.length; i++) {
       final keyPair = keyPairs[i];
       verificationMethods.add(
         VerificationMethodMultibase(
@@ -396,6 +458,13 @@ class DidPeer {
     );
   }
 
+  /// Resolves a peer DID to a DID document.
+  ///
+  /// [did] - The peer DID to resolve.
+  ///
+  /// Returns a [DidDocument].
+  ///
+  /// Throws [SsiException] if the DID is not a valid peer DID.
   static Future<DidDocument> resolve(String did) {
     if (!isPeerDID(did)) {
       throw SsiException(
@@ -411,6 +480,7 @@ class DidPeer {
       return _resolveDidPeer2(did);
     }
   }
+
   // static const Map<KeyType, String> _keyTypePrefixes = {
   //   KeyType.x25519: '6LS',
   //   KeyType.ed25519: '6Mk',
