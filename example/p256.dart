@@ -17,7 +17,7 @@ void main() async {
   // Verify signature
   print('Verifying signature...');
   final verification = await p256key.verify(dataToSign, signature);
-  assert(verifification, "Verification failed");
+  assert(verification, "Verification failed");
   print('Verification succeeded');
 
   // Creating key pairs for Alice and Bob
