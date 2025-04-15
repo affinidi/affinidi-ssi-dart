@@ -4,9 +4,6 @@ import '../types.dart';
 
 /// An abstract interface for cryptographic key pairs used for signing and verifying data.
 abstract interface class KeyPair {
-  /// Returns the identifier of the key pair.
-  Future<String> get id;
-
   /// Returns a list of [SignatureScheme]s supported by this key pair.
   List<SignatureScheme> get supportedSignatureSchemes;
 

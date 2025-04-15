@@ -14,43 +14,29 @@ import 'key_pair.dart';
 /// This key pair supports signing and verifying data using Ed25519.
 /// It does not support any other signature schemes.
 class Ed25519KeyPair implements KeyPair {
-  /// The key identifier.
-  final String _keyId;
-
   /// The private key.
   final ed.PrivateKey _privateKey;
 
   /// Constructs an [Ed25519KeyPair] from a [privateKey] and its associated [keyId].
   Ed25519KeyPair({
     required Uint8List privateKey,
-    required String keyId,
-  })  : _privateKey = ed.PrivateKey(privateKey),
-        _keyId = keyId;
+  }) : _privateKey = ed.PrivateKey(privateKey);
 
   factory Ed25519KeyPair.fromSeed({
     required Uint8List seed,
-    required String keyId,
   }) {
     final privateKey = ed.newKeyFromSeed(seed);
     return Ed25519KeyPair(
       privateKey: Uint8List.fromList(privateKey.bytes),
-      keyId: keyId,
     );
   }
 
-  factory Ed25519KeyPair.create({
-    required String keyId,
-  }) {
+  factory Ed25519KeyPair.create() {
     final keyPair = ed.generateKey();
     return Ed25519KeyPair(
       privateKey: Uint8List.fromList(keyPair.privateKey.bytes),
-      keyId: keyId,
     );
   }
-
-  /// Returns the identifier of this key pair.
-  @override
-  Future<String> get id => Future.value(_keyId);
 
   /// Returns the type of the public key.
   @override

@@ -27,7 +27,6 @@ void main() {
       final newKeyPair =
           await wallet.createKeyPair(testKeyId1, keyType: KeyType.p256);
       expect(await wallet.hasKey(testKeyId1), isTrue);
-      expect(await newKeyPair.id, testKeyId1);
       expect(await newKeyPair.publicKeyType, KeyType.p256);
 
       // Check if key is actually stored
@@ -46,7 +45,6 @@ void main() {
       // Call without specifying keyType
       final newKeyPair = await wallet.createKeyPair(defaultKeyId);
       expect(await wallet.hasKey(defaultKeyId), isTrue);
-      expect(await newKeyPair.id, defaultKeyId);
       expect(await newKeyPair.publicKeyType,
           KeyType.p256); // Should default to P256
 
@@ -63,7 +61,6 @@ void main() {
       final newKeyPair = await wallet.createKeyPair(testEd25519KeyId1,
           keyType: KeyType.ed25519);
       expect(await wallet.hasKey(testEd25519KeyId1), isTrue);
-      expect(await newKeyPair.id, testEd25519KeyId1);
       expect(await newKeyPair.publicKeyType, KeyType.ed25519);
 
       // Check if key is actually stored
@@ -104,7 +101,6 @@ void main() {
           await wallet.createKeyPair(testKeyId1, keyType: KeyType.p256);
       final retrievedKeyPair = await wallet.getKeyPair(testKeyId1);
 
-      expect(await retrievedKeyPair.id, testKeyId1);
       expect(await retrievedKeyPair.publicKeyType, KeyType.p256);
       // Compare public keys to ensure it's the same key material
       expect(await retrievedKeyPair.publicKey, await createdKeyPair.publicKey);
@@ -115,7 +111,6 @@ void main() {
           keyType: KeyType.ed25519);
       final retrievedKeyPair = await wallet.getKeyPair(testEd25519KeyId1);
 
-      expect(await retrievedKeyPair.id, testEd25519KeyId1);
       expect(await retrievedKeyPair.publicKeyType, KeyType.ed25519);
       // Compare public keys to ensure it's the same key material
       expect(await retrievedKeyPair.publicKey, await createdKeyPair.publicKey);

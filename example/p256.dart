@@ -1,18 +1,17 @@
 import 'dart:typed_data';
-import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
 
 void main() async {
   final dataToSign = Uint8List.fromList([1, 2, 3]);
 
   // Create P256 key pair
-  final p256key = P256KeyPair.create(keyId: "MyKeyPair");
+  final p256key = P256KeyPair.create();
   print('P256 key pair created. Public key: ${await p256key.publicKey}');
 
   // Sing payload
   print('Signing payload...');
   final signature = await p256key.sign(dataToSign);
-  print('Signature: ${signature}');
+  print('Signature: $signature');
 
   // Verify signature
   print('Verifying signature...');
@@ -22,9 +21,9 @@ void main() async {
 
   // Creating key pairs for Alice and Bob
   print('Creating key pairs for Alice and Bob...');
-  final keyPairAlice = P256KeyPair.create(keyId: "alice");
+  final keyPairAlice = P256KeyPair.create();
   print('Alice key pair created. Public key: ${await keyPairAlice.publicKey}');
-  final keyPairBob = P256KeyPair.create(keyId: "bob");
+  final keyPairBob = P256KeyPair.create();
   print('Bob key pair created. Public key: ${await keyPairBob.publicKey}');
 
   // Compute ECDH (Elliptic Curve Diffie-Hellman) for encryption

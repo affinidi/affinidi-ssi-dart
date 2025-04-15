@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
+import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 
@@ -26,7 +27,6 @@ class KmsKeyPair implements KeyPair {
 
   KmsKeyPair(this.kmsClient, this.keyId);
 
-  @override
   Future<String> get id async => keyId;
 
   @override
@@ -41,7 +41,19 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
+  Future<String> get publicKeyHex async =>
+      Future.value(hex.encode(await publicKey));
+
+  @override
   Future<KeyType> get publicKeyType async => KeyType.rsa;
+
+  @override
+  Future<String> get privateKeyHex {
+    throw SsiException(
+      message: "KmsKeyPair does not allow extracting the private key",
+      code: SsiExceptionType.keyPairMissingPrivateKey.code,
+    );
+  }
 
   @override
   Future<Uint8List> sign(Uint8List data,

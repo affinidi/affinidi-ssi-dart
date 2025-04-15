@@ -22,7 +22,6 @@ void main() {
     test('Wallet creation from seed should contain root key', () async {
       expect(await wallet.hasKey(Bip32Ed25519Wallet.rootKeyId), isTrue);
       final rootKeyPair = await wallet.getKeyPair(Bip32Ed25519Wallet.rootKeyId);
-      expect(await rootKeyPair.id, Bip32Ed25519Wallet.rootKeyId);
       expect(await rootKeyPair.publicKeyType, KeyType.ed25519);
     });
 
@@ -32,13 +31,11 @@ void main() {
 
       final newKeyPair = await wallet.createKeyPair(newKeyId);
       expect(await wallet.hasKey(newKeyId), isTrue);
-      expect(await newKeyPair.id, newKeyId);
       expect(await newKeyPair.publicKeyType, KeyType.ed25519);
 
       // Ensure creating the same key again returns the existing one
       final sameKeyPair = await wallet.createKeyPair(newKeyId);
       expect(await sameKeyPair.publicKey, await newKeyPair.publicKey);
-      expect(await sameKeyPair.id, await newKeyPair.id);
     });
 
     test('createKeyPair should throw for unsupported key type', () async {
@@ -85,10 +82,10 @@ void main() {
       await wallet.createKeyPair(derivedKeyId);
 
       final rootKeyPair = await wallet.getKeyPair(Bip32Ed25519Wallet.rootKeyId);
-      expect(await rootKeyPair.id, Bip32Ed25519Wallet.rootKeyId);
 
       final derivedKeyPair = await wallet.getKeyPair(derivedKeyId);
-      expect(await derivedKeyPair.id, derivedKeyId);
+      expect(await rootKeyPair.publicKeyType, KeyType.ed25519);
+      expect(await derivedKeyPair.publicKeyType, KeyType.ed25519);
     });
 
     test('getKeyPair should throw for non-existent keyId', () async {

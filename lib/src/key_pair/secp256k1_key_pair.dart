@@ -14,25 +14,15 @@ import 'key_pair.dart';
 /// This key pair supports signing and verifying data using secp256k1.
 /// It does not support any other signature schemes.
 class Secp256k1KeyPair implements KeyPair {
-  /// The key identifier.
-  final String _keyId;
-
   /// The BIP32 node containing the key material.
   final BIP32 _node;
 
   /// Creates a new [Secp256k1KeyPair] instance.
   ///
   /// [node] - The BIP32 node containing the key material.
-  /// [keyId] - The key identifier.
   Secp256k1KeyPair({
     required BIP32 node,
-    required String keyId,
-  })  : _node = node,
-        _keyId = keyId;
-
-  /// Returns the identifier of the key pair.
-  @override
-  Future<String> get id => Future.value(_keyId);
+  }) : _node = node;
 
   /// Returns the type of the public key.
   @override

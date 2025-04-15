@@ -18,53 +18,35 @@ import 'key_pair.dart';
 /// `ecdsa_p256_sha256` signature scheme. It also supports Elliptic Curve
 /// Diffie-Hellman (ECDH) key agreement.
 class P256KeyPair implements KeyPair {
-  final EllipticCurve _p256;
+  /// The P-256 curve instance.
+  static final EllipticCurve _p256 = getP256();
+
   final PrivateKey _privateKey;
-  final String _keyId;
   Uint8List? _publicKeyBytes;
 
   P256KeyPair._({
-    required EllipticCurve p256,
     required PrivateKey privateKey,
-    required String keyId,
-  })  : _p256 = p256,
-        _privateKey = privateKey,
-        _keyId = keyId;
+  }) : _privateKey = privateKey;
 
   /// Creates a new [P256KeyPair] instance with a randomly generated private key.
   ///
-  /// [keyId] - The identifier for the new key pair.
-  factory P256KeyPair.create({
-    required String keyId,
-  }) {
-    final p256 = getP256();
+  factory P256KeyPair.create() {
     return P256KeyPair._(
-      p256: p256,
-      privateKey: p256.generatePrivateKey(),
-      keyId: keyId,
+      privateKey: _p256.generatePrivateKey(),
     );
   }
 
   /// Creates a [P256KeyPair] instance from a private key hex string.
   ///
-  /// [keyId] - The identifier for the key pair.
   /// [privateKeyHex] - The private key encoded as a hex string.
   factory P256KeyPair.fromPrivateKeyHex({
-    required String keyId,
     required String privateKeyHex,
   }) {
-    final p256 = getP256();
-    final privateKey = PrivateKey.fromHex(p256, privateKeyHex);
+    final privateKey = PrivateKey.fromHex(_p256, privateKeyHex);
     return P256KeyPair._(
-      p256: p256,
       privateKey: privateKey,
-      keyId: keyId,
     );
   }
-
-  /// Returns the identifier of the key pair.
-  @override
-  Future<String> get id => Future.value(_keyId);
 
   /// Returns the type of the public key.
   @override
