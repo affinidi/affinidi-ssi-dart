@@ -1,12 +1,12 @@
-import '../../../../ssi.dart';
 import '../../models/doc_with_embedded_proof.dart';
+import '../../models/parsed_vc.dart';
 
 /// Abstract base class for a Verifiable Presentation (VP).
 ///
 /// This interface defines common fields and behaviors for VP models,
 /// including both W3C VC Data Model v1.1 and v2.0 presentations.
 ///
-/// Implementations such as [VpDataModelV1] and [VpDataModelV2]
+/// Implementations such as VpDataModelV1 and VpDataModelV2
 /// should conform to this interface.
 abstract interface class VerifiablePresentation
     implements DocWithEmbeddedProof {
@@ -24,7 +24,7 @@ abstract interface class VerifiablePresentation
   String? get holder;
 
   /// The verifiable credentials included in this presentation.
-  List<VerifiableCredential> get verifiableCredential;
+  List<ParsedVerifiableCredential> get verifiableCredential;
 
   /// Creates a [VerifiablePresentation] from a JSON map.
   @override

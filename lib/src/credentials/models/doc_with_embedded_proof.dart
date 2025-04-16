@@ -4,8 +4,8 @@
 /// cryptographic verification. This interface marks that it's possible
 /// to model an embedded proof within the data structure.
 ///
-/// This is the root representation for both [VerifiableCredential] and
-/// [VerifiablePresentation] types.
+/// This is the root representation for both VerifiableCredential and
+/// VerifiablePresentation types.
 abstract interface class DocWithEmbeddedProof {
   /// The cryptographic proof used to verify the integrity of this data.
   ///

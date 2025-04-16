@@ -36,7 +36,7 @@ class _LdVcDataModelV1Impl extends MutableVcDataModelV1
 
   @override
   Map<String, dynamic> toJson() {
-    return jsonDecode(_serialized);
+    return jsonDecode(_serialized) as Map<String, dynamic>;
   }
 
   @override
