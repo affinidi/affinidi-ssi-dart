@@ -3,6 +3,15 @@ import 'dart:typed_data';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 
+class PublicKeyData {
+  KeyType type;
+  Uint8List bytes;
+  PublicKeyData(
+    this.bytes,
+    this.type,
+  );
+}
+
 /// An abstract interface for cryptographic key pairs used for signing and verifying data.
 abstract interface class KeyPair {
   /// Returns a list of [SignatureScheme]s supported by this key pair.

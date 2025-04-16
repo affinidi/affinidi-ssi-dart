@@ -79,6 +79,17 @@ class Bip32Ed25519Wallet implements Wallet {
     return Future.value(_keyMap.containsKey(keyId));
   }
 
+  /// Returns a [Future] that completes with a list of the [SignatureScheme]s
+  /// supported by a key pair key pair.
+  ///
+  /// [keyId] - The identifier of the key to use for signing.
+  @override
+  Future<List<SignatureScheme>> getSupportedSignatureSchemes(
+      String keyId) async {
+    final keyPair = _getKeyPair(keyId);
+    return keyPair.supportedSignatureSchemes;
+  }
+
   /// Signs the provided data using the specified key.
   ///
   /// [data] - The data to be signed.

@@ -5,6 +5,12 @@ import '../types.dart';
 
 /// Interface for a wallet
 abstract interface class Wallet {
+  /// Returns a [Future] that completes with a list of the [SignatureScheme]s
+  /// supported by a key pair key pair.
+  ///
+  /// [keyId] - The identifier of the key to use for signing.
+  Future<List<SignatureScheme>> getSupportedSignatureSchemes(String keyId);
+
   /// Signs the data using the specified key.
   ///
   /// [data] - The data to be signed.
@@ -53,7 +59,7 @@ abstract interface class Wallet {
   /// `false` otherwise.
   Future<bool> hasKey(String keyId);
 
-  /// Creates a new key pair with the specified identifier.
+  /// Generates a new key pair with the specified identifier.
   ///
   /// [keyId] - The identifier for the new key pair.
   /// [keyType] - The type of key to create. If not specified, the implementation
