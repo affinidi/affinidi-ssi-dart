@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:sdjwt/sdjwt.dart';
 
 import '../../../ssi.dart';
@@ -9,10 +11,41 @@ import '../models/v2/vc_data_model_v2_view.dart';
 import '../parsers/sdjwt_parser.dart';
 import '../suites/vc_suite.dart';
 import 'enveloped_vc_suite.dart';
-import 'sdjwt_did_verfier.dart';
+import 'sdjwt_did_verifier.dart';
 
 /// Options for SD-JWT Data Model v2 operations.
-class SdJwtDm2Options {}
+///
+/// Contains configuration parameters for selective disclosure JWT operations
+/// in the context of W3C Verifiable Credentials Data Model v2.
+class SdJwtDm2Options {
+  /// Defines which fields in the VC should be selectively disclosable.
+  ///
+  /// A map structure that specifies which parts of the credential should be
+  /// made available for selective disclosure.
+  final Map<String, dynamic>? disclosureFrame;
+
+  /// Hasher implementation for generating disclosure digests.
+  ///
+  /// Defaults to SHA-256 algorithm for hashing if not specified.
+  final Hasher<String, String>? hasher;
+
+  /// The holder's public key for binding the credential to the holder.
+  ///
+  /// Used for key binding to ensure the credential can only be presented
+  /// by the intended holder.
+  final SdPublicKey? holderPublicKey;
+
+  /// Creates an options object for SD-JWT Data Model v2 operations.
+  ///
+  /// [disclosureFrame] - Specifies which fields should be selectively disclosable.
+  /// [hasher] - The hashing algorithm implementation to use for disclosures.
+  /// [holderPublicKey] - Public key of the credential holder for key binding.
+  SdJwtDm2Options({
+    this.disclosureFrame,
+    this.hasher,
+    this.holderPublicKey,
+  });
+}
 
 /// Suite for working with W3C VC Data Model v2 credentials in SD-JWT format.
 ///
@@ -25,6 +58,12 @@ final class SdJwtDm2Suite
     implements
         VerifiableCredentialSuite<String, MutableVcDataModelV2,
             SdJwtDataModelV2, SdJwtDm2Options> {
+  /// Checks if the SD-JWT payload represents a valid VC Data Model v2 structure.
+  ///
+  /// [data] - The SD-JWT structure to validate.
+  ///
+  /// Returns true if the payload contains a context array with the required
+  /// VC Data Model v2 context URL.
   @override
   bool hasValidPayload(SdJwt data) {
     final context = data.payload[VcDataModelV2Key.context.key];
@@ -32,12 +71,24 @@ final class SdJwtDm2Suite
         context.contains(MutableVcDataModelV2.contextUrl);
   }
 
+  /// Determines if the provided input can be parsed by this suite.
+  ///
+  /// [input] - The data to check for parseability.
+  ///
+  /// Returns true if the input is a String and can be decoded as an SD-JWT.
   @override
   bool canParse(Object input) {
     if (input is! String) return false;
     return canDecode(input);
   }
 
+  /// Parses the input string into an SD-JWT data model.
+  ///
+  /// [input] - The string to parse as an SD-JWT credential.
+  ///
+  /// Returns a parsed SD-JWT credential model.
+  ///
+  /// Throws [SsiException] if the input is not a String.
   @override
   SdJwtDataModelV2 parse(Object input) {
     if (input is! String) {
@@ -50,17 +101,58 @@ final class SdJwtDm2Suite
     return _SdJwtDataModelV2.fromSdJwt(decode(input));
   }
 
+  /// Issues a new SD-JWT credential by signing the VC with the provided signer.
+  ///
+  /// [vc] - The credential to be issued.
+  /// [signer] - The DID signer used to sign the credential.
+  /// [options] - Optional configuration for the SD-JWT issuance.
+  ///
+  /// Returns a parsed SD-JWT credential with appropriate signatures and disclosures.
+  ///
+  /// Throws [SsiException] if the credential is invalid or if signing fails.
   @override
   Future<SdJwtDataModelV2> issue(
     MutableVcDataModelV2 vc,
     DidSigner signer, {
     SdJwtDm2Options? options,
   }) async {
-    //TODO(FTL-20735): extend option to select proof suite
+    // Validate the credential
+    _validateCredential(vc);
 
-    throw UnimplementedError();
+    final payload = vc.toJson();
+
+    payload[VcDataModelV2Key.issuer.key] = signer.did;
+
+    final jwtClaims = <String, dynamic>{};
+    jwtClaims.addAll(payload);
+    final disclosureFrame =
+        options?.disclosureFrame ?? _getDefaultDisclosureFrame(payload);
+    final jwtSigner = _createSdJwtSigner(signer);
+    final handler = SdJwtHandlerV1();
+
+    try {
+      final sdJwt = await handler.sign(
+        claims: jwtClaims,
+        disclosureFrame: disclosureFrame,
+        signer: jwtSigner,
+        hasher: options?.hasher ?? Base64EncodedOutputHasher.base64Sha256,
+        holderPublicKey: options?.holderPublicKey,
+      );
+      return _SdJwtDataModelV2.fromSdJwt(sdJwt);
+    } catch (e) {
+      throw SsiException(
+        message: 'Failed to issue SD-JWT credential: ${e.toString()}',
+        code: SsiExceptionType.invalidVC.code,
+        originalMessage: e.toString(),
+      );
+    }
   }
 
+  /// Verifies the cryptographic integrity of the credential.
+  ///
+  /// [input] - The SD-JWT credential to verify.
+  ///
+  /// Returns true if the credential's signature is valid, false otherwise.
   @override
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input) async {
     final algorithm =
@@ -80,26 +172,166 @@ final class SdJwtDm2Suite
     return isVerified!;
   }
 
+  /// Presents the sdjwt VC as an enveloped VC when included as part of
+  /// a Verifiable Presentation.
+  ///
+  /// [input] - The SD-JWT credential to present.
+  ///
+  /// Returns the enveloped vc containing the mediatype and serialized sdjwt.
   @override
-  String present(SdJwtDataModelV2 input) =>
+  Map<String, dynamic> present(SdJwtDataModelV2 input) =>
       EnvelopedVcDm2Suite().present(input);
+
+  /// Creates a default disclosure frame if none is provided.
+  ///
+  /// [payload] - The credential payload.
+  ///
+  /// Returns a disclosure frame that makes all credential subject fields
+  /// selectively disclosable.
+  Map<String, dynamic> _getDefaultDisclosureFrame(
+      Map<String, dynamic> payload) {
+    if (payload.containsKey('credentialSubject') &&
+        payload['credentialSubject'] is Map &&
+        (payload['credentialSubject'] as Map).isNotEmpty) {
+      return {
+        'credentialSubject': {
+          '_sd': (payload['credentialSubject'] as Map<String, dynamic>)
+              .keys
+              .toList(),
+        }
+      };
+    } else {
+      return {};
+    }
+  }
+
+  /// Validates the credential before issuing.
+  ///
+  /// [vc] - The credential to validate.
+  ///
+  /// Throws [SsiException] if any required fields are missing.
+  void _validateCredential(MutableVcDataModelV2 vc) {
+    final errors = <String>[];
+
+    // Check required fields
+    if (vc.context.isEmpty) {
+      errors.add('Context is required');
+    }
+
+    if (vc.type.isEmpty) {
+      errors.add('Type is required');
+    }
+
+    if (vc.issuer.isEmpty) {
+      errors.add('Issuer is required');
+    }
+
+    // If any errors were found, throw an exception
+    if (errors.isNotEmpty) {
+      throw SsiException(
+        message: 'Invalid VC: ${errors.join(', ')}',
+        code: SsiExceptionType.invalidVC.code,
+      );
+    }
+  }
 }
 
+/// Creates an SD-JWT signer from a DID signer.
+///
+/// [signer] - The DID signer to wrap.
+///
+/// Returns a Signer implementation for SD-JWT operations.
+Signer _createSdJwtSigner(DidSigner signer) {
+  return _DidSignerAdapter(signer);
+}
+
+/// Adapter to wrap the DidSigner for SD-JWT signing operations.
+///
+/// This adapter uses the synchronous signing method from DidSigner
+/// to implement the Signer interface required by SD-JWT library.
+class _DidSignerAdapter implements Signer {
+  /// The wrapped DID signer.
+  final DidSigner _didSigner;
+
+  /// Creates a new adapter for the given DID signer.
+  ///
+  /// [_didSigner] - The DID signer to adapt.
+  _DidSignerAdapter(this._didSigner);
+
+  /// Gets the IANA algorithm name for the signature scheme.
+  ///
+  /// Returns the JWT algorithm name from the signature scheme,
+  /// defaulting to ES256K if not available.
+  @override
+  String get algIanaName => _didSigner.signatureScheme.jwtName != null
+      ? _didSigner.signatureScheme.jwtName!
+      : 'ES256K'; // Default to ES256K if no JWT name is available
+
+  /// Gets the key ID for the signing key.
+  ///
+  /// Returns the key ID from the wrapped DID signer.
+  @override
+  String? get keyId => _didSigner.keyId;
+
+  /// Signs the input data using the synchronous sign method.
+  ///
+  /// [input] - The data to sign.
+  ///
+  /// Returns the signature as a byte array.
+  @override
+  Future<Uint8List> sign(Uint8List input) {
+    return _didSigner.sign(input);
+  }
+}
+
+/// Represents a W3C Verifiable Credential in SD-JWT format following Data Model v2.
 abstract interface class SdJwtDataModelV2
     implements ParsedVerifiableCredential<String>, VcDataModelV2 {
+  /// The underlying SD-JWT structure containing the credential data.
+  ///
+  /// This provides access to the header, claims, disclosures, and signatures
+  /// of the SD-JWT credential.
   SdJwt get sdJwt;
+
+  /// Gets the serialized form of this credential as a string.
+  ///
+  /// Returns the compact serialized representation of the SD-JWT.
+  @override
+  String get serialized;
+
+  /// Gets the header of the underlying SD-JWT.
+  ///
+  /// Returns the header fields of the SD-JWT, containing metadata such as
+  /// the algorithm used for signing.
+  Map<String, dynamic> get header;
+
+  /// Gets the set of disclosures contained in this SD-JWT.
+  ///
+  /// Returns an unmodifiable set of the selective disclosure objects.
+  Set<Disclosure> get disclosures;
 }
 
+/// This class extends the mutable VC Data Model v2 and implements the parsed
+/// credential interface to provide access to the underlying SD-JWT structure
+/// and its selective disclosure capabilities.
 class _SdJwtDataModelV2 extends MutableVcDataModelV2
     implements SdJwtDataModelV2 {
   @override
   final SdJwt sdJwt;
+
+  /// Creates a new SD-JWT credential from an existing SD-JWT structure.
+  ///
+  /// [sdJwt] - The SD-JWT structure to create the credential from.
+  ///
+  /// The credential properties are initialized from the claims in the SD-JWT.
   _SdJwtDataModelV2.fromSdJwt(this.sdJwt) : super.fromJson(sdJwt.claims);
 
   @override
   String get serialized => sdJwt.serialized;
 
+  @override
   Map<String, dynamic> get header => sdJwt.header;
 
+  @override
   Set<Disclosure> get disclosures => Set.unmodifiable(sdJwt.disclosures);
 }

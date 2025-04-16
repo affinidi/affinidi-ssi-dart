@@ -96,7 +96,7 @@ final class EnvelopedVcDm2Suite
   }
 
   @override
-  String present(ParsedVerifiableCredential<String> input) {
+  Map<String, dynamic> present(ParsedVerifiableCredential<String> input) {
     final suite = VcSuites.getVcSuite(input);
     final mediaTypeEntry =
         mediaTypeSuites.entries.firstWhere((e) => e.value == suite,
@@ -109,13 +109,12 @@ final class EnvelopedVcDm2Suite
     return _envelope(mediaTypeEntry.key, input);
   }
 
-  String _envelope(String mediaType, ParsedVerifiableCredential credential) {
-    return '''
-    {
-      "@context": "https://www.w3.org/ns/credentials/v2",
-      "id": "$mediaType,${credential.serialized}",
-      "type": "EnvelopedVerifiableCredential"
-    }
-    ''';
+  Map<String, dynamic> _envelope(
+      String mediaType, ParsedVerifiableCredential credential) {
+    return <String, dynamic>{
+      '@context': 'https://www.w3.org/ns/credentials/v2',
+      'id': '$mediaType,${credential.serialized}',
+      'type': 'EnvelopedVerifiableCredential'
+    };
   }
 }
