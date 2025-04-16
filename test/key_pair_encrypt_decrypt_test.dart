@@ -164,12 +164,12 @@ void main() {
       P256KeyPair p256KeyBob = P256KeyPair.create(keyId: keyId);
 
       var bobPubKey = await p256KeyBob.publicKey;
-      var encryptedByAlice = await p256KeyAlice.encrypt(data,
-          publicKey: bobPubKey);
+      var encryptedByAlice =
+          await p256KeyAlice.encrypt(data, publicKey: bobPubKey);
 
       var alicePubKey = await p256KeyAlice.publicKey;
-      var decryptedByBob = await p256KeyBob.decrypt(encryptedByAlice,
-          publicKey: alicePubKey);
+      var decryptedByBob =
+          await p256KeyBob.decrypt(encryptedByAlice, publicKey: alicePubKey);
 
       expect(decryptedByBob, data);
     });

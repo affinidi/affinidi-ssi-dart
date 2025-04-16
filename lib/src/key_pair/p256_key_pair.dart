@@ -155,9 +155,6 @@ class P256KeyPair implements KeyPair {
   @override
   encrypt(Uint8List data, {Uint8List? publicKey}) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
-    if (privateKey == null) {
-      throw ArgumentError('Private key is null');
-    }
 
     return ecdh_utils.encryptData(
       data: data,
@@ -170,9 +167,6 @@ class P256KeyPair implements KeyPair {
   @override
   decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
-    if (privateKey == null) {
-      throw ArgumentError('Private key is null');
-    }
 
     return ecdh_utils.decryptData(
       encryptedPackage: ivAndBytes,

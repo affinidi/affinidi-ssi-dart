@@ -33,8 +33,7 @@ Future<Uint8List> encryptData({
       ? generateEphemeralPubKey(curve)
       : curve.compressedHexToPublicKey(hex.encode(publicKeyBytes));
 
-  final sharedSecret =
-      await computeEcdhSecret(privateKey, publicKeyToUse);
+  final sharedSecret = await computeEcdhSecret(privateKey, publicKeyToUse);
 
   final algorithm = crypto.Hkdf(
     hmac: crypto.Hmac.sha256(),
