@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
@@ -6,6 +5,7 @@ import 'package:base_codecs/base_codecs.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/p256_key_pair.dart';
 import 'key_store/key_store_interface.dart';
+import 'key_store/stored_key.dart';
 import 'wallet.dart';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
@@ -53,20 +53,20 @@ class GenericWallet implements Wallet {
     if (keyType == KeyType.p256) {
       final keyPair = P256KeyPair();
       final privateKeyHex = await keyPair.privateKeyHex;
-      final storedData = jsonEncode({
-        'type': KeyType.p256.name,
-        'privateKeyHex': privateKeyHex,
-      });
-      await _keyStore.set(keyId, storedData);
+      final storedKey = StoredKey(
+        type: KeyType.p256,
+        key: Uint8List.fromList(hex.decode(privateKeyHex)),
+      );
+      await _keyStore.set(keyId, storedKey);
       return keyPair.publicKey;
     } else if (keyType == KeyType.ed25519) {
       final keyPair = Ed25519KeyPair();
       final privateKeyHex = await keyPair.privateKeyHex;
-      final storedData = jsonEncode({
-        'type': KeyType.ed25519.name,
-        'privateKeyHex': privateKeyHex,
-      });
-      await _keyStore.set(keyId, storedData);
+      final storedKey = StoredKey(
+        type: KeyType.ed25519,
+        key: Uint8List.fromList(hex.decode(privateKeyHex)),
+      );
+      await _keyStore.set(keyId, storedKey);
       return keyPair.publicKey;
     }
 
@@ -79,20 +79,14 @@ class GenericWallet implements Wallet {
     if (storedKeyPair == null) {
       throw ArgumentError("Key not found: $keyId");
     }
-    final keyData = jsonDecode(storedKeyPair) as Map<String, dynamic>;
-    final keyTypeStr = keyData['type'] as String?;
-    final privateKeyHex = keyData['privateKeyHex'] as String?;
 
-    if (keyTypeStr == null || privateKeyHex == null) {
-      throw ArgumentError("Invalid stored key data for key: $keyId");
-    }
+    final keyType = storedKeyPair.type;
+    final privateKeyBytes = storedKeyPair.key;
 
-    if (keyTypeStr == KeyType.p256.name) {
-      return P256KeyPair.fromPrivateKeyHex(privateKeyHex);
-    } else if (keyTypeStr == KeyType.ed25519.name) {
-      return Ed25519KeyPair.fromPrivateKey(
-        Uint8List.fromList(hex.decode(privateKeyHex)),
-      );
+    if (keyType == KeyType.p256) {
+      return P256KeyPair.fromPrivateKey(privateKeyBytes);
+    } else if (keyType == KeyType.ed25519) {
+      return Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
     }
 
     throw ArgumentError("Unsupported key type stored for key: $keyId");

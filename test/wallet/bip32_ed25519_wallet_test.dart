@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -9,7 +8,6 @@ void main() {
   // Example seed (replace with a deterministic one if needed for specific vector tests)
   // IMPORTANT: Do not use this seed for production keys.
   final seed = Uint8List.fromList(List.generate(32, (index) => index + 1));
-  final seedHex = hex.encode(seed);
   final dataToSign = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
 
   group('Bip32Ed25519Wallet', () {
@@ -56,7 +54,7 @@ void main() {
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType.other.code, // Based on current implementation
+          SsiExceptionType.other.code,
         )),
       );
       expect(
@@ -64,7 +62,7 @@ void main() {
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType.other.code, // Based on current implementation
+          SsiExceptionType.other.code,
         )),
       );
       expect(
@@ -72,7 +70,7 @@ void main() {
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType.other.code, // Based on current implementation
+          SsiExceptionType.other.code,
         )),
       );
     });
@@ -94,8 +92,7 @@ void main() {
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType
-              .keyPairMissingPrivateKey.code, // Based on implementation
+          SsiExceptionType.keyPairMissingPrivateKey.code,
         )),
       );
     });
@@ -115,8 +112,7 @@ void main() {
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType
-              .keyPairMissingPrivateKey.code, // Based on implementation
+          SsiExceptionType.keyPairMissingPrivateKey.code,
         )),
       );
     });
@@ -173,14 +169,12 @@ void main() {
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType
-              .keyPairMissingPrivateKey.code, // Based on implementation
+          SsiExceptionType.keyPairMissingPrivateKey.code,
         )),
       );
     });
 
     test('verify should throw for non-existent keyId', () async {
-      // Need a valid signature first
       final rootSignature =
           await wallet.sign(dataToSign, keyId: Bip32Ed25519Wallet.rootKeyId);
       expect(
@@ -189,8 +183,7 @@ void main() {
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
-          SsiExceptionType
-              .keyPairMissingPrivateKey.code, // Based on implementation
+          SsiExceptionType.keyPairMissingPrivateKey.code,
         )),
       );
     });
@@ -230,8 +223,6 @@ void main() {
 
   group('Bip32Ed25519Wallet from KeyStore', () {
     late InMemoryKeyStore keyStore;
-    const defaultSeedKey = 'bip32_ed25519_seed';
-    const customSeedKey = 'my_custom_ed25519_seed';
 
     setUp(() {
       keyStore = InMemoryKeyStore();
@@ -239,10 +230,7 @@ void main() {
 
     test('createFromKeyStore successfully creates wallet with default key',
         () async {
-      // Store the seed in the keystore
-      await keyStore.set(defaultSeedKey, seedHex);
-
-      // Create wallet from keystore
+      await keyStore.setSeed(seed);
       final ksWallet = await Bip32Ed25519Wallet.createFromKeyStore(keyStore);
 
       // Verify root key exists
@@ -250,52 +238,21 @@ void main() {
       final rootKey = await ksWallet.getPublicKey(Bip32Ed25519Wallet.rootKeyId);
       expect(rootKey.type, KeyType.ed25519);
 
-      // Optional: Compare with wallet created directly from seed
+      // Compare with wallet created directly from seed
       final directWallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final directRootKey =
           await directWallet.getPublicKey(Bip32Ed25519Wallet.rootKeyId);
       expect(rootKey.bytes, directRootKey.bytes);
     });
 
-    test('createFromKeyStore successfully creates wallet with custom key',
-        () async {
-      // Store the seed under a custom key
-      await keyStore.set(customSeedKey, seedHex);
-
-      // Create wallet from keystore using the custom key
-      final ksWallet = await Bip32Ed25519Wallet.createFromKeyStore(keyStore,
-          seedKey: customSeedKey);
-
-      // Verify root key exists
-      expect(await ksWallet.hasKey(Bip32Ed25519Wallet.rootKeyId), isTrue);
-      final rootKey = await ksWallet.getPublicKey(Bip32Ed25519Wallet.rootKeyId);
-      expect(rootKey.type, KeyType.ed25519);
-    });
-
     test('createFromKeyStore throws ArgumentError if seed key is missing',
         () async {
-      // Keystore is empty
       expect(
         () async => await Bip32Ed25519Wallet.createFromKeyStore(keyStore),
         throwsA(isA<ArgumentError>().having(
           (e) => e.message,
           'message',
           contains('Seed not found in KeyStore'),
-        )),
-      );
-    });
-
-    test('createFromKeyStore throws ArgumentError if seed data is invalid hex',
-        () async {
-      // Store invalid hex data
-      await keyStore.set(defaultSeedKey, 'invalid-hex-data-!@#');
-
-      expect(
-        () async => await Bip32Ed25519Wallet.createFromKeyStore(keyStore),
-        throwsA(isA<ArgumentError>().having(
-          (e) => e.message,
-          'message',
-          contains('Failed to decode seed from hex'),
         )),
       );
     });
