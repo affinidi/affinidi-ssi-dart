@@ -42,8 +42,8 @@ void main() {
 
       final wallet = Bip32Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
-      final keyPair = await wallet.createKeyPair(derivedKeyId);
-      final doc = await DidKey.create(keyPair);
+      final key = await wallet.generateKey(derivedKeyId);
+      final doc = await DidKey.create(key);
       final actualDid = doc.id;
 
       expect(actualDid, startsWith(expectedDidKeyPrefix));
@@ -117,7 +117,7 @@ void main() {
       final keyStore = InMemoryKeyStore();
       final wallet = GenericWallet(keyStore);
       final keyId = "keyId";
-      final publicKey = await wallet.createKeyPair(keyId);
+      final publicKey = await wallet.generateKey(keyId);
       final prefix = [128, 36];
       final expectedId =
           'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + publicKey.bytes))}';

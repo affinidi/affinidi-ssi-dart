@@ -59,7 +59,7 @@ abstract interface class Wallet {
   /// `false` otherwise.
   Future<bool> hasKey(String keyId);
 
-  /// Creates a new key pair with the specified identifier.
+  /// Generates a new key pair with the specified identifier.
   ///
   /// [keyId] - The identifier for the new key pair.
   /// [keyType] - The type of key to create. If not specified, the implementation
@@ -69,5 +69,5 @@ abstract interface class Wallet {
   ///
   /// Throws an [SsiException] if a keyId is null or empty or
   /// if key creation fails.
-  Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType});
+  Future<PublicKey> generateKey(String keyId, {KeyType? keyType});
 }

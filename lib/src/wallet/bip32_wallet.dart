@@ -147,7 +147,7 @@ class Bip32Wallet implements Wallet {
   /// - Unsupported key type
   /// - The root key pair is missing
   @override
-  Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType}) async {
+  Future<PublicKey> generateKey(String keyId, {KeyType? keyType}) async {
     if (keyType != null && keyType != KeyType.secp256k1) {
       throw SsiException(
         message: 'Only secp256k1 key type is supported for Bip32Wallet',

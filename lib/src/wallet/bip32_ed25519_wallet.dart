@@ -130,7 +130,7 @@ class Bip32Ed25519Wallet implements Wallet {
   /// - Unsupported key type
   /// - The root key pair is missing
   @override
-  Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType}) async {
+  Future<PublicKey> generateKey(String keyId, {KeyType? keyType}) async {
     if (keyType != null && keyType != KeyType.ed25519) {
       throw SsiException(
         message:

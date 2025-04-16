@@ -155,7 +155,7 @@ class DidKey {
   /// This method takes a list of key pairs and creates a DID document using the
   /// first key pair in the list.
   ///
-  /// [keyPairs] A list of key pairs, where the first one will be used to create the DID
+  /// [publicKey] The public key used to create the DID
   ///
   /// Returns a [DidDocument].
   ///

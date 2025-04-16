@@ -45,9 +45,9 @@ void main() {
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
-      final keyPair = await wallet.createKeyPair(derivedKeyId);
+      final key = await wallet.generateKey(derivedKeyId);
       final doc = await DidPeer.create(
-        [keyPair, keyPair],
+        [key, key],
         serviceEndpoint: 'https://denys.com/income',
       );
       final actualDid = doc.id;

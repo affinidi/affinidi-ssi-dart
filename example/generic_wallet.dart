@@ -12,7 +12,7 @@ void main() async {
 
   // Create P256 key pair
   final p256keyId = "p256keyId";
-  final p256key = await wallet.createKeyPair(p256keyId, keyType: KeyType.p256);
+  final p256key = await wallet.generateKey(p256keyId, keyType: KeyType.p256);
   print('P256 key pair created. Public key: ${p256key.bytes}');
 
   // Sing payload
@@ -30,7 +30,7 @@ void main() async {
   // Create Ed25519 key pair
   final ed25519keyId = "ed25519keyId";
   final ed25519key =
-      await wallet.createKeyPair(ed25519keyId, keyType: KeyType.ed25519);
+      await wallet.generateKey(ed25519keyId, keyType: KeyType.ed25519);
   print('Ed25519 key pair created. Public key: ${ed25519key.bytes}');
 
   // Sing payload
