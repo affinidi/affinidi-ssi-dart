@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import '../key_pair/ed25519_key_pair.dart';
@@ -11,6 +12,7 @@ import '../types.dart';
 
 class GenericWallet implements Wallet {
   final KeyStore _keyStore;
+  static final randomIdLength = 32;
 
   GenericWallet(KeyStore keyStore) : _keyStore = keyStore;
 
@@ -48,12 +50,13 @@ class GenericWallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> generateKey(String keyId, {KeyType? keyType}) async {
-    if (await _keyStore.contains(keyId)) {
+  Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) async {
+    if (keyId != null && await _keyStore.contains(keyId)) {
       throw ArgumentError("Key already exists: $keyId");
     }
 
-    keyType ??= KeyType.p256; // Default to P256 if not specified
+    keyId ??= randomId();
+    keyType ??= KeyType.p256;
 
     if (keyType == KeyType.p256) {
       final keyPair = P256KeyPair();
@@ -62,7 +65,9 @@ class GenericWallet implements Wallet {
         key: await keyPair.privateKey,
       );
       await _keyStore.set(keyId, storedKey);
-      return keyPair.publicKey;
+
+      final keyData = await keyPair.publicKey;
+      return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
     } else if (keyType == KeyType.ed25519) {
       final keyPair = Ed25519KeyPair();
       final storedKey = StoredKey(
@@ -70,7 +75,8 @@ class GenericWallet implements Wallet {
         key: await keyPair.privateKey,
       );
       await _keyStore.set(keyId, storedKey);
-      return keyPair.publicKey;
+      final keyData = await keyPair.publicKey;
+      return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
     }
 
     throw ArgumentError(
@@ -98,6 +104,16 @@ class GenericWallet implements Wallet {
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
-    return keyPair.publicKey;
+    final keyData = await keyPair.publicKey;
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+  }
+
+  String randomId() {
+    final rnd = Random.secure();
+    final buffer = StringBuffer();
+    for (var i = 0; i < randomIdLength; i++) {
+      buffer.write(rnd.nextInt(16).toRadixString(16));
+    }
+    return buffer.toString();
   }
 }

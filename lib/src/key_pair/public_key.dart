@@ -4,6 +4,9 @@ import '../types.dart';
 
 /// Represents a base key with its type and public key bytes.
 class PublicKey {
+  // Identifier of the key in the wallet
+  String id;
+
   /// The type of the key e.g., Ed25519
   KeyType type;
 
@@ -12,9 +15,11 @@ class PublicKey {
 
   /// Creates a new [PublicKey] instance.
   ///
+  /// [id] - The identifier of the key as [String].
   /// [bytes] - The public key bytes.
   /// [type] - The type of the key as [KeyType].
   PublicKey(
+    this.id,
     this.bytes,
     this.type,
   );

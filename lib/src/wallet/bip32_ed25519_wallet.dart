@@ -130,7 +130,13 @@ class Bip32Ed25519Wallet implements Wallet {
   /// - Unsupported key type
   /// - The root key pair is missing
   @override
-  Future<PublicKey> generateKey(String keyId, {KeyType? keyType}) async {
+  Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) async {
+    if (keyId == null) {
+      throw SsiException(
+        message: 'Key id is required for hierarchical wallets',
+        code: SsiExceptionType.other.code,
+      );
+    }
     if (keyType != null && keyType != KeyType.ed25519) {
       throw SsiException(
         message:
@@ -139,7 +145,8 @@ class Bip32Ed25519Wallet implements Wallet {
       );
     }
     if (_keyMap.containsKey(keyId)) {
-      return Future.value(_keyMap[keyId]!.publicKey);
+      final keyData = await _keyMap[keyId]!.publicKey;
+      return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
     }
     if (!_keyMap.containsKey(rootKeyId)) {
       throw SsiException(
@@ -158,7 +165,9 @@ class Bip32Ed25519Wallet implements Wallet {
 
     final keyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(derived.key));
     _keyMap[keyId] = keyPair;
-    return Future.value(keyPair.publicKey);
+
+    final keyData = await _keyMap[keyId]!.publicKey;
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
   /// Retrieves the public key for the specified key.
@@ -167,9 +176,10 @@ class Bip32Ed25519Wallet implements Wallet {
   ///
   /// Returns a [Future] that completes with the public key as a [Uint8List].
   @override
-  Future<PublicKey> getPublicKey(String keyId) {
+  Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.publicKey;
+    final keyData = await keyPair.publicKey;
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
   /// Retrieves the key pair with the specified identifier.

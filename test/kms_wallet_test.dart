@@ -10,7 +10,7 @@ import 'kms_wallet/kms_wallet.dart';
 void main() {
   group('Test KmsWallet', () {
     late Wallet wallet;
-    final testKeyId = 'alias/test-key';
+    late PublicKey publicKey;
     final testData = Uint8List.fromList('test data'.codeUnits);
 
     setUp(() async {
@@ -24,13 +24,13 @@ void main() {
       );
 
       wallet = KmsWallet(kmsClient);
-      await wallet.generateKey(testKeyId);
+      publicKey = await wallet.generateKey();
     });
 
     test('Verifies data with valid signature', () async {
-      final signature = await wallet.sign(testData, keyId: testKeyId);
-      final isValid =
-          await wallet.verify(testData, signature: signature, keyId: testKeyId);
+      final signature = await wallet.sign(testData, keyId: publicKey.id);
+      final isValid = await wallet.verify(testData,
+          signature: signature, keyId: publicKey.id);
 
       expect(isValid, isTrue);
     });
@@ -38,7 +38,7 @@ void main() {
     test('Fails verification with invalid signature', () async {
       final invalidSignature = Uint8List.fromList(List.filled(256, 0));
       final isValid = await wallet.verify(testData,
-          signature: invalidSignature, keyId: testKeyId);
+          signature: invalidSignature, keyId: publicKey.id);
 
       expect(isValid, isFalse);
     });

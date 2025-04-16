@@ -69,5 +69,5 @@ abstract interface class Wallet {
   ///
   /// Throws an [SsiException] if a keyId is null or empty or
   /// if key creation fails.
-  Future<PublicKey> generateKey(String keyId, {KeyType? keyType});
+  Future<PublicKey> generateKey({String? keyId, KeyType? keyType});
 }

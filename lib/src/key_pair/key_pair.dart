@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import '../key_pair/public_key.dart';
 import '../types.dart';
 
 class PublicKeyData {
@@ -17,8 +16,8 @@ abstract interface class KeyPair {
   /// Returns a list of [SignatureScheme]s supported by this key pair.
   List<SignatureScheme> get supportedSignatureSchemes;
 
-  /// Returns the public key as a [PublicKey].
-  Future<PublicKey> get publicKey;
+  /// Returns the public key as as a touple with the type and bytes.
+  Future<PublicKeyData> get publicKey;
 
   /// Returns the private key as [Uint8List].
   Future<Uint8List> get privateKey;
