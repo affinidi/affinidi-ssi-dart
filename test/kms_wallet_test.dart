@@ -4,13 +4,15 @@ import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
 import 'package:shared_aws_api/shared.dart';
 import 'package:test/test.dart';
 
+import 'kms_wallet/kms_key_pair.dart';
 import 'kms_wallet/kms_wallet.dart';
 
 void main() {
   group('Test KmsWallet', () {
-    var keyId;
-    var keyPair;
-    var wallet;
+    late String keyId;
+    late KmsKeyPair keyPair;
+    late KmsWallet wallet;
+
     final testKeyId = 'alias/test-key';
     final testData = Uint8List.fromList('test data'.codeUnits);
 
