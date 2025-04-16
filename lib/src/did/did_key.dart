@@ -1,11 +1,12 @@
 import 'package:base_codecs/base_codecs.dart';
-import 'public_key_utils.dart';
+import 'package:ssi/src/json_ld/context.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/public_key.dart';
 import '../utility.dart';
 import 'did_document.dart';
+import 'public_key_utils.dart';
 
 /// Builds a DID document for Ed25519 keys.
 ///
@@ -52,7 +53,7 @@ Future<DidDocument> _buildEDDoc(
 
   return Future.value(
     DidDocument(
-      context: context,
+      context: Context.fromJson(context),
       id: id,
       verificationMethod: [verification, keyAgreement],
       assertionMethod: [verificationKeyId],
@@ -88,7 +89,7 @@ Future<DidDocument> _buildXDoc(
   );
   return Future.value(
     DidDocument(
-      context: context,
+      context: Context.fromJson(context),
       id: id,
       verificationMethod: [verification],
       keyAgreement: [verificationKeyId],
@@ -122,7 +123,7 @@ Future<DidDocument> _buildOtherDoc(
   );
   return Future.value(
     DidDocument(
-      context: context,
+      context: Context.fromJson(context),
       id: id,
       verificationMethod: [verification],
       assertionMethod: [verificationKeyId],

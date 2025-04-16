@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/json_ld/context.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -204,7 +205,7 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
 
   return Future.value(
     DidDocument(
-      context: context,
+      context: Context.fromJson(context),
       id: did,
       verificationMethod: verificationMethod,
       assertionMethod: assertionMethod,
@@ -247,7 +248,7 @@ Future<DidDocument> _buildEDDoc(
 
   return Future.value(
     DidDocument(
-      context: context,
+      context: Context.fromJson(context),
       id: id,
       verificationMethod: [verification],
       assertionMethod: [verificationKeyId],
@@ -274,7 +275,7 @@ Future<DidDocument> _buildXDoc(
   );
   return Future.value(
     DidDocument(
-      context: context,
+      context: Context.fromJson(context),
       id: id,
       verificationMethod: [verification],
       keyAgreement: [verificationKeyId],

@@ -3,12 +3,13 @@ import 'dart:typed_data';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../json_ld/context.dart';
 import '../types.dart';
 import '../util/json_util.dart';
 import 'public_key_utils.dart';
 
 class DidDocument implements JsonObject {
-  List<String> context;
+  Context context;
   late String id;
   List<String> alsoKnownAs;
   List<String> controller;
@@ -32,7 +33,7 @@ class DidDocument implements JsonObject {
     assertionMethod,
     capabilityDelegation,
     capabilityInvocation,
-  })  : context = context ?? [],
+  })  : context = context ?? Context.fromJson(""),
         alsoKnownAs = alsoKnownAs ?? [],
         controller = controller ?? [],
         verificationMethod = verificationMethod ?? [],
@@ -43,8 +44,9 @@ class DidDocument implements JsonObject {
         capabilityDelegation = capabilityDelegation ?? [],
         capabilityInvocation = capabilityInvocation ?? [];
 
+  // TODO should be a factory
   DidDocument.fromJson(dynamic jsonObject)
-      : context = [],
+      : context = Context.fromJson(""),
         alsoKnownAs = [],
         controller = [],
         verificationMethod = [],
@@ -55,19 +57,18 @@ class DidDocument implements JsonObject {
         capabilityDelegation = [],
         capabilityInvocation = [] {
     final document = jsonToMap(jsonObject);
-    if (document.containsKey('@context')) {
-      context = document['@context'].cast<String>();
-    }
+
+    context = Context.fromJson(document['@context']);
+
     if (document.containsKey('id')) {
       id = document['id'];
     } else {
       throw FormatException('id property needed in did document');
     }
+
     if (document.containsKey('alsoKnownAs')) {
       alsoKnownAs = document['alsoKnownAs'].cast<String>();
     }
-
-    context = extractStringOrSet(document, "context");
 
     if (document.containsKey('verificationMethod')) {
       List tmp = document['verificationMethod'];
@@ -279,7 +280,7 @@ class DidDocument implements JsonObject {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> jsonObject = {};
     jsonObject['id'] = id;
-    if (context.isNotEmpty) jsonObject['@context'] = context;
+    jsonObject['@context'] = context.toJson();
     if (alsoKnownAs.isNotEmpty) jsonObject['alsoKnownAs'] = alsoKnownAs;
     if (controller.isNotEmpty) jsonObject['controller'] = controller;
     if (verificationMethod.isNotEmpty) {
@@ -605,26 +606,5 @@ class ServiceEndpoint implements JsonObject {
   @override
   String toString() {
     return jsonEncode(toJson());
-  }
-}
-
-List<String> extractStringOrSet(Map<String, dynamic> document, String field) {
-  final jsonValue = document[field];
-
-  switch (jsonValue) {
-    case null:
-      return [];
-
-    case String str:
-      return [str];
-
-    case List<String> strList:
-      return strList;
-
-    default:
-      throw SsiException(
-        message: '$field must be a String or a List',
-        code: SsiExceptionType.invalidDidDocument.code,
-      );
   }
 }
