@@ -47,11 +47,9 @@ void main() {
     test('Ed25519 key pair properties should be correct', () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final publicKey = await edKey.publicKey;
-      final privateKeyHex = await edKey.privateKeyHex;
 
       expect(publicKey.type, KeyType.ed25519);
       expect(publicKey.bytes.length, 32); // Ed25519 public key length
-      expect(privateKeyHex.length, 128); // 64 bytes * 2 hex chars/byte
 
       // Verify getSeed returns the original seed
       expect(edKey.getSeed(), equals(seed));

@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:x25519/x25519.dart' as x25519;
 import 'package:cryptography/cryptography.dart' as crypto;
@@ -50,12 +49,12 @@ class Ed25519KeyPair implements KeyPair {
       ),
       KeyType.ed25519));
 
-  /// Retrieves the private key in hex format.
+  /// Retrieves the private key bytes.
   ///
-  /// Returns the key as a [String].
+  /// Returns the key as a [Uint8List].
   @override
-  Future<String> get privateKeyHex {
-    return Future.value(hex.encode(Uint8List.fromList(_privateKey.bytes)));
+  Future<Uint8List> get privateKey {
+    return Future.value(Uint8List.fromList(_privateKey.bytes));
   }
 
   /// Signs the provided data using Ed25519.
