@@ -26,9 +26,7 @@ class Secp256k1KeyPair implements KeyPair {
   /// [node] - The BIP32 node containing the key material.
   Secp256k1KeyPair({
     required BIP32 node,
-    required String keyId,
   })  : _node = node,
-        _keyId = keyId,
         _secp256k1 = getSecp256k1();
 
   /// Returns the type of the public key.
