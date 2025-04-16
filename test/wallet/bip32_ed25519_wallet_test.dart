@@ -219,6 +219,36 @@ void main() {
       expect(key1.bytes, isNot(equals(key3.bytes)));
       expect(key2.bytes, isNot(equals(key3.bytes)));
     });
+
+    test('getSupportedSignatureSchemes should return correct schemes',
+        () async {
+      // Root key
+      final rootSchemes = await wallet
+          .getSupportedSignatureSchemes(Bip32Ed25519Wallet.rootKeyId);
+      expect(rootSchemes, contains(SignatureScheme.ed25519_sha256));
+      expect(rootSchemes.length, 1);
+
+      // Derived key
+      const derivedKeyId = '8-1';
+      await wallet.createKeyPair(derivedKeyId);
+      final derivedSchemes =
+          await wallet.getSupportedSignatureSchemes(derivedKeyId);
+      expect(derivedSchemes, contains(SignatureScheme.ed25519_sha256));
+      expect(derivedSchemes.length, 1);
+    });
+
+    test('getSupportedSignatureSchemes should throw for non-existent keyId',
+        () async {
+      expect(
+        () async => await wallet.getSupportedSignatureSchemes('99-95'),
+        throwsA(isA<SsiException>().having(
+          (e) => e.code,
+          'code',
+          SsiExceptionType
+              .keyPairMissingPrivateKey.code, // Matches _getKeyPair exception
+        )),
+      );
+    });
   });
 
   group('Bip32Ed25519Wallet from KeyStore', () {

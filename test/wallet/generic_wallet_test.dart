@@ -240,5 +240,29 @@ void main() {
       expect(await wallet.hasKey(testKeyId1), isTrue);
       expect(await wallet.hasKey(nonExistentKeyId), isFalse);
     });
+
+    test('getSupportedSignatureSchemes should return correct schemes',
+        () async {
+      // P256
+      await wallet.createKeyPair(testKeyId1, keyType: KeyType.p256);
+      final p256Schemes = await wallet.getSupportedSignatureSchemes(testKeyId1);
+      expect(p256Schemes, contains(SignatureScheme.ecdsa_p256_sha256));
+      expect(p256Schemes.length, 1); // P256KeyPair only supports one
+
+      // Ed25519
+      await wallet.createKeyPair(testEd25519KeyId1, keyType: KeyType.ed25519);
+      final ed25519Schemes =
+          await wallet.getSupportedSignatureSchemes(testEd25519KeyId1);
+      expect(ed25519Schemes, contains(SignatureScheme.ed25519_sha256));
+      expect(ed25519Schemes.length, 1); // Ed25519KeyPair supports two
+    });
+
+    test('getSupportedSignatureSchemes should throw for non-existent keyId',
+        () async {
+      expect(
+        () async => await wallet.getSupportedSignatureSchemes(nonExistentKeyId),
+        throwsArgumentError,
+      );
+    });
   });
 }
