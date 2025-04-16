@@ -17,7 +17,7 @@ dependencies:
   json_ld_processor: ^1.0.4
   meta: ^1.15.0
   pointycastle: ^3.9.1
-  sdjwt:
+  selective_disclosure_jwt:
     git:
       url: https://github.com/affinidi/affinidi-sdjwt-dart.git
       ref: main
