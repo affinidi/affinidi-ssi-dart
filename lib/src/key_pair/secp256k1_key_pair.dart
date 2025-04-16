@@ -19,15 +19,14 @@ import './_ecdh_utils.dart' as ecdh_utils;
 class Secp256k1KeyPair implements KeyPair {
   /// The BIP32 node containing the key material.
   final BIP32 _node;
-  var _secp256k1;
+  final Curve _secp256k1 = getSecp256k1();
 
   /// Creates a new [Secp256k1KeyPair] instance.
   ///
   /// [node] - The BIP32 node containing the key material.
   Secp256k1KeyPair({
     required BIP32 node,
-  })  : _node = node,
-        _secp256k1 = getSecp256k1();
+  }) : _node = node;
 
   /// Returns the type of the public key.
   @override

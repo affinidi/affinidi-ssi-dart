@@ -21,13 +21,12 @@ import './_encryption_utils.dart';
 class Ed25519KeyPair implements KeyPair {
   /// The private key.
   final ed.PrivateKey _privateKey;
-  final _encryptionUtils;
+  final _encryptionUtils = EncryptionUtils();
 
   /// Constructs an [Ed25519KeyPair] from a [privateKey] and its associated [keyId].
   Ed25519KeyPair({
     required Uint8List privateKey,
-  })  : _privateKey = ed.PrivateKey(privateKey),
-        _encryptionUtils = EncryptionUtils();
+  }) : _privateKey = ed.PrivateKey(privateKey);
 
   factory Ed25519KeyPair.fromSeed({
     required Uint8List seed,
@@ -167,14 +166,9 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   encrypt(Uint8List data, {Uint8List? publicKey}) async {
-    final privateKey = _privateKey;
-    if (privateKey == null) {
-      throw ArgumentError('Private key is null');
-    }
-
     List<int> publicKeyToUse;
     if (publicKey == null) {
-      publicKeyToUse = await generateEphemeralPubKey();
+      publicKeyToUse = generateEphemeralPubKey();
     } else {
       publicKeyToUse = publicKey;
     }
@@ -204,18 +198,13 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
-    final privateKey = _privateKey;
-    if (privateKey == null) {
-      throw ArgumentError('Private key is null');
-    }
-
     // Extract the ephemeral public key and the encrypted data
     final ephemeralPublicKeyBytes =
         ivAndBytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);
     final encryptedData = ivAndBytes
         .sublist(COMPRESSED_PUB_KEY_LENGTH); // The rest is the encrypted data
 
-    var pubKeyToUse;
+    Uint8List pubKeyToUse;
     if (publicKey == null) {
       pubKeyToUse = ephemeralPublicKeyBytes;
     } else {
