@@ -87,18 +87,18 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     final json = <String, dynamic>{};
 
     json['@context'] = context;
-    if (id != null) json['id'] = id;
-    json['type'] = type;
-    if (holder != null) json['holder'] = holder;
-    if (termsOfUse.isNotEmpty) json['termsOfUse'] = termsOfUse;
+    if (id != null) json[_P.id.key] = id;
+    json[_P.type.key] = type;
+    if (holder != null) json[_P.holder.key] = holder;
+    if (termsOfUse.isNotEmpty) json[_P.termsOfUse.key] = termsOfUse;
 
     if (verifiableCredential.isNotEmpty) {
-      json['verifiableCredential'] =
+      json[_P.verifiableCredential.key] =
           verifiableCredential.map(presentVC).toList();
     }
 
     if (proof.isNotEmpty) {
-      json['proof'] = proof;
+      json[_P.proof.key] = proof;
     }
 
     return json;
@@ -116,12 +116,13 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
         proof = {} {
     final json = jsonToMap(input);
 
-    context = getStringList(json, '@context', mandatory: true);
-    id = getString(json, 'id');
-    type = getStringList(json, 'type', allowSingleValue: true, mandatory: true);
-    holder = getString(json, 'holder');
+    context = getStringList(json, _P.context.key, mandatory: true);
+    id = getString(json, _P.id.key);
+    type = getStringList(json, _P.type.key,
+        allowSingleValue: true, mandatory: true);
+    holder = getString(json, _P.holder.key);
 
-    final tou = json['termsOfUse'];
+    final tou = json[_P.termsOfUse.key];
     if (tou != null) {
       if (tou is List) {
         termsOfUse = tou
@@ -132,7 +133,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
       }
     }
 
-    final credentials = json['verifiableCredential'];
+    final credentials = json[_P.verifiableCredential.key];
     if (credentials != null) {
       if (credentials is List) {
         verifiableCredential = credentials.map(parseVC).toList();
@@ -141,8 +142,8 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
       }
     }
 
-    if (json['proof'] != null && json['proof'] is Map) {
-      proof = Map.of(json['proof'] as Map<String, dynamic>);
+    if (json[_P.proof.key] != null && json[_P.proof.key] is Map) {
+      proof = Map.of(json[_P.proof.key] as Map<String, dynamic>);
     }
   }
 }
@@ -161,4 +162,22 @@ ParsedVerifiableCredential parseVC(dynamic e) {
 dynamic presentVC(ParsedVerifiableCredential credential) {
   final suite = VcSuites.getVcSuite(credential);
   return suite.present(credential);
+}
+
+typedef _P = VpDataModelV2Key;
+
+enum VpDataModelV2Key {
+  context(key: '@context'),
+  id,
+  type,
+  holder,
+  verifiableCredential,
+  proof,
+  termsOfUse;
+
+  final String? _key;
+
+  String get key => _key ?? name;
+
+  const VpDataModelV2Key({String? key}) : _key = key;
 }

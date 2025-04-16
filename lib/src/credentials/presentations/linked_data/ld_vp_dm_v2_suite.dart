@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:ssi/ssi.dart';
+
 import '../../linked_data/ld_base_suite.dart';
 import '../models/parsed_vp.dart';
 import '../models/v2/vp_data_model_v2.dart';
@@ -21,12 +23,20 @@ final class LdVpDm2Suite
   /// Creates a new [LdVpDm2Suite] with the v2.2 context URL.
   LdVpDm2Suite()
       : super(
-          contextUrl: MutableVpDataModelV2.contextUrl,
-        );
+            contextUrl: MutableVpDataModelV2.contextUrl,
+            issuerKey: VpDataModelV2Key.holder.key);
 
   @override
   LdVpDataModelV2 fromParsed(String input, Map<String, dynamic> payload) =>
       _LdVpDataModelV2Impl.fromParsed(input, payload);
+
+  @override
+  Future<LdVpDataModelV2> issue(
+    VpDataModelV2 vp,
+    DidSigner signer, {
+    LdVpDm2Options? options,
+  }) =>
+      super.issue(vp, signer);
 }
 
 abstract interface class LdVpDataModelV2

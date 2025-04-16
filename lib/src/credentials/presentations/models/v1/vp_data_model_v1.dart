@@ -77,18 +77,18 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json['@context'] = context;
-    if (id != null) json['id'] = id;
-    json['type'] = type;
-    if (holder != null) json['holder'] = holder;
+    json[_P.context.key] = context;
+    if (id != null) json[_P.id.key] = id;
+    json[_P.type.key] = type;
+    if (holder != null) json[_P.holder.key] = holder;
 
     if (verifiableCredential.isNotEmpty) {
-      json['verifiableCredential'] =
+      json[_P.verifiableCredential.key] =
           verifiableCredential.map(presentVC).toList();
     }
 
     if (proof.isNotEmpty) {
-      json['proof'] = proof;
+      json[_P.proof.key] = proof;
     }
 
     return json;
@@ -105,18 +105,18 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
         proof = {} {
     final json = jsonToMap(input);
 
-    context = getStringList(json, '@context', mandatory: true);
-    id = getString(json, 'id');
+    context = getStringList(json, _P.context.key, mandatory: true);
+    id = getString(json, _P.id.key);
     type = getStringList(
       json,
-      'type',
+      _P.type.key,
       allowSingleValue: true,
       mandatory: true,
     );
-    holder = getString(json, 'holder');
+    holder = getString(json, _P.holder.key);
 
     // Handles both single VC or a list of VCs
-    final credentials = json['verifiableCredential'];
+    final credentials = json[_P.verifiableCredential.key];
     if (credentials != null) {
       if (credentials is List) {
         verifiableCredential = credentials.map(parseVC).toList();
@@ -126,8 +126,8 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
     }
 
     // Parse proof object if present
-    if (json['proof'] != null && json['proof'] is Map) {
-      proof = Map.of(json['proof'] as Map<String, dynamic>);
+    if (json[_P.proof.key] != null && json[_P.proof.key] is Map) {
+      proof = Map.of(json[_P.proof.key] as Map<String, dynamic>);
     }
   }
 }
@@ -146,4 +146,21 @@ ParsedVerifiableCredential parseVC(dynamic e) {
 dynamic presentVC(ParsedVerifiableCredential credential) {
   final suite = VcSuites.getVcSuite(credential);
   return suite.present(credential);
+}
+
+typedef _P = VpDataModelV1Key;
+
+enum VpDataModelV1Key {
+  context(key: '@context'),
+  id,
+  type,
+  holder,
+  verifiableCredential,
+  proof;
+
+  final String? _key;
+
+  String get key => _key ?? name;
+
+  const VpDataModelV1Key({String? key}) : _key = key;
 }
