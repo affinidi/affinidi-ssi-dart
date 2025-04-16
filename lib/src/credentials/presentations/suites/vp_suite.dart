@@ -1,13 +1,12 @@
-import 'package:ssi/src/credentials/presentations/models/parsed_vp.dart';
-
 import '../../../did/did_signer.dart';
+import '../models/parsed_vp.dart';
 import '../models/verifiable_presentation.dart';
 
 /// Defines operations for working with Verifiable Presentations.
 abstract class VerifiablePresentationSuite<
     SerializedType,
-    VPDM extends VerifiablePresentation,
-    PVP extends ParsedVerifiablePresentation<SerializedType>,
+    VP extends VerifiablePresentation,
+    ParsedVP extends ParsedVerifiablePresentation<SerializedType>,
     Options> {
   /// Determines whether the provided [data] can be parsed by this suite.
   bool canParse(Object data);
@@ -19,17 +18,17 @@ abstract class VerifiablePresentationSuite<
   ///
   /// Note: Implementers must check if the input can be parsed by this
   /// suite before attempting to parse.
-  PVP parse(Object data);
+  ParsedVP parse(Object data);
 
   /// Verifies the cryptographic integrity of the [input] presentation.
-  Future<bool> verifyIntegrity(PVP input);
+  Future<bool> verifyIntegrity(ParsedVP input);
 
   /// Issues a new presentation by signing the [vp] with the provided [signer].
   ///
   /// Returns a parsed verifiable presentation with the appropriate signature.
   /// Optional [options] can customize the issuing process.
-  Future<PVP> issue(
-    VPDM vp,
+  Future<ParsedVP> issue(
+    VP vp,
     DidSigner signer, {
     Options? options,
   });

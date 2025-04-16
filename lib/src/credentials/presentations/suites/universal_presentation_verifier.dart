@@ -1,25 +1,25 @@
-import '../../../ssi.dart';
-import '../models/parsed_vc.dart';
-import '../verification/vc_expiry_verifier.dart';
-import '../verification/vc_integrity_verifier.dart';
-import '../verification/vc_verifier.dart';
+import '../../../../ssi.dart';
+import '../models/parsed_vp.dart';
+import '../verification/vp_expiry_verifier.dart';
+import '../verification/vp_integrity_verifier.dart';
+import '../verification/vp_verifier.dart';
 
 /// Allows verification of any supported VC encodings
-final class UniversalVerifier {
-  final List<VcVerifier> customVerifiers;
+final class UniversalPresentationVerifier {
+  final List<VpVerifier> customVerifiers;
 
-  static final List<VcVerifier> defaultVerifiers = List.unmodifiable(
-    <VcVerifier>[
-      VcExpiryVerifier(),
-      VcIntegrityVerifier(),
+  static final List<VpVerifier> defaultVerifiers = List.unmodifiable(
+    <VpVerifier>[
+      VpExpiryVerifier(),
+      VpIntegrityVerifier(),
     ],
   );
 
-  UniversalVerifier({
-    List<VcVerifier>? customVerifiers,
+  UniversalPresentationVerifier({
+    List<VpVerifier>? customVerifiers,
   }) : customVerifiers = customVerifiers ?? [];
 
-  Future<VerificationResult> verify(ParsedVerifiableCredential data) async {
+  Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {
     final errors = <String>[];
     final warnings = <String>[];
 

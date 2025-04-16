@@ -1,7 +1,11 @@
 // import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
+import 'dart:convert';
+
+import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
-import '../../../models/verifiable_credential.dart';
-import '../verifiable_presentation.dart';
+import '../../../models/parsed_vc.dart';
+import '../../../suites/vc_suites.dart';
+import 'vp_data_model_v2_view.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v2.0.
 ///
@@ -18,7 +22,7 @@ import '../verifiable_presentation.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class VpDataModelV2 implements VerifiablePresentation {
+class MutableVpDataModelV2 implements VpDataModelV2 {
   static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
 
   /// The JSON-LD context for this presentation.
@@ -44,11 +48,12 @@ class VpDataModelV2 implements VerifiablePresentation {
   String? holder;
 
   /// The terms of use describing conditions for credential usage.
+  @override
   List<Map<String, dynamic>> termsOfUse;
 
   /// The verifiable credentials included in this presentation.
   @override
-  List<VerifiableCredential> verifiableCredential;
+  List<ParsedVerifiableCredential> verifiableCredential;
 
   /// The cryptographic proof securing this presentation.
   ///
@@ -64,13 +69,13 @@ class VpDataModelV2 implements VerifiablePresentation {
   /// The [termsOfUse] specifies any usage conditions.
   /// The [verifiableCredential] contains the credentials being presented.
   /// The [proof] provides cryptographic verification.
-  VpDataModelV2({
+  MutableVpDataModelV2({
     required this.context,
     this.id,
     required this.type,
     this.holder,
     List<Map<String, dynamic>>? termsOfUse,
-    List<VerifiableCredential>? verifiableCredential,
+    List<ParsedVerifiableCredential>? verifiableCredential,
     Map<String, dynamic>? proof,
   })  : termsOfUse = termsOfUse ?? [],
         verifiableCredential = verifiableCredential ?? [],
@@ -89,7 +94,7 @@ class VpDataModelV2 implements VerifiablePresentation {
 
     if (verifiableCredential.isNotEmpty) {
       json['verifiableCredential'] =
-          verifiableCredential.map((vc) => vc.toJson()).toList();
+          verifiableCredential.map(presentVC).toList();
     }
 
     if (proof.isNotEmpty) {
@@ -103,7 +108,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   ///
   /// Supports context normalization, handles optional fields, and accepts
   /// both single and array formats for credentials.
-  VpDataModelV2.fromJson(dynamic input)
+  MutableVpDataModelV2.fromJson(dynamic input)
       : context = [],
         type = [],
         termsOfUse = [],
@@ -130,12 +135,9 @@ class VpDataModelV2 implements VerifiablePresentation {
     final credentials = json['verifiableCredential'];
     if (credentials != null) {
       if (credentials is List) {
-        //TODO: implement VcDataModelV2.fromJson
-        // verifiableCredential = credentials
-        //     .map((e) => VcDataModelV2.fromJson(jsonToMap(e)))
-        //     .toList();
+        verifiableCredential = credentials.map(parseVC).toList();
       } else if (credentials is Map) {
-        //TODO: implement VcDataModelV2.fromJson
+        verifiableCredential = [parseVC(credentials)];
       }
     }
 
@@ -143,4 +145,20 @@ class VpDataModelV2 implements VerifiablePresentation {
       proof = Map.of(json['proof'] as Map<String, dynamic>);
     }
   }
+}
+
+ParsedVerifiableCredential parseVC(dynamic e) {
+  String encoded;
+  if (e is! String) {
+    encoded = jsonEncode(e);
+  } else {
+    encoded = e;
+  }
+
+  return UniversalParser.parse(encoded);
+}
+
+dynamic presentVC(ParsedVerifiableCredential credential) {
+  final suite = VcSuites.getVcSuite(credential);
+  return suite.present(credential);
 }
