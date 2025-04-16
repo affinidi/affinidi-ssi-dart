@@ -20,6 +20,13 @@ class GenericWallet implements Wallet {
   }
 
   @override
+  Future<List<SignatureScheme>> getSupportedSignatureSchemes(
+      String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
+    return keyPair.supportedSignatureSchemes;
+  }
+
+  @override
   Future<Uint8List> sign(
     Uint8List data, {
     required String keyId,
