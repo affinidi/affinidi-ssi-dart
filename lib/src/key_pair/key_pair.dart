@@ -20,8 +20,8 @@ abstract interface class KeyPair {
   /// Returns the public key as a [PublicKey].
   Future<PublicKey> get publicKey;
 
-  /// Returns the private key as a hex [String].
-  Future<String> get privateKeyHex;
+  /// Returns the private key as [Uint8List].
+  Future<Uint8List> get privateKey;
 
   /// Signs the given [data] using the private key and optionally a [signatureScheme].
   ///

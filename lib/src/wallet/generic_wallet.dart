@@ -1,7 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
-
 import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/p256_key_pair.dart';
 import 'key_store/key_store_interface.dart';
@@ -52,19 +50,17 @@ class GenericWallet implements Wallet {
 
     if (keyType == KeyType.p256) {
       final keyPair = P256KeyPair();
-      final privateKeyHex = await keyPair.privateKeyHex;
       final storedKey = StoredKey(
         type: KeyType.p256,
-        key: Uint8List.fromList(hex.decode(privateKeyHex)),
+        key: await keyPair.privateKey,
       );
       await _keyStore.set(keyId, storedKey);
       return keyPair.publicKey;
     } else if (keyType == KeyType.ed25519) {
       final keyPair = Ed25519KeyPair();
-      final privateKeyHex = await keyPair.privateKeyHex;
       final storedKey = StoredKey(
         type: KeyType.ed25519,
-        key: Uint8List.fromList(hex.decode(privateKeyHex)),
+        key: await keyPair.privateKey,
       );
       await _keyStore.set(keyId, storedKey);
       return keyPair.publicKey;

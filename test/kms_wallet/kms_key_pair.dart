@@ -37,7 +37,7 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
-  Future<String> get privateKeyHex {
+  Future<Uint8List> get privateKey {
     throw SsiException(
       message: "KmsKeyPair does not allow extracting the private key",
       code: SsiExceptionType.keyPairMissingPrivateKey.code,

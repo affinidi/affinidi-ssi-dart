@@ -40,13 +40,6 @@ class P256KeyPair implements KeyPair {
     return P256KeyPair._(ec.PrivateKey.fromBytes(_p256, privateKey));
   }
 
-  /// Creates a [P256KeyPair] instance from a private key hex string.
-  ///
-  /// [privateKeyHex] - The private key encoded as a hex [String].
-  factory P256KeyPair.fromPrivateKeyHex(String privateKeyHex) {
-    return P256KeyPair._(ec.PrivateKey.fromHex(_p256, privateKeyHex));
-  }
-
   /// Retrieves the public key in compressed format.
   ///
   /// Returns the key as [Uint8List].
@@ -56,12 +49,12 @@ class P256KeyPair implements KeyPair {
     return Future.value(PublicKey(_publicKeyBytes!, KeyType.p256));
   }
 
-  /// Retrieves the private key in hex format.
+  /// Retrieves the private key bytes.
   ///
-  /// Returns the key as a [String].
+  /// Returns the key as a [Uint8List].
   @override
-  Future<String> get privateKeyHex {
-    return Future.value(_privateKey.toHex());
+  Future<Uint8List> get privateKey {
+    return Future.value(Uint8List.fromList(_privateKey.bytes));
   }
 
   /// Signs the provided data using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
