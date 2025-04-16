@@ -42,4 +42,8 @@ abstract interface class KeyPair {
     Uint8List signature, {
     SignatureScheme? signatureScheme,
   });
+
+  Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey});
+
+  Future<Uint8List> decrypt(Uint8List data, {Uint8List? publicKey});
 }

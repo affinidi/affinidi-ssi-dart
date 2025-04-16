@@ -11,6 +11,8 @@ import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'key_pair.dart';
 
+import './_ecdh_utils.dart' as ecdh_utils;
+
 /// A key pair implementation that uses the P-256 (secp256r1) elliptic curve
 /// for cryptographic operations.
 ///
@@ -159,5 +161,29 @@ class P256KeyPair implements KeyPair {
     final publicKeyObj = _p256.compressedHexToPublicKey(hex.encode(publicKey));
     final secret = computeSecret(_privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
+  }
+
+  @override
+  encrypt(Uint8List data, {Uint8List? publicKey}) async {
+    final privateKey = Uint8List.fromList(_privateKey.bytes);
+
+    return ecdh_utils.encryptData(
+      data: data,
+      privateKeyBytes: privateKey,
+      publicKeyBytes: publicKey,
+      curve: _p256,
+    );
+  }
+
+  @override
+  decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
+    final privateKey = Uint8List.fromList(_privateKey.bytes);
+
+    return ecdh_utils.decryptData(
+      encryptedPackage: ivAndBytes,
+      privateKeyBytes: privateKey,
+      publicKeyBytes: publicKey,
+      curve: _p256,
+    );
   }
 }

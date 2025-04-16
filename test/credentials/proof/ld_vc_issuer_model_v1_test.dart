@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
+import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -69,7 +69,7 @@ void main() {
     test('CWE issued must verify', () async {
       final proofSuite = EcdsaSecp256k1Signature2019();
       final verificationResult = await proofSuite.verifyProof(
-        cweResponse,
+        cweResponse as Map<String, dynamic>,
         EcdsaSecp256k1Signature2019VerifyOptions(
           customDocumentLoader: _testLoadDocument,
         ),
@@ -106,7 +106,7 @@ final _userProfile = jsonDecode(r'''
 
 Future<Map<String, dynamic>?> _testLoadDocument(Uri url) {
   if (url.toString() == 'https://schema.affinidi.com/UserProfileV1-0.jsonld') {
-    return Future.value(_userProfile);
+    return Future.value(_userProfile as Map<String, dynamic>);
   }
   return Future.value(null);
 }

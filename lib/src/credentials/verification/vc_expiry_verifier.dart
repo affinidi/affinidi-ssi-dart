@@ -1,6 +1,6 @@
-import 'package:ssi/src/credentials/models/parsed_vc.dart';
-import 'package:ssi/src/credentials/verification/vc_verifier.dart';
-import 'package:ssi/src/types.dart';
+import '../../../ssi.dart';
+import '../models/parsed_vc.dart';
+import 'vc_verifier.dart';
 
 class VcExpiryVerifier implements VcVerifier {
   final DateTime Function() _getNow;
