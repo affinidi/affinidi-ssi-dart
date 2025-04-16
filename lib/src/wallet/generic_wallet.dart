@@ -50,7 +50,7 @@ class GenericWallet implements Wallet {
     keyType ??= KeyType.p256; // Default to P256 if not specified
 
     if (keyType == KeyType.p256) {
-      final keyPair = P256KeyPair.create();
+      final keyPair = P256KeyPair();
       final privateKeyHex = await keyPair.privateKeyHex;
       final storedData = jsonEncode({
         'type': KeyType.p256.name,
@@ -59,7 +59,7 @@ class GenericWallet implements Wallet {
       await _keyStore.set(keyId, storedData);
       return keyPair;
     } else if (keyType == KeyType.ed25519) {
-      final keyPair = Ed25519KeyPair.create();
+      final keyPair = Ed25519KeyPair();
       final privateKeyHex = await keyPair.privateKeyHex;
       final storedData = jsonEncode({
         'type': KeyType.ed25519.name,
@@ -88,12 +88,10 @@ class GenericWallet implements Wallet {
     }
 
     if (keyTypeStr == KeyType.p256.name) {
-      return P256KeyPair.fromPrivateKeyHex(
-        privateKeyHex: privateKeyHex,
-      );
+      return P256KeyPair.fromPrivateKeyHex(privateKeyHex);
     } else if (keyTypeStr == KeyType.ed25519.name) {
-      return Ed25519KeyPair(
-        privateKey: Uint8List.fromList(hex.decode(privateKeyHex)),
+      return Ed25519KeyPair.fromPrivateKey(
+        Uint8List.fromList(hex.decode(privateKeyHex)),
       );
     }
 

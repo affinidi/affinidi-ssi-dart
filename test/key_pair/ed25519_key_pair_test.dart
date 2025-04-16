@@ -14,14 +14,14 @@ void main() {
 
   group('Test Ed25519 Key Pair', () {
     test('Ed25519 key pair should sign data and verify signature', () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed: seed);
+      final edKey = Ed25519KeyPair.fromSeed(seed);
       final signature = await edKey.sign(dataToSign);
       final actual = await edKey.verify(dataToSign, signature);
       expect(actual, isTrue);
     });
 
     test('Verification should fail if signature is invalid', () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed: seed);
+      final edKey = Ed25519KeyPair.fromSeed(seed);
       final signature = await edKey.sign(dataToSign);
 
       // Tamper with the signature
@@ -34,7 +34,7 @@ void main() {
     });
 
     test('Verification should fail if data is different', () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed: seed);
+      final edKey = Ed25519KeyPair.fromSeed(seed);
       final signature = await edKey.sign(dataToSign);
 
       final differentData = Uint8List.fromList([3, 2, 1]);
@@ -44,7 +44,7 @@ void main() {
     });
 
     test('Ed25519 key pair properties should be correct', () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed: seed);
+      final edKey = Ed25519KeyPair.fromSeed(seed);
       final publicKey = await edKey.publicKey;
       final keyType = await edKey.publicKeyType;
       final publicKeyHex = await edKey.publicKeyHex;

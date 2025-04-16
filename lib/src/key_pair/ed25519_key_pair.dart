@@ -23,25 +23,20 @@ class Ed25519KeyPair implements KeyPair {
   final ed.PrivateKey _privateKey;
   final _encryptionUtils = EncryptionUtils();
 
-  /// Constructs an [Ed25519KeyPair] from a [privateKey] and its associated [keyId].
-  Ed25519KeyPair({
-    required Uint8List privateKey,
-  }) : _privateKey = ed.PrivateKey(privateKey);
+  Ed25519KeyPair._(this._privateKey);
 
-  factory Ed25519KeyPair.fromSeed({
-    required Uint8List seed,
-  }) {
-    final privateKey = ed.newKeyFromSeed(seed);
-    return Ed25519KeyPair(
-      privateKey: Uint8List.fromList(privateKey.bytes),
-    );
+  factory Ed25519KeyPair() {
+    final keyPair = ed.generateKey();
+    return Ed25519KeyPair._(keyPair.privateKey);
   }
 
-  factory Ed25519KeyPair.create() {
-    final keyPair = ed.generateKey();
-    return Ed25519KeyPair(
-      privateKey: Uint8List.fromList(keyPair.privateKey.bytes),
-    );
+  factory Ed25519KeyPair.fromSeed(Uint8List seed) {
+    final privateKey = ed.newKeyFromSeed(seed);
+    return Ed25519KeyPair._(privateKey);
+  }
+
+  factory Ed25519KeyPair.fromPrivateKey(Uint8List privateKey) {
+    return Ed25519KeyPair._(ed.PrivateKey(privateKey));
   }
 
   /// Returns the type of the public key.

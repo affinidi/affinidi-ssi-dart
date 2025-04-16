@@ -34,8 +34,7 @@ class Bip32Ed25519Wallet implements Wallet {
   /// Returns a [Future] that completes with the newly created wallet.
   static Future<Bip32Ed25519Wallet> fromSeed(Uint8List seed) async {
     KeyData master = await ED25519_HD_KEY.getMasterKeyFromSeed(seed);
-    final rootKeyPair =
-        Ed25519KeyPair.fromSeed(seed: Uint8List.fromList(master.key));
+    final rootKeyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(master.key));
     Map<String, Ed25519KeyPair> keyMap = {rootKeyId: rootKeyPair};
     return Bip32Ed25519Wallet._(keyMap);
   }
@@ -154,9 +153,7 @@ class Bip32Ed25519Wallet implements Wallet {
     KeyData derived =
         await ED25519_HD_KEY.derivePath(derivationPath, seedBytes.toList());
 
-    final keyPair = Ed25519KeyPair.fromSeed(
-      seed: Uint8List.fromList(derived.key),
-    );
+    final keyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(derived.key));
     _keyMap[keyId] = keyPair;
 
     return Future.value(keyPair);

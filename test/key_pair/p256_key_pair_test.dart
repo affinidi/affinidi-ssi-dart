@@ -8,14 +8,14 @@ void main() {
 
   group('Test signature and verification', () {
     test('P-256 key pair should sign data and verify signature', () async {
-      final p256key = P256KeyPair.create();
+      final p256key = P256KeyPair();
       final signature = await p256key.sign(dataToSign);
       final actual = await p256key.verify(dataToSign, signature);
       expect(actual, isTrue);
     });
 
     test('Verification should fail if signature is invalid', () async {
-      final p256key = P256KeyPair.create();
+      final p256key = P256KeyPair();
       final signature = await p256key.sign(dataToSign);
       final invalidSignature = Uint8List.fromList(signature);
       invalidSignature[0]++;
@@ -24,7 +24,7 @@ void main() {
     });
 
     test('Verification should fail if data is different', () async {
-      final p256key = P256KeyPair.create();
+      final p256key = P256KeyPair();
       final signature = await p256key.sign(dataToSign);
 
       final differentData = Uint8List.fromList([3, 2, 1]);
@@ -34,7 +34,7 @@ void main() {
     });
 
     test('P-256 key pair should sign data and verify signature', () async {
-      final p256key = P256KeyPair.create();
+      final p256key = P256KeyPair();
       final publicKey = await p256key.publicKey;
       final keyType = await p256key.publicKeyType;
       final publicKeyHex = await p256key.publicKeyHex;
@@ -48,8 +48,8 @@ void main() {
 
   group('Test ECDH secret computation', () {
     test('Compute ECDH shared secret for encryption', () async {
-      final keyPairAlice = P256KeyPair.create();
-      final keyPairBob = P256KeyPair.create();
+      final keyPairAlice = P256KeyPair();
+      final keyPairBob = P256KeyPair();
       final secretAlice =
           await keyPairAlice.computeEcdhSecret(await keyPairBob.publicKey);
       final secretBob =

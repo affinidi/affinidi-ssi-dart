@@ -21,9 +21,9 @@ void main() async {
 
   // Creating key pairs for Alice and Bob
   print('Creating key pairs for Alice and Bob...');
-  final keyPairAlice = P256KeyPair.create();
+  final keyPairAlice = P256KeyPair();
   print('Alice key pair created. Public key: ${await keyPairAlice.publicKey}');
-  final keyPairBob = P256KeyPair.create();
+  final keyPairBob = P256KeyPair();
   print('Bob key pair created. Public key: ${await keyPairBob.publicKey}');
 
   // Compute ECDH (Elliptic Curve Diffie-Hellman) for encryption

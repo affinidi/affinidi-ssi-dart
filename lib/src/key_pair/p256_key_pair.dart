@@ -26,28 +26,26 @@ class P256KeyPair implements KeyPair {
   final PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
 
-  P256KeyPair._({
-    required PrivateKey privateKey,
-  }) : _privateKey = privateKey;
+  P256KeyPair._(this._privateKey);
 
   /// Creates a new [P256KeyPair] instance with a randomly generated private key.
   ///
-  factory P256KeyPair.create() {
-    return P256KeyPair._(
-      privateKey: _p256.generatePrivateKey(),
-    );
+  factory P256KeyPair() {
+    return P256KeyPair._(_p256.generatePrivateKey());
+  }
+
+  /// Creates a [P256KeyPair] instance from a private key.
+  ///
+  /// [privateKey] - The private key as a [Uint8List].
+  factory P256KeyPair.fromPrivateKey(Uint8List privateKey) {
+    return P256KeyPair._(PrivateKey.fromBytes(_p256, privateKey));
   }
 
   /// Creates a [P256KeyPair] instance from a private key hex string.
   ///
-  /// [privateKeyHex] - The private key encoded as a hex string.
-  factory P256KeyPair.fromPrivateKeyHex({
-    required String privateKeyHex,
-  }) {
-    final privateKey = PrivateKey.fromHex(_p256, privateKeyHex);
-    return P256KeyPair._(
-      privateKey: privateKey,
-    );
+  /// [privateKeyHex] - The private key encoded as a hex [String].
+  factory P256KeyPair.fromPrivateKeyHex(String privateKeyHex) {
+    return P256KeyPair._(PrivateKey.fromHex(_p256, privateKeyHex));
   }
 
   /// Returns the type of the public key.

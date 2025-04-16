@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
-import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -149,7 +148,7 @@ void main() {
 
   group('Test key pair encrypt decrypt', () {
     test('p256 without pub key', () async {
-      P256KeyPair p256Key = P256KeyPair.create();
+      P256KeyPair p256Key = P256KeyPair();
       // Encrypt with ephemeral key
       var encrypted = await p256Key.encrypt(data);
       // Decrypt the message
@@ -159,8 +158,8 @@ void main() {
     });
 
     test('p256 with pub key parameter', () async {
-      P256KeyPair p256KeyAlice = P256KeyPair.create();
-      P256KeyPair p256KeyBob = P256KeyPair.create();
+      P256KeyPair p256KeyAlice = P256KeyPair();
+      P256KeyPair p256KeyBob = P256KeyPair();
 
       var bobPubKey = await p256KeyBob.publicKey;
       var encryptedByAlice =
@@ -174,7 +173,7 @@ void main() {
     });
 
     test('ed25519 without pub key', () async {
-      Ed25519KeyPair edKey = Ed25519KeyPair.fromSeed(seed: edSeedAlice);
+      Ed25519KeyPair edKey = Ed25519KeyPair.fromSeed(edSeedAlice);
       // Encrypt with ephemeral key
       var encrypted = await edKey.encrypt(data);
       // Decrypt the message
@@ -184,8 +183,8 @@ void main() {
     });
 
     test('ed25519 with pub key parameter', () async {
-      Ed25519KeyPair edAlice = Ed25519KeyPair.fromSeed(seed: edSeedAlice);
-      Ed25519KeyPair edBob = Ed25519KeyPair.fromSeed(seed: edSeedBob);
+      Ed25519KeyPair edAlice = Ed25519KeyPair.fromSeed(edSeedAlice);
+      Ed25519KeyPair edBob = Ed25519KeyPair.fromSeed(edSeedBob);
 
       var bobPubKey = await edBob.ed25519KeyToX25519PublicKey();
       var encryptedByAlice = await edAlice.encrypt(data,

@@ -114,7 +114,7 @@ void main() {
 
   group('did:key with P256', () {
     test('generated did document is as expected', () async {
-      final p256key = P256KeyPair.create();
+      final p256key = P256KeyPair();
       final prefix = [128, 36];
       final expectedId =
           'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + await p256key.publicKey))}';
