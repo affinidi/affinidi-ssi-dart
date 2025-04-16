@@ -37,7 +37,7 @@ class Slip0010Wallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType}) {
+  Future<PublicKey> generateKey(String keyId, {KeyType? keyType}) {
     throw UnimplementedError();
   }
 

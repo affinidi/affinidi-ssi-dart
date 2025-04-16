@@ -55,7 +55,7 @@ class KmsWallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> createKeyPair(
+  Future<PublicKey> generateKey(
     String keyId, {
     KeyType? keyType,
   }) async {

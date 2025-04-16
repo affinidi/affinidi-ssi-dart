@@ -48,7 +48,7 @@ class GenericWallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType}) async {
+  Future<PublicKey> generateKey(String keyId, {KeyType? keyType}) async {
     if (await _keyStore.contains(keyId)) {
       throw ArgumentError("Key already exists: $keyId");
     }
