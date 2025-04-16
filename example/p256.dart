@@ -5,7 +5,7 @@ void main() async {
   final dataToSign = Uint8List.fromList([1, 2, 3]);
 
   // Create P256 key pair
-  final p256key = P256KeyPair.create();
+  final p256key = P256KeyPair();
   print('P256 key pair created. Public key: ${await p256key.publicKey}');
 
   // Sing payload

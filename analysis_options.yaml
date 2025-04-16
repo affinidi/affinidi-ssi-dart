@@ -18,7 +18,6 @@ linter:
 analyzer:
   exclude:
     - tool/*
-    - example/*
   errors:
     lines_longer_than_80_chars: ignore
     avoid_print: error
