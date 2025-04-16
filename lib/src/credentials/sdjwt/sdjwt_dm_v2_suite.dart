@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:sdjwt/sdjwt.dart';
+import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
 import 'package:ssi/src/credentials/sdjwt/sdjwt_did_verifier.dart';
 import 'package:ssi/ssi.dart';
 
