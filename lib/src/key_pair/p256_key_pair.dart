@@ -21,9 +21,7 @@ import './_ecdh_utils.dart' as ecdh_utils;
 /// `ecdsa_p256_sha256` signature scheme. It also supports Elliptic Curve
 /// Diffie-Hellman (ECDH) key agreement.
 class P256KeyPair implements KeyPair {
-  /// The P-256 curve instance.
   static final ec.EllipticCurve _p256 = ec.getP256();
-
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
 

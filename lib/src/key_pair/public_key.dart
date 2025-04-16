@@ -13,7 +13,7 @@ class PublicKey {
   /// Creates a new [PublicKey] instance.
   ///
   /// [bytes] - The public key bytes.
-  /// [type] - The type of the key.
+  /// [type] - The type of the key as [KeyType].
   PublicKey(
     this.bytes,
     this.type,
