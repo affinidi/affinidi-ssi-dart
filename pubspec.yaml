@@ -22,6 +22,7 @@ dependencies:
       url: https://github.com/affinidi/affinidi-sdjwt-dart.git
       ref: main
   x25519: ^0.1.1
+  convert: ^3.1.2
 dev_dependencies:
   coverage: ^1.11.1
   lints: ^5.0.0

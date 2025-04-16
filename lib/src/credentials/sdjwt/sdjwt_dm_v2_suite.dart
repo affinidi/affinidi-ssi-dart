@@ -232,10 +232,10 @@ final class SdJwtDm2Suite
 /// [holder] - The holder object to convert.
 ///
 /// Returns a map with string values.
-Map<String, String> _convertHolder(Map<String, dynamic> holder) {
-  return holder.map((key, value) =>
-      MapEntry(key, value is String ? value : value.toString()));
-}
+// Map<String, String> _convertHolder(Map<String, dynamic> holder) {
+//   return holder.map((key, value) =>
+//       MapEntry(key, value is String ? value : value.toString()));
+// }
 
 /// Creates an SD-JWT signer from a DID signer.
 ///

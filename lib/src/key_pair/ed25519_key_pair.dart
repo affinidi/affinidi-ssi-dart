@@ -23,7 +23,7 @@ class Ed25519KeyPair implements KeyPair {
 
   /// The private key.
   final dynamic _privateKey;
-  final _encryptionUtils;
+  final EncryptionUtils _encryptionUtils;
 
   /// Constructs an [Ed25519KeyPair] from a [privateKey] and its associated [keyId].
   Ed25519KeyPair({
