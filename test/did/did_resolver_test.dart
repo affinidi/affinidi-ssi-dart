@@ -35,7 +35,7 @@ void main() {
       });
     });
 
-    group("uding did:web,", () {
+    group("using did:web,", () {
       test("it throws exception on non-200 responces", () {
         final did = 'did:web:example.com';
 
