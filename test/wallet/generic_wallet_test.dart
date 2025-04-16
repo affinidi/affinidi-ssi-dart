@@ -1,8 +1,7 @@
 import 'dart:typed_data';
-import 'dart:convert';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
+import 'package:ssi/src/wallet/key_store/stored_key.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -32,9 +31,8 @@ void main() {
       // Check if key is actually stored
       final storedData = await keyStore.get(testKeyId1);
       expect(storedData, isNotNull);
-      final decodedData = jsonDecode(storedData!);
-      expect(decodedData['type'], KeyType.p256.name);
-      expect(decodedData['privateKeyHex'], isA<String>());
+      expect(storedData!.type, KeyType.p256);
+      expect(storedData.key, isA<Uint8List>());
     });
 
     test('createKeyPair should default to P256 key pair if type is null',
@@ -50,8 +48,8 @@ void main() {
       // Check storage
       final storedData = await keyStore.get(defaultKeyId);
       expect(storedData, isNotNull);
-      final decodedData = jsonDecode(storedData!);
-      expect(decodedData['type'], KeyType.p256.name);
+      expect(storedData!.type, KeyType.p256);
+      expect(storedData.key, isA<Uint8List>());
     });
 
     test('createKeyPair should create an Ed25519 key pair', () async {
@@ -65,11 +63,10 @@ void main() {
       // Check if key is actually stored
       final storedData = await keyStore.get(testEd25519KeyId1);
       expect(storedData, isNotNull);
-      final decodedData = jsonDecode(storedData!);
-      expect(decodedData['type'], KeyType.ed25519.name);
-      expect(decodedData['privateKeyHex'], isA<String>());
-      // Ensure stored hex decodes to 64 bytes (Ed25519 private+public key size)
-      expect(hex.decode(decodedData['privateKeyHex']), hasLength(64));
+      expect(storedData!.type, KeyType.ed25519);
+      expect(storedData.key, isA<Uint8List>());
+      // Ensure stored key has the correct length (32 bytes for Ed25519 seed/private key)
+      expect(storedData.key, hasLength(64));
     });
 
     test('createKeyPair should throw for existing keyId', () async {
@@ -120,31 +117,15 @@ void main() {
       );
     });
 
-    test('getKeyPair should throw for invalid stored data (missing type)',
-        () async {
-      // Manually insert invalid data
-      await keyStore.set(
-          testKeyId1, jsonEncode({'privateKeyHex': 'abcdef123456'}));
-      expect(
-        () async => await wallet.getPublicKey(testKeyId1),
-        throwsArgumentError,
-      );
-    });
-
-    test('getKeyPair should throw for invalid stored data (missing key)',
-        () async {
-      // Manually insert invalid data
-      await keyStore.set(testKeyId1, jsonEncode({'type': 'p256'}));
-      expect(
-        () async => await wallet.getPublicKey(testKeyId1),
-        throwsArgumentError,
-      );
-    });
-
     test('getKeyPair should throw for unsupported stored key type', () async {
       // Manually insert data with unsupported type
-      await keyStore.set(testKeyId1,
-          jsonEncode({'type': 'secp256k1', 'privateKeyHex': 'abcdef123456'}));
+      final unsupportedKey = StoredKey(
+        type: KeyType.secp256k1, // Unsupported by GenericWallet
+        key: Uint8List.fromList([1, 2, 3]), // Dummy key data
+      );
+      await keyStore.set(testKeyId1, unsupportedKey);
+
+      // Expect ArgumentError because _getKeyPair finds an unsupported type
       expect(
         () async => await wallet.getPublicKey(testKeyId1),
         throwsArgumentError,
