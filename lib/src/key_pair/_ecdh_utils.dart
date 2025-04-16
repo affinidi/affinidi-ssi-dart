@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:convert/convert.dart';
+import 'package:base_codecs/base_codecs.dart';
 import 'package:elliptic/elliptic.dart';
 import 'package:elliptic/ecdh.dart';
 import 'package:cryptography/cryptography.dart' as crypto;
