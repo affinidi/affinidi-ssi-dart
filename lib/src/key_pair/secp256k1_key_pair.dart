@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:bip32/bip32.dart';
-import 'package:elliptic/elliptic.dart';
+import 'package:elliptic/elliptic.dart' as ec;
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
@@ -11,6 +11,7 @@ import '../types.dart';
 import 'key_pair.dart';
 
 import './_ecdh_utils.dart' as ecdh_utils;
+import 'public_key.dart';
 
 /// A key pair implementation that uses secp256k1 for crypto operations.
 ///
@@ -19,7 +20,7 @@ import './_ecdh_utils.dart' as ecdh_utils;
 class Secp256k1KeyPair implements KeyPair {
   /// The BIP32 node containing the key material.
   final BIP32 _node;
-  final Curve _secp256k1 = getSecp256k1();
+  final ec.Curve _secp256k1 = ec.getSecp256k1();
 
   /// Creates a new [Secp256k1KeyPair] instance.
   ///
@@ -28,21 +29,12 @@ class Secp256k1KeyPair implements KeyPair {
     required BIP32 node,
   }) : _node = node;
 
-  /// Returns the type of the public key.
-  @override
-  Future<KeyType> get publicKeyType => Future.value(KeyType.secp256k1);
-
   /// Retrieves the public key.
   ///
-  /// Returns the key as [Uint8List].
+  /// Returns the key as [PublicKey].
   @override
-  Future<Uint8List> get publicKey => Future.value(_node.publicKey);
-
-  /// Retrieves the public key hex encoded.
-  ///
-  /// Returns the key as [String].
-  @override
-  Future<String> get publicKeyHex => Future.value(hex.encode(_node.publicKey));
+  Future<PublicKey> get publicKey =>
+      Future.value(PublicKey(_node.publicKey, KeyType.secp256k1));
 
   /// Retrieves the private key in hex format.
   ///

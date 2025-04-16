@@ -5,6 +5,7 @@ import 'package:bip32/bip32.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../key_pair/public_key.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
 import 'key_store/key_store_interface.dart';
@@ -97,16 +98,17 @@ class Bip32Wallet implements Wallet {
   ///
   /// [data] - The data to be signed.
   /// [keyId] - The identifier of the key to use for signing.
+  /// [signatureScheme] - The signature scheme to use.
   ///
   /// Returns a [Future] that completes with the signature as a [Uint8List].
   @override
   Future<Uint8List> sign(
     Uint8List data, {
     required String keyId,
+    SignatureScheme? signatureScheme,
   }) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.sign(data,
-        signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256);
+    return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
   /// Verifies a signature using the specified key.
@@ -114,6 +116,7 @@ class Bip32Wallet implements Wallet {
   /// [data] - The data that was signed.
   /// [signature] - The signature to verify.
   /// [keyId] - The identifier of the key to use for verification.
+  /// [signatureScheme] - The signature scheme to use.
   ///
   /// Returns a [Future] that completes with `true` if the signature is valid,
   /// `false` otherwise.
@@ -122,12 +125,13 @@ class Bip32Wallet implements Wallet {
     Uint8List data, {
     required Uint8List signature,
     required String keyId,
+    SignatureScheme? signatureScheme,
   }) {
     final keyPair = _getKeyPair(keyId);
     return keyPair.verify(
       data,
       signature,
-      signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
+      signatureScheme: signatureScheme,
     );
   }
 
@@ -142,7 +146,7 @@ class Bip32Wallet implements Wallet {
   /// - Unsupported key type
   /// - The root key pair is missing
   @override
-  Future<Secp256k1KeyPair> createKeyPair(String keyId, {KeyType? keyType}) {
+  Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType}) async {
     if (keyType != null && keyType != KeyType.secp256k1) {
       throw SsiException(
         message: 'Only secp256k1 key type is supported for Bip32Wallet',
@@ -150,7 +154,7 @@ class Bip32Wallet implements Wallet {
       );
     }
     if (_keyMap.containsKey(keyId)) {
-      return Future.value(_keyMap[keyId]);
+      return Future.value(_keyMap[keyId]!.publicKey);
     }
     if (!_keyMap.containsKey(rootKeyId)) {
       throw SsiException(
@@ -162,10 +166,10 @@ class Bip32Wallet implements Wallet {
 
     final derivationPath =
         _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
-    var node = Secp256k1KeyPair(node: _rootNode.derivePath(derivationPath));
-    _keyMap[keyId] = node;
-
-    return Future.value(node);
+    final keyPair =
+        Secp256k1KeyPair(node: _rootNode.derivePath(derivationPath));
+    _keyMap[keyId] = keyPair;
+    return Future.value(keyPair.publicKey);
   }
 
   /// Retrieves the public key for the specified key.
@@ -174,19 +178,9 @@ class Bip32Wallet implements Wallet {
   ///
   /// Returns a [Future] that completes with the public key as a [Uint8List].
   @override
-  Future<Uint8List> getPublicKey(String keyId) {
+  Future<PublicKey> getPublicKey(String keyId) {
     final keyPair = _getKeyPair(keyId);
     return keyPair.publicKey;
-  }
-
-  /// Retrieves the key pair with the specified identifier.
-  ///
-  /// [keyId] - The identifier of the key pair to retrieve.
-  ///
-  /// Returns a [Future] that completes with the [Secp256k1KeyPair].
-  @override
-  Future<Secp256k1KeyPair> getKeyPair(String keyId) async {
-    return Future.value(_getKeyPair(keyId));
   }
 
   /// Retrieves the key pair with the specified identifier.

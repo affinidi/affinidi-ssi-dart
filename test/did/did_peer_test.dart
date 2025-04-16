@@ -20,11 +20,10 @@ void main() {
       final expectedKeyType = KeyType.ed25519;
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
-      final rootKeyId = "0-0";
-      final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidPeer.create([keyPair]);
+      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      final doc = await DidPeer.create([key]);
       final actualDid = doc.id;
-      final actualKeyType = await keyPair.publicKeyType;
+      final actualKeyType = key.type;
 
       final expectedDidDoc = jsonDecode(
           '{"@context": ["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/ed25519-2020/v1"], "id":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","verificationMethod":[{"id":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","controller":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"}],"authentication":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"capabilityDelegation":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"capabilityInvocation":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"keyAgreement":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#z6LSrY3Na7Bkq7f3ktzajpR7vQ4YCjyw9KCT1Y2tnjLLZsV5"],"assertionMethod":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"]}');
@@ -99,9 +98,8 @@ void main() {
       ]);
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
-      final rootKeyId = "0-0";
-      final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidPeer.create([keyPair]);
+      final key = await wallet.getPublicKey(Bip32Ed25519Wallet.rootKeyId);
+      final doc = await DidPeer.create([key]);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);

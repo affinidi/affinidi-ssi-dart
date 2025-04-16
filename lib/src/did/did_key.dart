@@ -3,7 +3,7 @@ import 'public_key_utils.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
-import '../key_pair/key_pair.dart';
+import '../key_pair/public_key.dart';
 import '../utility.dart';
 import 'did_document.dart';
 
@@ -159,10 +159,8 @@ class DidKey {
   /// Returns a [DidDocument].
   ///
   /// Throws [SsiException] if the key pair is invalid
-  static Future<DidDocument> create(KeyPair keyPair) async {
-    final keyType = await keyPair.publicKeyType;
-    final publicKey = await keyPair.publicKey;
-    final multiKey = toMultikey(publicKey, keyType);
+  static Future<DidDocument> create(PublicKey publicKey) async {
+    final multiKey = toMultikey(publicKey.bytes, publicKey.type);
     final multibase = toMultiBase(multiKey);
     final did = '$commonDidKeyPrefix$multibase';
     // FIXME(FTL-20741) double check the doc

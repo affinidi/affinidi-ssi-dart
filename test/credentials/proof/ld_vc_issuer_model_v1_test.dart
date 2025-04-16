@@ -84,13 +84,14 @@ void main() {
 
 Future<DidSigner> _initSigner(Uint8List seed) async {
   final wallet = Bip32Wallet.fromSeed(seed);
-  final keyPair = await wallet.createKeyPair("0-0");
-  final doc = await DidKey.create(keyPair);
+  final publicKey = await wallet.createKeyPair(Bip32Wallet.rootKeyId);
+  final doc = await DidKey.create(publicKey);
 
   final signer = DidSigner(
     didDocument: doc,
     didKeyId: doc.verificationMethod[0].id,
-    keyPair: keyPair,
+    wallet: wallet,
+    walletKeyId: Bip32Wallet.rootKeyId,
     signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
   );
   return signer;

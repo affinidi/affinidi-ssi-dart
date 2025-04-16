@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import '../key_pair/key_pair.dart';
+import '../key_pair/public_key.dart';
 import '../types.dart';
 import 'wallet.dart';
 
@@ -16,6 +16,7 @@ class Slip0010Wallet implements Wallet {
   Future<Uint8List> sign(
     Uint8List data, {
     required String keyId,
+    SignatureScheme? signatureScheme,
   }) {
     throw UnimplementedError();
   }
@@ -25,22 +26,18 @@ class Slip0010Wallet implements Wallet {
     Uint8List data, {
     required Uint8List signature,
     required String keyId,
+    SignatureScheme? signatureScheme,
   }) {
     throw UnimplementedError();
   }
 
   @override
-  Future<KeyPair> createKeyPair(String keyId, {KeyType? keyType}) {
+  Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType}) {
     throw UnimplementedError();
   }
 
   @override
-  Future<Uint8List> getPublicKey(String keyId) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<KeyPair> getKeyPair(String keyId) async {
+  Future<PublicKey> getPublicKey(String keyId) {
     throw UnimplementedError();
   }
 }

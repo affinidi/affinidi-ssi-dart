@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
-
-import 'package:ssi/ssi.dart';
+import 'package:ssi/src/key_pair/ed25519_key_pair.dart';
+import 'package:ssi/src/key_pair/p256_key_pair.dart';
+import 'package:ssi/src/key_pair/secp256k1_key_pair.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -163,11 +164,11 @@ void main() {
 
       var bobPubKey = await p256KeyBob.publicKey;
       var encryptedByAlice =
-          await p256KeyAlice.encrypt(data, publicKey: bobPubKey);
+          await p256KeyAlice.encrypt(data, publicKey: bobPubKey.bytes);
 
       var alicePubKey = await p256KeyAlice.publicKey;
-      var decryptedByBob =
-          await p256KeyBob.decrypt(encryptedByAlice, publicKey: alicePubKey);
+      var decryptedByBob = await p256KeyBob.decrypt(encryptedByAlice,
+          publicKey: alicePubKey.bytes);
 
       expect(decryptedByBob, data);
     });
@@ -219,11 +220,11 @@ void main() {
 
       var bobPubKey = await secpBob.publicKey;
       var encryptedByAlice =
-          await secpAlice.encrypt(data, publicKey: bobPubKey);
+          await secpAlice.encrypt(data, publicKey: bobPubKey.bytes);
 
       var alicePubKey = await secpAlice.publicKey;
       var decryptedByBob =
-          await secpBob.decrypt(encryptedByAlice, publicKey: alicePubKey);
+          await secpBob.decrypt(encryptedByAlice, publicKey: alicePubKey.bytes);
 
       expect(decryptedByBob, data);
     });

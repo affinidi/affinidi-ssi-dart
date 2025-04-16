@@ -6,6 +6,7 @@ import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
+import '../key_pair/public_key.dart';
 import '../wallet/key_store/key_store_interface.dart';
 import '../types.dart';
 import 'wallet.dart';
@@ -88,9 +89,10 @@ class Bip32Ed25519Wallet implements Wallet {
   Future<Uint8List> sign(
     Uint8List data, {
     required String keyId,
+    SignatureScheme? signatureScheme,
   }) {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.sign(data, signatureScheme: SignatureScheme.ed25519_sha256);
+    return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
   /// Verifies a signature using the specified key.
@@ -107,12 +109,13 @@ class Bip32Ed25519Wallet implements Wallet {
     Uint8List data, {
     required Uint8List signature,
     required String keyId,
+    SignatureScheme? signatureScheme,
   }) {
     final keyPair = _getKeyPair(keyId);
     return keyPair.verify(
       data,
       signature,
-      signatureScheme: SignatureScheme.ed25519_sha256,
+      signatureScheme: signatureScheme,
     );
   }
 
@@ -127,7 +130,7 @@ class Bip32Ed25519Wallet implements Wallet {
   /// - Unsupported key type
   /// - The root key pair is missing
   @override
-  Future<Ed25519KeyPair> createKeyPair(String keyId, {KeyType? keyType}) async {
+  Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType}) async {
     if (keyType != null && keyType != KeyType.ed25519) {
       throw SsiException(
         message:
@@ -136,7 +139,7 @@ class Bip32Ed25519Wallet implements Wallet {
       );
     }
     if (_keyMap.containsKey(keyId)) {
-      return Future.value(_keyMap[keyId]);
+      return Future.value(_keyMap[keyId]!.publicKey);
     }
     if (!_keyMap.containsKey(rootKeyId)) {
       throw SsiException(
@@ -155,8 +158,7 @@ class Bip32Ed25519Wallet implements Wallet {
 
     final keyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(derived.key));
     _keyMap[keyId] = keyPair;
-
-    return Future.value(keyPair);
+    return Future.value(keyPair.publicKey);
   }
 
   /// Retrieves the public key for the specified key.
@@ -164,21 +166,10 @@ class Bip32Ed25519Wallet implements Wallet {
   /// [keyId] - The identifier of the key.
   ///
   /// Returns a [Future] that completes with the public key as a [Uint8List].
-
   @override
-  Future<Uint8List> getPublicKey(String keyId) {
+  Future<PublicKey> getPublicKey(String keyId) {
     final keyPair = _getKeyPair(keyId);
     return keyPair.publicKey;
-  }
-
-  /// Retrieves the key pair with the specified identifier.
-  ///
-  /// [keyId] - The identifier of the key pair to retrieve.
-  ///
-  /// Returns a [Future] that completes with the [Ed25519KeyPair].
-  @override
-  Future<Ed25519KeyPair> getKeyPair(String keyId) async {
-    return Future.value(_getKeyPair(keyId));
   }
 
   /// Retrieves the key pair with the specified identifier.

@@ -11,44 +11,42 @@ void main() async {
 
   // from wallet with root key
   print("Signing and verifying from root key");
-  final rootKeyId = "0-0";
   final data = Uint8List.fromList([1, 2, 3]);
   print('data to sign: ${hexEncode(data)}');
-  final signature = await wallet.sign(data, keyId: rootKeyId);
+  final signature = await wallet.sign(data, keyId: Bip32Wallet.rootKeyId);
   print('signature: ${hexEncode(signature)}');
-  final isRootSignatureValid =
-      await wallet.verify(data, signature: signature, keyId: rootKeyId);
+  final isRootSignatureValid = await wallet.verify(data,
+      signature: signature, keyId: Bip32Wallet.rootKeyId);
   print('check if root signature is valid: $isRootSignatureValid');
 
   // did
-  final rootKeyPair = await wallet.getKeyPair(rootKeyId);
-  final rootDidKey = await DidKey.create(rootKeyPair);
-  print('root did: $rootDidKey');
+  final rootKey = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+  final rootDidKey = await DidKey.create(rootKey);
+  print('root did: ${rootDidKey.id}');
 
   // from derived key pair
   print("Signing and verifying from profile key");
-  // NOTE: how to know what is the next available account index?
   final profileKeyId = "1234-0";
-  final profileKeyPair = await wallet.createKeyPair(profileKeyId);
-  final profileSignature = await profileKeyPair.sign(data);
+  final profileKey = await wallet.createKeyPair(profileKeyId);
+  final profileSignature = await wallet.sign(data, keyId: profileKeyId);
   print('profile signature: ${hexEncode(profileSignature)}');
-  final isProfileSignatureValid =
-      await profileKeyPair.verify(data, profileSignature);
+  final isProfileSignatureValid = await wallet.verify(data,
+      signature: profileSignature, keyId: profileKeyId);
   print(
       'check if profile signature is valid by public key: $isProfileSignatureValid');
 
   // did
-  final profileDidKey = await DidKey.create(profileKeyPair);
-  print('profile did: $profileDidKey');
+  final profileDidKey = await DidKey.create(profileKey);
+  print('profile did: ${profileDidKey.id}');
 
   // second profile key
   print("Signing and verifying from second profile key");
   final profileKeyId2 = "1234-1";
-  final profileKeyPair2 = await wallet.createKeyPair(profileKeyId2);
-  final profileSignature2 = await profileKeyPair2.sign(data);
+  await wallet.createKeyPair(profileKeyId2);
+  final profileSignature2 = await wallet.sign(data, keyId: profileKeyId2);
   print('profile signature 2: ${hexEncode(profileSignature2)}');
-  final isProfileSignature2Valid =
-      await profileKeyPair2.verify(data, profileSignature2);
+  final isProfileSignature2Valid = await wallet.verify(data,
+      signature: profileSignature2, keyId: profileKeyId2);
   print(
       'check if profile signature 2 is valid by public key: $isProfileSignature2Valid');
 }

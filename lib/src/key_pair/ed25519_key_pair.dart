@@ -10,6 +10,7 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'key_pair.dart';
+import 'public_key.dart';
 
 import './_const.dart';
 import './_encryption_utils.dart';
@@ -39,26 +40,15 @@ class Ed25519KeyPair implements KeyPair {
     return Ed25519KeyPair._(ed.PrivateKey(privateKey));
   }
 
-  /// Returns the type of the public key.
-  @override
-  Future<KeyType> get publicKeyType => Future.value(KeyType.ed25519);
-
   /// Retrieves the public key.
   ///
   /// Returns the key as [Uint8List].
   @override
-  Future<Uint8List> get publicKey => Future.value(
-        Uint8List.fromList(
-          ed.public(_privateKey).bytes,
-        ),
-      );
-
-  /// Retrieves the public key hex encoded.
-  ///
-  /// Returns the key as [String].
-  @override
-  Future<String> get publicKeyHex async =>
-      Future.value(hex.encode(await publicKey));
+  Future<PublicKey> get publicKey => Future.value(PublicKey(
+      Uint8List.fromList(
+        ed.public(_privateKey).bytes,
+      ),
+      KeyType.ed25519));
 
   /// Retrieves the private key in hex format.
   ///

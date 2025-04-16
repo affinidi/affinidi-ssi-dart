@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/key_pair/p256_key_pair.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -36,12 +37,9 @@ void main() {
     test('P-256 key pair should sign data and verify signature', () async {
       final p256key = P256KeyPair();
       final publicKey = await p256key.publicKey;
-      final keyType = await p256key.publicKeyType;
-      final publicKeyHex = await p256key.publicKeyHex;
       final privateKeyHex = await p256key.privateKeyHex;
-      expect(keyType, KeyType.p256);
-      expect(publicKey.length, 33); // Compressed P-256 key length
-      expect(publicKeyHex.length, 66); // 33 bytes * 2 hex chars/byte
+      expect(publicKey.type, KeyType.p256);
+      expect(publicKey.bytes.length, 33); // Compressed P-256 key length
       expect(privateKeyHex.length, 64); // 32 bytes * 2 hex chars/byte
     });
   });
@@ -50,10 +48,10 @@ void main() {
     test('Compute ECDH shared secret for encryption', () async {
       final keyPairAlice = P256KeyPair();
       final keyPairBob = P256KeyPair();
-      final secretAlice =
-          await keyPairAlice.computeEcdhSecret(await keyPairBob.publicKey);
-      final secretBob =
-          await keyPairBob.computeEcdhSecret(await keyPairAlice.publicKey);
+      final secretAlice = await keyPairAlice
+          .computeEcdhSecret((await keyPairBob.publicKey).bytes);
+      final secretBob = await keyPairBob
+          .computeEcdhSecret((await keyPairAlice.publicKey).bytes);
 
       expect(secretAlice, equals(secretBob));
       expect(secretAlice.length, 32); // P-256 ECDH secret length

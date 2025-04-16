@@ -1,12 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
-import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
-
-import 'package:ssi/src/types.dart';
 import 'package:ssi/src/key_pair/key_pair.dart';
+import 'package:ssi/ssi.dart';
 
 const _signatureSchemeToKmsAlgorithm = {
   SignatureScheme.rsa_pkcs1_sha256:
@@ -35,17 +31,10 @@ class KmsKeyPair implements KeyPair {
       ];
 
   @override
-  Future<Uint8List> get publicKey async {
+  Future<PublicKey> get publicKey async {
     final response = await kmsClient.getPublicKey(keyId: keyId);
-    return Uint8List.fromList(response.publicKey ?? []);
+    return PublicKey(Uint8List.fromList(response.publicKey ?? []), KeyType.rsa);
   }
-
-  @override
-  Future<String> get publicKeyHex async =>
-      Future.value(hex.encode(await publicKey));
-
-  @override
-  Future<KeyType> get publicKeyType async => KeyType.rsa;
 
   @override
   Future<String> get privateKeyHex {

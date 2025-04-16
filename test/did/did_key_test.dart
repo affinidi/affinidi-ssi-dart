@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -19,11 +20,10 @@ void main() {
       final expectedKeyType = KeyType.secp256k1;
 
       final wallet = Bip32Wallet.fromSeed(seed);
-      final rootKeyId = "0-0";
-      final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidKey.create(keyPair);
+      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      final doc = await DidKey.create(key);
       final actualDid = doc.id;
-      final actualKeyType = await keyPair.publicKeyType;
+      final actualKeyType = key.type;
 
       final expectedDidDoc = jsonDecode(
           '{"@context":["https://www.w3.org/ns/did/v1","https://ns.did.ai/suites/multikey-2021/v1/"],"id":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","verificationMethod":[{"id":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","controller":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","type":"Secp256k1Key2021","publicKeyMultibase":"zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"}],"authentication":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"capabilityDelegation":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"capabilityInvocation":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"keyAgreement":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"assertionMethod":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"]}');
@@ -53,11 +53,10 @@ void main() {
       final expectedKeyType = KeyType.secp256k1;
 
       final wallet = Bip32Wallet.fromSeed(seed);
-      final rootKeyId = "0-0";
-      final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidKey.create(keyPair);
+      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      final doc = await DidKey.create(key);
       final actualDid = doc.id;
-      final actualKeyType = await keyPair.publicKeyType;
+      final actualKeyType = key.type;
 
       expect(actualDid, isNot(equals(expectedDid)));
       expect(actualKeyType, expectedKeyType);
@@ -103,9 +102,8 @@ void main() {
       ]);
 
       final wallet = Bip32Wallet.fromSeed(seed);
-      final rootKeyId = "0-0";
-      final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidKey.create(keyPair);
+      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      final doc = await DidKey.create(key);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
@@ -114,13 +112,16 @@ void main() {
 
   group('did:key with P256', () {
     test('generated did document is as expected', () async {
-      final p256key = P256KeyPair();
+      final keyStore = InMemoryKeyStore();
+      final wallet = GenericWallet(keyStore);
+      final keyId = "keyId";
+      final publicKey = await wallet.createKeyPair(keyId);
       final prefix = [128, 36];
       final expectedId =
-          'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + await p256key.publicKey))}';
+          'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + publicKey.bytes))}';
       final expectedDid = await DidKey.resolve(expectedId);
       final expectedDidJson = expectedDid.toJson();
-      final actualDid = await DidKey.create(p256key);
+      final actualDid = await DidKey.create(publicKey);
       final actualDidJson = actualDid.toJson();
       expect(actualDidJson, expectedDidJson);
       expect(actualDid.id.startsWith('did:key:zDn'), isTrue);

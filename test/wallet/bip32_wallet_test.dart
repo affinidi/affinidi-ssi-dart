@@ -16,27 +16,26 @@ void main() {
     late Bip32Wallet wallet;
 
     setUp(() {
-      // Bip32Wallet creation is synchronous
       wallet = Bip32Wallet.fromSeed(seed);
     });
 
     test('Wallet creation from seed should contain root key', () async {
       expect(await wallet.hasKey(Bip32Wallet.rootKeyId), isTrue);
-      final rootKeyPair = await wallet.getKeyPair(Bip32Wallet.rootKeyId);
-      expect(await rootKeyPair.publicKeyType, KeyType.secp256k1);
+      final rootKey = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      expect(rootKey.type, KeyType.secp256k1);
     });
 
     test('createKeyPair should derive a new Secp256k1 key pair', () async {
       const newKeyId = '1-0'; // Account 1, Key 0
       expect(await wallet.hasKey(newKeyId), isFalse);
 
-      final newKeyPair = await wallet.createKeyPair(newKeyId);
+      final newKey = await wallet.createKeyPair(newKeyId);
       expect(await wallet.hasKey(newKeyId), isTrue);
-      expect(await newKeyPair.publicKeyType, KeyType.secp256k1);
+      expect(newKey.type, KeyType.secp256k1);
 
       // Ensure creating the same key again returns the existing one
-      final sameKeyPair = await wallet.createKeyPair(newKeyId);
-      expect(await sameKeyPair.publicKey, await newKeyPair.publicKey);
+      final sameKey = await wallet.createKeyPair(newKeyId);
+      expect(sameKey.bytes, newKey.bytes);
     });
 
     test('createKeyPair should throw for unsupported key type', () async {
@@ -90,16 +89,16 @@ void main() {
       const derivedKeyId = '1-2';
       await wallet.createKeyPair(derivedKeyId);
 
-      final rootKeyPair = await wallet.getKeyPair(Bip32Wallet.rootKeyId);
-      expect(await rootKeyPair.publicKeyType, KeyType.secp256k1);
+      final rootKey = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      expect(rootKey.type, KeyType.secp256k1);
 
-      final derivedKeyPair = await wallet.getKeyPair(derivedKeyId);
-      expect(await derivedKeyPair.publicKeyType, KeyType.secp256k1);
+      final derivedKey = await wallet.getPublicKey(derivedKeyId);
+      expect(derivedKey.type, KeyType.secp256k1);
     });
 
     test('getKeyPair should throw for non-existent keyId', () async {
       expect(
-        () async => await wallet.getKeyPair('99-99'),
+        () async => await wallet.getPublicKey('99-99'),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
@@ -111,13 +110,11 @@ void main() {
 
     test('getPublicKey should return the correct public key', () async {
       const derivedKeyId = '2-1';
-      final derivedKeyPair = await wallet.createKeyPair(derivedKeyId);
-      final expectedPubKey = await derivedKeyPair.publicKey;
-
-      final retrievedPubKey = await wallet.getPublicKey(derivedKeyId);
-      expect(retrievedPubKey, equals(expectedPubKey));
+      final derivedKey = await wallet.createKeyPair(derivedKeyId);
+      final retrievedKey = await wallet.getPublicKey(derivedKeyId);
+      expect(retrievedKey.bytes, equals(derivedKey.bytes));
       // Secp256k1 compressed public key size
-      expect(retrievedPubKey.length, 33);
+      expect(retrievedKey.bytes.length, 33);
     });
 
     test('getPublicKey should throw for non-existent keyId', () async {
@@ -216,15 +213,13 @@ void main() {
 
     test('Derived keys should be consistent', () async {
       const keyId = '4-2';
-      final keyPair1 = await wallet.createKeyPair(keyId);
-      final pubKey1 = await keyPair1.publicKey;
+      final key1 = await wallet.createKeyPair(keyId);
 
       // Re-create wallet and derive same key
       final wallet2 = Bip32Wallet.fromSeed(seed);
-      final keyPair2 = await wallet2.createKeyPair(keyId);
-      final pubKey2 = await keyPair2.publicKey;
+      final key2 = await wallet2.createKeyPair(keyId);
 
-      expect(pubKey1, equals(pubKey2));
+      expect(key1.bytes, equals(key2.bytes));
     });
 
     test('Different derivation paths should produce different keys', () async {
@@ -232,17 +227,13 @@ void main() {
       const keyId2 = '6-2'; // Same account, different key index
       const keyId3 = '7-1'; // Different account
 
-      final keyPair1 = await wallet.createKeyPair(keyId1);
-      final keyPair2 = await wallet.createKeyPair(keyId2);
-      final keyPair3 = await wallet.createKeyPair(keyId3);
+      final key1 = await wallet.createKeyPair(keyId1);
+      final key2 = await wallet.createKeyPair(keyId2);
+      final key3 = await wallet.createKeyPair(keyId3);
 
-      final pubKey1 = await keyPair1.publicKey;
-      final pubKey2 = await keyPair2.publicKey;
-      final pubKey3 = await keyPair3.publicKey;
-
-      expect(pubKey1, isNot(equals(pubKey2)));
-      expect(pubKey1, isNot(equals(pubKey3)));
-      expect(pubKey2, isNot(equals(pubKey3)));
+      expect(key1.bytes, isNot(equals(key2.bytes)));
+      expect(key1.bytes, isNot(equals(key3.bytes)));
+      expect(key2.bytes, isNot(equals(key3.bytes)));
     });
   });
 
@@ -265,14 +256,14 @@ void main() {
 
       // Verify root key exists
       expect(await ksWallet.hasKey(Bip32Wallet.rootKeyId), isTrue);
-      final rootKeyPair = await ksWallet.getKeyPair(Bip32Wallet.rootKeyId);
-      expect(await rootKeyPair.publicKeyType, KeyType.secp256k1);
+      final rootKey = await ksWallet.getPublicKey(Bip32Wallet.rootKeyId);
+      expect(rootKey.type, KeyType.secp256k1);
 
       // Optional: Compare with wallet created directly from seed
       final directWallet = Bip32Wallet.fromSeed(seed);
       final directRootKey =
-          await directWallet.getKeyPair(Bip32Wallet.rootKeyId);
-      expect(await rootKeyPair.publicKey, await directRootKey.publicKey);
+          await directWallet.getPublicKey(Bip32Wallet.rootKeyId);
+      expect(rootKey.bytes, directRootKey.bytes);
     });
 
     test('createFromKeyStore successfully creates wallet with custom key',
@@ -286,8 +277,8 @@ void main() {
 
       // Verify root key exists
       expect(await ksWallet.hasKey(Bip32Wallet.rootKeyId), isTrue);
-      final rootKeyPair = await ksWallet.getKeyPair(Bip32Wallet.rootKeyId);
-      expect(await rootKeyPair.publicKeyType, KeyType.secp256k1);
+      final rootKey = await ksWallet.getPublicKey(Bip32Wallet.rootKeyId);
+      expect(rootKey.type, KeyType.secp256k1);
     });
 
     test('createFromKeyStore throws ArgumentError if seed key is missing',

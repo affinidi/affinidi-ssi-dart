@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../key_pair/public_key.dart';
 import '../types.dart';
 
 /// An abstract interface for cryptographic key pairs used for signing and verifying data.
@@ -7,17 +8,11 @@ abstract interface class KeyPair {
   /// Returns a list of [SignatureScheme]s supported by this key pair.
   List<SignatureScheme> get supportedSignatureSchemes;
 
-  /// Returns the public key as a [Uint8List].
-  Future<Uint8List> get publicKey;
-
-  /// Returns the public key as a hex [String].
-  Future<String> get publicKeyHex;
+  /// Returns the public key as a [PublicKey].
+  Future<PublicKey> get publicKey;
 
   /// Returns the private key as a hex [String].
   Future<String> get privateKeyHex;
-
-  /// Returns the type of the public key.
-  Future<KeyType> get publicKeyType;
 
   /// Signs the given [data] using the private key and optionally a [signatureScheme].
   ///

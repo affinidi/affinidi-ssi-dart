@@ -8,6 +8,7 @@ import '../key_pair/p256_key_pair.dart';
 import 'key_store/key_store_interface.dart';
 import 'wallet.dart';
 import '../key_pair/key_pair.dart';
+import '../key_pair/public_key.dart';
 import '../types.dart';
 
 class GenericWallet implements Wallet {
@@ -26,7 +27,7 @@ class GenericWallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
@@ -37,12 +38,12 @@ class GenericWallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.verify(data, signature, signatureScheme: signatureScheme);
   }
 
   @override
-  Future<KeyPair> createKeyPair(String keyId, {KeyType? keyType}) async {
+  Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType}) async {
     if (await _keyStore.contains(keyId)) {
       throw ArgumentError("Key already exists: $keyId");
     }
@@ -57,7 +58,7 @@ class GenericWallet implements Wallet {
         'privateKeyHex': privateKeyHex,
       });
       await _keyStore.set(keyId, storedData);
-      return keyPair;
+      return keyPair.publicKey;
     } else if (keyType == KeyType.ed25519) {
       final keyPair = Ed25519KeyPair();
       final privateKeyHex = await keyPair.privateKeyHex;
@@ -66,15 +67,14 @@ class GenericWallet implements Wallet {
         'privateKeyHex': privateKeyHex,
       });
       await _keyStore.set(keyId, storedData);
-      return keyPair;
+      return keyPair.publicKey;
     }
 
     throw ArgumentError(
         "Only p256 and ed25519 key types are supported for GenericWallet");
   }
 
-  @override
-  Future<KeyPair> getKeyPair(String keyId) async {
+  Future<KeyPair> _getKeyPair(String keyId) async {
     final storedKeyPair = await _keyStore.get(keyId);
     if (storedKeyPair == null) {
       throw ArgumentError("Key not found: $keyId");
@@ -99,8 +99,8 @@ class GenericWallet implements Wallet {
   }
 
   @override
-  Future<Uint8List> getPublicKey(String keyId) async {
-    final keyPair = await getKeyPair(keyId);
+  Future<PublicKey> getPublicKey(String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.publicKey;
   }
 }

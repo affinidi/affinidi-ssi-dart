@@ -3,12 +3,13 @@ import 'dart:typed_data';
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ecdsa/ecdsa.dart' as ecdsa;
 import 'package:elliptic/ecdh.dart';
-import 'package:elliptic/elliptic.dart';
+import 'package:elliptic/elliptic.dart' as ec;
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import 'public_key.dart';
 import 'key_pair.dart';
 
 import './_ecdh_utils.dart' as ecdh_utils;
@@ -21,9 +22,9 @@ import './_ecdh_utils.dart' as ecdh_utils;
 /// Diffie-Hellman (ECDH) key agreement.
 class P256KeyPair implements KeyPair {
   /// The P-256 curve instance.
-  static final EllipticCurve _p256 = getP256();
+  static final ec.EllipticCurve _p256 = ec.getP256();
 
-  final PrivateKey _privateKey;
+  final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
 
   P256KeyPair._(this._privateKey);
@@ -38,38 +39,23 @@ class P256KeyPair implements KeyPair {
   ///
   /// [privateKey] - The private key as a [Uint8List].
   factory P256KeyPair.fromPrivateKey(Uint8List privateKey) {
-    return P256KeyPair._(PrivateKey.fromBytes(_p256, privateKey));
+    return P256KeyPair._(ec.PrivateKey.fromBytes(_p256, privateKey));
   }
 
   /// Creates a [P256KeyPair] instance from a private key hex string.
   ///
   /// [privateKeyHex] - The private key encoded as a hex [String].
   factory P256KeyPair.fromPrivateKeyHex(String privateKeyHex) {
-    return P256KeyPair._(PrivateKey.fromHex(_p256, privateKeyHex));
+    return P256KeyPair._(ec.PrivateKey.fromHex(_p256, privateKeyHex));
   }
-
-  /// Returns the type of the public key.
-  @override
-  Future<KeyType> get publicKeyType => Future.value(KeyType.p256);
 
   /// Retrieves the public key in compressed format.
   ///
   /// Returns the key as [Uint8List].
   @override
-  Future<Uint8List> get publicKey async {
-    if (_publicKeyBytes == null) {
-      final bytes = hex.decode(await publicKeyHex);
-      _publicKeyBytes = Uint8List.fromList(bytes);
-    }
-    return Future.value(_publicKeyBytes!);
-  }
-
-  /// Retrieves the public key in compressed hex format.
-  ///
-  /// Returns the key as a [String].
-  @override
-  Future<String> get publicKeyHex {
-    return Future.value(_privateKey.publicKey.toCompressedHex());
+  Future<PublicKey> get publicKey async {
+    _publicKeyBytes ??= hex.decode(_privateKey.publicKey.toCompressedHex());
+    return Future.value(PublicKey(_publicKeyBytes!, KeyType.p256));
   }
 
   /// Retrieves the private key in hex format.

@@ -1,9 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
-
-import 'package:ssi/src/types.dart';
-import 'package:ssi/src/wallet/wallet.dart';
+import 'package:ssi/ssi.dart';
 
 import 'kms_key_pair.dart';
 
@@ -13,9 +11,13 @@ class KmsWallet implements Wallet {
   KmsWallet(this.kmsClient);
 
   @override
-  Future<Uint8List> sign(Uint8List data, {required String keyId}) async {
-    final keyPair = await getKeyPair(keyId);
-    return keyPair.sign(data);
+  Future<Uint8List> sign(
+    Uint8List data, {
+    required String keyId,
+    SignatureScheme? signatureScheme,
+  }) async {
+    final keyPair = await _getKeyPair(keyId);
+    return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
   @override
@@ -23,14 +25,15 @@ class KmsWallet implements Wallet {
     Uint8List data, {
     required Uint8List signature,
     required String keyId,
+    SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await getKeyPair(keyId);
-    return keyPair.verify(data, signature);
+    final keyPair = await _getKeyPair(keyId);
+    return keyPair.verify(data, signature, signatureScheme: signatureScheme);
   }
 
   @override
-  Future<Uint8List> getPublicKey(String keyId) async {
-    final keyPair = await getKeyPair(keyId);
+  Future<PublicKey> getPublicKey(String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.publicKey;
   }
 
@@ -45,7 +48,7 @@ class KmsWallet implements Wallet {
   }
 
   @override
-  Future<KmsKeyPair> createKeyPair(
+  Future<PublicKey> createKeyPair(
     String keyId, {
     KeyType? keyType,
   }) async {
@@ -54,11 +57,11 @@ class KmsWallet implements Wallet {
       customerMasterKeySpec: kms.CustomerMasterKeySpec.rsa_2048,
     );
     final newKeyId = response.keyMetadata?.keyId ?? '';
-    return KmsKeyPair(kmsClient, newKeyId);
+    final keyPair = KmsKeyPair(kmsClient, newKeyId);
+    return keyPair.publicKey;
   }
 
-  @override
-  Future<KmsKeyPair> getKeyPair(String keyId) async {
+  Future<KmsKeyPair> _getKeyPair(String keyId) async {
     return KmsKeyPair(kmsClient, keyId);
   }
 }

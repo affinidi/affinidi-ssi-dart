@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:ssi/src/key_pair/ed25519_key_pair.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -46,13 +47,10 @@ void main() {
     test('Ed25519 key pair properties should be correct', () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final publicKey = await edKey.publicKey;
-      final keyType = await edKey.publicKeyType;
-      final publicKeyHex = await edKey.publicKeyHex;
       final privateKeyHex = await edKey.privateKeyHex;
 
-      expect(keyType, KeyType.ed25519);
-      expect(publicKey.length, 32); // Ed25519 public key length
-      expect(publicKeyHex.length, 64); // 32 bytes * 2 hex chars/byte
+      expect(publicKey.type, KeyType.ed25519);
+      expect(publicKey.bytes.length, 32); // Ed25519 public key length
       expect(privateKeyHex.length, 128); // 64 bytes * 2 hex chars/byte
 
       // Verify getSeed returns the original seed
