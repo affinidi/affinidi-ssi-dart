@@ -1,12 +1,15 @@
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
+import 'package:elliptic/elliptic.dart';
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'key_pair.dart';
+
+import './_ecdh_utils.dart' as ecdh_utils;
 
 /// A key pair implementation that uses secp256k1 for crypto operations.
 ///
@@ -18,6 +21,7 @@ class Secp256k1KeyPair implements KeyPair {
 
   /// The BIP32 node containing the key material.
   final BIP32 _node;
+  var _secp256k1;
 
   /// Creates a new [Secp256k1KeyPair] instance.
   ///
@@ -27,7 +31,8 @@ class Secp256k1KeyPair implements KeyPair {
     required BIP32 node,
     required String keyId,
   })  : _node = node,
-        _keyId = keyId;
+        _keyId = keyId,
+        _secp256k1 = getSecp256k1();
 
   @override
   Future<String> get id => Future.value(_keyId);
@@ -106,4 +111,34 @@ class Secp256k1KeyPair implements KeyPair {
   @override
   List<SignatureScheme> get supportedSignatureSchemes =>
       [SignatureScheme.ecdsa_secp256k1_sha256];
+
+  @override
+  encrypt(Uint8List data, {Uint8List? publicKey}) async {
+    final privateKey = _node.privateKey;
+    if (privateKey == null) {
+      throw ArgumentError('Private key is null');
+    }
+
+    return ecdh_utils.encryptData(
+      data: data,
+      privateKeyBytes: privateKey,
+      publicKeyBytes: publicKey,
+      curve: _secp256k1,
+    );
+  }
+
+  @override
+  decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
+    final privateKey = _node.privateKey;
+    if (privateKey == null) {
+      throw ArgumentError('Private key is null');
+    }
+
+    return ecdh_utils.decryptData(
+      encryptedPackage: ivAndBytes,
+      privateKeyBytes: privateKey,
+      publicKeyBytes: publicKey,
+      curve: _secp256k1,
+    );
+  }
 }
