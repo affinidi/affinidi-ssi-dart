@@ -10,7 +10,6 @@ import '../types.dart';
 import 'key_pair.dart';
 
 import './_ecdh_utils.dart' as ecdh_utils;
-import 'public_key.dart';
 
 /// A key pair implementation that uses secp256k1 for crypto operations.
 ///
@@ -32,8 +31,8 @@ class Secp256k1KeyPair implements KeyPair {
   ///
   /// Returns the key as [PublicKey].
   @override
-  Future<PublicKey> get publicKey =>
-      Future.value(PublicKey(_node.publicKey, KeyType.secp256k1));
+  Future<PublicKeyData> get publicKey =>
+      Future.value(PublicKeyData(_node.publicKey, KeyType.secp256k1));
 
   /// Retrieves the private key bytes.
   ///

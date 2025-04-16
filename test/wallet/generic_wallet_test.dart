@@ -24,7 +24,7 @@ void main() {
       expect(await wallet.hasKey(testKeyId1), isFalse);
 
       final newKey =
-          await wallet.generateKey(testKeyId1, keyType: KeyType.p256);
+          await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
       expect(await wallet.hasKey(testKeyId1), isTrue);
       expect(newKey.type, KeyType.p256);
 
@@ -41,7 +41,7 @@ void main() {
       expect(await wallet.hasKey(defaultKeyId), isFalse);
 
       // Call without specifying keyType
-      final newKey = await wallet.generateKey(defaultKeyId);
+      final newKey = await wallet.generateKey(keyId: defaultKeyId);
       expect(await wallet.hasKey(defaultKeyId), isTrue);
       expect(newKey.type, KeyType.p256);
 
@@ -55,8 +55,8 @@ void main() {
     test('createKeyPair should create an Ed25519 key pair', () async {
       expect(await wallet.hasKey(testEd25519KeyId1), isFalse);
 
-      final newKey =
-          await wallet.generateKey(testEd25519KeyId1, keyType: KeyType.ed25519);
+      final newKey = await wallet.generateKey(
+          keyId: testEd25519KeyId1, keyType: KeyType.ed25519);
       expect(await wallet.hasKey(testEd25519KeyId1), isTrue);
       expect(newKey.type, KeyType.ed25519);
 
@@ -70,29 +70,31 @@ void main() {
     });
 
     test('createKeyPair should throw for existing keyId', () async {
-      await wallet.generateKey(testKeyId1,
-          keyType: KeyType.p256); // Create first
+      await wallet.generateKey(
+          keyId: testKeyId1, keyType: KeyType.p256); // Create first
       expect(
-        () async => await wallet.generateKey(testKeyId1, keyType: KeyType.p256),
+        () async =>
+            await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256),
         throwsArgumentError,
       );
     });
 
     test('createKeyPair should throw for unsupported key type', () async {
       expect(
-        () async =>
-            await wallet.generateKey(testKeyId1, keyType: KeyType.secp256k1),
+        () async => await wallet.generateKey(
+            keyId: testKeyId1, keyType: KeyType.secp256k1),
         throwsArgumentError,
       );
       expect(
-        () async => await wallet.generateKey(testKeyId1, keyType: KeyType.rsa),
+        () async =>
+            await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.rsa),
         throwsArgumentError,
       );
     });
 
     test('getKeyPair should retrieve existing P256 key pair', () async {
       final createdKey =
-          await wallet.generateKey(testKeyId1, keyType: KeyType.p256);
+          await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
       final retrievedKey = await wallet.getPublicKey(testKeyId1);
 
       expect(retrievedKey.type, KeyType.p256);
@@ -100,8 +102,8 @@ void main() {
     });
 
     test('getKeyPair should retrieve existing Ed25519 key pair', () async {
-      final createdKey =
-          await wallet.generateKey(testEd25519KeyId1, keyType: KeyType.ed25519);
+      final createdKey = await wallet.generateKey(
+          keyId: testEd25519KeyId1, keyType: KeyType.ed25519);
       final retrievedKey = await wallet.getPublicKey(testEd25519KeyId1);
 
       expect(retrievedKey.type, KeyType.ed25519);
@@ -132,7 +134,7 @@ void main() {
 
     test('getPublicKey should return the correct public key', () async {
       final expectedKey =
-          await wallet.generateKey(testKeyId1, keyType: KeyType.p256);
+          await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
 
       final retrievedKey = await wallet.getPublicKey(testKeyId1);
       expect(retrievedKey.bytes, equals(expectedKey.bytes));
@@ -140,8 +142,8 @@ void main() {
       expect(retrievedKey.bytes.length, 33); // P256 size
 
       // Test Ed25519 key
-      final edKey =
-          await wallet.generateKey(testEd25519KeyId1, keyType: KeyType.ed25519);
+      final edKey = await wallet.generateKey(
+          keyId: testEd25519KeyId1, keyType: KeyType.ed25519);
       final edRetrievedKey = await wallet.getPublicKey(testEd25519KeyId1);
       expect(edRetrievedKey.bytes, equals(edKey.bytes));
       expect(edRetrievedKey.bytes.length, 32); // Ed25519 public key size
@@ -156,8 +158,9 @@ void main() {
 
     test('sign and verify should work correctly', () async {
       // Create keys of both types
-      await wallet.generateKey(testKeyId1, keyType: KeyType.p256);
-      await wallet.generateKey(testEd25519KeyId1, keyType: KeyType.ed25519);
+      await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
+      await wallet.generateKey(
+          keyId: testEd25519KeyId1, keyType: KeyType.ed25519);
 
       // Sign with key 1
       final p256Signature = await wallet.sign(dataToSign, keyId: testKeyId1);
@@ -222,7 +225,7 @@ void main() {
     });
 
     test('verify should throw for non-existent keyId', () async {
-      await wallet.generateKey(testKeyId1, keyType: KeyType.p256);
+      await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
       final signature = await wallet.sign(dataToSign, keyId: testKeyId1);
 
       expect(
@@ -234,7 +237,7 @@ void main() {
 
     test('hasKey should correctly report key existence', () async {
       expect(await wallet.hasKey(testKeyId1), isFalse);
-      await wallet.generateKey(testKeyId1, keyType: KeyType.p256);
+      await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
       expect(await wallet.hasKey(testKeyId1), isTrue);
       expect(await wallet.hasKey(nonExistentKeyId), isFalse);
     });
@@ -242,13 +245,14 @@ void main() {
     test('getSupportedSignatureSchemes should return correct schemes',
         () async {
       // P256
-      await wallet.generateKey(testKeyId1, keyType: KeyType.p256);
+      await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
       final p256Schemes = await wallet.getSupportedSignatureSchemes(testKeyId1);
       expect(p256Schemes, contains(SignatureScheme.ecdsa_p256_sha256));
       expect(p256Schemes.length, 1); // P256KeyPair only supports one
 
       // Ed25519
-      await wallet.generateKey(testEd25519KeyId1, keyType: KeyType.ed25519);
+      await wallet.generateKey(
+          keyId: testEd25519KeyId1, keyType: KeyType.ed25519);
       final ed25519Schemes =
           await wallet.getSupportedSignatureSchemes(testEd25519KeyId1);
       expect(ed25519Schemes, contains(SignatureScheme.ed25519_sha256));

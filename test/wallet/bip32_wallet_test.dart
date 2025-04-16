@@ -27,18 +27,19 @@ void main() {
       const newKeyId = '1-0'; // Account 1, Key 0
       expect(await wallet.hasKey(newKeyId), isFalse);
 
-      final newKey = await wallet.generateKey(newKeyId);
+      final newKey = await wallet.generateKey(keyId: newKeyId);
       expect(await wallet.hasKey(newKeyId), isTrue);
       expect(newKey.type, KeyType.secp256k1);
 
       // Ensure creating the same key again returns the existing one
-      final sameKey = await wallet.generateKey(newKeyId);
+      final sameKey = await wallet.generateKey(keyId: newKeyId);
       expect(sameKey.bytes, newKey.bytes);
     });
 
     test('createKeyPair should throw for unsupported key type', () async {
       expect(
-        () async => await wallet.generateKey('2-1', keyType: KeyType.ed25519),
+        () async =>
+            await wallet.generateKey(keyId: '2-1', keyType: KeyType.ed25519),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
@@ -49,7 +50,7 @@ void main() {
 
     test('createKeyPair should throw for invalid keyId format', () async {
       expect(
-        () async => await wallet.generateKey('invalid-id'),
+        () async => await wallet.generateKey(keyId: 'invalid-id'),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
@@ -57,7 +58,7 @@ void main() {
         )),
       );
       expect(
-        () async => await wallet.generateKey('1'),
+        () async => await wallet.generateKey(keyId: '1'),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
@@ -65,7 +66,7 @@ void main() {
         )),
       );
       expect(
-        () async => await wallet.generateKey('1-'),
+        () async => await wallet.generateKey(keyId: '1-'),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
@@ -73,7 +74,7 @@ void main() {
         )),
       );
       expect(
-        () async => await wallet.generateKey('-1'),
+        () async => await wallet.generateKey(keyId: '-1'),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
@@ -84,7 +85,7 @@ void main() {
 
     test('getKeyPair should retrieve existing key pairs', () async {
       const derivedKeyId = '1-2';
-      await wallet.generateKey(derivedKeyId);
+      await wallet.generateKey(keyId: derivedKeyId);
 
       final rootKey = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
       expect(rootKey.type, KeyType.secp256k1);
@@ -106,7 +107,7 @@ void main() {
 
     test('getPublicKey should return the correct public key', () async {
       const derivedKeyId = '2-1';
-      final derivedKey = await wallet.generateKey(derivedKeyId);
+      final derivedKey = await wallet.generateKey(keyId: derivedKeyId);
       final retrievedKey = await wallet.getPublicKey(derivedKeyId);
       expect(retrievedKey.bytes, equals(derivedKey.bytes));
       // Secp256k1 compressed public key size
@@ -126,7 +127,7 @@ void main() {
 
     test('sign and verify should work for root and derived keys', () async {
       const derivedKeyId = '3-3';
-      await wallet.generateKey(derivedKeyId);
+      await wallet.generateKey(keyId: derivedKeyId);
 
       // Sign with root key
       final rootSignature =
@@ -198,17 +199,17 @@ void main() {
     test('hasKey should correctly report key existence', () async {
       expect(await wallet.hasKey(Bip32Wallet.rootKeyId), isTrue);
       expect(await wallet.hasKey('5-5'), isFalse);
-      await wallet.generateKey('5-5');
+      await wallet.generateKey(keyId: '5-5');
       expect(await wallet.hasKey('5-5'), isTrue);
     });
 
     test('Derived keys should be consistent', () async {
       const keyId = '4-2';
-      final key1 = await wallet.generateKey(keyId);
+      final key1 = await wallet.generateKey(keyId: keyId);
 
       // Re-create wallet and derive same key
       final wallet2 = Bip32Wallet.fromSeed(seed);
-      final key2 = await wallet2.generateKey(keyId);
+      final key2 = await wallet2.generateKey(keyId: keyId);
 
       expect(key1.bytes, equals(key2.bytes));
     });
@@ -218,9 +219,9 @@ void main() {
       const keyId2 = '6-2'; // Same account, different key index
       const keyId3 = '7-1'; // Different account
 
-      final key1 = await wallet.generateKey(keyId1);
-      final key2 = await wallet.generateKey(keyId2);
-      final key3 = await wallet.generateKey(keyId3);
+      final key1 = await wallet.generateKey(keyId: keyId1);
+      final key2 = await wallet.generateKey(keyId: keyId2);
+      final key3 = await wallet.generateKey(keyId: keyId3);
 
       expect(key1.bytes, isNot(equals(key2.bytes)));
       expect(key1.bytes, isNot(equals(key3.bytes)));
@@ -237,7 +238,7 @@ void main() {
 
       // Derived key
       const derivedKeyId = '8-1';
-      await wallet.generateKey(derivedKeyId);
+      await wallet.generateKey(keyId: derivedKeyId);
       final derivedSchemes =
           await wallet.getSupportedSignatureSchemes(derivedKeyId);
       expect(derivedSchemes, contains(SignatureScheme.ecdsa_secp256k1_sha256));

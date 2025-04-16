@@ -41,7 +41,8 @@ class KmsWallet implements Wallet {
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
-    return keyPair.publicKey;
+    final keyData = await keyPair.publicKey;
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
   @override
@@ -55,17 +56,23 @@ class KmsWallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> generateKey(
-    String keyId, {
+  Future<PublicKey> generateKey({
+    String? keyId,
     KeyType? keyType,
   }) async {
+    if (keyId != null) {
+      throw ArgumentError(
+          "AWS KMS creates the key identifiers. keyId should not be provided");
+    }
     final response = await kmsClient.createKey(
       keyUsage: kms.KeyUsageType.signVerify,
       customerMasterKeySpec: kms.CustomerMasterKeySpec.rsa_2048,
     );
     final newKeyId = response.keyMetadata?.keyId ?? '';
     final keyPair = KmsKeyPair(kmsClient, newKeyId);
-    return keyPair.publicKey;
+
+    final keyData = await keyPair.publicKey;
+    return Future.value(PublicKey(newKeyId, keyData.bytes, keyData.type));
   }
 
   Future<KmsKeyPair> _getKeyPair(String keyId) async {

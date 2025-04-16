@@ -9,7 +9,6 @@ import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
-import 'public_key.dart';
 import 'key_pair.dart';
 
 import './_ecdh_utils.dart' as ecdh_utils;
@@ -44,9 +43,9 @@ class P256KeyPair implements KeyPair {
   ///
   /// Returns the key as [Uint8List].
   @override
-  Future<PublicKey> get publicKey async {
+  Future<PublicKeyData> get publicKey async {
     _publicKeyBytes ??= hex.decode(_privateKey.publicKey.toCompressedHex());
-    return Future.value(PublicKey(_publicKeyBytes!, KeyType.p256));
+    return Future.value(PublicKeyData(_publicKeyBytes!, KeyType.p256));
   }
 
   /// Retrieves the private key bytes.

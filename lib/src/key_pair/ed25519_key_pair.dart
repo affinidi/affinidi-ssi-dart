@@ -9,7 +9,6 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'key_pair.dart';
-import 'public_key.dart';
 
 import './_const.dart';
 import './_encryption_utils.dart';
@@ -43,7 +42,7 @@ class Ed25519KeyPair implements KeyPair {
   ///
   /// Returns the key as [Uint8List].
   @override
-  Future<PublicKey> get publicKey => Future.value(PublicKey(
+  Future<PublicKeyData> get publicKey => Future.value(PublicKeyData(
       Uint8List.fromList(
         ed.public(_privateKey).bytes,
       ),

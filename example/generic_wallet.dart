@@ -11,37 +11,34 @@ void main() async {
   final wallet = GenericWallet(keyStore);
 
   // Create P256 key pair
-  final p256keyId = "p256keyId";
-  final p256key = await wallet.generateKey(p256keyId, keyType: KeyType.p256);
+  final p256key = await wallet.generateKey(keyType: KeyType.p256);
   print('P256 key pair created. Public key: ${p256key.bytes}');
 
   // Sing payload
   print('Signing payload...');
-  final signatureP256 = await wallet.sign(dataToSign, keyId: p256keyId);
+  final signatureP256 = await wallet.sign(dataToSign, keyId: p256key.id);
   print('Signature: $signatureP256');
 
   // Verify signature
   print('Verifying signature...');
   final verificationP256 = await wallet.verify(dataToSign,
-      signature: signatureP256, keyId: p256keyId);
+      signature: signatureP256, keyId: p256key.id);
   assert(verificationP256, "Verification failed");
   print('Verification succeeded');
 
   // Create Ed25519 key pair
-  final ed25519keyId = "ed25519keyId";
-  final ed25519key =
-      await wallet.generateKey(ed25519keyId, keyType: KeyType.ed25519);
+  final ed25519key = await wallet.generateKey(keyType: KeyType.ed25519);
   print('Ed25519 key pair created. Public key: ${ed25519key.bytes}');
 
   // Sing payload
   print('Signing payload...');
-  final signatureEd25519 = await wallet.sign(dataToSign, keyId: ed25519keyId);
+  final signatureEd25519 = await wallet.sign(dataToSign, keyId: ed25519key.id);
   print('Signature: $signatureEd25519');
 
   // Verify signature
   print('Verifying signature...');
   final verificationEd25519 = await wallet.verify(dataToSign,
-      signature: signatureEd25519, keyId: ed25519keyId);
+      signature: signatureEd25519, keyId: ed25519key.id);
   assert(verificationEd25519, "Verification failed");
   print('Verification succeeded');
 
