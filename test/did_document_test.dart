@@ -161,7 +161,7 @@ void main() {
         });
       });
 
-      group("and recieve invalid json,", () {
+      group("and receiving invalid json,", () {
         test("it throws format exception that ID is required", () {
           expect(
             () => DidDocument.fromJson(
@@ -174,7 +174,7 @@ void main() {
         });
       });
 
-      group("and recieve invalid json,", () {
+      group("and receiving invalid json,", () {
         test("it throws exception that context cannot be null", () {
           expect(
             () => DidDocument.fromJson(
