@@ -17,7 +17,7 @@ dependencies:
   json_ld_processor: ^1.0.4
   meta: ^1.15.0
   pointycastle: ^3.9.1
-  selective_disclosure_jwt: ^1.0.0
+  selective_disclosure_jwt: ^1.0.0-dev.1
   x25519: ^0.1.1
 dev_dependencies:
   coverage: ^1.11.1
