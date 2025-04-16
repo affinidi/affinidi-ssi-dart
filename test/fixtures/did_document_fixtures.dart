@@ -63,6 +63,16 @@ class DidDocumentFixtures {
       };
 
   static Map<String, dynamic> get didDocumentInvalidWithoutId => {
+        "@context": [
+          "https://www.w3.org/ns/did/v1",
+          "https://w3id.org/security/suites/jws-2020/v1"
+        ],
+        "authentication": [
+          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0"
+        ],
+      };
+
+  static Map<String, dynamic> get didDocumentInvalidWithoutContext => {
         "authentication": [
           "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0"
         ],

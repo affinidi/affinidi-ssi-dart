@@ -22,7 +22,7 @@ void main() {
         final wallet = Bip32Wallet.fromSeed(seed);
         final rootKeyId = "0-0";
         final keyPair = await wallet.getKeyPair(rootKeyId);
-        final doc = await DidKey.create([keyPair]);
+        final doc = await DidKey.create(keyPair);
 
         final expectedDidDoc =
             jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
@@ -76,7 +76,7 @@ void main() {
 
       test("it throws exception on non-200 responces", () {
         final did = "did:test";
-        final resolverAddress = "example.com";
+        final resolverAddress = "https://example.com";
 
         expectLater(
           resolveDidDocument(did, resolverAddress: resolverAddress),

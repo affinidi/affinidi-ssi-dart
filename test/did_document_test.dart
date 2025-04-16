@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:ssi/src/did/did_document.dart';
+import 'package:ssi/src/exceptions/ssi_exception.dart';
+import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:test/test.dart';
 
 import 'fixtures/did_document_fixtures.dart';
@@ -146,10 +148,11 @@ void main() {
         });
 
         test("it retrieves correct context", () {
-          expect(didDoc.context, [
-            "https://www.w3.org/ns/did/v1",
-            "https://w3id.org/security/suites/jws-2020/v1"
-          ]);
+          expect(
+            didDoc.context
+                .hasUrlContext(Uri.parse('https://www.w3.org/ns/did/v1')),
+            true,
+          );
         });
 
         test("it resolves key ids successfully", () {
@@ -166,6 +169,19 @@ void main() {
             throwsA(
               isA<FormatException>().having((e) => e.message, "message",
                   'id property needed in did document'),
+            ),
+          );
+        });
+      });
+
+      group("and recieve invalid json,", () {
+        test("it throws exception that context cannot be null", () {
+          expect(
+            () => DidDocument.fromJson(
+                DidDocumentFixtures.didDocumentInvalidWithoutContext),
+            throwsA(
+              isA<SsiException>().having((e) => e.code, "code",
+                  SsiExceptionType.invalidDidDocument.code),
             ),
           );
         });

@@ -33,7 +33,7 @@ class DidDocument implements JsonObject {
     assertionMethod,
     capabilityDelegation,
     capabilityInvocation,
-  })  : context = context ?? [],
+  })  : context = context ?? Context.fromJson(""),
         alsoKnownAs = alsoKnownAs ?? [],
         controller = controller ?? [],
         verificationMethod = verificationMethod ?? [],
@@ -608,24 +608,3 @@ class ServiceEndpoint implements JsonObject {
     return jsonEncode(toJson());
   }
 }
-
-// List<String> extractStringOrSet(Map<String, dynamic> document, String field) {
-//   final jsonValue = document[field];
-//
-//   switch (jsonValue) {
-//     case null:
-//       return [];
-//
-//     case String str:
-//       return [str];
-//
-//     case List<String> strList:
-//       return strList;
-//
-//     default:
-//       throw SsiException(
-//         message: '$field must be a String or a List',
-//         code: SsiExceptionType.invalidDidDocument.code,
-//       );
-//   }
-// }

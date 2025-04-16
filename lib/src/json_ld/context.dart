@@ -10,7 +10,7 @@ class Context {
     if (json == null) {
       throw SsiException(
         message: 'null context',
-        code: SsiExceptionType.other.code,
+        code: SsiExceptionType.invalidDidDocument.code,
       );
     }
 
@@ -25,7 +25,7 @@ class Context {
       default:
         throw SsiException(
           message: 'Parsing context as ${json.runtimeType} is not supported!',
-          code: SsiExceptionType.other.code,
+          code: SsiExceptionType.invalidDidDocument.code,
         );
     }
 
