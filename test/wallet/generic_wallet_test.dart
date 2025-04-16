@@ -69,9 +69,27 @@ void main() {
       expect(storedData.key, hasLength(64));
     });
 
+    test('createKeyPair should generate a random keyId if none is provided',
+        () async {
+      // Call without specifying keyId
+      final newKey1 = await wallet.generateKey(keyType: KeyType.p256);
+      expect(newKey1.id, isNotNull);
+      expect(newKey1.id, isNotEmpty);
+      expect(newKey1.id.length, GenericWallet.randomIdLength);
+      expect(await wallet.hasKey(newKey1.id), isTrue);
+      expect(newKey1.type, KeyType.p256);
+
+      // Generate another one to ensure IDs are different
+      final newKey2 = await wallet.generateKey(keyType: KeyType.ed25519);
+      expect(newKey2.id, isNotNull);
+      expect(newKey2.id, isNotEmpty);
+      expect(newKey2.id.length, GenericWallet.randomIdLength);
+      expect(await wallet.hasKey(newKey2.id), isTrue);
+      expect(newKey1.id, isNot(equals(newKey2.id)));
+    });
+
     test('createKeyPair should throw for existing keyId', () async {
-      await wallet.generateKey(
-          keyId: testKeyId1, keyType: KeyType.p256); // Create first
+      await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
       expect(
         () async =>
             await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256),
