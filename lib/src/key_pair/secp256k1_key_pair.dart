@@ -21,7 +21,7 @@ class Secp256k1KeyPair implements KeyPair {
 
   /// The BIP32 node containing the key material.
   final BIP32 _node;
-  var _secp256k1;
+  final dynamic _secp256k1;
 
   /// Creates a new [Secp256k1KeyPair] instance.
   ///

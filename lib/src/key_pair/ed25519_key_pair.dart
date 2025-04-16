@@ -23,7 +23,7 @@ class Ed25519KeyPair implements KeyPair {
 
   /// The private key.
   final dynamic _privateKey;
-  final _encryptionUtils;
+  final EncryptionUtils _encryptionUtils;
 
   /// Constructs an [Ed25519KeyPair] from a [privateKey] and its associated [keyId].
   Ed25519KeyPair({
@@ -150,7 +150,7 @@ class Ed25519KeyPair implements KeyPair {
 
     List<int> publicKeyToUse;
     if (publicKey == null) {
-      publicKeyToUse = await generateEphemeralPubKey();
+      publicKeyToUse = generateEphemeralPubKey();
     } else {
       publicKeyToUse = publicKey;
     }
@@ -191,7 +191,7 @@ class Ed25519KeyPair implements KeyPair {
     final encryptedData = ivAndBytes
         .sublist(COMPRESSED_PUB_KEY_LENGTH); // The rest is the encrypted data
 
-    var pubKeyToUse;
+    Uint8List pubKeyToUse;
     if (publicKey == null) {
       pubKeyToUse = ephemeralPublicKeyBytes;
     } else {

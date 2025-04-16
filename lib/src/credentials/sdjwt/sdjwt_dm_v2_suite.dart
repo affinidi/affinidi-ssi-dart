@@ -1,24 +1,17 @@
 import 'dart:typed_data';
 
-import 'package:sdjwt/sdjwt.dart';
+import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
 import 'package:ssi/src/credentials/sdjwt/sdjwt_did_verifier.dart';
 import 'package:ssi/ssi.dart';
 
-import '../../../ssi.dart';
-import '../../../ssi.dart';
-import '../../did/did_signer.dart';
-import '../../did/did_verifier.dart';
-import '../../../ssi.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
-import '../../types.dart';
 import '../models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
 import '../models/v2/vc_data_model_v2_view.dart';
 import '../parsers/sdjwt_parser.dart';
 import '../suites/vc_suite.dart';
 import 'enveloped_vc_suite.dart';
-import 'sdjwt_did_verifier.dart';
 
 /// Options for SD-JWT Data Model v2 operations.
 ///
@@ -232,16 +225,6 @@ final class SdJwtDm2Suite
       );
     }
   }
-}
-
-/// Converts a dynamic holder object to a string-based map.
-///
-/// [holder] - The holder object to convert.
-///
-/// Returns a map with string values.
-Map<String, String> _convertHolder(Map<String, dynamic> holder) {
-  return holder.map((key, value) =>
-      MapEntry(key, value is String ? value : value.toString()));
 }
 
 /// Creates an SD-JWT signer from a DID signer.
