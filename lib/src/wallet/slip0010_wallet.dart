@@ -32,6 +32,11 @@ class Slip0010Wallet implements Wallet {
   }
 
   @override
+  Future<List<SignatureScheme>> getSupportedSignatureSchemes(String keyId) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<PublicKey> createKeyPair(String keyId, {KeyType? keyType}) {
     throw UnimplementedError();
   }

@@ -32,6 +32,13 @@ class KmsWallet implements Wallet {
   }
 
   @override
+  Future<List<SignatureScheme>> getSupportedSignatureSchemes(
+      String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
+    return keyPair.supportedSignatureSchemes;
+  }
+
+  @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
     return keyPair.publicKey;
