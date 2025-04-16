@@ -18,7 +18,9 @@ dependencies:
   meta: ^1.15.0
   pointycastle: ^3.9.1
   sdjwt:
-    git: https://github.com/affinidi/affinidi-sdjwt-dart.git
+    git:
+      url: https://github.com/affinidi/affinidi-sdjwt-dart.git
+      ref: main
   x25519: ^0.1.1
 dev_dependencies:
   coverage: ^1.11.1
