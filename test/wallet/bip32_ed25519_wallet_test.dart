@@ -339,8 +339,10 @@ void main() {
 
     test('Two-party encrypt/decrypt should succeed', () async {
       // Get X25519 keys for ECDH
-      final aliceX25519PublicKeyBytes = await aliceWallet.getX25519PublicKey(aliceKeyId);
-      final bobX25519PublicKeyBytes = await bobWallet.getX25519PublicKey(bobKeyId);
+      final aliceX25519PublicKeyBytes =
+          await aliceWallet.getX25519PublicKey(aliceKeyId);
+      final bobX25519PublicKeyBytes =
+          await bobWallet.getX25519PublicKey(bobKeyId);
 
       // Alice encrypts for Bob using Bob's X25519 public key
       final encryptedData = await aliceWallet.encrypt(
@@ -380,14 +382,16 @@ void main() {
 
     test('Decrypt should fail if wrong public key is provided (two-party)',
         () async {
-      final bobX25519PublicKeyBytes = await bobWallet.getX25519PublicKey(bobKeyId);
-      
+      final bobX25519PublicKeyBytes =
+          await bobWallet.getX25519PublicKey(bobKeyId);
+
       // Generate a third party key
       final eveWallet = await Bip32Ed25519Wallet.fromSeed(
           Uint8List.fromList(List.generate(32, (i) => i + 30)));
       const eveKeyId = '3-3';
       await eveWallet.generateKey(keyId: eveKeyId);
-      final eveX25519PublicKeyBytes = await eveWallet.getX25519PublicKey(eveKeyId);
+      final eveX25519PublicKeyBytes =
+          await eveWallet.getX25519PublicKey(eveKeyId);
 
       // Alice encrypts for Bob using Bob's X25519 public key
       final encryptedData = await aliceWallet.encrypt(
