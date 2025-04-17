@@ -1,6 +1,10 @@
 import 'credential_schema.dart';
 import 'credential_status.dart';
+import 'credential_subject.dart';
 import 'doc_with_embedded_proof.dart';
+import 'holder.dart';
+import 'issuer.dart';
+import 'proof.dart';
 
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
@@ -18,8 +22,7 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   List<String> get type;
 
   /// The entity that issued this credential.
-  // FIXME(FTL-20734) issuer can be an entity with an id or a string
-  String get issuer;
+  Issuer get issuer;
 
   /// The subject data contained in this credential.
   ///
@@ -30,11 +33,11 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   ///   "name": "John Doe",
   /// }
   /// ```
-  Map<String, dynamic> get credentialSubject;
+  CredentialSubject get credentialSubject;
 
   /// The schemas that define the structure of this credential.
   ///
-  /// Returns null if not set.
+  /// Returns empty list if not set.
   ///
   /// See [CredentialSchema] for more details.
   List<CredentialSchema> get credentialSchema;
@@ -53,6 +56,30 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   ///
   /// Returns null if the credential does not expire.
   DateTime? get validUntil;
+
+  /// The entity that holds this credential.
+  ///
+  /// Returns null if not set.
+  Holder? get holder;
+
+  /// The cryptographic proof that makes this credential verifiable.
+  @override
+  Proof get proof;
+
+  /// Refreshing service for this credential.
+  ///
+  /// Returns null if not set.
+  Map<String, dynamic>? get refreshService;
+
+  /// Terms of use associated with this credential.
+  ///
+  /// Returns empty list if not set.
+  List<Map<String, dynamic>> get termsOfUse;
+
+  /// Evidence supporting the claims in this credential.
+  ///
+  /// Returns empty list if not set.
+  List<Map<String, dynamic>> get evidence;
 
   /// Converts this credential to a JSON-serializable map.
   @override

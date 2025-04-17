@@ -2,7 +2,9 @@ import 'dart:convert';
 
 import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
+import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
+import '../../../models/proof.dart';
 import '../../../suites/vc_suites.dart';
 import 'vp_data_model_v1_view.dart';
 
@@ -45,7 +47,7 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
   ///
   /// Typically a DID.
   @override
-  String? holder;
+  Holder? holder;
 
   /// The list of verifiable credentials embedded in this presentation.
   @override
@@ -53,7 +55,7 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
 
   /// The cryptographic proof created by the holder.
   @override
-  Map<String, dynamic> proof;
+  Proof proof;
 
   /// Creates a [VpDataModelV1] instance.
   ///
@@ -68,9 +70,9 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
     required this.type,
     this.holder,
     List<ParsedVerifiableCredential>? verifiableCredential,
-    Map<String, dynamic>? proof,
+    Proof? proof,
   })  : verifiableCredential = verifiableCredential ?? [],
-        proof = proof ?? {};
+        proof = proof ?? Proof(type: 'Ed25519Signature2018');
 
   /// Converts this presentation to a JSON-serializable map.
   @override
@@ -80,16 +82,14 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
     json['@context'] = context;
     if (id != null) json['id'] = id;
     json['type'] = type;
-    if (holder != null) json['holder'] = holder;
+    if (holder != null) json['holder'] = holder!.toJson();
 
     if (verifiableCredential.isNotEmpty) {
       json['verifiableCredential'] =
           verifiableCredential.map(presentVC).toList();
     }
 
-    if (proof.isNotEmpty) {
-      json['proof'] = proof;
-    }
+    json['proof'] = proof.toJson();
 
     return json;
   }
@@ -102,7 +102,8 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
       : context = [],
         type = [],
         verifiableCredential = [],
-        proof = {} {
+        holder = null,
+        proof = Proof(type: '') {
     final json = jsonToMap(input);
 
     context = getStringList(json, '@context', mandatory: true);
@@ -113,7 +114,10 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
       allowSingleValue: true,
       mandatory: true,
     );
-    holder = getString(json, 'holder');
+
+    if (json.containsKey('holder')) {
+      holder = Holder.fromJson(json['holder']);
+    }
 
     // Handles both single VC or a list of VCs
     final credentials = json['verifiableCredential'];
@@ -125,9 +129,8 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
       }
     }
 
-    // Parse proof object if present
-    if (json['proof'] != null && json['proof'] is Map) {
-      proof = Map.of(json['proof'] as Map<String, dynamic>);
+    if (json.containsKey('proof')) {
+      proof = Proof.fromJson(json['proof'] as Map<String, dynamic>);
     }
   }
 }

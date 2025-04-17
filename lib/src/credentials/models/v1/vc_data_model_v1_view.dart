@@ -1,5 +1,9 @@
 import '../credential_schema.dart';
 import '../credential_status.dart';
+import '../credential_subject.dart';
+import '../holder.dart';
+import '../issuer.dart';
+import '../proof.dart';
 import '../verifiable_credential.dart';
 
 abstract interface class VcDataModelV1 implements VerifiableCredential {
@@ -16,10 +20,10 @@ abstract interface class VcDataModelV1 implements VerifiableCredential {
   CredentialStatus? get credentialStatus;
 
   @override
-  Map<String, dynamic> get credentialSubject;
+  CredentialSubject get credentialSubject;
 
   @override
-  String get issuer;
+  Issuer get issuer;
 
   @override
   List<String> get type;
@@ -28,8 +32,18 @@ abstract interface class VcDataModelV1 implements VerifiableCredential {
 
   DateTime? get expirationDate;
 
-  Map<String, dynamic> get holder;
+  @override
+  Holder? get holder;
 
   @override
-  Map<String, dynamic> get proof;
+  Proof get proof;
+
+  @override
+  Map<String, dynamic>? get refreshService;
+
+  @override
+  List<Map<String, dynamic>> get termsOfUse;
+
+  @override
+  List<Map<String, dynamic>> get evidence;
 }

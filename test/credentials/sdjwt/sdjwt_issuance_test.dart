@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/credential_subject.dart';
+import 'package:ssi/src/credentials/models/issuer.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
@@ -24,17 +26,19 @@ void main() {
       final credential = MutableVcDataModelV2(
         context: [MutableVcDataModelV2.contextUrl],
         id: 'urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd',
-        issuer: 'did:example:issuer',
+        issuer: Issuer(id: 'did:example:issuer'),
         type: ['VerifiableCredential', 'UniversityDegreeCredential'],
         validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
         validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
-        credentialSubject: {
-          'id': 'did:example:subject',
-          'degree': {
-            'type': 'BachelorDegree',
-            'name': 'Bachelor of Science and Arts',
+        credentialSubject: CredentialSubject(
+          id: 'did:example:subject',
+          claims: {
+            'degree': {
+              'type': 'BachelorDegree',
+              'name': 'Bachelor of Science and Arts',
+            },
           },
-        },
+        ),
       );
 
       final issuedCredential = await suite.issue(credential, signer);
@@ -44,7 +48,7 @@ void main() {
       expect(issuedCredential.serialized, isA<String>());
       expect(
           issuedCredential.serialized, contains('~')); // Contains disclosures
-      expect(issuedCredential.issuer, equals(signer.did));
+      expect(issuedCredential.issuer.id, equals(signer.did));
       expect(issuedCredential.type, equals(credential.type));
       expect(issuedCredential.validFrom, equals(credential.validFrom));
       expect(issuedCredential.validUntil, equals(credential.validUntil));
@@ -57,7 +61,7 @@ void main() {
 
       final parsedCredential = suite.parse(issuedCredential.serialized);
       expect(parsedCredential.id, equals(credential.id));
-      expect(parsedCredential.issuer, equals(signer.did));
+      expect(parsedCredential.issuer.id, equals(signer.did));
 
       final isValid = await suite.verifyIntegrity(issuedCredential);
       expect(isValid, isTrue);
@@ -67,20 +71,22 @@ void main() {
       final credential = MutableVcDataModelV2(
         context: [MutableVcDataModelV2.contextUrl],
         id: 'urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd',
-        issuer: 'did:example:issuer',
+        issuer: Issuer(id: 'did:example:issuer'),
         type: ['VerifiableCredential', 'UniversityDegreeCredential'],
         validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
         validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
-        credentialSubject: {
-          'id': 'did:example:subject',
-          'firstName': 'Rain',
-          'lastName': 'Bow',
-          'degree': {
-            'type': 'BachelorDegree',
-            'name': 'Bachelor of Science and Arts',
-            'gpa': '3.8',
+        credentialSubject: CredentialSubject(
+          id: 'did:example:subject',
+          claims: {
+            'firstName': 'Rain',
+            'lastName': 'Bow',
+            'degree': {
+              'type': 'BachelorDegree',
+              'name': 'Bachelor of Science and Arts',
+              'gpa': '3.8',
+            },
           },
-        },
+        ),
       );
 
       final disclosureFrame = {
@@ -114,7 +120,7 @@ void main() {
     test('handles errors when issuing with invalid credential data', () async {
       final invalidCredential = MutableVcDataModelV2(
         context: [],
-        issuer: '',
+        issuer: Issuer(id: ''),
         type: [],
       );
 
