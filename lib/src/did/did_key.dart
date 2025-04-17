@@ -152,18 +152,30 @@ class DidKey {
     'https://ns.did.ai/suites/multikey-2021/v1/'
   ];
 
-  /// This method takes a list of key pairs and creates a DID document using the
-  /// first key pair in the list.
+  /// This method derives a key DID from a given public key
+  ///
+  /// [publicKey] The public key used to derive the DID
+  ///
+  /// Returns the DID as [String].
+  ///
+  /// Throws [SsiException] if the public key is invalid
+  static String getDid(PublicKey publicKey) {
+    final multiKey = toMultikey(publicKey.bytes, publicKey.type);
+    final multibase = toMultiBase(multiKey);
+    return '$_commonDidKeyPrefix$multibase';
+  }
+
+  /// This method takes a public key and creates a DID document
   ///
   /// [publicKey] The public key used to create the DID
   ///
   /// Returns a [DidDocument].
   ///
-  /// Throws [SsiException] if the key pair is invalid
-  static Future<DidDocument> create(PublicKey publicKey) async {
+  /// Throws [SsiException] if the public key is invalid
+  static DidDocument generateDocument(PublicKey publicKey) {
     final multiKey = toMultikey(publicKey.bytes, publicKey.type);
     final multibase = toMultiBase(multiKey);
-    final did = '$commonDidKeyPrefix$multibase';
+    final did = '$_commonDidKeyPrefix$multibase';
     // FIXME(FTL-20741) double check the doc
     return _buildDoc(multibase, did);
   }
@@ -183,7 +195,7 @@ class DidKey {
   /// Returns a [DidDocument]
   ///
   /// Throws [SsiException] if the Did is invalid.
-  static Future<DidDocument> resolve(String did) {
+  static DidDocument resolve(String did) {
     if (!did.startsWith('did:key')) {
       throw SsiException(
         message: 'Expected DID to start with `did:key`, got `$did` instead.',
@@ -233,5 +245,5 @@ class DidKey {
     );
   }
 
-  static const commonDidKeyPrefix = 'did:key:';
+  static const _commonDidKeyPrefix = 'did:key:';
 }

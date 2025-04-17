@@ -23,13 +23,13 @@ void main() {
 
       final wallet = Bip32Wallet.fromSeed(seed);
       final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-      final doc = await DidKey.create(key);
+      final doc = DidKey.generateDocument(key);
       final actualDid = doc.id;
       final actualKeyType = key.type;
 
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
-      final resolvedDidDocument = await DidKey.resolve(actualDid);
+      final resolvedDidDocument = DidKey.resolve(actualDid);
       expect(resolvedDidDocument.id, expectedDid);
       expect(resolvedDidDocument.toJson(), expectedDidDoc);
 
@@ -43,7 +43,7 @@ void main() {
       final wallet = Bip32Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
       final key = await wallet.generateKey(keyId: derivedKeyId);
-      final doc = await DidKey.create(key);
+      final doc = DidKey.generateDocument(key);
       final actualDid = doc.id;
 
       expect(actualDid, startsWith(expectedDidKeyPrefix));
@@ -56,7 +56,7 @@ void main() {
 
       final wallet = Bip32Wallet.fromSeed(seed);
       final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-      final doc = await DidKey.create(key);
+      final doc = DidKey.generateDocument(key);
       final actualDid = doc.id;
       final actualKeyType = key.type;
 
@@ -105,7 +105,7 @@ void main() {
 
       final wallet = Bip32Wallet.fromSeed(seed);
       final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-      final doc = await DidKey.create(key);
+      final doc = DidKey.generateDocument(key);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
@@ -121,9 +121,9 @@ void main() {
       final prefix = [128, 36];
       final expectedId =
           'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + publicKey.bytes))}';
-      final expectedDid = await DidKey.resolve(expectedId);
+      final expectedDid = DidKey.resolve(expectedId);
       final expectedDidJson = expectedDid.toJson();
-      final actualDid = await DidKey.create(publicKey);
+      final actualDid = DidKey.generateDocument(publicKey);
       final actualDidJson = actualDid.toJson();
       expect(actualDidJson, expectedDidJson);
       expect(actualDid.id.startsWith('did:key:zDn'), isTrue);

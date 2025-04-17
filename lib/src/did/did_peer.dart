@@ -53,7 +53,7 @@ bool isPeerDID(String peerDID) {
 /// Resolves a numalgo0 peer DID to a DID document.
 ///
 /// Supports only Base58 encoded keys.
-Future<DidDocument> _resolveDidPeer0(String did) {
+DidDocument _resolveDidPeer0(String did) {
   final multibaseIndicator = did[10];
 
   if (multibaseIndicator != 'z') {
@@ -95,7 +95,7 @@ Future<DidDocument> _resolveDidPeer0(String did) {
 }
 
 /// Resolves a numalgo2 peer DID to a DID document.
-Future<DidDocument> _resolveDidPeer2(String did) {
+DidDocument _resolveDidPeer2(String did) {
   String keysPart = did.substring(11);
 
   List<String> authenticationKeys = [];
@@ -136,7 +136,7 @@ Future<DidDocument> _resolveDidPeer2(String did) {
 /// [serviceStr] - The service string.
 ///
 /// Returns a [DidDocument].
-Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
+DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
     List<String> authenticationKeys, String? serviceStr) {
   final context = [
     "https://www.w3.org/ns/did/v1",
@@ -203,21 +203,19 @@ Future<DidDocument> _buildMultiKeysDoc(String did, List<String> agreementKeys,
     authentication.add(kid);
   }
 
-  return Future.value(
-    DidDocument(
-      context: Context.fromJson(context),
-      id: did,
-      verificationMethod: verificationMethod,
-      assertionMethod: assertionMethod,
-      keyAgreement: keyAgreement,
-      authentication: authentication,
-      service: service,
-    ),
+  return DidDocument(
+    context: Context.fromJson(context),
+    id: did,
+    verificationMethod: verificationMethod,
+    assertionMethod: assertionMethod,
+    keyAgreement: keyAgreement,
+    authentication: authentication,
+    service: service,
   );
 }
 
 /// Builds a DID Document for ED25519 keys.
-Future<DidDocument> _buildEDDoc(
+DidDocument _buildEDDoc(
   List<String> context,
   String id,
   String keyPart,
@@ -246,22 +244,20 @@ Future<DidDocument> _buildEDDoc(
   //     type: 'X25519KeyAgreementKey2020',
   //     publicKeyMultibase: 'z$multiCodecXKey');
 
-  return Future.value(
-    DidDocument(
-      context: Context.fromJson(context),
-      id: id,
-      verificationMethod: [verification],
-      assertionMethod: [verificationKeyId],
-      keyAgreement: [agreementKeyId],
-      authentication: [verificationKeyId],
-      capabilityDelegation: [verificationKeyId],
-      capabilityInvocation: [verificationKeyId],
-    ),
+  return DidDocument(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verification],
+    assertionMethod: [verificationKeyId],
+    keyAgreement: [agreementKeyId],
+    authentication: [verificationKeyId],
+    capabilityDelegation: [verificationKeyId],
+    capabilityInvocation: [verificationKeyId],
   );
 }
 
 /// Builds a DID Document for X25519 keys.
-Future<DidDocument> _buildXDoc(
+DidDocument _buildXDoc(
   List<String> context,
   String id,
   String keyPart,
@@ -273,13 +269,11 @@ Future<DidDocument> _buildXDoc(
     type: 'X25519KeyAgreementKey2020',
     publicKeyMultibase: 'z$keyPart',
   );
-  return Future.value(
-    DidDocument(
-      context: Context.fromJson(context),
-      id: id,
-      verificationMethod: [verification],
-      keyAgreement: [verificationKeyId],
-    ),
+  return DidDocument(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verification],
+    keyAgreement: [verificationKeyId],
   );
 }
 
@@ -365,17 +359,33 @@ class DidPeer {
     return '${_didTypePrefixes[DidPeerType.peer2]}$agreementKeysStr$authKeysStr$serviceStr';
   }
 
-  static String _pubKeyToPeerDid(List<PublicKey> baseKeys,
-      [String? serviceEndpoint]) {
+  /// This method derives the peer DID from the given public keys
+  ///
+  /// [publicKeys] The public keys used to derive the DID
+  /// [serviceEndpoint] - Optional service endpoint.
+  ///
+  /// Returns the DID as [String].
+  ///
+  /// Throws [SsiException] if the public key is invalid
+  static String getDid(
+    List<PublicKey> publicKeys, {
+    String? serviceEndpoint,
+  }) {
+    if (publicKeys.isEmpty) {
+      throw SsiException(
+        message: 'At least one key must be provided',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
+    }
     // bool isDid0 = keyPairs.length == 1 && serviceEndpoint == null;
-    DidPeerType didType = baseKeys.length == 1 && serviceEndpoint == null
+    DidPeerType didType = publicKeys.length == 1 && serviceEndpoint == null
         ? DidPeerType.peer0
         : DidPeerType.peer2;
 
     if (didType != DidPeerType.peer0) {
-      return _pubKeysToPeerDid(baseKeys, baseKeys, serviceEndpoint);
+      return _pubKeysToPeerDid(publicKeys, publicKeys, serviceEndpoint);
     } else {
-      return _pubKeysToPeerDid(baseKeys);
+      return _pubKeysToPeerDid(publicKeys);
     }
   }
 
@@ -388,18 +398,11 @@ class DidPeer {
   ///
   /// Throws [SsiException] if empty key pairs.
   //FIXME(FTL-20741) should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
-  static Future<DidDocument> create(
+  static DidDocument generateDocument(
     List<PublicKey> keys, {
     String? serviceEndpoint,
-  }) async {
-    if (keys.isEmpty) {
-      throw SsiException(
-        message: 'At least one key must be provided',
-        code: SsiExceptionType.invalidDidDocument.code,
-      );
-    }
-
-    final did = _pubKeyToPeerDid(keys, serviceEndpoint);
+  }) {
+    final did = getDid(keys, serviceEndpoint: serviceEndpoint);
 
     final verificationMethods = <VerificationMethod>[];
     for (var i = 0; i < keys.length; i++) {
@@ -438,7 +441,7 @@ class DidPeer {
   /// Returns a [DidDocument].
   ///
   /// Throws [SsiException] if the DID is not a valid peer DID.
-  static Future<DidDocument> resolve(String did) {
+  static DidDocument resolve(String did) {
     if (!isPeerDID(did)) {
       throw SsiException(
         message: '`$did` Does not match peer DID regexp.',
