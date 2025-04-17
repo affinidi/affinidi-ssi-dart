@@ -45,7 +45,7 @@ class Bip32Ed25519Wallet implements Wallet {
   ///
   /// Returns a [Future] that completes with the new [Bip32Ed25519Wallet] instance.
   /// Throws [ArgumentError] if the seed is not found in the KeyStore.
-  static Future<Bip32Ed25519Wallet> createFromKeyStore(
+  static Future<Bip32Ed25519Wallet> fromKeyStore(
     KeyStore keyStore,
   ) async {
     final storedSeed = await keyStore.getSeed();

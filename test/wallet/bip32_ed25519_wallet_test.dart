@@ -261,7 +261,7 @@ void main() {
     test('createFromKeyStore successfully creates wallet with default key',
         () async {
       await keyStore.setSeed(seed);
-      final ksWallet = await Bip32Ed25519Wallet.createFromKeyStore(keyStore);
+      final ksWallet = await Bip32Ed25519Wallet.fromKeyStore(keyStore);
 
       // Verify root key exists
       expect(await ksWallet.hasKey(Bip32Ed25519Wallet.rootKeyId), isTrue);
@@ -278,7 +278,7 @@ void main() {
     test('createFromKeyStore throws ArgumentError if seed key is missing',
         () async {
       expect(
-        () async => await Bip32Ed25519Wallet.createFromKeyStore(keyStore),
+        () async => await Bip32Ed25519Wallet.fromKeyStore(keyStore),
         throwsA(isA<ArgumentError>().having(
           (e) => e.message,
           'message',

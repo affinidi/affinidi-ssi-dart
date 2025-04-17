@@ -62,7 +62,7 @@ class Bip32Wallet implements Wallet {
   ///
   /// Returns a [Future] that completes with the new [Bip32Wallet] instance.
   /// Throws [ArgumentError] if the seed is not found in the KeyStore.
-  static Future<Bip32Wallet> createFromKeyStore(
+  static Future<Bip32Wallet> fromKeyStore(
     KeyStore keyStore,
   ) async {
     final storedSeed = await keyStore.getSeed();
