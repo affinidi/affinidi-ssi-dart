@@ -99,6 +99,26 @@ class GenericWallet implements Wallet {
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
+  @override
+  Future<Uint8List> encrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) async {
+    final keyPair = await _getKeyPair(keyId);
+    return keyPair.encrypt(data, publicKey: publicKey);
+  }
+
+  @override
+  Future<Uint8List> decrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) async {
+    final keyPair = await _getKeyPair(keyId);
+    return keyPair.decrypt(data, publicKey: publicKey);
+  }
+
   Future<KeyPair> _getKeyPair(String keyId) async {
     final storedKeyPair = await _keyStore.get(keyId);
     if (storedKeyPair == null) {

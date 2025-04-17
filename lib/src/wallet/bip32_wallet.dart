@@ -154,6 +154,26 @@ class Bip32Wallet implements Wallet {
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
+  @override
+  Future<Uint8List> encrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) {
+    final keyPair = _getKeyPair(keyId);
+    return keyPair.encrypt(data, publicKey: publicKey);
+  }
+
+  @override
+  Future<Uint8List> decrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) {
+    final keyPair = _getKeyPair(keyId);
+    return keyPair.decrypt(data, publicKey: publicKey);
+  }
+
   /// Retrieves the key pair with the specified identifier.
   ///
   /// [keyId] - The identifier of the key pair to retrieve.

@@ -5,6 +5,8 @@ import 'package:elliptic/elliptic.dart';
 import 'package:elliptic/ecdh.dart';
 import 'package:cryptography/cryptography.dart' as crypto;
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import './_encryption_utils.dart';
 
 const fullPublicKeyLength = 64;
@@ -30,10 +32,19 @@ Future<Uint8List> encryptData({
   Uint8List? publicKeyBytes,
 }) async {
   final privateKey = PrivateKey.fromBytes(curve, privateKeyBytes);
+  PublicKey publicKeyToUse;
 
-  final PublicKey publicKeyToUse = publicKeyBytes == null
-      ? generateEphemeralPubKey(curve)
-      : curve.compressedHexToPublicKey(hex.encode(publicKeyBytes));
+  try {
+    publicKeyToUse = publicKeyBytes == null
+        ? generateEphemeralPubKey(curve)
+        : curve.compressedHexToPublicKey(hex.encode(publicKeyBytes));
+  } catch (e) {
+    throw SsiException(
+      message: 'Invalid public Key',
+      code: SsiExceptionType.unableToEncrypt.code,
+      originalMessage: e.toString(),
+    );
+  }
 
   final sharedSecret = await computeEcdhSecret(privateKey, publicKeyToUse);
 
@@ -93,7 +104,10 @@ Future<Uint8List> decryptData({
       encryptionUtils.decryptFromBytes(symmetricKey, encryptedData);
 
   if (decryptedData == null) {
-    throw UnimplementedError('Decryption failed, bytes are null');
+    throw SsiException(
+      message: 'Decryption failed, bytes are null',
+      code: SsiExceptionType.unableToDecrypt.code,
+    );
   }
 
   return decryptedData;

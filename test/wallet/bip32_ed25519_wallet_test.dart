@@ -317,4 +317,117 @@ void main() {
       );
     });
   });
+
+  group('Bip32Ed25519Wallet Encryption/Decryption', () {
+    late Bip32Ed25519Wallet aliceWallet;
+    late Bip32Ed25519Wallet bobWallet;
+    const aliceKeyId = '1-1';
+    const bobKeyId = '2-2';
+    final aliceSeed =
+        Uint8List.fromList(List.generate(32, (index) => index + 10));
+    final bobSeed =
+        Uint8List.fromList(List.generate(32, (index) => index + 20));
+    final plainText = Uint8List.fromList([10, 20, 30, 40, 50]);
+
+    setUp(() async {
+      aliceWallet = await Bip32Ed25519Wallet.fromSeed(aliceSeed);
+      bobWallet = await Bip32Ed25519Wallet.fromSeed(bobSeed);
+      // Ensure keys are generated
+      await aliceWallet.generateKey(keyId: aliceKeyId);
+      await bobWallet.generateKey(keyId: bobKeyId);
+    });
+
+    test('Two-party encrypt/decrypt should succeed', () async {
+      final alicePublicKey = await aliceWallet.getPublicKey(aliceKeyId);
+      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+
+      // Alice encrypts for Bob
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobPublicKey.bytes,
+      );
+
+      // Bob decrypts using Alice's public key
+      final decryptedData = await bobWallet.decrypt(
+        encryptedData,
+        keyId: bobKeyId,
+        publicKey: alicePublicKey.bytes,
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Single-party encrypt/decrypt should succeed (no public key)',
+        () async {
+      // Alice encrypts for herself
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        // No public key provided, implies ephemeral key usage
+      );
+
+      // Alice decrypts using only her key
+      final decryptedData = await aliceWallet.decrypt(
+        encryptedData,
+        keyId: aliceKeyId,
+        // No public key provided
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Decrypt should fail with wrong key', () async {
+      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+
+      // Alice encrypts for Bob
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobPublicKey.bytes,
+      );
+
+      // Alice tries to decrypt with her own key (should fail as it was encrypted for Bob)
+      // Note: Depending on the ECDH implementation details, this might throw
+      // or return incorrect data. We expect an exception.
+      expect(
+        () async => await aliceWallet.decrypt(
+          encryptedData,
+          keyId: aliceKeyId, // Wrong private key for decryption
+          publicKey:
+              bobPublicKey.bytes, // Bob's public key (sender in this context)
+        ),
+        // TODO: Adjust the expected exception type based on KeyPair implementation
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('Decrypt should fail if wrong public key is provided (two-party)',
+        () async {
+      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+      // Generate a third party key
+      final eveWallet = await Bip32Ed25519Wallet.fromSeed(
+          Uint8List.fromList(List.generate(32, (i) => i + 30)));
+      await eveWallet.generateKey(keyId: '3-3');
+      final evePublicKey = await eveWallet.getPublicKey('3-3');
+
+      // Alice encrypts for Bob
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobPublicKey.bytes,
+      );
+
+      // Bob tries to decrypt using Eve's public key instead of Alice's
+      expect(
+        () async => await bobWallet.decrypt(
+          encryptedData,
+          keyId: bobKeyId,
+          publicKey: evePublicKey.bytes, // Wrong sender public key
+        ),
+        // TODO: Adjust the expected exception type based on KeyPair implementation
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
 }

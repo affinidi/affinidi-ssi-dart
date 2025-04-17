@@ -314,4 +314,165 @@ void main() {
       );
     });
   });
+
+  group('GenericWallet Encryption/Decryption (P256)', () {
+    late GenericWallet aliceWallet;
+    late GenericWallet bobWallet;
+    late GenericWallet eveWallet; // Added for Eve
+    late InMemoryKeyStore aliceKeyStore;
+    late InMemoryKeyStore bobKeyStore;
+    late InMemoryKeyStore eveKeyStore; // Added for Eve
+    const aliceKeyId = 'alice-p256-key';
+    const bobKeyId = 'bob-p256-key';
+    const eveKeyId = 'eve-p256-key'; // Added for Eve
+    final plainText = Uint8List.fromList([1, 1, 2, 3, 5, 8]);
+
+    setUp(() async {
+      // Initialize separate key stores and wallets
+      aliceKeyStore = InMemoryKeyStore();
+      bobKeyStore = InMemoryKeyStore();
+      eveKeyStore = InMemoryKeyStore(); // Initialize Eve's store
+
+      aliceWallet = GenericWallet(aliceKeyStore);
+      bobWallet = GenericWallet(bobKeyStore);
+      eveWallet = GenericWallet(eveKeyStore); // Initialize Eve's wallet
+
+      // Ensure keys are generated in their respective wallets
+      await aliceWallet.generateKey(keyId: aliceKeyId, keyType: KeyType.p256);
+      await bobWallet.generateKey(keyId: bobKeyId, keyType: KeyType.p256);
+      // Generate Eve's key in her wallet for the failure test
+      await eveWallet.generateKey(keyId: eveKeyId, keyType: KeyType.p256);
+    });
+
+    test('Two-party encrypt/decrypt should succeed', () async {
+      // Get keys from respective wallets
+      final alicePublicKey = await aliceWallet.getPublicKey(aliceKeyId);
+      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+
+      // Alice encrypts for Bob using her wallet
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobPublicKey.bytes,
+      );
+
+      // Bob decrypts using Alice's public key and his wallet
+      final decryptedData = await bobWallet.decrypt(
+        encryptedData,
+        keyId: bobKeyId,
+        publicKey: alicePublicKey.bytes,
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Single-party encrypt/decrypt should succeed (no public key)',
+        () async {
+      // Alice encrypts for herself using her wallet
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        // No public key provided, implies ephemeral key usage
+      );
+
+      // Alice decrypts using only her key in her wallet
+      final decryptedData = await aliceWallet.decrypt(
+        encryptedData,
+        keyId: aliceKeyId,
+        // No public key provided
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Decrypt should fail with wrong key', () async {
+      // Get Bob's key from Bob's wallet
+      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+
+      // Alice encrypts for Bob using her wallet
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobPublicKey.bytes,
+      );
+
+      // Alice tries to decrypt with her own key (should fail) using her wallet
+      expect(
+        () async => await aliceWallet.decrypt(
+          encryptedData,
+          keyId: aliceKeyId, // Wrong private key for decryption
+          publicKey:
+              bobPublicKey.bytes, // Bob's public key (sender in this context)
+        ),
+        throwsA(isA<SsiException>().having((error) => error.code, 'code',
+            SsiExceptionType.unableToDecrypt.code)),
+      );
+    });
+
+    test('Decrypt should fail if wrong public key is provided (two-party)',
+        () async {
+      // Get keys from respective wallets
+      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+      final evePublicKey = await eveWallet
+          .getPublicKey(eveKeyId); // Get Eve's key from her wallet
+
+      // Alice encrypts for Bob using her wallet
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobPublicKey.bytes,
+      );
+
+      // Bob tries to decrypt using Eve's public key instead of Alice's, using his wallet
+      expect(
+        () async => await bobWallet.decrypt(
+          // Use bobWallet here
+          encryptedData,
+          keyId: bobKeyId,
+          publicKey: evePublicKey.bytes, // Wrong sender public key
+        ),
+        throwsA(isA<SsiException>().having((error) => error.code, 'code',
+            SsiExceptionType.unableToDecrypt.code)),
+      );
+    });
+
+    // Optional: Test attempting encryption/decryption with incompatible key types
+    test(
+        'Encrypt/Decrypt should fail with incompatible key types (e.g., P256 and Ed25519)',
+        () async {
+      const edKeyId = 'ed25519-incompatible';
+      // Generate Ed25519 key in Eve's wallet
+      await eveWallet.generateKey(keyId: edKeyId, keyType: KeyType.ed25519);
+      final edPublicKey =
+          await eveWallet.getPublicKey(edKeyId); // Get from Eve's wallet
+      final p256PublicKey =
+          await aliceWallet.getPublicKey(aliceKeyId); // Get from Alice's wallet
+
+      // Attempt P256 encrypt (using aliceWallet) for Ed25519 recipient
+      expect(
+        () async => await aliceWallet.encrypt(
+          // Use aliceWallet
+          plainText,
+          keyId: aliceKeyId, // P256 sender
+          publicKey: edPublicKey.bytes, // Ed25519 recipient
+        ),
+        // ECDH typically requires keys on the same curve
+        throwsA(isA<SsiException>().having((error) => error.code, 'code',
+            SsiExceptionType.unableToEncrypt.code)),
+      );
+
+      // Attempt Ed25519 encrypt (using eveWallet) for P256 recipient
+      expect(
+        () async => await eveWallet.encrypt(
+          // Use eveWallet
+          plainText,
+          keyId: edKeyId, // Ed25519 sender
+          publicKey: p256PublicKey.bytes, // P256 recipient
+        ),
+        // ECDH typically requires keys on the same curve
+        throwsA(isA<SsiException>().having((error) => error.code, 'code',
+            SsiExceptionType.unableToEncrypt.code)),
+      );
+    });
+  });
 }
