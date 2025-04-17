@@ -163,6 +163,27 @@ void main() {
           isFalse);
     });
 
+    test('sign and verify should work with specific schemes', () async {
+      const derivedKeyId = '3-4'; // Use a different ID
+      await wallet.generateKey(keyId: derivedKeyId);
+
+      // Sign and verify with ed25519_sha256
+      final sigSha256 = await wallet.sign(dataToSign,
+          keyId: derivedKeyId, signatureScheme: SignatureScheme.ed25519_sha256);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: sigSha256, keyId: derivedKeyId, signatureScheme: SignatureScheme.ed25519_sha256),
+          isTrue);
+
+      // Sign and verify with eddsa_sha512
+      final sigSha512 = await wallet.sign(dataToSign,
+          keyId: derivedKeyId, signatureScheme: SignatureScheme.eddsa_sha512);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: sigSha512, keyId: derivedKeyId, signatureScheme: SignatureScheme.eddsa_sha512),
+          isTrue);
+    });
+
     test('sign should throw for non-existent keyId', () async {
       expect(
         () async => await wallet.sign(dataToSign, keyId: '99-97'),
@@ -226,15 +247,17 @@ void main() {
       final rootSchemes = await wallet
           .getSupportedSignatureSchemes(Bip32Ed25519Wallet.rootKeyId);
       expect(rootSchemes, contains(SignatureScheme.ed25519_sha256));
-      expect(rootSchemes.length, 1);
+      expect(rootSchemes, contains(SignatureScheme.eddsa_sha512));
+      expect(rootSchemes.length, 2);
 
       // Derived key
       const derivedKeyId = '8-1';
       await wallet.generateKey(keyId: derivedKeyId);
       final derivedSchemes =
           await wallet.getSupportedSignatureSchemes(derivedKeyId);
-      expect(derivedSchemes, contains(SignatureScheme.ed25519_sha256));
-      expect(derivedSchemes.length, 1);
+      expect(derivedSchemes, contains(SignatureScheme.ed25519_sha256)); // Should still contain ed25519_sha256
+      expect(derivedSchemes, contains(SignatureScheme.eddsa_sha512));
+      expect(derivedSchemes.length, 2);
     });
 
     test('getSupportedSignatureSchemes should throw for non-existent keyId',

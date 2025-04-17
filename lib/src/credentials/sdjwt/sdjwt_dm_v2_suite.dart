@@ -255,8 +255,8 @@ class _DidSignerAdapter implements Signer {
   /// Returns the JWT algorithm name from the signature scheme,
   /// defaulting to ES256K if not available.
   @override
-  String get algIanaName => _didSigner.signatureScheme.jwtName != null
-      ? _didSigner.signatureScheme.jwtName!
+  String get algIanaName => _didSigner.signatureScheme.alg != null
+      ? _didSigner.signatureScheme.alg!
       : 'ES256K'; // Default to ES256K if no JWT name is available
 
   /// Gets the key ID for the signing key.

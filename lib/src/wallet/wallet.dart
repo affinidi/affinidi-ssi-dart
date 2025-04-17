@@ -17,7 +17,7 @@ abstract interface class Wallet {
   /// [keyId] - The identifier of the key to use for signing.
   /// [signatureScheme] - The signature scheme to use. If null defaults to:
   /// - [SignatureScheme.ecdsa_secp256k1_sha256] for [Secp256k1KeyPair]
-  /// - [SignatureScheme.ed25519_sha256] for [Ed25519KeyPair]
+  /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
   /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
   /// Returns a [Future] that completes with the signature as a [Uint8List].
@@ -36,7 +36,7 @@ abstract interface class Wallet {
   /// [keyId] - The identifier of the key to use for verification.
   /// [signatureScheme] - The signature scheme to use. If null defaults to:
   /// - [SignatureScheme.ecdsa_secp256k1_sha256] for [Secp256k1KeyPair]
-  /// - [SignatureScheme.ed25519_sha256] for [Ed25519KeyPair]
+  /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
   /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
   /// Returns a [Future] that completes with `true` if the signature is valid,

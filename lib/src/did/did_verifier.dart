@@ -91,7 +91,7 @@ class DidVerifier implements Verifier {
 
       // Handle Ed25519 keys
       if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
-        if (_algorithm.jwtName != 'EdDSA') {
+        if (_algorithm.alg != 'EdDSA') {
           return false;
         }
 
@@ -114,7 +114,7 @@ class DidVerifier implements Verifier {
         );
       }
 
-      return publicKey.verify(data, signature, algorithm: _algorithm.jwtName);
+      return publicKey.verify(data, signature, algorithm: _algorithm.alg);
     } catch (_) {
       return false;
     }
