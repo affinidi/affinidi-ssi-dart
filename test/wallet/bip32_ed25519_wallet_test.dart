@@ -172,7 +172,9 @@ void main() {
           keyId: derivedKeyId, signatureScheme: SignatureScheme.ed25519_sha256);
       expect(
           await wallet.verify(dataToSign,
-              signature: sigSha256, keyId: derivedKeyId, signatureScheme: SignatureScheme.ed25519_sha256),
+              signature: sigSha256,
+              keyId: derivedKeyId,
+              signatureScheme: SignatureScheme.ed25519_sha256),
           isTrue);
 
       // Sign and verify with eddsa_sha512
@@ -180,7 +182,9 @@ void main() {
           keyId: derivedKeyId, signatureScheme: SignatureScheme.eddsa_sha512);
       expect(
           await wallet.verify(dataToSign,
-              signature: sigSha512, keyId: derivedKeyId, signatureScheme: SignatureScheme.eddsa_sha512),
+              signature: sigSha512,
+              keyId: derivedKeyId,
+              signatureScheme: SignatureScheme.eddsa_sha512),
           isTrue);
     });
 
@@ -255,7 +259,10 @@ void main() {
       await wallet.generateKey(keyId: derivedKeyId);
       final derivedSchemes =
           await wallet.getSupportedSignatureSchemes(derivedKeyId);
-      expect(derivedSchemes, contains(SignatureScheme.ed25519_sha256)); // Should still contain ed25519_sha256
+      expect(
+          derivedSchemes,
+          contains(SignatureScheme
+              .ed25519_sha256)); // Should still contain ed25519_sha256
       expect(derivedSchemes, contains(SignatureScheme.eddsa_sha512));
       expect(derivedSchemes.length, 2);
     });

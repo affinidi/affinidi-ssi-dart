@@ -22,7 +22,8 @@ void main() {
       expect(actual, isTrue);
     });
 
-    test('Ed25519 key pair should sign data and verify signature (ed25519_sha256)',
+    test(
+        'Ed25519 key pair should sign data and verify signature (ed25519_sha256)',
         () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final signature = await edKey.sign(dataToSign,
@@ -32,7 +33,8 @@ void main() {
       expect(actual, isTrue);
     });
 
-    test('Ed25519 key pair should sign data and verify signature (eddsa_sha512)',
+    test(
+        'Ed25519 key pair should sign data and verify signature (eddsa_sha512)',
         () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final signature = await edKey.sign(dataToSign,
@@ -42,7 +44,8 @@ void main() {
       expect(actual, isTrue);
     });
 
-    test('Verification should fail if signature is invalid (default)', () async {
+    test('Verification should fail if signature is invalid (default)',
+        () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final signature = await edKey.sign(dataToSign);
 
@@ -73,11 +76,15 @@ void main() {
           signatureScheme: SignatureScheme.eddsa_sha512);
 
       // Verify sha256 sig with sha512 scheme
-      expect(await edKey.verify(dataToSign, sigSha256,
-          signatureScheme: SignatureScheme.eddsa_sha512), isFalse);
+      expect(
+          await edKey.verify(dataToSign, sigSha256,
+              signatureScheme: SignatureScheme.eddsa_sha512),
+          isFalse);
       // Verify sha512 sig with sha256 scheme
-      expect(await edKey.verify(dataToSign, sigSha512,
-          signatureScheme: SignatureScheme.ed25519_sha256), isFalse);
+      expect(
+          await edKey.verify(dataToSign, sigSha512,
+              signatureScheme: SignatureScheme.ed25519_sha256),
+          isFalse);
     });
 
     test('Ed25519 key pair properties should be correct', () async {

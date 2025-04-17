@@ -235,8 +235,7 @@ void main() {
           isFalse);
     });
 
-    test('sign and verify should work with specific Ed25519 schemes',
-        () async {
+    test('sign and verify should work with specific Ed25519 schemes', () async {
       // Create Ed25519 key
       await wallet.generateKey(
           keyId: testEd25519KeyId1, keyType: KeyType.ed25519);
@@ -247,7 +246,9 @@ void main() {
           signatureScheme: SignatureScheme.ed25519_sha256);
       expect(
           await wallet.verify(dataToSign,
-              signature: sigSha256, keyId: testEd25519KeyId1, signatureScheme: SignatureScheme.ed25519_sha256),
+              signature: sigSha256,
+              keyId: testEd25519KeyId1,
+              signatureScheme: SignatureScheme.ed25519_sha256),
           isTrue);
 
       // Sign and verify with eddsa_sha512
@@ -256,7 +257,9 @@ void main() {
           signatureScheme: SignatureScheme.eddsa_sha512);
       expect(
           await wallet.verify(dataToSign,
-              signature: sigSha512, keyId: testEd25519KeyId1, signatureScheme: SignatureScheme.eddsa_sha512),
+              signature: sigSha512,
+              keyId: testEd25519KeyId1,
+              signatureScheme: SignatureScheme.eddsa_sha512),
           isTrue);
     });
 
