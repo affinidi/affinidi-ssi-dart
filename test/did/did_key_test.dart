@@ -26,7 +26,6 @@ void main() {
       final doc = DidKey.generateDocument(key);
       final actualDid = doc.id;
       final actualKeyType = key.type;
-      print("here");
 
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);

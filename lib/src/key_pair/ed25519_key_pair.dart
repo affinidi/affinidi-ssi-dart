@@ -18,22 +18,28 @@ import './_encryption_utils.dart';
 /// This key pair supports signing and verifying data using Ed25519.
 /// It does not support any other signature schemes.
 class Ed25519KeyPair implements KeyPair {
-  /// The private key.
   final ed.PrivateKey _privateKey;
   final _encryptionUtils = EncryptionUtils();
 
   Ed25519KeyPair._(this._privateKey);
 
+  /// Creates a new [Ed25519KeyPair] instance with a randomly generated private key.
   factory Ed25519KeyPair() {
     final keyPair = ed.generateKey();
     return Ed25519KeyPair._(keyPair.privateKey);
   }
 
+  /// Creates a [Ed25519KeyPair] instance from a seed.
+  ///
+  /// [seed] - The seed as a 32 byte [Uint8List].
   factory Ed25519KeyPair.fromSeed(Uint8List seed) {
     final privateKey = ed.newKeyFromSeed(seed);
     return Ed25519KeyPair._(privateKey);
   }
 
+  /// Creates a [Ed25519KeyPair] instance from a private key.
+  ///
+  /// [privateKey] - The private key as a [Uint8List].
   factory Ed25519KeyPair.fromPrivateKey(Uint8List privateKey) {
     return Ed25519KeyPair._(ed.PrivateKey(privateKey));
   }

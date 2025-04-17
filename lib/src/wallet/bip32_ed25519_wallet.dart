@@ -13,7 +13,8 @@ import 'wallet.dart';
 /// A wallet implementation that supports BIP32 key derivation with Ed25519 keys.
 ///
 /// This wallet can create and manage multiple key pairs derived from a single seed.
-/// It supports signing and verifying messages using Ed25519 signature scheme.
+/// It supports signing and verifying messages using Ed25519 signature scheme,
+/// and ecrypting/decrypting payloads.
 class Bip32Ed25519Wallet implements Wallet {
   /// The base derivation path.
   static const baseDerivationPath = "m/44'/60'/0'/0'/0'";
@@ -27,11 +28,6 @@ class Bip32Ed25519Wallet implements Wallet {
   /// Creates a new [Bip32Ed25519Wallet] instance with the given key map.
   Bip32Ed25519Wallet._(this._keyMap);
 
-  /// Creates a new [Bip32Ed25519Wallet] instance from a seed.
-  ///
-  /// [seed] - The seed to use for key derivation.
-  ///
-  /// Returns a [Future] that completes with the newly created wallet.
   static Future<Bip32Ed25519Wallet> fromSeed(Uint8List seed) async {
     KeyData master = await ED25519_HD_KEY.getMasterKeyFromSeed(seed);
     final rootKeyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(master.key));
@@ -57,21 +53,11 @@ class Bip32Ed25519Wallet implements Wallet {
     return await Bip32Ed25519Wallet.fromSeed(storedSeed);
   }
 
-  /// Checks if a key with the specified identifier exists in the wallet.
-  ///
-  /// [keyId] - The identifier of the key to check.
-  ///
-  /// Returns a [Future] that completes with `true` if the key exists,
-  /// `false` otherwise.
   @override
   Future<bool> hasKey(String keyId) {
     return Future.value(_keyMap.containsKey(keyId));
   }
 
-  /// Returns a [Future] that completes with a list of the [SignatureScheme]s
-  /// supported by a key pair key pair.
-  ///
-  /// [keyId] - The identifier of the key to use for signing.
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String keyId) async {
@@ -79,12 +65,6 @@ class Bip32Ed25519Wallet implements Wallet {
     return keyPair.supportedSignatureSchemes;
   }
 
-  /// Signs the provided data using the specified key.
-  ///
-  /// [data] - The data to be signed.
-  /// [keyId] - The identifier of the key to use for signing.
-  ///
-  /// Returns a [Future] that completes with the signature as a [Uint8List].
   @override
   Future<Uint8List> sign(
     Uint8List data, {
@@ -94,15 +74,6 @@ class Bip32Ed25519Wallet implements Wallet {
     final keyPair = _getKeyPair(keyId);
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
-
-  /// Verifies a signature using the specified key.
-  ///
-  /// [data] - The data that was signed.
-  /// [signature] - The signature to verify.
-  /// [keyId] - The identifier of the key to use for verification.
-  ///
-  /// Returns a [Future] that completes with `true` if the signature is valid,
-  /// `false` otherwise.
 
   @override
   Future<bool> verify(
@@ -119,16 +90,6 @@ class Bip32Ed25519Wallet implements Wallet {
     );
   }
 
-  /// Creates a new key pair with the specified identifier.
-  ///
-  /// [keyId] - The identifier for the new key pair in the format `{accountNumber}-{accountKeyId}`.
-  /// [keyType] - The type of key to create
-  ///
-  /// Returns a [Future] that completes with the newly created [Ed25519KeyPair].
-  ///
-  /// Throws an [SsiException] if:
-  /// - Unsupported key type
-  /// - The root key pair is missing
   @override
   Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) async {
     if (keyId == null) {
@@ -170,11 +131,6 @@ class Bip32Ed25519Wallet implements Wallet {
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
-  /// Retrieves the public key for the specified key.
-  ///
-  /// [keyId] - The identifier of the key.
-  ///
-  /// Returns a [Future] that completes with the public key as a [Uint8List].
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = _getKeyPair(keyId);

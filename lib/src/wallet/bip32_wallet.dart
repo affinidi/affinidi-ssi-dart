@@ -13,7 +13,8 @@ import 'wallet.dart';
 /// A wallet implementation that supports BIP32 key derivation with secp256k1 keys.
 ///
 /// This wallet can create and manage multiple key pairs derived from a single seed.
-/// It supports signing and verifying messages using secp256k1 signature scheme.
+/// It supports signing and verifying messages using secp256k1 signature scheme,
+/// and ecrypting/decrypting payloads.
 class Bip32Wallet implements Wallet {
   /// The base derivation path.
   static const baseDerivationPath = "m/44'/60'/0'/0/0";
@@ -73,21 +74,11 @@ class Bip32Wallet implements Wallet {
     return Bip32Wallet.fromSeed(storedSeed);
   }
 
-  /// Checks if a key with the specified identifier exists in the wallet.
-  ///
-  /// [keyId] - The identifier of the key to check.
-  ///
-  /// Returns a [Future] that completes with `true` if the key exists,
-  /// `false` otherwise.
   @override
   Future<bool> hasKey(String keyId) {
     return Future.value(_keyMap.containsKey(keyId));
   }
 
-  /// Returns a [Future] that completes with a list of the [SignatureScheme]s
-  /// supported by a key pair key pair.
-  ///
-  /// [keyId] - The identifier of the key to use for signing.
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String keyId) async {
@@ -95,13 +86,6 @@ class Bip32Wallet implements Wallet {
     return keyPair.supportedSignatureSchemes;
   }
 
-  /// Signs the provided data using the specified key.
-  ///
-  /// [data] - The data to be signed.
-  /// [keyId] - The identifier of the key to use for signing.
-  /// [signatureScheme] - The signature scheme to use.
-  ///
-  /// Returns a [Future] that completes with the signature as a [Uint8List].
   @override
   Future<Uint8List> sign(
     Uint8List data, {
@@ -112,15 +96,6 @@ class Bip32Wallet implements Wallet {
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
-  /// Verifies a signature using the specified key.
-  ///
-  /// [data] - The data that was signed.
-  /// [signature] - The signature to verify.
-  /// [keyId] - The identifier of the key to use for verification.
-  /// [signatureScheme] - The signature scheme to use.
-  ///
-  /// Returns a [Future] that completes with `true` if the signature is valid,
-  /// `false` otherwise.
   @override
   Future<bool> verify(
     Uint8List data, {
@@ -136,16 +111,6 @@ class Bip32Wallet implements Wallet {
     );
   }
 
-  /// Creates a new key pair with the specified identifier.
-  ///
-  /// [keyId] - The identifier for the new key pair in the format `{accountNumber}-{accountKeyId}`.
-  /// [keyType] - The type of key to create.
-  ///
-  /// Returns a [Future] that completes with the newly created [Secp256k1KeyPair].
-  ///
-  /// Throws an [SsiException] if:
-  /// - Unsupported key type
-  /// - The root key pair is missing
   @override
   Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) async {
     if (keyId == null) {
@@ -182,11 +147,6 @@ class Bip32Wallet implements Wallet {
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
-  /// Retrieves the public key for the specified key.
-  ///
-  /// [keyId] - The identifier of the key.
-  ///
-  /// Returns a [Future] that completes with the public key as a [Uint8List].
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = _getKeyPair(keyId);
