@@ -200,13 +200,15 @@ final class SdJwtDm2Suite
   ///
   /// [vc] - The credential to validate.
   ///
-  /// Throws [SsiException] if any required fields are missing.
+  /// Throws [SsiException] if any required fields are missing or invalid.
   void _validateCredential(MutableVcDataModelV2 vc) {
     final List<String> errors = [];
 
-    // Check required fields
+    // Check required fields according to W3C VC Data Model v2.0 spec
     if (vc.context.isEmpty) {
       errors.add('Context is required');
+    } else if (!vc.context.contains(MutableVcDataModelV2.contextUrl)) {
+      errors.add('Context must include ${MutableVcDataModelV2.contextUrl}');
     }
 
     if (vc.type.isEmpty) {
@@ -215,6 +217,10 @@ final class SdJwtDm2Suite
 
     if (vc.issuer.isEmpty) {
       errors.add('Issuer is required');
+    }
+
+    if (vc.credentialSubject.isEmpty) {
+      errors.add('Credential subject is required and cannot be empty');
     }
 
     // If any errors were found, throw an exception

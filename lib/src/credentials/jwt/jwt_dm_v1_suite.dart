@@ -51,6 +51,9 @@ final class JwtDm1Suite
     DidSigner signer, {
     JwtOptions? options,
   }) async {
+    // Validate the credential before issuing
+    _validateCredential(vc);
+
     final (header, payload) = JwtVcDataModelV1.vcToJws(vc.toJson(), signer);
 
     final encodedHeader = base64UrlNoPadEncode(
@@ -116,5 +119,47 @@ final class JwtDm1Suite
   @override
   String present(JwtVcDataModelV1 input) {
     return input.serialized;
+  }
+
+  /// Validates the credential before issuing.
+  ///
+  /// [vc] - The credential to validate.
+  ///
+  /// Throws [SsiException] if any required fields are missing or invalid.
+  void _validateCredential(VcDataModelV1 vc) {
+    final List<String> errors = [];
+
+    //todo: crosscheck with team on vc_data_model_v1.dart line 124-135,
+    // it seems most of teh checks are already there
+    // the only additional here is presence of contextUrl.
+
+    // Check required fields according to W3C VC Data Model v1.0 spec
+    if (vc.context.isEmpty) {
+      errors.add('Context is required');
+    } else if (!vc.context.contains(MutableVcDataModelV1.contextUrl)) {
+      errors.add('Context must include ${MutableVcDataModelV1.contextUrl}');
+    }
+
+    if (vc.type.isEmpty) {
+      errors.add('Type is required');
+    } else if (!vc.type.contains('VerifiableCredential')) {
+      errors.add('Type must include "VerifiableCredential"');
+    }
+
+    if (vc.issuer.isEmpty) {
+      errors.add('Issuer is required');
+    }
+
+    if (vc.credentialSubject.isEmpty) {
+      errors.add('Credential subject is required and cannot be empty');
+    }
+
+    // If any errors were found, throw an exception
+    if (errors.isNotEmpty) {
+      throw SsiException(
+        message: 'Invalid VC: ${errors.join(', ')}',
+        code: SsiExceptionType.invalidVC.code,
+      );
+    }
   }
 }
