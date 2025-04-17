@@ -48,8 +48,7 @@ void main() {
       expect(actualDid, expectedDid);
     });
 
-    test(
-        'generateDocument for did:peer:2 should start with did:peer:2.Ez6Mk',
+    test('generateDocument for did:peer:2 should start with did:peer:2.Ez6Mk',
         () async {
       final expectedDidPeerPrefix = 'did:peer:2.Ez6Mk';
 
@@ -82,7 +81,10 @@ void main() {
       final derivedKeyId = "$accountNumber-0";
       final key = await wallet.generateKey(keyId: derivedKeyId);
       final actualDid = DidPeer.getDid(
-        [key, key], // Using same key twice for simplicity, matching generateDocument test
+        [
+          key,
+          key
+        ], // Using same key twice for simplicity, matching generateDocument test
         serviceEndpoint: 'https://denys.com/income',
       );
 
