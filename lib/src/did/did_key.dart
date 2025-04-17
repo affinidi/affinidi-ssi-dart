@@ -20,7 +20,7 @@ import 'public_key_utils.dart';
 /// Returns a [DidDocument]
 ///
 /// Throws [SsiException] if the conversion fails.
-Future<DidDocument> _buildEDDoc(
+DidDocument _buildEDDoc(
   List<String> context,
   String id,
   String keyPart,
@@ -51,17 +51,15 @@ Future<DidDocument> _buildEDDoc(
     publicKeyMultibase: 'z$multiCodecXKey',
   );
 
-  return Future.value(
-    DidDocument(
-      context: Context.fromJson(context),
-      id: id,
-      verificationMethod: [verification, keyAgreement],
-      assertionMethod: [verificationKeyId],
-      keyAgreement: [agreementKeyId],
-      authentication: [verificationKeyId],
-      capabilityDelegation: [verificationKeyId],
-      capabilityInvocation: [verificationKeyId],
-    ),
+  return DidDocument(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verification, keyAgreement],
+    assertionMethod: [verificationKeyId],
+    keyAgreement: [agreementKeyId],
+    authentication: [verificationKeyId],
+    capabilityDelegation: [verificationKeyId],
+    capabilityInvocation: [verificationKeyId],
   );
 }
 
@@ -75,7 +73,7 @@ Future<DidDocument> _buildEDDoc(
 /// [keyPart] - The key part of the DID
 ///
 /// Returns a [DidDocument].
-Future<DidDocument> _buildXDoc(
+DidDocument _buildXDoc(
   List<String> context,
   String id,
   String keyPart,
@@ -87,13 +85,11 @@ Future<DidDocument> _buildXDoc(
     type: 'X25519KeyAgreementKey2020',
     publicKeyMultibase: 'z$keyPart',
   );
-  return Future.value(
-    DidDocument(
-      context: Context.fromJson(context),
-      id: id,
-      verificationMethod: [verification],
-      keyAgreement: [verificationKeyId],
-    ),
+  return DidDocument(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verification],
+    keyAgreement: [verificationKeyId],
   );
 }
 
@@ -108,7 +104,7 @@ Future<DidDocument> _buildXDoc(
 /// [type] - The key type
 ///
 /// Returns a [DidDocument].
-Future<DidDocument> _buildOtherDoc(
+DidDocument _buildOtherDoc(
   List<String> context,
   String id,
   String keyPart,
@@ -121,17 +117,15 @@ Future<DidDocument> _buildOtherDoc(
     type: type,
     publicKeyMultibase: 'z$keyPart',
   );
-  return Future.value(
-    DidDocument(
-      context: Context.fromJson(context),
-      id: id,
-      verificationMethod: [verification],
-      assertionMethod: [verificationKeyId],
-      authentication: [verificationKeyId],
-      capabilityDelegation: [verificationKeyId],
-      capabilityInvocation: [verificationKeyId],
-      keyAgreement: [verificationKeyId],
-    ),
+  return DidDocument(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verification],
+    assertionMethod: [verificationKeyId],
+    authentication: [verificationKeyId],
+    capabilityDelegation: [verificationKeyId],
+    capabilityInvocation: [verificationKeyId],
+    keyAgreement: [verificationKeyId],
   );
 }
 
@@ -223,7 +217,7 @@ class DidKey {
     return _buildDoc(multibase, did);
   }
 
-  static _buildDoc(String multibase, String id) {
+  static DidDocument _buildDoc(String multibase, String id) {
     final keyPart = multibase.substring(1);
     if (keyPart.startsWith('6Mk')) {
       return _buildEDDoc(_context, id, keyPart);

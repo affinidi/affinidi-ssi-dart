@@ -26,6 +26,7 @@ void main() {
       final doc = DidKey.generateDocument(key);
       final actualDid = doc.id;
       final actualKeyType = key.type;
+      print("here");
 
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
@@ -48,7 +49,6 @@ void main() {
       expect(actualDid, expectedDid);
     });
 
-
     test('generateDocument for derived key should start with did:key:zQ3s',
         () async {
       final expectedDidKeyPrefix = 'did:key:zQ3s';
@@ -62,7 +62,8 @@ void main() {
       expect(actualDid, startsWith(expectedDidKeyPrefix));
     });
 
-    test('generateDocument should be different if the wrong key type is provided',
+    test(
+        'generateDocument should be different if the wrong key type is provided',
         () async {
       final expectedDid =
           'did:key:zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
