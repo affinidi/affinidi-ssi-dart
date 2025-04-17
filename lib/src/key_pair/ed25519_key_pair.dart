@@ -134,16 +134,17 @@ class Ed25519KeyPair implements KeyPair {
       const [SignatureScheme.ed25519_sha256, SignatureScheme.eddsa_sha512];
 
   List<int> generateEphemeralPubKey() {
-    var eKeyPair = x25519.generateKeyPair();
-    var publicKey = eKeyPair.publicKey;
-
-    return publicKey;
+    // Generate a completely new ephemeral X25519 key pair
+    final eKeyPair = x25519.generateKeyPair();
+    return eKeyPair.publicKey;
   }
 
   Future<Uint8List> computeEcdhSecret(List<int> publicKey) async {
-    var privateKeyForX25519 =
-        _privateKey.bytes.sublist(0, compressedPublidKeyLength);
-    final secret = x25519.X25519(privateKeyForX25519, publicKey);
+    // Convert Ed25519 private key to X25519 private key
+    // Ed25519 uses SHA-512 to derive the scalar and prefix from the seed
+    // We need to use the same process to get the correct X25519 private key
+    final seed = ed.seed(_privateKey);
+    final secret = x25519.X25519(seed, publicKey);
     return Future.value(Uint8List.fromList(secret));
   }
 
@@ -224,10 +225,10 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   Future<crypto.SimplePublicKey> ed25519KeyToX25519PublicKey() async {
-    var privateKeyForX25519 =
-        _privateKey.bytes.sublist(0, compressedPublidKeyLength);
+    // Convert Ed25519 private key to X25519 private key
+    final seed = ed.seed(_privateKey);
     final algorithm = crypto.X25519();
-    final keyPair = await algorithm.newKeyPairFromSeed(privateKeyForX25519);
+    final keyPair = await algorithm.newKeyPairFromSeed(seed);
     return await keyPair.extractPublicKey();
   }
 }

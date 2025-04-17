@@ -338,21 +338,22 @@ void main() {
     });
 
     test('Two-party encrypt/decrypt should succeed', () async {
-      final alicePublicKey = await aliceWallet.getPublicKey(aliceKeyId);
-      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+      // Get X25519 keys for ECDH
+      final aliceX25519PublicKeyBytes = await aliceWallet.getX25519PublicKey(aliceKeyId);
+      final bobX25519PublicKeyBytes = await bobWallet.getX25519PublicKey(bobKeyId);
 
-      // Alice encrypts for Bob
+      // Alice encrypts for Bob using Bob's X25519 public key
       final encryptedData = await aliceWallet.encrypt(
         plainText,
         keyId: aliceKeyId,
-        publicKey: bobPublicKey.bytes,
+        publicKey: bobX25519PublicKeyBytes, // Use Bob's X25519 key
       );
 
-      // Bob decrypts using Alice's public key
+      // Bob decrypts using Alice's X25519 public key
       final decryptedData = await bobWallet.decrypt(
         encryptedData,
         keyId: bobKeyId,
-        publicKey: alicePublicKey.bytes,
+        publicKey: aliceX25519PublicKeyBytes, // Use Alice's X25519 key
       );
 
       expect(decryptedData, equals(plainText));
@@ -379,26 +380,28 @@ void main() {
 
     test('Decrypt should fail if wrong public key is provided (two-party)',
         () async {
-      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+      final bobX25519PublicKeyBytes = await bobWallet.getX25519PublicKey(bobKeyId);
+      
       // Generate a third party key
       final eveWallet = await Bip32Ed25519Wallet.fromSeed(
           Uint8List.fromList(List.generate(32, (i) => i + 30)));
-      await eveWallet.generateKey(keyId: '3-3');
-      final evePublicKey = await eveWallet.getPublicKey('3-3');
+      const eveKeyId = '3-3';
+      await eveWallet.generateKey(keyId: eveKeyId);
+      final eveX25519PublicKeyBytes = await eveWallet.getX25519PublicKey(eveKeyId);
 
-      // Alice encrypts for Bob
+      // Alice encrypts for Bob using Bob's X25519 public key
       final encryptedData = await aliceWallet.encrypt(
         plainText,
         keyId: aliceKeyId,
-        publicKey: bobPublicKey.bytes,
+        publicKey: bobX25519PublicKeyBytes, // Bob's X25519 key
       );
 
-      // Bob tries to decrypt using Eve's public key instead of Alice's
+      // Bob tries to decrypt using Eve's X25519 public key instead of Alice's
       expect(
         () async => await bobWallet.decrypt(
           encryptedData,
           keyId: bobKeyId,
-          publicKey: evePublicKey.bytes, // Wrong sender public key
+          publicKey: eveX25519PublicKeyBytes, // Wrong sender X25519 public key
         ),
         throwsA(isA<SsiException>().having((error) => error.code, 'code',
             SsiExceptionType.unableToDecrypt.code)),

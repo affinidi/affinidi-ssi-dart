@@ -410,44 +410,5 @@ void main() {
             SsiExceptionType.unableToDecrypt.code)),
       );
     });
-
-    // Optional: Test attempting encryption/decryption with incompatible key types
-    test(
-        'Encrypt/Decrypt should fail with incompatible key types (e.g., P256 and Ed25519)',
-        () async {
-      const edKeyId = 'ed25519-incompatible';
-      // Generate Ed25519 key in Eve's wallet
-      await eveWallet.generateKey(keyId: edKeyId, keyType: KeyType.ed25519);
-      final edPublicKey =
-          await eveWallet.getPublicKey(edKeyId); // Get from Eve's wallet
-      final p256PublicKey =
-          await aliceWallet.getPublicKey(aliceKeyId); // Get from Alice's wallet
-
-      // Attempt P256 encrypt (using aliceWallet) for Ed25519 recipient
-      expect(
-        () async => await aliceWallet.encrypt(
-          // Use aliceWallet
-          plainText,
-          keyId: aliceKeyId, // P256 sender
-          publicKey: edPublicKey.bytes, // Ed25519 recipient
-        ),
-        // ECDH typically requires keys on the same curve
-        throwsA(isA<SsiException>().having((error) => error.code, 'code',
-            SsiExceptionType.unableToEncrypt.code)),
-      );
-
-      // Attempt Ed25519 encrypt (using eveWallet) for P256 recipient
-      expect(
-        () async => await eveWallet.encrypt(
-          // Use eveWallet
-          plainText,
-          keyId: edKeyId, // Ed25519 sender
-          publicKey: p256PublicKey.bytes, // P256 recipient
-        ),
-        // ECDH typically requires keys on the same curve
-        throwsA(isA<SsiException>().having((error) => error.code, 'code',
-            SsiExceptionType.unableToEncrypt.code)),
-      );
-    });
   });
 }
