@@ -1,5 +1,5 @@
-import '../../../../ssi.dart';
 import '../../../exceptions/ssi_exception_type.dart';
+import '../../../types.dart';
 import '../../verification/vc_integrity_verifier.dart';
 import '../models/parsed_vp.dart';
 import '../suites/vp_suites.dart';

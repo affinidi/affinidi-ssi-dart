@@ -47,11 +47,11 @@ class Bip32Wallet implements Wallet {
   /// Creates a new [Bip32Wallet] instance from a private key.
   ///
   /// [privateKey] - The private key to use.
+  /// [chainCode] - The chain code used to derive the key.
   ///
   /// Returns a new [Bip32Wallet] instance.
-  factory Bip32Wallet.fromPrivateKey(Uint8List privateKey) {
-    // TODO: validate if chainCode is correct
-    final chainCode = Uint8List(0);
+  factory Bip32Wallet.fromPrivateKey(
+      Uint8List privateKey, Uint8List chainCode) {
     final rootNode = BIP32.fromPrivateKey(privateKey, chainCode);
     return Bip32Wallet._(rootNode);
   }

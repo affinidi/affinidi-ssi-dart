@@ -1,8 +1,8 @@
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/json_ld/context.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../json_ld/context.dart';
 import '../key_pair/public_key.dart';
 import '../utility.dart';
 import 'did_document.dart';

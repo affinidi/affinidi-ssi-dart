@@ -16,7 +16,7 @@ void main() {
   final accountNumber = 24567;
 
   group('Test DID', () {
-    test('the main did peer should match to the expected value', () async {
+    test('generateDocument for did:peer:0 should match expected', () async {
       final expectedDid =
           'did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy';
       final expectedKeyType = KeyType.ed25519;
@@ -37,7 +37,20 @@ void main() {
       expect(actualKeyType, expectedKeyType);
     });
 
-    test('a derived did keys should start with did:peer:2.Ez6Mk', () async {
+    test('getDid for did:peer:0 should match expected', () async {
+      final expectedDid =
+          'did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy';
+
+      final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
+      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      final actualDid = DidPeer.getDid([key]);
+
+      expect(actualDid, expectedDid);
+    });
+
+    test(
+        'generateDocument for did:peer:2 should start with did:peer:2.Ez6Mk',
+        () async {
       final expectedDidPeerPrefix = 'did:peer:2.Ez6Mk';
 
       final expectedDid =
@@ -59,6 +72,21 @@ void main() {
       expect(resolvedDidDocument.toJson(), jsonDecode(expectedDidDocString));
 
       expect(actualDid, startsWith(expectedDidPeerPrefix));
+    });
+
+    test('getDid for did:peer:2 should match expected', () async {
+      final expectedDid =
+          'did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0';
+
+      final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
+      final derivedKeyId = "$accountNumber-0";
+      final key = await wallet.generateKey(keyId: derivedKeyId);
+      final actualDid = DidPeer.getDid(
+        [key, key], // Using same key twice for simplicity, matching generateDocument test
+        serviceEndpoint: 'https://denys.com/income',
+      );
+
+      expect(actualDid, expectedDid);
     });
 
     test('public key derived from did should be the same', () async {

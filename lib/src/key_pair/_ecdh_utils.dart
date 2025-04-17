@@ -6,8 +6,10 @@ import 'package:elliptic/ecdh.dart';
 import 'package:cryptography/cryptography.dart' as crypto;
 
 import './_encryption_utils.dart';
-import './_const.dart';
 
+const fullPublicKeyLength = 64;
+const compressedPublidKeyLength = 32;
+final staticHkdNonce = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
 final encryptionUtils = EncryptionUtils();
 
 PublicKey generateEphemeralPubKey(Curve curve) {
@@ -43,7 +45,7 @@ Future<Uint8List> encryptData({
   final secretKey = crypto.SecretKey(sharedSecret);
   final derivedKey = await algorithm.deriveKey(
     secretKey: secretKey,
-    nonce: STATIC_HKD_NONCE,
+    nonce: staticHkdNonce,
   );
 
   final derivedKeyBytes = await derivedKey.extractBytes();
@@ -64,8 +66,8 @@ Future<Uint8List> decryptData({
   final privateKey = PrivateKey.fromBytes(curve, privateKeyBytes);
 
   final ephemeralPublicKeyBytes =
-      encryptedPackage.sublist(0, FULL_PUB_KEY_LENGTH + 1);
-  final encryptedData = encryptedPackage.sublist(FULL_PUB_KEY_LENGTH + 1);
+      encryptedPackage.sublist(0, fullPublicKeyLength + 1);
+  final encryptedData = encryptedPackage.sublist(fullPublicKeyLength + 1);
 
   final PublicKey pubKeyToUse = publicKeyBytes == null
       ? curve.hexToPublicKey(hex.encode(ephemeralPublicKeyBytes))
@@ -81,7 +83,7 @@ Future<Uint8List> decryptData({
   final secretKey = crypto.SecretKey(sharedSecret);
   final derivedKey = await algorithm.deriveKey(
     secretKey: secretKey,
-    nonce: STATIC_HKD_NONCE,
+    nonce: staticHkdNonce,
   );
 
   final derivedKeyBytes = await derivedKey.extractBytes();

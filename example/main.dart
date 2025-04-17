@@ -21,7 +21,7 @@ void main() async {
 
   // did
   final rootKey = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-  final rootDidKey = await DidKey.generateDocument(rootKey);
+  final rootDidKey = DidKey.generateDocument(rootKey);
   print('root did: ${rootDidKey.id}');
 
   // from derived key pair
@@ -36,7 +36,7 @@ void main() async {
       'check if profile signature is valid by public key: $isProfileSignatureValid');
 
   // did
-  final profileDidKey = await DidKey.generateDocument(profileKey);
+  final profileDidKey = DidKey.generateDocument(profileKey);
   print('profile did: ${profileDidKey.id}');
 
   // second profile key

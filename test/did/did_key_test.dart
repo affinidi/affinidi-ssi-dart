@@ -16,7 +16,7 @@ void main() {
   final accountNumber = 24567;
 
   group('did:key with BIP32', () {
-    test('the main did key should match to the expected value', () async {
+    test('generateDocument should match expected', () async {
       final expectedDid =
           'did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2';
       final expectedKeyType = KeyType.secp256k1;
@@ -37,7 +37,20 @@ void main() {
       expect(actualKeyType, expectedKeyType);
     });
 
-    test('a derived did keys should start with did:key:zQ3s', () async {
+    test('getDid should match expected', () async {
+      final expectedDid =
+          'did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2';
+
+      final wallet = Bip32Wallet.fromSeed(seed);
+      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      final actualDid = DidKey.getDid(key);
+
+      expect(actualDid, expectedDid);
+    });
+
+
+    test('generateDocument for derived key should start with did:key:zQ3s',
+        () async {
       final expectedDidKeyPrefix = 'did:key:zQ3s';
 
       final wallet = Bip32Wallet.fromSeed(seed);
@@ -49,7 +62,8 @@ void main() {
       expect(actualDid, startsWith(expectedDidKeyPrefix));
     });
 
-    test('did should be different if the wrong key type is provided', () async {
+    test('generateDocument should be different if the wrong key type is provided',
+        () async {
       final expectedDid =
           'did:key:zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
       final expectedKeyType = KeyType.secp256k1;
@@ -113,7 +127,7 @@ void main() {
   });
 
   group('did:key with P256', () {
-    test('generated did document is as expected', () async {
+    test('generateDocument is as expected', () async {
       final keyStore = InMemoryKeyStore();
       final wallet = GenericWallet(keyStore);
       final keyId = "keyId";
@@ -129,6 +143,19 @@ void main() {
       expect(actualDid.id.startsWith('did:key:zDn'), isTrue);
       expect(actualDid.verificationMethod.length, 1);
       expect(actualDid.verificationMethod[0].type, 'P256Key2021');
+    });
+
+    test('getDid is as expected', () async {
+      final keyStore = InMemoryKeyStore();
+      final wallet = GenericWallet(keyStore);
+      final keyId = "keyId";
+      final publicKey = await wallet.generateKey(keyId: keyId);
+      final prefix = [128, 36];
+      final expectedId =
+          'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + publicKey.bytes))}';
+
+      final actualId = DidKey.getDid(publicKey);
+      expect(actualId, expectedId);
     });
   });
 

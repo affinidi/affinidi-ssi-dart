@@ -8,9 +8,9 @@ import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import '_ecdh_utils.dart';
 import 'key_pair.dart';
 
-import './_const.dart';
 import './_encryption_utils.dart';
 
 /// A [KeyPair] implementation using the Ed25519 signature scheme.
@@ -142,7 +142,7 @@ class Ed25519KeyPair implements KeyPair {
 
   Future<Uint8List> computeEcdhSecret(List<int> publicKey) async {
     var privateKeyForX25519 =
-        _privateKey.bytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);
+        _privateKey.bytes.sublist(0, compressedPublidKeyLength);
     final secret = x25519.X25519(privateKeyForX25519, publicKey);
     return Future.value(Uint8List.fromList(secret));
   }
@@ -167,7 +167,7 @@ class Ed25519KeyPair implements KeyPair {
 
     final derivedKey = await algorithm.deriveKey(
       secretKey: secretKey,
-      nonce: STATIC_HKD_NONCE,
+      nonce: staticHkdNonce,
     );
 
     final derivedKeyBytes = await derivedKey.extractBytes();
@@ -183,9 +183,9 @@ class Ed25519KeyPair implements KeyPair {
   decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
     // Extract the ephemeral public key and the encrypted data
     final ephemeralPublicKeyBytes =
-        ivAndBytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);
+        ivAndBytes.sublist(0, compressedPublidKeyLength);
     final encryptedData = ivAndBytes
-        .sublist(COMPRESSED_PUB_KEY_LENGTH); // The rest is the encrypted data
+        .sublist(compressedPublidKeyLength); // The rest is the encrypted data
 
     Uint8List pubKeyToUse;
     if (publicKey == null) {
@@ -203,7 +203,7 @@ class Ed25519KeyPair implements KeyPair {
     final secretKey = crypto.SecretKey(sharedSecret);
     final derivedKey = await algorithm.deriveKey(
       secretKey: secretKey,
-      nonce: STATIC_HKD_NONCE,
+      nonce: staticHkdNonce,
     );
 
     final derivedKeyBytes = await derivedKey.extractBytes();
@@ -222,7 +222,7 @@ class Ed25519KeyPair implements KeyPair {
 
   Future<crypto.SimplePublicKey> ed25519KeyToX25519PublicKey() async {
     var privateKeyForX25519 =
-        _privateKey.bytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);
+        _privateKey.bytes.sublist(0, compressedPublidKeyLength);
     final algorithm = crypto.X25519();
     final keyPair = await algorithm.newKeyPairFromSeed(privateKeyForX25519);
     return await keyPair.extractPublicKey();
