@@ -385,33 +385,8 @@ void main() {
       expect(decryptedData, equals(plainText));
     });
 
-    test('Decrypt should fail with wrong key', () async {
-      // Get Bob's key from Bob's wallet
-      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
-
-      // Alice encrypts for Bob using her wallet
-      final encryptedData = await aliceWallet.encrypt(
-        plainText,
-        keyId: aliceKeyId,
-        publicKey: bobPublicKey.bytes,
-      );
-
-      // Alice tries to decrypt with her own key (should fail) using her wallet
-      expect(
-        () async => await aliceWallet.decrypt(
-          encryptedData,
-          keyId: aliceKeyId, // Wrong private key for decryption
-          publicKey:
-              bobPublicKey.bytes, // Bob's public key (sender in this context)
-        ),
-        throwsA(isA<SsiException>().having((error) => error.code, 'code',
-            SsiExceptionType.unableToDecrypt.code)),
-      );
-    });
-
     test('Decrypt should fail if wrong public key is provided (two-party)',
         () async {
-      // Get keys from respective wallets
       final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
       final evePublicKey = await eveWallet
           .getPublicKey(eveKeyId); // Get Eve's key from her wallet

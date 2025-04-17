@@ -214,7 +214,10 @@ class Ed25519KeyPair implements KeyPair {
         _encryptionUtils.decryptFromBytes(symmetricKey, encryptedData);
 
     if (decryptedData == null) {
-      throw UnimplementedError('Decryption failed, bytes are null');
+      throw SsiException(
+        message: 'Decryption failed, bytes are null',
+        code: SsiExceptionType.unableToDecrypt.code,
+      );
     }
 
     return decryptedData;

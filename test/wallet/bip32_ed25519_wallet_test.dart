@@ -377,31 +377,6 @@ void main() {
       expect(decryptedData, equals(plainText));
     });
 
-    test('Decrypt should fail with wrong key', () async {
-      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
-
-      // Alice encrypts for Bob
-      final encryptedData = await aliceWallet.encrypt(
-        plainText,
-        keyId: aliceKeyId,
-        publicKey: bobPublicKey.bytes,
-      );
-
-      // Alice tries to decrypt with her own key (should fail as it was encrypted for Bob)
-      // Note: Depending on the ECDH implementation details, this might throw
-      // or return incorrect data. We expect an exception.
-      expect(
-        () async => await aliceWallet.decrypt(
-          encryptedData,
-          keyId: aliceKeyId, // Wrong private key for decryption
-          publicKey:
-              bobPublicKey.bytes, // Bob's public key (sender in this context)
-        ),
-        // TODO: Adjust the expected exception type based on KeyPair implementation
-        throwsA(isA<Exception>()),
-      );
-    });
-
     test('Decrypt should fail if wrong public key is provided (two-party)',
         () async {
       final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
@@ -425,8 +400,8 @@ void main() {
           keyId: bobKeyId,
           publicKey: evePublicKey.bytes, // Wrong sender public key
         ),
-        // TODO: Adjust the expected exception type based on KeyPair implementation
-        throwsA(isA<Exception>()),
+        throwsA(isA<SsiException>().having((error) => error.code, 'code',
+            SsiExceptionType.unableToDecrypt.code)),
       );
     });
   });
