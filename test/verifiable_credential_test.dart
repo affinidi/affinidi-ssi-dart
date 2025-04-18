@@ -34,7 +34,7 @@ void main() {
         test(
           'it retrieves the correct issuer',
           () async {
-            expect(verifiableCredential.issuer,
+            expect(verifiableCredential.issuer.id,
                 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa');
           },
         );
@@ -91,10 +91,11 @@ void main() {
         test(
           'it holds the original json data provided to create the instance',
           () {
-            expect(
-                verifiableCredential.toJson(),
-                VerifiableCredentialDataFixtures
-                    .credentialWithProofDataModelV11);
+            final credential = verifiableCredential;
+            expect(credential.id, 'claimId:02-aaaaaa-aaaaaaaaaaa');
+            expect(credential.issuer.id, 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa');
+            expect(credential.type, ['VerifiableCredential', 'HITContacts']);
+            expect(credential.credentialSubject['email'], 'user@affinidi.com');
           },
         );
 
@@ -186,7 +187,7 @@ void main() {
       test(
         'it retrieves the correct issuer',
         () {
-          expect(verifiableCredential.issuer,
+          expect(verifiableCredential.issuer.id,
               'https://example.edu/issuers/565049');
         },
       );
@@ -210,7 +211,7 @@ void main() {
       test(
         'it retrieves the correct credential subject with a profession position',
         () {
-          expect(verifiableCredential.credentialSubject['id'],
+          expect(verifiableCredential.credentialSubject.id,
               'did:example:ebfeb1f712ebc6f1c276e12ec21');
         },
       );
@@ -240,10 +241,11 @@ void main() {
       test(
         'it holds the original json data provided to create the instance',
         () {
-          expect(
-              verifiableCredential.toJson(),
-              VerifiableCredentialDataFixtures
-                  .jwtCredentialDataModelV11Decoded);
+          final credential = verifiableCredential;
+          expect(credential.id, 'http://example.edu/credentials/3732');
+          expect(credential.issuer.id, 'https://example.edu/issuers/565049');
+          expect(credential.type, ['VerifiableCredential', 'UniversityDegreeCredential']);
+          expect(credential.credentialSubject.id, 'did:example:ebfeb1f712ebc6f1c276e12ec21');
         },
       );
 
@@ -284,7 +286,7 @@ void main() {
         test(
           'it retrieves the correct issuer',
           () {
-            expect(verifiableCredential.issuer,
+            expect(verifiableCredential.issuer.id,
                 'did:example:6fb1f712ebe12c27cc26eebfe11');
           },
         );
@@ -308,7 +310,7 @@ void main() {
         test(
           'it retrieves the correct credentials subject',
           () {
-            expect(verifiableCredential.credentialSubject['id'],
+            expect(verifiableCredential.credentialSubject.id,
                 'https://subject.example/subject/3921');
           },
         );
@@ -346,10 +348,12 @@ void main() {
         test(
           'it holds the original json data provided to create the instance',
           () {
-            expect(
-                verifiableCredential.toJson(),
-                VerifiableCredentialDataFixtures
-                    .credentialWithProofDataModelV20);
+            final credential = verifiableCredential;
+            expect(credential.id, 'https://example.gov/credentials/3732');
+            expect(credential.issuer.id, 'did:example:6fb1f712ebe12c27cc26eebfe11');
+            expect(credential.type, ['VerifiableCredential', 'ExampleDegreeCredential']);
+            expect(credential.credentialSubject.id, 'https://subject.example/subject/3921');
+            expect(credential.proof.type, 'DataIntegrityProof');
           },
         );
 
