@@ -9,7 +9,7 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'did_document.dart';
-import 'did_resolver.dart';
+import 'universal_did_resolver.dart';
 
 class DidVerifier implements Verifier {
   /// The signature scheme to use for verification.
@@ -39,7 +39,7 @@ class DidVerifier implements Verifier {
     required String issuerDid,
     String? resolverAddress,
   }) async {
-    final didDocument = await resolveDidDocument(
+    final didDocument = await UniversalDIDResolver.resolve(
       issuerDid,
       resolverAddress: resolverAddress,
     );
