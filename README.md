@@ -1,6 +1,6 @@
-# Affinidi Dart SSI
+# Affinidi SSI
 
-Affinidi Dart SSI package provides libraries and tools for implementing Self-Sovereign Identity (SSI), a fundamental concept of managing digital identities in a decentralised manner.
+SSI package provides libraries and tools for implementing Self-Sovereign Identity (SSI), a fundamental concept of managing digital identities in a decentralised manner.
 
 It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1.0/) methods to represent an entity's identity in the decentralised ecosystem. It leverages different key management solutions and standards for generating and managing cryptographic keys associated with the digital wallet.
 
@@ -14,13 +14,14 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
   - [Requirements](#requirements)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Universal DID resolver](#universal-did-resolver)
   - [Support & feedback](#support--feedback)
   - [Contributing](#contributing)
   - [Tests](#tests)
 
 ## Supported DID Methods
 
-Affinidi Dart SSI package supports the following DID methods to prove control of an entity's digital identity.
+The package supports the following DID methods to prove control of an entity's digital identity:
 
 - did:key - a self-contained and portable Decentralised Identifier (DID).
 
@@ -32,7 +33,7 @@ Each DID method provides different ways to store and manage DID documents contai
 
 ## Supported Key Management
 
-Affinidi Dart SSI package supports the following key management solutions for securely managing keys associated with the digital wallet.
+The following key management solutions are supported for securely managing keys associated with the digital wallet:
 
 - **BIP32** - a standard for creating Hierarchical Deterministic (HD) wallets and generating multiple keys from a single seed. It primarily supports the secp256k1 elliptic curve.
 
@@ -48,7 +49,7 @@ Add the package into your pubspec.yaml file.
 
 ```yaml
 dependencies:
-  affinidi_dart_ssi: ^<version_number>
+  ssi: ^<version_number>
 ```
 
 Then, run the command below to install the package.
@@ -57,11 +58,11 @@ Then, run the command below to install the package.
 dart pub get
 ```
 
-Visit the pub.dev install page of the Affinidi SSI Dart package for more information.
+Visit the pub.dev install page of the Affinidi's SSI package for more information.
 
 ## Usage
 
-After successfully installing the package, import it into your Dart code.
+After successfully installing the package, import it into your code.
 
 ```dart
 import 'dart:typed_data';
@@ -126,8 +127,34 @@ void main() async {
 
 For more sample usage, go to the [example folder](example).
 
+## Universal DID resolver
+
+To resolve a DID Document for one of the [supported methods](#supported-did-methods), simply pass a DID to the resolve method, as shown in the example below:
+
+```dart
+import 'package:ssi/src/did/universal_did_resolver.dart';
+
+void main() async {
+  final didKeyDocument = await UniversalDIDResolver.resolve(
+    'did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2',
+  );
+  print('Resolved did:key document: $didKeyDocument');
+
+  final didPeerDocument = await UniversalDIDResolver.resolve(
+    'did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy',
+  );
+  print('Resolved did:peer document: $didPeerDocument');
+
+  final didWebDocument = await UniversalDIDResolver.resolve(
+    'did:web:demo.spruceid.com',
+  );
+  print('Resolved did:web document: $didWebDocument');
+}
+```
+
 ## Tests
 
+There is an example of how wallet can be initialized with AWS KMS.
 Make sure localstack with KMS is running in Docker, then run
 
 ```bash
@@ -140,7 +167,7 @@ If you face any issues or have suggestions, please don't hesitate to contact us 
 
 ### Reporting technical issues
 
-If you have a technical issue with the Affinidi Dart SSI's codebase, you can also create an issue directly in GitHub.
+If you have a technical issue with the Affinidi SSI's codebase, you can also create an issue directly in GitHub.
 
 1. Ensure the bug was not already reported by searching on GitHub under
    [Issues](https://github.com/affinidi/affinidi-ssi-dart/issues).

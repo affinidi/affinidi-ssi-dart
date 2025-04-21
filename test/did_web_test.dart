@@ -24,7 +24,7 @@ void main() {
 
       expect(doc.id, equals(did));
       expect(doc.toJson(), contains('id'));
-      expect(doc.toJson(), contains('id'));
+      expect(doc.toJson(), contains('verificationMethod'));
       expect(
         doc.context.hasUrlContext(Uri.parse('https://www.w3.org/ns/did/v1')),
         true,
