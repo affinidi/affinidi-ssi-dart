@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:ssi/src/did/did_signer.dart';
-
 import '../../linked_data/ld_base_suite.dart';
 import '../models/parsed_vp.dart';
 import '../models/v1/vp_data_model_v1.dart';
@@ -29,14 +27,6 @@ final class LdVpDm1Suite
   @override
   LdVpDataModelV1 fromParsed(String input, Map<String, dynamic> payload) =>
       _LdVpDataModelV1Impl.fromParsed(input, payload);
-
-  @override
-  Future<LdVpDataModelV1> issue(
-    VpDataModelV1 vp,
-    DidSigner signer, {
-    LdVpDm1Options? options,
-  }) =>
-      super.issue(vp, signer);
 }
 
 abstract interface class LdVpDataModelV1

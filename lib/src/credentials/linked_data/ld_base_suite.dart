@@ -44,13 +44,12 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
   Model fromParsed(String input, Map<String, dynamic> payload);
 
   Future<Model> issue(
-    VC vc,
+    VC data,
     DidSigner signer, {
     Options? options,
   }) async {
     //TODO(FTL-20735): extend option to select proof suite
-    var json = vc.toJson();
-
+    var json = data.toJson();
     // remove proof in case it's already there
     json.remove(proofKey);
 
@@ -58,7 +57,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     json[issuerKey] = signer.did;
 
     final proof = await _proofSuite.createProof(
-      vc.toJson(),
+      json,
       EcdsaSecp256k1Signature2019CreateOptions(signer: signer),
     );
 

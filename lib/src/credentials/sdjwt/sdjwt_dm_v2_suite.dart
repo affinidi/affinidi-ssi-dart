@@ -102,7 +102,7 @@ final class SdJwtDm2Suite
   }
 
   @override
-  String present(SdJwtDataModelV2 input) =>
+  Map<String, dynamic> present(SdJwtDataModelV2 input) =>
       EnvelopedVcDm2Suite().present(input);
 
   /// Issues a new SD-JWT credential by signing the VC with the provided signer.

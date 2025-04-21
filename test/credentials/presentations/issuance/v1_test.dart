@@ -13,12 +13,12 @@ void main() async {
   final testSeed = Uint8List.fromList(
       utf8.encode('test seed for deterministic key generation'));
 
-  final ldV1VC = UniversalParser.parse(
-      VerifiableCredentialDataFixtures.credentialWithProofDataModelV11);
+  final ldV1VC = UniversalParser.parse(VerifiableCredentialDataFixtures
+      .credentialWithProofDataModelV11JsonEncoded);
   final jwtV1VC = UniversalParser.parse(
       VerifiableCredentialDataFixtures.jwtCredentialDataModelV11);
 
-  final DidSigner signer = await initSigner(testSeed);
+  final signer = await initSigner(testSeed);
 
   group('VP LD V1 Issuance', () {
     test('should be able to create a presentation containing V1 compatible VCs',
@@ -34,6 +34,7 @@ void main() async {
       expect(issuedCredential, isNotNull);
       expect(issuedCredential.serialized, isNotNull);
       expect(issuedCredential.serialized, isA<String>());
+      expect(MutableVpDataModelV1.contextUrl, isIn(issuedCredential.context));
       expect(issuedCredential.holder, isNotEmpty);
       expect(issuedCredential.proof, isNotEmpty);
     });
