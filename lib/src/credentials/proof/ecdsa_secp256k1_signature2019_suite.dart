@@ -30,7 +30,9 @@ class EcdsaSecp256k1Signature2019CreateOptions
 
 class EcdsaSecp256k1Signature2019VerifyOptions
     extends EmbeddedProofSuiteVerifyOptions {
+  final String issuerDid;
   EcdsaSecp256k1Signature2019VerifyOptions({
+    required this.issuerDid,
     super.customDocumentLoader,
   });
 }
@@ -103,7 +105,8 @@ class EcdsaSecp256k1Signature2019
 
     final cacheLoadDocument = _cacheLoadDocument(options.customDocumentLoader);
     final isValid = await _computeVcHash(proof, copy, cacheLoadDocument).then(
-      (hash) => _verifyJws(originalJws as String, verificationMethod, hash),
+      (hash) => _verifyJws(
+          originalJws as String, options.issuerDid, verificationMethod, hash),
     );
 
     if (!isValid) {
@@ -149,6 +152,7 @@ class EcdsaSecp256k1Signature2019
 
   static Future<bool> _verifyJws(
     String jws,
+    String issuerDid,
     Uri verificationMethod,
     Uint8List payloadToSign,
   ) async {
@@ -161,9 +165,9 @@ class EcdsaSecp256k1Signature2019
     }
 
     final encodedHeader = jwsParts[0];
-    final encodedSingature = jwsParts[1];
+    final encodedSignature = jwsParts[1];
 
-    final signature = base64UrlNoPadDecode(encodedSingature);
+    final signature = base64UrlNoPadDecode(encodedSignature);
 
     final jwsToSign = Uint8List.fromList(
       utf8.encode(encodedHeader) + utf8.encode('.') + payloadToSign,
@@ -173,7 +177,7 @@ class EcdsaSecp256k1Signature2019
     final verifier = await DidVerifier.create(
       algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
       kid: verificationMethod.toString(),
-      issuerDid: verificationMethod.removeFragment().toString(),
+      issuerDid: issuerDid,
     );
     return verifier.verify(jwsToSign, signature);
   }
