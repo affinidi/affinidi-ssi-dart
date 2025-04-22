@@ -9,6 +9,7 @@ export 'src/credentials/models/verifiable_credential.dart';
 export 'src/did/did_document.dart';
 export 'src/did/did_key.dart';
 export 'src/did/did_peer.dart';
+export 'src/did/universal_did_resolver.dart';
 export 'src/did/did_signer.dart';
 export 'src/did/did_verifier.dart';
 export 'src/did/did_web.dart';
