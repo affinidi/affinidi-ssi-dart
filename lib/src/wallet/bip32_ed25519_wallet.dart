@@ -141,11 +141,11 @@ class Bip32Ed25519Wallet implements Wallet {
   /// Retrieves the X25519 public key corresponding to the given Ed25519 key ID.
   ///
   /// This is used for cryptographic operations like ECDH key agreement.
+  /// Throws an [SsiException] if the key is invalid or not found.
   ///
   /// [keyId] - The identifier of the Ed25519 key pair.
   ///
   /// Returns a [Future] that completes with the X25519 public key as a [Uint8List].
-  /// Throws an [SsiException] if the key is invalid or not found.
   Future<Uint8List> getX25519PublicKey(String keyId) async {
     final keyPair = _getKeyPair(keyId);
     final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();

@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/p256_key_pair.dart';
 import 'key_store/key_store_interface.dart';
@@ -97,6 +99,29 @@ class GenericWallet implements Wallet {
     final keyPair = await _getKeyPair(keyId);
     final keyData = await keyPair.publicKey;
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+  }
+
+  /// Retrieves the X25519 public key corresponding to the given Ed25519 key ID.
+  ///
+  /// This is used for cryptographic operations like ECDH key agreement.
+  /// Throws an [SsiException] if the key is not an Ed25519 key or not found.
+  ///
+  /// [keyId] - The identifier of the Ed25519 key pair.
+  ///
+  /// Returns a [Future] that completes with the X25519 public key as a [Uint8List].
+  Future<Uint8List> getX25519PublicKey(String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
+    if (keyPair is Ed25519KeyPair) {
+      final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();
+      return Uint8List.fromList(x25519PublicKey.bytes);
+    } else {
+      // P256KeyPair and other potential types do not have a direct X25519 equivalent
+      throw SsiException(
+        message:
+            'getX25519PublicKey is only supported for Ed25519 keys. Key $keyId is of type ${keyPair.runtimeType}.',
+        code: SsiExceptionType.invalidKeyType.code,
+      );
+    }
   }
 
   @override

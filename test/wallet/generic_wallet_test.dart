@@ -313,6 +313,45 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    group('getX25519PublicKey', () {
+      test('should return X25519 key for an Ed25519 key', () async {
+        // Generate an Ed25519 key
+        await wallet.generateKey(
+            keyId: testEd25519KeyId1, keyType: KeyType.ed25519);
+
+        // Get the X25519 public key
+        final x25519KeyBytes =
+            await wallet.getX25519PublicKey(testEd25519KeyId1);
+
+        // Verify the result
+        expect(x25519KeyBytes, isA<Uint8List>());
+        expect(x25519KeyBytes, isNotEmpty);
+        expect(x25519KeyBytes.length, 32); // X25519 public key size
+      });
+
+      test('should throw ArgumentError for non-existent keyId', () async {
+        expect(
+          () async => await wallet.getX25519PublicKey(nonExistentKeyId),
+          throwsArgumentError, // Because _getKeyPair throws ArgumentError
+        );
+      });
+
+      test('should throw SsiException for a P256 key', () async {
+        // Generate a P256 key
+        await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
+
+        // Attempt to get X25519 key for the P256 key
+        expect(
+          () async => await wallet.getX25519PublicKey(testKeyId1),
+          throwsA(isA<SsiException>().having(
+            (e) => e.code,
+            'code',
+            SsiExceptionType.invalidKeyType.code,
+          )),
+        );
+      });
+    });
   });
 
   group('GenericWallet Encryption/Decryption (P256)', () {
