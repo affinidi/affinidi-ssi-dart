@@ -1,11 +1,11 @@
 // import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'dart:convert';
 
-import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
 import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
 import '../../../proof/embedded_proof.dart';
+import '../../../suites/universal_parser.dart';
 import '../../../suites/vc_suites.dart';
 import 'vp_data_model_v2_view.dart';
 

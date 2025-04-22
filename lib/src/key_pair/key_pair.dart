@@ -22,12 +22,15 @@ abstract interface class KeyPair {
   /// Returns the private key as [Uint8List].
   Future<Uint8List> get privateKey;
 
-  /// Signs the given [data] using the private key and optionally a [signatureScheme].
+  /// Signs the provided data using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
   ///
   /// [data] - The data to be signed.
   /// [signatureScheme] - The signature scheme to use.
   ///
-  /// Returns a [Future] that completes with the signature as a [Uint8List].
+  /// Returns a [Future] that completes with the signature in compact format
+  /// as a [Uint8List].
+  ///
+  /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   Future<Uint8List> sign(
     Uint8List data, {
     SignatureScheme? signatureScheme,
@@ -40,6 +43,8 @@ abstract interface class KeyPair {
   /// [signatureScheme] - The signature scheme to use.
   ///
   /// Returns a [Future] that completes with `true` if the signature is valid, `false` otherwise.
+  ///
+  /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   Future<bool> verify(
     Uint8List data,
     Uint8List signature, {

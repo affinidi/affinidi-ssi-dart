@@ -1,8 +1,6 @@
 import 'dart:convert';
 
-import 'package:ssi/src/did/did_document.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/did_document_fixtures.dart';
