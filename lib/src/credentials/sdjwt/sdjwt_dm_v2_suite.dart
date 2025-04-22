@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
-import 'package:ssi/src/credentials/sdjwt/sdjwt_did_verifier.dart';
-import 'package:ssi/ssi.dart';
 
+import '../../../ssi.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/parsed_vc.dart';
@@ -12,6 +11,7 @@ import '../models/v2/vc_data_model_v2_view.dart';
 import '../parsers/sdjwt_parser.dart';
 import '../suites/vc_suite.dart';
 import 'enveloped_vc_suite.dart';
+import 'sdjwt_did_verifier.dart';
 
 /// Options for SD-JWT Data Model v2 operations.
 ///
@@ -127,7 +127,7 @@ final class SdJwtDm2Suite
 
     payload[VcDataModelV2Key.issuer.key] = signer.did;
 
-    final Map<String, dynamic> jwtClaims = {};
+    final jwtClaims = <String, dynamic>{};
     jwtClaims.addAll(payload);
     final disclosureFrame =
         options?.disclosureFrame ?? _getDefaultDisclosureFrame(payload);
@@ -143,12 +143,14 @@ final class SdJwtDm2Suite
         holderPublicKey: options?.holderPublicKey,
       );
       return _SdJwtDataModelV2.fromSdJwt(await sdJwt);
-    } catch (e) {
-      throw SsiException(
-        message: 'Failed to issue SD-JWT credential: ${e.toString()}',
-        code: SsiExceptionType.invalidVC.code,
-        originalMessage: e.toString(),
-      );
+    } catch (e, stacktrace) {
+      Error.throwWithStackTrace(
+          SsiException(
+            message: 'Failed to issue SD-JWT credential: ${e.toString()}',
+            code: SsiExceptionType.invalidVC.code,
+            originalMessage: e.toString(),
+          ),
+          stacktrace);
     }
   }
 
@@ -183,12 +185,13 @@ final class SdJwtDm2Suite
   /// selectively disclosable.
   Map<String, dynamic> _getDefaultDisclosureFrame(
       Map<String, dynamic> payload) {
-    if (payload.containsKey('credentialSubject') &&
-        payload['credentialSubject'] is Map &&
-        (payload['credentialSubject'] as Map).isNotEmpty) {
+    final credentialSubject = payload['credentialSubject'] as dynamic;
+    if (credentialSubject != null &&
+        credentialSubject is Map &&
+        credentialSubject.isNotEmpty) {
       return {
         'credentialSubject': {
-          '_sd': payload['credentialSubject'].keys.toList(),
+          '_sd': credentialSubject.keys.toList(),
         }
       };
     } else {
@@ -202,7 +205,7 @@ final class SdJwtDm2Suite
   ///
   /// Throws [SsiException] if any required fields are missing.
   void _validateCredential(MutableVcDataModelV2 vc) {
-    final List<String> errors = [];
+    final errors = <String>[];
 
     // Check required fields
     if (vc.context.isEmpty) {
