@@ -10,7 +10,7 @@ import './_const.dart';
 
 final encryptionUtils = EncryptionUtils();
 
-PublicKey generateEphemeralPubKey(EllipticCurve curve) {
+PublicKey generateEphemeralPubKey(Curve curve) {
   final privateKey = curve.generatePrivateKey();
   return curve.privateToPublicKey(privateKey);
 }
@@ -24,7 +24,7 @@ Future<Uint8List> computeEcdhSecret(
 Future<Uint8List> encryptData({
   required Uint8List data,
   required Uint8List privateKeyBytes,
-  required EllipticCurve curve,
+  required Curve curve,
   Uint8List? publicKeyBytes,
 }) async {
   final privateKey = PrivateKey.fromBytes(curve, privateKeyBytes);
@@ -58,7 +58,7 @@ Future<Uint8List> encryptData({
 Future<Uint8List> decryptData({
   required Uint8List encryptedPackage,
   required Uint8List privateKeyBytes,
-  required EllipticCurve curve,
+  required Curve curve,
   Uint8List? publicKeyBytes,
 }) async {
   final privateKey = PrivateKey.fromBytes(curve, privateKeyBytes);
