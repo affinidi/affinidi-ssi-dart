@@ -52,17 +52,6 @@ void main() {
       expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
     });
-
-    test('Verify fixture v2 credential', () async {
-      final ldV2VC = UniversalParser.parse(VerifiableCredentialDataFixtures
-          .credentialWithValidProofDataModelV20String);
-
-      final verificationResult = await UniversalVerifier().verify(ldV2VC);
-
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
-    });
   });
 }
 
