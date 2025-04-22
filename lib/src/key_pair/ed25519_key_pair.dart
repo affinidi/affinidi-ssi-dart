@@ -18,37 +18,43 @@ import './_encryption_utils.dart';
 /// This key pair supports signing and verifying data using Ed25519.
 /// It does not support any other signature schemes.
 class Ed25519KeyPair implements KeyPair {
-  /// The key identifier.
-  final String _keyId;
-
   /// The private key.
-  final dynamic _privateKey;
-  final EncryptionUtils _encryptionUtils;
+  final ed.PrivateKey _privateKey;
+  final _encryptionUtils = EncryptionUtils();
 
-  /// Constructs an [Ed25519KeyPair] from a [privateKey] and its associated [keyId].
-  Ed25519KeyPair({
-    required dynamic privateKey,
-    required String keyId,
-  })  : _privateKey = privateKey,
-        _keyId = keyId,
-        _encryptionUtils = EncryptionUtils();
+  Ed25519KeyPair._(this._privateKey);
 
-  /// Returns the identifier of this key pair.
-  @override
-  Future<String> get id => Future.value(_keyId);
+  factory Ed25519KeyPair() {
+    final keyPair = ed.generateKey();
+    return Ed25519KeyPair._(keyPair.privateKey);
+  }
+
+  factory Ed25519KeyPair.fromSeed(Uint8List seed) {
+    final privateKey = ed.newKeyFromSeed(seed);
+    return Ed25519KeyPair._(privateKey);
+  }
+
+  factory Ed25519KeyPair.fromPrivateKey(Uint8List privateKey) {
+    return Ed25519KeyPair._(ed.PrivateKey(privateKey));
+  }
 
   /// Retrieves the public key.
   ///
   /// Returns the key as [Uint8List].
   @override
-  Future<Uint8List> get publicKey => Future.value(
-        Uint8List.fromList(
-          ed.public(_privateKey).bytes,
-        ),
-      );
+  Future<PublicKeyData> get publicKey => Future.value(PublicKeyData(
+      Uint8List.fromList(
+        ed.public(_privateKey).bytes,
+      ),
+      KeyType.ed25519));
 
+  /// Retrieves the private key bytes.
+  ///
+  /// Returns the key as a [Uint8List].
   @override
-  Future<KeyType> get publicKeyType => Future.value(KeyType.ed25519);
+  Future<Uint8List> get privateKey {
+    return Future.value(Uint8List.fromList(_privateKey.bytes));
+  }
 
   /// Signs the provided data using Ed25519.
   ///
@@ -143,11 +149,6 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   encrypt(Uint8List data, {Uint8List? publicKey}) async {
-    final privateKey = _privateKey;
-    if (privateKey == null) {
-      throw ArgumentError('Private key is null');
-    }
-
     List<int> publicKeyToUse;
     if (publicKey == null) {
       publicKeyToUse = generateEphemeralPubKey();
@@ -180,11 +181,6 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
-    final privateKey = _privateKey;
-    if (privateKey == null) {
-      throw ArgumentError('Private key is null');
-    }
-
     // Extract the ephemeral public key and the encrypted data
     final ephemeralPublicKeyBytes =
         ivAndBytes.sublist(0, COMPRESSED_PUB_KEY_LENGTH);

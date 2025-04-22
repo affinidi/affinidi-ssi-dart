@@ -1,6 +1,4 @@
 import 'package:ssi/ssi.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 
 import 'package:test/test.dart';
 
