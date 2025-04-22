@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/linked_data/ld_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
@@ -7,7 +5,7 @@ import 'package:ssi/src/credentials/suites/universal_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import '../../fixtures/verifiable_credentials_data_fixtures.dart';
+import '../../test_utils.dart';
 
 void main() {
   final seed = hexDecode(
@@ -16,7 +14,7 @@ void main() {
 
   group('Test Linked Data VC DM2 issuance', () {
     test('Create and verify proof', () async {
-      final signer = await _initSigner(seed);
+      final signer = await initSigner(seed);
 
       final unsignedCredential = MutableVcDataModelV2(
         context: [
@@ -53,18 +51,4 @@ void main() {
       expect(verificationResult.warnings, isEmpty);
     });
   });
-}
-
-Future<DidSigner> _initSigner(Uint8List seed) async {
-  final wallet = Bip32Wallet.fromSeed(seed);
-  final keyPair = await wallet.createKeyPair('0-0');
-  final doc = await DidKey.create(keyPair);
-
-  final signer = DidSigner(
-    didDocument: doc,
-    didKeyId: doc.verificationMethod[0].id,
-    keyPair: keyPair,
-    signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
-  );
-  return signer;
 }

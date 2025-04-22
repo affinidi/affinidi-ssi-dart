@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/linked_data/ld_dm_v1_suite.dart';
@@ -9,13 +8,14 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../../fixtures/verifiable_credentials_data_fixtures.dart';
+import '../../test_utils.dart';
 
 void main() async {
   final seed = hexDecode(
     'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
   );
 
-  final signer = await _initSigner(seed);
+  final signer = await initSigner(seed);
 
   group('Test Linked Data VC issuance', () {
     test('Create and verify proof', () async {
@@ -90,21 +90,6 @@ void main() async {
       expect(validationResult, true);
     });
   });
-}
-
-Future<DidSigner> _initSigner(Uint8List seed) async {
-  final wallet = Bip32Wallet.fromSeed(seed);
-  final publicKey = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-  final doc = await DidKey.create(publicKey);
-
-  final signer = DidSigner(
-    didDocument: doc,
-    didKeyId: doc.verificationMethod[0].id,
-    wallet: wallet,
-    walletKeyId: Bip32Wallet.rootKeyId,
-    signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
-  );
-  return signer;
 }
 
 final cweResponse = jsonDecode(

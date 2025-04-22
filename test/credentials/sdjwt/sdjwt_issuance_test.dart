@@ -3,9 +3,10 @@ import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
+
+import '../../test_utils.dart';
 
 void main() {
   group('SD-JWT Issuance Tests', () {
@@ -124,19 +125,4 @@ void main() {
       );
     });
   });
-}
-
-Future<DidSigner> initSigner(Uint8List seed) async {
-  final wallet = Bip32Wallet.fromSeed(seed);
-  final publicKey = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-  final doc = await DidKey.create(publicKey);
-
-  final signer = DidSigner(
-    didDocument: doc,
-    didKeyId: doc.verificationMethod[0].id,
-    wallet: wallet,
-    walletKeyId: Bip32Wallet.rootKeyId,
-    signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
-  );
-  return signer;
 }
