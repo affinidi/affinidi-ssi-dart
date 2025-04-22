@@ -57,6 +57,9 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
   @override
   Proof proof;
 
+  @override
+  List<Proof> get proofs => [proof];
+
   /// Creates a [VpDataModelV1] instance.
   ///
   /// The [context] is the JSON-LD context array (required).

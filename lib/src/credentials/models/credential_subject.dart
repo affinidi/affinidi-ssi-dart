@@ -1,11 +1,13 @@
-class CredentialSubject {
+import 'dart:collection';
+
+class CredentialSubject extends MapBase<String, dynamic> {
   final String? id;
-  final Map<String, dynamic> claims;
+  final Map<String, dynamic> _claims;
 
   CredentialSubject({
     this.id,
-    required this.claims,
-  });
+    required Map<String, dynamic> claims,
+  }) : _claims = claims;
 
   factory CredentialSubject.fromJson(Map<String, dynamic> json) {
     final id = json['id'] as String?;
@@ -20,19 +22,30 @@ class CredentialSubject {
   }
 
   Map<String, dynamic> toJson() {
-    final json = Map<String, dynamic>.from(claims);
+    final json = Map<String, dynamic>.from(_claims);
     if (id != null) {
       json['id'] = id;
     }
     return json;
   }
 
-  dynamic operator [](String key) => claims[key];
-  bool containsKey(String key) => claims.containsKey(key);
-  Iterable<String> get keys => claims.keys;
-  Iterable<dynamic> get values => claims.values;
-  Iterable<MapEntry<String, dynamic>> get entries => claims.entries;
+  @override
+  dynamic operator [](Object? key) => _claims[key];
 
   @override
-  String toString() => 'CredentialSubject{id: $id, claims: $claims}';
+  void operator []=(String key, dynamic value) {
+    _claims[key] = value;
+  }
+
+  @override
+  void clear() => _claims.clear();
+
+  @override
+  Iterable<String> get keys => _claims.keys;
+
+  @override
+  dynamic remove(Object? key) => _claims.remove(key);
+
+  @override
+  String toString() => 'CredentialSubject{id: $id, claims: $_claims}';
 }

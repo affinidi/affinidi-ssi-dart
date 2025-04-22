@@ -51,6 +51,5 @@ abstract interface class VpDataModelV2 implements VerifiablePresentation {
   /// The cryptographic proof securing this presentation.
   ///
   /// Can be a DataIntegrityProof, JWT, or other proof format.
-  @override
   Proof get proof;
 }

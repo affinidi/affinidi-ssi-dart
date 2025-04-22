@@ -1,11 +1,7 @@
 class Issuer {
   final String id;
-  final Map<String, dynamic>? properties;
 
-  Issuer({
-    required this.id,
-    this.properties,
-  });
+  Issuer({required this.id});
 
   factory Issuer.fromJson(dynamic json) {
     if (json is String) {
@@ -14,29 +10,18 @@ class Issuer {
       final id = json['id'] as String;
       final propertiesMap = Map<String, dynamic>.from(json);
       propertiesMap.remove('id');
-      return Issuer(
-        id: id,
-        properties: propertiesMap.isNotEmpty ? propertiesMap : null,
-      );
+      return Issuer(id: id);
     } else {
       throw ArgumentError('Issuer must be a String or a Map');
     }
   }
 
-  dynamic toJson() {
-    if (properties != null && properties!.isNotEmpty) {
-      return {
-        'id': id,
-        ...properties!,
-      };
-    }
-    return id;
-  }
+  dynamic toJson() => id;
 
   factory Issuer.fromUri(String uri) => Issuer(id: uri);
 
   bool get isEmpty => id.isEmpty;
 
   @override
-  String toString() => 'Issuer{id: $id, properties: $properties}';
+  String toString() => 'Issuer{id: $id}';
 }

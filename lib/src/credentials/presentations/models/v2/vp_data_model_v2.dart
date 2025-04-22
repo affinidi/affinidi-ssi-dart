@@ -63,6 +63,9 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
   @override
   Proof proof;
 
+  @override
+  List<Proof> get proofs => [proof];
+
   /// Creates a [VpDataModelV2] instance.
   ///
   /// The [context] must include the v2 credentials context.

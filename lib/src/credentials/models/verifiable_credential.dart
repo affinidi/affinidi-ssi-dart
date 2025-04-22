@@ -5,6 +5,7 @@ import 'doc_with_embedded_proof.dart';
 import 'holder.dart';
 import 'issuer.dart';
 import 'proof.dart';
+import 'vc_models.dart';
 
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
@@ -63,23 +64,22 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   Holder? get holder;
 
   /// The cryptographic proof that makes this credential verifiable.
-  @override
   Proof get proof;
 
   /// Refreshing service for this credential.
   ///
   /// Returns null if not set.
-  Map<String, dynamic>? get refreshService;
+  RefreshService? get refreshService;
 
   /// Terms of use associated with this credential.
   ///
   /// Returns empty list if not set.
-  List<Map<String, dynamic>> get termsOfUse;
+  List<TermOfUse> get termsOfUse;
 
   /// Evidence supporting the claims in this credential.
   ///
   /// Returns empty list if not set.
-  List<Map<String, dynamic>> get evidence;
+  List<Evidence> get evidence;
 
   /// Converts this credential to a JSON-serializable map.
   @override

@@ -5,6 +5,7 @@ import '../holder.dart';
 import '../issuer.dart';
 import '../proof.dart';
 import '../verifiable_credential.dart';
+import '../vc_models.dart';
 
 abstract interface class VcDataModelV2 implements VerifiableCredential {
   @override
@@ -41,11 +42,11 @@ abstract interface class VcDataModelV2 implements VerifiableCredential {
   Proof get proof;
 
   @override
-  Map<String, dynamic>? get refreshService;
+  RefreshService? get refreshService;
 
   @override
-  List<Map<String, dynamic>> get termsOfUse;
+  List<TermOfUse> get termsOfUse;
 
   @override
-  List<Map<String, dynamic>> get evidence;
+  List<Evidence> get evidence;
 }

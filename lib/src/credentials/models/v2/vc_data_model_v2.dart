@@ -7,7 +7,9 @@ import '../credential_subject.dart';
 import '../holder.dart';
 import '../issuer.dart';
 import '../proof.dart';
+// ignore_for_file: unused_import
 import 'vc_data_model_v2_view.dart';
+import '../vc_models.dart';
 
 // TODO(FTL-20734): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
 class MutableVcDataModelV2 implements VcDataModelV2 {
@@ -47,13 +49,16 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
   Proof proof;
 
   @override
-  Map<String, dynamic>? refreshService;
+  RefreshService? refreshService;
 
   @override
-  List<Map<String, dynamic>> termsOfUse;
+  List<TermOfUse> termsOfUse;
 
   @override
-  List<Map<String, dynamic>> evidence;
+  List<Evidence> evidence;
+
+  @override
+  List<Proof> get proofs => [proof];
 
   MutableVcDataModelV2({
     required this.context,
@@ -68,8 +73,8 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     Proof? proof,
     this.credentialStatus,
     this.refreshService,
-    List<Map<String, dynamic>>? termsOfUse,
-    List<Map<String, dynamic>>? evidence,
+    List<TermOfUse>? termsOfUse,
+    List<Evidence>? evidence,
   })  : credentialSchema = credentialSchema ?? [],
         credentialSubject = credentialSubject ?? CredentialSubject(claims: {}),
         termsOfUse = termsOfUse ?? [],
@@ -117,7 +122,7 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     }
 
     if (refreshService != null) {
-      json[_P.refreshService.key] = refreshService;
+      json[_P.refreshService.key] = refreshService!.toJson();
     }
 
     if (termsOfUse.isNotEmpty) {
@@ -197,20 +202,21 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     }
 
     if (json.containsKey(_P.refreshService.key)) {
-      refreshService = jsonToMap(json[_P.refreshService.key]);
+      refreshService =
+          RefreshService.fromJson(jsonToMap(json[_P.refreshService.key]));
     }
 
     if (json.containsKey(_P.termsOfUse.key)) {
-      termsOfUse = _parseListOrSingleItem<Map<String, dynamic>>(
+      termsOfUse = _parseListOrSingleItem<TermOfUse>(
         json[_P.termsOfUse.key],
-        (item) => jsonToMap(item),
+        (item) => TermOfUse.fromJson(jsonToMap(item)),
       );
     }
 
     if (json.containsKey(_P.evidence.key)) {
-      evidence = _parseListOrSingleItem<Map<String, dynamic>>(
+      evidence = _parseListOrSingleItem<Evidence>(
         json[_P.evidence.key],
-        (item) => jsonToMap(item),
+        (item) => Evidence.fromJson(jsonToMap(item)),
       );
     }
   }
@@ -229,17 +235,9 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     if (items.isEmpty) {
       return [];
     } else if (items.length == 1) {
-      if (items.first is Map<String, dynamic>) {
-        return items.first;
-      } else {
-        return (items.first as dynamic).toJson();
-      }
+      return (items.first as dynamic).toJson();
     } else {
-      if (items.first is Map<String, dynamic>) {
-        return items;
-      } else {
-        return items.map((item) => (item as dynamic).toJson()).toList();
-      }
+      return items.map((item) => (item as dynamic).toJson()).toList();
     }
   }
 }

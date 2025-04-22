@@ -12,7 +12,7 @@ abstract interface class DocWithEmbeddedProof {
   /// The cryptographic proof used to verify the integrity of this data.
   ///
   /// If the map is empty, no embedded proof is present.
-  Proof get proof;
+  List<Proof> get proofs;
 
   /// Converts this document to a JSON-serializable map.
   Map<String, dynamic> toJson();
