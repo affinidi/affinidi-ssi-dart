@@ -4,7 +4,7 @@ import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
 import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
-import '../../../models/proof.dart';
+import '../../../proof/embedded_proof.dart';
 import '../../../suites/vc_suites.dart';
 import 'vp_data_model_v1_view.dart';
 
@@ -55,10 +55,10 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
 
   /// The cryptographic proof created by the holder.
   @override
-  Proof proof;
+  EmbeddedProof proof;
 
   @override
-  List<Proof> get proofs => [proof];
+  List<EmbeddedProof> get proofs => [proof];
 
   /// Creates a [VpDataModelV1] instance.
   ///
@@ -73,9 +73,9 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
     required this.type,
     this.holder,
     List<ParsedVerifiableCredential>? verifiableCredential,
-    Proof? proof,
+    EmbeddedProof? proof,
   })  : verifiableCredential = verifiableCredential ?? [],
-        proof = proof ?? Proof(type: 'Ed25519Signature2018');
+        proof = proof ?? EmbeddedProof(type: 'Ed25519Signature2018');
 
   /// Converts this presentation to a JSON-serializable map.
   @override
@@ -106,7 +106,7 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
         type = [],
         verifiableCredential = [],
         holder = null,
-        proof = Proof(type: '') {
+        proof = EmbeddedProof(type: '') {
     final json = jsonToMap(input);
 
     context = getStringList(json, '@context', mandatory: true);
@@ -133,7 +133,7 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
     }
 
     if (json.containsKey('proof')) {
-      proof = Proof.fromJson(json['proof'] as Map<String, dynamic>);
+      proof = EmbeddedProof.fromJson(json['proof'] as Map<String, dynamic>);
     }
   }
 }

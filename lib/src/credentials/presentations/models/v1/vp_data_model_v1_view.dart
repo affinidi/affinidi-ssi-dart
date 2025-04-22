@@ -1,6 +1,6 @@
 import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
-import '../../../models/proof.dart';
+import '../../../proof/embedded_proof.dart';
 import '../verifiable_presentation.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v1.1.
@@ -47,5 +47,5 @@ abstract interface class VpDataModelV1 implements VerifiablePresentation {
   List<ParsedVerifiableCredential> get verifiableCredential;
 
   /// The cryptographic proof created by the holder.
-  Proof get proof;
+  EmbeddedProof get proof;
 }

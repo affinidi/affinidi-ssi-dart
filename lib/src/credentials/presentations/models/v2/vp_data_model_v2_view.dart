@@ -1,6 +1,6 @@
 import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
-import '../../../models/proof.dart';
+import '../../../proof/embedded_proof.dart';
 import '../verifiable_presentation.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v2.0.
@@ -51,5 +51,5 @@ abstract interface class VpDataModelV2 implements VerifiablePresentation {
   /// The cryptographic proof securing this presentation.
   ///
   /// Can be a DataIntegrityProof, JWT, or other proof format.
-  Proof get proof;
+  EmbeddedProof get proof;
 }

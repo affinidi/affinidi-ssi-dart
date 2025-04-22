@@ -6,7 +6,7 @@ import '../credential_status.dart';
 import '../credential_subject.dart';
 import '../holder.dart';
 import '../issuer.dart';
-import '../proof.dart';
+import '../../proof/embedded_proof.dart';
 // ignore_for_file: unused_import
 import 'vc_data_model_v2_view.dart';
 import '../vc_models.dart';
@@ -46,7 +46,7 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
   Holder? holder;
 
   @override
-  Proof proof;
+  EmbeddedProof proof;
 
   @override
   RefreshService? refreshService;
@@ -58,7 +58,7 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
   List<Evidence> evidence;
 
   @override
-  List<Proof> get proofs => [proof];
+  List<EmbeddedProof> get proofs => [proof];
 
   MutableVcDataModelV2({
     required this.context,
@@ -70,7 +70,7 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     this.validFrom,
     this.validUntil,
     this.holder,
-    Proof? proof,
+    EmbeddedProof? proof,
     this.credentialStatus,
     this.refreshService,
     List<TermOfUse>? termsOfUse,
@@ -79,7 +79,8 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
         credentialSubject = credentialSubject ?? CredentialSubject(claims: {}),
         termsOfUse = termsOfUse ?? [],
         evidence = evidence ?? [],
-        proof = proof ?? Proof(type: 'Ed25519Signature2018');
+        proof = proof ??
+            EmbeddedProof(type: 'Ed25519Signature2018', previousProof: []);
 
   @override
   Map<String, dynamic> toJson() {
@@ -143,7 +144,7 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
         holder = null,
         issuer = Issuer(id: ''),
         type = [],
-        proof = Proof(type: ''),
+        proof = EmbeddedProof(type: ''),
         termsOfUse = [],
         evidence = [],
         refreshService = null {
@@ -193,7 +194,8 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     }
 
     if (json.containsKey(_P.proof.key)) {
-      proof = Proof.fromJson(json[_P.proof.key] as Map<String, dynamic>);
+      proof =
+          EmbeddedProof.fromJson(json[_P.proof.key] as Map<String, dynamic>);
     }
 
     if (json.containsKey(_P.credentialStatus.key)) {

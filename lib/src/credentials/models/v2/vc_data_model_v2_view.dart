@@ -3,7 +3,7 @@ import '../credential_status.dart';
 import '../credential_subject.dart';
 import '../holder.dart';
 import '../issuer.dart';
-import '../proof.dart';
+import '../../proof/embedded_proof.dart';
 import '../verifiable_credential.dart';
 import '../vc_models.dart';
 
@@ -39,7 +39,7 @@ abstract interface class VcDataModelV2 implements VerifiableCredential {
   Holder? get holder;
 
   @override
-  Proof get proof;
+  EmbeddedProof get proof;
 
   @override
   RefreshService? get refreshService;

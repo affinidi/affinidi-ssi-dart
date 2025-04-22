@@ -4,7 +4,7 @@ import 'credential_subject.dart';
 import 'doc_with_embedded_proof.dart';
 import 'holder.dart';
 import 'issuer.dart';
-import 'proof.dart';
+import '../proof/embedded_proof.dart';
 import 'vc_models.dart';
 
 /// A tamper-evident credential whose authorship can be cryptographically verified.
@@ -64,7 +64,7 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   Holder? get holder;
 
   /// The cryptographic proof that makes this credential verifiable.
-  Proof get proof;
+  EmbeddedProof get proof;
 
   /// Refreshing service for this credential.
   ///

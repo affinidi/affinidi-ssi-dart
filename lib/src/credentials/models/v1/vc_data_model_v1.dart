@@ -6,7 +6,7 @@ import '../credential_status.dart';
 import '../credential_subject.dart';
 import '../holder.dart';
 import '../issuer.dart';
-import '../proof.dart';
+import '../../proof/embedded_proof.dart';
 import '../vc_models.dart';
 import 'vc_data_model_v1_view.dart';
 
@@ -51,13 +51,14 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
   Holder? holder;
 
   @override
-  Proof proof;
+  EmbeddedProof proof;
+
+  @override
+  List<EmbeddedProof> get proofs => [proof];
 
   @override
   RefreshService? refreshService;
 
-  @override
-  List<Proof> get proofs => [proof];
   @override
   List<TermOfUse> termsOfUse;
 
@@ -74,7 +75,7 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
     this.issuanceDate,
     this.expirationDate,
     this.holder,
-    Proof? proof,
+    EmbeddedProof? proof,
     this.credentialStatus,
     this.refreshService,
     List<TermOfUse>? termsOfUse,
@@ -83,7 +84,7 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
         credentialSubject = credentialSubject ?? CredentialSubject(claims: {}),
         termsOfUse = termsOfUse ?? [],
         evidence = evidence ?? [],
-        proof = proof ?? Proof(type: 'Ed25519Signature2018');
+        proof = proof ?? EmbeddedProof(type: 'Ed25519Signature2018');
 
   @override
   Map<String, dynamic> toJson() {
@@ -147,7 +148,7 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
         holder = null,
         issuer = Issuer(id: ''),
         type = [],
-        proof = Proof(type: ''),
+        proof = EmbeddedProof(type: ''),
         termsOfUse = [],
         evidence = [],
         refreshService = null {
@@ -198,7 +199,8 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
     }
 
     if (json.containsKey(_P.proof.key)) {
-      proof = Proof.fromJson(json[_P.proof.key] as Map<String, dynamic>);
+      proof =
+          EmbeddedProof.fromJson(json[_P.proof.key] as Map<String, dynamic>);
     }
 
     if (json.containsKey(_P.credentialStatus.key)) {
