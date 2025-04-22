@@ -5,7 +5,7 @@ import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:test/test.dart';
 
-import 'fixtures/did_document_fixtures.dart';
+import '../fixtures/did_document_fixtures.dart';
 
 void main() {
   group('Test Verification Method', () {

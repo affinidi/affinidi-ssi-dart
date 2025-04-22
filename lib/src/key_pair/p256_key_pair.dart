@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ecdsa/ecdsa.dart' as ecdsa;
 import 'package:elliptic/ecdh.dart';
-import 'package:elliptic/elliptic.dart';
+import 'package:elliptic/elliptic.dart' as ec;
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
@@ -20,56 +20,41 @@ import './_ecdh_utils.dart' as ecdh_utils;
 /// `ecdsa_p256_sha256` signature scheme. It also supports Elliptic Curve
 /// Diffie-Hellman (ECDH) key agreement.
 class P256KeyPair implements KeyPair {
-  final EllipticCurve _p256;
-  final PrivateKey _privateKey;
-  final String _keyId;
+  static final ec.EllipticCurve _p256 = ec.getP256();
+  final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
 
-  P256KeyPair._({
-    required EllipticCurve p256,
-    required PrivateKey privateKey,
-    required String keyId,
-  })  : _p256 = p256,
-        _privateKey = privateKey,
-        _keyId = keyId;
+  P256KeyPair._(this._privateKey);
 
   /// Creates a new [P256KeyPair] instance with a randomly generated private key.
   ///
-  /// [keyId] - The identifier for the new key pair.
-  factory P256KeyPair.create({
-    required String keyId,
-  }) {
-    final p256 = getP256();
-    return P256KeyPair._(
-      p256: p256,
-      privateKey: p256.generatePrivateKey(),
-      keyId: keyId,
-    );
+  factory P256KeyPair() {
+    return P256KeyPair._(_p256.generatePrivateKey());
   }
 
-  /// Returns the identifier of the key pair.
-  @override
-  Future<String> get id => Future.value(_keyId);
+  /// Creates a [P256KeyPair] instance from a private key.
+  ///
+  /// [privateKey] - The private key as a [Uint8List].
+  factory P256KeyPair.fromPrivateKey(Uint8List privateKey) {
+    return P256KeyPair._(ec.PrivateKey.fromBytes(_p256, privateKey));
+  }
 
   /// Retrieves the public key in compressed format.
   ///
   /// Returns the key as [Uint8List].
   @override
-  Future<Uint8List> get publicKey async {
-    if (_publicKeyBytes == null) {
-      final bytes = hex.decode(await _publicKeyHex);
-      _publicKeyBytes = Uint8List.fromList(bytes);
-    }
-    return Future.value(_publicKeyBytes!);
+  Future<PublicKeyData> get publicKey async {
+    _publicKeyBytes ??= hex.decode(_privateKey.publicKey.toCompressedHex());
+    return Future.value(PublicKeyData(_publicKeyBytes!, KeyType.p256));
   }
 
-  Future<String> get _publicKeyHex {
-    return Future.value(_privateKey.publicKey.toCompressedHex());
-  }
-
-  /// Returns the type of the public key.
+  /// Retrieves the private key bytes.
+  ///
+  /// Returns the key as a [Uint8List].
   @override
-  Future<KeyType> get publicKeyType => Future.value(KeyType.p256);
+  Future<Uint8List> get privateKey {
+    return Future.value(Uint8List.fromList(_privateKey.bytes));
+  }
 
   /// Signs the provided data using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
   ///
