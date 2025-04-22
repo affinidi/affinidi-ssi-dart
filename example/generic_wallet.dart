@@ -108,4 +108,45 @@ void main() async {
     publicKey: p256key.bytes, // Alice's public key
   );
   print('Decrypted data (by Bob): $decryptedByBob');
+
+  // --- Two-Party Encryption/Decryption (Ed25519) ---
+  print('\n--- Two-Party (Ed25519) ---');
+
+  // Create a third wallet for Charlie (using Ed25519 for this example)
+  final charlieKeyStore = InMemoryKeyStore();
+  final charlieWallet = GenericWallet(charlieKeyStore);
+
+  // Generate an Ed25519 key pair for Charlie in his wallet.
+  final charlieEd25519key =
+      await charlieWallet.generateKey(keyType: KeyType.ed25519);
+  print('Charlie Ed25519 key pair created.');
+
+  // Get the corresponding X25519 public keys for ECDH
+  final aliceX25519PublicKey = await wallet.getX25519PublicKey(ed25519key.id);
+  final charlieX25519PublicKey =
+      await charlieWallet.getX25519PublicKey(charlieEd25519key.id);
+  print('Alice X25519 Public Key: $aliceX25519PublicKey');
+  print('Charlie X25519 Public Key: $charlieX25519PublicKey');
+
+  // Alice encrypts data for Charlie using her Ed25519 private key
+  // and Charlie's X25519 public key.
+  print(
+      'Alice encrypting for Charlie using her key ${ed25519key.id} and Charlie\'s X25519 public key...');
+  final encryptedForCharlie = await wallet.encrypt(
+    plainText,
+    keyId: ed25519key.id,
+    publicKey: charlieX25519PublicKey,
+  );
+  print('Encrypted data (for Charlie): $encryptedForCharlie');
+
+  // Charlie decrypts the data using his Ed25519 private key
+  // and Alice's X25519 public key.
+  print(
+      'Charlie decrypting using his key ${charlieEd25519key.id} and Alice\'s X25519 public key...');
+  final decryptedByCharlie = await charlieWallet.decrypt(
+    encryptedForCharlie,
+    keyId: charlieEd25519key.id,
+    publicKey: aliceX25519PublicKey,
+  );
+  print('Decrypted data (by Charlie): $decryptedByCharlie');
 }
