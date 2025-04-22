@@ -6,29 +6,11 @@ import 'package:ssi/src/json_ld/context.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
-import '../key_pair/key_pair.dart';
+import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../utility.dart';
 import 'did_document.dart';
 import 'public_key_utils.dart';
-
-/// Represents a base key with its type and public key bytes.
-class BaseKey {
-  /// The type of the key e.g., Ed25519
-  KeyType keyType;
-
-  /// The public key bytes
-  Uint8List pubKeyBytes;
-
-  /// Creates a new [BaseKey] instance.
-  ///
-  /// [pubKeyBytes] - The public key bytes.
-  /// [keyType] - The type of the key.
-  BaseKey(
-    this.pubKeyBytes,
-    this.keyType,
-  );
-}
 
 /// Enum representing the prefixes used in encoding for peer DIDs.
 ///
@@ -339,15 +321,15 @@ class DidPeer {
     return ".${Numalgo2Prefix.service.value}${base64UrlEncode(utf8.encode(jsonString)).replaceAll('=', '')}";
   }
 
-  static String _pubKeysToPeerDid(List<BaseKey> signingKeys,
-      [List<BaseKey>? agreementKeys, String? serviceEndpoint]) {
+  static String _pubKeysToPeerDid(List<PublicKey> signingKeys,
+      [List<PublicKey>? agreementKeys, String? serviceEndpoint]) {
     bool isDid0 = signingKeys.length == 1 &&
         (agreementKeys == null && serviceEndpoint == null);
 
     if (isDid0) {
-      dynamic signingKey = signingKeys[0];
+      PublicKey signingKey = signingKeys[0];
       final multibase = toMultiBase(
-        toMultikey(signingKey.pubKeyBytes, signingKey.keyType),
+        toMultikey(signingKey.bytes, signingKey.type),
       );
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
@@ -363,7 +345,7 @@ class DidPeer {
             agreementKeys
                 .map(
                   (key) => toMultiBase(
-                    toMultikey(key.pubKeyBytes, key.keyType),
+                    toMultikey(key.bytes, key.type),
                   ),
                 )
                 .join(encSep)
@@ -373,7 +355,7 @@ class DidPeer {
             signingKeys
                 .map(
                   (key) => toMultiBase(
-                    toMultikey(key.pubKeyBytes, key.keyType),
+                    toMultikey(key.bytes, key.type),
                   ),
                 )
                 .join(authSep)
@@ -383,7 +365,7 @@ class DidPeer {
     return '${_didTypePrefixes[DidPeerType.peer2]}$agreementKeysStr$authKeysStr$serviceStr';
   }
 
-  static String _pubKeyToPeerDid(List<BaseKey> baseKeys,
+  static String _pubKeyToPeerDid(List<PublicKey> baseKeys,
       [String? serviceEndpoint]) {
     // bool isDid0 = keyPairs.length == 1 && serviceEndpoint == null;
     DidPeerType didType = baseKeys.length == 1 && serviceEndpoint == null
@@ -407,31 +389,21 @@ class DidPeer {
   /// Throws [SsiException] if empty key pairs.
   //FIXME(FTL-20741) should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
   static Future<DidDocument> create(
-    List<KeyPair> keyPairs, {
+    List<PublicKey> keys, {
     String? serviceEndpoint,
   }) async {
-    if (keyPairs.isEmpty) {
+    if (keys.isEmpty) {
       throw SsiException(
         message: 'At least one key must be provided',
         code: SsiExceptionType.invalidDidDocument.code,
       );
     }
 
-    List<BaseKey> baseKeys = [];
-
-    for (final keyPair in keyPairs) {
-      final keyType = await keyPair.publicKeyType;
-      final pubKeyBytes = await keyPair.publicKey;
-      BaseKey baseKey = BaseKey(pubKeyBytes, keyType);
-
-      baseKeys.add(baseKey);
-    }
-
-    final did = _pubKeyToPeerDid(baseKeys, serviceEndpoint);
+    final did = _pubKeyToPeerDid(keys, serviceEndpoint);
 
     final verificationMethods = <VerificationMethod>[];
-    for (var i = 0; i < keyPairs.length; i++) {
-      final keyPair = keyPairs[i];
+    for (var i = 0; i < keys.length; i++) {
+      final key = keys[i];
       verificationMethods.add(
         VerificationMethodMultibase(
           id: did,
@@ -439,8 +411,8 @@ class DidPeer {
           type: 'Multikey',
           publicKeyMultibase: toMultiBase(
             toMultikey(
-              await keyPair.publicKey,
-              await keyPair.publicKeyType,
+              key.bytes,
+              key.type,
             ),
           ),
         ),

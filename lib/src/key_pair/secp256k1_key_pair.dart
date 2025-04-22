@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
-import 'package:elliptic/elliptic.dart';
+import 'package:elliptic/elliptic.dart' as ec;
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
@@ -16,35 +16,38 @@ import './_ecdh_utils.dart' as ecdh_utils;
 /// This key pair supports signing and verifying data using secp256k1.
 /// It does not support any other signature schemes.
 class Secp256k1KeyPair implements KeyPair {
-  /// The key identifier.
-  final String _keyId;
-
   /// The BIP32 node containing the key material.
   final BIP32 _node;
-  final dynamic _secp256k1;
+  final ec.Curve _secp256k1 = ec.getSecp256k1();
 
   /// Creates a new [Secp256k1KeyPair] instance.
   ///
   /// [node] - The BIP32 node containing the key material.
-  /// [keyId] - The key identifier.
   Secp256k1KeyPair({
     required BIP32 node,
-    required String keyId,
-  })  : _node = node,
-        _keyId = keyId,
-        _secp256k1 = getSecp256k1();
-
-  @override
-  Future<String> get id => Future.value(_keyId);
+  }) : _node = node;
 
   /// Retrieves the public key.
   ///
-  /// Returns the key as [Uint8List].
+  /// Returns the key as [PublicKey].
   @override
-  Future<Uint8List> get publicKey => Future.value(_node.publicKey);
+  Future<PublicKeyData> get publicKey =>
+      Future.value(PublicKeyData(_node.publicKey, KeyType.secp256k1));
 
+  /// Retrieves the private key bytes.
+  ///
+  /// Returns the key as a [Uint8List].
   @override
-  Future<KeyType> get publicKeyType => Future.value(KeyType.secp256k1);
+  Future<Uint8List> get privateKey {
+    final privateKey = _node.privateKey;
+    if (privateKey == null) {
+      throw SsiException(
+        message: 'Private key missing.',
+        code: SsiExceptionType.keyPairMissingPrivateKey.code,
+      );
+    }
+    return Future.value(privateKey);
+  }
 
   /// Signs the provided data using secp256k1.
   ///
