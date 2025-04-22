@@ -450,4 +450,98 @@ void main() {
       );
     });
   });
+
+  group('GenericWallet Encryption/Decryption (Ed25519)', () {
+    late GenericWallet aliceWallet;
+    late GenericWallet bobWallet;
+    late GenericWallet eveWallet;
+    late InMemoryKeyStore aliceKeyStore;
+    late InMemoryKeyStore bobKeyStore;
+    late InMemoryKeyStore eveKeyStore;
+    const aliceKeyId = 'alice-ed25519-key';
+    const bobKeyId = 'bob-ed25519-key';
+    const eveKeyId = 'eve-ed25519-key';
+    final plainText = Uint8List.fromList([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+
+    setUp(() async {
+      aliceKeyStore = InMemoryKeyStore();
+      bobKeyStore = InMemoryKeyStore();
+      eveKeyStore = InMemoryKeyStore();
+
+      aliceWallet = GenericWallet(aliceKeyStore);
+      bobWallet = GenericWallet(bobKeyStore);
+      eveWallet = GenericWallet(eveKeyStore);
+
+      await aliceWallet.generateKey(
+          keyId: aliceKeyId, keyType: KeyType.ed25519);
+      await bobWallet.generateKey(keyId: bobKeyId, keyType: KeyType.ed25519);
+      await eveWallet.generateKey(keyId: eveKeyId, keyType: KeyType.ed25519);
+    });
+
+    test('Two-party encrypt/decrypt should succeed', () async {
+      final aliceX25519PublicKeyBytes =
+          await aliceWallet.getX25519PublicKey(aliceKeyId);
+      final bobX25519PublicKeyBytes =
+          await bobWallet.getX25519PublicKey(bobKeyId);
+
+      // Alice encrypts for Bob using her wallet and Bob's X25519 public key
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobX25519PublicKeyBytes,
+      );
+
+      // Bob decrypts using Alice's X25519 public key and his wallet
+      final decryptedData = await bobWallet.decrypt(
+        encryptedData,
+        keyId: bobKeyId,
+        publicKey: aliceX25519PublicKeyBytes,
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Single-party encrypt/decrypt should succeed (no public key)',
+        () async {
+      // Alice encrypts for herself using her wallet
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+      );
+
+      // Alice decrypts using only her key in her wallet
+      final decryptedData = await aliceWallet.decrypt(
+        encryptedData,
+        keyId: aliceKeyId,
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Decrypt should fail if wrong public key is provided (two-party)',
+        () async {
+      final bobX25519PublicKeyBytes =
+          await bobWallet.getX25519PublicKey(bobKeyId);
+      final eveX25519PublicKeyBytes =
+          await eveWallet.getX25519PublicKey(eveKeyId);
+
+      // Alice encrypts for Bob using her wallet and Bob's X25519 public key
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobX25519PublicKeyBytes,
+      );
+
+      // Bob tries to decrypt using Eve's X25519 public key instead of Alice's, using his wallet
+      expect(
+        () async => await bobWallet.decrypt(
+          encryptedData,
+          keyId: bobKeyId,
+          publicKey: eveX25519PublicKeyBytes,
+        ),
+        throwsA(isA<SsiException>().having((error) => error.code, 'code',
+            SsiExceptionType.unableToDecrypt.code)),
+      );
+    });
+  });
 }
