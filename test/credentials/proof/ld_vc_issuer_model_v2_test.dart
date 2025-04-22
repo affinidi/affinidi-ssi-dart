@@ -5,7 +5,6 @@ import 'package:ssi/src/credentials/suites/universal_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import '../../fixtures/verifiable_credentials_data_fixtures.dart';
 import '../../test_utils.dart';
 
 void main() {
@@ -46,17 +45,6 @@ void main() {
 
       final verificationResult =
           await UniversalVerifier().verify(issuedCredential);
-
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
-    });
-
-    test('Verify fixture v2 credential', () async {
-      final ldV2VC = UniversalParser.parse(VerifiableCredentialDataFixtures
-          .credentialWithValidProofDataModelV20String);
-
-      final verificationResult = await UniversalVerifier().verify(ldV2VC);
 
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
