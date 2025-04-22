@@ -104,10 +104,9 @@ class EcdsaSecp256k1Signature2019
     proof['@context'] = _securityContext;
 
     final cacheLoadDocument = _cacheLoadDocument(options.customDocumentLoader);
-    final isValid = await _computeVcHash(proof, copy, cacheLoadDocument).then(
-      (hash) => _verifyJws(
-          originalJws as String, options.issuerDid, verificationMethod, hash),
-    );
+    final hash = await _computeVcHash(proof, copy, cacheLoadDocument);
+    final isValid = await _verifyJws(
+        originalJws as String, options.issuerDid, verificationMethod, hash);
 
     if (!isValid) {
       return VerificationResult.invalid(
@@ -663,7 +662,8 @@ final _documentCache = <Uri, RemoteDocument>{
                 "proof": {
                     "@id": "https://w3id.org/security#proof",
                     "@type": "@id",
-                    "@container": "@graph"
+                    "@container": "@graph",
+                    "@context": "https://w3id.org/security/v2"
                 },
                 "refreshService": {
                     "@id": "https://www.w3.org/2018/credentials#refreshService",

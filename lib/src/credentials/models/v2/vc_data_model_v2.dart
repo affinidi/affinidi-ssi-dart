@@ -36,8 +36,6 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
   @override
   DateTime? validUntil;
 
-  Map<String, dynamic> holder;
-
   @override
   Map<String, dynamic> proof;
 
@@ -50,12 +48,10 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     required this.type,
     this.validFrom,
     this.validUntil,
-    Map<String, String>? holder,
     Map<String, String>? proof,
     this.credentialStatus,
   })  : credentialSchema = credentialSchema ?? [],
         credentialSubject = credentialSubject ?? {},
-        holder = holder ?? {},
         proof = proof ?? {};
 
   @override
@@ -88,10 +84,6 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
       json[_P.credentialSubject.key] = credentialSubject;
     }
 
-    if (holder.isNotEmpty) {
-      json[_P.holder.key] = holder;
-    }
-
     if (proof.isNotEmpty) {
       json[_P.proof.key] = proof;
     }
@@ -108,7 +100,6 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
       : context = [],
         credentialSchema = [],
         credentialSubject = {},
-        holder = {},
         issuer = '',
         type = [],
         proof = {} {
@@ -148,11 +139,6 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
           message: 'invalid credentialSchema',
           code: SsiExceptionType.invalidJson.code,
         );
-    }
-
-    // FIXME(FTL-20734) handle simple string
-    if (json.containsKey(_P.holder.key) && json[_P.holder.key] is Map) {
-      holder = Map.of(json[_P.holder.key] as Map<String, dynamic>);
     }
 
     // FIXME(FTL-20734) use a typed object
@@ -197,7 +183,6 @@ enum VcDataModelV2Key {
   validFrom,
   validUntil,
   credentialStatus,
-  holder,
   ;
 
   final String? _key;

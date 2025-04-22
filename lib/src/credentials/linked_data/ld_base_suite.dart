@@ -80,10 +80,11 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
   Future<bool> verifyIntegrity(Model input) async {
     //TODO(FTL-20735): discover proof type
     final proofSuite = EcdsaSecp256k1Signature2019();
-    final issuerDid = input.toJson()[issuerKey];
+    final document = input.toJson();
+    final issuerDid = document[issuerKey] as String;
     final verificationResult = await proofSuite.verifyProof(
-      input.toJson(),
-      EcdsaSecp256k1Signature2019VerifyOptions(issuerDid: issuerDid as String),
+      document,
+      EcdsaSecp256k1Signature2019VerifyOptions(issuerDid: issuerDid),
     );
 
     return verificationResult.isValid;
