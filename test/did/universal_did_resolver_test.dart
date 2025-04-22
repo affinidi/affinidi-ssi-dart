@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:ssi/src/did/did_resolver.dart';
+import 'package:ssi/src/did/universal_did_resolver.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:test/test.dart';
@@ -16,7 +16,7 @@ void main() {
         final expectedDidDoc =
             jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
 
-        final resolvedDidDocument = await resolveDidDocument(did);
+        final resolvedDidDocument = await UniversalDIDResolver.resolve(did);
         expect(resolvedDidDocument.toJson(), expectedDidDoc);
       });
     });
@@ -29,7 +29,7 @@ void main() {
         final expectedDidDoc =
             jsonDecode(DidDocumentFixtures.didDocumentWithControllerPeer);
 
-        final resolvedDidDoc = await resolveDidDocument(did);
+        final resolvedDidDoc = await UniversalDIDResolver.resolve(did);
 
         expect(resolvedDidDoc.toJson(), expectedDidDoc);
       });
@@ -40,7 +40,7 @@ void main() {
         final did = 'did:web:example.com';
 
         expectLater(
-          resolveDidDocument(did),
+          UniversalDIDResolver.resolve(did),
           throwsA(isA<SsiException>().having(
               (e) => e.code, 'code', SsiExceptionType.invalidDidWeb.code)),
         );
@@ -52,7 +52,7 @@ void main() {
         final did = "did:test";
 
         expectLater(
-          resolveDidDocument(did),
+          UniversalDIDResolver.resolve(did),
           throwsA(isA<SsiException>().having(
               (e) => e.code, 'code', SsiExceptionType.unableToResolveDid.code)),
         );
@@ -63,7 +63,7 @@ void main() {
         final resolverAddress = "https://example.com";
 
         expectLater(
-          resolveDidDocument(did, resolverAddress: resolverAddress),
+          UniversalDIDResolver.resolve(did, resolverAddress: resolverAddress),
           throwsA(isA<SsiException>().having(
               (e) => e.code, 'code', SsiExceptionType.unableToResolveDid.code)),
         );
