@@ -1,8 +1,6 @@
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/jwt/jwt_dm_v1_suite.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -92,13 +90,14 @@ void main() {
           'it holds the original json data provided to create the instance',
           () {
             final expected = Map<String, dynamic>.from(
-                VerifiableCredentialDataFixtures.credentialWithProofDataModelV11);
-            if (expected['issuer'] is Map && expected['issuer'].length == 1 && expected['issuer']['id'] != null) {
+                VerifiableCredentialDataFixtures
+                    .credentialWithProofDataModelV11);
+            if (expected['issuer'] is Map &&
+                expected['issuer'].length == 1 &&
+                expected['issuer']['id'] != null) {
               expected['issuer'] = expected['issuer']['id'];
             }
-            expect(
-                verifiableCredential.toJson(),
-                expected);
+            expect(verifiableCredential.toJson(), expected);
           },
         );
 
@@ -245,11 +244,15 @@ void main() {
         'it holds the original json data provided to create the instance',
         () {
           final expected = Map<String, dynamic>.from(
-              VerifiableCredentialDataFixtures.jwtCredentialDataModelV11Decoded);
-          if (expected['issuer'] is Map && expected['issuer'].length == 1 && expected['issuer']['id'] != null) {
+              VerifiableCredentialDataFixtures
+                  .jwtCredentialDataModelV11Decoded);
+          if (expected['issuer'] is Map &&
+              expected['issuer'].length == 1 &&
+              expected['issuer']['id'] != null) {
             expected['issuer'] = expected['issuer']['id'];
           }
-          final actual = Map<String, dynamic>.from(verifiableCredential.toJson());
+          final actual =
+              Map<String, dynamic>.from(verifiableCredential.toJson());
           // Remove 'proof' if not present in expected
           if (!expected.containsKey('proof')) {
             actual.remove('proof');
@@ -358,18 +361,23 @@ void main() {
           'it holds the original json data provided to create the instance',
           () {
             final expected = Map<String, dynamic>.from(
-                VerifiableCredentialDataFixtures.credentialWithProofDataModelV20);
-            if (expected['issuer'] is Map && expected['issuer'].length == 1 && expected['issuer']['id'] != null) {
+                VerifiableCredentialDataFixtures
+                    .credentialWithProofDataModelV20);
+            if (expected['issuer'] is Map &&
+                expected['issuer'].length == 1 &&
+                expected['issuer']['id'] != null) {
               expected['issuer'] = expected['issuer']['id'];
             }
-            final actual = Map<String, dynamic>.from(verifiableCredential.toJson());
+            final actual =
+                Map<String, dynamic>.from(verifiableCredential.toJson());
             // Normalize 'created' field in proof if present
             if (expected['proof'] != null && actual['proof'] != null) {
               final expProof = Map<String, dynamic>.from(expected['proof']);
               final actProof = Map<String, dynamic>.from(actual['proof']);
               if (expProof['created'] != null && actProof['created'] != null) {
                 // Remove milliseconds if present in actual
-                actProof['created'] = actProof['created'].replaceAll('.000Z', 'Z');
+                actProof['created'] =
+                    actProof['created'].replaceAll('.000Z', 'Z');
                 expected['proof'] = expProof;
                 actual['proof'] = actProof;
               }
@@ -406,4 +414,3 @@ void main() {
     });
   });
 }
-
