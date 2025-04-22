@@ -5,7 +5,7 @@ import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-import 'fixtures/did_document_fixtures.dart';
+import '../fixtures/did_document_fixtures.dart';
 
 void main() {
   final seed = hexDecode(
@@ -22,11 +22,10 @@ void main() {
       final expectedKeyType = KeyType.ed25519;
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
-      final rootKeyId = "0-0";
-      final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidPeer.create([keyPair]);
+      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      final doc = await DidPeer.create([key]);
       final actualDid = doc.id;
-      final actualKeyType = await keyPair.publicKeyType;
+      final actualKeyType = key.type;
 
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerPeer);
@@ -46,9 +45,9 @@ void main() {
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
-      final keyPair = await wallet.createKeyPair(derivedKeyId);
+      final key = await wallet.generateKey(keyId: derivedKeyId);
       final doc = await DidPeer.create(
-        [keyPair, keyPair],
+        [key, key],
         serviceEndpoint: 'https://denys.com/income',
       );
       final actualDid = doc.id;
@@ -101,9 +100,8 @@ void main() {
       ]);
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
-      final rootKeyId = "0-0";
-      final keyPair = await wallet.getKeyPair(rootKeyId);
-      final doc = await DidPeer.create([keyPair]);
+      final key = await wallet.getPublicKey(Bip32Ed25519Wallet.rootKeyId);
+      final doc = await DidPeer.create([key]);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
