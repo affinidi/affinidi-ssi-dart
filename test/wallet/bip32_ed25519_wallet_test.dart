@@ -163,6 +163,31 @@ void main() {
           isFalse);
     });
 
+    test('sign and verify should work with specific schemes', () async {
+      const derivedKeyId = '3-4'; // Use a different ID
+      await wallet.generateKey(keyId: derivedKeyId);
+
+      // Sign and verify with ed25519_sha256
+      final sigSha256 = await wallet.sign(dataToSign,
+          keyId: derivedKeyId, signatureScheme: SignatureScheme.ed25519_sha256);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: sigSha256,
+              keyId: derivedKeyId,
+              signatureScheme: SignatureScheme.ed25519_sha256),
+          isTrue);
+
+      // Sign and verify with eddsa_sha512
+      final sigSha512 = await wallet.sign(dataToSign,
+          keyId: derivedKeyId, signatureScheme: SignatureScheme.eddsa_sha512);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: sigSha512,
+              keyId: derivedKeyId,
+              signatureScheme: SignatureScheme.eddsa_sha512),
+          isTrue);
+    });
+
     test('sign should throw for non-existent keyId', () async {
       expect(
         () async => await wallet.sign(dataToSign, keyId: '99-97'),
@@ -226,15 +251,20 @@ void main() {
       final rootSchemes = await wallet
           .getSupportedSignatureSchemes(Bip32Ed25519Wallet.rootKeyId);
       expect(rootSchemes, contains(SignatureScheme.ed25519_sha256));
-      expect(rootSchemes.length, 1);
+      expect(rootSchemes, contains(SignatureScheme.eddsa_sha512));
+      expect(rootSchemes.length, 2);
 
       // Derived key
       const derivedKeyId = '8-1';
       await wallet.generateKey(keyId: derivedKeyId);
       final derivedSchemes =
           await wallet.getSupportedSignatureSchemes(derivedKeyId);
-      expect(derivedSchemes, contains(SignatureScheme.ed25519_sha256));
-      expect(derivedSchemes.length, 1);
+      expect(
+          derivedSchemes,
+          contains(SignatureScheme
+              .ed25519_sha256)); // Should still contain ed25519_sha256
+      expect(derivedSchemes, contains(SignatureScheme.eddsa_sha512));
+      expect(derivedSchemes.length, 2);
     });
 
     test('getSupportedSignatureSchemes should throw for non-existent keyId',
@@ -261,7 +291,7 @@ void main() {
     test('createFromKeyStore successfully creates wallet with default key',
         () async {
       await keyStore.setSeed(seed);
-      final ksWallet = await Bip32Ed25519Wallet.createFromKeyStore(keyStore);
+      final ksWallet = await Bip32Ed25519Wallet.fromKeyStore(keyStore);
 
       // Verify root key exists
       expect(await ksWallet.hasKey(Bip32Ed25519Wallet.rootKeyId), isTrue);
@@ -278,12 +308,107 @@ void main() {
     test('createFromKeyStore throws ArgumentError if seed key is missing',
         () async {
       expect(
-        () async => await Bip32Ed25519Wallet.createFromKeyStore(keyStore),
+        () async => await Bip32Ed25519Wallet.fromKeyStore(keyStore),
         throwsA(isA<ArgumentError>().having(
           (e) => e.message,
           'message',
           contains('Seed not found in KeyStore'),
         )),
+      );
+    });
+  });
+
+  group('Bip32Ed25519Wallet Encryption/Decryption', () {
+    late Bip32Ed25519Wallet aliceWallet;
+    late Bip32Ed25519Wallet bobWallet;
+    const aliceKeyId = '1-1';
+    const bobKeyId = '2-2';
+    final aliceSeed =
+        Uint8List.fromList(List.generate(32, (index) => index + 10));
+    final bobSeed =
+        Uint8List.fromList(List.generate(32, (index) => index + 20));
+    final plainText = Uint8List.fromList([10, 20, 30, 40, 50]);
+
+    setUp(() async {
+      aliceWallet = await Bip32Ed25519Wallet.fromSeed(aliceSeed);
+      bobWallet = await Bip32Ed25519Wallet.fromSeed(bobSeed);
+      // Ensure keys are generated
+      await aliceWallet.generateKey(keyId: aliceKeyId);
+      await bobWallet.generateKey(keyId: bobKeyId);
+    });
+
+    test('Two-party encrypt/decrypt should succeed', () async {
+      // Get X25519 keys for ECDH
+      final aliceX25519PublicKeyBytes =
+          await aliceWallet.getX25519PublicKey(aliceKeyId);
+      final bobX25519PublicKeyBytes =
+          await bobWallet.getX25519PublicKey(bobKeyId);
+
+      // Alice encrypts for Bob using Bob's X25519 public key
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobX25519PublicKeyBytes, // Use Bob's X25519 key
+      );
+
+      // Bob decrypts using Alice's X25519 public key
+      final decryptedData = await bobWallet.decrypt(
+        encryptedData,
+        keyId: bobKeyId,
+        publicKey: aliceX25519PublicKeyBytes, // Use Alice's X25519 key
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Single-party encrypt/decrypt should succeed (no public key)',
+        () async {
+      // Alice encrypts for herself
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        // No public key provided, implies ephemeral key usage
+      );
+
+      // Alice decrypts using only her key
+      final decryptedData = await aliceWallet.decrypt(
+        encryptedData,
+        keyId: aliceKeyId,
+        // No public key provided
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Decrypt should fail if wrong public key is provided (two-party)',
+        () async {
+      final bobX25519PublicKeyBytes =
+          await bobWallet.getX25519PublicKey(bobKeyId);
+
+      // Generate a third party key
+      final eveWallet = await Bip32Ed25519Wallet.fromSeed(
+          Uint8List.fromList(List.generate(32, (i) => i + 30)));
+      const eveKeyId = '3-3';
+      await eveWallet.generateKey(keyId: eveKeyId);
+      final eveX25519PublicKeyBytes =
+          await eveWallet.getX25519PublicKey(eveKeyId);
+
+      // Alice encrypts for Bob using Bob's X25519 public key
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobX25519PublicKeyBytes, // Bob's X25519 key
+      );
+
+      // Bob tries to decrypt using Eve's X25519 public key instead of Alice's
+      expect(
+        () async => await bobWallet.decrypt(
+          encryptedData,
+          keyId: bobKeyId,
+          publicKey: eveX25519PublicKeyBytes, // Wrong sender X25519 public key
+        ),
+        throwsA(isA<SsiException>().having((error) => error.code, 'code',
+            SsiExceptionType.unableToDecrypt.code)),
       );
     });
   });

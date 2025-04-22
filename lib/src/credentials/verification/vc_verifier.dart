@@ -1,4 +1,4 @@
-import '../../../ssi.dart';
+import '../../types.dart';
 import '../models/parsed_vc.dart';
 
 abstract interface class VcVerifier {

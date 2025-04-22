@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
 import '../../../models/parsed_vc.dart';
+import '../../../suites/universal_parser.dart';
 import '../../../suites/vc_suites.dart';
 import 'vp_data_model_v1_view.dart';
 

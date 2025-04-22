@@ -1,4 +1,4 @@
-import '../../../ssi.dart';
+import '../../types.dart';
 import '../models/parsed_vc.dart';
 import '../verification/vc_expiry_verifier.dart';
 import '../verification/vc_integrity_verifier.dart';

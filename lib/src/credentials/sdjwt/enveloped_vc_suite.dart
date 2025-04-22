@@ -1,4 +1,4 @@
-import '../../../ssi.dart';
+import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/parsed_vc.dart';

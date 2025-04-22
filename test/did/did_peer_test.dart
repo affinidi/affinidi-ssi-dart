@@ -16,20 +16,20 @@ void main() {
   final accountNumber = 24567;
 
   group('Test DID', () {
-    test('the main did peer should match to the expected value', () async {
+    test('generateDocument for did:peer:0 should match expected', () async {
       final expectedDid =
           'did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy';
       final expectedKeyType = KeyType.ed25519;
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-      final doc = await DidPeer.create([key]);
+      final doc = DidPeer.generateDocument([key]);
       final actualDid = doc.id;
       final actualKeyType = key.type;
 
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerPeer);
-      final resolvedDidDocument = await DidPeer.resolve(actualDid);
+      final resolvedDidDocument = DidPeer.resolve(actualDid);
       expect(resolvedDidDocument.id, expectedDid);
       expect(resolvedDidDocument.toJson(), expectedDidDoc);
 
@@ -37,7 +37,19 @@ void main() {
       expect(actualKeyType, expectedKeyType);
     });
 
-    test('a derived did keys should start with did:peer:2.Ez6Mk', () async {
+    test('getDid for did:peer:0 should match expected', () async {
+      final expectedDid =
+          'did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy';
+
+      final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
+      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
+      final actualDid = DidPeer.getDid([key]);
+
+      expect(actualDid, expectedDid);
+    });
+
+    test('generateDocument for did:peer:2 should start with did:peer:2.Ez6Mk',
+        () async {
       final expectedDidPeerPrefix = 'did:peer:2.Ez6Mk';
 
       final expectedDid =
@@ -46,7 +58,7 @@ void main() {
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final derivedKeyId = "$accountNumber-0";
       final key = await wallet.generateKey(keyId: derivedKeyId);
-      final doc = await DidPeer.create(
+      final doc = DidPeer.generateDocument(
         [key, key],
         serviceEndpoint: 'https://denys.com/income',
       );
@@ -54,11 +66,29 @@ void main() {
 
       final expectedDidDocString =
           '{"@context":["https://www.w3.org/ns/did/v1","https://ns.did.ai/suites/multikey-2021/v1/"],"id":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","verificationMethod":[{"id":"#key-1","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-2","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-3","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"},{"id":"#key-4","controller":"did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C"}],"authentication":["#key-3","#key-4"],"keyAgreement":["#key-1","#key-2"],"assertionMethod":["#key-3","#key-4"],"service":[{"id":"new-id","type":"DIDCommMessaging","serviceEndpoint":"https://denys.com/income"}]}';
-      final resolvedDidDocument = await DidPeer.resolve(actualDid);
+      final resolvedDidDocument = DidPeer.resolve(actualDid);
       expect(resolvedDidDocument.id, expectedDid);
       expect(resolvedDidDocument.toJson(), jsonDecode(expectedDidDocString));
 
       expect(actualDid, startsWith(expectedDidPeerPrefix));
+    });
+
+    test('getDid for did:peer:2 should match expected', () async {
+      final expectedDid =
+          'did:peer:2.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Ez6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.Vz6MkvihZPJZAyHyMsKTd9pVX2pGTgL6a5UrVodSJVEWbF48C.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0';
+
+      final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
+      final derivedKeyId = "$accountNumber-0";
+      final key = await wallet.generateKey(keyId: derivedKeyId);
+      final actualDid = DidPeer.getDid(
+        [
+          key,
+          key
+        ], // Using same key twice for simplicity, matching generateDocument test
+        serviceEndpoint: 'https://denys.com/income',
+      );
+
+      expect(actualDid, expectedDid);
     });
 
     test('public key derived from did should be the same', () async {
@@ -101,7 +131,7 @@ void main() {
 
       final wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       final key = await wallet.getPublicKey(Bip32Ed25519Wallet.rootKeyId);
-      final doc = await DidPeer.create([key]);
+      final doc = DidPeer.generateDocument([key]);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);

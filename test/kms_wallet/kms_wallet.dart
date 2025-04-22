@@ -75,6 +75,24 @@ class KmsWallet implements Wallet {
     return Future.value(PublicKey(newKeyId, keyData.bytes, keyData.type));
   }
 
+  @override
+  Future<Uint8List> encrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Uint8List> decrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) async {
+    throw UnimplementedError();
+  }
+
   Future<KmsKeyPair> _getKeyPair(String keyId) async {
     return KmsKeyPair(kmsClient, keyId);
   }
