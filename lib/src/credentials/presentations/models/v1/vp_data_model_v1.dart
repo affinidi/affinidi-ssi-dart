@@ -26,6 +26,7 @@ import 'vp_data_model_v1_view.dart';
 /// );
 /// ```
 class MutableVpDataModelV1 implements VpDataModelV1 {
+  /// The default JSON-LD context URL for VP v1
   static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
 
   /// The JSON-LD context for this presentation.
@@ -138,6 +139,10 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
   }
 }
 
+/// Parses a [ParsedVerifiableCredential] from JSON or string input.
+///
+/// Accepts either a raw credential object or its serialized string form.
+/// Delegates to [UniversalParser].
 ParsedVerifiableCredential parseVC(dynamic e) {
   String encoded;
   if (e is! String) {
@@ -149,6 +154,8 @@ ParsedVerifiableCredential parseVC(dynamic e) {
   return UniversalParser.parse(encoded);
 }
 
+/// Converts a [ParsedVerifiableCredential] into its presentable form
+/// using the appropriate VC suite.
 dynamic presentVC(ParsedVerifiableCredential credential) {
   final suite = VcSuites.getVcSuite(credential);
   return suite.present(credential);

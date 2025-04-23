@@ -59,8 +59,7 @@ void main() {
       final verificationResult = await proofSuite.verifyProof(
         unsignedCredential.toJson(),
         EcdsaSecp256k1Signature2019VerifyOptions(
-          customDocumentLoader: _testLoadDocument,
-        ),
+            customDocumentLoader: _testLoadDocument, issuerDid: signer.did),
       );
 
       expect(verificationResult.isValid, true);
@@ -73,8 +72,8 @@ void main() {
       final verificationResult = await proofSuite.verifyProof(
         cweResponse as Map<String, dynamic>,
         EcdsaSecp256k1Signature2019VerifyOptions(
-          customDocumentLoader: _testLoadDocument,
-        ),
+            customDocumentLoader: _testLoadDocument,
+            issuerDid: cweResponse['issuer']),
       );
 
       expect(verificationResult.isValid, true);
