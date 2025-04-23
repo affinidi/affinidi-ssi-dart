@@ -27,16 +27,10 @@ class Secp256k1KeyPair implements KeyPair {
     required BIP32 node,
   }) : _node = node;
 
-  /// Retrieves the public key.
-  ///
-  /// Returns the key as [PublicKey].
   @override
   Future<PublicKeyData> get publicKey =>
       Future.value(PublicKeyData(_node.publicKey, KeyType.secp256k1));
 
-  /// Retrieves the private key bytes.
-  ///
-  /// Returns the key as a [Uint8List].
   @override
   Future<Uint8List> get privateKey {
     final privateKey = _node.privateKey;
@@ -49,15 +43,6 @@ class Secp256k1KeyPair implements KeyPair {
     return Future.value(privateKey);
   }
 
-  /// Signs the provided data using secp256k1.
-  ///
-  /// [data] - The data to be signed.
-  /// [signatureScheme] - The signature scheme to use.
-  ///
-  /// Returns a [Future] that completes with the signature as a [Uint8List].
-  ///
-  /// Throws [SsiException] if an unsupported [signatureScheme] is passed or
-  /// if the signing operation fails.
   @override
   Future<Uint8List> sign(
     Uint8List data, {
@@ -79,16 +64,6 @@ class Secp256k1KeyPair implements KeyPair {
     return _node.sign(digest);
   }
 
-  /// Verifies a signature using secp256k1.
-  ///
-  /// [data] - The data that was signed.
-  /// [signature] - The signature to verify.
-  /// [signatureScheme] - The signature scheme to use.
-  ///
-  /// Returns a [Future] that completes with `true` if the signature is valid,
-  /// `false` otherwise.
-  ///
-  /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   @override
   Future<bool> verify(
     Uint8List data,

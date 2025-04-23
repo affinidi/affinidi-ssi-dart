@@ -12,6 +12,12 @@ enum SsiExceptionType {
   /// An error occurred while trying to resolve a did
   unableToResolveDid(code: 'unable_to_resolve_did'),
 
+  /// Decryption of payload failed
+  unableToDecrypt(code: 'unable_to_decrypt'),
+
+  /// Encryption of payload failed
+  unableToEncrypt(code: 'unable_to_encrypt'),
+
   /// The DID Document is not valid
   invalidDidDocument(code: 'invalid_did_document'),
 

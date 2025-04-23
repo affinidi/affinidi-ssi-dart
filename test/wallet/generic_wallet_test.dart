@@ -235,6 +235,34 @@ void main() {
           isFalse);
     });
 
+    test('sign and verify should work with specific Ed25519 schemes', () async {
+      // Create Ed25519 key
+      await wallet.generateKey(
+          keyId: testEd25519KeyId1, keyType: KeyType.ed25519);
+
+      // Sign and verify with ed25519_sha256
+      final sigSha256 = await wallet.sign(dataToSign,
+          keyId: testEd25519KeyId1,
+          signatureScheme: SignatureScheme.ed25519_sha256);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: sigSha256,
+              keyId: testEd25519KeyId1,
+              signatureScheme: SignatureScheme.ed25519_sha256),
+          isTrue);
+
+      // Sign and verify with eddsa_sha512
+      final sigSha512 = await wallet.sign(dataToSign,
+          keyId: testEd25519KeyId1,
+          signatureScheme: SignatureScheme.eddsa_sha512);
+      expect(
+          await wallet.verify(dataToSign,
+              signature: sigSha512,
+              keyId: testEd25519KeyId1,
+              signatureScheme: SignatureScheme.eddsa_sha512),
+          isTrue);
+    });
+
     test('sign should throw for non-existent keyId', () async {
       expect(
         () async => await wallet.sign(dataToSign, keyId: nonExistentKeyId),
@@ -274,7 +302,8 @@ void main() {
       final ed25519Schemes =
           await wallet.getSupportedSignatureSchemes(testEd25519KeyId1);
       expect(ed25519Schemes, contains(SignatureScheme.ed25519_sha256));
-      expect(ed25519Schemes.length, 1); // Ed25519KeyPair supports two
+      expect(ed25519Schemes, contains(SignatureScheme.eddsa_sha512));
+      expect(ed25519Schemes.length, 2); // Ed25519KeyPair supports two
     });
 
     test('getSupportedSignatureSchemes should throw for non-existent keyId',
@@ -282,6 +311,236 @@ void main() {
       expect(
         () async => await wallet.getSupportedSignatureSchemes(nonExistentKeyId),
         throwsArgumentError,
+      );
+    });
+
+    group('getX25519PublicKey', () {
+      test('should return X25519 key for an Ed25519 key', () async {
+        // Generate an Ed25519 key
+        await wallet.generateKey(
+            keyId: testEd25519KeyId1, keyType: KeyType.ed25519);
+
+        // Get the X25519 public key
+        final x25519KeyBytes =
+            await wallet.getX25519PublicKey(testEd25519KeyId1);
+
+        // Verify the result
+        expect(x25519KeyBytes, isA<Uint8List>());
+        expect(x25519KeyBytes, isNotEmpty);
+        expect(x25519KeyBytes.length, 32); // X25519 public key size
+      });
+
+      test('should throw ArgumentError for non-existent keyId', () async {
+        expect(
+          () async => await wallet.getX25519PublicKey(nonExistentKeyId),
+          throwsArgumentError, // Because _getKeyPair throws ArgumentError
+        );
+      });
+
+      test('should throw SsiException for a P256 key', () async {
+        // Generate a P256 key
+        await wallet.generateKey(keyId: testKeyId1, keyType: KeyType.p256);
+
+        // Attempt to get X25519 key for the P256 key
+        expect(
+          () async => await wallet.getX25519PublicKey(testKeyId1),
+          throwsA(isA<SsiException>().having(
+            (e) => e.code,
+            'code',
+            SsiExceptionType.invalidKeyType.code,
+          )),
+        );
+      });
+    });
+  });
+
+  group('GenericWallet Encryption/Decryption (P256)', () {
+    late GenericWallet aliceWallet;
+    late GenericWallet bobWallet;
+    late GenericWallet eveWallet; // Added for Eve
+    late InMemoryKeyStore aliceKeyStore;
+    late InMemoryKeyStore bobKeyStore;
+    late InMemoryKeyStore eveKeyStore; // Added for Eve
+    const aliceKeyId = 'alice-p256-key';
+    const bobKeyId = 'bob-p256-key';
+    const eveKeyId = 'eve-p256-key'; // Added for Eve
+    final plainText = Uint8List.fromList([1, 1, 2, 3, 5, 8]);
+
+    setUp(() async {
+      // Initialize separate key stores and wallets
+      aliceKeyStore = InMemoryKeyStore();
+      bobKeyStore = InMemoryKeyStore();
+      eveKeyStore = InMemoryKeyStore(); // Initialize Eve's store
+
+      aliceWallet = GenericWallet(aliceKeyStore);
+      bobWallet = GenericWallet(bobKeyStore);
+      eveWallet = GenericWallet(eveKeyStore); // Initialize Eve's wallet
+
+      // Ensure keys are generated in their respective wallets
+      await aliceWallet.generateKey(keyId: aliceKeyId, keyType: KeyType.p256);
+      await bobWallet.generateKey(keyId: bobKeyId, keyType: KeyType.p256);
+      // Generate Eve's key in her wallet for the failure test
+      await eveWallet.generateKey(keyId: eveKeyId, keyType: KeyType.p256);
+    });
+
+    test('Two-party encrypt/decrypt should succeed', () async {
+      // Get keys from respective wallets
+      final alicePublicKey = await aliceWallet.getPublicKey(aliceKeyId);
+      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+
+      // Alice encrypts for Bob using her wallet
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobPublicKey.bytes,
+      );
+
+      // Bob decrypts using Alice's public key and his wallet
+      final decryptedData = await bobWallet.decrypt(
+        encryptedData,
+        keyId: bobKeyId,
+        publicKey: alicePublicKey.bytes,
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Single-party encrypt/decrypt should succeed (no public key)',
+        () async {
+      // Alice encrypts for herself using her wallet
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        // No public key provided, implies ephemeral key usage
+      );
+
+      // Alice decrypts using only her key in her wallet
+      final decryptedData = await aliceWallet.decrypt(
+        encryptedData,
+        keyId: aliceKeyId,
+        // No public key provided
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Decrypt should fail if wrong public key is provided (two-party)',
+        () async {
+      final bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+      final evePublicKey = await eveWallet
+          .getPublicKey(eveKeyId); // Get Eve's key from her wallet
+
+      // Alice encrypts for Bob using her wallet
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobPublicKey.bytes,
+      );
+
+      // Bob tries to decrypt using Eve's public key instead of Alice's, using his wallet
+      expect(
+        () async => await bobWallet.decrypt(
+          // Use bobWallet here
+          encryptedData,
+          keyId: bobKeyId,
+          publicKey: evePublicKey.bytes, // Wrong sender public key
+        ),
+        throwsA(isA<SsiException>().having((error) => error.code, 'code',
+            SsiExceptionType.unableToDecrypt.code)),
+      );
+    });
+  });
+
+  group('GenericWallet Encryption/Decryption (Ed25519)', () {
+    late GenericWallet aliceWallet;
+    late GenericWallet bobWallet;
+    late GenericWallet eveWallet;
+    late InMemoryKeyStore aliceKeyStore;
+    late InMemoryKeyStore bobKeyStore;
+    late InMemoryKeyStore eveKeyStore;
+    const aliceKeyId = 'alice-ed25519-key';
+    const bobKeyId = 'bob-ed25519-key';
+    const eveKeyId = 'eve-ed25519-key';
+    final plainText = Uint8List.fromList([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+
+    setUp(() async {
+      aliceKeyStore = InMemoryKeyStore();
+      bobKeyStore = InMemoryKeyStore();
+      eveKeyStore = InMemoryKeyStore();
+
+      aliceWallet = GenericWallet(aliceKeyStore);
+      bobWallet = GenericWallet(bobKeyStore);
+      eveWallet = GenericWallet(eveKeyStore);
+
+      await aliceWallet.generateKey(
+          keyId: aliceKeyId, keyType: KeyType.ed25519);
+      await bobWallet.generateKey(keyId: bobKeyId, keyType: KeyType.ed25519);
+      await eveWallet.generateKey(keyId: eveKeyId, keyType: KeyType.ed25519);
+    });
+
+    test('Two-party encrypt/decrypt should succeed', () async {
+      final aliceX25519PublicKeyBytes =
+          await aliceWallet.getX25519PublicKey(aliceKeyId);
+      final bobX25519PublicKeyBytes =
+          await bobWallet.getX25519PublicKey(bobKeyId);
+
+      // Alice encrypts for Bob using her wallet and Bob's X25519 public key
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobX25519PublicKeyBytes,
+      );
+
+      // Bob decrypts using Alice's X25519 public key and his wallet
+      final decryptedData = await bobWallet.decrypt(
+        encryptedData,
+        keyId: bobKeyId,
+        publicKey: aliceX25519PublicKeyBytes,
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Single-party encrypt/decrypt should succeed (no public key)',
+        () async {
+      // Alice encrypts for herself using her wallet
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+      );
+
+      // Alice decrypts using only her key in her wallet
+      final decryptedData = await aliceWallet.decrypt(
+        encryptedData,
+        keyId: aliceKeyId,
+      );
+
+      expect(decryptedData, equals(plainText));
+    });
+
+    test('Decrypt should fail if wrong public key is provided (two-party)',
+        () async {
+      final bobX25519PublicKeyBytes =
+          await bobWallet.getX25519PublicKey(bobKeyId);
+      final eveX25519PublicKeyBytes =
+          await eveWallet.getX25519PublicKey(eveKeyId);
+
+      // Alice encrypts for Bob using her wallet and Bob's X25519 public key
+      final encryptedData = await aliceWallet.encrypt(
+        plainText,
+        keyId: aliceKeyId,
+        publicKey: bobX25519PublicKeyBytes,
+      );
+
+      // Bob tries to decrypt using Eve's X25519 public key instead of Alice's, using his wallet
+      expect(
+        () async => await bobWallet.decrypt(
+          encryptedData,
+          keyId: bobKeyId,
+          publicKey: eveX25519PublicKeyBytes,
+        ),
+        throwsA(isA<SsiException>().having((error) => error.code, 'code',
+            SsiExceptionType.unableToDecrypt.code)),
       );
     });
   });

@@ -27,7 +27,6 @@ class P256KeyPair implements KeyPair {
   P256KeyPair._(this._privateKey);
 
   /// Creates a new [P256KeyPair] instance with a randomly generated private key.
-  ///
   factory P256KeyPair() {
     return P256KeyPair._(_p256.generatePrivateKey());
   }
@@ -39,33 +38,17 @@ class P256KeyPair implements KeyPair {
     return P256KeyPair._(ec.PrivateKey.fromBytes(_p256, privateKey));
   }
 
-  /// Retrieves the public key in compressed format.
-  ///
-  /// Returns the key as [Uint8List].
   @override
   Future<PublicKeyData> get publicKey async {
     _publicKeyBytes ??= hex.decode(_privateKey.publicKey.toCompressedHex());
     return Future.value(PublicKeyData(_publicKeyBytes!, KeyType.p256));
   }
 
-  /// Retrieves the private key bytes.
-  ///
-  /// Returns the key as a [Uint8List].
   @override
   Future<Uint8List> get privateKey {
     return Future.value(Uint8List.fromList(_privateKey.bytes));
   }
 
-  /// Signs the provided data using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
-  ///
-  /// [data] - The data to be signed.
-  /// [signatureScheme] - The signature scheme to use. If null, defaults to
-  ///   `SignatureScheme.ecdsa_p256_sha256`.
-  ///
-  /// Returns a [Future] that completes with the signature in compact format
-  /// as a [Uint8List].
-  ///
-  /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   @override
   Future<Uint8List> sign(
     Uint8List data, {
@@ -87,17 +70,6 @@ class P256KeyPair implements KeyPair {
     return Uint8List.fromList(digestSignature.toCompact());
   }
 
-  /// Verifies a signature using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
-  ///
-  /// [data] - The data that was signed.
-  /// [signature] - The signature (in compact format) to verify.
-  /// [signatureScheme] - The signature scheme to use. If null, defaults to
-  ///   `SignatureScheme.ecdsa_p256_sha256`.
-  ///
-  /// Returns a [Future] that completes with `true` if the signature is valid,
-  /// `false` otherwise.
-  ///
-  /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   @override
   Future<bool> verify(
     Uint8List data,
@@ -121,21 +93,9 @@ class P256KeyPair implements KeyPair {
     return Future.value(result);
   }
 
-  /// Returns a list of [SignatureScheme]s supported by this key pair.
   @override
   List<SignatureScheme> get supportedSignatureSchemes =>
       [SignatureScheme.ecdsa_p256_sha256];
-
-  /// Computes the Elliptic Curve Diffie-Hellman (ECDH) shared secret.
-  ///
-  /// [publicKey] - The public key of the other party (in compressed format).
-  ///
-  /// Returns the computed shared secret as a [Uint8List].
-  Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
-    final publicKeyObj = _p256.compressedHexToPublicKey(hex.encode(publicKey));
-    final secret = computeSecret(_privateKey, publicKeyObj);
-    return Future.value(Uint8List.fromList(secret));
-  }
 
   @override
   encrypt(Uint8List data, {Uint8List? publicKey}) async {
@@ -159,5 +119,16 @@ class P256KeyPair implements KeyPair {
       publicKeyBytes: publicKey,
       curve: _p256,
     );
+  }
+
+  /// Computes the Elliptic Curve Diffie-Hellman (ECDH) shared secret.
+  ///
+  /// [publicKey] - The public key of the other party (in compressed format).
+  ///
+  /// Returns the computed shared secret as a [Uint8List].
+  Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
+    final publicKeyObj = _p256.compressedHexToPublicKey(hex.encode(publicKey));
+    final secret = computeSecret(_privateKey, publicKeyObj);
+    return Future.value(Uint8List.fromList(secret));
   }
 }
