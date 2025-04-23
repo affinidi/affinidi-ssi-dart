@@ -1,4 +1,5 @@
 import '../../models/doc_with_embedded_proof.dart';
+import '../../models/holder.dart';
 import '../../models/parsed_vc.dart';
 
 /// Abstract base class for a Verifiable Presentation (VP).
@@ -20,8 +21,8 @@ abstract interface class VerifiablePresentation
   // FIXME(FTL-20738) should be changed to a Set
   List<String> get type;
 
-  /// The DID or URI of the holder who generated this presentation.
-  String? get holder;
+  /// The entity that is presenting these credentials.
+  Holder? get holder;
 
   /// The verifiable credentials included in this presentation.
   List<ParsedVerifiableCredential> get verifiableCredential;

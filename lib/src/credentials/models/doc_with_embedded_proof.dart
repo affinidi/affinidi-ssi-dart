@@ -1,3 +1,5 @@
+import '../proof/embedded_proof.dart';
+
 /// Cryptographically verifiable data with embedded proof.
 ///
 /// A class implementing this interface may use embedded proofs for
@@ -10,7 +12,7 @@ abstract interface class DocWithEmbeddedProof {
   /// The cryptographic proof used to verify the integrity of this data.
   ///
   /// If the map is empty, no embedded proof is present.
-  Map<String, dynamic> get proof;
+  List<EmbeddedProof> get proof;
 
   /// Converts this document to a JSON-serializable map.
   Map<String, dynamic> toJson();

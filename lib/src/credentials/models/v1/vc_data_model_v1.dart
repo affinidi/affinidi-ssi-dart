@@ -1,8 +1,13 @@
 import '../../../exceptions/ssi_exception.dart';
 import '../../../exceptions/ssi_exception_type.dart';
 import '../../../util/json_util.dart';
+import '../../proof/embedded_proof.dart';
 import '../credential_schema.dart';
 import '../credential_status.dart';
+import '../credential_subject.dart';
+import '../holder.dart';
+import '../issuer.dart';
+import '../vc_models.dart';
 import 'vc_data_model_v1_view.dart';
 
 // TODO(FTL-20734): must match fields in the spec https://www.w3.org/TR/vc-data-model/
@@ -22,10 +27,10 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
   CredentialStatus? credentialStatus;
 
   @override
-  Map<String, dynamic> credentialSubject;
+  CredentialSubject credentialSubject;
 
   @override
-  String issuer;
+  Issuer issuer;
 
   @override
   List<String> type;
@@ -43,34 +48,47 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
   DateTime? get validUntil => expirationDate;
 
   @override
-  Map<String, dynamic> holder;
+  Holder? holder;
 
   @override
-  Map<String, dynamic> proof;
+  List<EmbeddedProof> proof;
+
+  @override
+  RefreshService? refreshService;
+
+  @override
+  List<TermOfUse> termsOfUse;
+
+  @override
+  List<Evidence> evidence;
 
   MutableVcDataModelV1({
     required this.context,
     this.id,
     List<CredentialSchema>? credentialSchema,
-    Map<String, dynamic>? credentialSubject,
+    CredentialSubject? credentialSubject,
     required this.issuer,
     required this.type,
     this.issuanceDate,
     this.expirationDate,
-    Map<String, String>? holder,
-    Map<String, String>? proof,
+    this.holder,
+    List<EmbeddedProof>? proof,
     this.credentialStatus,
+    this.refreshService,
+    List<TermOfUse>? termsOfUse,
+    List<Evidence>? evidence,
   })  : credentialSchema = credentialSchema ?? [],
-        credentialSubject = credentialSubject ?? {},
-        holder = holder ?? {},
-        proof = proof ?? {};
+        credentialSubject = credentialSubject ?? CredentialSubject(claims: {}),
+        termsOfUse = termsOfUse ?? [],
+        evidence = evidence ?? [],
+        proof = proof ?? [EmbeddedProof(type: 'Ed25519Signature2018')];
 
   @override
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
     json[_P.context.key] = context;
-    json[_P.issuer.key] = issuer;
+    json[_P.issuer.key] = issuer.toJson();
     json[_P.type.key] = type;
 
     if (id != null) {
@@ -78,7 +96,8 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
     }
 
     if (credentialSchema.isNotEmpty) {
-      json[_P.credentialSchema.key] = _encodeCredentialSchema(credentialSchema);
+      json[_P.credentialSchema.key] =
+          _encodeListToSingleOrArray(credentialSchema);
     }
 
     final issDate = issuanceDate;
@@ -91,21 +110,32 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
       json[_P.expirationDate.key] = expDate.toIso8601String();
     }
 
-    if (credentialSubject.isNotEmpty) {
-      json[_P.credentialSubject.key] = credentialSubject;
+    json[_P.credentialSubject.key] = credentialSubject.toJson();
+
+    if (holder != null) {
+      json[_P.holder.key] = holder!.toJson();
     }
 
-    if (holder.isNotEmpty) {
-      json[_P.holder.key] = holder;
-    }
-
+    // V1 spec expects a single proof object, not an array
     if (proof.isNotEmpty) {
-      json[_P.proof.key] = proof;
+      json[_P.proof.key] = proof.first.toJson();
     }
 
-    var credentialStatus = this.credentialStatus;
-    if (credentialStatus != null) {
-      json[_P.credentialStatus.key] = credentialStatus.toJson();
+    var credStatus = credentialStatus;
+    if (credStatus != null) {
+      json[_P.credentialStatus.key] = credStatus.toJson();
+    }
+
+    if (refreshService != null) {
+      json[_P.refreshService.key] = refreshService!.toJson();
+    }
+
+    if (termsOfUse.isNotEmpty) {
+      json[_P.termsOfUse.key] = _encodeListToSingleOrArray(termsOfUse);
+    }
+
+    if (evidence.isNotEmpty) {
+      json[_P.evidence.key] = _encodeListToSingleOrArray(evidence);
     }
 
     return json;
@@ -114,16 +144,22 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
   MutableVcDataModelV1.fromJson(dynamic input)
       : context = [],
         credentialSchema = [],
-        credentialSubject = {},
-        holder = {},
-        issuer = '',
+        credentialSubject = CredentialSubject(claims: {}),
+        holder = null,
+        issuer = Issuer(id: ''),
         type = [],
-        proof = {} {
+        proof = [],
+        termsOfUse = [],
+        evidence = [],
+        refreshService = null {
     final json = jsonToMap(input);
 
     context = getStringList(json, _P.context.key, mandatory: true);
     id = getString(json, _P.id.key);
-    issuer = getMandatoryString(json, _P.issuer.key);
+
+    // Parse issuer - can be string or object
+    issuer = Issuer.fromJson(json[_P.issuer.key]);
+
     type = getStringList(
       json,
       _P.type.key,
@@ -134,9 +170,10 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
     issuanceDate = getDateTime(json, _P.issuanceDate.key);
     expirationDate = getDateTime(json, _P.expirationDate.key);
 
-    // FIXME(FTL-20734) handle arrays of subjects
-    credentialSubject =
-        Map.of(json[_P.credentialSubject.key] as Map<String, dynamic>);
+    if (json.containsKey(_P.credentialSubject.key)) {
+      credentialSubject = CredentialSubject.fromJson(
+          json[_P.credentialSubject.key] as Map<String, dynamic>);
+    }
 
     switch (json[_P.credentialSchema.key]) {
       case Map m:
@@ -157,36 +194,60 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
         );
     }
 
-    // FIXME(FTL-20734) handle simple string
-    if (json.containsKey(_P.holder.key) && json[_P.holder.key] is Map) {
-      holder = Map.of(json[_P.holder.key] as Map<String, dynamic>);
+    if (json.containsKey(_P.holder.key)) {
+      holder = Holder.fromJson(json[_P.holder.key]);
     }
 
-    // FIXME(FTL-20734) use a typed object
-    if (json.containsKey(_P.proof.key) && json[_P.proof.key] is Map) {
-      proof = Map.of(json[_P.proof.key] as Map<String, dynamic>);
+    // V1 spec expects a single proof object, not an array
+    if (json.containsKey(_P.proof.key)) {
+      proof = [
+        EmbeddedProof.fromJson(json[_P.proof.key] as Map<String, dynamic>)
+      ];
     }
 
     if (json.containsKey(_P.credentialStatus.key)) {
       credentialStatus = CredentialStatus.fromJson(
           json[_P.credentialStatus.key] as Map<String, dynamic>);
     }
-  }
 
-  dynamic _encodeCredentialSchema(
-    List<CredentialSchema> credentialSchema,
-  ) {
-    if (credentialSchema.length == 1) {
-      return credentialSchema.first.toJson();
+    if (json.containsKey(_P.refreshService.key)) {
+      refreshService =
+          RefreshService.fromJson(jsonToMap(json[_P.refreshService.key]));
     }
 
-    return credentialSchema.fold<List<Map<String, dynamic>>>(
-      [],
-      (list, cs) {
-        list.add(cs.toJson());
-        return list;
-      },
-    );
+    if (json.containsKey(_P.termsOfUse.key)) {
+      termsOfUse = _parseListOrSingleItem<TermOfUse>(
+        json[_P.termsOfUse.key],
+        (item) => TermOfUse.fromJson(jsonToMap(item)),
+      );
+    }
+
+    if (json.containsKey(_P.evidence.key)) {
+      evidence = _parseListOrSingleItem<Evidence>(
+        json[_P.evidence.key],
+        (item) => Evidence.fromJson(jsonToMap(item)),
+      );
+    }
+  }
+
+  List<T> _parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
+    if (json == null) {
+      return [];
+    } else if (json is List) {
+      return json.map((item) => parser(item)).toList();
+    } else {
+      return [parser(json)];
+    }
+  }
+
+  dynamic _encodeListToSingleOrArray<T>(List<T> items) {
+    if (items.isEmpty) {
+      return [];
+    } else if (items.length == 1) {
+      return (items.first as dynamic).toJson();
+    } else {
+      return items.map((item) => (item as dynamic).toJson()).toList();
+    }
   }
 }
 
@@ -205,6 +266,9 @@ enum VcDataModelV1Key {
   issuanceDate,
   credentialStatus,
   holder,
+  refreshService,
+  termsOfUse,
+  evidence,
   ;
 
   final String? _key;
