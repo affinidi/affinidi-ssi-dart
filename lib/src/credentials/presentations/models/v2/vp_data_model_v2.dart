@@ -61,10 +61,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
   ///
   /// Can be a DataIntegrityProof, JWT, or other proof format.
   @override
-  EmbeddedProof proof;
-
-  @override
-  List<EmbeddedProof> get proofs => [proof];
+  List<EmbeddedProof> proof;
 
   /// Creates a [VpDataModelV2] instance.
   ///
@@ -81,10 +78,10 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     this.holder,
     List<Map<String, dynamic>>? termsOfUse,
     List<ParsedVerifiableCredential>? verifiableCredential,
-    EmbeddedProof? proof,
+    List<EmbeddedProof>? proof,
   })  : termsOfUse = termsOfUse ?? [],
         verifiableCredential = verifiableCredential ?? [],
-        proof = proof ?? EmbeddedProof(type: 'Ed25519Signature2018');
+        proof = proof ?? [EmbeddedProof(type: 'Ed25519Signature2018')];
 
   /// Converts this presentation to a JSON-serializable map.
   @override
@@ -102,7 +99,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
           verifiableCredential.map(presentVC).toList();
     }
 
-    json['proof'] = proof.toJson();
+    json['proof'] = _encodeListToSingleOrArray(proof);
 
     return json;
   }
@@ -116,7 +113,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
         type = [],
         termsOfUse = [],
         verifiableCredential = [],
-        proof = EmbeddedProof(type: '') {
+        proof = [] {
     final json = jsonToMap(input);
 
     context = getStringList(json, '@context', mandatory: true);
@@ -148,7 +145,30 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     }
 
     if (json.containsKey('proof')) {
-      proof = EmbeddedProof.fromJson(json['proof'] as Map<String, dynamic>);
+      proof = _parseListOrSingleItem<EmbeddedProof>(
+        json['proof'],
+        (item) => EmbeddedProof.fromJson(jsonToMap(item)),
+      );
+    }
+  }
+
+  List<T> _parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
+    if (json == null) {
+      return [];
+    } else if (json is List) {
+      return json.map((item) => parser(item)).toList();
+    } else {
+      return [parser(json)];
+    }
+  }
+
+  dynamic _encodeListToSingleOrArray<T>(List<T> items) {
+    if (items.isEmpty) {
+      return [];
+    } else if (items.length == 1) {
+      return (items.first as dynamic).toJson();
+    } else {
+      return items.map((item) => (item as dynamic).toJson()).toList();
     }
   }
 }

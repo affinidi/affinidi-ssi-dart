@@ -39,7 +39,7 @@ abstract interface class VcDataModelV2 implements VerifiableCredential {
   Holder? get holder;
 
   @override
-  EmbeddedProof get proof;
+  List<EmbeddedProof> get proof;
 
   @override
   RefreshService? get refreshService;

@@ -54,12 +54,9 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
   @override
   List<ParsedVerifiableCredential> verifiableCredential;
 
-  /// The cryptographic proof created by the holder.
+  /// The cryptographic proof(s) created by the holder.
   @override
-  EmbeddedProof proof;
-
-  @override
-  List<EmbeddedProof> get proofs => [proof];
+  List<EmbeddedProof> proof;
 
   /// Creates a [VpDataModelV1] instance.
   ///
@@ -74,9 +71,9 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
     required this.type,
     this.holder,
     List<ParsedVerifiableCredential>? verifiableCredential,
-    EmbeddedProof? proof,
+    List<EmbeddedProof>? proof,
   })  : verifiableCredential = verifiableCredential ?? [],
-        proof = proof ?? EmbeddedProof(type: 'Ed25519Signature2018');
+        proof = proof ?? [EmbeddedProof(type: 'Ed25519Signature2018')];
 
   /// Converts this presentation to a JSON-serializable map.
   @override
@@ -93,7 +90,9 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
           verifiableCredential.map(presentVC).toList();
     }
 
-    json['proof'] = proof.toJson();
+    if (proof.isNotEmpty) {
+      json['proof'] = proof.first.toJson();
+    }
 
     return json;
   }
@@ -107,7 +106,7 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
         type = [],
         verifiableCredential = [],
         holder = null,
-        proof = EmbeddedProof(type: '') {
+        proof = [] {
     final json = jsonToMap(input);
 
     context = getStringList(json, '@context', mandatory: true);
@@ -134,7 +133,7 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
     }
 
     if (json.containsKey('proof')) {
-      proof = EmbeddedProof.fromJson(json['proof'] as Map<String, dynamic>);
+      proof = [EmbeddedProof.fromJson(json['proof'] as Map<String, dynamic>)];
     }
   }
 }

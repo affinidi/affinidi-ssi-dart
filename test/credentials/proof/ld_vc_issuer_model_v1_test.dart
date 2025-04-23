@@ -5,9 +5,9 @@ import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/models/credential_subject.dart';
 import 'package:ssi/src/credentials/models/holder.dart';
 import 'package:ssi/src/credentials/models/issuer.dart';
-import 'package:ssi/src/credentials/proof/embedded_proof.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
+import 'package:ssi/src/credentials/proof/embedded_proof.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -35,7 +35,7 @@ void main() {
           "Age": "22",
           "Address": "Eihhornstr"
         }),
-        holder: Holder(id: "did:example:1"),
+        holder: Holder(id: Uri.parse("did:example:1")),
         credentialSchema: [
           CredentialSchema.fromJson({
             "id": "https://schema.affinidi.com/UserProfileV1-0.json",
@@ -54,7 +54,7 @@ void main() {
         ),
       );
 
-      unsignedCredential.proof = EmbeddedProof.fromJson(proof.toJson());
+      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
 
       final verificationResult = await proofSuite.verifyProof(
         unsignedCredential.toJson(),

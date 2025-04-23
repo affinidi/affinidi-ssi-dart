@@ -47,5 +47,6 @@ abstract interface class VpDataModelV1 implements VerifiablePresentation {
   List<ParsedVerifiableCredential> get verifiableCredential;
 
   /// The cryptographic proof created by the holder.
-  EmbeddedProof get proof;
+  @override
+  List<EmbeddedProof> get proof;
 }

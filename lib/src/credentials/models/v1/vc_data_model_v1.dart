@@ -1,12 +1,12 @@
 import '../../../exceptions/ssi_exception.dart';
 import '../../../exceptions/ssi_exception_type.dart';
 import '../../../util/json_util.dart';
+import '../../proof/embedded_proof.dart';
 import '../credential_schema.dart';
 import '../credential_status.dart';
 import '../credential_subject.dart';
 import '../holder.dart';
 import '../issuer.dart';
-import '../../proof/embedded_proof.dart';
 import '../vc_models.dart';
 import 'vc_data_model_v1_view.dart';
 
@@ -51,10 +51,7 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
   Holder? holder;
 
   @override
-  EmbeddedProof proof;
-
-  @override
-  List<EmbeddedProof> get proofs => [proof];
+  List<EmbeddedProof> proof;
 
   @override
   RefreshService? refreshService;
@@ -75,7 +72,7 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
     this.issuanceDate,
     this.expirationDate,
     this.holder,
-    EmbeddedProof? proof,
+    List<EmbeddedProof>? proof,
     this.credentialStatus,
     this.refreshService,
     List<TermOfUse>? termsOfUse,
@@ -84,7 +81,7 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
         credentialSubject = credentialSubject ?? CredentialSubject(claims: {}),
         termsOfUse = termsOfUse ?? [],
         evidence = evidence ?? [],
-        proof = proof ?? EmbeddedProof(type: 'Ed25519Signature2018');
+        proof = proof ?? [EmbeddedProof(type: 'Ed25519Signature2018')];
 
   @override
   Map<String, dynamic> toJson() {
@@ -119,7 +116,10 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
       json[_P.holder.key] = holder!.toJson();
     }
 
-    json[_P.proof.key] = proof.toJson();
+    // V1 spec expects a single proof object, not an array
+    if (proof.isNotEmpty) {
+      json[_P.proof.key] = proof.first.toJson();
+    }
 
     var credStatus = credentialStatus;
     if (credStatus != null) {
@@ -148,7 +148,7 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
         holder = null,
         issuer = Issuer(id: ''),
         type = [],
-        proof = EmbeddedProof(type: ''),
+        proof = [],
         termsOfUse = [],
         evidence = [],
         refreshService = null {
@@ -198,9 +198,11 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
       holder = Holder.fromJson(json[_P.holder.key]);
     }
 
+    // V1 spec expects a single proof object, not an array
     if (json.containsKey(_P.proof.key)) {
-      proof =
-          EmbeddedProof.fromJson(json[_P.proof.key] as Map<String, dynamic>);
+      proof = [
+        EmbeddedProof.fromJson(json[_P.proof.key] as Map<String, dynamic>)
+      ];
     }
 
     if (json.containsKey(_P.credentialStatus.key)) {
