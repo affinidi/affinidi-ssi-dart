@@ -68,7 +68,6 @@ class DidVerifier implements Verifier {
     return DidVerifier._(algorithm, kid, jwkMap);
   }
 
-  /// Checks if the specified algorithm is supported by this verifier.
   @override
   bool isAllowedAlgorithm(String algorithm) {
     if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
@@ -83,7 +82,6 @@ class DidVerifier implements Verifier {
     }
   }
 
-  /// Verifies that the signature matches the data.
   @override
   bool verify(Uint8List data, Uint8List signature) {
     try {
@@ -93,7 +91,7 @@ class DidVerifier implements Verifier {
 
       // Handle Ed25519 keys
       if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
-        if (_algorithm.jwtName != 'EdDSA') {
+        if (_algorithm.alg != 'EdDSA') {
           return false;
         }
 
@@ -116,7 +114,7 @@ class DidVerifier implements Verifier {
         );
       }
 
-      return publicKey.verify(data, signature, algorithm: _algorithm.jwtName);
+      return publicKey.verify(data, signature, algorithm: _algorithm.alg);
     } catch (_) {
       return false;
     }

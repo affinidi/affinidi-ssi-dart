@@ -5,9 +5,13 @@ import 'package:elliptic/elliptic.dart';
 import 'package:elliptic/ecdh.dart';
 import 'package:cryptography/cryptography.dart' as crypto;
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import './_encryption_utils.dart';
-import './_const.dart';
 
+const fullPublicKeyLength = 64;
+const compressedPublidKeyLength = 32;
+final staticHkdNonce = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
 final encryptionUtils = EncryptionUtils();
 
 PublicKey generateEphemeralPubKey(Curve curve) {
@@ -28,10 +32,19 @@ Future<Uint8List> encryptData({
   Uint8List? publicKeyBytes,
 }) async {
   final privateKey = PrivateKey.fromBytes(curve, privateKeyBytes);
+  PublicKey publicKeyToUse;
 
-  final PublicKey publicKeyToUse = publicKeyBytes == null
-      ? generateEphemeralPubKey(curve)
-      : curve.compressedHexToPublicKey(hex.encode(publicKeyBytes));
+  try {
+    publicKeyToUse = publicKeyBytes == null
+        ? generateEphemeralPubKey(curve)
+        : curve.compressedHexToPublicKey(hex.encode(publicKeyBytes));
+  } catch (e) {
+    throw SsiException(
+      message: 'Invalid public Key',
+      code: SsiExceptionType.unableToEncrypt.code,
+      originalMessage: e.toString(),
+    );
+  }
 
   final sharedSecret = await computeEcdhSecret(privateKey, publicKeyToUse);
 
@@ -43,7 +56,7 @@ Future<Uint8List> encryptData({
   final secretKey = crypto.SecretKey(sharedSecret);
   final derivedKey = await algorithm.deriveKey(
     secretKey: secretKey,
-    nonce: STATIC_HKD_NONCE,
+    nonce: staticHkdNonce,
   );
 
   final derivedKeyBytes = await derivedKey.extractBytes();
@@ -64,8 +77,8 @@ Future<Uint8List> decryptData({
   final privateKey = PrivateKey.fromBytes(curve, privateKeyBytes);
 
   final ephemeralPublicKeyBytes =
-      encryptedPackage.sublist(0, FULL_PUB_KEY_LENGTH + 1);
-  final encryptedData = encryptedPackage.sublist(FULL_PUB_KEY_LENGTH + 1);
+      encryptedPackage.sublist(0, fullPublicKeyLength + 1);
+  final encryptedData = encryptedPackage.sublist(fullPublicKeyLength + 1);
 
   final PublicKey pubKeyToUse = publicKeyBytes == null
       ? curve.hexToPublicKey(hex.encode(ephemeralPublicKeyBytes))
@@ -81,7 +94,7 @@ Future<Uint8List> decryptData({
   final secretKey = crypto.SecretKey(sharedSecret);
   final derivedKey = await algorithm.deriveKey(
     secretKey: secretKey,
-    nonce: STATIC_HKD_NONCE,
+    nonce: staticHkdNonce,
   );
 
   final derivedKeyBytes = await derivedKey.extractBytes();
@@ -91,7 +104,10 @@ Future<Uint8List> decryptData({
       encryptionUtils.decryptFromBytes(symmetricKey, encryptedData);
 
   if (decryptedData == null) {
-    throw UnimplementedError('Decryption failed, bytes are null');
+    throw SsiException(
+      message: 'Decryption failed, bytes are null',
+      code: SsiExceptionType.unableToDecrypt.code,
+    );
   }
 
   return decryptedData;

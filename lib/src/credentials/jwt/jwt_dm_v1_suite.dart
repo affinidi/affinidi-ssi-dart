@@ -1,6 +1,10 @@
 import 'dart:convert';
 
-import '../../../ssi.dart';
+import '../../did/did_signer.dart';
+import '../../did/did_verifier.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
+import '../../types.dart';
 import '../../util/base64_util.dart';
 import '../models/parsed_vc.dart';
 import '../models/v1/vc_data_model_v1.dart';

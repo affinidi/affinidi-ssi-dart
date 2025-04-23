@@ -15,7 +15,10 @@ abstract interface class Wallet {
   ///
   /// [data] - The data to be signed.
   /// [keyId] - The identifier of the key to use for signing.
-  /// [signatureScheme] - The signature scheme to use.
+  /// [signatureScheme] - The signature scheme to use. If null defaults to:
+  /// - [SignatureScheme.ecdsa_secp256k1_sha256] for [Secp256k1KeyPair]
+  /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
+  /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
   /// Returns a [Future] that completes with the signature as a [Uint8List].
   ///
@@ -31,7 +34,10 @@ abstract interface class Wallet {
   /// [data] - The data that was signed.
   /// [signature] - The signature to verify.
   /// [keyId] - The identifier of the key to use for verification.
-  /// [signatureScheme] - The signature scheme to use.
+  /// [signatureScheme] - The signature scheme to use. If null defaults to:
+  /// - [SignatureScheme.ecdsa_secp256k1_sha256] for [Secp256k1KeyPair]
+  /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
+  /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
   /// Returns a [Future] that completes with `true` if the signature is valid,
   /// `false` otherwise.
@@ -70,4 +76,38 @@ abstract interface class Wallet {
   /// Throws an [SsiException] if a keyId is null or empty or
   /// if key creation fails.
   Future<PublicKey> generateKey({String? keyId, KeyType? keyType});
+
+  /// Encrypts data using the specified key.
+  ///
+  /// [data] - The data to be encrypted.
+  /// [keyId] - The identifier of the key to use for encryption.
+  /// [publicKey] - Optional public key of the recipient. If not provided,
+  ///               an ephemeral key pair might be generated depending on the
+  ///               underlying key pair implementation.
+  ///
+  /// Returns a [Future] that completes with the encrypted data as a [Uint8List].
+  ///
+  /// Throws an [SsiException] if encryption fails.
+  Future<Uint8List> encrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  });
+
+  /// Decrypts data using the specified key.
+  ///
+  /// [data] - The encrypted data to be decrypted.
+  /// [keyId] - The identifier of the key to use for decryption.
+  /// [publicKey] - Optional public key of the sender. May be required by some
+  ///               underlying key pair implementations, especially if an
+  ///               ephemeral key was not used during encryption.
+  ///
+  /// Returns a [Future] that completes with the decrypted data as a [Uint8List].
+  ///
+  /// Throws an [SsiException] if decryption fails.
+  Future<Uint8List> decrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  });
 }

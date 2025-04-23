@@ -1,4 +1,4 @@
-import '../../../ssi.dart';
+import 'verifiable_credential.dart';
 
 /// A verifiable credential that maintains its serialized representation.
 ///

@@ -2,7 +2,9 @@ import 'dart:typed_data';
 
 import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart'
     show Verifier;
-import 'package:ssi/ssi.dart' hide Verifier;
+
+import '../../did/did_verifier.dart';
+import '../../types.dart';
 
 /// A DID-based verifier for SD-JWT credentials.
 ///

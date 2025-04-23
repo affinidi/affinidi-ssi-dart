@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/p256_key_pair.dart';
 import 'key_store/key_store_interface.dart';
@@ -10,10 +12,19 @@ import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 
+/// A non-hierarchical wallet implementation that supports multiple key types.
+///
+/// This wallet can expects a secure [KeyStore] to store key material.
+/// It supports signing and verifying messages, and ecrypting/decrypting payloads.
 class GenericWallet implements Wallet {
   final KeyStore _keyStore;
   static final randomIdLength = 32;
 
+  /// Creates a new [GenericWallet] instance from a KeyStore.
+  ///
+  /// [keyStore] - The KeyStore to use to store the keys.
+  ///
+  /// Returns a new [GenericWallet] instance.
   GenericWallet(KeyStore keyStore) : _keyStore = keyStore;
 
   @override
@@ -55,7 +66,7 @@ class GenericWallet implements Wallet {
       throw ArgumentError("Key already exists: $keyId");
     }
 
-    keyId ??= randomId();
+    keyId ??= _randomId();
     keyType ??= KeyType.p256;
 
     if (keyType == KeyType.p256) {
@@ -83,6 +94,56 @@ class GenericWallet implements Wallet {
         "Only p256 and ed25519 key types are supported for GenericWallet");
   }
 
+  @override
+  Future<PublicKey> getPublicKey(String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
+    final keyData = await keyPair.publicKey;
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+  }
+
+  /// Retrieves the X25519 public key corresponding to the given Ed25519 key ID.
+  ///
+  /// This is used for cryptographic operations like ECDH key agreement.
+  /// Throws an [SsiException] if the key is not an Ed25519 key or not found.
+  ///
+  /// [keyId] - The identifier of the Ed25519 key pair.
+  ///
+  /// Returns a [Future] that completes with the X25519 public key as a [Uint8List].
+  Future<Uint8List> getX25519PublicKey(String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
+    if (keyPair is Ed25519KeyPair) {
+      final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();
+      return Uint8List.fromList(x25519PublicKey.bytes);
+    } else {
+      // P256KeyPair and other potential types do not have a direct X25519 equivalent
+      throw SsiException(
+        message:
+            'getX25519PublicKey is only supported for Ed25519 keys. Key $keyId is of type ${keyPair.runtimeType}.',
+        code: SsiExceptionType.invalidKeyType.code,
+      );
+    }
+  }
+
+  @override
+  Future<Uint8List> encrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) async {
+    final keyPair = await _getKeyPair(keyId);
+    return keyPair.encrypt(data, publicKey: publicKey);
+  }
+
+  @override
+  Future<Uint8List> decrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) async {
+    final keyPair = await _getKeyPair(keyId);
+    return keyPair.decrypt(data, publicKey: publicKey);
+  }
+
   Future<KeyPair> _getKeyPair(String keyId) async {
     final storedKeyPair = await _keyStore.get(keyId);
     if (storedKeyPair == null) {
@@ -101,14 +162,7 @@ class GenericWallet implements Wallet {
     throw ArgumentError("Unsupported key type stored for key: $keyId");
   }
 
-  @override
-  Future<PublicKey> getPublicKey(String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
-    final keyData = await keyPair.publicKey;
-    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
-  }
-
-  String randomId() {
+  String _randomId() {
     final rnd = Random.secure();
     final buffer = StringBuffer();
     for (var i = 0; i < randomIdLength; i++) {

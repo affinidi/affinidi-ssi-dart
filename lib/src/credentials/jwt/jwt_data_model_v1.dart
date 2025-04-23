@@ -8,7 +8,7 @@ abstract interface class JwtVcDataModelV1
   ) {
     final payload = <String, dynamic>{};
     final header = <String, dynamic>{
-      'alg': signer.signatureScheme.jwtName,
+      'alg': signer.signatureScheme.alg,
       'kid': signer.keyId,
       'typ': 'JWT',
     };

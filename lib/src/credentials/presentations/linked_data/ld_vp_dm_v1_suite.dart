@@ -24,28 +24,39 @@ final class LdVpDm1Suite
             contextUrl: MutableVpDataModelV1.contextUrl,
             issuerKey: VpDataModelV1Key.holder.key);
 
+  /// Parses a [String] input and payload [Map] into a [LdVpDataModelV1] instance.
   @override
   LdVpDataModelV1 fromParsed(String input, Map<String, dynamic> payload) =>
       _LdVpDataModelV1Impl.fromParsed(input, payload);
 }
 
+/// Interface combining [ParsedVerifiablePresentation] and [VpDataModelV1]
+/// for Linked Data Verifiable Presentations.
 abstract interface class LdVpDataModelV1
     implements ParsedVerifiablePresentation<String>, VpDataModelV1 {}
 
+/// Implementation of [LdVpDataModelV1] backed by a parsed JSON-LD string.
 class _LdVpDataModelV1Impl extends MutableVpDataModelV1
     implements LdVpDataModelV1 {
+  /// The serialized JSON-LD presentation string.
   final String _serialized;
 
+  /// Creates an instance from a serialized JSON string and parsed input payload.
+  ///
+  /// The input map is passed to the [MutableVpDataModelV1] constructor, and
+  /// the JSON string is parsed for `toJson`.
   _LdVpDataModelV1Impl.fromParsed(String serialized, super.input)
       : _serialized = serialized,
         // use parsing from VcDataModelV1
         super.fromJson();
 
+  /// Returns the JSON representation of the serialized presentation.
   @override
   Map<String, dynamic> toJson() {
     return jsonDecode(_serialized) as Map<String, dynamic>;
   }
 
+  /// Returns the original serialized JSON-LD string.
   @override
   String get serialized => _serialized;
 }

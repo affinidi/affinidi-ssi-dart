@@ -2,7 +2,10 @@ import 'dart:typed_data';
 
 import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
 
-import '../../../ssi.dart';
+import '../../did/did_signer.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
+import '../../types.dart';
 import '../models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
 import '../models/v2/vc_data_model_v2_view.dart';
@@ -255,8 +258,8 @@ class _DidSignerAdapter implements Signer {
   /// Returns the JWT algorithm name from the signature scheme,
   /// defaulting to ES256K if not available.
   @override
-  String get algIanaName => _didSigner.signatureScheme.jwtName != null
-      ? _didSigner.signatureScheme.jwtName!
+  String get algIanaName => _didSigner.signatureScheme.alg != null
+      ? _didSigner.signatureScheme.alg!
       : 'ES256K'; // Default to ES256K if no JWT name is available
 
   /// Gets the key ID for the signing key.

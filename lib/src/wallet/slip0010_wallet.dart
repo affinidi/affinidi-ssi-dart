@@ -45,4 +45,22 @@ class Slip0010Wallet implements Wallet {
   Future<PublicKey> getPublicKey(String keyId) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<Uint8List> encrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Uint8List> decrypt(
+    Uint8List data, {
+    required String keyId,
+    Uint8List? publicKey,
+  }) async {
+    throw UnimplementedError();
+  }
 }
