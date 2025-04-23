@@ -9,9 +9,9 @@ void main() {
   // IMPORTANT: Do not use this seed for production keys.
   final seed = Uint8List.fromList(List.generate(32, (index) => index + 1));
   final dataToSign = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
-  const testPath1 = "m/44'/1'/0'/0'/0'";
+  const testPath1 = "m/44'/60'/0'/0'/0'";
   const testKeyId1 = 'key-44-1-0-0-0';
-  const testPath2 = "m/44'/1'/0'/0'/1'";
+  const testPath2 = "m/44'/60'/0'/0'/1'";
   const nonExistentKeyId = 'non-existent-key';
 
   group('Bip32Ed25519Wallet', () {
@@ -227,7 +227,7 @@ void main() {
       final key1 = await wallet.generateKey(derivationPath: testPath1);
       final key2 = await wallet.generateKey(derivationPath: testPath2);
       final key3 =
-          await wallet.generateKey(derivationPath: "m/44'/1'/1'/0'/0'");
+          await wallet.generateKey(derivationPath: "m/44'/60'/1'/0'/0'");
 
       expect(key1.bytes, isNot(equals(key2.bytes)));
       expect(key1.bytes, isNot(equals(key3.bytes)));
