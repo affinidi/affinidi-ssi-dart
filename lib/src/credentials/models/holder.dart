@@ -9,8 +9,7 @@ class Holder {
     if (json is String) {
       return Holder(id: Uri.parse(json));
     } else if (json is Map<String, dynamic>) {
-      final id = json['id'] as String;
-      return Holder(id: Uri.parse(id));
+      return Holder(id: Uri.parse(json['id'] as String));
     } else {
       throw ArgumentError('Holder must be a String or a Map');
     }

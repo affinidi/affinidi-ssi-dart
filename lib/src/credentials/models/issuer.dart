@@ -7,10 +7,7 @@ class Issuer {
     if (json is String) {
       return Issuer(id: json);
     } else if (json is Map<String, dynamic>) {
-      final id = json['id'] as String;
-      final propertiesMap = Map<String, dynamic>.from(json);
-      propertiesMap.remove('id');
-      return Issuer(id: id);
+      return Issuer(id: json['id'] as String);
     } else {
       throw ArgumentError('Issuer must be a String or a Map');
     }
