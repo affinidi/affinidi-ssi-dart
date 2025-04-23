@@ -165,7 +165,7 @@ final class SdJwtDm2Suite
 
     final verifier = await SdJwtDidVerifier.create(
       algorithm: algorithm,
-      kid: (input.sdJwt.header['kid'] as String?) ?? '',
+      kid: input.sdJwt.header['kid'] as String?,
       issuerDid: input.issuer,
     );
     final SdJwt(:bool? isVerified) = SdJwtHandlerV1().verify(

@@ -108,7 +108,7 @@ final class JwtDm1Suite
 
     final verifier = await DidVerifier.create(
       algorithm: algorithm,
-      kid: decodedHeader['kid'] as String,
+      kid: decodedHeader['kid'] as String?,
       issuerDid: did.toString(),
     );
 

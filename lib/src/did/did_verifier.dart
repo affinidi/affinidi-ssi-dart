@@ -35,7 +35,7 @@ class DidVerifier implements Verifier {
   /// Throws [SsiException] if there is an error resolving the DID document.
   static Future<DidVerifier> create({
     required SignatureScheme algorithm,
-    required String kid,
+    String? kid,
     required String issuerDid,
     String? resolverAddress,
   }) async {
@@ -44,7 +44,7 @@ class DidVerifier implements Verifier {
       resolverAddress: resolverAddress,
     );
 
-    // TODO(FTL-20742) check if kid is somehow related to issuerDid
+    kid ??= didDocument.assertionMethod[0] as String;
 
     VerificationMethod? verificationMethod;
     for (final method in didDocument.verificationMethod) {

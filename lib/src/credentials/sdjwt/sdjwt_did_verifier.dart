@@ -30,7 +30,7 @@ class SdJwtDidVerifier implements Verifier {
   /// Returns a configured verifier ready to verify SD-JWT signatures.
   static Future<SdJwtDidVerifier> create({
     required SignatureScheme algorithm,
-    required String kid,
+    String? kid,
     required String issuerDid,
     String? resolverAddress,
   }) async {
