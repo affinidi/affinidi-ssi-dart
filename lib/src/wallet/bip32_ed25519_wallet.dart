@@ -121,8 +121,9 @@ class Bip32Ed25519Wallet implements Wallet {
       throw ArgumentError(
           'derivationPath is required for Bip32Ed25519Wallet.generateKey');
     }
-    // TODO: default to ed25519 if not provided
-    if (keyType != null && keyType != KeyType.ed25519) {
+
+    final effectiveKeyType = keyType ?? KeyType.ed25519;
+    if (effectiveKeyType != KeyType.ed25519) {
       throw SsiException(
         message:
             'Invalid keyType specified. Bip32Ed25519Wallet only generates ed25519 keys.',
@@ -139,7 +140,7 @@ class Bip32Ed25519Wallet implements Wallet {
           existingStoredKey.representation ==
               StoredKeyRepresentation.derivationPath &&
           existingStoredKey.derivationPath == derivationPath &&
-          existingStoredKey.keyType == KeyType.ed25519) {
+          existingStoredKey.keyType == effectiveKeyType) {
         final existingKeyPair = await _getKeyPair(effectiveKeyId);
         final keyData = await existingKeyPair.publicKey;
         return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
@@ -150,7 +151,7 @@ class Bip32Ed25519Wallet implements Wallet {
     }
 
     final storedKey = StoredKey.fromDerivationPath(
-      keyType: KeyType.ed25519,
+      keyType: effectiveKeyType,
       path: derivationPath,
     );
     await _keyStore.set(effectiveKeyId, storedKey);

@@ -128,11 +128,13 @@ class Bip32Wallet implements Wallet {
       throw ArgumentError(
           'Invalid derivation path format. Must start with "m/".');
     }
-    // TODO: default to secp256k1 if not provided
-    if (keyType != null && keyType != KeyType.secp256k1) {
+
+    final effectiveKeyType = keyType ?? KeyType.secp256k1;
+
+    if (effectiveKeyType != KeyType.secp256k1) {
       throw SsiException(
         message:
-            'Invalid keyType specified. Bip32Wallet only generates secp256k1 keys.',
+            'Invalid keyType specified. Bip32Wallet only generates secp256k1 keys. Requested: $keyType',
         code: SsiExceptionType.invalidKeyType.code,
       );
     }
@@ -146,7 +148,7 @@ class Bip32Wallet implements Wallet {
           existingStoredKey.representation ==
               StoredKeyRepresentation.derivationPath &&
           existingStoredKey.derivationPath == derivationPath &&
-          existingStoredKey.keyType == KeyType.secp256k1) {
+          existingStoredKey.keyType == effectiveKeyType) {
         final existingKeyPair = await _getKeyPair(effectiveKeyId);
         final keyData = await existingKeyPair.publicKey;
         return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
@@ -157,7 +159,7 @@ class Bip32Wallet implements Wallet {
     }
 
     final storedKey = StoredKey.fromDerivationPath(
-      keyType: KeyType.secp256k1,
+      keyType: effectiveKeyType,
       path: derivationPath,
     );
     await _keyStore.set(effectiveKeyId, storedKey);
