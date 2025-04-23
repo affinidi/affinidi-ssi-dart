@@ -59,6 +59,7 @@ class KmsWallet implements Wallet {
   Future<PublicKey> generateKey({
     String? keyId,
     KeyType? keyType,
+    String? derivationPath, // Ignored
   }) async {
     if (keyId != null) {
       throw ArgumentError(
