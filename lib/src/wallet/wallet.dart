@@ -70,12 +70,14 @@ abstract interface class Wallet {
   /// [keyId] - The identifier for the new key pair.
   /// [keyType] - The type of key to create. If not specified, the implementation
   /// should use a default key type.
+  /// [derivationPath] - For hierarchical deterministic wallets, the derivation path
+  /// to use for key generation. Required for HD wallets, ignored by non-HD wallets.
   ///
   /// Returns a [Future] that completes with the newly created [KeyPair].
   ///
   /// Throws an [SsiException] if a keyId is null or empty or
   /// if key creation fails.
-  Future<PublicKey> generateKey({String? keyId, KeyType? keyType});
+  Future<PublicKey> generateKey({String? keyId, KeyType? keyType, String? derivationPath});
 
   /// Encrypts data using the specified key.
   ///

@@ -53,6 +53,9 @@ enum SsiExceptionType {
 
   /// Invalid key type
   invalidKeyType(code: 'invalid_key_type'),
+  
+  /// Key not found in wallet or keystore
+  keyNotFound(code: 'key_not_found'),
 
   /// An unknown error has occurred.
   other(code: 'other'),
