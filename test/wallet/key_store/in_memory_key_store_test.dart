@@ -23,7 +23,8 @@ void main() {
       await keyStore.set(testKeyId, testStoredKey);
       final retrievedKey = await keyStore.get(testKeyId);
       expect(retrievedKey, isNotNull);
-      expect(retrievedKey!.representation, StoredKeyRepresentation.privateKeyBytes);
+      expect(retrievedKey!.representation,
+          StoredKeyRepresentation.privateKeyBytes);
       expect(retrievedKey.keyType, testStoredKey.keyType);
       expect(retrievedKey.privateKeyBytes, testStoredKey.privateKeyBytes);
     });

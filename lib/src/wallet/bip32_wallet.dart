@@ -120,6 +120,7 @@ class Bip32Wallet implements DeterministicWallet {
     KeyType? keyType,
     required String derivationPath,
   }) async {
+    // TODO: thoroughly validate derivation path
     if (!derivationPath.startsWith('m/')) {
       throw ArgumentError(
           'Invalid derivation path format. Must start with "m/".');
@@ -250,11 +251,7 @@ class Bip32Wallet implements DeterministicWallet {
 
   String _randomId() {
     final rnd = Random.secure();
-    final buffer = StringBuffer();
-    for (var i = 0; i < 32; i++) {
-      buffer.write(rnd.nextInt(16).toRadixString(16));
-    }
-    return buffer.toString();
+    return List.generate(32, (idx) => rnd.nextInt(16).toRadixString(16)).join();
   }
 
   void clearCache() {

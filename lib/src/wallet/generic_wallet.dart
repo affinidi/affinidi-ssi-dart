@@ -195,11 +195,7 @@ class GenericWallet implements Wallet {
 
   String _randomId() {
     final rnd = Random.secure();
-    final buffer = StringBuffer();
-    for (var i = 0; i < randomIdLength; i++) {
-      buffer.write(rnd.nextInt(16).toRadixString(16));
-    }
-    return buffer.toString();
+    return List.generate(32, (idx) => rnd.nextInt(16).toRadixString(16)).join();
   }
 
   void clearCache() {

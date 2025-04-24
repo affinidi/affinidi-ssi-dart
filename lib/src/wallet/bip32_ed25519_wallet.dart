@@ -117,7 +117,11 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
     KeyType? keyType,
     required String derivationPath,
   }) async {
-    // TODO: validate derivation path. If not fully hardened did peer fails
+    // TODO: thoroughly validate derivation path. If not fully hardened did peer fails
+    if (!derivationPath.startsWith('m/')) {
+      throw ArgumentError(
+          'Invalid derivation path format. Must start with "m/".');
+    }
 
     final effectiveKeyType = keyType ?? KeyType.ed25519;
     if (effectiveKeyType != KeyType.ed25519) {
@@ -258,11 +262,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
 
   String _randomId() {
     final rnd = Random.secure();
-    final buffer = StringBuffer();
-    for (var i = 0; i < 32; i++) {
-      buffer.write(rnd.nextInt(16).toRadixString(16));
-    }
-    return buffer.toString();
+    return List.generate(32, (idx) => rnd.nextInt(16).toRadixString(16)).join();
   }
 
   void clearCache() {
