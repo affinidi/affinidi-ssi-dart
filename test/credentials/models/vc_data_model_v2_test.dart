@@ -1,7 +1,6 @@
 import 'package:ssi/src/credentials/models/credential_schema.dart';
 import 'package:ssi/src/credentials/models/credential_status.dart';
 import 'package:ssi/src/credentials/models/credential_subject.dart';
-import 'package:ssi/src/credentials/models/holder.dart';
 import 'package:ssi/src/credentials/models/issuer.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/models/vc_models.dart';
@@ -157,21 +156,6 @@ void main() {
       expect(vc.credentialStatus?.type, status.type);
     });
 
-    test('should correctly assign holder', () {
-      final holder = Holder(id: Uri.parse('did:example:holderV2'));
-      final vc = MutableVcDataModelV2(
-        context: [MutableVcDataModelV2.contextUrl],
-        id: 'id',
-        type: ['t'],
-        issuer: Issuer(id: 'did:example:issuerV2'),
-        credentialSubject:
-            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
-        holder: holder,
-      );
-      expect(vc.holder, holder);
-      expect(vc.holder?.id, holder.id);
-    });
-
     test('should correctly assign proof', () {
       final proofs = [
         EmbeddedProof(
@@ -292,7 +276,6 @@ void main() {
       final status = CredentialStatus(
           id: Uri.parse('https://example.edu/status/v2/1'),
           type: 'CredentialStatusList2021');
-      final holder = Holder(id: Uri.parse('did:example:holderV2'));
       final proofs = [
         EmbeddedProof(
           type: 'DataIntegrityProof',
@@ -334,7 +317,6 @@ void main() {
         credentialSubject: subject,
         credentialSchema: schema,
         credentialStatus: status,
-        holder: holder,
         proof: proofs,
         refreshService: rs,
         termsOfUse: terms,
@@ -350,7 +332,6 @@ void main() {
       expect(map['credentialSubject'], subject.toJson());
       expect(map['credentialSchema'], schema.map((e) => e.toJson()).toList());
       expect(map['credentialStatus'], status.toJson());
-      expect(map['holder'], holder.toJson());
       expect(map['proof'], proofs.map((e) => e.toJson()).toList());
       expect(map['refreshService'], rs.toJson());
       expect(map['termsOfUse'], terms.map((e) => e.toJson()).toList());
@@ -378,7 +359,6 @@ void main() {
       final status = CredentialStatus(
           id: Uri.parse('https://example.edu/status/v2/1'),
           type: 'CredentialStatusList2021');
-      final holder = Holder(id: Uri.parse('did:example:holderV2'));
       final proof = [
         EmbeddedProof(
           type: 'DataIntegrityProof',
@@ -410,7 +390,6 @@ void main() {
         credentialSubject: subject,
         credentialSchema: schema,
         credentialStatus: status,
-        holder: holder,
         proof: proof,
         refreshService: rs,
         termsOfUse: terms,
@@ -426,7 +405,6 @@ void main() {
       expect(map['credentialSubject'], subject.toJson());
       expect(map['credentialSchema'], schema.first.toJson());
       expect(map['credentialStatus'], status.toJson());
-      expect(map['holder'], holder.toJson());
       expect(map['proof'], proof.first.toJson());
       expect(map['refreshService'], rs.toJson());
       expect(map['termsOfUse'], terms.first.toJson());
@@ -519,7 +497,6 @@ void main() {
       expect(parsed.validUntil, isNull);
       expect(parsed.credentialSchema, isEmpty);
       expect(parsed.credentialStatus, isNull);
-      expect(parsed.holder, isNull);
       expect(parsed.proof, isEmpty);
       expect(parsed.refreshService, isNull);
       expect(parsed.termsOfUse, isEmpty);

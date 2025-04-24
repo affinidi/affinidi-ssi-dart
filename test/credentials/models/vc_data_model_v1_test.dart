@@ -321,7 +321,7 @@ void main() {
         expect(parsed.expirationDate, isNull);
         expect(parsed.credentialSubject.id, testCredentialSubject.id);
         expect(parsed.credentialSchema, isEmpty);
-        
+
         if (jsonMap['credentialStatus'] is Map) {
           expect(parsed.credentialStatus, isNotNull);
         } else {
