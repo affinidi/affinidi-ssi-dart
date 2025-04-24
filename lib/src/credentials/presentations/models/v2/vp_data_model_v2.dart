@@ -1,14 +1,10 @@
-// import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'dart:convert';
-
 import 'package:ssi/src/credentials/models/vc_models.dart';
+import 'package:ssi/src/credentials/presentations/models/vc_parse_present.dart';
 
 import '../../../../util/json_util.dart';
 import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
 import '../../../proof/embedded_proof.dart';
-import '../../../suites/universal_parser.dart';
-import '../../../suites/vc_suites.dart';
 import 'vp_data_model_v2_view.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v2.0.
@@ -156,34 +152,6 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
       );
     }
   }
-}
-
-/// Parses a [ParsedVerifiableCredential] from JSON or string input.
-///
-/// Accepts either a raw credential object or its serialized string form.
-/// Delegates to [UniversalParser].
-ParsedVerifiableCredential parseVC(dynamic e) {
-  String encoded;
-  if (e is! String) {
-    encoded = jsonEncode(e);
-  } else {
-    encoded = e;
-  }
-
-  return UniversalParser.parse(encoded);
-}
-
-/// Converts a [ParsedVerifiableCredential] into its presentable form
-/// using the appropriate VC suite.
-dynamic presentVC(ParsedVerifiableCredential credential) {
-  final suite = VcSuites.getVcSuite(credential);
-  final present = suite.present(credential);
-
-  if (present is! String || present is! Map<String, dynamic>) {
-    return credential.toJson();
-  }
-
-  return present;
 }
 
 typedef _P = VpDataModelV2Key;

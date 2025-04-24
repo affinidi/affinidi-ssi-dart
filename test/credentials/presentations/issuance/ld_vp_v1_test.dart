@@ -14,7 +14,7 @@ void main() async {
       utf8.encode('test seed for deterministic key generation'));
 
   final ldV1VC = UniversalParser.parse(VerifiableCredentialDataFixtures
-      .expiringCredentialWithValidProofDataModelV11String);
+      .credentialWithValidProofDataModelV11JsonEncoded);
   final jwtV1VC = UniversalParser.parse(
       VerifiableCredentialDataFixtures.jwtCredentialDataModelV11);
 

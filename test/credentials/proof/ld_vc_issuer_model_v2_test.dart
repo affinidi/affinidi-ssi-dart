@@ -56,7 +56,7 @@ void main() {
 
     test('V2 fixture verify', () async {
       final unsigned = LdVcDm2Suite().parse(VerifiableCredentialDataFixtures
-          .credentialWithProofDataModelV20String);
+          .credentialWithValidProofDataModelV20String);
       // final issuedCredential = await LdVcDm1Suite().issue(unsigned, signer);
 
       final validationResult = await LdVcDm2Suite().verifyIntegrity(unsigned);
