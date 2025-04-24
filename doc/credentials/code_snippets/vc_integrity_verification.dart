@@ -4,8 +4,25 @@ import 'package:ssi/ssi.dart';
 import 'package:ssi/src/credentials/verification/vc_integrity_verifier.dart';
 
 void main() async {
-  // Example VC string
-  final vcString = r'''
+  // Parse the credential
+  final verifiableCredential = UniversalParser.parse(vcString);
+
+  // Run the integrity verifier
+  final verifier = VcIntegrityVerifier();
+  final result = await verifier.verify(verifiableCredential);
+
+  // Print results
+  print('Integrity verification result: ${result.isValid}');
+  if (!result.isValid) {
+    print('Errors: ${result.errors}');
+  }
+  if (result.warnings.isNotEmpty) {
+    print('Warnings: ${result.warnings}');
+  }
+}
+
+// Example VC string
+const vcString = r'''
   {
       "@context": [
           "https://www.w3.org/2018/credentials/v1",
@@ -38,20 +55,3 @@ void main() async {
       }
   }
   ''';
-
-  // Parse the credential
-  final verifiableCredential = UniversalParser.parse(vcString);
-
-  // Run the integrity verifier
-  final verifier = VcIntegrityVerifier();
-  final result = await verifier.verify(verifiableCredential);
-
-  // Print results
-  print('Integrity verification result: ${result.isValid}');
-  if (!result.isValid) {
-    print('Errors: ${result.errors}');
-  }
-  if (result.warnings.isNotEmpty) {
-    print('Warnings: ${result.warnings}');
-  }
-}
