@@ -7,7 +7,16 @@ import '../models/v2/vp_data_model_v2_view.dart';
 import '../suites/vp_suite.dart';
 
 /// Options specific to Linked Data VPv2 operations.
-class LdVpDm2Options extends LdOptions {}
+class LdVpDm2Options extends LdOptions {
+  /// Creates an options object for LdVpDm2Options.
+  ///
+  /// [expires] - Specify expiry of proof.
+  /// [domain] - Specify one or more security domains in which the proof is meant to be used.
+  /// [challenge] - Specify challenge for domain in proof.
+  /// [proofPurpose] - Specify proofPurpose
+  LdVpDm2Options(
+      {super.expires, super.domain, super.challenge, super.proofPurpose});
+}
 
 /// Implementation for parsing and processing JSON-LD Verifiable Presentations v2.2.
 ///

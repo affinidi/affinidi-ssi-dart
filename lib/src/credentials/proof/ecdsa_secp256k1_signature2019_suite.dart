@@ -12,18 +12,16 @@ import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
-import 'proof_purpose.dart';
 
 final _sha256 = Digest('SHA-256');
 
 class EcdsaSecp256k1Signature2019CreateOptions
     extends EmbeddedProofSuiteCreateOptions {
   final DidSigner signer;
-  final ProofPurpose proofPurpose;
 
   EcdsaSecp256k1Signature2019CreateOptions(
       {required this.signer,
-      this.proofPurpose = ProofPurpose.assertionMethod,
+      super.proofPurpose,
       super.customDocumentLoader,
       super.expires,
       super.challenge,
@@ -57,7 +55,7 @@ class EcdsaSecp256k1Signature2019
       'type': _signatureType,
       'created': created.toIso8601String(),
       'verificationMethod': options.signer.keyId,
-      'proofPurpose': options.proofPurpose.value,
+      'proofPurpose': options.proofPurpose?.value,
       'expires': options.expires?.toIso8601String(),
       'challenge': options.challenge,
       'domain': options.domain,
@@ -77,7 +75,7 @@ class EcdsaSecp256k1Signature2019
         type: 'EcdsaSecp256k1Signature2019',
         created: created,
         verificationMethod: options.signer.keyId,
-        proofPurpose: options.proofPurpose.value,
+        proofPurpose: options.proofPurpose?.value,
         jws: jws,
         expires: options.expires,
         challenge: options.challenge,

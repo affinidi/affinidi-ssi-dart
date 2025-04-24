@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:ssi/src/credentials/proof/proof_purpose.dart';
+
 import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -23,12 +25,16 @@ abstract class LdOptions {
   /// A challenge to prevent replay attacks.
   final String? challenge;
 
-  /// Creates an options object for DocWithEmbeddedProof.
+  /// The purpose of embedded proof.
+  final ProofPurpose? proofPurpose;
+
+  /// Creates an options object for LdOptions.
   ///
   /// [expires] - Specify expiry of proof.
   /// [domain] - Specify one or more security domains in which the proof is meant to be used.
   /// [challenge] - Specify challenge for domain in proof.
-  LdOptions({this.expires, this.domain, this.challenge});
+  /// [proofPurpose] - Specify proofPurpose
+  LdOptions({this.expires, this.domain, this.challenge, this.proofPurpose});
 }
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
@@ -82,6 +88,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
       vc.toJson(),
       EcdsaSecp256k1Signature2019CreateOptions(
           signer: signer,
+          proofPurpose: options?.proofPurpose,
           expires: options?.expires,
           challenge: options?.challenge,
           domain: options?.domain),

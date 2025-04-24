@@ -1,3 +1,5 @@
+import 'package:ssi/src/credentials/proof/proof_purpose.dart';
+
 import '../../types.dart';
 import 'embedded_proof.dart';
 
@@ -24,6 +26,9 @@ class EmbeddedProofSuiteCreateOptions {
   /// A challenge to prevent replay attacks.
   final String? challenge;
 
+  /// The purpose of embedded proof.
+  final ProofPurpose? proofPurpose;
+
   /// Creates a new [EmbeddedProofSuiteCreateOptions] instance.
   ///
   /// Uses [_noOpLoader] as the default document loader if none is provided.
@@ -32,6 +37,7 @@ class EmbeddedProofSuiteCreateOptions {
   /// [challenge] - Specify challenge for domain in proof.
   EmbeddedProofSuiteCreateOptions({
     this.customDocumentLoader = _noOpLoader,
+    this.proofPurpose = ProofPurpose.assertionMethod,
     this.expires,
     this.domain,
     this.challenge,
