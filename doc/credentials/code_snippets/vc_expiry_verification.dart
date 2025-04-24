@@ -4,8 +4,29 @@ import 'package:ssi/ssi.dart';
 import 'package:ssi/src/credentials/verification/vc_expiry_verifier.dart';
 
 void main() async {
-  // Example VC string
-  final vcString = r'''
+  // Parse the VC string into a VerifiableCredential object
+  final verifiableCredential = UniversalParser.parse(vcString);
+
+  // Create a VcExpiryVerifier with a fixed current time (e.g., mock clock)
+  final verifier = VcExpiryVerifier(
+    getNow: () => DateTime.parse('2023-01-01T09:51:00.273Z'),
+  );
+
+  // Run the verification
+  final result = await verifier.verify(verifiableCredential);
+
+  // Print results
+  print("Is VC valid? ${result.isValid}");
+  if (!result.isValid) {
+    print("Errors: ${result.errors}");
+  }
+  if (result.warnings.isNotEmpty) {
+    print("Warnings: ${result.warnings}");
+  }
+}
+
+// Example VC string
+const vcString = r'''
   {
       "@context": [
           "https://www.w3.org/2018/credentials/v1",
@@ -38,24 +59,3 @@ void main() async {
       }
   }
   ''';
-
-  // Parse the VC string into a VerifiableCredential object
-  final verifiableCredential = UniversalParser.parse(vcString);
-
-  // Create a VcExpiryVerifier with a fixed current time (e.g., mock clock)
-  final verifier = VcExpiryVerifier(
-    getNow: () => DateTime.parse('2023-01-01T09:51:00.273Z'),
-  );
-
-  // Run the verification
-  final result = await verifier.verify(verifiableCredential);
-
-  // Print results
-  print("Is VC valid? ${result.isValid}");
-  if (!result.isValid) {
-    print("Errors: ${result.errors}");
-  }
-  if (result.warnings.isNotEmpty) {
-    print("Warnings: ${result.warnings}");
-  }
-}
