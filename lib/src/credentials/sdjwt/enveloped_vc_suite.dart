@@ -7,7 +7,7 @@ import '../suites/vc_suites.dart';
 import 'sdjwt_dm_v2_suite.dart';
 
 enum MediaTypes {
-  sdJwt('data:application/vc+sd-jwt');
+  sdJwt('data:application/vc+sd-jwt,');
 
   final String type;
   const MediaTypes(this.type);
@@ -40,7 +40,8 @@ final class EnvelopedVcDm2Suite
     return (context is List) &&
         context.contains(MutableVcDataModelV2.contextUrl) &&
         (type != null) &&
-        (type == 'EnvelopedVerifiableCredential') &&
+        (type is List) &&
+        (type.contains('EnvelopedVerifiableCredential')) &&
         (envelopedData != null) &&
         (envelopedData is String) &&
         mediaTypeSuites.keys.any(envelopedData.startsWith);
@@ -94,10 +95,10 @@ final class EnvelopedVcDm2Suite
   }
 
   @override
-  String present(ParsedVerifiableCredential<String> input) {
+  Map<String, dynamic> present(ParsedVerifiableCredential<String> input) {
     final suite = VcSuites.getVcSuite(input);
-    final mediaTypeEntry =
-        mediaTypeSuites.entries.firstWhere((e) => e.value == suite,
+    final mediaTypeEntry = mediaTypeSuites.entries
+        .firstWhere((e) => e.value.runtimeType == suite.runtimeType,
             orElse: () => throw SsiException(
                   message:
                       'Enveloped VC Presentation for "${input.runtimeType}" is not supported',
@@ -107,13 +108,12 @@ final class EnvelopedVcDm2Suite
     return _envelope(mediaTypeEntry.key, input);
   }
 
-  String _envelope(String mediaType, ParsedVerifiableCredential credential) {
-    return '''
-    {
-      "@context": "https://www.w3.org/ns/credentials/v2",
-      "id": "$mediaType,${credential.serialized}",
-      "type": "EnvelopedVerifiableCredential"
-    }
-    ''';
+  Map<String, dynamic> _envelope(
+      String mediaType, ParsedVerifiableCredential credential) {
+    return {
+      '@context': ['https://www.w3.org/ns/credentials/v2'],
+      'id': '$mediaType${credential.serialized}',
+      'type': ['EnvelopedVerifiableCredential'],
+    };
   }
 }
