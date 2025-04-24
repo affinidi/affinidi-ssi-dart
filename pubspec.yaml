@@ -18,6 +18,9 @@ dependencies:
   pointycastle: ^3.9.1
   selective_disclosure_jwt: ^1.0.0
   x25519: ^0.1.1
+  web3dart: ^2.7.3
+  crypto_keys: ^0.3.0+1
+  dart_multihash: ^1.0.1
 dev_dependencies:
   coverage: ^1.11.1
   lints: ^5.0.0
