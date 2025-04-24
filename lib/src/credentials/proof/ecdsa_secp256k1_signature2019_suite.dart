@@ -21,10 +21,23 @@ class EcdsaSecp256k1Signature2019CreateOptions
   final DidSigner signer;
   final ProofPurpose proofPurpose;
 
+  /// The date and time when this proof expires.
+  final DateTime? expires;
+
+  /// The domains this proof is bound to.
+  /// Can be a single string or a list of strings.
+  final List<String>? domain;
+
+  /// A challenge to prevent replay attacks.
+  final String? challenge;
+
   EcdsaSecp256k1Signature2019CreateOptions({
     required this.signer,
     this.proofPurpose = ProofPurpose.assertionMethod,
     super.customDocumentLoader,
+    this.expires,
+    this.domain,
+    this.challenge,
   });
 }
 
@@ -56,6 +69,9 @@ class EcdsaSecp256k1Signature2019
       'created': created.toIso8601String(),
       'verificationMethod': options.signer.keyId,
       'proofPurpose': options.proofPurpose.value,
+      'expires': options.expires!.toIso8601String(),
+      'challenge': options.challenge,
+      'domain': options.domain,
     };
 
     document.remove('proof');
@@ -69,12 +85,14 @@ class EcdsaSecp256k1Signature2019
     proof['jws'] = jws;
 
     return EcdsaSecp256k1Signature2019Proof(
-      type: 'EcdsaSecp256k1Signature2019',
-      created: created,
-      verificationMethod: options.signer.keyId,
-      proofPurpose: options.proofPurpose.value,
-      jws: jws,
-    );
+        type: 'EcdsaSecp256k1Signature2019',
+        created: created,
+        verificationMethod: options.signer.keyId,
+        proofPurpose: options.proofPurpose.value,
+        jws: jws,
+        expires: options.expires,
+        challenge: options.challenge,
+        domain: options.domain);
   }
 
   @override
@@ -89,6 +107,45 @@ class EcdsaSecp256k1Signature2019
       return VerificationResult.invalid(
         errors: ['invalid or missing proof'],
       );
+    }
+
+    final expires = proof['expires'];
+    final now = DateTime.now();
+    if (expires != null && now.isAfter(DateTime.parse(expires))) {
+      return VerificationResult.invalid(errors: ['proof is no longer valid']);
+    }
+
+    final domain = proof['domain'];
+    final challenge = proof['challenge'];
+
+    if (domain != null) {
+      if (domain is String) {
+        if (domain.trim().isEmpty) {
+          return VerificationResult.invalid(
+              errors: ['invalid or missing proof.domain']);
+        }
+        if (challenge != null &&
+            (challenge is! String || challenge.trim().isEmpty)) {
+          return VerificationResult.invalid(
+              errors: ['invalid or missing proof.challenge']);
+        }
+      } else if (domain is List) {
+        if (domain.any((d) => d is! String || (d).trim().isEmpty)) {
+          return VerificationResult.invalid(
+              errors: ['invalid or missing proof.domain']);
+        }
+        if (challenge != null &&
+            (challenge is! String || challenge.trim().isEmpty)) {
+          return VerificationResult.invalid(
+              errors: ['invalid or missing proof.challenge']);
+        }
+      } else {
+        return VerificationResult.invalid(
+            errors: ['invalid proof.domain format']);
+      }
+    } else if (challenge != null) {
+      return VerificationResult.invalid(
+          errors: ['proof.challenge must be accompanied by proof.domain']);
     }
 
     Uri verificationMethod;
@@ -211,13 +268,15 @@ class EcdsaSecp256k1Signature2019
 class EcdsaSecp256k1Signature2019Proof extends EmbeddedProof {
   final String jws;
 
-  EcdsaSecp256k1Signature2019Proof({
-    required super.type,
-    required super.created,
-    required super.verificationMethod,
-    required super.proofPurpose,
-    required this.jws,
-  });
+  EcdsaSecp256k1Signature2019Proof(
+      {required super.type,
+      required super.created,
+      required super.verificationMethod,
+      required super.proofPurpose,
+      required this.jws,
+      super.expires,
+      super.domain,
+      super.challenge});
 
   @override
   Map<String, dynamic> toJson() {

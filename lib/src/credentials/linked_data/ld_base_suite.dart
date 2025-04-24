@@ -8,7 +8,28 @@ import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 
-abstract class LdOptions {}
+/// Options for LD based data model operations.
+///
+/// Contains configuration parameters for LD based data model operations
+/// in the context of W3C Verifiable Credentials Data Model.
+abstract class LdOptions {
+  /// The date and time when embedded proof expires.
+  final DateTime? expires;
+
+  /// The domains this proof is bound to.
+  /// Can be a single string or a list of strings.
+  final List<String>? domain;
+
+  /// A challenge to prevent replay attacks.
+  final String? challenge;
+
+  /// Creates an options object for DocWithEmbeddedProof.
+  ///
+  /// [expires] - Specify expiry of proof.
+  /// [domain] - Specify one or more security domains in which the proof is meant to be used.
+  /// [challenge] - Specify challenge for domain.
+  LdOptions({this.expires, this.domain, this.challenge});
+}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
 abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
@@ -59,7 +80,11 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
 
     final proof = await _proofSuite.createProof(
       vc.toJson(),
-      EcdsaSecp256k1Signature2019CreateOptions(signer: signer),
+      EcdsaSecp256k1Signature2019CreateOptions(
+          signer: signer,
+          expires: options?.expires,
+          challenge: options?.challenge,
+          domain: options?.domain),
     );
 
     json[proofKey] = proof.toJson();
