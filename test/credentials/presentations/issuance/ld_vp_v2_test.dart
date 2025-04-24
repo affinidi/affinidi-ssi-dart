@@ -15,8 +15,8 @@ void main() async {
 
   final ldV1VC = UniversalParser.parse(VerifiableCredentialDataFixtures
       .credentialWithValidProofDataModelV11JsonEncoded);
-  final ldV2VC = UniversalParser.parse(VerifiableCredentialDataFixtures
-      .expiringCredentialWithValidProofDataModelV20String);
+  final ldV2VC = UniversalParser.parse(
+      VerifiableCredentialDataFixtures.credentialWithProofDataModelV20String);
   final sdjwtV2VC =
       UniversalParser.parse(VerifiableCredentialDataFixtures.sdJwtWithValidSig);
 

@@ -7,6 +7,7 @@ import 'package:ssi/src/credentials/suites/universal_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../../fixtures/verifiable_credentials_data_fixtures.dart';
 import '../../test_utils.dart';
 
 void main() {
@@ -51,6 +52,16 @@ void main() {
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
+    });
+
+    test('V2 fixture verify', () async {
+      final unsigned = LdVcDm2Suite().parse(VerifiableCredentialDataFixtures
+          .credentialWithProofDataModelV20String);
+      // final issuedCredential = await LdVcDm1Suite().issue(unsigned, signer);
+
+      final validationResult = await LdVcDm2Suite().verifyIntegrity(unsigned);
+
+      expect(validationResult, true);
     });
   });
 }

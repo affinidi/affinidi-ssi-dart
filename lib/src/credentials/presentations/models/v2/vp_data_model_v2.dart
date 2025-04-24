@@ -99,7 +99,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     }
 
     if (termsOfUse.isNotEmpty) {
-      json[_P.termsOfUse.key] = _encodeListToSingleOrArray(termsOfUse);
+      json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
     }
 
     if (verifiableCredential.isNotEmpty) {
@@ -107,19 +107,9 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
           verifiableCredential.map(presentVC).toList();
     }
 
-    json[_P.proof.key] = _encodeListToSingleOrArray(proof);
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
 
     return json;
-  }
-
-  dynamic _encodeListToSingleOrArray<T>(List<T> items) {
-    if (items.isEmpty) {
-      return [];
-    } else if (items.length == 1) {
-      return (items.first as dynamic).toJson();
-    } else {
-      return items.map((item) => (item as dynamic).toJson()).toList();
-    }
   }
 
   /// Creates a [VpDataModelV2] from JSON input.
@@ -144,7 +134,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     }
 
     if (json.containsKey(_P.termsOfUse.key)) {
-      termsOfUse = _parseListOrSingleItem<TermOfUse>(
+      termsOfUse = parseListOrSingleItem<TermOfUse>(
         json[_P.termsOfUse.key],
         (item) => TermOfUse.fromJson(jsonToMap(item)),
       );
@@ -160,20 +150,10 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     }
 
     if (json.containsKey(_P.proof.key)) {
-      proof = _parseListOrSingleItem<EmbeddedProof>(
+      proof = parseListOrSingleItem<EmbeddedProof>(
         json[_P.proof.key],
         (item) => EmbeddedProof.fromJson(jsonToMap(item)),
       );
-    }
-  }
-
-  List<T> _parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
-    if (json == null) {
-      return [];
-    } else if (json is List) {
-      return json.map((item) => parser(item)).toList();
-    } else {
-      return [parser(json)];
     }
   }
 }
