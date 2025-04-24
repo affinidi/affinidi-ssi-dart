@@ -1,6 +1,8 @@
 // import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'dart:convert';
 
+import 'package:ssi/src/credentials/models/vc_models.dart';
+
 import '../../../../util/json_util.dart';
 import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
@@ -52,7 +54,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
 
   /// The terms of use describing conditions for credential usage.
   @override
-  List<Map<String, dynamic>> termsOfUse;
+  List<TermOfUse> termsOfUse;
 
   /// The verifiable credentials included in this presentation.
   @override
@@ -77,7 +79,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     this.id,
     required this.type,
     this.holder,
-    List<Map<String, dynamic>>? termsOfUse,
+    List<TermOfUse>? termsOfUse,
     List<ParsedVerifiableCredential>? verifiableCredential,
     List<EmbeddedProof>? proof,
   })  : termsOfUse = termsOfUse ?? [],
@@ -89,22 +91,35 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json['@context'] = context;
-    if (id != null) json['id'] = id;
-    json['type'] = type;
-    if (holder != null) json['holder'] = holder;
-    if (termsOfUse.isNotEmpty) json['termsOfUse'] = termsOfUse;
+    json[_P.context.key] = context;
+    if (id != null) json[_P.id.key] = id;
+    json[_P.type.key] = type;
+    if (holder != null) {
+      json[_P.holder.key] = holder!.toJson();
+    }
+
+    if (termsOfUse.isNotEmpty) {
+      json[_P.termsOfUse.key] = _encodeListToSingleOrArray(termsOfUse);
+    }
 
     if (verifiableCredential.isNotEmpty) {
       json[_P.verifiableCredential.key] =
           verifiableCredential.map(presentVC).toList();
     }
 
-    if (proof.isNotEmpty) {
-      json['proof'] = proof;
-    }
+    json[_P.proof.key] = _encodeListToSingleOrArray(proof);
 
     return json;
+  }
+
+  dynamic _encodeListToSingleOrArray<T>(List<T> items) {
+    if (items.isEmpty) {
+      return [];
+    } else if (items.length == 1) {
+      return (items.first as dynamic).toJson();
+    } else {
+      return items.map((item) => (item as dynamic).toJson()).toList();
+    }
   }
 
   /// Creates a [VpDataModelV2] from JSON input.
@@ -119,20 +134,20 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
         proof = [] {
     final json = jsonToMap(input);
 
-    context = getStringList(json, '@context', mandatory: true);
-    id = getString(json, 'id');
-    type = getStringList(json, 'type', allowSingleValue: true, mandatory: true);
-    holder = getString(json, 'holder');
+    context = getStringList(json, _P.context.key, mandatory: true);
+    id = getString(json, _P.id.key);
+    type = getStringList(json, _P.type.key,
+        allowSingleValue: true, mandatory: true);
 
-    final tou = json[_P.termsOfUse.key];
-    if (tou != null) {
-      if (tou is List) {
-        termsOfUse = tou
-            .map((e) => Map<String, dynamic>.from(e as Map<String, dynamic>))
-            .toList();
-      } else if (tou is Map) {
-        termsOfUse = [Map<String, dynamic>.from(tou)];
-      }
+    if (json.containsKey(_P.holder.key)) {
+      holder = Holder.fromJson(json[_P.holder.key]);
+    }
+
+    if (json.containsKey(_P.termsOfUse.key)) {
+      termsOfUse = _parseListOrSingleItem<TermOfUse>(
+        json[_P.termsOfUse.key],
+        (item) => TermOfUse.fromJson(jsonToMap(item)),
+      );
     }
 
     final credentials = json[_P.verifiableCredential.key];
@@ -144,8 +159,21 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
       }
     }
 
-    if (json['proof'] != null && json['proof'] is Map) {
-      proof = Map.of(json['proof'] as Map<String, dynamic>);
+    if (json.containsKey(_P.proof.key)) {
+      proof = _parseListOrSingleItem<EmbeddedProof>(
+        json[_P.proof.key],
+        (item) => EmbeddedProof.fromJson(jsonToMap(item)),
+      );
+    }
+  }
+
+  List<T> _parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
+    if (json == null) {
+      return [];
+    } else if (json is List) {
+      return json.map((item) => parser(item)).toList();
+    } else {
+      return [parser(json)];
     }
   }
 }

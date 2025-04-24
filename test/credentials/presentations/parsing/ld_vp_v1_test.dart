@@ -18,7 +18,7 @@ void main() async {
       expect(v1Vp.serialized, isNotNull);
       expect(v1Vp.serialized, isA<String>());
       expect(MutableVpDataModelV1.contextUrl, isIn(v1Vp.context));
-      expect(v1Vp.holder, isNotEmpty);
+      expect(v1Vp.holder, isNotNull);
       expect(v1Vp.proof, isNotEmpty);
       expect(v1Vp.verifiableCredential.length, 2);
       expect(v1Vp.verifiableCredential[0], isA<LdVcDataModelV1>());

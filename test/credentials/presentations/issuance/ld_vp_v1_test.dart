@@ -35,7 +35,7 @@ void main() async {
       expect(issuedCredential.serialized, isNotNull);
       expect(issuedCredential.serialized, isA<String>());
       expect(MutableVpDataModelV1.contextUrl, isIn(issuedCredential.context));
-      expect(issuedCredential.holder, isNotEmpty);
+      expect(issuedCredential.holder, isNotNull);
       expect(issuedCredential.proof, isNotEmpty);
     });
 
