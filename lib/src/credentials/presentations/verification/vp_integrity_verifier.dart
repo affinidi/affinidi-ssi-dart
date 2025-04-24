@@ -16,7 +16,13 @@ class VpIntegrityVerifier implements VpVerifier {
   Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {
     final vpSuite = VpSuites.getVpSuite(data);
 
-    var integrityValid = await vpSuite.verifyIntegrity(data);
+    var integrityValid = false;
+
+    try {
+      integrityValid = await vpSuite.verifyIntegrity(data);
+    } catch (e) {
+      integrityValid = false;
+    }
 
     if (!integrityValid) {
       return Future.value(

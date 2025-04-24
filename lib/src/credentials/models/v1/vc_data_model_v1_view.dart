@@ -33,7 +33,6 @@ abstract interface class VcDataModelV1 implements VerifiableCredential {
 
   DateTime? get expirationDate;
 
-  @override
   Holder? get holder;
 
   @override

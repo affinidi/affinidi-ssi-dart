@@ -30,8 +30,8 @@ final class LdVpDm2Suite
   /// Creates a new [LdVpDm2Suite] with the v2.2 context URL.
   LdVpDm2Suite()
       : super(
-          contextUrl: MutableVpDataModelV2.contextUrl,
-        );
+            contextUrl: MutableVpDataModelV2.contextUrl,
+            issuerKey: VpDataModelV2Key.holder.key);
 
   /// Parses a [String] input and payload [Map] into a [LdVpDataModelV2] instance.
   @override

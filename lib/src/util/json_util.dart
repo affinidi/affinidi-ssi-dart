@@ -162,6 +162,26 @@ void addList<E>(
   }
 }
 
+List<T> parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
+  if (json == null) {
+    return [];
+  } else if (json is List) {
+    return json.map((item) => parser(item)).toList();
+  } else {
+    return [parser(json)];
+  }
+}
+
+dynamic encodeListToSingleOrArray<T>(List<T> items) {
+  if (items.isEmpty) {
+    return [];
+  } else if (items.length == 1) {
+    return (items.first as dynamic).toJson();
+  } else {
+    return items.map((item) => (item as dynamic).toJson()).toList();
+  }
+}
+
 // /// Return [fieldName] as `List<String>`, or throw an exception
 // List<ObjectWithId> getObjectWithIdList(
 //   Map<String, dynamic> json,

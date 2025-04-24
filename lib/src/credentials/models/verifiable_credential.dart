@@ -2,7 +2,6 @@ import 'credential_schema.dart';
 import 'credential_status.dart';
 import 'credential_subject.dart';
 import 'doc_with_embedded_proof.dart';
-import 'holder.dart';
 import 'issuer.dart';
 import 'vc_models.dart';
 
@@ -56,11 +55,6 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   ///
   /// Returns null if the credential does not expire.
   DateTime? get validUntil;
-
-  /// The entity that holds this credential.
-  ///
-  /// Returns null if not set.
-  Holder? get holder;
 
   /// Refreshing service for this credential.
   ///
