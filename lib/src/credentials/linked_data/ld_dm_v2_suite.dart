@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../models/v2/vc_data_model_v2.dart';
 import '../models/v2/vc_data_model_v2_view.dart';
 import '../models/verifiable_credential.dart';
@@ -31,6 +33,11 @@ class _LdVcDataModelV2Impl extends MutableVcDataModelV2
       : _serialized = serialized,
         // use parsing from VcDataModelV1
         super.fromJson();
+
+  @override
+  Map<String, dynamic> toJson() {
+    return jsonDecode(_serialized) as Map<String, dynamic>;
+  }
 
   @override
   String get serialized => _serialized;

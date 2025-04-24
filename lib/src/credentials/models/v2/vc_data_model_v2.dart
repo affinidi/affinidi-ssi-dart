@@ -5,10 +5,8 @@ import '../../proof/embedded_proof.dart';
 import '../credential_schema.dart';
 import '../credential_status.dart';
 import '../credential_subject.dart';
-import '../holder.dart';
 import '../issuer.dart';
 import '../vc_models.dart';
-// ignore_for_file: unused_import
 import 'vc_data_model_v2_view.dart';
 
 // TODO(FTL-20734): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
@@ -43,9 +41,6 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
   DateTime? validUntil;
 
   @override
-  Holder? holder;
-
-  @override
   List<EmbeddedProof> proof;
 
   @override
@@ -66,7 +61,6 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     required this.type,
     this.validFrom,
     this.validUntil,
-    this.holder,
     List<EmbeddedProof>? proof,
     this.credentialStatus,
     this.refreshService,
@@ -93,7 +87,7 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
 
     if (credentialSchema.isNotEmpty) {
       json[_P.credentialSchema.key] =
-          _encodeListToSingleOrArray(credentialSchema);
+          encodeListToSingleOrArray(credentialSchema);
     }
 
     final fromDate = validFrom;
@@ -108,12 +102,8 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
 
     json[_P.credentialSubject.key] = credentialSubject.toJson();
 
-    if (holder != null) {
-      json[_P.holder.key] = holder!.toJson();
-    }
-
     // V2 spec expects a single proof object or an array
-    json[_P.proof.key] = _encodeListToSingleOrArray(proof);
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
 
     var credStatus = credentialStatus;
     if (credStatus != null) {
@@ -125,11 +115,11 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     }
 
     if (termsOfUse.isNotEmpty) {
-      json[_P.termsOfUse.key] = _encodeListToSingleOrArray(termsOfUse);
+      json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
     }
 
     if (evidence.isNotEmpty) {
-      json[_P.evidence.key] = _encodeListToSingleOrArray(evidence);
+      json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
     }
 
     return json;
@@ -139,7 +129,6 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
       : context = [],
         credentialSchema = [],
         credentialSubject = CredentialSubject(claims: {}),
-        holder = null,
         issuer = Issuer(id: ''),
         type = [],
         proof = [],
@@ -187,12 +176,8 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
         );
     }
 
-    if (json.containsKey(_P.holder.key)) {
-      holder = Holder.fromJson(json[_P.holder.key]);
-    }
-
     if (json.containsKey(_P.proof.key)) {
-      proof = _parseListOrSingleItem<EmbeddedProof>(
+      proof = parseListOrSingleItem<EmbeddedProof>(
         json[_P.proof.key],
         (item) => EmbeddedProof.fromJson(jsonToMap(item)),
       );
@@ -209,37 +194,17 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     }
 
     if (json.containsKey(_P.termsOfUse.key)) {
-      termsOfUse = _parseListOrSingleItem<TermOfUse>(
+      termsOfUse = parseListOrSingleItem<TermOfUse>(
         json[_P.termsOfUse.key],
         (item) => TermOfUse.fromJson(jsonToMap(item)),
       );
     }
 
     if (json.containsKey(_P.evidence.key)) {
-      evidence = _parseListOrSingleItem<Evidence>(
+      evidence = parseListOrSingleItem<Evidence>(
         json[_P.evidence.key],
         (item) => Evidence.fromJson(jsonToMap(item)),
       );
-    }
-  }
-
-  List<T> _parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
-    if (json == null) {
-      return [];
-    } else if (json is List) {
-      return json.map((item) => parser(item)).toList();
-    } else {
-      return [parser(json)];
-    }
-  }
-
-  dynamic _encodeListToSingleOrArray<T>(List<T> items) {
-    if (items.isEmpty) {
-      return [];
-    } else if (items.length == 1) {
-      return (items.first as dynamic).toJson();
-    } else {
-      return items.map((item) => (item as dynamic).toJson()).toList();
     }
   }
 }
@@ -258,7 +223,6 @@ enum VcDataModelV2Key {
   validFrom,
   validUntil,
   credentialStatus,
-  holder,
   refreshService,
   termsOfUse,
   evidence,

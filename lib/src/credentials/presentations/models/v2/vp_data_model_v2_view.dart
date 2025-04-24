@@ -1,3 +1,5 @@
+import 'package:ssi/src/credentials/models/vc_models.dart';
+
 import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
 import '../../../proof/embedded_proof.dart';
@@ -42,7 +44,7 @@ abstract interface class VpDataModelV2 implements VerifiablePresentation {
   Holder? get holder;
 
   /// The terms of use describing conditions for credential usage.
-  List<Map<String, dynamic>> get termsOfUse;
+  List<TermOfUse> get termsOfUse;
 
   /// The verifiable credentials included in this presentation.
   @override
