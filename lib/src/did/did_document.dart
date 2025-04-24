@@ -544,7 +544,7 @@ class VerificationMethodMultibase extends VerificationMethod {
 
   @override
   Jwk asJwk() {
-    return Jwk.fromJson(multiKeyToJwk(publicKeyMultikey));
+    return Jwk.fromJson({'kid': id, ...multiKeyToJwk(publicKeyMultikey)});
   }
 
   @override
