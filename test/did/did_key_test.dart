@@ -24,7 +24,7 @@ void main() {
       keyStore = InMemoryKeyStore();
       wallet = await Bip32Wallet.fromSeed(seed, keyStore);
       accountPublicKey =
-          await wallet.generateKey(derivationPath: "m/44'/60'/0'/0/0");
+          await wallet.deriveKey(derivationPath: "m/44'/60'/0'/0/0");
     });
 
     test('generateDocument should match expected', () async {
@@ -60,7 +60,7 @@ void main() {
       final expectedDidKeyPrefix = 'did:key:zQ3s';
 
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0/0";
-      final key = await wallet.generateKey(derivationPath: derivedKeyPath);
+      final key = await wallet.deriveKey(derivationPath: derivedKeyPath);
       final doc = DidKey.generateDocument(key);
       final actualDid = doc.id;
 

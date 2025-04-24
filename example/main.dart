@@ -25,11 +25,11 @@ void main() async {
   final data = Uint8List.fromList([1, 2, 3]);
   print('Data to sign: ${hexEncode(data)}');
 
-  // Generate the account 0 key
-  print('Generating account 0 key 0 ($account0Key0Id)...');
-  final account0Key0 = await wallet.generateKey(
+  // Derive the account 0 key
+  print('Deriving account 0 key 0 ($account0Key0Id)...');
+  final account0Key0 = await wallet.deriveKey(
       keyId: account0Key0Id, derivationPath: account0Key0DerivationPath);
-  print('Account 0 key 0 generated. Public key: ${account0Key0.bytes}');
+  print('Account 0 key 0 derived. Public key: ${account0Key0.bytes}');
 
   print('Signing with account 0 key 0 ($account0Key0Id)...');
   final signature = await wallet.sign(data, keyId: account0Key0.id);
@@ -48,10 +48,10 @@ void main() async {
   final account0Key1Id = "account0-key1";
   print(
       '\n--- Account 0 Key 1 Operations ($account0Key1Id, $account0Key1DerivationPath) ---');
-  print('Generating account 0 key 1 ($account0Key1Id)...');
-  final account0Key1 = await wallet.generateKey(
+  print('Deriving account 0 key 1 ($account0Key1Id)...');
+  final account0Key1 = await wallet.deriveKey(
       keyId: account0Key1Id, derivationPath: account0Key1DerivationPath);
-  print('Account 0 key 1 generated. Public key: ${account0Key1.bytes}');
+  print('Account 0 key 1 derived. Public key: ${account0Key1.bytes}');
   print('Signing with account 0 key 1 ($account0Key1Id)...');
   final account0Key1Signature = await wallet.sign(data, keyId: account0Key1Id);
   print('Account 0 key 1 signature: ${hexEncode(account0Key1Signature)}');
@@ -100,10 +100,10 @@ void main() async {
   final bobKeyStore = InMemoryKeyStore();
   final bobWallet = await Bip32Wallet.fromSeed(bobSeed, bobKeyStore);
 
-  // Generate a key pair for Bob
+  // Derive a key pair for Bob
   const bobKeyId = 'bob-key-0';
   const bobDerivationPath = "m/44'/0'/0'/0/0";
-  final bobKey = await bobWallet.generateKey(
+  final bobKey = await bobWallet.deriveKey(
       keyId: bobKeyId, derivationPath: bobDerivationPath);
   print('Bob key pair created. Public key: ${bobKey.bytes}');
 

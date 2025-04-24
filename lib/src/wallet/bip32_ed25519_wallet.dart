@@ -7,17 +7,17 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/public_key.dart';
-import '../wallet/key_store/key_store_interface.dart';
-import '../wallet/key_store/stored_key.dart';
 import '../types.dart';
-import 'wallet.dart';
+import 'deterministic_wallet.dart';
+import 'key_store/key_store_interface.dart';
+import 'key_store/stored_key.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with Ed25519 keys.
 ///
 /// This wallet can create and manage multiple key pairs derived from a single seed.
 /// It supports signing and verifying messages using Ed25519 signature scheme,
 /// and ecrypting/decrypting payloads.
-class Bip32Ed25519Wallet implements Wallet {
+class Bip32Ed25519Wallet implements DeterministicWallet {
   final KeyStore _keyStore;
   // Runtime cache for derived KeyPair objects
   final Map<String, Ed25519KeyPair> _runtimeCache = {};
@@ -112,15 +112,12 @@ class Bip32Ed25519Wallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> generateKey({
+  Future<PublicKey> deriveKey({
     String? keyId,
     KeyType? keyType,
-    String? derivationPath, // Required for HD wallets
+    required String derivationPath,
   }) async {
-    if (derivationPath == null) {
-      throw ArgumentError(
-          'derivationPath is required for Bip32Ed25519Wallet.generateKey');
-    }
+    // TODO: validate derivation path. If not fully hardened did peer fails
 
     final effectiveKeyType = keyType ?? KeyType.ed25519;
     if (effectiveKeyType != KeyType.ed25519) {
@@ -163,6 +160,15 @@ class Bip32Ed25519Wallet implements Wallet {
     final keyData = await tempKeyPair.publicKey;
 
     return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+  }
+
+  @override
+  Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) {
+    // Bip32Ed25519Wallet requires a derivation path.
+    // Throw an error if the base generateKey (without path) is called.
+    throw UnsupportedError(
+      'Bip32Ed25519Wallet requires a derivation path. Use deriveKey instead.',
+    );
   }
 
   @override

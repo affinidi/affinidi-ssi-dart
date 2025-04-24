@@ -66,7 +66,6 @@ class GenericWallet implements Wallet {
   Future<PublicKey> generateKey({
     String? keyId,
     KeyType? keyType,
-    String? derivationPath, // Ignored
   }) async {
     final effectiveKeyId = keyId ?? _randomId();
     if (await _keyStore.contains(effectiveKeyId)) {

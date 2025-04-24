@@ -7,7 +7,7 @@ Future<DidSigner> initSigner(Uint8List seed) async {
   final keyStore = InMemoryKeyStore();
   final wallet = await Bip32Wallet.fromSeed(seed, keyStore);
   final publicKey =
-      await wallet.generateKey(derivationPath: "m/44'/60'/0'/0'/0'");
+      await wallet.deriveKey(derivationPath: "m/44'/60'/0'/0'/0'");
   final doc = DidKey.generateDocument(publicKey);
 
   final signer = DidSigner(
