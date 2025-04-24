@@ -2,8 +2,12 @@ import 'dart:convert';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/linked_data/ld_dm_v1_suite.dart';
+import 'package:ssi/src/credentials/models/credential_subject.dart';
+import 'package:ssi/src/credentials/models/holder.dart';
+import 'package:ssi/src/credentials/models/issuer.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
+import 'package:ssi/src/credentials/proof/embedded_proof.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -24,17 +28,15 @@ void main() async {
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
         ],
-        id: 'uuid:123456abcd',
-        type: ['VerifiableCredential', 'UserProfile'],
-        credentialSubject: {
-          'Fname': 'Fname',
-          'Lname': 'Lame',
-          'Age': '22',
-          'Address': 'Eihhornstr'
-        },
-        holder: {
-          'id': 'did:example:1',
-        },
+        id: "uuid:123456abcd",
+        type: ["VerifiableCredential", "UserProfile"],
+        credentialSubject: CredentialSubject(claims: {
+          "Fname": "Fname",
+          "Lname": "Lame",
+          "Age": "22",
+          "Address": "Eihhornstr"
+        }),
+        holder: Holder(id: Uri.parse("did:example:1")),
         credentialSchema: [
           CredentialSchema.fromJson({
             'id': 'https://schema.affinidi.com/UserProfileV1-0.json',
@@ -42,7 +44,7 @@ void main() async {
           })
         ],
         issuanceDate: DateTime.now(),
-        issuer: signer.did,
+        issuer: Issuer(id: signer.did),
       );
 
       final proofSuite = EcdsaSecp256k1Signature2019();
@@ -53,7 +55,7 @@ void main() async {
         ),
       );
 
-      unsignedCredential.proof = proof.toJson();
+      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
 
       final verificationResult = await proofSuite.verifyProof(
         unsignedCredential.toJson(),

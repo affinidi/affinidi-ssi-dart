@@ -1,4 +1,6 @@
+import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
+import '../../../proof/embedded_proof.dart';
 import '../verifiable_presentation.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v2.0.
@@ -33,11 +35,11 @@ abstract interface class VpDataModelV2 implements VerifiablePresentation {
   @override
   List<String> get type;
 
-  /// The identifier of the entity presenting the credentials.
+  /// The entity presenting the credentials.
   ///
-  /// Usually a DID.
+  /// Usually identified by a DID.
   @override
-  String? get holder;
+  Holder? get holder;
 
   /// The terms of use describing conditions for credential usage.
   List<Map<String, dynamic>> get termsOfUse;
@@ -50,5 +52,5 @@ abstract interface class VpDataModelV2 implements VerifiablePresentation {
   ///
   /// Can be a DataIntegrityProof, JWT, or other proof format.
   @override
-  Map<String, dynamic> get proof;
+  List<EmbeddedProof> get proof;
 }

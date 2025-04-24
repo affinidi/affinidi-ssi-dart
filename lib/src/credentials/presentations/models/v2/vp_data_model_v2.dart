@@ -2,7 +2,9 @@
 import 'dart:convert';
 
 import '../../../../util/json_util.dart';
+import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
+import '../../../proof/embedded_proof.dart';
 import '../../../suites/universal_parser.dart';
 import '../../../suites/vc_suites.dart';
 import 'vp_data_model_v2_view.dart';
@@ -46,7 +48,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
   ///
   /// Usually a DID.
   @override
-  String? holder;
+  Holder? holder;
 
   /// The terms of use describing conditions for credential usage.
   @override
@@ -60,7 +62,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
   ///
   /// Can be a DataIntegrityProof, JWT, or other proof format.
   @override
-  Map<String, dynamic> proof;
+  List<EmbeddedProof> proof;
 
   /// Creates a [VpDataModelV2] instance.
   ///
@@ -77,10 +79,10 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     this.holder,
     List<Map<String, dynamic>>? termsOfUse,
     List<ParsedVerifiableCredential>? verifiableCredential,
-    Map<String, dynamic>? proof,
+    List<EmbeddedProof>? proof,
   })  : termsOfUse = termsOfUse ?? [],
         verifiableCredential = verifiableCredential ?? [],
-        proof = proof ?? {};
+        proof = proof ?? [EmbeddedProof(type: 'Ed25519Signature2018')];
 
   /// Converts this presentation to a JSON-serializable map.
   @override
@@ -88,10 +90,10 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     final json = <String, dynamic>{};
 
     json['@context'] = context;
-    if (id != null) json[_P.id.key] = id;
-    json[_P.type.key] = type;
-    if (holder != null) json[_P.holder.key] = holder;
-    if (termsOfUse.isNotEmpty) json[_P.termsOfUse.key] = termsOfUse;
+    if (id != null) json['id'] = id;
+    json['type'] = type;
+    if (holder != null) json['holder'] = holder;
+    if (termsOfUse.isNotEmpty) json['termsOfUse'] = termsOfUse;
 
     if (verifiableCredential.isNotEmpty) {
       json[_P.verifiableCredential.key] =
@@ -99,7 +101,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     }
 
     if (proof.isNotEmpty) {
-      json[_P.proof.key] = proof;
+      json['proof'] = proof;
     }
 
     return json;
@@ -114,14 +116,13 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
         type = [],
         termsOfUse = [],
         verifiableCredential = [],
-        proof = {} {
+        proof = [] {
     final json = jsonToMap(input);
 
-    context = getStringList(json, _P.context.key, mandatory: true);
-    id = getString(json, _P.id.key);
-    type = getStringList(json, _P.type.key,
-        allowSingleValue: true, mandatory: true);
-    holder = getString(json, _P.holder.key);
+    context = getStringList(json, '@context', mandatory: true);
+    id = getString(json, 'id');
+    type = getStringList(json, 'type', allowSingleValue: true, mandatory: true);
+    holder = getString(json, 'holder');
 
     final tou = json[_P.termsOfUse.key];
     if (tou != null) {
@@ -143,8 +144,8 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
       }
     }
 
-    if (json[_P.proof.key] != null && json[_P.proof.key] is Map) {
-      proof = Map.of(json[_P.proof.key] as Map<String, dynamic>);
+    if (json['proof'] != null && json['proof'] is Map) {
+      proof = Map.of(json['proof'] as Map<String, dynamic>);
     }
   }
 }
