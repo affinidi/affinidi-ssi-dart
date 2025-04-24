@@ -14,10 +14,28 @@ class EmbeddedProofSuiteCreateOptions {
   /// The document loader to use when creating proofs.
   final DocumentLoader customDocumentLoader;
 
+  /// The date and time when this proof expires.
+  final DateTime? expires;
+
+  /// The domains this proof is bound to.
+  /// Can be a single string or a list of strings.
+  final List<String>? domain;
+
+  /// A challenge to prevent replay attacks.
+  final String? challenge;
+
   /// Creates a new [EmbeddedProofSuiteCreateOptions] instance.
   ///
   /// Uses [_noOpLoader] as the default document loader if none is provided.
-  EmbeddedProofSuiteCreateOptions({this.customDocumentLoader = _noOpLoader});
+  /// [expires] - Specify expiry of proof.
+  /// [domain] - Specify one or more security domains in which the proof is meant to be used.
+  /// [challenge] - Specify challenge for domain in proof.
+  EmbeddedProofSuiteCreateOptions({
+    this.customDocumentLoader = _noOpLoader,
+    this.expires,
+    this.domain,
+    this.challenge,
+  });
 }
 
 /// Options for verifying cryptographic proofs.

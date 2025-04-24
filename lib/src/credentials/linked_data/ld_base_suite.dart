@@ -27,7 +27,7 @@ abstract class LdOptions {
   ///
   /// [expires] - Specify expiry of proof.
   /// [domain] - Specify one or more security domains in which the proof is meant to be used.
-  /// [challenge] - Specify challenge for domain.
+  /// [challenge] - Specify challenge for domain in proof.
   LdOptions({this.expires, this.domain, this.challenge});
 }
 

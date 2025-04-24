@@ -21,24 +21,13 @@ class EcdsaSecp256k1Signature2019CreateOptions
   final DidSigner signer;
   final ProofPurpose proofPurpose;
 
-  /// The date and time when this proof expires.
-  final DateTime? expires;
-
-  /// The domains this proof is bound to.
-  /// Can be a single string or a list of strings.
-  final List<String>? domain;
-
-  /// A challenge to prevent replay attacks.
-  final String? challenge;
-
-  EcdsaSecp256k1Signature2019CreateOptions({
-    required this.signer,
-    this.proofPurpose = ProofPurpose.assertionMethod,
-    super.customDocumentLoader,
-    this.expires,
-    this.domain,
-    this.challenge,
-  });
+  EcdsaSecp256k1Signature2019CreateOptions(
+      {required this.signer,
+      this.proofPurpose = ProofPurpose.assertionMethod,
+      super.customDocumentLoader,
+      super.expires,
+      super.challenge,
+      super.domain});
 }
 
 class EcdsaSecp256k1Signature2019VerifyOptions
