@@ -97,7 +97,7 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
 
     if (credentialSchema.isNotEmpty) {
       json[_P.credentialSchema.key] =
-          _encodeListToSingleOrArray(credentialSchema);
+          encodeListToSingleOrArray(credentialSchema);
     }
 
     final issDate = issuanceDate;
@@ -131,11 +131,11 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
     }
 
     if (termsOfUse.isNotEmpty) {
-      json[_P.termsOfUse.key] = _encodeListToSingleOrArray(termsOfUse);
+      json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
     }
 
     if (evidence.isNotEmpty) {
-      json[_P.evidence.key] = _encodeListToSingleOrArray(evidence);
+      json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
     }
 
     return json;
@@ -216,37 +216,17 @@ class MutableVcDataModelV1 implements VcDataModelV1 {
     }
 
     if (json.containsKey(_P.termsOfUse.key)) {
-      termsOfUse = _parseListOrSingleItem<TermOfUse>(
+      termsOfUse = parseListOrSingleItem<TermOfUse>(
         json[_P.termsOfUse.key],
         (item) => TermOfUse.fromJson(jsonToMap(item)),
       );
     }
 
     if (json.containsKey(_P.evidence.key)) {
-      evidence = _parseListOrSingleItem<Evidence>(
+      evidence = parseListOrSingleItem<Evidence>(
         json[_P.evidence.key],
         (item) => Evidence.fromJson(jsonToMap(item)),
       );
-    }
-  }
-
-  List<T> _parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
-    if (json == null) {
-      return [];
-    } else if (json is List) {
-      return json.map((item) => parser(item)).toList();
-    } else {
-      return [parser(json)];
-    }
-  }
-
-  dynamic _encodeListToSingleOrArray<T>(List<T> items) {
-    if (items.isEmpty) {
-      return [];
-    } else if (items.length == 1) {
-      return (items.first as dynamic).toJson();
-    } else {
-      return items.map((item) => (item as dynamic).toJson()).toList();
     }
   }
 }

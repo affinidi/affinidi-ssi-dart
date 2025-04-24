@@ -1,12 +1,9 @@
-import 'dart:convert';
-
+import 'package:ssi/src/credentials/presentations/models/vc_parse_present.dart';
 import 'package:ssi/src/credentials/proof/embedded_proof.dart';
 
 import '../../../../util/json_util.dart';
 import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
-import '../../../suites/universal_parser.dart';
-import '../../../suites/vc_suites.dart';
 import 'vp_data_model_v1_view.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v1.1.
@@ -81,18 +78,18 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json['@context'] = context;
-    if (id != null) json['id'] = id;
-    json['type'] = type;
-    if (holder != null) json['holder'] = holder!.toJson();
+    json[_P.context.key] = context;
+    if (id != null) json[_P.id.key] = id;
+    json[_P.type.key] = type;
+    if (holder != null) json[_P.holder.key] = holder!.toJson();
 
     if (verifiableCredential.isNotEmpty) {
-      json['verifiableCredential'] =
+      json[_P.verifiableCredential.key] =
           verifiableCredential.map(presentVC).toList();
     }
 
     if (proof.isNotEmpty) {
-      json['proof'] = proof.first.toJson();
+      json[_P.proof.key] = proof.first.toJson();
     }
 
     return json;
@@ -110,21 +107,20 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
         proof = [] {
     final json = jsonToMap(input);
 
-    context = getStringList(json, '@context', mandatory: true);
-    id = getString(json, 'id');
+    context = getStringList(json, _P.context.key, mandatory: true);
+    id = getString(json, _P.id.key);
     type = getStringList(
       json,
-      'type',
+      _P.type.key,
       allowSingleValue: true,
       mandatory: true,
     );
-
-    if (json.containsKey('holder')) {
-      holder = Holder.fromJson(json['holder']);
+    if (json.containsKey(_P.holder.key)) {
+      holder = Holder.fromJson(json[_P.holder.key]);
     }
 
     // Handles both single VC or a list of VCs
-    final credentials = json['verifiableCredential'];
+    final credentials = json[_P.verifiableCredential.key];
     if (credentials != null) {
       if (credentials is List) {
         verifiableCredential = credentials.map(parseVC).toList();
@@ -133,30 +129,27 @@ class MutableVpDataModelV1 implements VpDataModelV1 {
       }
     }
 
-    if (json.containsKey('proof')) {
-      proof = [EmbeddedProof.fromJson(json['proof'] as Map<String, dynamic>)];
+    if (json.containsKey(_P.proof.key)) {
+      proof = [
+        EmbeddedProof.fromJson(json[_P.proof.key] as Map<String, dynamic>)
+      ];
     }
   }
 }
 
-/// Parses a [ParsedVerifiableCredential] from JSON or string input.
-///
-/// Accepts either a raw credential object or its serialized string form.
-/// Delegates to [UniversalParser].
-ParsedVerifiableCredential parseVC(dynamic e) {
-  String encoded;
-  if (e is! String) {
-    encoded = jsonEncode(e);
-  } else {
-    encoded = e;
-  }
+typedef _P = VpDataModelV1Key;
 
-  return UniversalParser.parse(encoded);
-}
+enum VpDataModelV1Key {
+  context(key: '@context'),
+  id,
+  type,
+  holder,
+  verifiableCredential,
+  proof;
 
-/// Converts a [ParsedVerifiableCredential] into its presentable form
-/// using the appropriate VC suite.
-dynamic presentVC(ParsedVerifiableCredential credential) {
-  final suite = VcSuites.getVcSuite(credential);
-  return suite.present(credential);
+  final String? _key;
+
+  String get key => _key ?? name;
+
+  const VpDataModelV1Key({String? key}) : _key = key;
 }

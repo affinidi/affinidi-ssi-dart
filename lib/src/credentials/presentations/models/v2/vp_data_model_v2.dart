@@ -1,12 +1,10 @@
-// import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'dart:convert';
+import 'package:ssi/src/credentials/models/vc_models.dart';
+import 'package:ssi/src/credentials/presentations/models/vc_parse_present.dart';
 
 import '../../../../util/json_util.dart';
 import '../../../models/holder.dart';
 import '../../../models/parsed_vc.dart';
 import '../../../proof/embedded_proof.dart';
-import '../../../suites/universal_parser.dart';
-import '../../../suites/vc_suites.dart';
 import 'vp_data_model_v2_view.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v2.0.
@@ -52,7 +50,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
 
   /// The terms of use describing conditions for credential usage.
   @override
-  List<Map<String, dynamic>> termsOfUse;
+  List<TermOfUse> termsOfUse;
 
   /// The verifiable credentials included in this presentation.
   @override
@@ -77,7 +75,7 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
     this.id,
     required this.type,
     this.holder,
-    List<Map<String, dynamic>>? termsOfUse,
+    List<TermOfUse>? termsOfUse,
     List<ParsedVerifiableCredential>? verifiableCredential,
     List<EmbeddedProof>? proof,
   })  : termsOfUse = termsOfUse ?? [],
@@ -89,18 +87,23 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json['@context'] = context;
-    if (id != null) json['id'] = id;
-    json['type'] = type;
-    if (holder != null) json['holder'] = holder!.toJson();
-    if (termsOfUse.isNotEmpty) json['termsOfUse'] = termsOfUse;
+    json[_P.context.key] = context;
+    if (id != null) json[_P.id.key] = id;
+    json[_P.type.key] = type;
+    if (holder != null) {
+      json[_P.holder.key] = holder!.toJson();
+    }
+
+    if (termsOfUse.isNotEmpty) {
+      json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    }
 
     if (verifiableCredential.isNotEmpty) {
-      json['verifiableCredential'] =
+      json[_P.verifiableCredential.key] =
           verifiableCredential.map(presentVC).toList();
     }
 
-    json['proof'] = _encodeListToSingleOrArray(proof);
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
 
     return json;
   }
@@ -117,26 +120,23 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
         proof = [] {
     final json = jsonToMap(input);
 
-    context = getStringList(json, '@context', mandatory: true);
-    id = getString(json, 'id');
-    type = getStringList(json, 'type', allowSingleValue: true, mandatory: true);
+    context = getStringList(json, _P.context.key, mandatory: true);
+    id = getString(json, _P.id.key);
+    type = getStringList(json, _P.type.key,
+        allowSingleValue: true, mandatory: true);
 
-    if (json.containsKey('holder')) {
-      holder = Holder.fromJson(json['holder']);
+    if (json.containsKey(_P.holder.key)) {
+      holder = Holder.fromJson(json[_P.holder.key]);
     }
 
-    final tou = json['termsOfUse'];
-    if (tou != null) {
-      if (tou is List) {
-        termsOfUse = tou
-            .map((e) => Map<String, dynamic>.from(e as Map<String, dynamic>))
-            .toList();
-      } else if (tou is Map) {
-        termsOfUse = [Map<String, dynamic>.from(tou)];
-      }
+    if (json.containsKey(_P.termsOfUse.key)) {
+      termsOfUse = parseListOrSingleItem<TermOfUse>(
+        json[_P.termsOfUse.key],
+        (item) => TermOfUse.fromJson(jsonToMap(item)),
+      );
     }
 
-    final credentials = json['verifiableCredential'];
+    final credentials = json[_P.verifiableCredential.key];
     if (credentials != null) {
       if (credentials is List) {
         verifiableCredential = credentials.map(parseVC).toList();
@@ -145,53 +145,29 @@ class MutableVpDataModelV2 implements VpDataModelV2 {
       }
     }
 
-    if (json.containsKey('proof')) {
-      proof = _parseListOrSingleItem<EmbeddedProof>(
-        json['proof'],
+    if (json.containsKey(_P.proof.key)) {
+      proof = parseListOrSingleItem<EmbeddedProof>(
+        json[_P.proof.key],
         (item) => EmbeddedProof.fromJson(jsonToMap(item)),
       );
     }
   }
-
-  List<T> _parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
-    if (json == null) {
-      return [];
-    } else if (json is List) {
-      return json.map((item) => parser(item)).toList();
-    } else {
-      return [parser(json)];
-    }
-  }
-
-  dynamic _encodeListToSingleOrArray<T>(List<T> items) {
-    if (items.isEmpty) {
-      return [];
-    } else if (items.length == 1) {
-      return (items.first as dynamic).toJson();
-    } else {
-      return items.map((item) => (item as dynamic).toJson()).toList();
-    }
-  }
 }
 
-/// Parses a [ParsedVerifiableCredential] from JSON or string input.
-///
-/// Accepts either a raw credential object or its serialized string form.
-/// Delegates to [UniversalParser].
-ParsedVerifiableCredential parseVC(dynamic e) {
-  String encoded;
-  if (e is! String) {
-    encoded = jsonEncode(e);
-  } else {
-    encoded = e;
-  }
+typedef _P = VpDataModelV2Key;
 
-  return UniversalParser.parse(encoded);
-}
+enum VpDataModelV2Key {
+  context(key: '@context'),
+  id,
+  type,
+  holder,
+  verifiableCredential,
+  proof,
+  termsOfUse;
 
-/// Converts a [ParsedVerifiableCredential] into its presentable form
-/// using the appropriate VC suite.
-dynamic presentVC(ParsedVerifiableCredential credential) {
-  final suite = VcSuites.getVcSuite(credential);
-  return suite.present(credential);
+  final String? _key;
+
+  String get key => _key ?? name;
+
+  const VpDataModelV2Key({String? key}) : _key = key;
 }
