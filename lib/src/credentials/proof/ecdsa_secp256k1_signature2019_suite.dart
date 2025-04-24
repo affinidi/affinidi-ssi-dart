@@ -31,8 +31,14 @@ class EcdsaSecp256k1Signature2019CreateOptions
 class EcdsaSecp256k1Signature2019VerifyOptions
     extends EmbeddedProofSuiteVerifyOptions {
   final String issuerDid;
+  final DateTime Function() getNow;
+  final List<String>? domain;
+  final String? challenge;
   EcdsaSecp256k1Signature2019VerifyOptions({
     required this.issuerDid,
+    this.getNow = DateTime.now,
+    this.domain,
+    this.challenge,
     super.customDocumentLoader,
   });
 }
@@ -96,7 +102,7 @@ class EcdsaSecp256k1Signature2019
       );
     }
 
-    final isValidProof = verifyProofProperties(proof);
+    final isValidProof = verifyProofProperties(proof, options);
     if (!isValidProof.isValid) {
       return isValidProof;
     }
@@ -127,46 +133,45 @@ class EcdsaSecp256k1Signature2019
     return VerificationResult.ok();
   }
 
-  static VerificationResult verifyProofProperties(dynamic proof) {
+  static VerificationResult verifyProofProperties(
+      dynamic proof, EcdsaSecp256k1Signature2019VerifyOptions options) {
     final expires = proof['expires'];
-    final now = DateTime.now();
-    if (expires != null && now.isAfter(DateTime.parse(expires))) {
+    if (expires != null && options.getNow().isAfter(DateTime.parse(expires))) {
       return VerificationResult.invalid(errors: ['proof is no longer valid']);
     }
 
-    final domain = proof['domain'];
-    final challenge = proof['challenge'];
+    final proofDomain = proof['domain'];
+    final proofChallenge = proof['challenge'];
 
-    if (domain != null) {
-      if (domain is String) {
-        if (domain.trim().isEmpty) {
-          return VerificationResult.invalid(
-              errors: ['invalid or missing proof.domain']);
-        }
-        if (challenge != null &&
-            (challenge is! String || challenge.trim().isEmpty)) {
-          return VerificationResult.invalid(
-              errors: ['invalid or missing proof.challenge']);
-        }
-      } else if (domain is List) {
-        if (domain.any((d) => d is! String || (d).trim().isEmpty)) {
-          return VerificationResult.invalid(
-              errors: ['invalid or missing proof.domain']);
-        }
-        if (challenge != null &&
-            (challenge is! String || challenge.trim().isEmpty)) {
-          return VerificationResult.invalid(
-              errors: ['invalid or missing proof.challenge']);
-        }
-      } else {
+    if (proofDomain != null) {
+      bool isDomainValid = false;
+      if (proofDomain is String) {
+        isDomainValid = proofDomain.trim().isNotEmpty && options.domain != null
+            ? options.domain!.contains(proofDomain)
+            : true;
+      } else if (proofDomain is List) {
+        isDomainValid = proofDomain.every((d) =>
+            d.trim().isNotEmpty && options.domain != null
+                ? options.domain!.contains(d)
+                : true);
+      }
+
+      if (!isDomainValid) {
+        return VerificationResult.invalid(
+            errors: ['invalid or missing proof.domain']);
+      }
+      if (proofDomain is! String && proofDomain is! List) {
         return VerificationResult.invalid(
             errors: ['invalid proof.domain format']);
       }
-      if (challenge == null) {
+      if (proofChallenge == null ||
+          proofChallenge is! String ||
+          proofChallenge.trim().isEmpty ||
+          (options.challenge != null && proofChallenge != options.challenge)) {
         return VerificationResult.invalid(
             errors: ['invalid or missing proof.challenge']);
       }
-    } else if (challenge != null) {
+    } else if (proofChallenge != null) {
       return VerificationResult.invalid(
           errors: ['proof.challenge must be accompanied by proof.domain']);
     }

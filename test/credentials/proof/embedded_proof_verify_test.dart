@@ -60,7 +60,9 @@ void main() {
       final verificationResult = await proofSuite.verifyProof(
         unsignedCredential.toJson(),
         EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument, issuerDid: signer.did),
+          customDocumentLoader: testLoadDocument,
+          issuerDid: signer.did,
+        ),
       );
 
       expect(verificationResult.isValid, true);
@@ -96,7 +98,7 @@ void main() {
       final proof = await proofSuite.createProof(
         unsignedCredential.toJson(),
         EcdsaSecp256k1Signature2019CreateOptions(
-            signer: signer, expires: DateTime.parse('1024-01-01T12:00:01Z')),
+            signer: signer, expires: DateTime.now()),
       );
 
       unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
@@ -104,7 +106,9 @@ void main() {
       final verificationResult = await proofSuite.verifyProof(
         unsignedCredential.toJson(),
         EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument, issuerDid: signer.did),
+            customDocumentLoader: testLoadDocument,
+            issuerDid: signer.did,
+            getNow: () => DateTime.parse('3024-01-01T12:00:01Z')),
       );
 
       expect(verificationResult.isValid, false);
@@ -129,7 +133,68 @@ void main() {
       final verificationResult = await proofSuite.verifyProof(
         unsignedCredential.toJson(),
         EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument, issuerDid: signer.did),
+            customDocumentLoader: testLoadDocument,
+            issuerDid: signer.did,
+            domain: ['example.com'],
+            challenge: 'test-challenge'),
+      );
+
+      expect(verificationResult.isValid, true);
+      expect(verificationResult.errors, isEmpty);
+      expect(verificationResult.warnings, isEmpty);
+    });
+
+    test(
+        'should create proof with domain and challenge and check validation against verification options',
+        () async {
+      final proofSuite = EcdsaSecp256k1Signature2019();
+      final proof = await proofSuite.createProof(
+        unsignedCredential.toJson(),
+        EcdsaSecp256k1Signature2019CreateOptions(
+            signer: signer,
+            expires: DateTime.parse('3024-01-01T12:00:01Z'),
+            domain: ['example.com'],
+            challenge: 'test-challenge'),
+      );
+
+      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+
+      final verificationResult = await proofSuite.verifyProof(
+        unsignedCredential.toJson(),
+        EcdsaSecp256k1Signature2019VerifyOptions(
+            customDocumentLoader: testLoadDocument,
+            issuerDid: signer.did,
+            domain: ['example1.com'],
+            challenge: 'test-challenge'),
+      );
+
+      expect(verificationResult.isValid, false);
+      expect(verificationResult.errors, ['invalid or missing proof.domain']);
+      expect(verificationResult.warnings, isEmpty);
+    });
+
+    test(
+        'should create proof with domain array and challenge and check validation against verification options',
+        () async {
+      final proofSuite = EcdsaSecp256k1Signature2019();
+      final proof = await proofSuite.createProof(
+        unsignedCredential.toJson(),
+        EcdsaSecp256k1Signature2019CreateOptions(
+            signer: signer,
+            expires: DateTime.parse('3024-01-01T12:00:01Z'),
+            domain: ['example.com', 'example1.com'],
+            challenge: 'test-challenge'),
+      );
+
+      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+
+      final verificationResult = await proofSuite.verifyProof(
+        unsignedCredential.toJson(),
+        EcdsaSecp256k1Signature2019VerifyOptions(
+            customDocumentLoader: testLoadDocument,
+            issuerDid: signer.did,
+            domain: ['example.com', 'example1.com'],
+            challenge: 'test-challenge'),
       );
 
       expect(verificationResult.isValid, true);
