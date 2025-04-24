@@ -57,6 +57,9 @@ enum SsiExceptionType {
   /// Key not found in wallet or keystore
   keyNotFound(code: 'key_not_found'),
 
+  /// Seed not found in wallet or keystore
+  seedNotFound(code: 'seed_not_found'),
+
   /// An unknown error has occurred.
   other(code: 'other'),
   ;

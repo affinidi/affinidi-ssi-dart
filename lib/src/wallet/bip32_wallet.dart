@@ -57,7 +57,7 @@ class Bip32Wallet implements DeterministicWallet {
       throw SsiException(
           message:
               'Seed not found in KeyStore. Cannot create Bip32Wallet from this KeyStore.',
-          code: SsiExceptionType.keyNotFound.code);
+          code: SsiExceptionType.seedNotFound.code);
     }
     final wallet = Bip32Wallet(keyStore);
     wallet._cachedSeed = seed;
@@ -70,7 +70,7 @@ class Bip32Wallet implements DeterministicWallet {
     if (seed == null) {
       throw SsiException(
           message: 'Seed not found in KeyStore during operation.',
-          code: SsiExceptionType.keyNotFound.code);
+          code: SsiExceptionType.seedNotFound.code);
     }
     _cachedSeed = seed;
     return seed;
