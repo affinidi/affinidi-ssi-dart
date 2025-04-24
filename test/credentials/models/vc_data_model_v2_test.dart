@@ -10,317 +10,524 @@ import 'package:test/test.dart';
 
 void main() {
   group('VcDataModelV2 Tests', () {
-    final testContext = [
-      MutableVcDataModelV2.contextUrl,
-      'https://example.org/context/v2'
-    ];
-    const testId = 'http://example.edu/credentials/abcde';
-    final testType = ['VerifiableCredential', 'ExampleCredentialV2'];
-    final testIssuer = Issuer(id: 'did:example:issuerV2');
-    final testValidFrom = DateTime.utc(2024, 01, 01, 12, 0, 0);
-    final testValidUntil = DateTime.utc(2025, 01, 01, 12, 0, 0);
-    final testCredentialSubject = CredentialSubject(
-      id: 'did:example:subjectV2',
-      claims: {'email': 'user@affinidi.com'},
-    );
-    final testCredentialSchema = [
-      CredentialSchema(
-          domain: 'https://example.org/schemas/v2',
-          schema: 'example',
-          type: 'JsonSchemaValidator2018'),
-      CredentialSchema(
-          domain: 'https://example.org/schemas/v2',
-          schema: 'another',
-          type: 'AnotherSchemaValidator'),
-    ];
-    final testCredentialStatus = CredentialStatus(
-      id: Uri.parse('https://example.edu/status/v2/1'),
-      type: 'CredentialStatusList2021',
-    );
-    final testHolder = Holder(id: Uri.parse('did:example:holderV2'));
-    final testProof = [
-      EmbeddedProof(
-        type: 'DataIntegrityProof',
-        created: DateTime.utc(2024, 01, 01, 12, 5, 0),
-        verificationMethod: 'did:example:issuerV2#keys-1',
-        proofPurpose: 'assertionMethod',
-        proofValue: 'zABC...',
-        cryptosuite: 'eddsa-jcs-2022',
-      ),
-      EmbeddedProof(
-        type: 'AnotherProofType',
-        created: DateTime.utc(2024, 01, 01, 12, 6, 0),
-        verificationMethod: 'did:example:issuerV2#keys-2',
-        proofPurpose: 'authentication',
-        proofValue: 'zXYZ...',
-        cryptosuite: 'ecdsa-jcs-2019',
-      ),
-    ];
-    final testRefreshService = RefreshService(
-      id: 'https://example.edu/refresh/v2/1',
-      type: 'ManualRefreshService2021',
-    );
-    final testTermsOfUse = [
-      TermOfUse(
-        id: 'https://example.com/tos/v2/1',
-        type: 'IssuerPolicyV2',
-      ),
-      TermOfUse(
-        type: 'AnotherTermV2',
-      ),
-    ];
-    final testEvidence = [
-      Evidence(
-        id: 'https://example.edu/evidence/v2/1',
-        type: 'DocumentVerificationV2',
-      ),
-      Evidence(
-        type: 'AnotherEvidenceV2',
-      ),
-    ];
-
-    final fullVc = MutableVcDataModelV2(
-      context: testContext,
-      id: testId,
-      type: testType,
-      issuer: testIssuer,
-      validFrom: testValidFrom,
-      validUntil: testValidUntil,
-      credentialSubject: testCredentialSubject,
-      credentialSchema: testCredentialSchema,
-      credentialStatus: testCredentialStatus,
-      holder: testHolder,
-      proof: testProof,
-      refreshService: testRefreshService,
-      termsOfUse: testTermsOfUse,
-      evidence: testEvidence,
-    );
-
     test('should correctly assign context', () {
-      expect(fullVc.context, testContext);
+      final ctx = [
+        MutableVcDataModelV2.contextUrl,
+        'https://example.org/context/v2'
+      ];
+      final vc = MutableVcDataModelV2(
+        context: ctx,
+        id: 'http://example.edu/credentials/abcde',
+        type: ['VerifiableCredential', 'ExampleCredentialV2'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject: CredentialSubject(
+          id: 'did:example:subjectV2',
+          claims: {'email': 'user@affinidi.com'},
+        ),
+      );
+      expect(vc.context, ctx);
     });
 
     test('should correctly assign id', () {
-      expect(fullVc.id, testId);
+      const id = 'http://example.edu/credentials/abcde';
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: id,
+        type: ['VerifiableCredential'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+      );
+      expect(vc.id, id);
     });
 
     test('should correctly assign type', () {
-      expect(fullVc.type, testType);
+      final type = ['VerifiableCredential', 'ExampleCredentialV2'];
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: type,
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+      );
+      expect(vc.type, type);
     });
 
     test('should correctly assign issuer', () {
-      expect(fullVc.issuer, testIssuer);
-      expect(fullVc.issuer.id, testIssuer.id);
+      final issuer = Issuer(id: 'did:example:issuerV2');
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: issuer,
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+      );
+      expect(vc.issuer, issuer);
+      expect(vc.issuer.id, issuer.id);
     });
 
     test('should correctly assign validFrom', () {
-      expect(fullVc.validFrom, testValidFrom);
+      final vf = DateTime.utc(2024, 01, 01, 12, 0, 0);
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        validFrom: vf,
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+      );
+      expect(vc.validFrom, vf);
     });
 
     test('should correctly assign validUntil', () {
-      expect(fullVc.validUntil, testValidUntil);
+      final vu = DateTime.utc(2025, 01, 01, 12, 0, 0);
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        validUntil: vu,
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+      );
+      expect(vc.validUntil, vu);
     });
 
     test('should correctly assign credentialSubject', () {
-      expect(fullVc.credentialSubject, testCredentialSubject);
-      expect(fullVc.credentialSubject.id, testCredentialSubject.id);
-      expect(fullVc.credentialSubject['name'], testCredentialSubject['name']);
-      expect(fullVc.credentialSubject['role'], testCredentialSubject['role']);
+      final subject = CredentialSubject(
+        id: 'did:example:subjectV2',
+        claims: {'email': 'user@affinidi.com'},
+      );
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject: subject,
+      );
+      expect(vc.credentialSubject, subject);
+      expect(vc.credentialSubject.id, subject.id);
+      expect(vc.credentialSubject['name'], subject['name']);
+      expect(vc.credentialSubject['role'], subject['role']);
     });
 
     test('should correctly assign credentialSchema', () {
-      expect(fullVc.credentialSchema, testCredentialSchema);
-      expect(fullVc.credentialSchema.length, 2);
+      final schema = [
+        CredentialSchema(
+            domain: 'https://example.org/schemas/v2',
+            schema: 'example',
+            type: 'JsonSchemaValidator2018'),
+        CredentialSchema(
+            domain: 'https://example.org/schemas/v2',
+            schema: 'another',
+            type: 'AnotherSchemaValidator'),
+      ];
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+        credentialSchema: schema,
+      );
+      expect(vc.credentialSchema, schema);
+      expect(vc.credentialSchema.length, 2);
     });
 
     test('should correctly assign credentialStatus', () {
-      expect(fullVc.credentialStatus, testCredentialStatus);
-      expect(fullVc.credentialStatus?.id, testCredentialStatus.id);
-      expect(fullVc.credentialStatus?.type, testCredentialStatus.type);
+      final status = CredentialStatus(
+        id: Uri.parse('https://example.edu/status/v2/1'),
+        type: 'CredentialStatusList2021',
+      );
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+        credentialStatus: status,
+      );
+      expect(vc.credentialStatus, status);
+      expect(vc.credentialStatus?.id, status.id);
+      expect(vc.credentialStatus?.type, status.type);
     });
 
     test('should correctly assign holder', () {
-      expect(fullVc.holder, testHolder);
-      expect(fullVc.holder?.id, testHolder.id);
+      final holder = Holder(id: Uri.parse('did:example:holderV2'));
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+        holder: holder,
+      );
+      expect(vc.holder, holder);
+      expect(vc.holder?.id, holder.id);
     });
 
     test('should correctly assign proof', () {
-      expect(fullVc.proof, testProof);
-      expect(fullVc.proof.length, 2);
-      expect(fullVc.proof.first.type, testProof.first.type);
-      expect(fullVc.proof.last.type, testProof.last.type);
+      final proofs = [
+        EmbeddedProof(
+          type: 'DataIntegrityProof',
+          created: DateTime.utc(2024, 01, 01, 12, 5, 0),
+          verificationMethod: 'did:example:issuerV2#keys-1',
+          proofPurpose: 'assertionMethod',
+          proofValue: 'zABC...',
+          cryptosuite: 'eddsa-jcs-2022',
+        ),
+        EmbeddedProof(
+          type: 'AnotherProofType',
+          created: DateTime.utc(2024, 01, 01, 12, 6, 0),
+          verificationMethod: 'did:example:issuerV2#keys-2',
+          proofPurpose: 'authentication',
+          proofValue: 'zXYZ...',
+          cryptosuite: 'ecdsa-jcs-2019',
+        ),
+      ];
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+        proof: proofs,
+      );
+      expect(vc.proof, proofs);
+      expect(vc.proof.length, 2);
+      expect(vc.proof.first.type, proofs.first.type);
+      expect(vc.proof.last.type, proofs.last.type);
     });
 
     test('should correctly assign refreshService', () {
-      expect(fullVc.refreshService, testRefreshService);
-      expect(fullVc.refreshService?.id, testRefreshService.id);
-      expect(fullVc.refreshService?.type, testRefreshService.type);
+      final rs = RefreshService(
+        id: 'https://example.edu/refresh/v2/1',
+        type: 'ManualRefreshService2021',
+      );
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+        refreshService: rs,
+      );
+      expect(vc.refreshService, rs);
+      expect(vc.refreshService?.id, rs.id);
+      expect(vc.refreshService?.type, rs.type);
     });
 
     test('should correctly assign termsOfUse', () {
-      expect(fullVc.termsOfUse, testTermsOfUse);
-      expect(fullVc.termsOfUse.length, 2);
+      final terms = [
+        TermOfUse(
+          id: 'https://example.com/tos/v2/1',
+          type: 'IssuerPolicyV2',
+        ),
+        TermOfUse(type: 'AnotherTermV2'),
+      ];
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+        termsOfUse: terms,
+      );
+      expect(vc.termsOfUse, terms);
+      expect(vc.termsOfUse.length, 2);
     });
 
     test('should correctly assign evidence', () {
-      expect(fullVc.evidence, testEvidence);
-      expect(fullVc.evidence.length, 2);
+      final evidences = [
+        Evidence(
+          id: 'https://example.edu/evidence/v2/1',
+          type: 'DocumentVerificationV2',
+        ),
+        Evidence(type: 'AnotherEvidenceV2'),
+      ];
+      final vc = MutableVcDataModelV2(
+        context: [MutableVcDataModelV2.contextUrl],
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+        evidence: evidences,
+      );
+      expect(vc.evidence, evidences);
+      expect(vc.evidence.length, 2);
     });
 
-    group('JSON Serialization/Deserialization', () {
-      late Map<String, dynamic> jsonMap;
-      late Map<String, dynamic> jsonMapSingleProof;
-
-      final vcMultiProof = fullVc;
-
-      final vcSingleProof = MutableVcDataModelV2(
-        context: testContext,
-        id: testId,
-        type: testType,
-        issuer: testIssuer,
-        validFrom: testValidFrom,
-        validUntil: testValidUntil,
-        credentialSubject: testCredentialSubject,
-        credentialSchema: [testCredentialSchema.first],
-        credentialStatus: testCredentialStatus,
-        holder: testHolder,
-        proof: [testProof.first],
-        refreshService: testRefreshService,
-        termsOfUse: [testTermsOfUse.first],
-        evidence: [testEvidence.first],
+    test('toJson() should produce correct map (multiple proofs)', () {
+      final ctx = [
+        MutableVcDataModelV2.contextUrl,
+        'https://example.org/context/v2'
+      ];
+      const id = 'http://example.edu/credentials/abcde';
+      final type = ['VerifiableCredential', 'ExampleCredentialV2'];
+      final issuer = Issuer(id: 'did:example:issuerV2');
+      final vf = DateTime.utc(2024, 01, 01, 12, 0, 0);
+      final vu = DateTime.utc(2025, 01, 01, 12, 0, 0);
+      final subject = CredentialSubject(
+          id: 'did:example:subjectV2', claims: {'email': 'user@affinidi.com'});
+      final schema = [
+        CredentialSchema(
+            domain: 'https://example.org/schemas/v2',
+            schema: 'example',
+            type: 'JsonSchemaValidator2018'),
+        CredentialSchema(
+            domain: 'https://example.org/schemas/v2',
+            schema: 'another',
+            type: 'AnotherSchemaValidator'),
+      ];
+      final status = CredentialStatus(
+          id: Uri.parse('https://example.edu/status/v2/1'),
+          type: 'CredentialStatusList2021');
+      final holder = Holder(id: Uri.parse('did:example:holderV2'));
+      final proofs = [
+        EmbeddedProof(
+          type: 'DataIntegrityProof',
+          created: DateTime.utc(2024, 01, 01, 12, 5, 0),
+          verificationMethod: 'did:example:issuerV2#keys-1',
+          proofPurpose: 'assertionMethod',
+          proofValue: 'zABC...',
+          cryptosuite: 'eddsa-jcs-2022',
+        ),
+        EmbeddedProof(
+          type: 'AnotherProofType',
+          created: DateTime.utc(2024, 01, 01, 12, 6, 0),
+          verificationMethod: 'did:example:issuerV2#keys-2',
+          proofPurpose: 'authentication',
+          proofValue: 'zXYZ...',
+          cryptosuite: 'ecdsa-jcs-2019',
+        ),
+      ];
+      final rs = RefreshService(
+          id: 'https://example.edu/refresh/v2/1',
+          type: 'ManualRefreshService2021');
+      final terms = [
+        TermOfUse(id: 'https://example.com/tos/v2/1', type: 'IssuerPolicyV2'),
+        TermOfUse(type: 'AnotherTermV2')
+      ];
+      final evidences = [
+        Evidence(
+            id: 'https://example.edu/evidence/v2/1',
+            type: 'DocumentVerificationV2'),
+        Evidence(type: 'AnotherEvidenceV2')
+      ];
+      final vc = MutableVcDataModelV2(
+        context: ctx,
+        id: id,
+        type: type,
+        issuer: issuer,
+        validFrom: vf,
+        validUntil: vu,
+        credentialSubject: subject,
+        credentialSchema: schema,
+        credentialStatus: status,
+        holder: holder,
+        proof: proofs,
+        refreshService: rs,
+        termsOfUse: terms,
+        evidence: evidences,
       );
+      final map = vc.toJson();
+      expect(map['@context'], ctx);
+      expect(map['id'], id);
+      expect(map['type'], type);
+      expect(map['issuer'], issuer.toJson());
+      expect(map['validFrom'], vf.toIso8601String());
+      expect(map['validUntil'], vu.toIso8601String());
+      expect(map['credentialSubject'], subject.toJson());
+      expect(map['credentialSchema'], schema.map((e) => e.toJson()).toList());
+      expect(map['credentialStatus'], status.toJson());
+      expect(map['holder'], holder.toJson());
+      expect(map['proof'], proofs.map((e) => e.toJson()).toList());
+      expect(map['refreshService'], rs.toJson());
+      expect(map['termsOfUse'], terms.map((e) => e.toJson()).toList());
+      expect(map['evidence'], evidences.map((e) => e.toJson()).toList());
+    });
 
-      setUpAll(() {
-        jsonMap = vcMultiProof.toJson();
-        jsonMapSingleProof = vcSingleProof.toJson();
-      });
+    test('toJson() should produce correct map (single proof)', () {
+      final ctx = [
+        MutableVcDataModelV2.contextUrl,
+        'https://example.org/context/v2'
+      ];
+      const id = 'http://example.edu/credentials/abcde';
+      final type = ['VerifiableCredential', 'ExampleCredentialV2'];
+      final issuer = Issuer(id: 'did:example:issuerV2');
+      final vf = DateTime.utc(2024, 01, 01, 12, 0, 0);
+      final vu = DateTime.utc(2025, 01, 01, 12, 0, 0);
+      final subject = CredentialSubject(
+          id: 'did:example:subjectV2', claims: {'email': 'user@affinidi.com'});
+      final schema = [
+        CredentialSchema(
+            domain: 'https://example.org/schemas/v2',
+            schema: 'example',
+            type: 'JsonSchemaValidator2018')
+      ];
+      final status = CredentialStatus(
+          id: Uri.parse('https://example.edu/status/v2/1'),
+          type: 'CredentialStatusList2021');
+      final holder = Holder(id: Uri.parse('did:example:holderV2'));
+      final proof = [
+        EmbeddedProof(
+          type: 'DataIntegrityProof',
+          created: DateTime.utc(2024, 01, 01, 12, 5, 0),
+          verificationMethod: 'did:example:issuerV2#keys-1',
+          proofPurpose: 'assertionMethod',
+          proofValue: 'zABC...',
+          cryptosuite: 'eddsa-jcs-2022',
+        )
+      ];
+      final rs = RefreshService(
+          id: 'https://example.edu/refresh/v2/1',
+          type: 'ManualRefreshService2021');
+      final terms = [
+        TermOfUse(id: 'https://example.com/tos/v2/1', type: 'IssuerPolicyV2')
+      ];
+      final evidences = [
+        Evidence(
+            id: 'https://example.edu/evidence/v2/1',
+            type: 'DocumentVerificationV2')
+      ];
+      final vc = MutableVcDataModelV2(
+        context: ctx,
+        id: id,
+        type: type,
+        issuer: issuer,
+        validFrom: vf,
+        validUntil: vu,
+        credentialSubject: subject,
+        credentialSchema: schema,
+        credentialStatus: status,
+        holder: holder,
+        proof: proof,
+        refreshService: rs,
+        termsOfUse: terms,
+        evidence: evidences,
+      );
+      final map = vc.toJson();
+      expect(map['@context'], ctx);
+      expect(map['id'], id);
+      expect(map['type'], type);
+      expect(map['issuer'], issuer.toJson());
+      expect(map['validFrom'], vf.toIso8601String());
+      expect(map['validUntil'], vu.toIso8601String());
+      expect(map['credentialSubject'], subject.toJson());
+      expect(map['credentialSchema'], schema.first.toJson());
+      expect(map['credentialStatus'], status.toJson());
+      expect(map['holder'], holder.toJson());
+      expect(map['proof'], proof.first.toJson());
+      expect(map['refreshService'], rs.toJson());
+      expect(map['termsOfUse'], terms.first.toJson());
+      expect(map['evidence'], evidences.first.toJson());
+    });
 
-      test('toJson() should produce correct map (multiple proofs)', () {
-        expect(jsonMap['@context'], testContext);
-        expect(jsonMap['id'], testId);
-        expect(jsonMap['type'], testType);
-        expect(jsonMap['issuer'], testIssuer.toJson());
-        expect(jsonMap['validFrom'], testValidFrom.toIso8601String());
-        expect(jsonMap['validUntil'], testValidUntil.toIso8601String());
-        expect(jsonMap['credentialSubject'], testCredentialSubject.toJson());
-        expect(jsonMap['credentialSchema'],
-            testCredentialSchema.map((e) => e.toJson()).toList());
-        expect(jsonMap['credentialStatus'], testCredentialStatus.toJson());
-        expect(jsonMap['holder'], testHolder.toJson());
-        expect(jsonMap['proof'], testProof.map((e) => e.toJson()).toList());
-        expect(jsonMap['refreshService'], testRefreshService.toJson());
-        expect(jsonMap['termsOfUse'],
-            testTermsOfUse.map((e) => e.toJson()).toList());
-        expect(
-            jsonMap['evidence'], testEvidence.map((e) => e.toJson()).toList());
-      });
+    test('fromJson() should correctly parse map (multiple proofs)', () {
+      final ctx = [MutableVcDataModelV2.contextUrl];
+      final vcOriginal = MutableVcDataModelV2(
+        context: ctx,
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+        proof: [
+          EmbeddedProof(
+            type: 'DataIntegrityProof',
+            created: DateTime.utc(2024, 01, 01),
+            verificationMethod: 'did:example:issuer#1',
+            proofPurpose: 'assertionMethod',
+            proofValue: 'z',
+            cryptosuite: 'eddsa-jcs-2022',
+          ),
+          EmbeddedProof(
+            type: 'AnotherProofType',
+            created: DateTime.utc(2024, 01, 02),
+            verificationMethod: 'did:example:issuer#2',
+            proofPurpose: 'authentication',
+            proofValue: 'x',
+            cryptosuite: 'ecdsa-jcs-2019',
+          ),
+        ],
+      );
+      final map = vcOriginal.toJson();
+      final parsed = MutableVcDataModelV2.fromJson(map);
+      expect(parsed.context, ctx);
+      expect(parsed.id, 'id');
+      expect(parsed.type, ['t']);
+      expect(parsed.proof.length, 2);
+      expect(parsed.proof[0].type, vcOriginal.proof[0].type);
+      expect(parsed.proof[0].cryptosuite, vcOriginal.proof[0].cryptosuite);
+      expect(parsed.proof[1].type, vcOriginal.proof[1].type);
+      expect(parsed.proof[1].cryptosuite, vcOriginal.proof[1].cryptosuite);
+    });
 
-      test('toJson() should produce correct map (single proof)', () {
-        expect(jsonMapSingleProof['@context'], testContext);
-        expect(jsonMapSingleProof['id'], testId);
-        expect(jsonMapSingleProof['type'], testType);
-        expect(jsonMapSingleProof['issuer'], testIssuer.toJson());
-        expect(
-            jsonMapSingleProof['validFrom'], testValidFrom.toIso8601String());
-        expect(
-            jsonMapSingleProof['validUntil'], testValidUntil.toIso8601String());
-        expect(jsonMapSingleProof['credentialSubject'],
-            testCredentialSubject.toJson());
-        expect(jsonMapSingleProof['credentialSchema'],
-            testCredentialSchema.first.toJson());
-        expect(jsonMapSingleProof['credentialStatus'],
-            testCredentialStatus.toJson());
-        expect(jsonMapSingleProof['holder'], testHolder.toJson());
-        expect(jsonMapSingleProof['proof'], testProof.first.toJson());
-        expect(
-            jsonMapSingleProof['refreshService'], testRefreshService.toJson());
-        expect(jsonMapSingleProof['termsOfUse'], testTermsOfUse.first.toJson());
-        expect(jsonMapSingleProof['evidence'], testEvidence.first.toJson());
-      });
-
-      test('fromJson() should correctly parse map (multiple proofs)', () {
-        final parsedVc = MutableVcDataModelV2.fromJson(jsonMap);
-
-        expect(parsedVc.context, testContext);
-        expect(parsedVc.id, testId);
-        expect(parsedVc.type, testType);
-        expect(parsedVc.issuer.id, testIssuer.id);
-        expect(parsedVc.validFrom, testValidFrom);
-        expect(parsedVc.validUntil, testValidUntil);
-        expect(parsedVc.credentialSubject.id, testCredentialSubject.id);
-        expect(
-            parsedVc.credentialSubject['name'], testCredentialSubject['name']);
-        expect(
-            parsedVc.credentialSubject['role'], testCredentialSubject['role']);
-        expect(parsedVc.credentialSchema.length, testCredentialSchema.length);
-        expect(parsedVc.credentialSchema[0].id, testCredentialSchema[0].id);
-        expect(parsedVc.credentialSchema[1].id, testCredentialSchema[1].id);
-        expect(parsedVc.credentialStatus?.id, testCredentialStatus.id);
-        expect(parsedVc.holder?.id, testHolder.id);
-        expect(parsedVc.proof.length, testProof.length);
-        expect(parsedVc.proof[0].type, testProof[0].type);
-        expect(parsedVc.proof[0].cryptosuite, testProof[0].cryptosuite);
-        expect(parsedVc.proof[1].type, testProof[1].type);
-        expect(parsedVc.proof[1].cryptosuite, testProof[1].cryptosuite);
-        expect(parsedVc.refreshService?.id, testRefreshService.id);
-        expect(parsedVc.termsOfUse.length, testTermsOfUse.length);
-        expect(parsedVc.evidence.length, testEvidence.length);
-      });
-
-      test('fromJson() should correctly parse map (single proof object)', () {
-        final parsedVc = MutableVcDataModelV2.fromJson(jsonMapSingleProof);
-
-        expect(parsedVc.context, testContext);
-        expect(parsedVc.id, testId);
-        expect(parsedVc.type, testType);
-        expect(parsedVc.issuer.id, testIssuer.id);
-        expect(parsedVc.validFrom, testValidFrom);
-        expect(parsedVc.validUntil, testValidUntil);
-        expect(parsedVc.credentialSubject.id, testCredentialSubject.id);
-        expect(parsedVc.credentialSchema.length, 1);
-        expect(parsedVc.credentialSchema[0].id, testCredentialSchema[0].id);
-        expect(parsedVc.credentialStatus?.id, testCredentialStatus.id);
-        expect(parsedVc.holder?.id, testHolder.id);
-        expect(parsedVc.proof.length, 1);
-        expect(parsedVc.proof[0].type, testProof[0].type);
-        expect(parsedVc.proof[0].cryptosuite, testProof[0].cryptosuite);
-        expect(parsedVc.refreshService?.id, testRefreshService.id);
-        expect(parsedVc.termsOfUse.length, 1);
-        expect(parsedVc.evidence.length, 1);
-      });
+    test('fromJson() should correctly parse map (single proof object)', () {
+      final ctx = [MutableVcDataModelV2.contextUrl];
+      final proof = [
+        EmbeddedProof(
+          type: 'DataIntegrityProof',
+          created: DateTime.utc(2024, 01, 01),
+          verificationMethod: 'did:example:issuer#1',
+          proofPurpose: 'assertionMethod',
+          proofValue: 'z',
+          cryptosuite: 'eddsa-jcs-2022',
+        )
+      ];
+      final vcOriginal = MutableVcDataModelV2(
+        context: ctx,
+        id: 'id',
+        type: ['t'],
+        issuer: Issuer(id: 'did:example:issuerV2'),
+        credentialSubject:
+            CredentialSubject(id: 'did:example:subjectV2', claims: {}),
+        proof: proof,
+      );
+      final map = vcOriginal.toJson();
+      final parsed = MutableVcDataModelV2.fromJson(map);
+      expect(parsed.context, ctx);
+      expect(parsed.id, 'id');
+      expect(parsed.proof.length, 1);
+      expect(parsed.proof.first.type, proof.first.type);
+      expect(parsed.proof.first.cryptosuite, proof.first.cryptosuite);
     });
 
     test('fromJson() should handle missing optional fields', () {
-      final jsonMap = {
-        '@context': testContext,
-        'id': testId,
-        'type': testType,
-        'issuer': testIssuer.toJson(),
-        'validFrom': testValidFrom.toIso8601String(),
-        'credentialSubject': testCredentialSubject.toJson(),
+      final ctx = [MutableVcDataModelV2.contextUrl];
+      final map = {
+        '@context': ctx,
+        'id': 'id',
+        'type': ['t'],
+        'issuer': {'id': 'did:example:issuerV2'},
+        'validFrom': DateTime.utc(2024, 01, 01).toIso8601String(),
+        'credentialSubject': {'id': 'did:example:subjectV2'}
       };
-
-      final parsedVc = MutableVcDataModelV2.fromJson(jsonMap);
-
-      expect(parsedVc.context, testContext);
-      expect(parsedVc.id, testId);
-      expect(parsedVc.type, testType);
-      expect(parsedVc.issuer.id, testIssuer.id);
-      expect(parsedVc.validFrom, testValidFrom);
-      expect(parsedVc.validUntil, isNull);
-      expect(parsedVc.credentialSubject.id, testCredentialSubject.id);
-      expect(parsedVc.credentialSchema, isEmpty);
-      expect(parsedVc.credentialStatus, isNull);
-      expect(parsedVc.holder, isNull);
-      expect(parsedVc.proof, isEmpty);
-      expect(parsedVc.refreshService, isNull);
-      expect(parsedVc.termsOfUse, isEmpty);
-      expect(parsedVc.evidence, isEmpty);
+      final parsed = MutableVcDataModelV2.fromJson(map);
+      expect(parsed.context, ctx);
+      expect(parsed.id, 'id');
+      expect(parsed.validUntil, isNull);
+      expect(parsed.credentialSchema, isEmpty);
+      expect(parsed.credentialStatus, isNull);
+      expect(parsed.holder, isNull);
+      expect(parsed.proof, isEmpty);
+      expect(parsed.refreshService, isNull);
+      expect(parsed.termsOfUse, isEmpty);
+      expect(parsed.evidence, isEmpty);
     });
 
     test('fromJson() should throw error for invalid JSON structure', () {
       final invalidJson = '{"@context": "invalid"}';
-
       expect(
           () => MutableVcDataModelV2.fromJson(
               invalidJson as Map<String, dynamic>),
