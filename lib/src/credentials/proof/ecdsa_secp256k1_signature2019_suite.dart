@@ -166,8 +166,12 @@ class EcdsaSecp256k1Signature2019
       }
       if (proofChallenge == null ||
           proofChallenge is! String ||
-          proofChallenge.trim().isEmpty ||
-          (options.challenge != null && proofChallenge != options.challenge)) {
+          proofChallenge.trim().isEmpty) {
+        return VerificationResult.invalid(
+            errors: ['invalid or missing proof.challenge']);
+      }
+
+      if (options.challenge != null && proofChallenge != options.challenge) {
         return VerificationResult.invalid(
             errors: ['invalid or missing proof.challenge']);
       }
