@@ -5,7 +5,9 @@ import '../suites/vc_suite.dart';
 import 'ld_base_suite.dart';
 import 'ld_vc_data_model_v2.dart';
 
-class LdVcDm2Options extends LdOptions {}
+class LdVcDm2Options extends LdOptions {
+  LdVcDm2Options({super.expires, super.domain, super.challenge});
+}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
 final class LdVcDm2Suite

@@ -69,7 +69,7 @@ class EcdsaSecp256k1Signature2019
       'created': created.toIso8601String(),
       'verificationMethod': options.signer.keyId,
       'proofPurpose': options.proofPurpose.value,
-      'expires': options.expires!.toIso8601String(),
+      'expires': options.expires?.toIso8601String(),
       'challenge': options.challenge,
       'domain': options.domain,
     };
@@ -109,6 +109,39 @@ class EcdsaSecp256k1Signature2019
       );
     }
 
+    final isValidProof = verifyProofProperties(proof);
+    if (!isValidProof.isValid) {
+      return isValidProof;
+    }
+
+    Uri verificationMethod;
+    try {
+      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
+    } catch (e) {
+      return VerificationResult.invalid(
+        errors: ['invalid or missing proof.verificationMethod'],
+      );
+    }
+
+    final originalJws = proof.remove('jws');
+    proof['@context'] = _securityContext;
+
+    final cacheLoadDocument = _cacheLoadDocument(options.customDocumentLoader);
+    final isValid = await _computeVcHash(proof, copy, cacheLoadDocument).then(
+      (hash) => _verifyJws(
+          originalJws as String, options.issuerDid, verificationMethod, hash),
+    );
+
+    if (!isValid) {
+      return VerificationResult.invalid(
+        errors: ['signature invalid'],
+      );
+    }
+
+    return VerificationResult.ok();
+  }
+
+  static VerificationResult verifyProofProperties(dynamic proof) {
     final expires = proof['expires'];
     final now = DateTime.now();
     if (expires != null && now.isAfter(DateTime.parse(expires))) {
@@ -143,35 +176,14 @@ class EcdsaSecp256k1Signature2019
         return VerificationResult.invalid(
             errors: ['invalid proof.domain format']);
       }
+      if (challenge == null) {
+        return VerificationResult.invalid(
+            errors: ['invalid or missing proof.challenge']);
+      }
     } else if (challenge != null) {
       return VerificationResult.invalid(
           errors: ['proof.challenge must be accompanied by proof.domain']);
     }
-
-    Uri verificationMethod;
-    try {
-      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
-    } catch (e) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof.verificationMethod'],
-      );
-    }
-
-    final originalJws = proof.remove('jws');
-    proof['@context'] = _securityContext;
-
-    final cacheLoadDocument = _cacheLoadDocument(options.customDocumentLoader);
-    final isValid = await _computeVcHash(proof, copy, cacheLoadDocument).then(
-      (hash) => _verifyJws(
-          originalJws as String, options.issuerDid, verificationMethod, hash),
-    );
-
-    if (!isValid) {
-      return VerificationResult.invalid(
-        errors: ['signature invalid'],
-      );
-    }
-
     return VerificationResult.ok();
   }
 
