@@ -159,7 +159,13 @@ ParsedVerifiableCredential parseVC(dynamic e) {
 /// using the appropriate VC suite.
 dynamic presentVC(ParsedVerifiableCredential credential) {
   final suite = VcSuites.getVcSuite(credential);
-  return suite.present(credential);
+  final present = suite.present(credential);
+
+  if (present is! String || present is! Map<String, dynamic>) {
+    return credential.toJson();
+  }
+
+  return present;
 }
 
 typedef _P = VpDataModelV1Key;
