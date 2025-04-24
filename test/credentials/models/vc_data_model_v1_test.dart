@@ -4,6 +4,7 @@ import 'package:ssi/src/credentials/models/credential_subject.dart';
 import 'package:ssi/src/credentials/models/holder.dart';
 import 'package:ssi/src/credentials/models/issuer.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
+import 'package:ssi/src/credentials/models/vc_models.dart';
 import 'package:ssi/src/credentials/proof/embedded_proof.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
@@ -33,9 +34,9 @@ void main() {
         CredentialStatus.fromJson(jsonFixture['credentialStatus']);
     final testHolder = Holder.fromJson(jsonFixture['holder']);
     final testProof = [EmbeddedProof.fromJson(jsonFixture['proof'])];
-    final testRefreshService = null;
-    final testTermsOfUse = [];
-    final testEvidence = [];
+    final testRefreshService = RefreshService(id: 'test-refresh-service-id');
+    final testTermsOfUse = [TermOfUse(id: 'test-terms-of-use-id')];
+    final testEvidence = [Evidence(id: 'test-evidence-id')];
 
     test('should correctly assign context', () {
       expect(fullVc.context, testContext);
