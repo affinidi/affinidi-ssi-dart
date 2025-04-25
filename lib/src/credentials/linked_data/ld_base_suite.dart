@@ -9,11 +9,8 @@ import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../proof/proof_purpose.dart';
 
-/// Options for LD based data model operations.
-///
-/// Contains configuration parameters for LD based data model operations
-/// in the context of W3C Verifiable Credentials Data Model.
-abstract class LdOptions {
+/// proof suite config for issuiance
+class EmbeddedProofSuiteConfig {
   /// The date and time when embedded proof expires.
   final DateTime? expires;
 
@@ -27,13 +24,28 @@ abstract class LdOptions {
   /// The purpose of embedded proof.
   final ProofPurpose? proofPurpose;
 
-  /// Creates an options object for LdOptions.
+  /// Creates an options object for EmbeddedProofSuiteConfig.
   ///
   /// [expires] - Specify expiry of proof.
   /// [domain] - Specify one or more security domains in which the proof is meant to be used.
   /// [challenge] - Specify challenge for domain in proof.
   /// [proofPurpose] - Specify proofPurpose
-  LdOptions({this.expires, this.domain, this.challenge, this.proofPurpose});
+  EmbeddedProofSuiteConfig(
+      {this.expires, this.domain, this.challenge, this.proofPurpose});
+}
+
+/// Options for LD based data model operations.
+///
+/// Contains configuration parameters for LD based data model operations
+/// in the context of W3C Verifiable Credentials Data Model.
+abstract class LdOptions {
+  /// proof suit config for issuance.
+  final EmbeddedProofSuiteConfig? embeddedProofSuiteConfig;
+
+  /// Creates an options object for LdVcDm1Options.
+  ///
+  /// [embeddedProofSuiteConfig] - Specify suite config for issuance.
+  LdOptions({this.embeddedProofSuiteConfig});
 }
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
@@ -86,10 +98,10 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
       json,
       EcdsaSecp256k1Signature2019CreateOptions(
           signer: signer,
-          proofPurpose: options?.proofPurpose,
-          expires: options?.expires,
-          challenge: options?.challenge,
-          domain: options?.domain),
+          proofPurpose: options?.embeddedProofSuiteConfig?.proofPurpose,
+          expires: options?.embeddedProofSuiteConfig?.expires,
+          challenge: options?.embeddedProofSuiteConfig?.challenge,
+          domain: options?.embeddedProofSuiteConfig?.domain),
     );
 
     json[proofKey] = proof.toJson();

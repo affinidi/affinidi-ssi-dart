@@ -10,12 +10,8 @@ import 'ld_vc_data_model_v1.dart';
 class LdVcDm1Options extends LdOptions {
   /// Creates an options object for LdVcDm1Options.
   ///
-  /// [expires] - Specify expiry of proof.
-  /// [domain] - Specify one or more security domains in which the proof is meant to be used.
-  /// [challenge] - Specify challenge for domain in proof.
-  /// [proofPurpose] - Specify proofPurpose
-  LdVcDm1Options(
-      {super.expires, super.domain, super.challenge, super.proofPurpose});
+  /// [embeddedProofSuiteConfig] - Specify suite config for issuance.
+  LdVcDm1Options({super.embeddedProofSuiteConfig});
 }
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]

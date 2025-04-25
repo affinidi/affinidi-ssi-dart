@@ -10,12 +10,8 @@ import '../suites/vp_suite.dart';
 class LdVpDm2Options extends LdOptions {
   /// Creates an options object for LdVpDm2Options.
   ///
-  /// [expires] - Specify expiry of proof.
-  /// [domain] - Specify one or more security domains in which the proof is meant to be used.
-  /// [challenge] - Specify challenge for domain in proof.
-  /// [proofPurpose] - Specify proofPurpose
-  LdVpDm2Options(
-      {super.expires, super.domain, super.challenge, super.proofPurpose});
+  /// [embeddedProofSuiteConfig] - Specify suite config for issuance.
+  LdVpDm2Options({super.embeddedProofSuiteConfig});
 }
 
 /// Implementation for parsing and processing JSON-LD Verifiable Presentations v2.2.
