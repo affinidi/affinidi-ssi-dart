@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/key_pair/p256_key_pair.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -37,7 +36,7 @@ void main() {
     test('P-256 key pair should sign data and verify signature', () async {
       final p256key = P256KeyPair();
       final publicKey = await p256key.publicKey;
-      expect(publicKey.type, KeyType.p256);
+      expect(publicKey.keyType, KeyType.p256);
       expect(publicKey.bytes.length, 33); // Compressed P-256 key length
     });
   });

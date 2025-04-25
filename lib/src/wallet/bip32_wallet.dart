@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
@@ -9,6 +8,7 @@ import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
+import '../utility.dart';
 import 'deterministic_wallet.dart';
 import 'key_store/key_store_interface.dart';
 import 'key_store/stored_key.dart';
@@ -137,7 +137,7 @@ class Bip32Wallet implements DeterministicWallet {
       );
     }
 
-    final effectiveKeyId = keyId ?? _randomId();
+    final effectiveKeyId = keyId ?? randomId();
 
     if (await _keyStore.contains(effectiveKeyId)) {
       // Key ID exists, ensure it points to the same path or handle conflict
@@ -147,7 +147,6 @@ class Bip32Wallet implements DeterministicWallet {
               StoredKeyRepresentation.derivationPath &&
           existingStoredKey.derivationPath == derivationPath &&
           existingStoredKey.keyType == effectiveKeyType) {
-        // Key exists and matches, return the existing KeyPair
         return _getKeyPair(effectiveKeyId);
       } else {
         throw ArgumentError(
@@ -164,9 +163,9 @@ class Bip32Wallet implements DeterministicWallet {
     final seed = await _getSeed();
     final rootNode = BIP32.fromSeed(seed);
     final derivedNode = rootNode.derivePath(derivationPath);
-    final keyPair = Secp256k1KeyPair(node: derivedNode);
-    _runtimeCache[effectiveKeyId] = keyPair; // Cache the new keypair
-    return keyPair; // Return the newly derived KeyPair
+    final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
+    _runtimeCache[effectiveKeyId] = keyPair;
+    return keyPair;
   }
 
   @override
@@ -182,7 +181,7 @@ class Bip32Wallet implements DeterministicWallet {
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
     final keyData = await keyPair.publicKey;
-    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.keyType));
   }
 
   @override
@@ -242,15 +241,10 @@ class Bip32Wallet implements DeterministicWallet {
 
     final rootNode = BIP32.fromSeed(seed);
     final derivedNode = rootNode.derivePath(derivationPath);
-    final keyPair = Secp256k1KeyPair(node: derivedNode);
+    final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
 
     _runtimeCache[keyId] = keyPair;
     return keyPair;
-  }
-
-  String _randomId() {
-    final rnd = Random.secure();
-    return List.generate(32, (idx) => rnd.nextInt(16).toRadixString(16)).join();
   }
 
   void clearCache() {

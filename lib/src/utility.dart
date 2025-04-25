@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
@@ -25,4 +26,9 @@ String ed25519PublicToX25519Public(List<int> ed25519Public) {
   const xMultiCodec = [236, 1];
 
   return base58Bitcoin.encode(Uint8List.fromList(xMultiCodec + dst));
+}
+
+String randomId() {
+  final rnd = Random.secure();
+  return List.generate(32, (idx) => rnd.nextInt(16).toRadixString(16)).join();
 }

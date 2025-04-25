@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
-import 'package:ssi/src/key_pair/key_pair.dart';
 import 'package:ssi/ssi.dart';
 
 const _signatureSchemeToKmsAlgorithm = {
@@ -19,11 +18,10 @@ kms.SigningAlgorithmSpec signingAlgorithmForScheme(SignatureScheme scheme) {
 
 class KmsKeyPair implements KeyPair {
   final kms.KMS kmsClient;
+  @override
   final String keyId;
 
   KmsKeyPair(this.kmsClient, this.keyId);
-
-  Future<String> get id async => keyId;
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [
@@ -31,18 +29,10 @@ class KmsKeyPair implements KeyPair {
       ];
 
   @override
-  Future<PublicKeyData> get publicKey async {
+  Future<PublicKey> get publicKey async {
     final response = await kmsClient.getPublicKey(keyId: keyId);
-    return PublicKeyData(
-        Uint8List.fromList(response.publicKey ?? []), KeyType.rsa);
-  }
-
-  @override
-  Future<Uint8List> get privateKey {
-    throw SsiException(
-      message: "KmsKeyPair does not allow extracting the private key",
-      code: SsiExceptionType.keyPairMissingPrivateKey.code,
-    );
+    return PublicKey(
+        keyId, Uint8List.fromList(response.publicKey ?? []), KeyType.rsa);
   }
 
   @override

@@ -32,11 +32,11 @@ void main() async {
   print('Account 0 key 0 derived. Public key: ${account0Key0.bytes}');
 
   print('Signing with account 0 key 0 ($account0Key0Id)...');
-  final signature = await wallet.sign(data, keyId: account0Key0.id);
+  final signature = await wallet.sign(data, keyId: account0Key0.keyId);
   print('Account 0 key 0 signature: ${hexEncode(signature)}');
   print('Verifying account 0 key 0 signature...');
-  final isRootSignatureValid =
-      await wallet.verify(data, signature: signature, keyId: account0Key0.id);
+  final isRootSignatureValid = await wallet.verify(data,
+      signature: signature, keyId: account0Key0.keyId);
   print('Account 0 key 0 signature verification result: $isRootSignatureValid');
   assert(isRootSignatureValid, "Account 0 key 0 verification failed");
 

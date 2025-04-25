@@ -1,10 +1,10 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/p256_key_pair.dart';
+import '../utility.dart';
 import 'key_store/key_store_interface.dart';
 import 'key_store/stored_key.dart';
 import 'wallet.dart';
@@ -20,7 +20,6 @@ class GenericWallet implements Wallet {
   final KeyStore _keyStore;
   // Optional: Runtime cache for KeyPair objects to avoid reconstruction
   final Map<String, KeyPair> _runtimeCache = {};
-  static final randomIdLength = 32;
 
   /// Creates a new [GenericWallet] instance backed by a [KeyStore].
   ///
@@ -67,24 +66,23 @@ class GenericWallet implements Wallet {
     String? keyId,
     KeyType? keyType,
   }) async {
-    final effectiveKeyId = keyId ?? _randomId();
+    final effectiveKeyId = keyId ?? randomId();
     if (await _keyStore.contains(effectiveKeyId)) {
       // Found key in key store
-      return _getKeyPair(effectiveKeyId); // Return existing KeyPair
+      return _getKeyPair(effectiveKeyId);
     }
 
     final effectiveKeyType = keyType ?? KeyType.p256;
 
     KeyPair keyPairInstance;
     Uint8List privateKeyBytes;
-    PublicKeyData keyData;
 
     if (effectiveKeyType == KeyType.p256) {
-      final (instance, pKeyBytes) = P256KeyPair.generate();
+      final (instance, pKeyBytes) = P256KeyPair.generate(id: keyId);
       keyPairInstance = instance;
       privateKeyBytes = pKeyBytes;
     } else if (effectiveKeyType == KeyType.ed25519) {
-      final (instance, pKeyBytes) = Ed25519KeyPair.generate();
+      final (instance, pKeyBytes) = Ed25519KeyPair.generate(id: keyId);
       keyPairInstance = instance;
       privateKeyBytes = pKeyBytes;
     } else {
@@ -92,25 +90,21 @@ class GenericWallet implements Wallet {
           "Unsupported key type for GenericWallet: $effectiveKeyType. Only p256 and ed25519 are supported.");
     }
 
-    // Store the private key bytes
     final storedKey = StoredKey.fromPrivateKey(
       keyType: effectiveKeyType,
       keyBytes: privateKeyBytes,
     );
     await _keyStore.set(effectiveKeyId, storedKey);
-
-    // Cache the instance
     _runtimeCache[effectiveKeyId] = keyPairInstance;
 
-    // Get public key data from the instance
-    return keyPairInstance; // Return the newly created KeyPair
+    return keyPairInstance;
   }
 
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
     final keyData = await keyPair.publicKey;
-    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.keyType));
   }
 
   /// Retrieves the X25519 public key corresponding to the given Ed25519 key ID.
@@ -197,11 +191,6 @@ class GenericWallet implements Wallet {
 
     _runtimeCache[keyId] = keyPair;
     return keyPair;
-  }
-
-  String _randomId() {
-    final rnd = Random.secure();
-    return List.generate(32, (idx) => rnd.nextInt(16).toRadixString(16)).join();
   }
 
   void clearCache() {

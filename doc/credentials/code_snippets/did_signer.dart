@@ -14,7 +14,7 @@ Future<DidSigner> initSigner(Uint8List seed) async {
     didDocument: doc,
     didKeyId: doc.verificationMethod[0].id,
     wallet: wallet,
-    walletKeyId: publicKey.id,
+    walletKeyId: publicKey.keyId,
     signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
   );
   return signer;

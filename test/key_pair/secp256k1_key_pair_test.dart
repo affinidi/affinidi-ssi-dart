@@ -20,7 +20,7 @@ void main() {
 
     test('get publicKey should return correct type and format', () async {
       final publicKeyData = await keyPair.publicKey;
-      expect(publicKeyData.type, KeyType.secp256k1);
+      expect(publicKeyData.keyType, KeyType.secp256k1);
       expect(publicKeyData.bytes, isA<Uint8List>());
       expect(publicKeyData.bytes.length, 33); // Compressed public key length
       expect(publicKeyData.bytes, equals(rootNode.publicKey));

@@ -9,9 +9,11 @@ import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import '../utility.dart';
 import 'key_pair.dart';
 
 import './_ecdh_utils.dart' as ecdh_utils;
+import 'public_key.dart';
 
 /// A key pair implementation that uses the P-256 (secp256r1) elliptic curve
 /// for cryptographic operations.
@@ -23,29 +25,36 @@ class P256KeyPair implements KeyPair {
   static final ec.EllipticCurve _p256 = ec.getP256();
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
+  @override
+  final String keyId;
 
-  P256KeyPair._(this._privateKey);
+  P256KeyPair._(this._privateKey, this.keyId);
 
   /// Generates a new P256 key pair.
   /// Returns the KeyPair instance and its private key bytes.
-  static (P256KeyPair, Uint8List) generate() {
+  /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
+  static (P256KeyPair, Uint8List) generate({String? id}) {
     final privateKey = _p256.generatePrivateKey();
-    final instance = P256KeyPair._(privateKey);
+    final effectiveId = id ?? randomId();
+    final instance = P256KeyPair._(privateKey, effectiveId);
     final privateKeyBytes = Uint8List.fromList(privateKey.bytes);
     return (instance, privateKeyBytes);
   }
 
   /// Creates a [P256KeyPair] instance from a private key.
   ///
-  /// [privateKey] - The private key as a [Uint8List].
-  factory P256KeyPair.fromPrivateKey(Uint8List privateKey) {
-    return P256KeyPair._(ec.PrivateKey.fromBytes(_p256, privateKey));
+  /// [privateKeyBytes] - The private key as a [Uint8List].
+  /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
+  factory P256KeyPair.fromPrivateKey(Uint8List privateKeyBytes, {String? id}) {
+    final effectiveId = id ?? randomId();
+    return P256KeyPair._(
+        ec.PrivateKey.fromBytes(_p256, privateKeyBytes), effectiveId);
   }
 
   @override
-  Future<PublicKeyData> get publicKey async {
+  Future<PublicKey> get publicKey async {
     _publicKeyBytes ??= hex.decode(_privateKey.publicKey.toCompressedHex());
-    return Future.value(PublicKeyData(_publicKeyBytes!, KeyType.p256));
+    return Future.value(PublicKey(keyId, _publicKeyBytes!, KeyType.p256));
   }
 
   @override

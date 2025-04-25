@@ -154,7 +154,7 @@ class DidKey {
   ///
   /// Throws [SsiException] if the public key is invalid
   static String getDid(PublicKey publicKey) {
-    final multiKey = toMultikey(publicKey.bytes, publicKey.type);
+    final multiKey = toMultikey(publicKey.bytes, publicKey.keyType);
     final multibase = toMultiBase(multiKey);
     return '$_commonDidKeyPrefix$multibase';
   }
@@ -167,7 +167,7 @@ class DidKey {
   ///
   /// Throws [SsiException] if the public key is invalid
   static DidDocument generateDocument(PublicKey publicKey) {
-    final multiKey = toMultikey(publicKey.bytes, publicKey.type);
+    final multiKey = toMultikey(publicKey.bytes, publicKey.keyType);
     final multibase = toMultiBase(multiKey);
     final did = '$_commonDidKeyPrefix$multibase';
     // FIXME(FTL-20741) double check the doc

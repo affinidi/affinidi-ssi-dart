@@ -34,7 +34,7 @@ void main() {
 
       final doc = DidKey.generateDocument(accountPublicKey);
       final actualDid = doc.id;
-      final actualKeyType = accountPublicKey.type;
+      final actualKeyType = accountPublicKey.keyType;
 
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
@@ -76,7 +76,7 @@ void main() {
 
       final doc = DidKey.generateDocument(accountPublicKey);
       final actualDid = doc.id;
-      final actualKeyType = accountPublicKey.type;
+      final actualKeyType = accountPublicKey.keyType;
 
       expect(actualDid, isNot(equals(expectedDid)));
       expect(actualKeyType, expectedKeyType);

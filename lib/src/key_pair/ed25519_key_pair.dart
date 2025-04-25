@@ -8,10 +8,12 @@ import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import '../utility.dart';
 import '_ecdh_utils.dart';
 import 'key_pair.dart';
 
 import './_encryption_utils.dart';
+import 'public_key.dart';
 
 /// A [KeyPair] implementation using the Ed25519 signature scheme.
 ///
@@ -20,14 +22,18 @@ import './_encryption_utils.dart';
 class Ed25519KeyPair implements KeyPair {
   final ed.PrivateKey _privateKey;
   final _encryptionUtils = EncryptionUtils();
+  @override
+  final String keyId;
 
-  Ed25519KeyPair._(this._privateKey);
+  Ed25519KeyPair._(this._privateKey, this.keyId);
 
   /// Generates a new Ed25519 key pair.
   /// Returns the KeyPair instance and its private key bytes.
-  static (Ed25519KeyPair, Uint8List) generate() {
+  /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
+  static (Ed25519KeyPair, Uint8List) generate({String? id}) {
     final keyPair = ed.generateKey();
-    final instance = Ed25519KeyPair._(keyPair.privateKey);
+    final effectiveId = id ?? randomId();
+    final instance = Ed25519KeyPair._(keyPair.privateKey, effectiveId);
     final privateKeyBytes = Uint8List.fromList(keyPair.privateKey.bytes);
     return (instance, privateKeyBytes);
   }
@@ -35,27 +41,34 @@ class Ed25519KeyPair implements KeyPair {
   /// Creates a [Ed25519KeyPair] instance from a seed.
   ///
   /// [seed] - The seed as a 32 byte [Uint8List].
-  factory Ed25519KeyPair.fromSeed(Uint8List seed) {
+  /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
+  factory Ed25519KeyPair.fromSeed(Uint8List seed, {String? id}) {
     final privateKey = ed.newKeyFromSeed(seed);
-    return Ed25519KeyPair._(privateKey);
+    final effectiveId = id ?? randomId();
+    return Ed25519KeyPair._(privateKey, effectiveId);
   }
 
   /// Creates a [Ed25519KeyPair] instance from a private key.
   ///
-  /// [privateKey] - The private key as a [Uint8List].
-  factory Ed25519KeyPair.fromPrivateKey(Uint8List privateKey) {
-    return Ed25519KeyPair._(ed.PrivateKey(privateKey));
+  /// [privateKeyBytes] - The private key as a [Uint8List].
+  /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
+  factory Ed25519KeyPair.fromPrivateKey(Uint8List privateKeyBytes,
+      {String? id}) {
+    final effectiveId = id ?? randomId();
+    return Ed25519KeyPair._(ed.PrivateKey(privateKeyBytes), effectiveId);
   }
 
   /// Retrieves the public key.
   ///
   /// Returns the key as [Uint8List].
   @override
-  Future<PublicKeyData> get publicKey => Future.value(PublicKeyData(
-      Uint8List.fromList(
-        ed.public(_privateKey).bytes,
-      ),
-      KeyType.ed25519));
+  Future<PublicKey> get publicKey => Future.value(PublicKey(
+        keyId,
+        Uint8List.fromList(
+          ed.public(_privateKey).bytes,
+        ),
+        KeyType.ed25519,
+      ));
 
   /// Signs the provided data using Ed25519.
   ///

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 

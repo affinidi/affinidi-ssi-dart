@@ -1,4 +1,3 @@
-import 'dart:math'; // For random ID generation
 import 'dart:typed_data';
 
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
@@ -6,8 +5,10 @@ import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
+import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
+import '../utility.dart';
 import 'deterministic_wallet.dart';
 import 'key_store/key_store_interface.dart';
 import 'key_store/stored_key.dart';
@@ -132,7 +133,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
       );
     }
 
-    final effectiveKeyId = keyId ?? _randomId();
+    final effectiveKeyId = keyId ?? randomId();
 
     if (await _keyStore.contains(effectiveKeyId)) {
       // Key ID exists, ensure it points to the same path or handle conflict
@@ -142,7 +143,6 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
               StoredKeyRepresentation.derivationPath &&
           existingStoredKey.derivationPath == derivationPath &&
           existingStoredKey.keyType == effectiveKeyType) {
-        // Key exists and matches, return the existing KeyPair
         return _getKeyPair(effectiveKeyId);
       } else {
         throw ArgumentError(
@@ -159,9 +159,9 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
     final seed = await _getSeed();
     final derivedData = await ED25519_HD_KEY.derivePath(derivationPath, seed);
     final keyPair =
-        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key));
-    _runtimeCache[effectiveKeyId] = keyPair; // Cache the new keypair
-    return keyPair; // Return the newly derived KeyPair
+        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
+    _runtimeCache[effectiveKeyId] = keyPair;
+    return keyPair;
   }
 
   @override
@@ -177,7 +177,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
     final keyData = await keyPair.publicKey;
-    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.keyType));
   }
 
   /// Retrieves the X25519 public key corresponding to the given Ed25519 key ID.
@@ -249,18 +249,12 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
 
     final seed = await _getSeed();
 
-    // Derive the key pair
     final derivedData = await ED25519_HD_KEY.derivePath(derivationPath, seed);
     final keyPair =
-        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key));
+        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
 
-    _runtimeCache[keyId] = keyPair; // Cache the derived keypair
+    _runtimeCache[keyId] = keyPair;
     return keyPair;
-  }
-
-  String _randomId() {
-    final rnd = Random.secure();
-    return List.generate(32, (idx) => rnd.nextInt(16).toRadixString(16)).join();
   }
 
   void clearCache() {

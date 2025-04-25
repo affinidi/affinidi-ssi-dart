@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:ssi/src/key_pair/ed25519_key_pair.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -91,7 +90,7 @@ void main() {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final publicKey = await edKey.publicKey;
 
-      expect(publicKey.type, KeyType.ed25519);
+      expect(publicKey.keyType, KeyType.ed25519);
       expect(publicKey.bytes.length, 32); // Ed25519 public key length
 
       // Verify getSeed returns the original seed

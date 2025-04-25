@@ -42,7 +42,7 @@ class KmsWallet implements Wallet {
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
     final keyData = await keyPair.publicKey;
-    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.keyType));
   }
 
   @override
@@ -72,7 +72,7 @@ class KmsWallet implements Wallet {
     final keyPair = KmsKeyPair(kmsClient, newKeyId);
 
     final keyData = await keyPair.publicKey;
-    return Future.value(PublicKey(newKeyId, keyData.bytes, keyData.type));
+    return Future.value(PublicKey(newKeyId, keyData.bytes, keyData.keyType));
   }
 
   @override
