@@ -69,7 +69,7 @@ class KmsWallet implements Wallet {
       customerMasterKeySpec: kms.CustomerMasterKeySpec.rsa_2048,
     );
     final newKeyId = response.keyMetadata?.keyId ?? '';
-    return KmsKeyPair(kmsClient, newKeyId);
+    return KmsKeyPair.generate(kmsClient, newKeyId);
   }
 
   @override
@@ -91,6 +91,6 @@ class KmsWallet implements Wallet {
   }
 
   Future<KmsKeyPair> _getKeyPair(String keyId) async {
-    return KmsKeyPair(kmsClient, keyId);
+    return KmsKeyPair.generate(kmsClient, keyId);
   }
 }

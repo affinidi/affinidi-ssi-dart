@@ -20,8 +20,15 @@ class KmsKeyPair implements KeyPair {
   final kms.KMS kmsClient;
   @override
   final String id;
+  final Uint8List _publicKeyBytes;
 
-  KmsKeyPair(this.kmsClient, this.id);
+  KmsKeyPair._(this.kmsClient, this.id, this._publicKeyBytes);
+
+  static Future<KmsKeyPair> generate(kms.KMS kmsClient, String id) async {
+    final response = await kmsClient.getPublicKey(keyId: id);
+    final publicKeyBytes = Uint8List.fromList(response.publicKey ?? []);
+    return KmsKeyPair._(kmsClient, id, publicKeyBytes);
+  }
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [
@@ -29,10 +36,8 @@ class KmsKeyPair implements KeyPair {
       ];
 
   @override
-  PublicKey get publicKey async {
-    final response = await kmsClient.getPublicKey(keyId: id);
-    return PublicKey(
-        id, Uint8List.fromList(response.publicKey ?? []), KeyType.rsa);
+  PublicKey get publicKey {
+    return PublicKey(id, _publicKeyBytes, KeyType.rsa);
   }
 
   @override
