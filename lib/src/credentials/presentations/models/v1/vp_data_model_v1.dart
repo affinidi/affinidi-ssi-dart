@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
 import '../../../models/field_types/holder.dart';
@@ -32,7 +34,7 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
-  List<String> context;
+  final UnmodifiableListView<String> context;
 
   /// The optional identifier for this presentation.
   @override
@@ -42,7 +44,7 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
   ///
   /// Must include 'VerifiablePresentation'.
   @override
-  Set<String> type;
+  final UnmodifiableSetView<String> type;
 
   /// The identifier of the holder presenting the credentials.
   ///
@@ -52,11 +54,11 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
 
   /// The list of verifiable credentials embedded in this presentation.
   @override
-  List<ParsedVerifiableCredential> verifiableCredential;
+  final UnmodifiableListView<ParsedVerifiableCredential> verifiableCredential;
 
   /// The cryptographic proof(s) created by the holder.
   @override
-  List<EmbeddedProof> proof;
+  final UnmodifiableListView<EmbeddedProof> proof;
 
   /// Creates a [VpDataModelV1] instance.
   ///
@@ -66,13 +68,16 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
   VpDataModelV1._({
-    required this.context,
+    required List<String> context,
     this.id,
-    required this.type,
+    required Set<String> type,
     required this.holder,
-    required this.verifiableCredential,
-    required this.proof,
-  });
+    required List<ParsedVerifiableCredential> verifiableCredential,
+    required List<EmbeddedProof> proof,
+  })  : context = UnmodifiableListView(context),
+        type = UnmodifiableSetView(type),
+        verifiableCredential = UnmodifiableListView(verifiableCredential),
+        proof = UnmodifiableListView(proof);
 
   /// Creates a [VpDataModelV1] from JSON input.
   ///

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
 import '../../../models/field_types/holder.dart';
@@ -32,7 +34,7 @@ class VpDataModelV2 extends _VpDataModelV2 implements VerifiablePresentation {
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
-  List<String> context;
+  final UnmodifiableListView<String> context;
 
   /// The optional identifier for this presentation.
   @override
@@ -42,7 +44,7 @@ class VpDataModelV2 extends _VpDataModelV2 implements VerifiablePresentation {
   ///
   /// Must include 'VerifiablePresentation'.
   @override
-  Set<String> type;
+  final UnmodifiableSetView<String> type;
 
   /// The identifier of the holder presenting the credentials.
   ///
@@ -52,14 +54,14 @@ class VpDataModelV2 extends _VpDataModelV2 implements VerifiablePresentation {
 
   /// The list of verifiable credentials embedded in this presentation.
   @override
-  List<ParsedVerifiableCredential> verifiableCredential;
+  final UnmodifiableListView<ParsedVerifiableCredential> verifiableCredential;
 
   /// The cryptographic proof(s) created by the holder.
   @override
-  List<EmbeddedProof> proof;
+  final UnmodifiableListView<EmbeddedProof> proof;
 
   @override
-  List<TermsOfUse> termsOfUse;
+  final UnmodifiableListView<TermsOfUse> termsOfUse;
 
   /// Creates a [VpDataModelV2] instance.
   ///
@@ -69,14 +71,18 @@ class VpDataModelV2 extends _VpDataModelV2 implements VerifiablePresentation {
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
   VpDataModelV2._(
-      {required this.context,
+      {required List<String> context,
       this.id,
-      required this.type,
+      required Set<String> type,
       required this.holder,
-      required this.verifiableCredential,
-      required this.proof,
+      required List<ParsedVerifiableCredential> verifiableCredential,
+      required List<EmbeddedProof> proof,
       List<TermsOfUse>? termsOfUse})
-      : termsOfUse = termsOfUse ?? [];
+      : context = UnmodifiableListView(context),
+        type = UnmodifiableSetView(type),
+        verifiableCredential = UnmodifiableListView(verifiableCredential),
+        proof = UnmodifiableListView(proof),
+        termsOfUse = UnmodifiableListView(termsOfUse ?? []);
 
   /// Creates a [VpDataModelV2] from JSON input.
   ///
