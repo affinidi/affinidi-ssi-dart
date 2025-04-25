@@ -87,6 +87,23 @@ class VcDataModelV1 extends _VcDataModelV1 implements VerifiableCredential {
         termsOfUse = UnmodifiableListView(termsOfUse ?? []),
         evidence = UnmodifiableListView(evidence ?? []);
 
+  VcDataModelV1(VcDataModelV1 input)
+      : this._(
+            context: input.context,
+            id: input.id,
+            credentialSubject: input.credentialSubject,
+            issuer: input.issuer,
+            type: input.type,
+            issuanceDate: input.issuanceDate,
+            credentialSchema: input.credentialSchema,
+            expirationDate: input.expirationDate,
+            holder: input.holder,
+            proof: input.proof,
+            credentialStatus: input.credentialStatus,
+            refreshService: input.refreshService,
+            termsOfUse: input.termsOfUse,
+            evidence: input.evidence);
+
   factory VcDataModelV1.fromJson(dynamic input) {
     final json = jsonToMap(input);
 

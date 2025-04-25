@@ -3,8 +3,6 @@ import 'dart:convert';
 import '../../../ssi.dart';
 import '../../util/base64_util.dart';
 import '../models/parsed_vc.dart';
-import '../models/v1/mutable_vc_data_model_v1.dart';
-import '../models/v1/vc_data_model_v1.dart';
 import '../models/v1/vc_data_model_v1.dart';
 import '../parsers/jwt_parser.dart';
 import '../suites/vc_suite.dart';
@@ -41,7 +39,7 @@ final class JwtDm1Suite
     }
 
     final jws = decode(data);
-    return _JwtVcDataModelV1.fromJws(jws);
+    return JwtVcDataModelV1.fromJws(jws);
   }
 
   @override
@@ -72,7 +70,7 @@ final class JwtDm1Suite
         signature: signature,
         serialized: serialized);
 
-    return _JwtVcDataModelV1.fromJws(jws);
+    return JwtVcDataModelV1.fromJws(jws);
   }
 
   @override
