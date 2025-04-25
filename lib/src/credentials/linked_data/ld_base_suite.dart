@@ -1,12 +1,13 @@
 import 'dart:convert';
 
+import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
+
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/doc_with_embedded_proof.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
-import '../proof/embedded_proof.dart';
 import '../proof/embedded_proof_suite.dart';
 
 /// Options for LD based data model operations.
@@ -70,8 +71,12 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
 
     final proof = await proofGenerator.generate(json);
 
-    // TODO implement validation that the issuer matches the proof
-    //if (proof.verificationMethod. == issuer)
+    if (proof.verificationMethod?.split('#').first != issuer) {
+      throw SsiException(
+        message: 'Issuer mismatch',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
 
     json[proofKey] = proof.toJson();
 

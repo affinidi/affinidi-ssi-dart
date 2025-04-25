@@ -1,10 +1,11 @@
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/linked_data/ld_dm_v1_suite.dart';
 import 'package:ssi/src/credentials/models/credential_subject.dart';
 import 'package:ssi/src/credentials/models/holder.dart';
 import 'package:ssi/src/credentials/models/issuer.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
-import 'package:ssi/src/credentials/proof/embedded_proof.dart';
+import 'package:ssi/src/credentials/proof/proof_purpose.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -47,24 +48,40 @@ void main() {
     );
 
     test('should create proof and verify successfully', () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-          signer: signer,
-        ),
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
       );
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+      final proofVerifier =
+          Secp256k1Signature2019Verifier(issuerDid: signer.did);
 
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-          customDocumentLoader: testLoadDocument,
-          issuerDid: signer.did,
-        ),
-      );
+      final verificationResult =
+          await proofVerifier.verify(issuedCredential.toJson());
+      expect(verificationResult.isValid, true);
+      expect(verificationResult.errors, isEmpty);
+      expect(verificationResult.warnings, isEmpty);
+    });
 
+    test('should create proof with proofPurpose and verify successfully',
+        () async {
+      final proofGenerator = Secp256k1Signature2019Generator(
+          signer: signer, proofPurpose: ProofPurpose.authentication);
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
+
+      final proofVerifier =
+          Secp256k1Signature2019Verifier(issuerDid: signer.did);
+
+      final verificationResult =
+          await proofVerifier.verify(issuedCredential.toJson());
+      expect(issuedCredential.proof.first.proofPurpose,
+          ProofPurpose.authentication.value);
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
@@ -72,19 +89,18 @@ void main() {
 
     test('should create proof with future expiry and verify successfully',
         () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-            signer: signer, expires: DateTime.parse('3024-01-01T12:00:01Z')),
-      );
+      final proofGenerator = Secp256k1Signature2019Generator(
+          signer: signer, expires: DateTime.parse('3024-01-01T12:00:01Z'));
 
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument, issuerDid: signer.did),
+      final proofVerifier =
+          Secp256k1Signature2019Verifier(issuerDid: signer.did);
+      final verificationResult = await proofVerifier.verify(
+        issuedCredential.toJson(),
       );
 
       expect(verificationResult.isValid, true);
@@ -94,23 +110,20 @@ void main() {
 
     test('should create proof with past expiry and throw expire error',
         () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-            signer: signer, expires: DateTime.now()),
+      final proofGenerator = Secp256k1Signature2019Generator(
+          signer: signer, expires: DateTime.now());
+
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
+
+      final proofVerifier = Secp256k1Signature2019Verifier(
+          issuerDid: signer.did,
+          getNow: () => DateTime.parse('3024-01-01T12:00:01Z'));
+      final verificationResult = await proofVerifier.verify(
+        issuedCredential.toJson(),
       );
-
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
-
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument,
-            issuerDid: signer.did,
-            getNow: () => DateTime.parse('3024-01-01T12:00:01Z')),
-      );
-
       expect(verificationResult.isValid, false);
       expect(verificationResult.errors, ['proof is no longer valid']);
       expect(verificationResult.warnings, isEmpty);
@@ -119,25 +132,25 @@ void main() {
     test(
         'should create proof with domain and challenge and pass verification with verify options',
         () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-            signer: signer,
-            expires: DateTime.parse('3024-01-01T12:00:01Z'),
-            domain: ['example.com'],
-            challenge: 'test-challenge'),
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+        expires: DateTime.parse('3024-01-01T12:00:01Z'),
+        domain: ['example.com'],
+        challenge: 'test-challenge',
       );
 
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument,
-            issuerDid: signer.did,
-            domain: ['example.com'],
-            challenge: 'test-challenge'),
+      final proofVerifier = Secp256k1Signature2019Verifier(
+          issuerDid: signer.did,
+          domain: ['example.com'],
+          challenge: 'test-challenge');
+
+      final verificationResult = await proofVerifier.verify(
+        issuedCredential.toJson(),
       );
 
       expect(verificationResult.isValid, true);
@@ -147,22 +160,24 @@ void main() {
 
     test('should create proof with domain and challenge and pass verification',
         () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-            signer: signer,
-            expires: DateTime.parse('3024-01-01T12:00:01Z'),
-            domain: ['example.com'],
-            challenge: 'test-challenge'),
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+        expires: DateTime.parse('3024-01-01T12:00:01Z'),
+        domain: ['example.com'],
+        challenge: 'test-challenge',
       );
 
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
-      final verificationResult = await proofSuite.verifyProof(
-          unsignedCredential.toJson(),
-          EcdsaSecp256k1Signature2019VerifyOptions(
-              customDocumentLoader: testLoadDocument, issuerDid: signer.did));
+      final proofVerifier =
+          Secp256k1Signature2019Verifier(issuerDid: signer.did);
+
+      final verificationResult = await proofVerifier.verify(
+        issuedCredential.toJson(),
+      );
 
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
@@ -172,25 +187,25 @@ void main() {
     test(
         'should create proof with domain and challenge and check validation against verification options',
         () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-            signer: signer,
-            expires: DateTime.parse('3024-01-01T12:00:01Z'),
-            domain: ['example.com'],
-            challenge: 'test-challenge'),
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+        expires: DateTime.parse('3024-01-01T12:00:01Z'),
+        domain: ['example.com'],
+        challenge: 'test-challenge',
       );
 
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument,
-            issuerDid: signer.did,
-            domain: ['example1.com'],
-            challenge: 'test-challenge'),
+      final proofVerifier = Secp256k1Signature2019Verifier(
+          issuerDid: signer.did,
+          domain: ['example1.com'],
+          challenge: 'test-challenge');
+
+      final verificationResult = await proofVerifier.verify(
+        issuedCredential.toJson(),
       );
 
       expect(verificationResult.isValid, false);
@@ -201,25 +216,25 @@ void main() {
     test(
         'should create proof with domain array and challenge and check validation against verification options',
         () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-            signer: signer,
-            expires: DateTime.parse('3024-01-01T12:00:01Z'),
-            domain: ['example.com', 'example1.com'],
-            challenge: 'test-challenge'),
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+        expires: DateTime.parse('3024-01-01T12:00:01Z'),
+        domain: ['example.com', 'example1.com'],
+        challenge: 'test-challenge',
       );
 
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument,
-            issuerDid: signer.did,
-            domain: ['example.com', 'example1.com'],
-            challenge: 'test-challenge'),
+      final proofVerifier = Secp256k1Signature2019Verifier(
+          issuerDid: signer.did,
+          domain: ['example.com', 'example1.com'],
+          challenge: 'test-challenge');
+
+      final verificationResult = await proofVerifier.verify(
+        issuedCredential.toJson(),
       );
 
       expect(verificationResult.isValid, true);
@@ -229,22 +244,22 @@ void main() {
 
     test('should create proof with domain and empty challenge and throw error',
         () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-          signer: signer,
-          expires: DateTime.parse('3024-01-01T12:00:01Z'),
-          domain: ['example.com'],
-        ),
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+        expires: DateTime.parse('3024-01-01T12:00:01Z'),
+        domain: ['example.com'],
       );
 
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument, issuerDid: signer.did),
+      final proofVerifier =
+          Secp256k1Signature2019Verifier(issuerDid: signer.did);
+
+      final verificationResult = await proofVerifier.verify(
+        issuedCredential.toJson(),
       );
 
       expect(verificationResult.isValid, false);
@@ -253,47 +268,22 @@ void main() {
     });
 
     test('should create proof with empty domain and throw error', () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-          signer: signer,
-          expires: DateTime.parse('3024-01-01T12:00:01Z'),
-          challenge: 'test-challenge',
-        ),
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+        expires: DateTime.parse('3024-01-01T12:00:01Z'),
+        challenge: 'test-challenge',
       );
 
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+      final issuedCredential = await LdVcDm1Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument, issuerDid: signer.did),
-      );
+      final proofVerifier =
+          Secp256k1Signature2019Verifier(issuerDid: signer.did);
 
-      expect(verificationResult.isValid, false);
-      expect(verificationResult.errors,
-          ['proof.challenge must be accompanied by proof.domain']);
-      expect(verificationResult.warnings, isEmpty);
-    });
-
-    test('should create proof with empty domain and throw error', () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-          signer: signer,
-          expires: DateTime.parse('3024-01-01T12:00:01Z'),
-          challenge: 'test-challenge',
-        ),
-      );
-
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
-
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: testLoadDocument, issuerDid: signer.did),
+      final verificationResult = await proofVerifier.verify(
+        issuedCredential.toJson(),
       );
 
       expect(verificationResult.isValid, false);

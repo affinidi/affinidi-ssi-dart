@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
+import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -29,7 +30,13 @@ void main() async {
           type: ['VerifiablePresentation'],
           verifiableCredential: [ldV1VC, ldV2VC, sdjwtV2VC]);
 
-      var issuedCredential = await LdVpDm2Suite().issue(v2Vp, signer);
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+      );
+      var issuedCredential = await LdVpDm2Suite().issue(
+          unsignedData: v2Vp,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
       expect(issuedCredential, isNotNull);
       expect(issuedCredential.serialized, isNotNull);

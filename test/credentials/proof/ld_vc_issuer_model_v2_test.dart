@@ -3,6 +3,7 @@ import 'package:ssi/src/credentials/linked_data/ld_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/models/credential_subject.dart';
 import 'package:ssi/src/credentials/models/issuer.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
+import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/src/credentials/suites/universal_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -43,8 +44,13 @@ void main() {
         issuer: Issuer(id: signer.did),
       );
 
-      final issuedCredential =
-          await LdVcDm2Suite().issue(unsignedCredential, signer);
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+      );
+      final issuedCredential = await LdVcDm2Suite().issue(
+          unsignedData: unsignedCredential,
+          issuer: signer.did,
+          proofGenerator: proofGenerator);
 
       final verificationResult =
           await UniversalVerifier().verify(issuedCredential);
