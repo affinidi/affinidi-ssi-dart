@@ -11,7 +11,7 @@ void main() {
   group("When resolving did document", () {
     group("using did:key,", () {
       test("it resolves succesfully", () async {
-        final did = "did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2";
+        final did = "did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R";
 
         final expectedDidDoc =
             jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
@@ -24,7 +24,7 @@ void main() {
     group("using did:peer,", () {
       test("it resolves successfully", () async {
         final did =
-            "did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy";
+            "did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka";
 
         final expectedDidDoc =
             jsonDecode(DidDocumentFixtures.didDocumentWithControllerPeer);

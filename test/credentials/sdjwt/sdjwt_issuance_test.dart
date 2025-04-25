@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/models/credential_subject.dart';
@@ -12,8 +11,8 @@ import '../../test_utils.dart';
 
 void main() {
   group('SD-JWT Issuance Tests', () {
-    final testSeed = Uint8List.fromList(
-        utf8.encode('test seed for deterministic key generation'));
+    final testSeed =
+        Uint8List.fromList(List.generate(32, (index) => index + 1));
 
     late DidSigner signer;
     late SdJwtDm2Suite suite;

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v1_suite.dart';
@@ -10,8 +9,7 @@ import '../../../fixtures/verifiable_credentials_data_fixtures.dart';
 import '../../../test_utils.dart';
 
 void main() async {
-  final testSeed = Uint8List.fromList(
-      utf8.encode('test seed for deterministic key generation'));
+  final testSeed = Uint8List.fromList(List.generate(32, (index) => index + 1));
 
   final ldV1VC = UniversalParser.parse(VerifiableCredentialDataFixtures
       .credentialWithValidProofDataModelV11JsonEncoded);
