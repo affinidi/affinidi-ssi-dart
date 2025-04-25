@@ -74,6 +74,15 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
     required this.proof,
   });
 
+  VpDataModelV1(VpDataModelV1 input)
+      : this._(
+            context: input.context,
+            id: input.id,
+            type: input.type,
+            holder: input.holder,
+            verifiableCredential: input.verifiableCredential,
+            proof: input.proof);
+
   /// Creates a [VpDataModelV1] from JSON input.
   ///
   /// The [input] can be a JSON string or a [Map<String, dynamic>].

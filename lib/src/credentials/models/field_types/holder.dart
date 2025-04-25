@@ -37,4 +37,6 @@ class Holder extends MutableHolder {
 
     return Holder._(id);
   }
+
+  factory Holder.uri(dynamic json) => Holder.fromJson(json);
 }

@@ -36,4 +36,6 @@ class Issuer extends MutableIssuer {
 
     return Issuer._(id);
   }
+
+  factory Issuer.uri(dynamic json) => Issuer.fromJson(json);
 }

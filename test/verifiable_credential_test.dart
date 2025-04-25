@@ -1,6 +1,6 @@
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/jwt/jwt_dm_v1_suite.dart';
-import 'package:ssi/src/credentials/models/v1/mutable_vc_data_model_v1.dart';
+import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -56,7 +56,7 @@ void main() {
         test(
           'it retrieves the correct credentials subject',
           () {
-            expect(verifiableCredential.credentialSubject['email'],
+            expect(verifiableCredential.credentialSubject.first['email'],
                 'user@affinidi.com');
           },
         );
@@ -173,7 +173,7 @@ void main() {
       test(
         'it can encode & decode',
         () async {
-          final dataModel = MutableVcDataModelV1.fromJson(
+          final dataModel = VcDataModelV1.fromJson(
             VerifiableCredentialDataFixtures.credentialWithoutProofDataModelV11,
           );
 
@@ -213,7 +213,7 @@ void main() {
       test(
         'it retrieves the correct credential subject with a profession position',
         () {
-          expect(verifiableCredential.credentialSubject.id,
+          expect(verifiableCredential.credentialSubject.first.id,
               'did:example:ebfeb1f712ebc6f1c276e12ec21');
         },
       );
@@ -322,7 +322,7 @@ void main() {
         test(
           'it retrieves the correct credentials subject',
           () {
-            expect(verifiableCredential.credentialSubject.id,
+            expect(verifiableCredential.credentialSubject.first.id,
                 'https://subject.example/subject/3921');
           },
         );
@@ -372,8 +372,10 @@ void main() {
                 Map<String, dynamic>.from(verifiableCredential.toJson());
             // Normalize 'created' field in proof if present
             if (expected['proof'] != null && actual['proof'] != null) {
-              final expProof = Map<String, dynamic>.from(expected['proof']);
-              final actProof = Map<String, dynamic>.from(actual['proof']);
+              final expProof = Map<String, dynamic>.from(
+                  expected['proof'] as Map<String, dynamic>);
+              final actProof = Map<String, dynamic>.from(
+                  actual['proof'] as Map<String, dynamic>);
               if (expProof['created'] != null && actProof['created'] != null) {
                 // Remove milliseconds if present in actual
                 actProof['created'] =

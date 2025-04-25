@@ -1,6 +1,6 @@
 import '../../../ssi.dart';
 import '../models/parsed_vc.dart';
-import '../models/v2/mutable_vc_data_model_v2.dart';
+import '../models/v2/vc_data_model_v2.dart';
 import '../parsers/ld_parser.dart';
 import '../suites/vc_suite.dart';
 import '../suites/vc_suites.dart';
@@ -29,7 +29,7 @@ final class EnvelopedVcDm2Suite
     with
         LdParser
     implements
-        VerifiableCredentialSuite<String, MutableVcDataModelV2,
+        VerifiableCredentialSuite<String, VcDataModelV2,
             ParsedVerifiableCredential<String>, EnvelopedVcDm2Options> {
   @override
   bool hasValidPayload(Map<String, dynamic> data) {
@@ -38,7 +38,7 @@ final class EnvelopedVcDm2Suite
     final envelopedData = data['id'];
 
     return (context is List) &&
-        context.contains(MutableVcDataModelV2.contextUrl) &&
+        context.contains(VcDataModelV2.contextUrl) &&
         (type != null) &&
         (type is List) &&
         (type.contains('EnvelopedVerifiableCredential')) &&
@@ -76,7 +76,7 @@ final class EnvelopedVcDm2Suite
 
   @override
   Future<SdJwtDataModelV2> issue(
-    MutableVcDataModelV2 vc,
+    VcDataModelV2 vc,
     DidSigner signer, {
     EnvelopedVcDm2Options? options,
   }) async {

@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
 import 'package:ssi/src/credentials/models/field_types/issuer.dart';
-import 'package:ssi/src/credentials/models/v2/mutable_vc_data_model_v2.dart';
+import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -25,24 +25,25 @@ void main() {
 
     test('can issue a credential with default options', () async {
       final credential = MutableVcDataModelV2(
-        context: [MutableVcDataModelV2.contextUrl],
-        id: 'urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd',
-        issuer: Issuer(id: 'did:example:issuer'),
-        type: ['VerifiableCredential', 'UniversityDegreeCredential'],
+        context: [VcDataModelV2.contextUrl],
+        id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+        issuer: Issuer.uri('did:example:issuer'),
+        type: {'VerifiableCredential', 'UniversityDegreeCredential'},
         validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
         validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
-        credentialSubject: MutableCredentialSubject(
-          id: 'did:example:subject',
-          claims: {
+        credentialSubject: [
+          MutableCredentialSubject({
+            'id': 'did:example:subject',
             'degree': {
               'type': 'BachelorDegree',
               'name': 'Bachelor of Science and Arts',
             },
-          },
-        ),
+          })
+        ],
       );
 
-      final issuedCredential = await suite.issue(credential, signer);
+      final issuedCredential = await suite.issue(
+          VcDataModelV2.fromJson(credential.toJson()), signer);
 
       expect(issuedCredential, isNotNull);
       expect(issuedCredential.serialized, isNotNull);
@@ -70,15 +71,15 @@ void main() {
 
     test('can issue a credential with custom disclosure frame', () async {
       final credential = MutableVcDataModelV2(
-        context: [MutableVcDataModelV2.contextUrl],
-        id: 'urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd',
-        issuer: Issuer(id: 'did:example:issuer'),
-        type: ['VerifiableCredential', 'UniversityDegreeCredential'],
+        context: [VcDataModelV2.contextUrl],
+        id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+        issuer: Issuer.uri('did:example:issuer'),
+        type: {'VerifiableCredential', 'UniversityDegreeCredential'},
         validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
         validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
-        credentialSubject: MutableCredentialSubject(
-          id: 'did:example:subject',
-          claims: {
+        credentialSubject: [
+          MutableCredentialSubject({
+            'id': 'did:example:subject',
             'firstName': 'Rain',
             'lastName': 'Bow',
             'degree': {
@@ -86,8 +87,8 @@ void main() {
               'name': 'Bachelor of Science and Arts',
               'gpa': '3.8',
             },
-          },
-        ),
+          })
+        ],
       );
 
       final disclosureFrame = {
@@ -100,7 +101,7 @@ void main() {
       };
 
       final issuedCredential = await suite.issue(
-        credential,
+        VcDataModelV2.fromJson(credential.toJson()),
         signer,
         options: SdJwtDm2Options(
           disclosureFrame: disclosureFrame,
@@ -121,12 +122,13 @@ void main() {
     test('handles errors when issuing with invalid credential data', () async {
       final invalidCredential = MutableVcDataModelV2(
         context: [],
-        issuer: Issuer(id: ''),
-        type: [],
+        issuer: Issuer.uri(''),
+        type: {},
       );
 
       expect(
-        () => suite.issue(invalidCredential, signer),
+        () => suite.issue(
+            VcDataModelV2.fromJson(invalidCredential.toJson()), signer),
         throwsA(isA<SsiException>()),
       );
     });
