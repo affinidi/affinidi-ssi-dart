@@ -11,6 +11,7 @@ import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import 'key_pair.dart';
 
+import './_key_pair_utils.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
 
 /// A key pair implementation that uses the P-256 (secp256r1) elliptic curve
@@ -28,7 +29,10 @@ class P256KeyPair implements KeyPair {
 
   /// Creates a new [P256KeyPair] instance with a randomly generated private key.
   factory P256KeyPair() {
-    return P256KeyPair._(_p256.generatePrivateKey());
+    final privateKey =
+        generateValidPrivateKey(() => _p256.generatePrivateKey());
+
+    return P256KeyPair._(privateKey);
   }
 
   /// Creates a [P256KeyPair] instance from a private key.

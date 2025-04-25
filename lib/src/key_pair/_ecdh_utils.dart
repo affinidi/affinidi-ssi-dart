@@ -8,6 +8,7 @@ import 'package:cryptography/cryptography.dart' as crypto;
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import './_encryption_utils.dart';
+import './_key_pair_utils.dart';
 
 const fullPublicKeyLength = 64;
 const compressedPublidKeyLength = 32;
@@ -15,7 +16,8 @@ final staticHkdNonce = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
 final encryptionUtils = EncryptionUtils();
 
 PublicKey generateEphemeralPubKey(Curve curve) {
-  final privateKey = curve.generatePrivateKey();
+  final privateKey = generateValidPrivateKey(() => curve.generatePrivateKey());
+
   return curve.privateToPublicKey(privateKey);
 }
 
