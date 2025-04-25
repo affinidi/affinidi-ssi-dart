@@ -15,21 +15,16 @@ abstract interface class VerifiablePresentation
   List<String> get context;
 
   /// The unique identifier for this presentation.
-  String? get id;
+  Uri? get id;
 
   /// The types describing the structure of this presentation.
-  // FIXME(FTL-20738) should be changed to a Set
-  List<String> get type;
+  Set<String> get type;
 
   /// The entity that is presenting these credentials.
   Holder? get holder;
 
   /// The verifiable credentials included in this presentation.
   List<ParsedVerifiableCredential> get verifiableCredential;
-
-  /// Creates a [VerifiablePresentation] from a JSON map.
-  @override
-  VerifiablePresentation.fromJson(Map<String, dynamic> input);
 
   /// Converts this presentation to a JSON-serializable map.
   @override

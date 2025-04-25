@@ -30,7 +30,7 @@ abstract class VcDataModelV1 implements VerifiableCredential {
   Issuer? get issuer;
 
   @override
-  List<String> get type;
+  Set<String> get type;
 
   @override
   List<EmbeddedProof> get proof;
@@ -55,7 +55,7 @@ abstract class VcDataModelV1 implements VerifiableCredential {
 
     json[_P.context.key] = context;
     json[_P.issuer.key] = issuer?.toJson();
-    json[_P.type.key] = type;
+    json[_P.type.key] = type.toList();
     json[_P.id.key] = id?.toString();
     json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
     json[_P.holder.key] = holder?.toJson();

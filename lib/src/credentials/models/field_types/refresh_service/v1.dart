@@ -10,14 +10,16 @@ abstract interface class RefreshServiceV1 {
 class MutableRefreshServiceV1 extends RefreshServiceV1 {
   @override
   Uri? id;
+
+  @override
   String? type;
 
   MutableRefreshServiceV1({this.id, this.type});
 }
 
 class ParsedRefreshServiceV1 extends RefreshServiceV1 {
-  Uri _id;
-  String _type;
+  final Uri _id;
+  final String _type;
 
   @override
   Uri get id => _id;

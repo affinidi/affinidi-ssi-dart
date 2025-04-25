@@ -53,14 +53,14 @@ class ParsedCredentialSubject extends CredentialSubject {
   @override
   Uri? get id => getUri(_claims, 'id');
 
-  Map<String, dynamic> _claims;
+  final UnmodifiableMapView<String, dynamic> _claims;
 
   ParsedCredentialSubject._(
-    Map<String, dynamic>? claims,
-  ) : _claims = claims ?? {};
+    UnmodifiableMapView<String, dynamic>? claims,
+  ) : _claims = claims ?? UnmodifiableMapView<String, dynamic>({});
 
   factory ParsedCredentialSubject.fromJson(Map<String, dynamic> json) {
-    final claimsMap = Map<String, dynamic>.from(json);
+    final claimsMap = UnmodifiableMapView<String, dynamic>(json);
     return ParsedCredentialSubject._(claimsMap);
   }
 

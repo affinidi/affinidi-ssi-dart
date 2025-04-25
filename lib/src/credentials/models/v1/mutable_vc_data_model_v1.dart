@@ -17,7 +17,7 @@ class MutableVcDataModelV1 extends VcDataModelV1 {
   Uri? id;
 
   @override
-  List<String> type;
+  Set<String> type;
 
   @override
   List<MutableCredentialSchema> credentialSchema;
@@ -64,7 +64,7 @@ class MutableVcDataModelV1 extends VcDataModelV1 {
     List<MutableCredentialSchema>? credentialSchema,
     List<MutableCredentialSubject>? credentialSubject,
     this.issuer,
-    List<String>? type,
+    Set<String>? type,
     this.issuanceDate,
     this.expirationDate,
     this.holder,
@@ -76,7 +76,7 @@ class MutableVcDataModelV1 extends VcDataModelV1 {
   })  : context = context ?? [],
         credentialSchema = credentialSchema ?? [],
         credentialSubject = credentialSubject ?? [],
-        type = type ?? [],
+        type = type ?? {},
         proof = proof ?? [],
         refreshService = refreshService ?? [],
         termsOfUse = termsOfUse ?? [],

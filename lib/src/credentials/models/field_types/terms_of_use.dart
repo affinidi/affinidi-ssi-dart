@@ -28,8 +28,8 @@ class MutableTermsOfUse extends TermsOfUse {
 }
 
 class ParsedTermsOfUse extends TermsOfUse {
-  Uri? _id;
-  String _type;
+  final Uri? _id;
+  final String _type;
 
   /// The URL of the schema including domain and filename.
   @override

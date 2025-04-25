@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import '../../linked_data/ld_base_suite.dart';
 import '../models/parsed_vp.dart';
+import '../models/v1/mutable_vp_data_model_v1.dart';
 import '../models/v1/vp_data_model_v1.dart';
-import '../models/v1/vp_data_model_v1_view.dart';
 import '../suites/vp_suite.dart';
 
 /// Options specific to Linked Data VPv1 operations.

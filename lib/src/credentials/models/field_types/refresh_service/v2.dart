@@ -14,7 +14,7 @@ class MutableRefreshServiceV2 extends RefreshServiceV2 {
 }
 
 class ParsedRefreshServiceV2 extends RefreshServiceV2 {
-  String _type;
+  final String _type;
 
   @override
   String get type => _type;

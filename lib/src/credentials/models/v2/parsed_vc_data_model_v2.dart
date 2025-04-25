@@ -17,7 +17,7 @@ class ParsedVcDataModelV2 extends VcDataModelV2 {
   Uri? id;
 
   @override
-  List<String> type; // atleast one must
+  Set<String> type; // atleast one must
 
   @override
   Issuer issuer;
@@ -87,7 +87,7 @@ class ParsedVcDataModelV2 extends VcDataModelV2 {
       _P.type.key,
       allowSingleValue: true,
       mandatory: true,
-    );
+    ).toSet();
 
     final issuer = ParsedIssuer.fromJson(json[_P.issuer.key]);
 
@@ -101,7 +101,7 @@ class ParsedVcDataModelV2 extends VcDataModelV2 {
 
     final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
         (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
-        mandatory: false, allowSingleValue: true);
+        allowSingleValue: true);
 
     final credentialSchema = parseListOrSingleItem<ParsedCredentialSchema>(
         json,

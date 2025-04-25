@@ -53,11 +53,6 @@ class MutableCredentialSchema extends CredentialSchema {
   @override
   String? type;
 
-  /// Creates a [MutableCredentialSchema] instance.
-  ///
-  /// The [domain] is the base URL where the schema is hosted.
-  /// The [schema] is the name of the schema without extension.
-  /// The [type] is the schema validation type, defaults to 'JsonSchemaValidator2018'.
   MutableCredentialSchema({
     this.id,
     this.type = 'JsonSchemaValidator2018',
@@ -79,8 +74,8 @@ class MutableCredentialSchema extends CredentialSchema {
 }
 
 class ParsedCredentialSchema extends CredentialSchema {
-  Uri _id;
-  String _type;
+  final Uri _id;
+  final String _type;
 
   /// The URL of the schema including domain and filename.
   @override

@@ -52,8 +52,8 @@ class MutableCredentialStatusV1 extends CredentialStatusV1 {
 }
 
 class ParsedCredentialStatusV1 extends CredentialStatusV1 {
-  Uri _id;
-  String _type;
+  final Uri _id;
+  final String _type;
 
   /// The URL of the schema including domain and filename.
   @override

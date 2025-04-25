@@ -17,7 +17,7 @@ class MutableIssuer extends Issuer {
 }
 
 class ParsedIssuer extends Issuer {
-  Uri _id;
+  final Uri _id;
 
   @override
   Uri get id => _id;

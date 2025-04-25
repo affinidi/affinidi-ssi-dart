@@ -17,7 +17,7 @@ class MutableHolder extends Holder {
 }
 
 class ParsedHolder extends Holder {
-  Uri _id;
+  final Uri _id;
 
   @override
   Uri get id => _id;
