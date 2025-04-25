@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart' as bip32;
-import 'package:ssi/src/key_pair/secp256k1_key_pair.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -19,18 +18,11 @@ void main() {
     });
 
     test('get publicKey should return correct type and format', () async {
-      final publicKeyData = await keyPair.publicKey;
+      final publicKeyData = keyPair.publicKey;
       expect(publicKeyData.type, KeyType.secp256k1);
       expect(publicKeyData.bytes, isA<Uint8List>());
       expect(publicKeyData.bytes.length, 33); // Compressed public key length
       expect(publicKeyData.bytes, equals(rootNode.publicKey));
-    });
-
-    test('get privateKey should return the correct private key', () async {
-      final privateKeyBytes = await keyPair.privateKey;
-      expect(privateKeyBytes, isA<Uint8List>());
-      expect(privateKeyBytes.length, 32);
-      expect(privateKeyBytes, equals(rootNode.privateKey));
     });
 
     test('supportedSignatureSchemes should return only secp256k1', () {

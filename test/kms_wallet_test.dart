@@ -24,7 +24,7 @@ void main() {
       );
 
       wallet = KmsWallet(kmsClient);
-      publicKey = await wallet.generateKey();
+      publicKey = (await wallet.generateKey()).publicKey;
     });
 
     test('Verifies data with valid signature', () async {

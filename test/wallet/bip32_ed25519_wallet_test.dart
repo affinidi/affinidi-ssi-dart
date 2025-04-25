@@ -28,7 +28,7 @@ void main() {
       expect(newKey.id, isNotNull);
       expect(newKey.id, isNotEmpty);
       expect(await wallet.hasKey(newKey.id), isTrue);
-      expect(newKey.type, KeyType.ed25519);
+      expect(newKey.publicKey.type, KeyType.ed25519);
 
       final storedKey = await keyStore.get(newKey.id);
       expect(storedKey, isNotNull);
@@ -46,9 +46,9 @@ void main() {
 
       final sameKey =
           await wallet.deriveKey(keyId: testKeyId1, derivationPath: testPath1);
-      expect(sameKey.bytes, firstKey.bytes);
+      expect(sameKey.publicKey.bytes, firstKey.publicKey.bytes);
       expect(sameKey.id, firstKey.id);
-      expect(sameKey.type, firstKey.type);
+      expect(sameKey.publicKey.type, firstKey.publicKey.type);
     });
 
     test('deriveKey with existing ID and different path should throw',
@@ -103,7 +103,7 @@ void main() {
     test('getPublicKey should return the correct public key', () async {
       final derivedKey = await wallet.deriveKey(derivationPath: testPath1);
       final retrievedKey = await wallet.getPublicKey(derivedKey.id);
-      expect(retrievedKey.bytes, equals(derivedKey.bytes));
+      expect(retrievedKey.bytes, equals(derivedKey.publicKey.bytes));
       expect(retrievedKey.bytes.length, 32); // Ed25519 public key size
     });
 
@@ -220,7 +220,7 @@ void main() {
       final key2 =
           await wallet2.deriveKey(keyId: testKeyId1, derivationPath: testPath1);
 
-      expect(key1.bytes, equals(key2.bytes));
+      expect(key1.publicKey.bytes, equals(key2.publicKey.bytes));
     });
 
     test('Different derivation paths should produce different keys', () async {
@@ -228,9 +228,9 @@ void main() {
       final key2 = await wallet.deriveKey(derivationPath: testPath2);
       final key3 = await wallet.deriveKey(derivationPath: "m/44'/60'/1'/0'/0'");
 
-      expect(key1.bytes, isNot(equals(key2.bytes)));
-      expect(key1.bytes, isNot(equals(key3.bytes)));
-      expect(key2.bytes, isNot(equals(key3.bytes)));
+      expect(key1.publicKey.bytes, isNot(equals(key2.publicKey.bytes)));
+      expect(key1.publicKey.bytes, isNot(equals(key3.publicKey.bytes)));
+      expect(key2.publicKey.bytes, isNot(equals(key3.publicKey.bytes)));
     });
 
     test('getSupportedSignatureSchemes should return correct schemes',
@@ -266,7 +266,7 @@ void main() {
       await keyStore.setSeed(seed);
       final ksWallet = await Bip32Ed25519Wallet.fromKeyStore(keyStore);
       final key = await ksWallet.deriveKey(derivationPath: testPath1);
-      expect(key.type, KeyType.ed25519);
+      expect(key.publicKey.type, KeyType.ed25519);
     });
 
     test('fromKeyStore throws SsiException if seed key is missing', () async {
@@ -293,8 +293,8 @@ void main() {
     final bobSeed =
         Uint8List.fromList(List.generate(32, (index) => index + 20));
     final plainText = Uint8List.fromList([10, 20, 30, 40, 50]);
-    late PublicKey aliceKey;
-    late PublicKey bobKey;
+    late KeyPair aliceKey;
+    late KeyPair bobKey;
 
     setUp(() async {
       aliceKeyStore = InMemoryKeyStore();

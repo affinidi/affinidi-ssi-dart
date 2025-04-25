@@ -29,7 +29,7 @@ class KmsKeyPair implements KeyPair {
       ];
 
   @override
-  Future<PublicKey> get publicKey async {
+  PublicKey get publicKey async {
     final response = await kmsClient.getPublicKey(keyId: id);
     return PublicKey(
         id, Uint8List.fromList(response.publicKey ?? []), KeyType.rsa);

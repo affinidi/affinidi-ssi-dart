@@ -41,7 +41,7 @@ class KmsWallet implements Wallet {
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
-    final keyData = await keyPair.publicKey;
+    final keyData = keyPair.publicKey;
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
@@ -56,7 +56,7 @@ class KmsWallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> generateKey({
+  Future<KeyPair> generateKey({
     String? keyId,
     KeyType? keyType,
   }) async {
@@ -69,10 +69,7 @@ class KmsWallet implements Wallet {
       customerMasterKeySpec: kms.CustomerMasterKeySpec.rsa_2048,
     );
     final newKeyId = response.keyMetadata?.keyId ?? '';
-    final keyPair = KmsKeyPair(kmsClient, newKeyId);
-
-    final keyData = await keyPair.publicKey;
-    return Future.value(PublicKey(newKeyId, keyData.bytes, keyData.type));
+    return KmsKeyPair(kmsClient, newKeyId);
   }
 
   @override
