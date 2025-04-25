@@ -78,11 +78,11 @@ class GenericWallet implements Wallet {
     Uint8List privateKeyBytes;
 
     if (effectiveKeyType == KeyType.p256) {
-      final (instance, pKeyBytes) = P256KeyPair.generate(id: keyId);
+      final (instance, pKeyBytes) = P256KeyPair.generate(id: effectiveKeyId);
       keyPairInstance = instance;
       privateKeyBytes = pKeyBytes;
     } else if (effectiveKeyType == KeyType.ed25519) {
-      final (instance, pKeyBytes) = Ed25519KeyPair.generate(id: keyId);
+      final (instance, pKeyBytes) = Ed25519KeyPair.generate(id: effectiveKeyId);
       keyPairInstance = instance;
       privateKeyBytes = pKeyBytes;
     } else {

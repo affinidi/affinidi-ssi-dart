@@ -158,8 +158,8 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
 
     final seed = await _getSeed();
     final derivedData = await ED25519_HD_KEY.derivePath(derivationPath, seed);
-    final keyPair =
-        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
+    final keyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key),
+        id: effectiveKeyId);
     _runtimeCache[effectiveKeyId] = keyPair;
     return keyPair;
   }

@@ -163,7 +163,7 @@ class Bip32Wallet implements DeterministicWallet {
     final seed = await _getSeed();
     final rootNode = BIP32.fromSeed(seed);
     final derivedNode = rootNode.derivePath(derivationPath);
-    final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
+    final keyPair = Secp256k1KeyPair(node: derivedNode, id: effectiveKeyId);
     _runtimeCache[effectiveKeyId] = keyPair;
     return keyPair;
   }

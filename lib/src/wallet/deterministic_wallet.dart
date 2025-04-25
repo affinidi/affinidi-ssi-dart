@@ -1,4 +1,4 @@
-import '../key_pair/public_key.dart';
+import '../key_pair/key_pair.dart';
 import '../types.dart';
 import 'wallet.dart';
 
