@@ -33,14 +33,28 @@ void main() async {
   Jwk bobJwk =
       (bobDidDoc.resolveKeyIds().keyAgreement[0] as VerificationMethod).asJwk();
 
+  DidSigner aliceSigner = DidSigner(
+    didDocument: aliceDidDoc,
+    wallet: aliceWallet,
+    walletKeyId: alicePublicKey.id,
+    didKeyId: aliceDidDoc.verificationMethod[0].id,
+    signatureScheme: SignatureScheme.ecdsa_p256_sha256,
+  );
+
   DidcommSignedMessage aliceSignedMessage =
-      await DidcommSignedMessage.fromPlaintext(
-          wallet: aliceWallet, keyId: alicePublicKey.id, message: message);
+      await DidcommSignedMessage.fromPlaintext(message, signer: aliceSigner);
 
   await aliceSignedMessage.verify(aliceJwk);
 
-  DidcommSignedMessage bobsSignedMessage =
-      await message.sign(wallet: bobWallet, keyId: bobPublicKey.id);
+  DidSigner bobSigner = DidSigner(
+    didDocument: bobDidDoc,
+    wallet: bobWallet,
+    walletKeyId: bobPublicKey.id,
+    didKeyId: bobDidDoc.verificationMethod[0].id,
+    signatureScheme: SignatureScheme.ecdsa_p256_sha256,
+  );
+
+  DidcommSignedMessage bobsSignedMessage = await message.sign(bobSigner);
 
   await bobsSignedMessage.verify(
       (bobDidDoc.resolveKeyIds().keyAgreement[0] as VerificationMethod)

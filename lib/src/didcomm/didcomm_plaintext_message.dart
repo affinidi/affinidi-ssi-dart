@@ -72,10 +72,8 @@ class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
         message: this);
   }
 
-  Future<DidcommSignedMessage> sign(
-      {required Wallet wallet, required String keyId}) {
-    return DidcommSignedMessage.fromPlaintext(
-        wallet: wallet, keyId: keyId, message: this);
+  Future<DidcommSignedMessage> sign(DidSigner signer) {
+    return DidcommSignedMessage.fromPlaintext(this, signer: signer);
   }
 
   DidcommPlaintextMessage.fromJson(dynamic message) {
