@@ -9,9 +9,10 @@ import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
-import 'key_pair.dart';
-
 import './_ecdh_utils.dart' as ecdh_utils;
+import 'key_export.dart';
+import 'key_pair.dart';
+import 'public_key.dart';
 
 /// A key pair implementation that uses the P-256 (secp256r1) elliptic curve
 /// for cryptographic operations.
@@ -19,29 +20,34 @@ import './_ecdh_utils.dart' as ecdh_utils;
 /// This key pair supports signing and verifying data using the
 /// `ecdsa_p256_sha256` signature scheme. It also supports Elliptic Curve
 /// Diffie-Hellman (ECDH) key agreement.
-class P256KeyPair implements KeyPair {
+class P256KeyPair implements KeyPair, KeyExport {
   static final ec.EllipticCurve _p256 = ec.getP256();
   final ec.PrivateKey _privateKey;
+  final String _id;
   Uint8List? _publicKeyBytes;
 
-  P256KeyPair._(this._privateKey);
+  P256KeyPair._(this._id, this._privateKey);
 
   /// Creates a new [P256KeyPair] instance with a randomly generated private key.
-  factory P256KeyPair() {
-    return P256KeyPair._(_p256.generatePrivateKey());
+  factory P256KeyPair(String id) {
+    return P256KeyPair._(id, _p256.generatePrivateKey());
   }
 
   /// Creates a [P256KeyPair] instance from a private key.
   ///
   /// [privateKey] - The private key as a [Uint8List].
-  factory P256KeyPair.fromPrivateKey(Uint8List privateKey) {
-    return P256KeyPair._(ec.PrivateKey.fromBytes(_p256, privateKey));
+  factory P256KeyPair.fromPrivateKey(String id, Uint8List privateKey) {
+    return P256KeyPair._(id, ec.PrivateKey.fromBytes(_p256, privateKey));
   }
 
   @override
-  Future<PublicKeyData> get publicKey async {
+  PublicKey get publicKey {
     _publicKeyBytes ??= hex.decode(_privateKey.publicKey.toCompressedHex());
-    return Future.value(PublicKeyData(_publicKeyBytes!, KeyType.p256));
+    return PublicKey(
+      _id,
+      _publicKeyBytes!,
+      KeyType.p256,
+    );
   }
 
   @override
@@ -131,4 +137,7 @@ class P256KeyPair implements KeyPair {
     final secret = computeSecret(_privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
   }
+
+  @override
+  String get id => _id;
 }

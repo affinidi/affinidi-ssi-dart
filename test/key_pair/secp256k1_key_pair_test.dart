@@ -15,7 +15,7 @@ void main() {
     late Secp256k1KeyPair keyPair;
 
     setUp(() {
-      keyPair = Secp256k1KeyPair(node: rootNode);
+      keyPair = Secp256k1KeyPair(id: 'id', node: rootNode);
     });
 
     test('get publicKey should return correct type and format', () async {
@@ -106,8 +106,8 @@ void main() {
         // Use derived keys for Alice and Bob to ensure they are different
         final aliceNode = rootNode.derivePath("m/44'/60'/1'/0/0");
         final bobNode = rootNode.derivePath("m/44'/60'/2'/0/0");
-        keyPairAlice = Secp256k1KeyPair(node: aliceNode);
-        keyPairBob = Secp256k1KeyPair(node: bobNode);
+        keyPairAlice = Secp256k1KeyPair(id: 'id1', node: aliceNode);
+        keyPairBob = Secp256k1KeyPair(id: 'id2', node: bobNode);
       });
 
       test('encrypt and decrypt should succeed for two parties', () async {
@@ -145,7 +145,7 @@ void main() {
         final bobPublicKey = await keyPairBob.publicKey;
         // Create a third party (Eve)
         final eveNode = rootNode.derivePath("m/44'/60'/3'/0/0");
-        final keyPairEve = Secp256k1KeyPair(node: eveNode);
+        final keyPairEve = Secp256k1KeyPair(id: 'id', node: eveNode);
         final evePublicKey = await keyPairEve.publicKey;
 
         // Alice encrypts for Bob
@@ -171,7 +171,7 @@ void main() {
         final bobPublicKey = await keyPairBob.publicKey;
         // Create a third party (Eve)
         final eveNode = rootNode.derivePath("m/44'/60'/3'/0/0");
-        final keyPairEve = Secp256k1KeyPair(node: eveNode);
+        final keyPairEve = Secp256k1KeyPair(id: 'id', node: eveNode);
 
         // Alice encrypts for Bob
         final encryptedData = await keyPairAlice.encrypt(

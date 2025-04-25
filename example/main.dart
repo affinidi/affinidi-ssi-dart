@@ -29,7 +29,7 @@ void main() async {
   print('Deriving account 0 key 0 ($account0Key0Id)...');
   final account0Key0 = await wallet.deriveKey(
       keyId: account0Key0Id, derivationPath: account0Key0DerivationPath);
-  print('Account 0 key 0 derived. Public key: ${account0Key0.bytes}');
+  print('Account 0 key 0 derived. Public key: ${account0Key0.publicKey.bytes}');
 
   print('Signing with account 0 key 0 ($account0Key0Id)...');
   final signature = await wallet.sign(data, keyId: account0Key0.id);

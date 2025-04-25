@@ -23,6 +23,7 @@ class KmsKeyPair implements KeyPair {
 
   KmsKeyPair(this.kmsClient, this.keyId);
 
+  @override
   Future<String> get id async => keyId;
 
   @override

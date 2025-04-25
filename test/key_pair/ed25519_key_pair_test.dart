@@ -16,7 +16,7 @@ void main() {
   group('Test Ed25519 Key Pair', () {
     test('Ed25519 key pair should sign data and verify signature (default)',
         () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
+      final edKey = Ed25519KeyPair.fromSeed('id', seed);
       final signature = await edKey.sign(dataToSign);
       final actual = await edKey.verify(dataToSign, signature);
       expect(actual, isTrue);
@@ -25,7 +25,7 @@ void main() {
     test(
         'Ed25519 key pair should sign data and verify signature (ed25519_sha256)',
         () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
+      final edKey = Ed25519KeyPair.fromSeed('id', seed);
       final signature = await edKey.sign(dataToSign,
           signatureScheme: SignatureScheme.ed25519_sha256);
       final actual = await edKey.verify(dataToSign, signature,
@@ -36,7 +36,7 @@ void main() {
     test(
         'Ed25519 key pair should sign data and verify signature (eddsa_sha512)',
         () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
+      final edKey = Ed25519KeyPair.fromSeed('id', seed);
       final signature = await edKey.sign(dataToSign,
           signatureScheme: SignatureScheme.eddsa_sha512);
       final actual = await edKey.verify(dataToSign, signature,
@@ -46,7 +46,7 @@ void main() {
 
     test('Verification should fail if signature is invalid (default)',
         () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
+      final edKey = Ed25519KeyPair.fromSeed('id', seed);
       final signature = await edKey.sign(dataToSign);
 
       // Tamper with the signature
@@ -59,7 +59,7 @@ void main() {
     });
 
     test('Verification should fail if data is different (default)', () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
+      final edKey = Ed25519KeyPair.fromSeed('id', seed);
       final signature = await edKey.sign(dataToSign);
 
       final differentData = Uint8List.fromList([3, 2, 1]);
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('Verification should fail if wrong scheme is used', () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
+      final edKey = Ed25519KeyPair.fromSeed('id', seed);
       final sigSha256 = await edKey.sign(dataToSign,
           signatureScheme: SignatureScheme.ed25519_sha256);
       final sigSha512 = await edKey.sign(dataToSign,
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('Ed25519 key pair properties should be correct', () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
+      final edKey = Ed25519KeyPair.fromSeed('id', seed);
       final publicKey = await edKey.publicKey;
 
       expect(publicKey.type, KeyType.ed25519);
@@ -99,7 +99,7 @@ void main() {
     });
 
     test('supportedSignatureSchemes should return correct schemes', () {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
+      final edKey = Ed25519KeyPair.fromSeed('id', seed);
       final schemes = edKey.supportedSignatureSchemes;
       expect(schemes, hasLength(2));
       expect(schemes, contains(SignatureScheme.ed25519_sha256));

@@ -7,7 +7,9 @@ import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import 'key_export.dart';
 import 'key_pair.dart';
+import 'public_key.dart';
 
 import './_ecdh_utils.dart' as ecdh_utils;
 
@@ -15,21 +17,27 @@ import './_ecdh_utils.dart' as ecdh_utils;
 ///
 /// This key pair supports signing and verifying data using secp256k1.
 /// It does not support any other signature schemes.
-class Secp256k1KeyPair implements KeyPair {
+class Secp256k1KeyPair implements KeyPair, KeyExport {
   /// The BIP32 node containing the key material.
   final BIP32 _node;
   final ec.Curve _secp256k1 = ec.getSecp256k1();
+  final String _id;
 
   /// Creates a new [Secp256k1KeyPair] instance.
   ///
   /// [node] - The BIP32 node containing the key material.
   Secp256k1KeyPair({
+    required String id,
     required BIP32 node,
-  }) : _node = node;
+  })  : _id = id,
+        _node = node;
 
   @override
-  Future<PublicKeyData> get publicKey =>
-      Future.value(PublicKeyData(_node.publicKey, KeyType.secp256k1));
+  PublicKey get publicKey => PublicKey(
+        _id,
+        _node.publicKey,
+        KeyType.secp256k1,
+      );
 
   @override
   Future<Uint8List> get privateKey {
@@ -119,4 +127,7 @@ class Secp256k1KeyPair implements KeyPair {
       curve: _secp256k1,
     );
   }
+
+  @override
+  String get id => _id;
 }

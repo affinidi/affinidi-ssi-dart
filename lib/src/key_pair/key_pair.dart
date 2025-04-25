@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
 import '../types.dart';
+import 'public_key.dart';
 
 class PublicKeyData {
   KeyType type;
   Uint8List bytes;
+
   PublicKeyData(
     this.bytes,
     this.type,
@@ -13,14 +15,14 @@ class PublicKeyData {
 
 /// An abstract interface for cryptographic key pairs used for signing and verifying data.
 abstract interface class KeyPair {
+  /// id of the key pair
+  String get id;
+
   /// Returns a list of [SignatureScheme]s supported by this key pair.
   List<SignatureScheme> get supportedSignatureSchemes;
 
   /// Returns the public key as as a touple with the type and bytes.
-  Future<PublicKeyData> get publicKey;
-
-  /// Returns the private key as [Uint8List].
-  Future<Uint8List> get privateKey;
+  PublicKey get publicKey;
 
   /// Signs the provided data using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
   ///

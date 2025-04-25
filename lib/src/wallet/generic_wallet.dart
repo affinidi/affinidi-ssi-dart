@@ -10,6 +10,7 @@ import 'key_store/stored_key.dart';
 import 'wallet.dart';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
+import '../key_pair/key_export.dart';
 import '../types.dart';
 
 /// A non-hierarchical wallet implementation that supports multiple key types.
@@ -18,6 +19,7 @@ import '../types.dart';
 /// It supports signing and verifying messages, and ecrypting/decrypting payloads.
 class GenericWallet implements Wallet {
   final KeyStore _keyStore;
+
   // Optional: Runtime cache for KeyPair objects to avoid reconstruction
   final Map<String, KeyPair> _runtimeCache = {};
   static final randomIdLength = 32;
@@ -63,31 +65,29 @@ class GenericWallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> generateKey({
+  Future<KeyPair> generateKey({
     String? keyId,
     KeyType? keyType,
   }) async {
     final effectiveKeyId = keyId ?? _randomId();
     if (await _keyStore.contains(effectiveKeyId)) {
       // Found key in key store
-      final existingKeyPair = await _getKeyPair(effectiveKeyId);
-      final keyData = await existingKeyPair.publicKey;
-      return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+      return _getKeyPair(effectiveKeyId);
     }
 
     final effectiveKeyType = keyType ?? KeyType.p256;
 
     KeyPair keyPair;
     if (effectiveKeyType == KeyType.p256) {
-      keyPair = P256KeyPair();
+      keyPair = P256KeyPair(effectiveKeyId);
     } else if (effectiveKeyType == KeyType.ed25519) {
-      keyPair = Ed25519KeyPair();
+      keyPair = Ed25519KeyPair(effectiveKeyId);
     } else {
       throw ArgumentError(
           "Unsupported key type for GenericWallet: $effectiveKeyType. Only p256 and ed25519 are supported.");
     }
 
-    final privateKeyBytes = await keyPair.privateKey;
+    final privateKeyBytes = await (keyPair as KeyExport).privateKey;
     final storedKey = StoredKey.fromPrivateKey(
       keyType: effectiveKeyType,
       keyBytes: privateKeyBytes,
@@ -96,8 +96,7 @@ class GenericWallet implements Wallet {
     await _keyStore.set(effectiveKeyId, storedKey);
     _runtimeCache[effectiveKeyId] = keyPair;
 
-    final keyData = await keyPair.publicKey;
-    return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+    return keyPair;
   }
 
   @override
@@ -180,9 +179,9 @@ class GenericWallet implements Wallet {
 
     KeyPair keyPair;
     if (keyType == KeyType.p256) {
-      keyPair = P256KeyPair.fromPrivateKey(privateKeyBytes);
+      keyPair = P256KeyPair.fromPrivateKey(keyId, privateKeyBytes);
     } else if (keyType == KeyType.ed25519) {
-      keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
+      keyPair = Ed25519KeyPair.fromPrivateKey(keyId, privateKeyBytes);
     } else {
       throw SsiException(
           message: "Unsupported key type retrieved from KeyStore: $keyType",

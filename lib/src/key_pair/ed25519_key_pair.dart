@@ -10,49 +10,54 @@ import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '_ecdh_utils.dart';
 import 'key_pair.dart';
+import 'public_key.dart';
 
 import './_encryption_utils.dart';
+import 'key_export.dart';
 
 /// A [KeyPair] implementation using the Ed25519 signature scheme.
 ///
 /// This key pair supports signing and verifying data using Ed25519.
 /// It does not support any other signature schemes.
-class Ed25519KeyPair implements KeyPair {
+class Ed25519KeyPair implements KeyPair, KeyExport {
   final ed.PrivateKey _privateKey;
   final _encryptionUtils = EncryptionUtils();
+  final String _id;
 
-  Ed25519KeyPair._(this._privateKey);
+  Ed25519KeyPair._(this._id, this._privateKey);
 
   /// Creates a new [Ed25519KeyPair] instance with a randomly generated private key.
-  factory Ed25519KeyPair() {
+  factory Ed25519KeyPair(String id) {
     final keyPair = ed.generateKey();
-    return Ed25519KeyPair._(keyPair.privateKey);
+    return Ed25519KeyPair._(id, keyPair.privateKey);
   }
 
   /// Creates a [Ed25519KeyPair] instance from a seed.
   ///
   /// [seed] - The seed as a 32 byte [Uint8List].
-  factory Ed25519KeyPair.fromSeed(Uint8List seed) {
+  factory Ed25519KeyPair.fromSeed(String id, Uint8List seed) {
     final privateKey = ed.newKeyFromSeed(seed);
-    return Ed25519KeyPair._(privateKey);
+    return Ed25519KeyPair._(id, privateKey);
   }
 
   /// Creates a [Ed25519KeyPair] instance from a private key.
   ///
   /// [privateKey] - The private key as a [Uint8List].
-  factory Ed25519KeyPair.fromPrivateKey(Uint8List privateKey) {
-    return Ed25519KeyPair._(ed.PrivateKey(privateKey));
+  factory Ed25519KeyPair.fromPrivateKey(String id, Uint8List privateKey) {
+    return Ed25519KeyPair._(id, ed.PrivateKey(privateKey));
   }
 
   /// Retrieves the public key.
   ///
   /// Returns the key as [Uint8List].
   @override
-  Future<PublicKeyData> get publicKey => Future.value(PublicKeyData(
-      Uint8List.fromList(
-        ed.public(_privateKey).bytes,
-      ),
-      KeyType.ed25519));
+  PublicKey get publicKey => PublicKey(
+        _id,
+        Uint8List.fromList(
+          ed.public(_privateKey).bytes,
+        ),
+        KeyType.ed25519,
+      );
 
   /// Retrieves the private key bytes.
   ///
@@ -231,4 +236,7 @@ class Ed25519KeyPair implements KeyPair {
     final keyPair = await algorithm.newKeyPairFromSeed(seed);
     return await keyPair.extractPublicKey();
   }
+
+  @override
+  String get id => _id;
 }

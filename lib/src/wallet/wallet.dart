@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import '../key_pair/public_key.dart';
+import '../key_pair/key_pair.dart';
 import '../types.dart';
 
 /// Interface for a wallet
@@ -75,7 +76,7 @@ abstract interface class Wallet {
   ///
   /// Throws an [SsiException] if a keyId is null or empty or
   /// if key creation fails.
-  Future<PublicKey> generateKey({String? keyId, KeyType? keyType});
+  Future<KeyPair> generateKey({String? keyId, KeyType? keyType});
 
   /// Encrypts data using the specified key.
   ///

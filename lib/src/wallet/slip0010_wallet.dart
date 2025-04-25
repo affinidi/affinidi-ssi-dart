@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import '../key_pair/public_key.dart';
+import '../key_pair/key_pair.dart';
 import '../types.dart';
 import 'wallet.dart';
 
@@ -37,7 +38,7 @@ class Slip0010Wallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> generateKey(
+  Future<KeyPair> generateKey(
       {String? keyId, KeyType? keyType, String? derivationPath}) {
     throw UnimplementedError();
   }
