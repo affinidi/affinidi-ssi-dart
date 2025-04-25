@@ -16,16 +16,25 @@ void main() {
   final accountNumber = 24567;
 
   group('did:key with BIP32', () {
+    late Bip32Wallet wallet;
+    late InMemoryKeyStore keyStore;
+    late PublicKey accountPublicKey;
+
+    setUp(() async {
+      keyStore = InMemoryKeyStore();
+      wallet = await Bip32Wallet.fromSeed(seed, keyStore);
+      accountPublicKey =
+          await wallet.deriveKey(derivationPath: "m/44'/60'/0'/0/0");
+    });
+
     test('generateDocument should match expected', () async {
       final expectedDid =
-          'did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2';
+          'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
       final expectedKeyType = KeyType.secp256k1;
 
-      final wallet = Bip32Wallet.fromSeed(seed);
-      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-      final doc = DidKey.generateDocument(key);
+      final doc = DidKey.generateDocument(accountPublicKey);
       final actualDid = doc.id;
-      final actualKeyType = key.type;
+      final actualKeyType = accountPublicKey.type;
 
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
@@ -39,11 +48,9 @@ void main() {
 
     test('getDid should match expected', () async {
       final expectedDid =
-          'did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2';
+          'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
 
-      final wallet = Bip32Wallet.fromSeed(seed);
-      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-      final actualDid = DidKey.getDid(key);
+      final actualDid = DidKey.getDid(accountPublicKey);
 
       expect(actualDid, expectedDid);
     });
@@ -52,9 +59,8 @@ void main() {
         () async {
       final expectedDidKeyPrefix = 'did:key:zQ3s';
 
-      final wallet = Bip32Wallet.fromSeed(seed);
-      final derivedKeyId = "$accountNumber-0";
-      final key = await wallet.generateKey(keyId: derivedKeyId);
+      final derivedKeyPath = "m/44'/60'/$accountNumber'/0/0";
+      final key = await wallet.deriveKey(derivationPath: derivedKeyPath);
       final doc = DidKey.generateDocument(key);
       final actualDid = doc.id;
 
@@ -68,11 +74,9 @@ void main() {
           'did:key:zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
       final expectedKeyType = KeyType.secp256k1;
 
-      final wallet = Bip32Wallet.fromSeed(seed);
-      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-      final doc = DidKey.generateDocument(key);
+      final doc = DidKey.generateDocument(accountPublicKey);
       final actualDid = doc.id;
-      final actualKeyType = key.type;
+      final actualKeyType = accountPublicKey.type;
 
       expect(actualDid, isNot(equals(expectedDid)));
       expect(actualKeyType, expectedKeyType);
@@ -83,43 +87,41 @@ void main() {
         231,
         1,
         2,
-        233,
-        113,
-        31,
-        100,
-        37,
-        199,
-        52,
-        153,
-        50,
-        216,
-        134,
-        234,
-        13,
-        174,
-        130,
-        68,
-        201,
-        134,
-        53,
-        18,
-        63,
-        241,
-        99,
-        53,
-        238,
-        174,
-        142,
+        184,
         117,
-        242,
-        57,
-        243,
-        247,
+        73,
+        205,
+        100,
+        221,
+        183,
+        93,
+        177,
+        238,
+        33,
+        153,
+        1,
+        82,
+        93,
+        46,
+        162,
+        100,
+        246,
+        26,
+        148,
+        56,
+        81,
+        145,
+        85,
+        184,
+        206,
+        69,
+        211,
+        42,
+        192,
+        136
       ]);
 
-      final wallet = Bip32Wallet.fromSeed(seed);
-      final key = await wallet.getPublicKey(Bip32Wallet.rootKeyId);
-      final doc = DidKey.generateDocument(key);
+      final doc = DidKey.generateDocument(accountPublicKey);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
