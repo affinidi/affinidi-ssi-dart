@@ -91,7 +91,7 @@ abstract class _VpDataModelV1 {
     json[_P.verifiableCredential.key] =
         verifiableCredential.map(presentVC).toList();
 
-    return json;
+    return cleanEmpty(json);
   }
 }
 

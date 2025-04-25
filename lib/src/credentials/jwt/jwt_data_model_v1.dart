@@ -13,6 +13,11 @@ class JwtVcDataModelV1 extends VcDataModelV1
   @override
   String get serialized => _jws.serialized;
 
+  @override
+  Map<String, dynamic> toJson() {
+    return _jws.payload['vc'] as Map<String, dynamic>;
+  }
+
   static (Map<String, dynamic> header, Map<String, dynamic> payload) vcToJws(
     Map<String, dynamic> json,
     DidSigner signer,

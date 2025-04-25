@@ -116,7 +116,7 @@ abstract interface class _VcDataModelV1 {
     json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
     json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
 
-    return json;
+    return cleanEmpty(json);
   }
 }
 

@@ -50,7 +50,7 @@ void main() {
       expect(issuedCredential.serialized, isA<String>());
       expect(
           issuedCredential.serialized, contains('~')); // Contains disclosures
-      expect(issuedCredential.issuer.id, equals(signer.did));
+      expect(issuedCredential.issuer.id.toString(), equals(signer.did));
       expect(issuedCredential.type, equals(credential.type));
       expect(issuedCredential.validFrom, equals(credential.validFrom));
       expect(issuedCredential.validUntil, equals(credential.validUntil));
@@ -63,7 +63,7 @@ void main() {
 
       final parsedCredential = suite.parse(issuedCredential.serialized);
       expect(parsedCredential.id, equals(credential.id));
-      expect(parsedCredential.issuer.id, equals(signer.did));
+      expect(parsedCredential.issuer.id.toString(), equals(signer.did));
 
       final isValid = await suite.verifyIntegrity(issuedCredential);
       expect(isValid, isTrue);

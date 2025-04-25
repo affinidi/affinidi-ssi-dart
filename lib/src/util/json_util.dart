@@ -6,7 +6,7 @@ import '../exceptions/ssi_exception_type.dart';
 /// Converts [input] to a `Map<String, dynamic>`
 Map<String, dynamic> jsonToMap(dynamic input) {
   if (input is String) {
-    return jsonDecode(input);
+    return jsonDecode(input) as Map<String, dynamic>;
   } else if (input is Map<String, dynamic>) {
     return input;
   } else if (input is Map<dynamic, dynamic>) {
@@ -38,7 +38,7 @@ String? getString(Map<String, dynamic> json, String fieldName) {
       code: SsiExceptionType.invalidJson.code,
     );
   }
-  return json[fieldName];
+  return json[fieldName] as String?;
 }
 
 /// Return [fieldName] as `String`. Throws an exception if the field
@@ -50,7 +50,7 @@ String getMandatoryString(Map<String, dynamic> json, String fieldName) {
       code: SsiExceptionType.invalidJson.code,
     );
   }
-  return json[fieldName];
+  return json[fieldName] as String;
 }
 
 /// Return [fieldName] as `List<String>`
@@ -149,7 +149,7 @@ Uri? getUri(Map<String, dynamic> json, String fieldName) {
       ? null
       : val is Uri
           ? val
-          : Uri.parse(val);
+          : Uri.parse(val as String);
 }
 
 /// Return [fieldName] as `String`. Throws an exception if the field
@@ -244,12 +244,22 @@ List<T> parseListOrSingleItem<T>(
 
 dynamic encodeListToSingleOrArray<T>(List<T> items) {
   if (items.isEmpty) {
-    return [];
+    return <T>[];
   } else if (items.length == 1) {
     return (items.first as dynamic).toJson();
   } else {
     return items.map((item) => (item as dynamic).toJson()).toList();
   }
+}
+
+Map<String, dynamic> cleanEmpty(Map<String, dynamic> input) {
+  final entries = input.entries.where((entry) => switch (entry.value) {
+        null => false,
+        List a => a.isNotEmpty,
+        _ => true
+      });
+
+  return Map.fromEntries(entries);
 }
 
 // /// Return [fieldName] as `List<String>`, or throw an exception
