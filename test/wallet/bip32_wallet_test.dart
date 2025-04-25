@@ -54,8 +54,8 @@ void main() {
     test('deriveKey should assign and allow retrieval by provided keyId',
         () async {
       const customId = 'my-derived-secp-key';
-      final keyPair = await wallet.deriveKey(
-          keyId: customId, derivationPath: testPath1);
+      final keyPair =
+          await wallet.deriveKey(keyId: customId, derivationPath: testPath1);
       expect(keyPair.id, equals(customId));
       expect((await wallet.getPublicKey(customId)).id, equals(customId));
     });

@@ -105,7 +105,8 @@ void main() {
       expect((await wallet.getPublicKey(p256Id)).id, equals(p256Id));
 
       // Test Ed25519
-      final edKeyPair = await wallet.generateKey(keyId: ed25519Id, keyType: KeyType.ed25519);
+      final edKeyPair =
+          await wallet.generateKey(keyId: ed25519Id, keyType: KeyType.ed25519);
       expect(edKeyPair.id, equals(ed25519Id));
       expect((await wallet.getPublicKey(ed25519Id)).id, equals(ed25519Id));
     });
