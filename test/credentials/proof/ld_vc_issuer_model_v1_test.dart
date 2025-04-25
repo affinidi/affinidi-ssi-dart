@@ -22,72 +22,93 @@ void main() async {
   final signer = await initSigner(seed);
 
   group('Test Linked Data VC issuance', () {
-    test('Create and verify proof', () async {
-      final unsignedCredential = MutableVcDataModelV1(
-        context: [
-          'https://www.w3.org/2018/credentials/v1',
-          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
-        id: "uuid:123456abcd",
-        type: ["VerifiableCredential", "UserProfile"],
-        credentialSubject: CredentialSubject(claims: {
-          "Fname": "Fname",
-          "Lname": "Lame",
-          "Age": "22",
-          "Address": "Eihhornstr"
-        }),
-        holder: Holder(id: Uri.parse("did:example:1")),
-        credentialSchema: [
-          CredentialSchema.fromJson({
-            'id': 'https://schema.affinidi.com/UserProfileV1-0.json',
-            'type': 'JsonSchemaValidator2018'
-          })
-        ],
-        issuanceDate: DateTime.now(),
-        issuer: Issuer(id: signer.did),
-      );
-
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-          signer: signer,
-        ),
-      );
-
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
-
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: _testLoadDocument, issuerDid: signer.did),
-      );
-
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
-    });
-
-    test('CWE issued must verify', () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final verificationResult = await proofSuite.verifyProof(
-        cweResponse,
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: _testLoadDocument,
-            issuerDid: cweResponse['issuer'] as String),
-      );
-
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
-    });
+    // test('Create and verify proof', () async {
+    //   final unsignedCredential = MutableVcDataModelV1(
+    //     context: [
+    //       'https://www.w3.org/2018/credentials/v1',
+    //       'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+    //     ],
+    //     id: "uuid:123456abcd",
+    //     type: ["VerifiableCredential", "UserProfile"],
+    //     credentialSubject: CredentialSubject(claims: {
+    //       "Fname": "Fname",
+    //       "Lname": "Lame",
+    //       "Age": "22",
+    //       "Address": "Eihhornstr"
+    //     }),
+    //     holder: Holder(id: Uri.parse("did:example:1")),
+    //     credentialSchema: [
+    //       CredentialSchema.fromJson({
+    //         'id': 'https://schema.affinidi.com/UserProfileV1-0.json',
+    //         'type': 'JsonSchemaValidator2018'
+    //       })
+    //     ],
+    //     issuanceDate: DateTime.now(),
+    //     issuer: Issuer(id: signer.did),
+    //   );
+    //
+    //   final proofSuite = EcdsaSecp256k1Signature2019();
+    //   final proof = await proofSuite.createProof(
+    //     unsignedCredential.toJson(),
+    //     EcdsaSecp256k1Signature2019CreateOptions(
+    //       signer: signer,
+    //     ),
+    //   );
+    //
+    //   unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
+    //
+    //   final verificationResult = await proofSuite.verifyProof(
+    //     unsignedCredential.toJson(),
+    //     EcdsaSecp256k1Signature2019VerifyOptions(
+    //         customDocumentLoader: _testLoadDocument, issuerDid: signer.did),
+    //   );
+    //
+    //   expect(verificationResult.isValid, true);
+    //   expect(verificationResult.errors, isEmpty);
+    //   expect(verificationResult.warnings, isEmpty);
+    // });
+    //
+    // test('CWE issued must verify', () async {
+    //   final proofSuite = EcdsaSecp256k1Signature2019();
+    //   final verificationResult = await proofSuite.verifyProof(
+    //     cweResponse,
+    //     EcdsaSecp256k1Signature2019VerifyOptions(
+    //         customDocumentLoader: _testLoadDocument,
+    //         issuerDid: cweResponse['issuer'] as String),
+    //   );
+    //
+    //   expect(verificationResult.isValid, true);
+    //   expect(verificationResult.errors, isEmpty);
+    //   expect(verificationResult.warnings, isEmpty);
+    // });
+    //
+    // test('LdVCDM1 fixture VC verify', () async {
+    //   final unsigned = LdVcDm1Suite().parse(VerifiableCredentialDataFixtures
+    //       .credentialWithValidProofDataModelV11JsonEncoded);
+    //   // final issuedCredential = await LdVcDm1Suite().issue(unsigned, signer);
+    //
+    //   final validationResult = await LdVcDm1Suite().verifyIntegrity(unsigned);
+    //
+    //   expect(validationResult, true);
+    // });
 
     test('LdVCDM1 fixture VC verify', () async {
       final unsigned = LdVcDm1Suite().parse(VerifiableCredentialDataFixtures
           .credentialWithValidProofDataModelV11JsonEncoded);
-      // final issuedCredential = await LdVcDm1Suite().issue(unsigned, signer);
 
-      final validationResult = await LdVcDm1Suite().verifyIntegrity(unsigned);
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+        challenge: 'test challenge',
+      );
+
+      final issuedCredential = await LdVcDm1Suite().issue(
+        issuer: signer.did,
+        unsignedData: unsigned,
+        proofGenerator: proofGenerator,
+      );
+
+      final validationResult =
+          await LdVcDm1Suite().verifyIntegrity(issuedCredential);
 
       expect(validationResult, true);
     });

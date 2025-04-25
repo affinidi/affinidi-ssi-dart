@@ -21,17 +21,10 @@ abstract interface class VerifiableCredentialSuite<
   ParsedVC parse(Object data);
 
   /// Verifies the cryptographic integrity of the [input] credential.
-  Future<bool> verifyIntegrity(ParsedVC input);
-
-  /// Issues a new credential by signing the [data] with the provided [signer].
   ///
-  /// Returns a parsed verifiable credential with the appropriate signature.
-  /// Optional [options] can customize the issuing process.
-  Future<ParsedVC> issue(
-    VC data,
-    DidSigner signer, {
-    Options? options,
-  });
+  /// NOTE: only the signature is verified, other claims like `challenge` or
+  /// `nonce` must be separately validated
+  Future<bool> verifyIntegrity(ParsedVC input);
 
   dynamic present(ParsedVC input);
 }

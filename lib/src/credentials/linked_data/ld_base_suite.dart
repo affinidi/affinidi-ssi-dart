@@ -1,38 +1,13 @@
 import 'dart:convert';
 
-import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/doc_with_embedded_proof.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
-import '../proof/proof_purpose.dart';
-
-/// proof suite config for issuiance
-class EmbeddedProofSuiteConfig {
-  /// The date and time when embedded proof expires.
-  final DateTime? expires;
-
-  /// The domains this proof is bound to.
-  /// Can be a single string or a list of strings.
-  final List<String>? domain;
-
-  /// A challenge to prevent replay attacks.
-  final String? challenge;
-
-  /// The purpose of embedded proof.
-  final ProofPurpose? proofPurpose;
-
-  /// Creates an options object for EmbeddedProofSuiteConfig.
-  ///
-  /// [expires] - Specify expiry of proof.
-  /// [domain] - Specify one or more security domains in which the proof is meant to be used.
-  /// [challenge] - Specify challenge for domain in proof.
-  /// [proofPurpose] - Specify proofPurpose
-  EmbeddedProofSuiteConfig(
-      {this.expires, this.domain, this.challenge, this.proofPurpose});
-}
+import '../proof/embedded_proof.dart';
+import '../proof/embedded_proof_suite.dart';
 
 /// Options for LD based data model operations.
 ///
@@ -81,28 +56,22 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
 
   Model fromParsed(String input, Map<String, dynamic> payload);
 
-  Future<Model> issue(
-    VC data,
-    DidSigner signer, {
-    Options? options,
+  Future<Model> issue({
+    required VC unsignedData,
+    required String issuer,
+    required EmbeddedProofGenerator proofGenerator,
   }) async {
-    //TODO(FTL-20735): extend option to select proof suite
-    var json = data.toJson();
+    var json = unsignedData.toJson();
     // remove proof in case it's already there
     json.remove(proofKey);
 
     // set the issuer to match the signer
-    json[issuerKey] = signer.did;
+    json[issuerKey] = issuer;
 
-    final proof = await _proofSuite.createProof(
-      json,
-      EcdsaSecp256k1Signature2019CreateOptions(
-          signer: signer,
-          proofPurpose: options?.embeddedProofSuiteConfig?.proofPurpose,
-          expires: options?.embeddedProofSuiteConfig?.expires,
-          challenge: options?.embeddedProofSuiteConfig?.challenge,
-          domain: options?.embeddedProofSuiteConfig?.domain),
-    );
+    final proof = await proofGenerator.generate(json);
+
+    // TODO implement validation that the issuer matches the proof
+    //if (proof.verificationMethod. == issuer)
 
     json[proofKey] = proof.toJson();
 
@@ -122,13 +91,10 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
 
   Future<bool> verifyIntegrity(Model input) async {
     //TODO(FTL-20735): discover proof type
-    final proofSuite = EcdsaSecp256k1Signature2019();
     final document = input.toJson();
     final issuerDid = document[issuerKey] as String;
-    final verificationResult = await proofSuite.verifyProof(
-      document,
-      EcdsaSecp256k1Signature2019VerifyOptions(issuerDid: issuerDid),
-    );
+    final proofSuite = Secp256k1Signature2019Verifier(issuerDid: issuerDid);
+    final verificationResult = await proofSuite.verify(document);
 
     return verificationResult.isValid;
   }
@@ -137,5 +103,3 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     return input.toJson();
   }
 }
-
-final _proofSuite = EcdsaSecp256k1Signature2019();

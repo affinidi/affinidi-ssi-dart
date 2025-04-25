@@ -15,63 +15,40 @@ import 'embedded_proof_suite.dart';
 
 final _sha256 = Digest('SHA-256');
 
-class EcdsaSecp256k1Signature2019CreateOptions
-    extends EmbeddedProofSuiteCreateOptions {
+const _signatureType = 'EcdsaSecp256k1Signature2019';
+const _securityContext = 'https://w3id.org/security/v2';
+
+class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
+    implements EmbeddedProofGenerator {
   final DidSigner signer;
 
-  EcdsaSecp256k1Signature2019CreateOptions(
-      {required this.signer,
-      super.proofPurpose,
-      super.customDocumentLoader,
-      super.expires,
-      super.challenge,
-      super.domain});
-}
-
-class EcdsaSecp256k1Signature2019VerifyOptions
-    extends EmbeddedProofSuiteVerifyOptions {
-  final String issuerDid;
-  final DateTime Function() getNow;
-  final List<String>? domain;
-  final String? challenge;
-  EcdsaSecp256k1Signature2019VerifyOptions({
-    required this.issuerDid,
-    this.getNow = DateTime.now,
-    this.domain,
-    this.challenge,
+  Secp256k1Signature2019Generator({
+    required this.signer,
+    super.proofPurpose,
     super.customDocumentLoader,
+    super.expires,
+    super.challenge,
+    super.domain,
   });
-}
 
-class EcdsaSecp256k1Signature2019
-    implements
-        EmbeddedProofSuite<EcdsaSecp256k1Signature2019CreateOptions,
-            EcdsaSecp256k1Signature2019VerifyOptions> {
-  static const _signatureType = 'EcdsaSecp256k1Signature2019';
-  static const _securityContext = 'https://w3id.org/security/v2';
-
-  @override
-  Future<EmbeddedProof> createProof(
-    Map<String, dynamic> document,
-    EcdsaSecp256k1Signature2019CreateOptions options,
-  ) async {
+  Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
     final proof = {
       '@context': _securityContext,
       'type': _signatureType,
       'created': created.toIso8601String(),
-      'verificationMethod': options.signer.keyId,
-      'proofPurpose': options.proofPurpose?.value,
-      'expires': options.expires?.toIso8601String(),
-      'challenge': options.challenge,
-      'domain': options.domain,
+      'verificationMethod': signer.keyId,
+      'proofPurpose': proofPurpose?.value,
+      'expires': expires?.toIso8601String(),
+      'challenge': challenge,
+      'domain': domain,
     };
 
     document.remove('proof');
 
-    final cacheLoadDocument = _cacheLoadDocument(options.customDocumentLoader);
+    final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
     final jws = await _computeVcHash(proof, document, cacheLoadDocument).then(
-      (hash) => _computeJws(hash, options.signer),
+      (hash) => _computeJws(hash, signer),
     );
 
     proof.remove('@context');
@@ -80,170 +57,12 @@ class EcdsaSecp256k1Signature2019
     return EcdsaSecp256k1Signature2019Proof(
         type: 'EcdsaSecp256k1Signature2019',
         created: created,
-        verificationMethod: options.signer.keyId,
-        proofPurpose: options.proofPurpose?.value,
+        verificationMethod: signer.keyId,
+        proofPurpose: proofPurpose?.value,
         jws: jws,
-        expires: options.expires,
-        challenge: options.challenge,
-        domain: options.domain);
-  }
-
-  @override
-  Future<VerificationResult> verifyProof(
-    Map<String, dynamic> document,
-    EcdsaSecp256k1Signature2019VerifyOptions options,
-  ) async {
-    final copy = Map.of(document);
-    final proof = copy.remove('proof');
-
-    if (proof == null || proof is! Map<String, dynamic>) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof'],
-      );
-    }
-
-    final isValidProof = verifyProofProperties(proof, options);
-    if (!isValidProof.isValid) {
-      return isValidProof;
-    }
-
-    Uri verificationMethod;
-    try {
-      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
-    } catch (e) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof.verificationMethod'],
-      );
-    }
-
-    final originalJws = proof.remove('jws');
-    proof['@context'] = _securityContext;
-
-    final cacheLoadDocument = _cacheLoadDocument(options.customDocumentLoader);
-    final hash = await _computeVcHash(proof, copy, cacheLoadDocument);
-    final isValid = await _verifyJws(
-        originalJws as String, options.issuerDid, verificationMethod, hash);
-
-    if (!isValid) {
-      return VerificationResult.invalid(
-        errors: ['signature invalid'],
-      );
-    }
-
-    return VerificationResult.ok();
-  }
-
-  static VerificationResult verifyProofProperties(
-      dynamic proof, EcdsaSecp256k1Signature2019VerifyOptions options) {
-    final expires = proof['expires'];
-    if (expires != null && options.getNow().isAfter(DateTime.parse(expires))) {
-      return VerificationResult.invalid(errors: ['proof is no longer valid']);
-    }
-
-    final proofDomain = proof['domain'];
-    final proofChallenge = proof['challenge'];
-
-    if (proofDomain != null) {
-      bool isDomainValid = false;
-      if (proofDomain is String) {
-        isDomainValid = proofDomain.trim().isNotEmpty && options.domain != null
-            ? options.domain!.contains(proofDomain)
-            : true;
-      } else if (proofDomain is List) {
-        isDomainValid = proofDomain.every((d) =>
-            d.trim().isNotEmpty && options.domain != null
-                ? options.domain!.contains(d)
-                : true);
-      }
-
-      if (!isDomainValid) {
-        return VerificationResult.invalid(
-            errors: ['invalid or missing proof.domain']);
-      }
-      if (proofDomain is! String && proofDomain is! List) {
-        return VerificationResult.invalid(
-            errors: ['invalid proof.domain format']);
-      }
-      if (proofChallenge == null ||
-          proofChallenge is! String ||
-          proofChallenge.trim().isEmpty) {
-        return VerificationResult.invalid(
-            errors: ['invalid or missing proof.challenge']);
-      }
-
-      if (options.challenge != null && proofChallenge != options.challenge) {
-        return VerificationResult.invalid(
-            errors: ['invalid or missing proof.challenge']);
-      }
-    } else if (proofChallenge != null) {
-      return VerificationResult.invalid(
-          errors: ['proof.challenge must be accompanied by proof.domain']);
-    }
-    return VerificationResult.ok();
-  }
-
-  static Future<Uint8List> _computeVcHash(
-    Map<String, dynamic> proof,
-    Map<String, dynamic> unsignedCredential,
-    Function(Uri url, LoadDocumentOptions? options) documentLoader,
-  ) async {
-    final normalizedProof = await JsonLdProcessor.normalize(
-      proof,
-      options: JsonLdOptions(
-        safeMode: true,
-        documentLoader: documentLoader,
-      ),
-    );
-    final proofDigest = _sha256.process(
-      utf8.encode(normalizedProof),
-    );
-
-    final normalizedContent = await JsonLdProcessor.normalize(
-      unsignedCredential,
-      options: JsonLdOptions(
-        safeMode: true,
-        documentLoader: documentLoader,
-      ),
-    );
-
-    final contentDigest = Digest('SHA-256').process(
-      utf8.encode(normalizedContent),
-    );
-
-    final payloadToSign = Uint8List.fromList(proofDigest + contentDigest);
-    return payloadToSign;
-  }
-
-  static Future<bool> _verifyJws(
-    String jws,
-    String issuerDid,
-    Uri verificationMethod,
-    Uint8List payloadToSign,
-  ) async {
-    final jwsParts = jws.split('..');
-    if (jwsParts.length != 2) {
-      throw SsiException(
-        message: 'Invalid jws format',
-        code: SsiExceptionType.other.code,
-      );
-    }
-
-    final encodedHeader = jwsParts[0];
-    final encodedSignature = jwsParts[1];
-
-    final signature = base64UrlNoPadDecode(encodedSignature);
-
-    final jwsToSign = Uint8List.fromList(
-      utf8.encode(encodedHeader) + utf8.encode('.') + payloadToSign,
-    );
-
-    //FIXME assuming fully qualified key id (which probably it should be :))
-    final verifier = await DidVerifier.create(
-      algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
-      kid: verificationMethod.toString(),
-      issuerDid: issuerDid,
-    );
-    return verifier.verify(jwsToSign, signature);
+        expires: expires,
+        challenge: challenge,
+        domain: domain);
   }
 
   static Future<String> _computeJws(
@@ -272,6 +91,110 @@ class EcdsaSecp256k1Signature2019
   }
 }
 
+class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
+    implements EmbeddedProofVerifier {
+  final String issuerDid;
+  final DateTime Function() getNow;
+  final List<String>? domain;
+  final String? challenge;
+
+  Secp256k1Signature2019Verifier({
+    required this.issuerDid,
+    this.getNow = DateTime.now,
+    this.domain,
+    this.challenge,
+    super.customDocumentLoader,
+  });
+
+  @override
+  Future<VerificationResult> verify(Map<String, dynamic> document) async {
+    final copy = Map.of(document);
+    final proof = copy.remove('proof');
+
+    if (proof == null || proof is! Map<String, dynamic>) {
+      return VerificationResult.invalid(
+        errors: ['invalid or missing proof'],
+      );
+    }
+
+    final isValidProof = _verifyProofProperties(proof);
+    if (!isValidProof.isValid) {
+      return isValidProof;
+    }
+
+    Uri verificationMethod;
+    try {
+      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
+    } catch (e) {
+      return VerificationResult.invalid(
+        errors: ['invalid or missing proof.verificationMethod'],
+      );
+    }
+
+    final originalJws = proof.remove('jws');
+    proof['@context'] = _securityContext;
+
+    final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
+    final hash = await _computeVcHash(proof, copy, cacheLoadDocument);
+    final isValid = await _verifyJws(
+        originalJws as String, issuerDid, verificationMethod, hash);
+
+    if (!isValid) {
+      return VerificationResult.invalid(
+        errors: ['signature invalid'],
+      );
+    }
+
+    return VerificationResult.ok();
+  }
+
+  VerificationResult _verifyProofProperties(dynamic proof) {
+    final expires = proof['expires'];
+    if (expires != null && getNow().isAfter(DateTime.parse(expires))) {
+      return VerificationResult.invalid(errors: ['proof is no longer valid']);
+    }
+
+    final proofDomain = proof['domain'];
+    final proofChallenge = proof['challenge'];
+
+    if (proofDomain != null) {
+      bool isDomainValid = false;
+      if (proofDomain is String) {
+        isDomainValid = proofDomain.trim().isNotEmpty && domain != null
+            ? domain!.contains(proofDomain)
+            : true;
+      } else if (proofDomain is List) {
+        isDomainValid = proofDomain.every((d) =>
+            d.trim().isNotEmpty && domain != null ? domain!.contains(d) : true);
+      }
+
+      if (!isDomainValid) {
+        return VerificationResult.invalid(
+            errors: ['invalid or missing proof.domain']);
+      }
+      if (proofDomain is! String && proofDomain is! List) {
+        return VerificationResult.invalid(
+            errors: ['invalid proof.domain format']);
+      }
+      if (proofChallenge == null ||
+          proofChallenge is! String ||
+          proofChallenge.trim().isEmpty) {
+        return VerificationResult.invalid(
+            errors: ['invalid or missing proof.challenge']);
+      }
+
+      if (challenge != null && proofChallenge != challenge) {
+        return VerificationResult.invalid(
+            errors: ['invalid or missing proof.challenge']);
+      }
+    } else if (proofChallenge != null) {
+      return VerificationResult.invalid(
+          errors: ['proof.challenge must be accompanied by proof.domain']);
+    }
+    return VerificationResult.ok();
+  }
+}
+
 class EcdsaSecp256k1Signature2019Proof extends EmbeddedProof {
   final String jws;
 
@@ -291,6 +214,70 @@ class EcdsaSecp256k1Signature2019Proof extends EmbeddedProof {
     json['jws'] = jws;
     return json;
   }
+}
+
+Future<Uint8List> _computeVcHash(
+  Map<String, dynamic> proof,
+  Map<String, dynamic> unsignedCredential,
+  Function(Uri url, LoadDocumentOptions? options) documentLoader,
+) async {
+  final normalizedProof = await JsonLdProcessor.normalize(
+    proof,
+    options: JsonLdOptions(
+      safeMode: true,
+      documentLoader: documentLoader,
+    ),
+  );
+  final proofDigest = _sha256.process(
+    utf8.encode(normalizedProof),
+  );
+
+  final normalizedContent = await JsonLdProcessor.normalize(
+    unsignedCredential,
+    options: JsonLdOptions(
+      safeMode: true,
+      documentLoader: documentLoader,
+    ),
+  );
+
+  final contentDigest = Digest('SHA-256').process(
+    utf8.encode(normalizedContent),
+  );
+
+  final payloadToSign = Uint8List.fromList(proofDigest + contentDigest);
+  return payloadToSign;
+}
+
+Future<bool> _verifyJws(
+  String jws,
+  String issuerDid,
+  Uri verificationMethod,
+  Uint8List payloadToSign,
+) async {
+  final jwsParts = jws.split('..');
+  if (jwsParts.length != 2) {
+    throw SsiException(
+      message: 'Invalid jws format',
+      code: SsiExceptionType.other.code,
+    );
+  }
+
+  final encodedHeader = jwsParts[0];
+  final encodedSignature = jwsParts[1];
+
+  final signature = base64UrlNoPadDecode(encodedSignature);
+
+  final jwsToSign = Uint8List.fromList(
+    utf8.encode(encodedHeader) + utf8.encode('.') + payloadToSign,
+  );
+
+//FIXME assuming fully qualified key id (which probably it should be :))
+  final verifier = await DidVerifier.create(
+    algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
+    kid: verificationMethod.toString(),
+    issuerDid: issuerDid,
+  );
+  return verifier.verify(jwsToSign, signature);
 }
 
 typedef _LibDocumentLoader = Future<RemoteDocument> Function(
