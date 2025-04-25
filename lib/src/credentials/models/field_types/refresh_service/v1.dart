@@ -6,7 +6,8 @@ class MutableRefreshServiceV1 {
   String? type;
 
   MutableRefreshServiceV1({this.id, this.type});
-  Map<String, dynamic> toJson() => {'id': id?.toString(), 'type': type};
+  Map<String, dynamic> toJson() =>
+      cleanEmpty({'id': id?.toString(), 'type': type});
 }
 
 class RefreshServiceV1 extends MutableRefreshServiceV1 {
@@ -19,12 +20,14 @@ class RefreshServiceV1 extends MutableRefreshServiceV1 {
   @override
   String get type => _type;
 
-  RefreshServiceV1._(this._id, this._type);
+  RefreshServiceV1({required Uri id, required String type})
+      : _id = id,
+        _type = type;
 
   factory RefreshServiceV1.fromJson(Map<String, dynamic> json) {
     final id = getMandatoryUri(json, 'id');
     final type = getMandatoryString(json, 'type');
 
-    return RefreshServiceV1._(id, type);
+    return RefreshServiceV1(id: id, type: type);
   }
 }

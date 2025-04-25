@@ -78,16 +78,6 @@ class VpDataModelV2 extends _VpDataModelV2 implements VerifiablePresentation {
       List<TermsOfUse>? termsOfUse})
       : termsOfUse = termsOfUse ?? [];
 
-  VpDataModelV2(VpDataModelV2 input)
-      : this._(
-            context: input.context,
-            id: input.id,
-            type: input.type,
-            holder: input.holder,
-            verifiableCredential: input.verifiableCredential,
-            proof: input.proof,
-            termsOfUse: input.termsOfUse);
-
   /// Creates a [VpDataModelV2] from JSON input.
   ///
   /// The [input] can be a JSON string or a [Map<String, dynamic>].
@@ -137,4 +127,14 @@ class VpDataModelV2 extends _VpDataModelV2 implements VerifiablePresentation {
         verifiableCredential: credentials,
         termsOfUse: termsOfUse);
   }
+
+  VpDataModelV2.clone(VpDataModelV2 input)
+      : this._(
+            context: input.context,
+            id: input.id,
+            type: input.type,
+            holder: input.holder,
+            verifiableCredential: input.verifiableCredential,
+            proof: input.proof,
+            termsOfUse: input.termsOfUse);
 }

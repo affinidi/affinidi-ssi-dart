@@ -120,6 +120,7 @@ DateTime? getDateTime(
   }
 
   final jsonValue = json[fieldName];
+
   switch (jsonValue) {
     case String s:
       return DateTime.parse(s);
@@ -135,21 +136,24 @@ DateTime? getDateTime(
 /// Return [fieldName] as `String`, or null. Throws an exception if the field
 /// value is not a string.
 Uri? getUri(Map<String, dynamic> json, String fieldName) {
-  if (json.containsKey(fieldName) &&
-      (json[fieldName] is! String && json[fieldName] is! Uri)) {
-    throw SsiException(
-      message: '`$fieldName` must be a string or uri',
-      code: SsiExceptionType.invalidJson.code,
-    );
+  if (json.containsKey(fieldName)) {
+    final value = json[fieldName];
+    switch (value) {
+      case null:
+        return null;
+      case String s:
+        return Uri.parse(s);
+      case Uri u:
+        return u;
+      default:
+        throw SsiException(
+          message: '`$fieldName` must be a string or uri',
+          code: SsiExceptionType.invalidJson.code,
+        );
+    }
   }
 
-  final val = json[fieldName];
-
-  return val == null
-      ? null
-      : val is Uri
-          ? val
-          : Uri.parse(val as String);
+  return null;
 }
 
 /// Return [fieldName] as `String`. Throws an exception if the field

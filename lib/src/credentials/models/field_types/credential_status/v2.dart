@@ -31,10 +31,10 @@ class MutableCredentialStatusV2 {
   /// Converts this status to a JSON-serializable map.
   ///
   /// Returns a map containing the 'type' field and 'id' field if present.
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => cleanEmpty({
         'id': id?.toString(),
         'type': type,
-      };
+      });
 }
 
 class CredentialStatusV2 extends MutableCredentialStatusV2 {
@@ -51,7 +51,9 @@ class CredentialStatusV2 extends MutableCredentialStatusV2 {
   @override
   String get type => _type;
 
-  CredentialStatusV2._(this._id, this._type);
+  CredentialStatusV2({Uri? id, required String type})
+      : _id = id,
+        _type = type;
 
   /// Creates a [CredentialStatusV2] from JSON data.
   ///
@@ -60,6 +62,6 @@ class CredentialStatusV2 extends MutableCredentialStatusV2 {
     final id = getUri(json, 'id');
     final type = getMandatoryString(json, 'type');
 
-    return CredentialStatusV2._(id, type);
+    return CredentialStatusV2(id: id, type: type);
   }
 }

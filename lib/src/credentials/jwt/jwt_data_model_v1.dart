@@ -8,7 +8,7 @@ class JwtVcDataModelV1 extends VcDataModelV1
 
   JwtVcDataModelV1.fromJws(Jws jws)
       : _jws = jws,
-        super(VcDataModelV1.fromJson(jwtToJson(jws.payload)));
+        super.clone(VcDataModelV1.fromJson(jwtToJson(jws.payload)));
 
   @override
   String get serialized => _jws.serialized;

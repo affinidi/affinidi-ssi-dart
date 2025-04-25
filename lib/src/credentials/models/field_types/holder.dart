@@ -6,9 +6,9 @@ class MutableHolder {
 
   MutableHolder({this.id});
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => cleanEmpty({
         'id': id?.toString(),
-      };
+      });
 }
 
 class Holder extends MutableHolder {
@@ -17,7 +17,7 @@ class Holder extends MutableHolder {
   @override
   Uri get id => _id;
 
-  Holder._(this._id);
+  Holder({required Uri id}) : _id = id;
 
   factory Holder.fromJson(dynamic json) {
     Uri id;
@@ -35,7 +35,7 @@ class Holder extends MutableHolder {
       );
     }
 
-    return Holder._(id);
+    return Holder(id: id);
   }
 
   factory Holder.uri(dynamic json) => Holder.fromJson(json);

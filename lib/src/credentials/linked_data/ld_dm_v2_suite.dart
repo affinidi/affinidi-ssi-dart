@@ -30,7 +30,7 @@ class LdVcDataModelV2 extends VcDataModelV2
 
   LdVcDataModelV2.fromParsed(String serialized, Map<String, dynamic> input)
       : _serialized = serialized,
-        super(VcDataModelV2.fromJson(input));
+        super.clone(VcDataModelV2.fromJson(input));
 
   @override
   Map<String, dynamic> toJson() {

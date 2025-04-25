@@ -5,9 +5,9 @@ class MutableIssuer {
   Uri? id;
 
   MutableIssuer({this.id});
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => cleanEmpty({
         'id': id?.toString(),
-      };
+      });
 }
 
 class Issuer extends MutableIssuer {
@@ -16,7 +16,7 @@ class Issuer extends MutableIssuer {
   @override
   Uri get id => _id;
 
-  Issuer._(this._id);
+  Issuer({required Uri id}) : _id = id;
 
   factory Issuer.fromJson(dynamic json) {
     Uri id;
@@ -34,7 +34,7 @@ class Issuer extends MutableIssuer {
       );
     }
 
-    return Issuer._(id);
+    return Issuer(id: id);
   }
 
   factory Issuer.uri(dynamic json) => Issuer.fromJson(json);

@@ -16,10 +16,10 @@ class MutableEvidence {
   /// Converts this schema to a JSON-serializable map.
   ///
   /// Returns a map containing 'id' and 'type' fields.
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => cleanEmpty({
         'id': id?.toString(),
         'type': type,
-      };
+      });
 }
 
 class Evidence extends MutableEvidence {
@@ -36,15 +36,17 @@ class Evidence extends MutableEvidence {
   @override
   String get type => _type;
 
-  Evidence._(this._id, this._type);
+  Evidence({Uri? id, required String type})
+      : _id = id,
+        _type = type;
 
-  /// Creates a [MutableEvidence] from JSON data.
+  /// Creates an [Evidence] from JSON data.
   ///
   /// The [json] must contain 'id' and 'type' fields.
   factory Evidence.fromJson(Map<String, dynamic> json) {
     final id = getUri(json, 'id');
     final type = getMandatoryString(json, 'type');
 
-    return Evidence._(id, type);
+    return Evidence(id: id, type: type);
   }
 }

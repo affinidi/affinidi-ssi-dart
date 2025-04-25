@@ -7,8 +7,8 @@ abstract interface class CredentialSubjectInterface
   Uri? get id;
 
   Map<String, dynamic> toJson() {
-    return Map<String, dynamic>.fromEntries(entries.map(
-        (e) => MapEntry(e.key, e.key == 'id' ? e.value.toString() : e.value)));
+    return cleanEmpty(Map<String, dynamic>.fromEntries(entries.map((e) =>
+        MapEntry(e.key, e.key == 'id' ? e.value?.toString() : e.value))));
   }
 }
 

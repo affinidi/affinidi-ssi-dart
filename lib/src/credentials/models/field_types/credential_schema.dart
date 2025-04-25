@@ -43,10 +43,10 @@ class MutableCredentialSchema {
   /// Converts this schema to a JSON-serializable map.
   ///
   /// Returns a map containing 'id' and 'type' fields.
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => cleanEmpty({
         'id': id?.toString(),
         'type': type,
-      };
+      });
 }
 
 class CredentialSchema extends MutableCredentialSchema {
@@ -63,7 +63,9 @@ class CredentialSchema extends MutableCredentialSchema {
   @override
   String get type => _type;
 
-  CredentialSchema._(this._id, this._type);
+  CredentialSchema({required Uri id, required String type})
+      : _id = id,
+        _type = type;
 
   /// Creates a [MutableCredentialSchema] from JSON data.
   ///
@@ -72,6 +74,6 @@ class CredentialSchema extends MutableCredentialSchema {
     final id = getMandatoryUri(json, 'id');
     final type = getMandatoryString(json, 'type');
 
-    return CredentialSchema._(id, type);
+    return CredentialSchema(id: id, type: type);
   }
 }

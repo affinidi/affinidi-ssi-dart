@@ -42,7 +42,7 @@ class LdVpDataModelV2 extends VpDataModelV2
   LdVpDataModelV2.fromParsed(String serialized, Map<String, dynamic> input)
       : _serialized = serialized,
         // use parsing from VcDataModelV2
-        super(VpDataModelV2.fromJson(input));
+        super.clone(VpDataModelV2.fromJson(input));
 
   /// Returns the JSON representation of the serialized presentation.
   @override

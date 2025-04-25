@@ -78,22 +78,6 @@ class VcDataModelV2 extends _VcDataModelV2View implements VerifiableCredential {
         termsOfUse = UnmodifiableListView(termsOfUse ?? []),
         evidence = UnmodifiableListView(evidence ?? []);
 
-  VcDataModelV2(VcDataModelV2 input)
-      : this._(
-            context: input.context,
-            id: input.id,
-            credentialSubject: input.credentialSubject,
-            issuer: input.issuer,
-            type: input.type,
-            validFrom: input.validFrom,
-            credentialSchema: input.credentialSchema,
-            validUntil: input.validUntil,
-            proof: input.proof,
-            credentialStatus: input.credentialStatus,
-            refreshService: input.refreshService,
-            termsOfUse: input.termsOfUse,
-            evidence: input.evidence);
-
   factory VcDataModelV2.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
@@ -133,7 +117,7 @@ class VcDataModelV2 extends _VcDataModelV2View implements VerifiableCredential {
         (item) => CredentialSchema.fromJson(item as Map<String, dynamic>),
         allowSingleValue: true);
 
-    final validFrom = getDateTime(json, _P.validFrom.key, mandatory: true)!;
+    final validFrom = getDateTime(json, _P.validFrom.key);
 
     final validUntil = getDateTime(json, _P.validUntil.key);
 
@@ -174,4 +158,20 @@ class VcDataModelV2 extends _VcDataModelV2View implements VerifiableCredential {
         termsOfUse: termsOfUse,
         evidence: evidence);
   }
+
+  VcDataModelV2.clone(VcDataModelV2 input)
+      : this._(
+            context: input.context,
+            id: input.id,
+            credentialSubject: input.credentialSubject,
+            issuer: input.issuer,
+            type: input.type,
+            validFrom: input.validFrom,
+            credentialSchema: input.credentialSchema,
+            validUntil: input.validUntil,
+            proof: input.proof,
+            credentialStatus: input.credentialStatus,
+            refreshService: input.refreshService,
+            termsOfUse: input.termsOfUse,
+            evidence: input.evidence);
 }

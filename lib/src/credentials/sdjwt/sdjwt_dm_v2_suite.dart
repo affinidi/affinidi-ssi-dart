@@ -250,7 +250,7 @@ class SdJwtDataModelV2 extends VcDataModelV2
   final SdJwt sdJwt;
 
   SdJwtDataModelV2.fromSdJwt(this.sdJwt)
-      : super(VcDataModelV2.fromJson(sdJwt.claims));
+      : super.clone(VcDataModelV2.fromJson(sdJwt.claims));
 
   @override
   String get serialized => sdJwt.serialized;

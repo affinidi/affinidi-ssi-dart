@@ -4,7 +4,7 @@ class MutableRefreshServiceV2 {
   String? type;
 
   MutableRefreshServiceV2({this.type});
-  Map<String, dynamic> toJson() => {'type': type};
+  Map<String, dynamic> toJson() => cleanEmpty({'type': type});
 }
 
 class RefreshServiceV2 extends MutableRefreshServiceV2 {
@@ -13,11 +13,11 @@ class RefreshServiceV2 extends MutableRefreshServiceV2 {
   @override
   String get type => _type;
 
-  RefreshServiceV2._(this._type);
+  RefreshServiceV2({required String type}) : _type = type;
 
   factory RefreshServiceV2.fromJson(Map<String, dynamic> json) {
     final type = getMandatoryString(json, 'type');
 
-    return RefreshServiceV2._(type);
+    return RefreshServiceV2(type: type);
   }
 }

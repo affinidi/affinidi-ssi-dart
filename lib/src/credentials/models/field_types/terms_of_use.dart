@@ -13,10 +13,10 @@ class MutableTermsOfUse {
   /// Converts this status to a JSON-serializable map.
   ///
   /// Returns a map containing the 'type' field and 'id' field if present.
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => cleanEmpty({
         'id': id?.toString(),
         'type': type,
-      };
+      });
 }
 
 class TermsOfUse extends MutableTermsOfUse {
@@ -33,7 +33,9 @@ class TermsOfUse extends MutableTermsOfUse {
   @override
   String get type => _type;
 
-  TermsOfUse._(this._id, this._type);
+  TermsOfUse({Uri? id, required String type})
+      : _id = id,
+        _type = type;
 
   /// Creates a [TermsOfUse] from JSON data.
   ///
@@ -42,6 +44,6 @@ class TermsOfUse extends MutableTermsOfUse {
     final id = getUri(json, 'id');
     final type = getMandatoryString(json, 'type');
 
-    return TermsOfUse._(id, type);
+    return TermsOfUse(id: id, type: type);
   }
 }
