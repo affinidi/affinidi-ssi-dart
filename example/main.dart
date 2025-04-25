@@ -29,18 +29,19 @@ void main() async {
   print('Deriving account 0 key 0 ($account0Key0Id)...');
   final account0Key0 = await wallet.deriveKey(
       keyId: account0Key0Id, derivationPath: account0Key0DerivationPath);
-  print('Account 0 key 0 derived. Public key: ${account0Key0.bytes}');
+  print(
+      'Account 0 key 0 derived. Public key: ${account0Key0.publicKey.bytes.sublist(1, 5)}...');
 
   print('Signing with account 0 key 0 ($account0Key0Id)...');
   final signature = await wallet.sign(data, keyId: account0Key0.id);
-  print('Account 0 key 0 signature: ${hexEncode(signature)}');
+  print('Account 0 key 0 signature: ${signature.sublist(1, 9)}...');
   print('Verifying account 0 key 0 signature...');
   final isRootSignatureValid =
       await wallet.verify(data, signature: signature, keyId: account0Key0.id);
   print('Account 0 key 0 signature verification result: $isRootSignatureValid');
   assert(isRootSignatureValid, "Account 0 key 0 verification failed");
 
-  final account0Key0DidKey = DidKey.generateDocument(account0Key0);
+  final account0Key0DidKey = DidKey.generateDocument(account0Key0.publicKey);
   print('Account 0 Key 0 DID: ${account0Key0DidKey.id}');
 
   // Use the next key in account 0
@@ -51,17 +52,18 @@ void main() async {
   print('Deriving account 0 key 1 ($account0Key1Id)...');
   final account0Key1 = await wallet.deriveKey(
       keyId: account0Key1Id, derivationPath: account0Key1DerivationPath);
-  print('Account 0 key 1 derived. Public key: ${account0Key1.bytes}');
+  print(
+      'Account 0 key 1 derived. Public key: ${account0Key1.publicKey.bytes.sublist(1, 9)}...');
   print('Signing with account 0 key 1 ($account0Key1Id)...');
   final account0Key1Signature = await wallet.sign(data, keyId: account0Key1Id);
-  print('Account 0 key 1 signature: ${hexEncode(account0Key1Signature)}');
+  print('Account 0 key 1 signature: ${account0Key1Signature.sublist(1, 9)}...');
   print('Verifying account 0 key 1 signature...');
   final isProfileSignatureValid = await wallet.verify(data,
       signature: account0Key1Signature, keyId: account0Key1Id);
   print(
       'Account 0 key 1 signature verification result: $isProfileSignatureValid');
   assert(isProfileSignatureValid, "Account 0 key 1 verification failed");
-  final account0Key1DidKey = DidKey.generateDocument(account0Key1);
+  final account0Key1DidKey = DidKey.generateDocument(account0Key1.publicKey);
   print('Account 0 key 1 DID: ${account0Key1DidKey.id}');
 
   print('\n--- Encryption/Decryption ---');
@@ -78,7 +80,8 @@ void main() async {
     plainText,
     keyId: account0Key1Id,
   );
-  print('Encrypted data (single-party): $encryptedSingleParty');
+  print(
+      'Encrypted data (single-party): ${encryptedSingleParty.sublist(1, 9)}...');
 
   // Decrypt using the same profile key
   // The wallet extracts the ephemeral public key from the ciphertext.
@@ -105,7 +108,8 @@ void main() async {
   const bobDerivationPath = "m/44'/0'/0'/0/0";
   final bobKey = await bobWallet.deriveKey(
       keyId: bobKeyId, derivationPath: bobDerivationPath);
-  print('Bob key pair created. Public key: ${bobKey.bytes}');
+  print(
+      'Bob key pair created. Public key: ${bobKey.publicKey.bytes.sublist(1, 9)}...');
 
   // Alice (using 'wallet' and 'account0Key1Id') encrypts data for Bob
   print(
@@ -113,9 +117,9 @@ void main() async {
   final encryptedForBob = await wallet.encrypt(
     plainText,
     keyId: account0Key1Id, // Alice's key ID
-    publicKey: bobKey.bytes, // Bob's public key
+    publicKey: bobKey.publicKey.bytes, // Bob's public key
   );
-  print('Encrypted data (for Bob): $encryptedForBob');
+  print('Encrypted data (for Bob): ${encryptedForBob.sublist(1, 9)}...');
 
   // Bob decrypts the data using Alice's public key
   // Retrieve Alice's public key first (we already have 'account0Key1' from earlier)
@@ -124,7 +128,7 @@ void main() async {
   final decryptedByBob = await bobWallet.decrypt(
     encryptedForBob,
     keyId: bobKeyId, // Bob's key ID
-    publicKey: account0Key1.bytes, // Alice's public key
+    publicKey: account0Key1.publicKey.bytes, // Alice's public key
   );
   print('Decrypted data (by Bob): $decryptedByBob');
   print('Two-party encryption/decryption successful!');

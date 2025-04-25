@@ -1,13 +1,14 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
+import '../utility.dart';
 import 'deterministic_wallet.dart';
 import 'key_store/key_store_interface.dart';
 import 'key_store/stored_key.dart';
@@ -115,7 +116,7 @@ class Bip32Wallet implements DeterministicWallet {
   }
 
   @override
-  Future<PublicKey> deriveKey({
+  Future<KeyPair> deriveKey({
     String? keyId,
     KeyType? keyType,
     required String derivationPath,
@@ -136,7 +137,7 @@ class Bip32Wallet implements DeterministicWallet {
       );
     }
 
-    final effectiveKeyId = keyId ?? _randomId();
+    final effectiveKeyId = keyId ?? randomId();
 
     if (await _keyStore.contains(effectiveKeyId)) {
       // Key ID exists, ensure it points to the same path or handle conflict
@@ -146,9 +147,7 @@ class Bip32Wallet implements DeterministicWallet {
               StoredKeyRepresentation.derivationPath &&
           existingStoredKey.derivationPath == derivationPath &&
           existingStoredKey.keyType == effectiveKeyType) {
-        final existingKeyPair = await _getKeyPair(effectiveKeyId);
-        final keyData = await existingKeyPair.publicKey;
-        return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+        return _getKeyPair(effectiveKeyId);
       } else {
         throw ArgumentError(
             "Key ID $effectiveKeyId already exists in KeyStore but with incompatible data.");
@@ -164,14 +163,13 @@ class Bip32Wallet implements DeterministicWallet {
     final seed = await _getSeed();
     final rootNode = BIP32.fromSeed(seed);
     final derivedNode = rootNode.derivePath(derivationPath);
-    final tempKeyPair = Secp256k1KeyPair(node: derivedNode);
-    final keyData = await tempKeyPair.publicKey;
-
-    return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+    final keyPair = Secp256k1KeyPair(node: derivedNode, id: effectiveKeyId);
+    _runtimeCache[effectiveKeyId] = keyPair;
+    return keyPair;
   }
 
   @override
-  Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) {
+  Future<KeyPair> generateKey({String? keyId, KeyType? keyType}) {
     // Bip32Wallet requires a derivation path.
     // Throw an error if the base generateKey (without path) is called.
     throw UnsupportedError(
@@ -182,7 +180,7 @@ class Bip32Wallet implements DeterministicWallet {
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
-    final keyData = await keyPair.publicKey;
+    final keyData = keyPair.publicKey;
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
@@ -243,15 +241,10 @@ class Bip32Wallet implements DeterministicWallet {
 
     final rootNode = BIP32.fromSeed(seed);
     final derivedNode = rootNode.derivePath(derivationPath);
-    final keyPair = Secp256k1KeyPair(node: derivedNode);
+    final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
 
     _runtimeCache[keyId] = keyPair;
     return keyPair;
-  }
-
-  String _randomId() {
-    final rnd = Random.secure();
-    return List.generate(32, (idx) => rnd.nextInt(16).toRadixString(16)).join();
   }
 
   void clearCache() {

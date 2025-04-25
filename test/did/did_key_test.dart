@@ -24,7 +24,8 @@ void main() {
       keyStore = InMemoryKeyStore();
       wallet = await Bip32Wallet.fromSeed(seed, keyStore);
       accountPublicKey =
-          await wallet.deriveKey(derivationPath: "m/44'/60'/0'/0/0");
+          (await wallet.deriveKey(derivationPath: "m/44'/60'/0'/0/0"))
+              .publicKey;
     });
 
     test('generateDocument should match expected', () async {
@@ -61,7 +62,7 @@ void main() {
 
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0/0";
       final key = await wallet.deriveKey(derivationPath: derivedKeyPath);
-      final doc = DidKey.generateDocument(key);
+      final doc = DidKey.generateDocument(key.publicKey);
       final actualDid = doc.id;
 
       expect(actualDid, startsWith(expectedDidKeyPrefix));
@@ -133,7 +134,7 @@ void main() {
       final keyStore = InMemoryKeyStore();
       final wallet = GenericWallet(keyStore);
       final keyId = "keyId";
-      final publicKey = await wallet.generateKey(keyId: keyId);
+      final publicKey = (await wallet.generateKey(keyId: keyId)).publicKey;
       final prefix = [128, 36];
       final expectedId =
           'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + publicKey.bytes))}';
@@ -151,7 +152,7 @@ void main() {
       final keyStore = InMemoryKeyStore();
       final wallet = GenericWallet(keyStore);
       final keyId = "keyId";
-      final publicKey = await wallet.generateKey(keyId: keyId);
+      final publicKey = (await wallet.generateKey(keyId: keyId)).publicKey;
       final prefix = [128, 36];
       final expectedId =
           'did:key:z${base58BitcoinEncode(Uint8List.fromList(prefix + publicKey.bytes))}';
