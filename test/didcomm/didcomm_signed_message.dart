@@ -13,6 +13,8 @@ void main() {
     late PublicKey alicePublicKey;
     late DidDocument aliceDidDoc;
 
+    late DidSigner aliceSigner;
+
     setUp(() async {
       KeyStore aliceKeyStore = InMemoryKeyStore();
       aliceWallet = GenericWallet(aliceKeyStore);
@@ -30,11 +32,18 @@ void main() {
         type: 'type',
         body: {"foo": 'bar'},
       );
+
+      aliceSigner = DidSigner(
+        didDocument: aliceDidDoc,
+        wallet: aliceWallet,
+        walletKeyId: alicePublicKey.id,
+        didKeyId: aliceDidDoc.verificationMethod[0].id,
+        signatureScheme: SignatureScheme.ecdsa_p256_sha256,
+      );
     });
 
     test('Sign & verify message', () async {
-      DidcommSignedMessage signedMessage =
-          await message.sign(wallet: aliceWallet, keyId: alicePublicKey.id);
+      DidcommSignedMessage signedMessage = await message.sign(aliceSigner);
 
       // TODO: improve interface and take multiple key agreements into account?
       bool actual = await signedMessage
@@ -45,8 +54,7 @@ void main() {
     });
 
     test('verification fails', () async {
-      DidcommSignedMessage signedMessage =
-          await message.sign(wallet: aliceWallet, keyId: alicePublicKey.id);
+      DidcommSignedMessage signedMessage = await message.sign(aliceSigner);
 
       PublicKey bobPublicKey = await bobWallet.generateKey();
       DidDocument bobDidDoc = DidKey.generateDocument(bobPublicKey);
@@ -55,6 +63,14 @@ void main() {
           () => signedMessage
               .verify(bobDidDoc.resolveKeyIds().keyAgreement[0].asJwk()),
           throwsException);
+    });
+
+    test('Signed message instance stores every signature internally', () async {
+      DidcommSignedMessage signedMessage = await message.sign(aliceSigner);
+      expect(signedMessage.signatures!.length, 1);
+
+      await signedMessage.sign(aliceSigner);
+      expect(signedMessage.signatures!.length, 2);
     });
   });
 }

@@ -71,12 +71,10 @@ class DidcommSignedMessage implements JsonObject, DidcommMessage {
   }
 
   static Future<DidcommSignedMessage> fromPlaintext(
-      {required Wallet wallet,
-      required String keyId,
-      required DidcommPlaintextMessage message}) async {
+      DidcommPlaintextMessage message,
+      {required DidSigner signer}) async {
     DidcommSignedMessage signedMessage = DidcommSignedMessage(payload: message);
-    await signedMessage.sign(wallet, [keyId]);
-    return signedMessage;
+    return signedMessage.sign(signer);
   }
 
   Future<DidcommEncryptedMessage> encrypt({
@@ -95,45 +93,37 @@ class DidcommSignedMessage implements JsonObject, DidcommMessage {
         message: this);
   }
 
-  Future<void> sign(Wallet wallet, List<String> keyIds) async {
+  Future<DidcommSignedMessage> sign(DidSigner signer) async {
     signatures ??= [];
-    for (var keyId in keyIds) {
-      SignatureScheme scheme =
-          (await wallet.getSupportedSignatureSchemes(keyId))[0];
 
-      JwsHeader jwsHeader = JwsHeader(
-          typ: DidcommMessageTyp.signed.value,
-          alg: scheme.alg!,
-          crv: scheme.crv!);
+    JwsHeader jwsHeader = JwsHeader(
+        typ: DidcommMessageTyp.signed.value,
+        alg: signer.signatureScheme.alg!,
+        crv: signer.signatureScheme.crv!);
 
-      // TODO: improve this one here
-      String data = _base64Payload != null
-          ? utf8.decode(base64Decode(_base64Payload!))
-          : jsonEncode(payload.toJson());
+    // TODO: improve this one here
+    String data = _base64Payload != null
+        ? utf8.decode(base64Decode(_base64Payload!))
+        : jsonEncode(payload.toJson());
 
-      String encodedHeader = removePaddingFromBase64(
-          base64UrlEncode(utf8.encode(jsonEncode(jwsHeader.toJson()))));
+    String encodedHeader = removePaddingFromBase64(
+        base64UrlEncode(utf8.encode(jsonEncode(jwsHeader.toJson()))));
 
-      String encodedPayload =
-          removePaddingFromBase64(base64UrlEncode(utf8.encode(data)));
+    String encodedPayload =
+        removePaddingFromBase64(base64UrlEncode(utf8.encode(data)));
 
-      Uint8List signingInput = ascii.encode('$encodedHeader.$encodedPayload');
-      Uint8List jws = await wallet.sign(signingInput, keyId: keyId);
-      final publicKey = await wallet.getPublicKey(keyId);
-      final didDoc = DidKey.generateDocument(publicKey);
+    Uint8List signingInput = ascii.encode('$encodedHeader.$encodedPayload');
+    Uint8List jws = await signer.sign(signingInput);
 
-      final sig = removePaddingFromBase64(base64UrlEncode(jws));
-      final result = '$encodedHeader..$sig';
+    final sig = removePaddingFromBase64(base64UrlEncode(jws));
+    final result = '$encodedHeader..$sig';
 
-      signatures!.add(SignatureObject(
-          signature: result.split('..').last,
-          protected: jwsHeader.toJson(),
+    signatures!.add(SignatureObject(
+        signature: result.split('..').last,
+        protected: jwsHeader.toJson(),
+        header: {'kid': signer.keyId}));
 
-          /// TIMTAM added kid APR 01 2025
-          header: {'kid': didDoc.resolveKeyIds().keyAgreement[0].id}));
-    }
-
-    return;
+    return this;
   }
 
   Future<bool> verify(Jwk jwk) async {
