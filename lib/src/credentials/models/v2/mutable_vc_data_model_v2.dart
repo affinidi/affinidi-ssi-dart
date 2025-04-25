@@ -1,14 +1,6 @@
-import '../../proof/embedded_proof.dart';
-import '../field_types/credential_schema.dart';
-import '../field_types/credential_status/v2.dart';
-import '../field_types/credential_subject.dart';
-import '../field_types/evidence.dart';
-import '../field_types/issuer.dart';
-import '../field_types/refresh_service/v2.dart';
-import '../field_types/terms_of_use.dart';
-import 'vc_data_model_v2.dart';
+part of 'vc_data_model_v2.dart';
 
-class MutableVcDataModelV2 extends VcDataModelV2 {
+class MutableVcDataModelV2 extends _VcDataModelV2View {
   @override
   List<String> context;
 
@@ -40,13 +32,13 @@ class MutableVcDataModelV2 extends VcDataModelV2 {
   List<MutableCredentialStatusV2> credentialStatus;
 
   @override
-  List<RefreshServiceV2> refreshService;
+  List<MutableRefreshServiceV2> refreshService;
 
   @override
-  List<TermsOfUse> termsOfUse;
+  List<MutableTermsOfUse> termsOfUse;
 
   @override
-  List<Evidence> evidence;
+  List<MutableEvidence> evidence;
 
   MutableVcDataModelV2({
     List<String>? context,
@@ -71,4 +63,78 @@ class MutableVcDataModelV2 extends VcDataModelV2 {
         refreshService = refreshService ?? [],
         termsOfUse = termsOfUse ?? [],
         evidence = evidence ?? [];
+}
+
+abstract interface class _VcDataModelV2View {
+  List<String> get context;
+
+  Uri? get id;
+
+  Set<String> get type;
+
+  List<MutableCredentialSchema> get credentialSchema;
+
+  List<CredentialSubjectInterface> get credentialSubject;
+
+  MutableIssuer? get issuer;
+
+  DateTime? get validFrom;
+
+  DateTime? get validUntil;
+
+  List<EmbeddedProof> get proof;
+
+  List<MutableCredentialStatusV2> get credentialStatus;
+
+  List<MutableRefreshServiceV2> get refreshService;
+
+  List<MutableTermsOfUse> get termsOfUse;
+
+  List<MutableEvidence> get evidence;
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.issuer.key] = issuer?.toJson();
+    json[_P.type.key] = type.toList();
+    json[_P.id.key] = id?.toString();
+    json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
+    json[_P.validFrom.key] = validFrom?.toIso8601String();
+    json[_P.validUntil.key] = validUntil?.toIso8601String();
+    json[_P.credentialSubject.key] =
+        encodeListToSingleOrArray(credentialSubject);
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.credentialStatus.key] = encodeListToSingleOrArray(credentialStatus);
+    json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
+    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
+
+    return json;
+  }
+}
+
+typedef _P = VcDataModelV2Key;
+
+enum VcDataModelV2Key {
+  context(key: '@context'),
+  proof,
+  issuer,
+  credentialSchema,
+  credentialSubject,
+  id,
+  type,
+  validFrom,
+  validUntil,
+  credentialStatus,
+  refreshService,
+  termsOfUse,
+  evidence,
+  ;
+
+  final String? _key;
+
+  String get key => _key ?? name;
+
+  const VcDataModelV2Key({String? key}) : _key = key;
 }

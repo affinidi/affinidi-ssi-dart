@@ -8,7 +8,7 @@ import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../models/parsed_vc.dart';
 import '../models/v2/mutable_vc_data_model_v2.dart';
-import '../models/v2/vc_data_model_v2.dart';
+import '../models/v2/vc_data_model_v2_view.dart';
 import '../parsers/sdjwt_parser.dart';
 import '../suites/vc_suite.dart';
 import 'enveloped_vc_suite.dart';
@@ -280,7 +280,7 @@ class _DidSignerAdapter implements Signer {
 }
 
 abstract interface class SdJwtDataModelV2
-    implements ParsedVerifiableCredential<String>, VcDataModelV2 {
+    implements ParsedVerifiableCredential<String>, VcDataModelV2View {
   SdJwt get sdJwt;
 }
 

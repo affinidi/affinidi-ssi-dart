@@ -1,15 +1,6 @@
-import '../../proof/embedded_proof.dart';
-import '../field_types/credential_schema.dart';
-import '../field_types/credential_status/v1.dart';
-import '../field_types/credential_subject.dart';
-import '../field_types/evidence.dart';
-import '../field_types/holder.dart';
-import '../field_types/issuer.dart';
-import '../field_types/refresh_service/v1.dart';
-import '../field_types/terms_of_use.dart';
-import 'vc_data_model_v1.dart';
+part of 'vc_data_model_v1.dart';
 
-class MutableVcDataModelV1 extends VcDataModelV1 {
+class MutableVcDataModelV1 extends _VcDataModelV1 {
   @override
   List<String> context;
 
@@ -33,12 +24,6 @@ class MutableVcDataModelV1 extends VcDataModelV1 {
 
   @override
   DateTime? expirationDate;
-
-  @override
-  DateTime? get validFrom => issuanceDate;
-
-  @override
-  DateTime? get validUntil => expirationDate;
 
   @override
   MutableHolder? holder;
@@ -81,4 +66,82 @@ class MutableVcDataModelV1 extends VcDataModelV1 {
         refreshService = refreshService ?? [],
         termsOfUse = termsOfUse ?? [],
         evidence = evidence ?? [];
+}
+
+abstract interface class _VcDataModelV1 {
+  List<String> get context;
+
+  Uri? get id;
+
+  List<MutableCredentialSchema> get credentialSchema;
+
+  List<CredentialSubjectInterface> get credentialSubject;
+
+  MutableIssuer? get issuer;
+
+  Set<String> get type;
+
+  List<EmbeddedProof> get proof;
+
+  MutableCredentialStatusV1? get credentialStatus;
+
+  DateTime? get issuanceDate;
+
+  DateTime? get expirationDate;
+
+  MutableHolder? get holder;
+
+  List<MutableRefreshServiceV1> get refreshService;
+
+  List<MutableTermsOfUse> get termsOfUse;
+
+  List<MutableEvidence> get evidence;
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.issuer.key] = issuer?.toJson();
+    json[_P.type.key] = type.toList();
+    json[_P.id.key] = id?.toString();
+    json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
+    json[_P.holder.key] = holder?.toJson();
+    json[_P.issuanceDate.key] = issuanceDate?.toIso8601String();
+    json[_P.expirationDate.key] = expirationDate?.toIso8601String();
+    json[_P.credentialSubject.key] =
+        encodeListToSingleOrArray(credentialSubject);
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.credentialStatus.key] = credentialStatus?.toJson();
+    json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
+    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
+
+    return json;
+  }
+}
+
+typedef _P = VcDataModelV1Key;
+
+enum VcDataModelV1Key {
+  context(key: '@context'),
+  proof,
+  expirationDate,
+  issuer,
+  credentialSchema,
+  credentialSubject,
+  id,
+  type,
+  issuanceDate,
+  credentialStatus,
+  holder,
+  refreshService,
+  termsOfUse,
+  evidence,
+  ;
+
+  final String? _key;
+
+  String get key => _key ?? name;
+
+  const VcDataModelV1Key({String? key}) : _key = key;
 }

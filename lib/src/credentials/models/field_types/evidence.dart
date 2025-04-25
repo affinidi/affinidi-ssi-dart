@@ -1,13 +1,17 @@
 import '../../../util/json_util.dart';
 
-abstract interface class Evidence {
-  /// The URL of the schema including domain and filename.
-  Uri? get id;
+class MutableEvidence {
+  Uri? id;
 
   /// The schema type of validator used.
   ///
   /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
-  String? get type;
+  String? type;
+
+  MutableEvidence({
+    this.id,
+    this.type,
+  });
 
   /// Converts this schema to a JSON-serializable map.
   ///
@@ -18,23 +22,7 @@ abstract interface class Evidence {
       };
 }
 
-class MutableEvidence extends Evidence {
-  @override
-  Uri? id;
-
-  /// The schema type of validator used.
-  ///
-  /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
-  @override
-  String? type;
-
-  MutableEvidence({
-    this.id,
-    this.type,
-  });
-}
-
-class ParsedEvidence extends Evidence {
+class Evidence extends MutableEvidence {
   final Uri? _id;
   final String _type;
 
@@ -48,15 +36,15 @@ class ParsedEvidence extends Evidence {
   @override
   String get type => _type;
 
-  ParsedEvidence._(this._id, this._type);
+  Evidence._(this._id, this._type);
 
   /// Creates a [MutableEvidence] from JSON data.
   ///
   /// The [json] must contain 'id' and 'type' fields.
-  factory ParsedEvidence.fromJson(Map<String, dynamic> json) {
+  factory Evidence.fromJson(Map<String, dynamic> json) {
     final id = getUri(json, 'id');
     final type = getMandatoryString(json, 'type');
 
-    return ParsedEvidence._(id, type);
+    return Evidence._(id, type);
   }
 }

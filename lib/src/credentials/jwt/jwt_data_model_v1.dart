@@ -45,8 +45,8 @@ abstract interface class JwtVcDataModelV1
 
 /// Allows creating a VcDataModel from a JWT token containing an VcDataModel version 1.1
 /// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
-class _JwtVcDataModelV1 extends MutableVcDataModelV1
-    implements JwtVcDataModelV1 {
+class JwtVcDataModelV1 extends VcDataModelV1
+    implements ParsedVerifiableCredential<String> {
   final Jws _jws;
 
   _JwtVcDataModelV1.fromJws(Jws jws)

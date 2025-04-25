@@ -1,7 +1,4 @@
-import '../../../models/field_types/holder.dart';
-import '../../../models/parsed_vc.dart';
-import '../../../proof/embedded_proof.dart';
-import 'vp_data_model_v1.dart';
+part of 'vp_data_model_v1.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v1.1.
 ///
@@ -19,7 +16,7 @@ import 'vp_data_model_v1.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class MutableVpDataModelV1 extends VpDataModelV1 {
+class MutableVpDataModelV1 extends _VpDataModelV1 {
   /// The JSON-LD context for this presentation.
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
@@ -68,4 +65,49 @@ class MutableVpDataModelV1 extends VpDataModelV1 {
         type = type ?? {},
         proof = proof ?? [],
         verifiableCredential = verifiableCredential ?? [];
+}
+
+abstract class _VpDataModelV1 {
+  List<String> get context;
+
+  Uri? get id;
+
+  Set<String> get type;
+
+  MutableHolder? get holder;
+
+  List<ParsedVerifiableCredential> get verifiableCredential;
+
+  List<EmbeddedProof> get proof;
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.id.key] = id?.toString();
+    json[_P.type.key] = type.toList();
+    json[_P.holder.key] = holder?.toJson();
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.verifiableCredential.key] =
+        verifiableCredential.map(presentVC).toList();
+
+    return json;
+  }
+}
+
+typedef _P = VpDataModelV1Key;
+
+enum VpDataModelV1Key {
+  context(key: '@context'),
+  id,
+  type,
+  holder,
+  verifiableCredential,
+  proof;
+
+  final String? _key;
+
+  String get key => _key ?? name;
+
+  const VpDataModelV1Key({String? key}) : _key = key;
 }

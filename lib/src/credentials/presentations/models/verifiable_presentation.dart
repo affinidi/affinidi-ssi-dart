@@ -21,7 +21,7 @@ abstract interface class VerifiablePresentation
   Set<String> get type;
 
   /// The entity that is presenting these credentials.
-  Holder? get holder;
+  Holder get holder;
 
   /// The verifiable credentials included in this presentation.
   List<ParsedVerifiableCredential> get verifiableCredential;

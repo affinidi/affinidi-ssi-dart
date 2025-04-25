@@ -1,6 +1,6 @@
 import 'package:ssi/src/credentials/linked_data/ld_vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/linked_data/ld_vc_data_model_v2.dart';
-import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
+import 'package:ssi/src/credentials/presentations/models/v2/mutable_vp_data_model_v2.dart';
 import 'package:ssi/src/credentials/presentations/suites/universal_presentation_parser.dart';
 import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
 import 'package:test/test.dart';

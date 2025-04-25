@@ -1,30 +1,24 @@
 import '../../../../ssi.dart';
 import '../../../util/json_util.dart';
 
-abstract interface class Issuer {
-  Uri? get id;
+class MutableIssuer {
+  Uri? id;
 
+  MutableIssuer({this.id});
   Map<String, dynamic> toJson() => {
         'id': id?.toString(),
       };
 }
 
-class MutableIssuer extends Issuer {
-  @override
-  Uri id;
-
-  MutableIssuer(this.id);
-}
-
-class ParsedIssuer extends Issuer {
+class Issuer extends MutableIssuer {
   final Uri _id;
 
   @override
   Uri get id => _id;
 
-  ParsedIssuer._(this._id);
+  Issuer._(this._id);
 
-  factory ParsedIssuer.fromJson(dynamic json) {
+  factory Issuer.fromJson(dynamic json) {
     Uri id;
 
     if (json is String) {
@@ -40,6 +34,6 @@ class ParsedIssuer extends Issuer {
       );
     }
 
-    return ParsedIssuer._(id);
+    return Issuer._(id);
   }
 }

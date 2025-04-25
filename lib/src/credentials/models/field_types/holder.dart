@@ -1,30 +1,25 @@
 import '../../../../ssi.dart';
 import '../../../util/json_util.dart';
 
-abstract interface class Holder {
-  Uri? get id;
+class MutableHolder {
+  Uri? id;
+
+  MutableHolder({this.id});
 
   Map<String, dynamic> toJson() => {
         'id': id?.toString(),
       };
 }
 
-class MutableHolder extends Holder {
-  @override
-  Uri id;
-
-  MutableHolder(this.id);
-}
-
-class ParsedHolder extends Holder {
+class Holder extends MutableHolder {
   final Uri _id;
 
   @override
   Uri get id => _id;
 
-  ParsedHolder._(this._id);
+  Holder._(this._id);
 
-  factory ParsedHolder.fromJson(dynamic json) {
+  factory Holder.fromJson(dynamic json) {
     Uri id;
 
     if (json is String) {
@@ -40,6 +35,6 @@ class ParsedHolder extends Holder {
       );
     }
 
-    return ParsedHolder._(id);
+    return Holder._(id);
   }
 }

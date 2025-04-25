@@ -1,9 +1,12 @@
+import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
 import '../../../models/field_types/holder.dart';
 import '../../../models/parsed_vc.dart';
 import '../../../proof/embedded_proof.dart';
 import '../vc_parse_present.dart';
 import '../verifiable_presentation.dart';
+
+part './mutable_vp_data_model_v1.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v1.1.
 ///
@@ -21,7 +24,7 @@ import '../verifiable_presentation.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-abstract class VpDataModelV1 implements VerifiablePresentation {
+class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
   /// The default JSON-LD context URL for VP v1
   static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
 
@@ -29,62 +32,88 @@ abstract class VpDataModelV1 implements VerifiablePresentation {
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
-  List<String> get context;
+  List<String> context;
 
   /// The optional identifier for this presentation.
   @override
-  Uri? get id;
+  Uri? id;
 
   /// The type definitions for this presentation.
   ///
   /// Must include 'VerifiablePresentation'.
   @override
-  Set<String> get type;
+  Set<String> type;
 
-  /// The entity presenting the credentials.
+  /// The identifier of the holder presenting the credentials.
   ///
-  /// Typically identified by a DID.
+  /// Typically a DID.
   @override
-  Holder? get holder;
+  Holder holder;
 
   /// The list of verifiable credentials embedded in this presentation.
   @override
-  List<ParsedVerifiableCredential> get verifiableCredential;
+  List<ParsedVerifiableCredential> verifiableCredential;
 
-  /// The cryptographic proof created by the holder.
+  /// The cryptographic proof(s) created by the holder.
   @override
-  List<EmbeddedProof> get proof;
+  List<EmbeddedProof> proof;
 
-  /// Converts this presentation to a JSON-serializable map.
-  @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
+  /// Creates a [VpDataModelV1] instance.
+  ///
+  /// The [context] is the JSON-LD context array (required).
+  /// The [type] is an array that must include 'VerifiablePresentation'.
+  /// The [holder] is an identifier for the presenter (optional).
+  /// The [verifiableCredential] is a list of embedded credentials (optional).
+  /// The [proof] is a cryptographic proof (optional).
+  VpDataModelV1._({
+    required this.context,
+    this.id,
+    required this.type,
+    required this.holder,
+    required this.verifiableCredential,
+    required this.proof,
+  });
 
-    json[_P.context.key] = context;
-    json[_P.id.key] = id?.toString();
-    json[_P.type.key] = type.toList();
-    json[_P.holder.key] = holder?.toJson();
-    json[_P.proof.key] = encodeListToSingleOrArray(proof);
-    json[_P.verifiableCredential.key] =
-        verifiableCredential.map(presentVC).toList();
+  /// Creates a [VpDataModelV1] from JSON input.
+  ///
+  /// The [input] can be a JSON string or a [Map<String, dynamic>].
+  /// Parses both mandatory and optional fields.
+  factory VpDataModelV1.fromJson(dynamic input) {
+    final json = jsonToMap(input);
 
-    return json;
+    final context = getStringList(json, _P.context.key, mandatory: true);
+    if (context.isEmpty || context.first != contextUrl) {
+      throw SsiException(
+        message:
+            'The first URI of @context property should always be $contextUrl',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    final id = getUri(json, _P.id.key);
+    final type = getStringList(
+      json,
+      _P.type.key,
+      allowSingleValue: true,
+      mandatory: true,
+    ).toSet();
+
+    final holder = Holder.fromJson(json[_P.holder.key]);
+
+    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
+        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
+
+    final credentials = parseListOrSingleItem<ParsedVerifiableCredential>(
+        json, _P.verifiableCredential.key, parseVC,
+        allowSingleValue: true);
+
+    return VpDataModelV1._(
+        context: context,
+        id: id,
+        type: type,
+        proof: proof,
+        holder: holder,
+        verifiableCredential: credentials);
   }
-}
-
-typedef _P = VpDataModelV1Key;
-
-enum VpDataModelV1Key {
-  context(key: '@context'),
-  id,
-  type,
-  holder,
-  verifiableCredential,
-  proof;
-
-  final String? _key;
-
-  String get key => _key ?? name;
-
-  const VpDataModelV1Key({String? key}) : _key = key;
 }

@@ -2,7 +2,7 @@ import 'dart:collection';
 
 import '../../../util/json_util.dart';
 
-abstract interface class CredentialSubject
+abstract interface class CredentialSubjectInterface
     extends UnmodifiableMapBase<String, dynamic> {
   Uri? get id;
 
@@ -11,7 +11,7 @@ abstract interface class CredentialSubject
   }
 }
 
-class MutableCredentialSubject extends CredentialSubject {
+class MutableCredentialSubject extends CredentialSubjectInterface {
   @override
   Uri? get id => getUri(_claims, 'id');
 
@@ -49,19 +49,19 @@ class MutableCredentialSubject extends CredentialSubject {
   dynamic remove(Object? key) => _claims.remove(key);
 }
 
-class ParsedCredentialSubject extends CredentialSubject {
+class CredentialSubject extends CredentialSubjectInterface {
   @override
   Uri? get id => getUri(_claims, 'id');
 
   final UnmodifiableMapView<String, dynamic> _claims;
 
-  ParsedCredentialSubject._(
+  CredentialSubject._(
     UnmodifiableMapView<String, dynamic>? claims,
   ) : _claims = claims ?? UnmodifiableMapView<String, dynamic>({});
 
-  factory ParsedCredentialSubject.fromJson(Map<String, dynamic> json) {
+  factory CredentialSubject.fromJson(Map<String, dynamic> json) {
     final claimsMap = UnmodifiableMapView<String, dynamic>(json);
-    return ParsedCredentialSubject._(claimsMap);
+    return CredentialSubject._(claimsMap);
   }
 
   @override

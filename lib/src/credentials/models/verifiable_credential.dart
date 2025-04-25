@@ -1,7 +1,8 @@
+import 'doc_with_embedded_proof.dart';
 import 'field_types/credential_schema.dart';
 import 'field_types/credential_subject.dart';
-import 'doc_with_embedded_proof.dart';
 import 'field_types/issuer.dart';
+import 'field_types/terms_of_use.dart';
 
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
@@ -18,7 +19,7 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   Set<String> get type;
 
   /// The entity that issued this credential.
-  Issuer? get issuer;
+  Issuer get issuer;
 
   /// The subject data contained in this credential.
   ///
@@ -45,6 +46,9 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   ///
   /// Returns null if the credential does not expire.
   DateTime? get validUntil;
+
+  /// Returns null if the credential does not have terms of use.
+  List<TermsOfUse> get termsOfUse;
 
   /// Converts this credential to a JSON-serializable map.
   @override

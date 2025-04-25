@@ -1,25 +1,5 @@
 import '../../../../util/json_util.dart';
 
-/// Provides information about the current status of a verifiable credential.
-///
-/// The credentialStatus enables discovery of information about whether
-/// a credential is suspended, revoked, or still valid.
-abstract interface class CredentialStatusV1 {
-  /// The URL identifier for this status information.
-  Uri? get id;
-
-  /// The type of status mechanism used.
-  String? get type;
-
-  /// Converts this status to a JSON-serializable map.
-  ///
-  /// Returns a map containing the 'type' field and 'id' field if present.
-  Map<String, dynamic> toJson() => {
-        'id': id?.toString(),
-        'type': type,
-      };
-}
-
 /// Represents a schema for verifiable credentials following W3C standards.
 ///
 /// A credential schema defines the structure and constraints of a verifiable credential.
@@ -32,13 +12,11 @@ abstract interface class CredentialStatusV1 {
 ///   schema: 'PersonCredential',
 /// );
 /// ```
-class MutableCredentialStatusV1 extends CredentialStatusV1 {
+class MutableCredentialStatusV1 {
   /// The URL identifier for this status information.
-  @override
   Uri? id;
 
   /// The type of status mechanism used.
-  @override
   String? type;
 
   /// Creates a [MutableCredentialStatusV1] instance.
@@ -49,9 +27,17 @@ class MutableCredentialStatusV1 extends CredentialStatusV1 {
     this.id,
     this.type,
   });
+
+  /// Converts this status to a JSON-serializable map.
+  ///
+  /// Returns a map containing the 'type' field and 'id' field if present.
+  Map<String, dynamic> toJson() => {
+        'id': id?.toString(),
+        'type': type,
+      };
 }
 
-class ParsedCredentialStatusV1 extends CredentialStatusV1 {
+class CredentialStatusV1 extends MutableCredentialStatusV1 {
   final Uri _id;
   final String _type;
 
@@ -65,15 +51,15 @@ class ParsedCredentialStatusV1 extends CredentialStatusV1 {
   @override
   String get type => _type;
 
-  ParsedCredentialStatusV1._(this._id, this._type);
+  CredentialStatusV1._(this._id, this._type);
 
-  /// Creates a [ParsedCredentialStatusV1] from JSON data.
+  /// Creates a [CredentialStatusV1] from JSON data.
   ///
   /// The [json] must contain a 'type' field and may contain an 'id' field.
-  factory ParsedCredentialStatusV1.fromJson(Map<String, dynamic> json) {
+  factory CredentialStatusV1.fromJson(Map<String, dynamic> json) {
     final id = getMandatoryUri(json, 'id');
     final type = getMandatoryString(json, 'type');
 
-    return ParsedCredentialStatusV1._(id, type);
+    return CredentialStatusV1._(id, type);
   }
 }

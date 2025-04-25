@@ -5,6 +5,7 @@ import '../../util/base64_util.dart';
 import '../models/parsed_vc.dart';
 import '../models/v1/mutable_vc_data_model_v1.dart';
 import '../models/v1/vc_data_model_v1.dart';
+import '../models/v1/vc_data_model_v1.dart';
 import '../parsers/jwt_parser.dart';
 import '../suites/vc_suite.dart';
 

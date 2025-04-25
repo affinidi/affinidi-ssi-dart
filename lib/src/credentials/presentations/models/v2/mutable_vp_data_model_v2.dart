@@ -1,8 +1,4 @@
-import '../../../models/field_types/holder.dart';
-import '../../../models/field_types/terms_of_use.dart';
-import '../../../models/parsed_vc.dart';
-import '../../../proof/embedded_proof.dart';
-import 'vp_data_model_v2.dart';
+part of 'vp_data_model_v2.dart';
 
 /// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v1.1.
 ///
@@ -20,7 +16,7 @@ import 'vp_data_model_v2.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class MutableVpDataModelV2 extends VpDataModelV2 {
+class MutableVpDataModelV2 extends _VpDataModelV2 {
   /// The JSON-LD context for this presentation.
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
@@ -54,7 +50,7 @@ class MutableVpDataModelV2 extends VpDataModelV2 {
   @override
   List<TermsOfUse> termsOfUse;
 
-  /// Creates a [VpDataModelV2] instance.
+  /// Creates a [MutableVpDataModelV2] instance.
   ///
   /// The [context] is the JSON-LD context array (required).
   /// The [type] is an array that must include 'VerifiablePresentation'.
@@ -74,4 +70,69 @@ class MutableVpDataModelV2 extends VpDataModelV2 {
         proof = proof ?? [],
         termsOfUse = termsOfUse ?? [],
         verifiableCredential = verifiableCredential ?? [];
+}
+
+abstract class _VpDataModelV2 {
+  /// The JSON-LD context for this presentation.
+  ///
+  /// Must include 'https://www.w3.org/ns/credentials/v2'.
+  List<String> get context;
+
+  /// The unique identifier for this presentation.
+  Uri? get id;
+
+  /// The type definitions for this presentation.
+  ///
+  /// Must include 'VerifiablePresentation'.
+  Set<String> get type;
+
+  /// The entity presenting the credentials.
+  ///
+  /// Usually identified by a DID.
+  MutableHolder? get holder;
+
+  /// The terms of use describing conditions for credential usage.
+  List<TermsOfUse> get termsOfUse;
+
+  /// The verifiable credentials included in this presentation.
+  List<ParsedVerifiableCredential> get verifiableCredential;
+
+  /// The cryptographic proof securing this presentation.
+  ///
+  /// Can be a DataIntegrityProof, JWT, or other proof format.
+  List<EmbeddedProof> get proof;
+
+  /// Converts this presentation to a JSON-serializable map.
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.id.key] = id?.toString();
+    json[_P.type.key] = type.toList();
+    json[_P.holder.key] = holder?.toJson();
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    json[_P.verifiableCredential.key] =
+        verifiableCredential.map(presentVC).toList();
+
+    return json;
+  }
+}
+
+typedef _P = VpDataModelV2Key;
+
+enum VpDataModelV2Key {
+  context(key: '@context'),
+  id,
+  type,
+  holder,
+  verifiableCredential,
+  proof,
+  termsOfUse;
+
+  final String? _key;
+
+  String get key => _key ?? name;
+
+  const VpDataModelV2Key({String? key}) : _key = key;
 }
