@@ -18,14 +18,6 @@ void main() async {
   DidDocument aliceDidDoc = DidKey.generateDocument(alicePublicKey);
   DidDocument bobDidDoc = DidKey.generateDocument(bobPublicKey);
 
-  DidcommPlaintextMessage message = DidcommPlaintextMessage(
-    id: '2fb19055-581d-488e-b357-9d026bee98fc',
-    to: [bobDidDoc.id],
-    from: aliceDidDoc.id,
-    type: 'type',
-    body: {"foo": 'bar'},
-  );
-
   Jwk aliceJwk =
       (aliceDidDoc.resolveKeyIds().keyAgreement[0] as VerificationMethod)
           .asJwk();
@@ -41,10 +33,22 @@ void main() async {
     signatureScheme: SignatureScheme.ecdsa_p256_sha256,
   );
 
+  // ==== sign using DidcommPlaintextMessage.sign method
+  DidcommPlaintextMessage message = DidcommPlaintextMessage.to(bobDidDoc.id,
+      type: 'type', body: {'foo': 'bar'});
+
+  DidcommSignedMessage aliceSignedMessageUsingMessageDirectly =
+      await message.sign(aliceSigner);
+
+  await aliceSignedMessageUsingMessageDirectly.verify(aliceJwk);
+  // ====
+
+  // ==== sign using DidcommSignedMessage.fromPlaintext method
   DidcommSignedMessage aliceSignedMessage =
       await DidcommSignedMessage.fromPlaintext(message, signer: aliceSigner);
 
   await aliceSignedMessage.verify(aliceJwk);
+  // ====
 
   DidSigner bobSigner = DidSigner(
     didDocument: bobDidDoc,

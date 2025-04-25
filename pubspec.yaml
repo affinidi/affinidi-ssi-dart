@@ -21,6 +21,7 @@ dependencies:
   web3dart: ^2.7.3
   crypto_keys: ^0.3.0+1
   dart_multihash: ^1.0.1
+  uuid: ^4.5.1
 dev_dependencies:
   coverage: ^1.11.1
   lints: ^5.0.0
