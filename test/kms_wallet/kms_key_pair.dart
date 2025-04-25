@@ -19,9 +19,9 @@ kms.SigningAlgorithmSpec signingAlgorithmForScheme(SignatureScheme scheme) {
 class KmsKeyPair implements KeyPair {
   final kms.KMS kmsClient;
   @override
-  final String keyId;
+  final String id;
 
-  KmsKeyPair(this.kmsClient, this.keyId);
+  KmsKeyPair(this.kmsClient, this.id);
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [
@@ -30,9 +30,9 @@ class KmsKeyPair implements KeyPair {
 
   @override
   Future<PublicKey> get publicKey async {
-    final response = await kmsClient.getPublicKey(keyId: keyId);
+    final response = await kmsClient.getPublicKey(keyId: id);
     return PublicKey(
-        keyId, Uint8List.fromList(response.publicKey ?? []), KeyType.rsa);
+        id, Uint8List.fromList(response.publicKey ?? []), KeyType.rsa);
   }
 
   @override
@@ -49,7 +49,7 @@ class KmsKeyPair implements KeyPair {
     }
 
     final response = await kmsClient.sign(
-      keyId: keyId,
+      keyId: id,
       message: data,
       messageType: kms.MessageType.raw,
       signingAlgorithm: signingAlgorithmForScheme(signatureScheme),
@@ -64,7 +64,7 @@ class KmsKeyPair implements KeyPair {
 
     try {
       final response = await kmsClient.verify(
-        keyId: keyId,
+        keyId: id,
         message: data,
         messageType: kms.MessageType.raw,
         signature: signature,

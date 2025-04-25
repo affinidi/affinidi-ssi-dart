@@ -26,9 +26,9 @@ class P256KeyPair implements KeyPair {
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
   @override
-  final String keyId;
+  final String id;
 
-  P256KeyPair._(this._privateKey, this.keyId);
+  P256KeyPair._(this._privateKey, this.id);
 
   /// Generates a new P256 key pair.
   /// Returns the KeyPair instance and its private key bytes.
@@ -52,9 +52,9 @@ class P256KeyPair implements KeyPair {
   }
 
   @override
-  Future<PublicKey> get publicKey async {
+  PublicKey get publicKey {
     _publicKeyBytes ??= hex.decode(_privateKey.publicKey.toCompressedHex());
-    return Future.value(PublicKey(keyId, _publicKeyBytes!, KeyType.p256));
+    return PublicKey(id, _publicKeyBytes!, KeyType.p256);
   }
 
   @override

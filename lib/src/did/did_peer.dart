@@ -323,7 +323,7 @@ class DidPeer {
     if (isDid0) {
       PublicKey signingKey = signingKeys[0];
       final multibase = toMultiBase(
-        toMultikey(signingKey.bytes, signingKey.keyType),
+        toMultikey(signingKey.bytes, signingKey.type),
       );
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
@@ -339,7 +339,7 @@ class DidPeer {
             agreementKeys
                 .map(
                   (key) => toMultiBase(
-                    toMultikey(key.bytes, key.keyType),
+                    toMultikey(key.bytes, key.type),
                   ),
                 )
                 .join(encSep)
@@ -349,7 +349,7 @@ class DidPeer {
             signingKeys
                 .map(
                   (key) => toMultiBase(
-                    toMultikey(key.bytes, key.keyType),
+                    toMultikey(key.bytes, key.type),
                   ),
                 )
                 .join(authSep)
@@ -415,7 +415,7 @@ class DidPeer {
           publicKeyMultibase: toMultiBase(
             toMultikey(
               key.bytes,
-              key.keyType,
+              key.type,
             ),
           ),
         ),

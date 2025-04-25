@@ -176,8 +176,8 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
-    final keyData = await keyPair.publicKey;
-    return Future.value(PublicKey(keyId, keyData.bytes, keyData.keyType));
+    final keyData = keyPair.publicKey;
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
   /// Retrieves the X25519 public key corresponding to the given Ed25519 key ID.

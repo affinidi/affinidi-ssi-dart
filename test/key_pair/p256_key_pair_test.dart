@@ -35,8 +35,8 @@ void main() {
 
     test('P-256 key pair should sign data and verify signature', () async {
       final p256key = P256KeyPair();
-      final publicKey = await p256key.publicKey;
-      expect(publicKey.keyType, KeyType.p256);
+      final publicKey = p256key.publicKey;
+      expect(publicKey.type, KeyType.p256);
       expect(publicKey.bytes.length, 33); // Compressed P-256 key length
     });
   });

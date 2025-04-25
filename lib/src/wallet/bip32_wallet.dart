@@ -180,8 +180,8 @@ class Bip32Wallet implements DeterministicWallet {
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
-    final keyData = await keyPair.publicKey;
-    return Future.value(PublicKey(keyId, keyData.bytes, keyData.keyType));
+    final keyData = keyPair.publicKey;
+    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
   @override

@@ -28,9 +28,9 @@ void main() {
     });
 
     test('Verifies data with valid signature', () async {
-      final signature = await wallet.sign(testData, keyId: publicKey.keyId);
+      final signature = await wallet.sign(testData, keyId: publicKey.id);
       final isValid = await wallet.verify(testData,
-          signature: signature, keyId: publicKey.keyId);
+          signature: signature, keyId: publicKey.id);
 
       expect(isValid, isTrue);
     });
@@ -38,7 +38,7 @@ void main() {
     test('Fails verification with invalid signature', () async {
       final invalidSignature = Uint8List.fromList(List.filled(256, 0));
       final isValid = await wallet.verify(testData,
-          signature: invalidSignature, keyId: publicKey.keyId);
+          signature: invalidSignature, keyId: publicKey.id);
 
       expect(isValid, isFalse);
     });

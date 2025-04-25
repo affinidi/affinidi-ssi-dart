@@ -6,13 +6,13 @@ import 'public_key.dart';
 /// An abstract interface for cryptographic key pairs used for signing and verifying data.
 abstract interface class KeyPair {
   /// id of the key pair
-  String get keyId;
+  String get id;
 
   /// Returns a list of [SignatureScheme]s supported by this key pair.
   List<SignatureScheme> get supportedSignatureSchemes;
 
   /// Returns the public key as as a touple with the type and bytes.
-  Future<PublicKey> get publicKey;
+  PublicKey get publicKey;
 
   /// Signs the provided data using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
   ///

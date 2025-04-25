@@ -34,7 +34,7 @@ void main() {
 
       final doc = DidPeer.generateDocument([accountPublicKey]);
       final actualDid = doc.id;
-      final actualKeyType = accountPublicKey.keyType;
+      final actualKeyType = accountPublicKey.type;
 
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerPeer);

@@ -21,13 +21,13 @@ void main() async {
 
   // Sign a sample payload using the generated P256 key ID.
   print('Signing payload with P256 key...');
-  final signatureP256 = await wallet.sign(dataToSign, keyId: p256key.keyId);
+  final signatureP256 = await wallet.sign(dataToSign, keyId: p256key.id);
   print('Signature: $signatureP256');
 
   // Verify the signature using the same P256 key ID and original data.
   print('Verifying P256 signature...');
   final verificationP256 = await wallet.verify(dataToSign,
-      signature: signatureP256, keyId: p256key.keyId);
+      signature: signatureP256, keyId: p256key.id);
   assert(verificationP256, "Verification failed");
   print('Verification succeeded');
 
@@ -40,14 +40,13 @@ void main() async {
 
   // Sign the same payload using the generated Ed25519 key ID.
   print('Signing payload with Ed25519 key...');
-  final signatureEd25519 =
-      await wallet.sign(dataToSign, keyId: ed25519key.keyId);
+  final signatureEd25519 = await wallet.sign(dataToSign, keyId: ed25519key.id);
   print('Signature: $signatureEd25519');
 
   // Verify the signature using the Ed25519 key ID.
   print('Verifying Ed25519 signature...');
   final verificationEd25519 = await wallet.verify(dataToSign,
-      signature: signatureEd25519, keyId: ed25519key.keyId);
+      signature: signatureEd25519, keyId: ed25519key.id);
   assert(verificationEd25519, "Verification failed");
   print('Verification succeeded');
 
@@ -61,20 +60,20 @@ void main() async {
   // Encrypt using the P256 key. When no peer public key is provided,
   // an ephemeral key pair is generated internally for ECDH, and the
   // ephemeral public key is prepended to the ciphertext.
-  print('Encrypting using ${p256key.keyId} (single-party mode)...');
+  print('Encrypting using ${p256key.id} (single-party mode)...');
   final encryptedSingleParty = await wallet.encrypt(
     plainText,
-    keyId: p256key.keyId,
+    keyId: p256key.id,
   );
   print('Encrypted data (single-party): $encryptedSingleParty');
 
   // Decrypt using the same P256 key. When no peer public key is provided,
   // the wallet expects the ephemeral public key to be prepended to the
   // ciphertext to compute the shared secret.
-  print('Decrypting using ${p256key.keyId} (single-party mode)...');
+  print('Decrypting using ${p256key.id} (single-party mode)...');
   final decryptedSingleParty = await wallet.decrypt(
     encryptedSingleParty,
-    keyId: p256key.keyId,
+    keyId: p256key.id,
   );
   print('Decrypted data (single-party): $decryptedSingleParty');
 
@@ -91,10 +90,10 @@ void main() async {
   // Alice encrypts data for Bob using her private key (identified by p256key.id)
   // and Bob's public key (bobP256key.bytes).
   print(
-      'Alice encrypting for Bob using her key ${p256key.keyId} and Bob\'s public key...');
+      'Alice encrypting for Bob using her key ${p256key.id} and Bob\'s public key...');
   final encryptedForBob = await wallet.encrypt(
     plainText,
-    keyId: p256key.keyId, // Alice's key ID
+    keyId: p256key.id, // Alice's key ID
     publicKey: bobP256key.bytes, // Bob's public key
   );
   print('Encrypted data (for Bob): $encryptedForBob');
@@ -102,10 +101,10 @@ void main() async {
   // Bob decrypts the data using his private key (identified by bobP256key.id)
   // and Alice's public key (p256key.bytes).
   print(
-      'Bob decrypting using his key ${bobP256key.keyId} and Alice\'s public key...');
+      'Bob decrypting using his key ${bobP256key.id} and Alice\'s public key...');
   final decryptedByBob = await bobWallet.decrypt(
     encryptedForBob,
-    keyId: bobP256key.keyId, // Bob's key ID
+    keyId: bobP256key.id, // Bob's key ID
     publicKey: p256key.bytes, // Alice's public key
   );
   print('Decrypted data (by Bob): $decryptedByBob');
@@ -123,20 +122,19 @@ void main() async {
   print('Charlie Ed25519 key pair created.');
 
   // Get the corresponding X25519 public keys for ECDH
-  final aliceX25519PublicKey =
-      await wallet.getX25519PublicKey(ed25519key.keyId);
+  final aliceX25519PublicKey = await wallet.getX25519PublicKey(ed25519key.id);
   final charlieX25519PublicKey =
-      await charlieWallet.getX25519PublicKey(charlieEd25519key.keyId);
+      await charlieWallet.getX25519PublicKey(charlieEd25519key.id);
   print('Alice X25519 Public Key: $aliceX25519PublicKey');
   print('Charlie X25519 Public Key: $charlieX25519PublicKey');
 
   // Alice encrypts data for Charlie using her Ed25519 private key
   // and Charlie's X25519 public key.
   print(
-      'Alice encrypting for Charlie using her key ${ed25519key.keyId} and Charlie\'s X25519 public key...');
+      'Alice encrypting for Charlie using her key ${ed25519key.id} and Charlie\'s X25519 public key...');
   final encryptedForCharlie = await wallet.encrypt(
     plainText,
-    keyId: ed25519key.keyId,
+    keyId: ed25519key.id,
     publicKey: charlieX25519PublicKey,
   );
   print('Encrypted data (for Charlie): $encryptedForCharlie');
@@ -144,10 +142,10 @@ void main() async {
   // Charlie decrypts the data using his Ed25519 private key
   // and Alice's X25519 public key.
   print(
-      'Charlie decrypting using his key ${charlieEd25519key.keyId} and Alice\'s X25519 public key...');
+      'Charlie decrypting using his key ${charlieEd25519key.id} and Alice\'s X25519 public key...');
   final decryptedByCharlie = await charlieWallet.decrypt(
     encryptedForCharlie,
-    keyId: charlieEd25519key.keyId,
+    keyId: charlieEd25519key.id,
     publicKey: aliceX25519PublicKey,
   );
   print('Decrypted data (by Charlie): $decryptedByCharlie');

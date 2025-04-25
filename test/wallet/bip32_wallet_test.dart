@@ -25,12 +25,12 @@ void main() {
 
     test('deriveKey should derive a new Secp256k1 key pair', () async {
       final newKey = await wallet.deriveKey(derivationPath: testPath1);
-      expect(newKey.keyId, isNotNull);
-      expect(newKey.keyId, isNotEmpty);
-      expect(await wallet.hasKey(newKey.keyId), isTrue);
+      expect(newKey.id, isNotNull);
+      expect(newKey.id, isNotEmpty);
+      expect(await wallet.hasKey(newKey.id), isTrue);
       expect(newKey.type, KeyType.secp256k1);
 
-      final storedKey = await keyStore.get(newKey.keyId);
+      final storedKey = await keyStore.get(newKey.id);
       expect(storedKey, isNotNull);
       expect(storedKey!.representation, StoredKeyRepresentation.derivationPath);
       expect(storedKey.derivationPath, testPath1);
@@ -47,7 +47,7 @@ void main() {
       final sameKey =
           await wallet.deriveKey(keyId: testKeyId1, derivationPath: testPath1);
       expect(sameKey.bytes, firstKey.bytes);
-      expect(sameKey.keyId, firstKey.keyId);
+      expect(sameKey.id, firstKey.id);
       expect(sameKey.type, firstKey.type);
     });
 
@@ -93,9 +93,9 @@ void main() {
 
     test('getPublicKey should retrieve existing key pairs', () async {
       final generatedKey = await wallet.deriveKey(derivationPath: testPath1);
-      final derivedKey = await wallet.getPublicKey(generatedKey.keyId);
-      expect(derivedKey.keyType, KeyType.secp256k1);
-      expect(derivedKey.keyId, generatedKey.keyId);
+      final derivedKey = await wallet.getPublicKey(generatedKey.id);
+      expect(derivedKey.type, KeyType.secp256k1);
+      expect(derivedKey.id, generatedKey.id);
     });
 
     test('getPublicKey should throw for non-existent keyId', () async {
@@ -111,7 +111,7 @@ void main() {
 
     test('getPublicKey should return the correct public key', () async {
       final derivedKey = await wallet.deriveKey(derivationPath: testPath1);
-      final retrievedKey = await wallet.getPublicKey(derivedKey.keyId);
+      final retrievedKey = await wallet.getPublicKey(derivedKey.id);
       expect(retrievedKey.bytes, equals(derivedKey.bytes));
       expect(retrievedKey.bytes.length, 33);
     });
@@ -131,23 +131,23 @@ void main() {
       final key1 = await wallet.deriveKey(derivationPath: testPath1);
       final key2 = await wallet.deriveKey(derivationPath: testPath2);
 
-      final derivedSignature = await wallet.sign(dataToSign, keyId: key1.keyId);
+      final derivedSignature = await wallet.sign(dataToSign, keyId: key1.id);
       expect(
           await wallet.verify(dataToSign,
-              signature: derivedSignature, keyId: key1.keyId),
+              signature: derivedSignature, keyId: key1.id),
           isTrue);
 
       // Verification should fail with wrong key
       expect(
           await wallet.verify(dataToSign,
-              signature: derivedSignature, keyId: key2.keyId), // Use key2's ID
+              signature: derivedSignature, keyId: key2.id), // Use key2's ID
           isFalse);
 
       // Verification should fail with tampered data
       final tamperedData = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(
           await wallet.verify(tamperedData,
-              signature: derivedSignature, keyId: key1.keyId),
+              signature: derivedSignature, keyId: key1.id),
           isFalse);
 
       // Verification should fail with tampered signature
@@ -155,7 +155,7 @@ void main() {
       tamperedSignature[0] = tamperedSignature[0] ^ 0xFF;
       expect(
           await wallet.verify(dataToSign,
-              signature: tamperedSignature, keyId: key1.keyId),
+              signature: tamperedSignature, keyId: key1.id),
           isFalse);
     });
 
@@ -172,7 +172,7 @@ void main() {
 
     test('verify should throw for non-existent keyId', () async {
       final key = await wallet.deriveKey(derivationPath: testPath1);
-      final signature = await wallet.sign(dataToSign, keyId: key.keyId);
+      final signature = await wallet.sign(dataToSign, keyId: key.id);
       expect(
         () async => await wallet.verify(dataToSign,
             signature: signature, keyId: nonExistentKeyId),
@@ -186,7 +186,7 @@ void main() {
 
     test('hasKey should correctly report key existence', () async {
       final generatedKey = await wallet.deriveKey(derivationPath: testPath1);
-      expect(await wallet.hasKey(generatedKey.keyId), isTrue);
+      expect(await wallet.hasKey(generatedKey.id), isTrue);
       expect(await wallet.hasKey(nonExistentKeyId), isFalse);
     });
 
@@ -215,8 +215,7 @@ void main() {
     test('getSupportedSignatureSchemes should return correct schemes',
         () async {
       final key = await wallet.deriveKey(derivationPath: testPath1);
-      final derivedSchemes =
-          await wallet.getSupportedSignatureSchemes(key.keyId);
+      final derivedSchemes = await wallet.getSupportedSignatureSchemes(key.id);
       expect(derivedSchemes, contains(SignatureScheme.ecdsa_secp256k1_sha256));
       expect(derivedSchemes.length, 1);
     });
@@ -288,14 +287,14 @@ void main() {
       // Alice encrypts for Bob
       final encryptedData = await aliceWallet.encrypt(
         plainText,
-        keyId: aliceKey.keyId,
+        keyId: aliceKey.id,
         publicKey: bobKey.bytes, // Use Bob's public key bytes
       );
 
       // Bob decrypts using Alice's public key
       final decryptedData = await bobWallet.decrypt(
         encryptedData,
-        keyId: bobKey.keyId,
+        keyId: bobKey.id,
         publicKey: aliceKey.bytes, // Use Alice's public key bytes
       );
 
@@ -307,14 +306,14 @@ void main() {
       // Alice encrypts for herself
       final encryptedData = await aliceWallet.encrypt(
         plainText,
-        keyId: aliceKey.keyId,
+        keyId: aliceKey.id,
         // No public key provided, implies ephemeral key usage
       );
 
       // Alice decrypts using only her key
       final decryptedData = await aliceWallet.decrypt(
         encryptedData,
-        keyId: aliceKey.keyId,
+        keyId: aliceKey.id,
         // No public key provided
       );
 
@@ -334,7 +333,7 @@ void main() {
       // Alice encrypts for Bob
       final encryptedData = await aliceWallet.encrypt(
         plainText,
-        keyId: aliceKey.keyId,
+        keyId: aliceKey.id,
         publicKey: bobKey.bytes, // Use Bob's public key bytes
       );
 
@@ -342,7 +341,7 @@ void main() {
       expect(
         () async => await bobWallet.decrypt(
           encryptedData,
-          keyId: bobKey.keyId,
+          keyId: bobKey.id,
           publicKey: eveKey.bytes, // Wrong sender public key (Eve's)
         ),
         throwsA(isA<SsiException>().having((error) => error.code, 'code',

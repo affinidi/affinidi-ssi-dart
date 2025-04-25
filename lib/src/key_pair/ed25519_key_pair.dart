@@ -23,9 +23,9 @@ class Ed25519KeyPair implements KeyPair {
   final ed.PrivateKey _privateKey;
   final _encryptionUtils = EncryptionUtils();
   @override
-  final String keyId;
+  final String id;
 
-  Ed25519KeyPair._(this._privateKey, this.keyId);
+  Ed25519KeyPair._(this._privateKey, this.id);
 
   /// Generates a new Ed25519 key pair.
   /// Returns the KeyPair instance and its private key bytes.
@@ -62,13 +62,13 @@ class Ed25519KeyPair implements KeyPair {
   ///
   /// Returns the key as [Uint8List].
   @override
-  Future<PublicKey> get publicKey => Future.value(PublicKey(
-        keyId,
+  PublicKey get publicKey => PublicKey(
+        id,
         Uint8List.fromList(
           ed.public(_privateKey).bytes,
         ),
         KeyType.ed25519,
-      ));
+      );
 
   /// Signs the provided data using Ed25519.
   ///

@@ -22,7 +22,7 @@ class Secp256k1KeyPair implements KeyPair {
   final BIP32 _node;
   final ec.Curve _secp256k1 = ec.getSecp256k1();
   @override
-  final String keyId;
+  final String id;
 
   /// Creates a new [Secp256k1KeyPair] instance.
   ///
@@ -32,11 +32,10 @@ class Secp256k1KeyPair implements KeyPair {
     required BIP32 node,
     String? id,
   })  : _node = node,
-        keyId = id ?? randomId();
+        id = id ?? randomId();
 
   @override
-  Future<PublicKey> get publicKey =>
-      Future.value(PublicKey(keyId, _node.publicKey, KeyType.secp256k1));
+  PublicKey get publicKey => PublicKey(id, _node.publicKey, KeyType.secp256k1);
 
   @override
   Future<Uint8List> sign(
