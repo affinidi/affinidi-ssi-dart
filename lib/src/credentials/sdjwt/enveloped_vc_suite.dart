@@ -1,6 +1,6 @@
 import '../../../ssi.dart';
 import '../models/parsed_vc.dart';
-import '../models/v2/vc_data_model_v2.dart';
+import '../models/v2/mutable_vc_data_model_v2.dart';
 import '../parsers/ld_parser.dart';
 import '../suites/vc_suite.dart';
 import '../suites/vc_suites.dart';

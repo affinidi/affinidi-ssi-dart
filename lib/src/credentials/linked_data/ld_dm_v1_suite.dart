@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import '../models/v1/mutable_vc_data_model_v1.dart';
 import '../models/v1/vc_data_model_v1.dart';
-import '../models/v1/vc_data_model_v1_view.dart';
 import '../models/verifiable_credential.dart';
 import '../suites/vc_suite.dart';
 import 'ld_base_suite.dart';
