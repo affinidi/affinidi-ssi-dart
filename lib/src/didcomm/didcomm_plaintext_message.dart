@@ -7,6 +7,8 @@ import 'package:ssi/src/didcomm/didcomm_signed_message.dart';
 import 'package:ssi/src/didcomm/utils.dart';
 import 'package:ssi/src/didcomm/web_redirect.dart';
 import 'package:ssi/src/wallet/wallet.dart';
+import 'package:ssi/ssi.dart';
+import 'package:uuid/uuid.dart';
 
 import '../types.dart';
 import 'types.dart';
@@ -55,6 +57,11 @@ class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
       this.returnRoute}) {
     if (pleaseAck) this.pleaseAck = [id];
     this.threadId = threadId ?? id;
+  }
+
+  factory DidcommPlaintextMessage.to(String to,
+      {required String type, required Map<String, dynamic> body}) {
+    return DidcommPlaintextMessage(id: Uuid().v4(), type: type, body: body);
   }
 
   Future<DidcommEncryptedMessage> encrypt(

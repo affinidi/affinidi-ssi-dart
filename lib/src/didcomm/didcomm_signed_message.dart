@@ -73,6 +73,7 @@ class DidcommSignedMessage implements JsonObject, DidcommMessage {
   static Future<DidcommSignedMessage> fromPlaintext(
       DidcommPlaintextMessage message,
       {required DidSigner signer}) async {
+    message.from ??= signer.did;
     DidcommSignedMessage signedMessage = DidcommSignedMessage(payload: message);
     return signedMessage.sign(signer);
   }

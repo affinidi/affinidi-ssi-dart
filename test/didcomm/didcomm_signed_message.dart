@@ -53,6 +53,33 @@ void main() {
       expect(actual, true);
     });
 
+    test('set plaintext message sender (from) when signing', () async {
+      DidcommPlaintextMessage messageWithoutSender = DidcommPlaintextMessage.to(
+          'did:key:123456',
+          type: 'type',
+          body: {"foo": 'bar'});
+
+      final foobar = await messageWithoutSender.sign(aliceSigner);
+
+      expect(messageWithoutSender.from, aliceSigner.did);
+      expect(foobar.payload.toJson()['from'], aliceSigner.did);
+    });
+
+    test('do not overwrite sender (from) value if already set', () async {
+      String from = 'did:key:99999';
+      DidcommPlaintextMessage messageWithSender = DidcommPlaintextMessage(
+        id: '2fb19055-581d-488e-b357-9d026bee98fc',
+        to: ['did:key:123456'],
+        from: from,
+        type: 'type',
+        body: {"foo": 'bar'},
+      );
+
+      final actual = await messageWithSender.sign(aliceSigner);
+      expect(actual.payload.toJson()['from'], from);
+      expect(messageWithSender.from, from);
+    });
+
     test('verification fails', () async {
       DidcommSignedMessage signedMessage = await message.sign(aliceSigner);
 
