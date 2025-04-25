@@ -1,6 +1,5 @@
-import 'package:ssi/src/credentials/proof/proof_purpose.dart';
-
 import '../../types.dart';
+import '../proof/proof_purpose.dart';
 import 'embedded_proof.dart';
 
 /// Function type for loading external documents referenced in proofs.

@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/proof/proof_purpose.dart';
-
 import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -9,6 +7,7 @@ import '../models/doc_with_embedded_proof.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
+import '../proof/proof_purpose.dart';
 
 /// Options for LD based data model operations.
 ///
