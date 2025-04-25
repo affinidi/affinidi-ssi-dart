@@ -8,9 +8,9 @@ void main() {
   group('InMemoryKeyStore', () {
     late InMemoryKeyStore keyStore;
     const testKeyId = 'test-key';
-    final testStoredKey = StoredKey(
-      type: KeyType.p256,
-      key: Uint8List.fromList([1, 2, 3]),
+    final testStoredKey = StoredKey.fromPrivateKey(
+      keyType: KeyType.p256,
+      keyBytes: Uint8List.fromList([1, 2, 3]),
     );
     final testSeed = Uint8List.fromList([10, 20, 30]);
 
@@ -23,8 +23,10 @@ void main() {
       await keyStore.set(testKeyId, testStoredKey);
       final retrievedKey = await keyStore.get(testKeyId);
       expect(retrievedKey, isNotNull);
-      expect(retrievedKey!.type, testStoredKey.type);
-      expect(retrievedKey.key, testStoredKey.key);
+      expect(retrievedKey!.representation,
+          StoredKeyRepresentation.privateKeyBytes);
+      expect(retrievedKey.keyType, testStoredKey.keyType);
+      expect(retrievedKey.privateKeyBytes, testStoredKey.privateKeyBytes);
     });
 
     test('setSeed and getSeed should store and retrieve the seed', () async {

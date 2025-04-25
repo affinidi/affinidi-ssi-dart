@@ -1,8 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
+import 'dart:typed_data';
 
+/// Initialize a DID signer from seed
 Future<DidSigner> initSigner(Uint8List seed) async {
   final keyStore = InMemoryKeyStore();
   final wallet = await Bip32Wallet.fromSeed(seed, keyStore);

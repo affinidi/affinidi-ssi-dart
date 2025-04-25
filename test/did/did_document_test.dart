@@ -90,26 +90,22 @@ void main() {
             DidDocument.fromJson(DidDocumentFixtures.didDocumentValid);
 
         test("it retrieves correct id", () {
-          expect(didDoc.id,
-              "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io");
+          expect(didDoc.id, "did:web:example.com");
         });
 
         test("it retrieves correct authentication", () {
-          expect(didDoc.authentication[0],
-              "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0");
+          expect(didDoc.authentication[0], "did:web:example.com#key-0");
           expect(didDoc.authentication[1], isA<VerificationMethod>());
         });
 
         test("it retrieves correct also know as", () {
-          expect(didDoc.alsoKnownAs, [
-            "did:web:ee958780-4507-44fb-9af6-a61fdsda54b0f.atlas.dev.affinidi.io"
-          ]);
+          expect(didDoc.alsoKnownAs, ["did:web:alias.example.com"]);
         });
 
         test("it retrieves correct capability invacation", () {
           expect(
             didDoc.capabilityInvocation[0],
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+            "did:web:example.com#key-0",
           );
           expect(didDoc.capabilityInvocation[1], isA<VerificationMethod>());
         });
@@ -117,31 +113,29 @@ void main() {
         test("it retrieves correct capability delegation", () {
           expect(
             didDoc.capabilityDelegation[0],
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-1",
+            "did:web:example.com#key-1",
           );
           expect(didDoc.capabilityDelegation[1], isA<VerificationMethod>());
         });
 
         test("it retrieves correct aasertion method", () {
-          expect(didDoc.assertionMethod[0],
-              "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0");
+          expect(didDoc.assertionMethod[0], "did:web:example.com#key-0");
         });
 
         test("it retrieves correct verififcation methods", () {
           expect(
             didDoc.verificationMethod[0].id,
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+            "did:web:example.com#key-0",
           );
           expect(
             didDoc.verificationMethod[1].id,
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-1",
+            "did:web:example.com#key-1",
           );
           expect(didDoc.verificationMethod[0].type, "JsonWebKey2020");
         });
 
         test("it retrieves correct service", () {
-          expect(didDoc.service[0].id,
-              "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#service");
+          expect(didDoc.service[0].id, "did:web:example.com#service");
           expect(didDoc.service[0].type, "DIDCommMessaging");
         });
 
@@ -192,8 +186,7 @@ void main() {
       final serviceEndpoint =
           ServiceEndpoint.fromJson(DidDocumentFixtures.serviceEndpointValid);
       test("it retrieves correct id", () {
-        expect(serviceEndpoint.id,
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#service");
+        expect(serviceEndpoint.id, "did:web:example.com#service");
       });
 
       test("it retrieves correct type", () {
@@ -205,14 +198,12 @@ void main() {
           {
             "accept": ["didcomm/v2"],
             "routingKeys": [],
-            "uri":
-                "https://ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io"
+            "uri": "https://example.com"
           },
           {
             "accept": ["didcomm/v2"],
             "routingKeys": [],
-            "uri":
-                "wss://ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io/ws"
+            "uri": "wss://example.com/ws"
           }
         ]);
       });

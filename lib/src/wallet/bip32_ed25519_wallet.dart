@@ -5,63 +5,85 @@ import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
+import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
-import '../wallet/key_store/key_store_interface.dart';
 import '../types.dart';
-import 'wallet.dart';
+import '../utility.dart';
+import 'deterministic_wallet.dart';
+import 'key_store/key_store_interface.dart';
+import 'key_store/stored_key.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with Ed25519 keys.
 ///
 /// This wallet can create and manage multiple key pairs derived from a single seed.
 /// It supports signing and verifying messages using Ed25519 signature scheme,
 /// and ecrypting/decrypting payloads.
-class Bip32Ed25519Wallet implements Wallet {
-  /// The base derivation path.
-  static const baseDerivationPath = "m/44'/60'/0'/0'/0'";
+class Bip32Ed25519Wallet implements DeterministicWallet {
+  final KeyStore _keyStore;
+  // Runtime cache for derived KeyPair objects
+  final Map<String, Ed25519KeyPair> _runtimeCache = {};
+  // Cache for the seed to avoid repeated KeyStore lookups
+  Uint8List? _cachedSeed;
 
-  /// The identifier for the root key pair.
-  static const rootKeyId = "0-0";
+  /// Creates a new [Bip32Ed25519Wallet] instance backed by a [KeyStore].
+  /// The KeyStore *must* contain a seed set via `setSeed` or be populated
+  /// using the `fromSeed` factory.
+  ///
+  /// [keyStore] - The KeyStore used to persist key derivation paths and the master seed.
+  Bip32Ed25519Wallet(this._keyStore);
 
-  /// The map of key identifiers to key pairs.
-  final Map<String, Ed25519KeyPair> _keyMap;
-
-  /// Creates a new [Bip32Ed25519Wallet] instance with the given key map.
-  Bip32Ed25519Wallet._(this._keyMap);
-
-  static Future<Bip32Ed25519Wallet> fromSeed(Uint8List seed) async {
-    KeyData master = await ED25519_HD_KEY.getMasterKeyFromSeed(seed);
-    final rootKeyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(master.key));
-    Map<String, Ed25519KeyPair> keyMap = {rootKeyId: rootKeyPair};
-    return Bip32Ed25519Wallet._(keyMap);
+  /// Creates a new [Bip32Ed25519Wallet] using the provided seed and stores
+  /// the seed in the [keyStore]. Overwrites existing seed.
+  ///
+  /// [seed] - The master seed bytes.
+  /// [keyStore] - The KeyStore to use.
+  static Future<Bip32Ed25519Wallet> fromSeed(
+      Uint8List seed, KeyStore keyStore) async {
+    await keyStore.setSeed(seed);
+    final wallet = Bip32Ed25519Wallet(keyStore);
+    wallet._cachedSeed = seed;
+    return wallet;
   }
 
-  /// Creates a new [Bip32Ed25519Wallet] instance from a KeyStore by retrieving the seed.
+  /// Creates a new [Bip32Ed25519Wallet] from an existing [KeyStore].
+  /// Throws if the seed is not found in the KeyStore.
   ///
-  /// [keyStore] - The KeyStore to use to fetch the seed.
-  ///
-  /// Returns a [Future] that completes with the new [Bip32Ed25519Wallet] instance.
-  /// Throws [ArgumentError] if the seed is not found in the KeyStore.
-  static Future<Bip32Ed25519Wallet> fromKeyStore(
-    KeyStore keyStore,
-  ) async {
-    final storedSeed = await keyStore.getSeed();
-    if (storedSeed == null) {
-      throw ArgumentError(
-          'Seed not found in KeyStore. Cannot create Bip32Ed25519Wallet.');
+  /// [keyStore] - The KeyStore containing the seed and key mappings.
+  static Future<Bip32Ed25519Wallet> fromKeyStore(KeyStore keyStore) async {
+    final seed = await keyStore.getSeed();
+    if (seed == null) {
+      throw SsiException(
+          message:
+              'Seed not found in KeyStore. Cannot create Bip32Ed25519Wallet from this KeyStore.',
+          code: SsiExceptionType.seedNotFound.code);
     }
-    // Bip32Ed25519Wallet.fromSeed is async, so we await it
-    return await Bip32Ed25519Wallet.fromSeed(storedSeed);
+    final wallet = Bip32Ed25519Wallet(keyStore);
+    wallet._cachedSeed = seed;
+    return wallet;
+  }
+
+  Future<Uint8List> _getSeed() async {
+    if (_cachedSeed != null) return _cachedSeed!;
+    final seed = await _keyStore.getSeed();
+    if (seed == null) {
+      throw SsiException(
+          message: 'Seed not found in KeyStore during operation.',
+          code: SsiExceptionType.seedNotFound.code);
+    }
+    _cachedSeed = seed;
+    return seed;
   }
 
   @override
   Future<bool> hasKey(String keyId) {
-    return Future.value(_keyMap.containsKey(keyId));
+    if (_runtimeCache.containsKey(keyId)) return Future.value(true);
+    return _keyStore.contains(keyId);
   }
 
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String keyId) async {
-    final keyPair = _getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
 
@@ -70,8 +92,8 @@ class Bip32Ed25519Wallet implements Wallet {
     Uint8List data, {
     required String keyId,
     SignatureScheme? signatureScheme,
-  }) {
-    final keyPair = _getKeyPair(keyId);
+  }) async {
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
@@ -81,8 +103,8 @@ class Bip32Ed25519Wallet implements Wallet {
     required Uint8List signature,
     required String keyId,
     SignatureScheme? signatureScheme,
-  }) {
-    final keyPair = _getKeyPair(keyId);
+  }) async {
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.verify(
       data,
       signature,
@@ -91,50 +113,70 @@ class Bip32Ed25519Wallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) async {
-    if (keyId == null) {
-      throw SsiException(
-        message: 'Key id is required for hierarchical wallets',
-        code: SsiExceptionType.other.code,
-      );
+  Future<KeyPair> deriveKey({
+    String? keyId,
+    KeyType? keyType,
+    required String derivationPath,
+  }) async {
+    // TODO: thoroughly validate derivation path. If not fully hardened did peer fails
+    if (!derivationPath.startsWith('m/')) {
+      throw ArgumentError(
+          'Invalid derivation path format. Must start with "m/".');
     }
-    if (keyType != null && keyType != KeyType.ed25519) {
+
+    final effectiveKeyType = keyType ?? KeyType.ed25519;
+    if (effectiveKeyType != KeyType.ed25519) {
       throw SsiException(
         message:
-            'Unsupported key type. Only ed25519 key type is supported for Bip32Ed25519Wallet.',
+            'Invalid keyType specified. Bip32Ed25519Wallet only generates ed25519 keys.',
         code: SsiExceptionType.invalidKeyType.code,
       );
     }
-    if (_keyMap.containsKey(keyId)) {
-      final keyData = await _keyMap[keyId]!.publicKey;
-      return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+
+    final effectiveKeyId = keyId ?? randomId();
+
+    if (await _keyStore.contains(effectiveKeyId)) {
+      // Key ID exists, ensure it points to the same path or handle conflict
+      final existingStoredKey = await _keyStore.get(effectiveKeyId);
+      if (existingStoredKey != null &&
+          existingStoredKey.representation ==
+              StoredKeyRepresentation.derivationPath &&
+          existingStoredKey.derivationPath == derivationPath &&
+          existingStoredKey.keyType == effectiveKeyType) {
+        return _getKeyPair(effectiveKeyId);
+      } else {
+        throw ArgumentError(
+            "Key ID $effectiveKeyId already exists in KeyStore but with incompatible data.");
+      }
     }
-    if (!_keyMap.containsKey(rootKeyId)) {
-      throw SsiException(
-        message: 'Root key pair is missing.',
-        code: SsiExceptionType.keyPairMissingPrivateKey.code,
-      );
-    }
-    final (accountNumber, accountKeyId) = _validateKeyId(keyId);
 
-    final derivationPath =
-        _buildDerivationPath(baseDerivationPath, accountNumber, accountKeyId);
-    final seedBytes = _keyMap[rootKeyId]!.getSeed();
+    final storedKey = StoredKey.fromDerivationPath(
+      keyType: effectiveKeyType,
+      path: derivationPath,
+    );
+    await _keyStore.set(effectiveKeyId, storedKey);
 
-    KeyData derived =
-        await ED25519_HD_KEY.derivePath(derivationPath, seedBytes.toList());
+    final seed = await _getSeed();
+    final derivedData = await ED25519_HD_KEY.derivePath(derivationPath, seed);
+    final keyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key),
+        id: effectiveKeyId);
+    _runtimeCache[effectiveKeyId] = keyPair;
+    return keyPair;
+  }
 
-    final keyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(derived.key));
-    _keyMap[keyId] = keyPair;
-
-    final keyData = await _keyMap[keyId]!.publicKey;
-    return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+  @override
+  Future<KeyPair> generateKey({String? keyId, KeyType? keyType}) {
+    // Bip32Ed25519Wallet requires a derivation path.
+    // Throw an error if the base generateKey (without path) is called.
+    throw UnsupportedError(
+      'Bip32Ed25519Wallet requires a derivation path. Use deriveKey instead.',
+    );
   }
 
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
-    final keyPair = _getKeyPair(keyId);
-    final keyData = await keyPair.publicKey;
+    final keyPair = await _getKeyPair(keyId);
+    final keyData = keyPair.publicKey;
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
@@ -147,7 +189,7 @@ class Bip32Ed25519Wallet implements Wallet {
   ///
   /// Returns a [Future] that completes with the X25519 public key as a [Uint8List].
   Future<Uint8List> getX25519PublicKey(String keyId) async {
-    final keyPair = _getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();
     return Uint8List.fromList(x25519PublicKey.bytes);
   }
@@ -157,8 +199,8 @@ class Bip32Ed25519Wallet implements Wallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
-  }) {
-    final keyPair = _getKeyPair(keyId);
+  }) async {
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.encrypt(data, publicKey: publicKey);
   }
 
@@ -167,70 +209,56 @@ class Bip32Ed25519Wallet implements Wallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
-  }) {
-    final keyPair = _getKeyPair(keyId);
+  }) async {
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  /// Retrieves the key pair with the specified identifier.
-  ///
-  /// [keyId] - The identifier of the key pair to retrieve.
-  ///
-  /// Returns the [Ed25519KeyPair].
-  ///
-  /// Throws an [SsiException] if the key is invalid.
-  Ed25519KeyPair _getKeyPair(String keyId) {
-    if (_keyMap.containsKey(keyId)) {
-      return _keyMap[keyId]!;
-    } else {
-      throw SsiException(
-        message: 'Invalid Key ID: $keyId',
-        code: SsiExceptionType.keyPairMissingPrivateKey.code,
-      );
+  Future<Ed25519KeyPair> _getKeyPair(String keyId) async {
+    if (_runtimeCache.containsKey(keyId)) {
+      return _runtimeCache[keyId]!;
     }
+
+    final storedKey = await _keyStore.get(keyId);
+    if (storedKey == null) {
+      throw SsiException(
+          message: "Key not found in KeyStore: $keyId",
+          code: SsiExceptionType.keyNotFound.code);
+    }
+
+    if (storedKey.representation != StoredKeyRepresentation.derivationPath) {
+      throw SsiException(
+          message:
+              "KeyStore entry for $keyId is not stored as a derivation path (found ${storedKey.representation}). Incompatible with Bip32Ed25519Wallet.",
+          code: SsiExceptionType.invalidKeyType.code);
+    }
+    if (storedKey.keyType != KeyType.ed25519) {
+      throw SsiException(
+          message:
+              "KeyStore entry for $keyId indicates type ${storedKey.keyType}, but Bip32Ed25519Wallet requires ed25519.",
+          code: SsiExceptionType.invalidKeyType.code);
+    }
+
+    final derivationPath = storedKey.derivationPath;
+    if (derivationPath == null) {
+      throw SsiException(
+          message:
+              "StoredKey for $keyId has derivationPath representation but null path.",
+          code: SsiExceptionType.other.code);
+    }
+
+    final seed = await _getSeed();
+
+    final derivedData = await ED25519_HD_KEY.derivePath(derivationPath, seed);
+    final keyPair =
+        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
+
+    _runtimeCache[keyId] = keyPair;
+    return keyPair;
   }
 
-  /// Validates and parses a key identifier.
-  ///
-  /// [keyId] - The key identifier to validate and parse.
-  ///
-  /// Returns a tuple containing the account number and account key ID.
-  ///
-  /// Throws an [SsiException] if the key ID format is invalid.
-  static (int, int) _validateKeyId(String keyId) {
-    // NOTE: agree on approach for multikey support
-    // option 1: keyId is composed as `{accountNumber}-{accountKeyId}`
-    // option 2: separate the identifiers and require both
-    // option 3: use the full derivation path as keyId
-    var accountNumber = 0;
-    var accountKeyId = 0;
-    try {
-      List<String> parts = keyId.split("-");
-      accountNumber = int.parse(parts[0]);
-      accountKeyId = int.parse(parts[1]);
-    } catch (e) {
-      throw SsiException(
-        message:
-            'keyId must be in format {accountNumber}-{accountKeyId}, both positive integers.',
-        originalMessage: e.toString(),
-        code: SsiExceptionType.other.code,
-      );
-    }
-    return (accountNumber, accountKeyId);
-  }
-
-  /// Builds a derivation path from the base path and account information.
-  ///
-  /// [baseDerivationPath] - The base derivation path.
-  /// [accountNumber] - The account number.
-  /// [accountKeyId] - The account key ID.
-  ///
-  /// Returns the complete derivation path.
-  static String _buildDerivationPath(
-      String baseDerivationPath, int accountNumber, int accountKeyId) {
-    List<String> parts = baseDerivationPath.split('/');
-    parts[3] = "$accountNumber'";
-    parts[5] = "$accountKeyId'";
-    return parts.join('/');
+  void clearCache() {
+    _runtimeCache.clear();
+    _cachedSeed = null;
   }
 }

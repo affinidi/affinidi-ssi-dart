@@ -1,10 +1,10 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/p256_key_pair.dart';
+import '../utility.dart';
 import 'key_store/key_store_interface.dart';
 import 'key_store/stored_key.dart';
 import 'wallet.dart';
@@ -18,17 +18,18 @@ import '../types.dart';
 /// It supports signing and verifying messages, and ecrypting/decrypting payloads.
 class GenericWallet implements Wallet {
   final KeyStore _keyStore;
-  static final randomIdLength = 32;
+  // Optional: Runtime cache for KeyPair objects to avoid reconstruction
+  final Map<String, KeyPair> _runtimeCache = {};
 
-  /// Creates a new [GenericWallet] instance from a KeyStore.
+  /// Creates a new [GenericWallet] instance backed by a [KeyStore].
   ///
-  /// [keyStore] - The KeyStore to use to store the keys.
-  ///
-  /// Returns a new [GenericWallet] instance.
-  GenericWallet(KeyStore keyStore) : _keyStore = keyStore;
+  /// [keyStore] - The KeyStore used to persist key information.
+  GenericWallet(this._keyStore);
 
   @override
   Future<bool> hasKey(String keyId) {
+    // Check cache first, then keystore
+    if (_runtimeCache.containsKey(keyId)) return Future.value(true);
     return _keyStore.contains(keyId);
   }
 
@@ -61,43 +62,48 @@ class GenericWallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) async {
-    if (keyId != null && await _keyStore.contains(keyId)) {
-      throw ArgumentError("Key already exists: $keyId");
+  Future<KeyPair> generateKey({
+    String? keyId,
+    KeyType? keyType,
+  }) async {
+    final effectiveKeyId = keyId ?? randomId();
+    if (await _keyStore.contains(effectiveKeyId)) {
+      // Found key in key store
+      return _getKeyPair(effectiveKeyId);
     }
 
-    keyId ??= _randomId();
-    keyType ??= KeyType.p256;
+    final effectiveKeyType = keyType ?? KeyType.p256;
 
-    if (keyType == KeyType.p256) {
-      final keyPair = P256KeyPair();
-      final storedKey = StoredKey(
-        type: KeyType.p256,
-        key: await keyPair.privateKey,
-      );
-      await _keyStore.set(keyId, storedKey);
+    KeyPair keyPairInstance;
+    Uint8List privateKeyBytes;
 
-      final keyData = await keyPair.publicKey;
-      return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
-    } else if (keyType == KeyType.ed25519) {
-      final keyPair = Ed25519KeyPair();
-      final storedKey = StoredKey(
-        type: KeyType.ed25519,
-        key: await keyPair.privateKey,
-      );
-      await _keyStore.set(keyId, storedKey);
-      final keyData = await keyPair.publicKey;
-      return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
+    if (effectiveKeyType == KeyType.p256) {
+      final (instance, pKeyBytes) = P256KeyPair.generate(id: effectiveKeyId);
+      keyPairInstance = instance;
+      privateKeyBytes = pKeyBytes;
+    } else if (effectiveKeyType == KeyType.ed25519) {
+      final (instance, pKeyBytes) = Ed25519KeyPair.generate(id: effectiveKeyId);
+      keyPairInstance = instance;
+      privateKeyBytes = pKeyBytes;
+    } else {
+      throw ArgumentError(
+          "Unsupported key type for GenericWallet: $effectiveKeyType. Only p256 and ed25519 are supported.");
     }
 
-    throw ArgumentError(
-        "Only p256 and ed25519 key types are supported for GenericWallet");
+    final storedKey = StoredKey.fromPrivateKey(
+      keyType: effectiveKeyType,
+      keyBytes: privateKeyBytes,
+    );
+    await _keyStore.set(effectiveKeyId, storedKey);
+    _runtimeCache[effectiveKeyId] = keyPairInstance;
+
+    return keyPairInstance;
   }
 
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
-    final keyData = await keyPair.publicKey;
+    final keyData = keyPair.publicKey;
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
@@ -145,29 +151,49 @@ class GenericWallet implements Wallet {
   }
 
   Future<KeyPair> _getKeyPair(String keyId) async {
-    final storedKeyPair = await _keyStore.get(keyId);
-    if (storedKeyPair == null) {
-      throw ArgumentError("Key not found: $keyId");
+    if (_runtimeCache.containsKey(keyId)) {
+      return _runtimeCache[keyId]!;
     }
 
-    final keyType = storedKeyPair.type;
-    final privateKeyBytes = storedKeyPair.key;
+    final storedKey = await _keyStore.get(keyId);
+    if (storedKey == null) {
+      throw SsiException(
+          message: "Key not found in KeyStore: $keyId",
+          code: SsiExceptionType.keyNotFound.code);
+    }
 
+    if (storedKey.representation != StoredKeyRepresentation.privateKeyBytes) {
+      throw SsiException(
+          message:
+              "KeyStore entry for $keyId is not stored as private key bytes (found ${storedKey.representation}). Incompatible with GenericWallet.",
+          code: SsiExceptionType.invalidKeyType.code);
+    }
+
+    final keyType = storedKey.keyType;
+    final privateKeyBytes = storedKey.privateKeyBytes;
+    if (privateKeyBytes == null) {
+      throw SsiException(
+          message:
+              "StoredKey for $keyId has privateKeyBytes representation but null bytes.",
+          code: SsiExceptionType.other.code);
+    }
+
+    KeyPair keyPair;
     if (keyType == KeyType.p256) {
-      return P256KeyPair.fromPrivateKey(privateKeyBytes);
+      keyPair = P256KeyPair.fromPrivateKey(privateKeyBytes);
     } else if (keyType == KeyType.ed25519) {
-      return Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
+      keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
+    } else {
+      throw SsiException(
+          message: "Unsupported key type retrieved from KeyStore: $keyType",
+          code: SsiExceptionType.invalidKeyType.code);
     }
 
-    throw ArgumentError("Unsupported key type stored for key: $keyId");
+    _runtimeCache[keyId] = keyPair;
+    return keyPair;
   }
 
-  String _randomId() {
-    final rnd = Random.secure();
-    final buffer = StringBuffer();
-    for (var i = 0; i < randomIdLength; i++) {
-      buffer.write(rnd.nextInt(16).toRadixString(16));
-    }
-    return buffer.toString();
+  void clearCache() {
+    _runtimeCache.clear();
   }
 }

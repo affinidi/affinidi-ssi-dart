@@ -1,37 +1,29 @@
 class DidDocumentFixtures {
   static Map<String, dynamic> get didDocumentValid => {
-        "id":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+        "id": "did:web:example.com",
         "authentication": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+          "did:web:example.com#key-0",
           verififcationMethodValid
         ],
         "assertionMethod": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+          "did:web:example.com#key-0",
           verififcationMethodValid
         ],
-        "keyAgreement": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-1",
-          verififcationMethodValid
-        ],
-        "alsoKnownAs": [
-          "did:web:ee958780-4507-44fb-9af6-a61fdsda54b0f.atlas.dev.affinidi.io"
-        ],
+        "keyAgreement": ["did:web:example.com#key-1", verififcationMethodValid],
+        "alsoKnownAs": ["did:web:alias.example.com"],
         "capabilityInvocation": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+          "did:web:example.com#key-0",
           verififcationMethodValid
         ],
         "capabilityDelegation": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-1",
+          "did:web:example.com#key-1",
           verififcationMethodValid
         ],
         "verificationMethod": [
           {
-            "id":
-                "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+            "id": "did:web:example.com#key-0",
             "type": "JsonWebKey2020",
-            "controller":
-                "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+            "controller": "did:web:example.com",
             "publicKeyJwk": {
               "crv": "Ed25519",
               "kty": "OKP",
@@ -39,11 +31,9 @@ class DidDocumentFixtures {
             }
           },
           {
-            "id":
-                "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-1",
+            "id": "did:web:example.com#key-1",
             "type": "JsonWebKey2020",
-            "controller":
-                "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+            "controller": "did:web:example.com",
             "publicKeyJwk": {
               "crv": "P-256",
               "kty": "EC",
@@ -67,29 +57,22 @@ class DidDocumentFixtures {
           "https://www.w3.org/ns/did/v1",
           "https://w3id.org/security/suites/jws-2020/v1"
         ],
-        "authentication": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0"
-        ],
+        "authentication": ["did:web:example.com#key-0"],
       };
 
   static Map<String, dynamic> get didDocumentInvalidWithoutContext => {
-        "authentication": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0"
-        ],
+        "authentication": ["did:web:example.com#key-0"],
       };
 
   static Map<String, dynamic> get didDocumentInvalidAuthentication => {
-        "id":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+        "id": "did:web:example.com",
         "authentication": 0,
       };
 
   static Map<String, dynamic> get verififcationMethodValid => {
-        "id":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-2",
+        "id": "did:web:example.com#key-2",
         "type": "JsonWebKey2020",
-        "controller":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+        "controller": "did:web:example.com",
         "publicKeyJwk": {
           "crv": "P-256",
           "kty": "EC",
@@ -99,28 +82,25 @@ class DidDocumentFixtures {
       };
 
   static Map<String, dynamic> get serviceEndpointValid => {
-        "id":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#service",
+        "id": "did:web:example.com#service",
         "type": "DIDCommMessaging",
         "serviceEndpoint": [
           {
             "accept": ["didcomm/v2"],
             "routingKeys": [],
-            "uri":
-                "https://ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io"
+            "uri": "https://example.com"
           },
           {
             "accept": ["didcomm/v2"],
             "routingKeys": [],
-            "uri":
-                "wss://ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io/ws"
+            "uri": "wss://example.com/ws"
           }
         ]
       };
 
   static String get didDocumentWithControllerKey =>
-      '{"@context":["https://www.w3.org/ns/did/v1","https://ns.did.ai/suites/multikey-2021/v1/"],"id":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","verificationMethod":[{"id":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","controller":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","type":"Secp256k1Key2021","publicKeyMultibase":"zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"}],"authentication":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"capabilityDelegation":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"capabilityInvocation":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"keyAgreement":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"],"assertionMethod":["did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2"]}';
+      '{"@context":["https://www.w3.org/ns/did/v1","https://ns.did.ai/suites/multikey-2021/v1/"],"id":"did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R","verificationMethod":[{"id":"did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R","controller":"did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R","type":"Secp256k1Key2021","publicKeyMultibase":"zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"}],"authentication":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"capabilityDelegation":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"capabilityInvocation":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"keyAgreement":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"assertionMethod":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"]}';
 
   static String get didDocumentWithControllerPeer =>
-      '{"@context": ["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/ed25519-2020/v1"], "id":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","verificationMethod":[{"id":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","controller":"did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"}],"authentication":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"capabilityDelegation":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"capabilityInvocation":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"],"keyAgreement":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#z6LSrY3Na7Bkq7f3ktzajpR7vQ4YCjyw9KCT1Y2tnjLLZsV5"],"assertionMethod":["did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy#6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy"]}';
+      '{"id":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/ed25519-2020/v1"],"verificationMethod":[{"id":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","controller":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"}],"authentication":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"],"capabilityDelegation":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"],"capabilityInvocation":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"],"keyAgreement":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#z6LSt6UM88iki6ZgQ6ahzhHkZBWshULHpHSNZ6DDXnatm7eu"],"assertionMethod":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"]}';
 }
