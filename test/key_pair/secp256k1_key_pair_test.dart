@@ -17,12 +17,18 @@ void main() {
       keyPair = Secp256k1KeyPair(node: rootNode);
     });
 
-    test('get publicKey should return correct type and format', () async {
+    test('get publicKey should return correct type and format', () {
       final publicKeyData = keyPair.publicKey;
       expect(publicKeyData.type, KeyType.secp256k1);
       expect(publicKeyData.bytes, isA<Uint8List>());
       expect(publicKeyData.bytes.length, 33); // Compressed public key length
       expect(publicKeyData.bytes, equals(rootNode.publicKey));
+    });
+
+    test('KeyPair ID should match PublicKey ID', () {
+      final keyPair = Secp256k1KeyPair(node: rootNode);
+      final publicKey = keyPair.publicKey;
+      expect(keyPair.id, equals(publicKey.id));
     });
 
     test('supportedSignatureSchemes should return only secp256k1', () {

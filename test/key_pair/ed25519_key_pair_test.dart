@@ -86,7 +86,7 @@ void main() {
           isFalse);
     });
 
-    test('Ed25519 key pair properties should be correct', () async {
+    test('Ed25519 key pair properties should be correct', () {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final publicKey = edKey.publicKey;
 
@@ -95,6 +95,12 @@ void main() {
 
       // Verify getSeed returns the original seed
       expect(edKey.getSeed(), equals(seed));
+    });
+
+    test('KeyPair ID should match PublicKey ID', () {
+      final keyPair = Ed25519KeyPair.fromSeed(seed);
+      final publicKey = keyPair.publicKey;
+      expect(keyPair.id, equals(publicKey.id));
     });
 
     test('supportedSignatureSchemes should return correct schemes', () {

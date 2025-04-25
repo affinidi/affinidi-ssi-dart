@@ -51,6 +51,15 @@ void main() {
       expect(sameKey.publicKey.type, firstKey.publicKey.type);
     });
 
+    test('deriveKey should assign and allow retrieval by provided keyId',
+        () async {
+      const customId = 'my-derived-ed-key';
+      final keyPair = await wallet.deriveKey(
+          keyId: customId, derivationPath: testPath1);
+      expect(keyPair.id, equals(customId));
+      expect((await wallet.getPublicKey(customId)).id, equals(customId));
+    });
+
     test('deriveKey with existing ID and different path should throw',
         () async {
       await wallet.deriveKey(keyId: testKeyId1, derivationPath: testPath1);

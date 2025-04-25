@@ -33,11 +33,17 @@ void main() {
       expect(actual, isFalse);
     });
 
-    test('P-256 key pair should sign data and verify signature', () async {
+    test('P-256 key pair public key properties are correct', () {
       final (p256key, privateKeyBytes) = P256KeyPair.generate();
       final publicKey = p256key.publicKey;
       expect(publicKey.type, KeyType.p256);
       expect(publicKey.bytes.length, 33); // Compressed P-256 key length
+    });
+
+    test('KeyPair ID should match PublicKey ID', () {
+      final (keyPair, _) = P256KeyPair.generate();
+      final publicKey = keyPair.publicKey;
+      expect(keyPair.id, equals(publicKey.id));
     });
   });
 

@@ -93,6 +93,23 @@ void main() {
       expect(secondCallKey.publicKey.bytes, firstKey.publicKey.bytes);
     });
 
+    test('generateKey should assign and allow retrieval by provided keyId',
+        () async {
+      const p256Id = 'my-custom-p256-id';
+      const ed25519Id = 'my-custom-ed25519-id';
+
+      // Test P256
+      final p256KeyPair =
+          await wallet.generateKey(keyId: p256Id, keyType: KeyType.p256);
+      expect(p256KeyPair.id, equals(p256Id));
+      expect((await wallet.getPublicKey(p256Id)).id, equals(p256Id));
+
+      // Test Ed25519
+      final edKeyPair = await wallet.generateKey(keyId: ed25519Id, keyType: KeyType.ed25519);
+      expect(edKeyPair.id, equals(ed25519Id));
+      expect((await wallet.getPublicKey(ed25519Id)).id, equals(ed25519Id));
+    });
+
     test('createKeyPair should throw for unsupported key type', () async {
       expect(
         () async => await wallet.generateKey(keyType: KeyType.secp256k1),
