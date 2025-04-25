@@ -10,12 +10,12 @@
 # 'package:lints/core.yaml'. These are just the most critical lints
 # (the recommended set includes the core lints).
 # The core lints are also what is used by pub.dev for scoring packages.
-# include: package:lints/recommended.yaml
-include: package:dart_flutter_team_lints/analysis_options.yaml
+include: package:lints/recommended.yaml
+# include: package:dart_flutter_team_lints/analysis_options.yaml
 linter:
   rules:
     - avoid_print
-    # - public_member_api_docs
+    - public_member_api_docs
     - omit_local_variable_types: false
 analyzer:
   exclude:
