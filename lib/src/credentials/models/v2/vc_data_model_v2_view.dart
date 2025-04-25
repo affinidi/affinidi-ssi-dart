@@ -1,10 +1,14 @@
-import '../credential_schema.dart';
-import '../credential_status.dart';
-import '../credential_subject.dart';
-import '../issuer.dart';
+import 'package:ssi/src/credentials/models/field_types/evidence.dart';
+import 'package:ssi/src/credentials/models/field_types/refresh_service/v1.dart';
+import 'package:ssi/src/credentials/models/field_types/terms_of_use.dart';
+
+import '../field_types/credential_schema.dart';
+import '../field_types/credential_status/v1.dart';
+import '../field_types/credential_subject.dart';
+import '../field_types/issuer.dart';
 import '../../proof/embedded_proof.dart';
 import '../verifiable_credential.dart';
-import '../vc_models.dart';
+import '../field_types/vc_models.dart';
 
 abstract interface class VcDataModelV2 implements VerifiableCredential {
   @override
@@ -14,13 +18,13 @@ abstract interface class VcDataModelV2 implements VerifiableCredential {
   String? get id;
 
   @override
-  List<CredentialSchema> get credentialSchema;
+  List<MutableCredentialSchema> get credentialSchema;
 
   @override
-  CredentialStatus? get credentialStatus;
+  CredentialStatusV1? get credentialStatus;
 
   @override
-  CredentialSubject get credentialSubject;
+  MutableCredentialSubject get credentialSubject;
 
   @override
   Issuer get issuer;
@@ -38,7 +42,7 @@ abstract interface class VcDataModelV2 implements VerifiableCredential {
   List<EmbeddedProof> get proof;
 
   @override
-  RefreshService? get refreshService;
+  RefreshServiceV1? get refreshService;
 
   @override
   List<TermOfUse> get termsOfUse;

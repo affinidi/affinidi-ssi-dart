@@ -1,6 +1,7 @@
-import 'package:ssi/src/credentials/models/vc_models.dart';
+import 'package:ssi/src/credentials/models/field_types/terms_of_use.dart';
+import 'package:ssi/src/credentials/models/field_types/vc_models.dart';
 
-import '../../../models/holder.dart';
+import '../../../models/field_types/holder.dart';
 import '../../../models/parsed_vc.dart';
 import '../../../proof/embedded_proof.dart';
 import '../verifiable_presentation.dart';

@@ -1,4 +1,4 @@
-import '../../../models/holder.dart';
+import '../../../models/field_types/holder.dart';
 import '../../../models/parsed_vc.dart';
 import '../../../proof/embedded_proof.dart';
 import '../verifiable_presentation.dart';

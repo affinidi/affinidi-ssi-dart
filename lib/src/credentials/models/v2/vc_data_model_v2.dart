@@ -1,12 +1,16 @@
+import 'package:ssi/src/credentials/models/field_types/evidence.dart';
+import 'package:ssi/src/credentials/models/field_types/refresh_service/v1.dart';
+import 'package:ssi/src/credentials/models/field_types/terms_of_use.dart';
+
 import '../../../exceptions/ssi_exception.dart';
 import '../../../exceptions/ssi_exception_type.dart';
 import '../../../util/json_util.dart';
 import '../../proof/embedded_proof.dart';
-import '../credential_schema.dart';
-import '../credential_status.dart';
-import '../credential_subject.dart';
-import '../issuer.dart';
-import '../vc_models.dart';
+import '../field_types/credential_schema.dart';
+import '../field_types/credential_status/v1.dart';
+import '../field_types/credential_subject.dart';
+import '../field_types/issuer.dart';
+import '../field_types/vc_models.dart';
 import 'vc_data_model_v2_view.dart';
 
 // TODO(FTL-20734): must match fields in the spec https://www.w3.org/TR/vc-data-model-2.0/#verifiable-credentials
@@ -20,13 +24,13 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
   String? id;
 
   @override
-  List<CredentialSchema> credentialSchema;
+  List<MutableCredentialSchema> credentialSchema;
 
   @override
-  CredentialStatus? credentialStatus;
+  CredentialStatusV1? credentialStatus;
 
   @override
-  CredentialSubject credentialSubject;
+  MutableCredentialSubject credentialSubject;
 
   @override
   Issuer issuer;
@@ -44,7 +48,7 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
   List<EmbeddedProof> proof;
 
   @override
-  RefreshService? refreshService;
+  RefreshServiceV1? refreshService;
 
   @override
   List<TermOfUse> termsOfUse;
@@ -55,8 +59,8 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
   MutableVcDataModelV2({
     required this.context,
     this.id,
-    List<CredentialSchema>? credentialSchema,
-    CredentialSubject? credentialSubject,
+    List<MutableCredentialSchema>? credentialSchema,
+    MutableCredentialSubject? credentialSubject,
     required this.issuer,
     required this.type,
     this.validFrom,
@@ -67,7 +71,8 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     List<TermOfUse>? termsOfUse,
     List<Evidence>? evidence,
   })  : credentialSchema = credentialSchema ?? [],
-        credentialSubject = credentialSubject ?? CredentialSubject(claims: {}),
+        credentialSubject =
+            credentialSubject ?? MutableCredentialSubject(claims: {}),
         termsOfUse = termsOfUse ?? [],
         evidence = evidence ?? [],
         proof = proof ??
@@ -128,7 +133,7 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
   MutableVcDataModelV2.fromJson(dynamic input)
       : context = [],
         credentialSchema = [],
-        credentialSubject = CredentialSubject(claims: {}),
+        credentialSubject = MutableCredentialSubject(claims: {}),
         issuer = Issuer(id: ''),
         type = [],
         proof = [],
@@ -153,17 +158,17 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     validUntil = getDateTime(json, _P.validUntil.key);
 
     if (json.containsKey(_P.credentialSubject.key)) {
-      credentialSubject = CredentialSubject.fromJson(
+      credentialSubject = MutableCredentialSubject.fromJson(
           json[_P.credentialSubject.key] as Map<String, dynamic>);
     }
 
     switch (json[_P.credentialSchema.key]) {
       case Map m:
-        credentialSchema = [CredentialSchema.fromJson(jsonToMap(m))];
+        credentialSchema = [MutableCredentialSchema.fromJson(jsonToMap(m))];
 
       case List l:
         credentialSchema = l
-            .map((e) => CredentialSchema.fromJson(jsonToMap(e)))
+            .map((e) => MutableCredentialSchema.fromJson(jsonToMap(e)))
             .toList(growable: true);
 
       case null:
@@ -184,13 +189,13 @@ class MutableVcDataModelV2 implements VcDataModelV2 {
     }
 
     if (json.containsKey(_P.credentialStatus.key)) {
-      credentialStatus = CredentialStatus.fromJson(
+      credentialStatus = CredentialStatusV1.fromJson(
           json[_P.credentialStatus.key] as Map<String, dynamic>);
     }
 
     if (json.containsKey(_P.refreshService.key)) {
       refreshService =
-          RefreshService.fromJson(jsonToMap(json[_P.refreshService.key]));
+          RefreshServiceV1.fromJson(jsonToMap(json[_P.refreshService.key]));
     }
 
     if (json.containsKey(_P.termsOfUse.key)) {

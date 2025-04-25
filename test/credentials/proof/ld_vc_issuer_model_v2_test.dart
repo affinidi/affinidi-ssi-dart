@@ -1,7 +1,7 @@
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/linked_data/ld_dm_v2_suite.dart';
-import 'package:ssi/src/credentials/models/credential_subject.dart';
-import 'package:ssi/src/credentials/models/issuer.dart';
+import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
+import 'package:ssi/src/credentials/models/field_types/issuer.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/suites/universal_verifier.dart';
 import 'package:ssi/ssi.dart';
@@ -26,14 +26,14 @@ void main() {
         ],
         id: 'uuid:123456abcd',
         type: ['VerifiableCredential', 'UserProfile'],
-        credentialSubject: CredentialSubject(claims: {
+        credentialSubject: MutableCredentialSubject(claims: {
           "Fname": "Fname",
           "Lname": "Lame",
           "Age": "22",
           "Address": "Eihhornstr"
         }),
         credentialSchema: [
-          CredentialSchema.fromJson({
+          MutableCredentialSchema.fromJson({
             'id': 'https://schema.affinidi.com/UserProfileV1-0.json',
             'type': 'JsonSchemaValidator2018'
           })

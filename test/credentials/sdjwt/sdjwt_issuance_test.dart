@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ssi/src/credentials/models/credential_subject.dart';
-import 'package:ssi/src/credentials/models/issuer.dart';
+import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
+import 'package:ssi/src/credentials/models/field_types/issuer.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
 import 'package:ssi/ssi.dart';
@@ -31,7 +31,7 @@ void main() {
         type: ['VerifiableCredential', 'UniversityDegreeCredential'],
         validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
         validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
-        credentialSubject: CredentialSubject(
+        credentialSubject: MutableCredentialSubject(
           id: 'did:example:subject',
           claims: {
             'degree': {
@@ -76,7 +76,7 @@ void main() {
         type: ['VerifiableCredential', 'UniversityDegreeCredential'],
         validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
         validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
-        credentialSubject: CredentialSubject(
+        credentialSubject: MutableCredentialSubject(
           id: 'did:example:subject',
           claims: {
             'firstName': 'Rain',

@@ -1,9 +1,7 @@
-import 'credential_schema.dart';
-import 'credential_status.dart';
-import 'credential_subject.dart';
+import 'field_types/credential_schema.dart';
+import 'field_types/credential_subject.dart';
 import 'doc_with_embedded_proof.dart';
-import 'issuer.dart';
-import 'vc_models.dart';
+import 'field_types/issuer.dart';
 
 /// A tamper-evident credential whose authorship can be cryptographically verified.
 ///
@@ -14,14 +12,14 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   List<String> get context;
 
   /// The unique identifier for this credential.
-  String? get id;
+  Uri? get id;
 
   /// The types describing the structure of this credential.
   // FIXME(FTL-20734) should be changed to a Set
   List<String> get type;
 
   /// The entity that issued this credential.
-  Issuer get issuer;
+  Issuer? get issuer;
 
   /// The subject data contained in this credential.
   ///
@@ -32,21 +30,14 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   ///   "name": "John Doe",
   /// }
   /// ```
-  CredentialSubject get credentialSubject;
+  List<CredentialSubject> get credentialSubject;
 
   /// The schemas that define the structure of this credential.
   ///
   /// Returns empty list if not set.
   ///
-  /// See [CredentialSchema] for more details.
+  /// See [MutableCredentialSchema] for more details.
   List<CredentialSchema> get credentialSchema;
-
-  /// The status information for this credential.
-  ///
-  /// Returns null if not set.
-  ///
-  /// See [CredentialStatus] for more details.
-  CredentialStatus? get credentialStatus;
 
   /// The date when this credential was issued.
   DateTime? get validFrom;
@@ -55,21 +46,6 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   ///
   /// Returns null if the credential does not expire.
   DateTime? get validUntil;
-
-  /// Refreshing service for this credential.
-  ///
-  /// Returns null if not set.
-  RefreshService? get refreshService;
-
-  /// Terms of use associated with this credential.
-  ///
-  /// Returns empty list if not set.
-  List<TermOfUse> get termsOfUse;
-
-  /// Evidence supporting the claims in this credential.
-  ///
-  /// Returns empty list if not set.
-  List<Evidence> get evidence;
 
   /// Converts this credential to a JSON-serializable map.
   @override

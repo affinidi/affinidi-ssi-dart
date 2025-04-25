@@ -1,5 +1,5 @@
 import '../../models/doc_with_embedded_proof.dart';
-import '../../models/holder.dart';
+import '../../models/field_types/holder.dart';
 import '../../models/parsed_vc.dart';
 
 /// Abstract base class for a Verifiable Presentation (VP).

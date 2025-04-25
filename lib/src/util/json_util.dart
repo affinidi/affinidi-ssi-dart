@@ -85,6 +85,12 @@ List<String> getStringList(
       return [s];
 
     case List l:
+      if (l.isEmpty) {
+        throw SsiException(
+          message: '`$fieldName` property must have at least one value',
+          code: SsiExceptionType.invalidJson.code,
+        );
+      }
       return l.map((e) => e as String).toList(growable: true);
 
     default:
@@ -126,6 +132,39 @@ DateTime? getDateTime(
   }
 }
 
+/// Return [fieldName] as `String`, or null. Throws an exception if the field
+/// value is not a string.
+Uri? getUri(Map<String, dynamic> json, String fieldName) {
+  if (json.containsKey(fieldName) &&
+      (json[fieldName] is! String && json[fieldName] is! Uri)) {
+    throw SsiException(
+      message: '`$fieldName` must be a string or uri',
+      code: SsiExceptionType.invalidJson.code,
+    );
+  }
+
+  final val = json[fieldName];
+
+  return val == null
+      ? null
+      : val is Uri
+          ? val
+          : Uri.parse(val);
+}
+
+/// Return [fieldName] as `String`. Throws an exception if the field
+/// value is not a string or the field does not exist.
+Uri getMandatoryUri(Map<String, dynamic> json, String fieldName) {
+  if (!json.containsKey(fieldName)) {
+    throw SsiException(
+      message: '`$fieldName` property is mandatory',
+      code: SsiExceptionType.invalidJson.code,
+    );
+  }
+
+  return getUri(json, fieldName)!;
+}
+
 /// Add an optional field to [json] if [fieldValue] is not null
 void addOptional(
   Map<String, dynamic> json,
@@ -162,14 +201,45 @@ void addList<E>(
   }
 }
 
-List<T> parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
-  if (json == null) {
+List<T> parseListOrSingleItem<T>(
+  dynamic json,
+  String fieldName,
+  T Function(dynamic) parser, {
+  bool allowSingleValue = false,
+  bool mandatory = false,
+}) {
+  final jsonValue = json[fieldName];
+
+  if (jsonValue == null) {
+    if (mandatory) {
+      throw SsiException(
+        message: '`$fieldName` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
     return [];
-  } else if (json is List) {
-    return json.map((item) => parser(item)).toList();
-  } else {
-    return [parser(json)];
   }
+
+  if (jsonValue is List) {
+    if (jsonValue.isEmpty && mandatory) {
+      throw SsiException(
+        message: '`$fieldName` property should have at least one value',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    return jsonValue.map((item) => parser(item)).toList();
+  }
+
+  if (!allowSingleValue) {
+    throw SsiException(
+      message: '`$fieldName` must be a list',
+      code: SsiExceptionType.invalidJson.code,
+    );
+  }
+
+  return [parser(jsonValue)];
 }
 
 dynamic encodeListToSingleOrArray<T>(List<T> items) {

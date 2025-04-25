@@ -2,7 +2,7 @@ import 'package:ssi/src/credentials/presentations/models/vc_parse_present.dart';
 import 'package:ssi/src/credentials/proof/embedded_proof.dart';
 
 import '../../../../util/json_util.dart';
-import '../../../models/holder.dart';
+import '../../../models/field_types/holder.dart';
 import '../../../models/parsed_vc.dart';
 import 'vp_data_model_v1_view.dart';
 
