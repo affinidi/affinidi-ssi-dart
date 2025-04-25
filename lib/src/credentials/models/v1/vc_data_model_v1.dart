@@ -1,85 +1,100 @@
 import 'package:ssi/src/credentials/models/field_types/evidence.dart';
 import 'package:ssi/src/credentials/models/field_types/refresh_service/v1.dart';
 import 'package:ssi/src/credentials/models/field_types/terms_of_use.dart';
+import 'package:ssi/src/util/json_util.dart';
 
-import '../../proof/embedded_proof.dart';
 import '../field_types/credential_schema.dart';
 import '../field_types/credential_status/v1.dart';
 import '../field_types/credential_subject.dart';
 import '../field_types/holder.dart';
 import '../field_types/issuer.dart';
-import 'vc_data_model_v1_view.dart';
+import '../../proof/embedded_proof.dart';
+import '../verifiable_credential.dart';
 
-class MutableVcDataModelV1 extends VcDataModelV1 {
-  @override
-  List<String> context;
-
-  @override
-  Uri? id;
+abstract class VcDataModelV1 implements VerifiableCredential {
+  static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
 
   @override
-  List<String> type;
+  List<String> get context;
 
   @override
-  List<MutableCredentialSchema> credentialSchema;
+  Uri? get id;
 
   @override
-  List<MutableCredentialSubject> credentialSubject;
+  List<CredentialSchema> get credentialSchema;
 
   @override
-  MutableIssuer? issuer;
+  List<CredentialSubject> get credentialSubject;
 
   @override
-  DateTime? issuanceDate;
+  Issuer? get issuer;
 
   @override
-  DateTime? expirationDate;
+  List<String> get type;
 
   @override
-  DateTime? get validFrom => issuanceDate;
+  List<EmbeddedProof> get proof;
+
+  CredentialStatusV1? get credentialStatus;
+
+  DateTime? get issuanceDate;
+
+  DateTime? get expirationDate;
+
+  Holder? get holder;
+
+  List<RefreshServiceV1> get refreshService;
+
+  List<TermsOfUse> get termsOfUse;
+
+  List<Evidence> get evidence;
 
   @override
-  DateTime? get validUntil => expirationDate;
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
 
-  @override
-  MutableHolder? holder;
+    json[_P.context.key] = context;
+    json[_P.issuer.key] = issuer?.toJson();
+    json[_P.type.key] = type;
+    json[_P.id.key] = id?.toString();
+    json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
+    json[_P.holder.key] = holder?.toJson();
+    json[_P.issuanceDate.key] = issuanceDate?.toIso8601String();
+    json[_P.expirationDate.key] = expirationDate?.toIso8601String();
+    json[_P.credentialSubject.key] =
+        encodeListToSingleOrArray(credentialSubject);
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.credentialStatus.key] = credentialStatus?.toJson();
+    json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
+    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
 
-  @override
-  List<EmbeddedProof> proof;
+    return json;
+  }
+}
 
-  @override
-  MutableCredentialStatusV1? credentialStatus;
+typedef _P = VcDataModelV1Key;
 
-  @override
-  List<MutableRefreshServiceV1> refreshService;
+enum VcDataModelV1Key {
+  context(key: '@context'),
+  proof,
+  expirationDate,
+  issuer,
+  credentialSchema,
+  credentialSubject,
+  id,
+  type,
+  issuanceDate,
+  credentialStatus,
+  holder,
+  refreshService,
+  termsOfUse,
+  evidence,
+  ;
 
-  @override
-  List<MutableTermsOfUse> termsOfUse;
+  final String? _key;
 
-  @override
-  List<MutableEvidence> evidence;
+  String get key => _key ?? name;
 
-  MutableVcDataModelV1({
-    List<String>? context,
-    this.id,
-    List<MutableCredentialSchema>? credentialSchema,
-    List<MutableCredentialSubject>? credentialSubject,
-    this.issuer,
-    List<String>? type,
-    this.issuanceDate,
-    this.expirationDate,
-    this.holder,
-    List<EmbeddedProof>? proof,
-    this.credentialStatus,
-    List<MutableRefreshServiceV1>? refreshService,
-    List<MutableTermsOfUse>? termsOfUse,
-    List<MutableEvidence>? evidence,
-  })  : context = context ?? [],
-        credentialSchema = credentialSchema ?? [],
-        credentialSubject = credentialSubject ?? [],
-        type = type ?? [],
-        proof = proof ?? [],
-        refreshService = refreshService ?? [],
-        termsOfUse = termsOfUse ?? [],
-        evidence = evidence ?? [];
+  const VcDataModelV1Key({String? key}) : _key = key;
 }

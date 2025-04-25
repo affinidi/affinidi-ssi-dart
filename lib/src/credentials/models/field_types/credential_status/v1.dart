@@ -1,4 +1,4 @@
-import 'package:ssi/src/util/json_util.dart';
+import '../../../../util/json_util.dart';
 
 /// Provides information about the current status of a verifiable credential.
 ///

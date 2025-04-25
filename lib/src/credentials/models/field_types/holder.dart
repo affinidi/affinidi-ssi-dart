@@ -1,4 +1,5 @@
-import 'package:ssi/src/util/json_util.dart';
+import '../../../../ssi.dart';
+import '../../../util/json_util.dart';
 
 abstract interface class Holder {
   Uri? get id;
@@ -28,8 +29,15 @@ class ParsedHolder extends Holder {
 
     if (json is String) {
       id = Uri.parse(json);
-    } else {
+    } else if (json is Uri) {
+      id = json;
+    } else if (json is Map<String, dynamic>) {
       id = getMandatoryUri(json, 'id');
+    } else {
+      throw SsiException(
+        message: 'id should be a String or a Uri',
+        code: SsiExceptionType.invalidJson.code,
+      );
     }
 
     return ParsedHolder._(id);

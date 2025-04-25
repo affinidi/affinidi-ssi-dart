@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:ssi/src/util/json_util.dart';
+import '../../../util/json_util.dart';
 
 abstract interface class CredentialSubject
     extends UnmodifiableMapBase<String, dynamic> {
@@ -15,14 +15,14 @@ class MutableCredentialSubject extends CredentialSubject {
   @override
   Uri? get id => getUri(_claims, 'id');
 
-  Map<String, dynamic> _claims;
+  final Map<String, dynamic> _claims;
 
   MutableCredentialSubject(
     Map<String, dynamic>? claims,
   ) : _claims = claims ?? {};
 
   @override
-  operator [](Object? key) {
+  dynamic operator [](Object? key) {
     if (key == 'id') {
       return id;
     }
@@ -31,9 +31,9 @@ class MutableCredentialSubject extends CredentialSubject {
   }
 
   @override
-  void operator []=(String key, value) {
+  void operator []=(String key, dynamic value) {
     if (key == 'id') {
-      value = Uri.parse(value);
+      value = Uri.parse(value as String);
     }
 
     _claims[key] = value;
@@ -46,7 +46,7 @@ class MutableCredentialSubject extends CredentialSubject {
   Iterable<String> get keys => _claims.keys;
 
   @override
-  remove(Object? key) => _claims.remove(key);
+  dynamic remove(Object? key) => _claims.remove(key);
 }
 
 class ParsedCredentialSubject extends CredentialSubject {
@@ -66,7 +66,7 @@ class ParsedCredentialSubject extends CredentialSubject {
 
   @override
   @override
-  operator [](Object? key) {
+  dynamic operator [](Object? key) {
     if (key == 'id') {
       return id;
     }

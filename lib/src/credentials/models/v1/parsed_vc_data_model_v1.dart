@@ -1,14 +1,14 @@
-import 'package:ssi/src/credentials/models/field_types/credential_status/v1.dart';
-import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
-import 'package:ssi/src/credentials/models/field_types/evidence.dart';
-import 'package:ssi/src/credentials/models/field_types/holder.dart';
-import 'package:ssi/src/credentials/models/field_types/issuer.dart';
-import 'package:ssi/src/credentials/models/field_types/refresh_service/v1.dart';
-import 'package:ssi/src/credentials/models/field_types/terms_of_use.dart';
-import 'package:ssi/src/credentials/models/v1/vc_data_model_v1_view.dart';
-import 'package:ssi/src/credentials/proof/embedded_proof.dart';
-import 'package:ssi/src/util/json_util.dart';
-import 'package:ssi/ssi.dart';
+import '../../../../ssi.dart';
+import '../../../util/json_util.dart';
+import '../../proof/embedded_proof.dart';
+import '../field_types/credential_status/v1.dart';
+import '../field_types/credential_subject.dart';
+import '../field_types/evidence.dart';
+import '../field_types/holder.dart';
+import '../field_types/issuer.dart';
+import '../field_types/refresh_service/v1.dart';
+import '../field_types/terms_of_use.dart';
+import 'vc_data_model_v1.dart';
 
 class ParsedVcDataModelV1 extends VcDataModelV1 {
   @override
@@ -96,18 +96,19 @@ class ParsedVcDataModelV1 extends VcDataModelV1 {
     final credentialSubject = parseListOrSingleItem<ParsedCredentialSubject>(
         json,
         _P.credentialSubject.key,
-        (item) => ParsedCredentialSubject.fromJson(item),
+        (item) =>
+            ParsedCredentialSubject.fromJson(item as Map<String, dynamic>),
         mandatory: true,
         allowSingleValue: true);
 
-    final proof = parseListOrSingleItem<EmbeddedProof>(
-        json, _P.proof.key, (item) => EmbeddedProof.fromJson(item),
+    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
+        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
         mandatory: true, allowSingleValue: true);
 
     final credentialSchema = parseListOrSingleItem<ParsedCredentialSchema>(
         json,
         _P.credentialSchema.key,
-        (item) => ParsedCredentialSchema.fromJson(item),
+        (item) => ParsedCredentialSchema.fromJson(item as Map<String, dynamic>),
         allowSingleValue: true);
 
     final issuanceDate =
@@ -122,20 +123,26 @@ class ParsedVcDataModelV1 extends VcDataModelV1 {
 
     ParsedCredentialStatusV1? credentialStatus;
     if (json.containsKey(_P.credentialStatus.key)) {
-      credentialStatus =
-          ParsedCredentialStatusV1.fromJson(json[_P.credentialStatus.key]);
+      credentialStatus = ParsedCredentialStatusV1.fromJson(
+          json[_P.credentialStatus.key] as Map<String, dynamic>);
     }
 
-    final refreshService = parseListOrSingleItem<ParsedRefreshServiceV1>(json,
-        _P.refreshService.key, (item) => ParsedRefreshServiceV1.fromJson(item),
+    final refreshService = parseListOrSingleItem<ParsedRefreshServiceV1>(
+        json,
+        _P.refreshService.key,
+        (item) => ParsedRefreshServiceV1.fromJson(item as Map<String, dynamic>),
         allowSingleValue: true);
 
     final termsOfUse = parseListOrSingleItem<ParsedTermsOfUse>(
-        json, _P.termsOfUse.key, (item) => ParsedTermsOfUse.fromJson(item),
+        json,
+        _P.termsOfUse.key,
+        (item) => ParsedTermsOfUse.fromJson(item as Map<String, dynamic>),
         allowSingleValue: true);
 
     final evidence = parseListOrSingleItem<ParsedEvidence>(
-        json, _P.evidence.key, (item) => ParsedEvidence.fromJson(item),
+        json,
+        _P.evidence.key,
+        (item) => ParsedEvidence.fromJson(item as Map<String, dynamic>),
         allowSingleValue: true);
 
     return ParsedVcDataModelV1._(

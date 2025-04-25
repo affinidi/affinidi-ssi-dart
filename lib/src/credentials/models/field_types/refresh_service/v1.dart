@@ -1,4 +1,4 @@
-import 'package:ssi/src/util/json_util.dart';
+import '../../../../util/json_util.dart';
 
 abstract interface class RefreshServiceV1 {
   Uri? get id;

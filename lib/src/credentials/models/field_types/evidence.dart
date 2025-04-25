@@ -1,4 +1,4 @@
-import 'package:ssi/src/util/json_util.dart';
+import '../../../util/json_util.dart';
 
 abstract interface class Evidence {
   /// The URL of the schema including domain and filename.
@@ -28,11 +28,6 @@ class MutableEvidence extends Evidence {
   @override
   String? type;
 
-  /// Creates a [MutableEvidence] instance.
-  ///
-  /// The [domain] is the base URL where the schema is hosted.
-  /// The [schema] is the name of the schema without extension.
-  /// The [type] is the schema validation type, defaults to 'JsonSchemaValidator2018'.
   MutableEvidence({
     this.id,
     this.type,

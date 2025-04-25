@@ -1,4 +1,4 @@
-import 'package:ssi/src/util/json_util.dart';
+import '../../../util/json_util.dart';
 
 /// Represents a schema for verifiable credentials following W3C standards.
 ///
@@ -71,7 +71,7 @@ class MutableCredentialSchema extends CredentialSchema {
   factory MutableCredentialSchema.build({
     required String domain,
     required String schema,
-    type = 'JsonSchemaValidator2018',
+    String type = 'JsonSchemaValidator2018',
   }) {
     final id = Uri.parse('$domain/$schema.json');
     return MutableCredentialSchema(id: id, type: type);
