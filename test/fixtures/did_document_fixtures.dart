@@ -1,37 +1,29 @@
 class DidDocumentFixtures {
   static Map<String, dynamic> get didDocumentValid => {
-        "id":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+        "id": "did:web:example.com",
         "authentication": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+          "did:web:example.com#key-0",
           verififcationMethodValid
         ],
         "assertionMethod": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+          "did:web:example.com#key-0",
           verififcationMethodValid
         ],
-        "keyAgreement": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-1",
-          verififcationMethodValid
-        ],
-        "alsoKnownAs": [
-          "did:web:ee958780-4507-44fb-9af6-a61fdsda54b0f.atlas.dev.affinidi.io"
-        ],
+        "keyAgreement": ["did:web:example.com#key-1", verififcationMethodValid],
+        "alsoKnownAs": ["did:web:alias.example.com"],
         "capabilityInvocation": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+          "did:web:example.com#key-0",
           verififcationMethodValid
         ],
         "capabilityDelegation": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-1",
+          "did:web:example.com#key-1",
           verififcationMethodValid
         ],
         "verificationMethod": [
           {
-            "id":
-                "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0",
+            "id": "did:web:example.com#key-0",
             "type": "JsonWebKey2020",
-            "controller":
-                "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+            "controller": "did:web:example.com",
             "publicKeyJwk": {
               "crv": "Ed25519",
               "kty": "OKP",
@@ -39,11 +31,9 @@ class DidDocumentFixtures {
             }
           },
           {
-            "id":
-                "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-1",
+            "id": "did:web:example.com#key-1",
             "type": "JsonWebKey2020",
-            "controller":
-                "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+            "controller": "did:web:example.com",
             "publicKeyJwk": {
               "crv": "P-256",
               "kty": "EC",
@@ -67,29 +57,22 @@ class DidDocumentFixtures {
           "https://www.w3.org/ns/did/v1",
           "https://w3id.org/security/suites/jws-2020/v1"
         ],
-        "authentication": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0"
-        ],
+        "authentication": ["did:web:example.com#key-0"],
       };
 
   static Map<String, dynamic> get didDocumentInvalidWithoutContext => {
-        "authentication": [
-          "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-0"
-        ],
+        "authentication": ["did:web:example.com#key-0"],
       };
 
   static Map<String, dynamic> get didDocumentInvalidAuthentication => {
-        "id":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+        "id": "did:web:example.com",
         "authentication": 0,
       };
 
   static Map<String, dynamic> get verififcationMethodValid => {
-        "id":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#key-2",
+        "id": "did:web:example.com#key-2",
         "type": "JsonWebKey2020",
-        "controller":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io",
+        "controller": "did:web:example.com",
         "publicKeyJwk": {
           "crv": "P-256",
           "kty": "EC",
@@ -99,21 +82,18 @@ class DidDocumentFixtures {
       };
 
   static Map<String, dynamic> get serviceEndpointValid => {
-        "id":
-            "did:web:ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io#service",
+        "id": "did:web:example.com#service",
         "type": "DIDCommMessaging",
         "serviceEndpoint": [
           {
             "accept": ["didcomm/v2"],
             "routingKeys": [],
-            "uri":
-                "https://ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io"
+            "uri": "https://example.com"
           },
           {
             "accept": ["didcomm/v2"],
             "routingKeys": [],
-            "uri":
-                "wss://ee958780-4507-44bb-9ac6-a618bda54b0f.atlas.dev.affinidi.io/ws"
+            "uri": "wss://example.com/ws"
           }
         ]
       };
