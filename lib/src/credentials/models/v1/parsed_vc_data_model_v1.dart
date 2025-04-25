@@ -83,6 +83,14 @@ class ParsedVcDataModelV1 extends VcDataModelV1 {
     final json = jsonToMap(input);
 
     final context = getStringList(json, _P.context.key, mandatory: true);
+    if (context.isEmpty || context.first != VcDataModelV1.contextUrl) {
+      throw SsiException(
+        message:
+            'The first URI of @context property should always be ${VcDataModelV1.contextUrl}',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
     final id = getUri(json, _P.id.key);
     final type = getStringList(
       json,
