@@ -74,7 +74,6 @@ final class EnvelopedVcDm2Suite
         as ParsedVerifiableCredential<String>;
   }
 
-  @override
   Future<SdJwtDataModelV2> issue(
     MutableVcDataModelV2 vc,
     DidSigner signer, {

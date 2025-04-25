@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/doc_with_embedded_proof.dart';

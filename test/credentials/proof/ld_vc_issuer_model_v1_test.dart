@@ -112,14 +112,3 @@ void main() async {
 final cweResponse = jsonDecode(
   VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe,
 ) as Map<String, dynamic>;
-
-final _userProfile = jsonDecode(r'''
-{"@context":{"UserProfile":{"@id":"https://schema.affinidi.com/UserProfileV1-0.jsonld","@context":{"@version":1.1,"@protected":true}},"Fname":{"@id":"schema-id:Fname","@type":"https://schema.org/Text"},"Lname":{"@id":"schema-id:Lname","@type":"https://schema.org/Text"},"Age":{"@id":"schema-id:Age","@type":"https://schema.org/Text"},"Address":{"@id":"schema-id:Address","@type":"https://schema.org/Text"}}}
-''');
-
-Future<Map<String, dynamic>?> _testLoadDocument(Uri url) {
-  if (url.toString() == 'https://schema.affinidi.com/UserProfileV1-0.jsonld') {
-    return Future.value(_userProfile as Map<String, dynamic>);
-  }
-  return Future.value(null);
-}

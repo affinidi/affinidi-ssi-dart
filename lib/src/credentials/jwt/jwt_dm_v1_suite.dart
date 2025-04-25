@@ -43,7 +43,6 @@ final class JwtDm1Suite
     return _JwtVcDataModelV1.fromJws(jws);
   }
 
-  @override
   Future<JwtVcDataModelV1> issue(
     VcDataModelV1 vc,
     DidSigner signer, {

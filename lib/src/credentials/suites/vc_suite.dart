@@ -1,4 +1,3 @@
-import '../../did/did_signer.dart';
 import '../models/parsed_vc.dart';
 import '../models/verifiable_credential.dart';
 
