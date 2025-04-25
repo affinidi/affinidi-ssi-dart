@@ -63,41 +63,47 @@ class GenericWallet implements Wallet {
   }
 
   @override
-  Future<PublicKey> generateKey({
+  Future<KeyPair> generateKey({
     String? keyId,
     KeyType? keyType,
   }) async {
     final effectiveKeyId = keyId ?? _randomId();
     if (await _keyStore.contains(effectiveKeyId)) {
       // Found key in key store
-      final existingKeyPair = await _getKeyPair(effectiveKeyId);
-      final keyData = await existingKeyPair.publicKey;
-      return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+      return _getKeyPair(effectiveKeyId); // Return existing KeyPair
     }
 
     final effectiveKeyType = keyType ?? KeyType.p256;
 
-    KeyPair keyPair;
+    KeyPair keyPairInstance;
+    Uint8List privateKeyBytes;
+    PublicKeyData keyData;
+
     if (effectiveKeyType == KeyType.p256) {
-      keyPair = P256KeyPair();
+      final (instance, pKeyBytes) = P256KeyPair.generate();
+      keyPairInstance = instance;
+      privateKeyBytes = pKeyBytes;
     } else if (effectiveKeyType == KeyType.ed25519) {
-      keyPair = Ed25519KeyPair();
+      final (instance, pKeyBytes) = Ed25519KeyPair.generate();
+      keyPairInstance = instance;
+      privateKeyBytes = pKeyBytes;
     } else {
       throw ArgumentError(
           "Unsupported key type for GenericWallet: $effectiveKeyType. Only p256 and ed25519 are supported.");
     }
 
-    final privateKeyBytes = await keyPair.privateKey;
+    // Store the private key bytes
     final storedKey = StoredKey.fromPrivateKey(
       keyType: effectiveKeyType,
       keyBytes: privateKeyBytes,
     );
-
     await _keyStore.set(effectiveKeyId, storedKey);
-    _runtimeCache[effectiveKeyId] = keyPair;
 
-    final keyData = await keyPair.publicKey;
-    return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+    // Cache the instance
+    _runtimeCache[effectiveKeyId] = keyPairInstance;
+
+    // Get public key data from the instance
+    return keyPairInstance; // Return the newly created KeyPair
   }
 
   @override

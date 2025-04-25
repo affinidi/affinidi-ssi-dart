@@ -19,9 +19,6 @@ abstract interface class KeyPair {
   /// Returns the public key as as a touple with the type and bytes.
   Future<PublicKeyData> get publicKey;
 
-  /// Returns the private key as [Uint8List].
-  Future<Uint8List> get privateKey;
-
   /// Signs the provided data using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
   ///
   /// [data] - The data to be signed.

@@ -5,6 +5,7 @@ import 'package:bip32/bip32.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
@@ -115,7 +116,7 @@ class Bip32Wallet implements DeterministicWallet {
   }
 
   @override
-  Future<PublicKey> deriveKey({
+  Future<KeyPair> deriveKey({
     String? keyId,
     KeyType? keyType,
     required String derivationPath,
@@ -146,9 +147,8 @@ class Bip32Wallet implements DeterministicWallet {
               StoredKeyRepresentation.derivationPath &&
           existingStoredKey.derivationPath == derivationPath &&
           existingStoredKey.keyType == effectiveKeyType) {
-        final existingKeyPair = await _getKeyPair(effectiveKeyId);
-        final keyData = await existingKeyPair.publicKey;
-        return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+        // Key exists and matches, return the existing KeyPair
+        return _getKeyPair(effectiveKeyId);
       } else {
         throw ArgumentError(
             "Key ID $effectiveKeyId already exists in KeyStore but with incompatible data.");
@@ -164,14 +164,13 @@ class Bip32Wallet implements DeterministicWallet {
     final seed = await _getSeed();
     final rootNode = BIP32.fromSeed(seed);
     final derivedNode = rootNode.derivePath(derivationPath);
-    final tempKeyPair = Secp256k1KeyPair(node: derivedNode);
-    final keyData = await tempKeyPair.publicKey;
-
-    return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+    final keyPair = Secp256k1KeyPair(node: derivedNode);
+    _runtimeCache[effectiveKeyId] = keyPair; // Cache the new keypair
+    return keyPair; // Return the newly derived KeyPair
   }
 
   @override
-  Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) {
+  Future<KeyPair> generateKey({String? keyId, KeyType? keyType}) {
     // Bip32Wallet requires a derivation path.
     // Throw an error if the base generateKey (without path) is called.
     throw UnsupportedError(

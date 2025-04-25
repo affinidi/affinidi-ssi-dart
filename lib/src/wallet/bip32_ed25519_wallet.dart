@@ -112,7 +112,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
   }
 
   @override
-  Future<PublicKey> deriveKey({
+  Future<KeyPair> deriveKey({
     String? keyId,
     KeyType? keyType,
     required String derivationPath,
@@ -142,9 +142,8 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
               StoredKeyRepresentation.derivationPath &&
           existingStoredKey.derivationPath == derivationPath &&
           existingStoredKey.keyType == effectiveKeyType) {
-        final existingKeyPair = await _getKeyPair(effectiveKeyId);
-        final keyData = await existingKeyPair.publicKey;
-        return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+        // Key exists and matches, return the existing KeyPair
+        return _getKeyPair(effectiveKeyId);
       } else {
         throw ArgumentError(
             "Key ID $effectiveKeyId already exists in KeyStore but with incompatible data.");
@@ -159,15 +158,14 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
 
     final seed = await _getSeed();
     final derivedData = await ED25519_HD_KEY.derivePath(derivationPath, seed);
-    final tempKeyPair =
+    final keyPair =
         Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key));
-    final keyData = await tempKeyPair.publicKey;
-
-    return PublicKey(effectiveKeyId, keyData.bytes, keyData.type);
+    _runtimeCache[effectiveKeyId] = keyPair; // Cache the new keypair
+    return keyPair; // Return the newly derived KeyPair
   }
 
   @override
-  Future<PublicKey> generateKey({String? keyId, KeyType? keyType}) {
+  Future<KeyPair> generateKey({String? keyId, KeyType? keyType}) {
     // Bip32Ed25519Wallet requires a derivation path.
     // Throw an error if the base generateKey (without path) is called.
     throw UnsupportedError(

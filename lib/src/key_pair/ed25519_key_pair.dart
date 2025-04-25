@@ -23,10 +23,13 @@ class Ed25519KeyPair implements KeyPair {
 
   Ed25519KeyPair._(this._privateKey);
 
-  /// Creates a new [Ed25519KeyPair] instance with a randomly generated private key.
-  factory Ed25519KeyPair() {
+  /// Generates a new Ed25519 key pair.
+  /// Returns the KeyPair instance and its private key bytes.
+  static (Ed25519KeyPair, Uint8List) generate() {
     final keyPair = ed.generateKey();
-    return Ed25519KeyPair._(keyPair.privateKey);
+    final instance = Ed25519KeyPair._(keyPair.privateKey);
+    final privateKeyBytes = Uint8List.fromList(keyPair.privateKey.bytes);
+    return (instance, privateKeyBytes);
   }
 
   /// Creates a [Ed25519KeyPair] instance from a seed.
@@ -53,14 +56,6 @@ class Ed25519KeyPair implements KeyPair {
         ed.public(_privateKey).bytes,
       ),
       KeyType.ed25519));
-
-  /// Retrieves the private key bytes.
-  ///
-  /// Returns the key as a [Uint8List].
-  @override
-  Future<Uint8List> get privateKey {
-    return Future.value(Uint8List.fromList(_privateKey.bytes));
-  }
 
   /// Signs the provided data using Ed25519.
   ///

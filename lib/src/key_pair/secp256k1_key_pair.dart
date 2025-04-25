@@ -32,18 +32,6 @@ class Secp256k1KeyPair implements KeyPair {
       Future.value(PublicKeyData(_node.publicKey, KeyType.secp256k1));
 
   @override
-  Future<Uint8List> get privateKey {
-    final privateKey = _node.privateKey;
-    if (privateKey == null) {
-      throw SsiException(
-        message: 'Private key missing.',
-        code: SsiExceptionType.keyPairMissingPrivateKey.code,
-      );
-    }
-    return Future.value(privateKey);
-  }
-
-  @override
   Future<Uint8List> sign(
     Uint8List data, {
     SignatureScheme? signatureScheme,

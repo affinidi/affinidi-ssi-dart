@@ -26,9 +26,13 @@ class P256KeyPair implements KeyPair {
 
   P256KeyPair._(this._privateKey);
 
-  /// Creates a new [P256KeyPair] instance with a randomly generated private key.
-  factory P256KeyPair() {
-    return P256KeyPair._(_p256.generatePrivateKey());
+  /// Generates a new P256 key pair.
+  /// Returns the KeyPair instance and its private key bytes.
+  static (P256KeyPair, Uint8List) generate() {
+    final privateKey = _p256.generatePrivateKey();
+    final instance = P256KeyPair._(privateKey);
+    final privateKeyBytes = Uint8List.fromList(privateKey.bytes);
+    return (instance, privateKeyBytes);
   }
 
   /// Creates a [P256KeyPair] instance from a private key.
@@ -42,11 +46,6 @@ class P256KeyPair implements KeyPair {
   Future<PublicKeyData> get publicKey async {
     _publicKeyBytes ??= hex.decode(_privateKey.publicKey.toCompressedHex());
     return Future.value(PublicKeyData(_publicKeyBytes!, KeyType.p256));
-  }
-
-  @override
-  Future<Uint8List> get privateKey {
-    return Future.value(Uint8List.fromList(_privateKey.bytes));
   }
 
   @override
