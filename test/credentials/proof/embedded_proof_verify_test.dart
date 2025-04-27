@@ -47,7 +47,7 @@ void main() {
           id: 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa'),
     );
 
-    test('should create proof and verify successfully', () async {
+    test('should create proof and verify and validate successfully', () async {
       final proofGenerator = Secp256k1Signature2019Generator(
         signer: signer,
       );
@@ -64,6 +64,11 @@ void main() {
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
+      final validationResult =
+          await proofVerifier.validate(issuedCredential.toJson());
+      expect(validationResult.isValid, true);
+      expect(validationResult.errors, isEmpty);
+      expect(validationResult.warnings, isEmpty);
     });
 
     test('should create proof with proofPurpose and verify successfully',
@@ -85,6 +90,11 @@ void main() {
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
+      final validationResult =
+          await proofVerifier.validate(issuedCredential.toJson());
+      expect(validationResult.isValid, true);
+      expect(validationResult.errors, isEmpty);
+      expect(validationResult.warnings, isEmpty);
     });
 
     test('should create proof with future expiry and verify successfully',
@@ -124,9 +134,14 @@ void main() {
       final verificationResult = await proofVerifier.verify(
         issuedCredential.toJson(),
       );
-      expect(verificationResult.isValid, false);
-      expect(verificationResult.errors, ['proof is no longer valid']);
+      expect(verificationResult.isValid, true);
+      expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
+      final validationResult =
+          await proofVerifier.validate(issuedCredential.toJson());
+      expect(validationResult.isValid, false);
+      expect(validationResult.errors, ['proof is no longer valid']);
+      expect(validationResult.warnings, isEmpty);
     });
 
     test(
@@ -208,9 +223,14 @@ void main() {
         issuedCredential.toJson(),
       );
 
-      expect(verificationResult.isValid, false);
-      expect(verificationResult.errors, ['invalid or missing proof.domain']);
+      expect(verificationResult.isValid, true);
+      expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
+      final validationResult =
+          await proofVerifier.validate(issuedCredential.toJson());
+      expect(validationResult.isValid, false);
+      expect(validationResult.errors, ['invalid or missing proof.domain']);
+      expect(validationResult.warnings, isEmpty);
     });
 
     test(
@@ -262,9 +282,14 @@ void main() {
         issuedCredential.toJson(),
       );
 
-      expect(verificationResult.isValid, false);
-      expect(verificationResult.errors, ['invalid or missing proof.challenge']);
+      expect(verificationResult.isValid, true);
+      expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
+      final validationResult =
+          await proofVerifier.validate(issuedCredential.toJson());
+      expect(validationResult.isValid, false);
+      expect(validationResult.errors, ['invalid or missing proof.challenge']);
+      expect(validationResult.warnings, isEmpty);
     });
 
     test('should create proof with empty domain and throw error', () async {
@@ -286,10 +311,15 @@ void main() {
         issuedCredential.toJson(),
       );
 
-      expect(verificationResult.isValid, false);
-      expect(verificationResult.errors,
-          ['proof.challenge must be accompanied by proof.domain']);
+      expect(verificationResult.isValid, true);
+      expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
+      final validationResult =
+          await proofVerifier.validate(issuedCredential.toJson());
+      expect(validationResult.isValid, false);
+      expect(validationResult.errors,
+          ['proof.challenge must be accompanied by proof.domain']);
+      expect(validationResult.warnings, isEmpty);
     });
   });
 }

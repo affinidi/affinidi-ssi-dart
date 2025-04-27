@@ -117,11 +117,6 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    final isValidProof = _verifyProofProperties(proof);
-    if (!isValidProof.isValid) {
-      return isValidProof;
-    }
-
     Uri verificationMethod;
     try {
       verificationMethod = Uri.parse(proof['verificationMethod'] as String);
@@ -192,6 +187,21 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
           errors: ['proof.challenge must be accompanied by proof.domain']);
     }
     return VerificationResult.ok();
+  }
+
+  @override
+  Future<VerificationResult> validate(Map<String, dynamic> document) async {
+    final copy = Map.of(document);
+    final proof = copy.remove('proof');
+
+    if (proof == null || proof is! Map<String, dynamic>) {
+      return VerificationResult.invalid(
+        errors: ['invalid or missing proof'],
+      );
+    }
+
+    final proofValidationResult = _verifyProofProperties(proof);
+    return proofValidationResult;
   }
 }
 
