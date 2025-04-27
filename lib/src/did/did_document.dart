@@ -513,7 +513,7 @@ class VerificationMethodJwk extends VerificationMethod {
 
   @override
   Jwk asJwk() {
-    return publicKeyJwk;
+    return Jwk.fromJson({'kid': id, ...publicKeyJwk.toJson()});
   }
 
   @override

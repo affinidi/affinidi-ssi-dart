@@ -1,5 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
+import 'package:ssi/src/key_pair/secp256k1_key_pair.dart';
+
 import '../types.dart';
 import 'public_key.dart';
 
@@ -43,7 +46,9 @@ abstract interface class KeyPair {
     SignatureScheme? signatureScheme,
   });
 
-  Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey});
+  Future<Uint8List> encrypt(Uint8List data,
+      {Uint8List? publicKey, ECDHProfile? ecdhProfile});
 
-  Future<Uint8List> decrypt(Uint8List data, {Uint8List? publicKey});
+  Future<Uint8List> decrypt(Uint8List data,
+      {Uint8List? publicKey, ECDHProfile? ecdhProfile});
 }

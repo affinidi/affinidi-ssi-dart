@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:ssi/src/didcomm/types.dart';
@@ -30,25 +31,19 @@ class JweHeader implements JsonObject {
     required EncryptionAlgorithm encryptionAlgorithm,
     required List<Map<String, dynamic>> recipientPublicKeyJwks,
     required PublicKey senderPublicKey,
+    required Uint8List epkPrivate,
+    required Uint8List? epkPublic,
   }) async {
+    String curve = getCurveByPublicKey(senderPublicKey);
     DidDocument didDoc = DidKey.generateDocument(senderPublicKey);
     String kid = didDoc.keyAgreement.first;
-
-    late String curve;
-    if (senderPublicKey.type == KeyType.p256) {
-      curve = 'P-256';
-    } else if (senderPublicKey.type == KeyType.secp256k1) {
-      curve = 'secp256k1';
-    } else if (senderPublicKey.type == KeyType.ed25519) {
-      curve = 'X25519';
-    }
 
     return JweHeader(
       skid: kid,
       alg: keyWrapAlgorithm.value,
       enc: encryptionAlgorithm.value,
       apv: _buildApvHeader(recipientPublicKeyJwks, curve),
-      epk: _buildEpkHeader(senderPublicKey, curve),
+      epk: _buildEpkHeader(epkPrivate, epkPublic, senderPublicKey, curve),
       apu: _buildApuHeader(keyWrapAlgorithm, kid),
     );
   }
@@ -88,6 +83,10 @@ class JweHeader implements JsonObject {
     return alg.startsWith('ECDH-1PU');
   }
 
+  bool isAnonCrypt() {
+    return alg.startsWith('ECDH-ES');
+  }
+
   static String? _buildApuHeader(
     KeyWrapAlgorithm keyWrapAlgorithm,
     String keyId,
@@ -101,13 +100,12 @@ class JweHeader implements JsonObject {
     List<Map<String, dynamic>> jwks,
     String curve,
   ) {
-    List<String> receiverKeyIds = jwks
+    final receiverKeyIds = jwks
         .where((key) => key['crv'] == curve)
         .map((key) => key['kid'])
-        .toList()
-        .cast<String>();
+        .toList();
     receiverKeyIds.sort();
-    return receiverKeyIds;
+    return receiverKeyIds.toList().cast<String>();
   }
 
   static _buildApvHeader(
@@ -126,44 +124,43 @@ class JweHeader implements JsonObject {
   }
 
   static Map<String, dynamic> _buildEpkHeader(
-    PublicKey publicKey,
+    Uint8List privateKeyBytes,
+    Uint8List? epkPublic,
+    PublicKey senderPublicKey,
     String curve,
   ) {
-    elliptic.Curve? crv;
-    String kty;
+    if (senderPublicKey.type == KeyType.p256 ||
+        senderPublicKey.type == KeyType.secp256k1) {
+      elliptic.PrivateKey privateKey = getPrivateKeyFromBytes(privateKeyBytes,
+          keyType: senderPublicKey.type);
 
-    if (publicKey.type == KeyType.p256) {
-      crv = elliptic.getP256();
-      kty = 'P-256';
-    } else if (publicKey.type == KeyType.secp256k1) {
-      crv = elliptic.getSecp256k1();
-      kty = 'EC';
-    } else if (publicKey.type == KeyType.ed25519) {
-      kty = 'OKP';
-    } else {
-      throw Exception('Not implemented');
+      final crvPoint = _getPublicKeyPoint(privateKey.publicKey);
+      return {
+        'crv': curve,
+        'x': crvPoint.X,
+        'y': crvPoint.Y,
+        'kty': senderPublicKey.type == KeyType.p256 ? 'P-256' : 'EC',
+      };
     }
 
-    Map<String, dynamic> epkJwk = {'kty': kty, 'crv': curve};
-    if (crv != null) {
-      // TODO: can be removed as soon as public key exposes X, Y
-      elliptic.PublicKey ecPub = elliptic.PublicKey.fromHex(
-        crv,
-        c.bytesToHex(publicKey.bytes),
-      );
-
-      epkJwk['x'] = removePaddingFromBase64(base64UrlEncode(
-          ecPub.X < BigInt.zero
-              ? c.intToBytes(ecPub.X)
-              : c.unsignedIntToBytes(ecPub.X)));
-      epkJwk['y'] = removePaddingFromBase64(base64UrlEncode(
-          ecPub.Y < BigInt.zero
-              ? c.intToBytes(ecPub.Y)
-              : c.unsignedIntToBytes(ecPub.Y)));
-    } else {
-      epkJwk['x'] = removePaddingFromBase64(base64UrlEncode(publicKey.bytes));
+    if (senderPublicKey.type == KeyType.ed25519) {
+      String X = removePaddingFromBase64(base64UrlEncode(epkPublic!.toList()));
+      return {'crv': curve, 'x': X, 'kty': 'OKP'};
     }
 
-    return epkJwk;
+    throw Exception('Unknown key type for EPK header');
+  }
+
+  static ({String X, String Y}) _getPublicKeyPoint(
+      elliptic.PublicKey publicKey) {
+    String X = removePaddingFromBase64(base64UrlEncode(publicKey.X < BigInt.zero
+        ? c.intToBytes(publicKey.X)
+        : c.unsignedIntToBytes(publicKey.X)));
+
+    String Y = removePaddingFromBase64(base64UrlEncode(publicKey.Y < BigInt.zero
+        ? c.intToBytes(publicKey.Y)
+        : c.unsignedIntToBytes(publicKey.Y)));
+
+    return (X: X, Y: Y);
   }
 }

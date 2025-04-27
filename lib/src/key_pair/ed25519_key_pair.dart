@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
+import 'package:ssi/src/key_pair/secp256k1_key_pair.dart';
 import 'package:x25519/x25519.dart' as x25519;
 import 'package:cryptography/cryptography.dart' as crypto;
 
@@ -157,13 +159,18 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   @override
-  encrypt(Uint8List data, {Uint8List? publicKey}) async {
+  encrypt(Uint8List data,
+      {Uint8List? publicKey, ECDHProfile? ecdhProfile}) async {
     List<int> publicKeyToUse;
     if (publicKey == null) {
       publicKeyToUse = generateEphemeralPubKey();
     } else {
       publicKeyToUse = publicKey;
     }
+
+    // if (ecdhProfile != null) {
+    //   return ecdhProfile.decryptData(privateKey: await privateKey, data: data);
+    // }
 
     final sharedSecret = await computeEcdhSecret(publicKeyToUse);
 
@@ -189,7 +196,8 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   @override
-  decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
+  decrypt(Uint8List ivAndBytes,
+      {Uint8List? publicKey, ECDHProfile? ecdhProfile}) async {
     // Extract the ephemeral public key and the encrypted data
     final ephemeralPublicKeyBytes =
         ivAndBytes.sublist(0, compressedPublidKeyLength);
@@ -202,6 +210,11 @@ class Ed25519KeyPair implements KeyPair {
     } else {
       pubKeyToUse = publicKey;
     }
+
+    // if (ecdhProfile != null) {
+    //   return ecdhProfile.decryptData(
+    //       privateKey: await privateKey, data: ivAndBytes);
+    // }
 
     final sharedSecret = await computeEcdhSecret(pubKeyToUse);
 

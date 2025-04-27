@@ -1,6 +1,3 @@
-import 'package:ssi/src/didcomm/didcomm_plaintext_message.dart';
-import 'package:ssi/src/didcomm/didcomm_signed_message.dart';
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -10,7 +7,7 @@ void main() {
     late GenericWallet bobWallet;
     late DidcommPlaintextMessage message;
 
-    late PublicKey alicePublicKey;
+    late KeyPair aliceKeyPair;
     late DidDocument aliceDidDoc;
 
     late DidSigner aliceSigner;
@@ -22,8 +19,8 @@ void main() {
       KeyStore bobKeyStore = InMemoryKeyStore();
       bobWallet = GenericWallet(bobKeyStore);
 
-      alicePublicKey = await aliceWallet.generateKey(keyType: KeyType.p256);
-      aliceDidDoc = DidKey.generateDocument(alicePublicKey);
+      aliceKeyPair = await aliceWallet.generateKey(keyType: KeyType.p256);
+      aliceDidDoc = DidKey.generateDocument(aliceKeyPair.publicKey);
 
       message = DidcommPlaintextMessage(
         id: '2fb19055-581d-488e-b357-9d026bee98fc',
@@ -35,8 +32,7 @@ void main() {
 
       aliceSigner = DidSigner(
         didDocument: aliceDidDoc,
-        wallet: aliceWallet,
-        walletKeyId: alicePublicKey.id,
+        keyPair: aliceKeyPair,
         didKeyId: aliceDidDoc.verificationMethod[0].id,
         signatureScheme: SignatureScheme.ecdsa_p256_sha256,
       );
@@ -83,8 +79,8 @@ void main() {
     test('verification fails', () async {
       DidcommSignedMessage signedMessage = await message.sign(aliceSigner);
 
-      PublicKey bobPublicKey = await bobWallet.generateKey();
-      DidDocument bobDidDoc = DidKey.generateDocument(bobPublicKey);
+      KeyPair bobKeyPair = await bobWallet.generateKey();
+      DidDocument bobDidDoc = DidKey.generateDocument(bobKeyPair.publicKey);
 
       expect(
           () => signedMessage
