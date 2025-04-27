@@ -3,6 +3,10 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:dart_multihash/dart_multihash.dart';
+import 'package:elliptic/elliptic.dart' as elliptic;
+import 'package:ssi/src/key_pair/public_key.dart';
+import 'package:ssi/src/types.dart';
+import 'package:web3dart/crypto.dart';
 
 String addPaddingToBase64(String base64Input) {
   while (base64Input.length % 4 != 0) {
@@ -47,6 +51,111 @@ bool checkMultiHash(Uint8List hash, Uint8List data) {
     }
   }
   return hashedData.length == multihash.digest.length;
+}
+
+String getCurveByPublicKey(PublicKey publickey) {
+  if (publickey.type == KeyType.p256) {
+    return 'P-256';
+  } else if (publickey.type == KeyType.secp256k1) {
+    return 'secp256k1';
+  } else if (publickey.type == KeyType.ed25519) {
+    return 'X25519';
+  }
+  throw Exception('curve for public key not implemented');
+}
+
+elliptic.Curve getEllipticCurveByPublicKey(PublicKey publickey) {
+  if (publickey.type == KeyType.p256) {
+    return elliptic.getP256();
+  } else if (publickey.type == KeyType.secp256k1) {
+    return elliptic.getSecp256k1();
+  }
+  throw Exception('curve for public key not implemented');
+}
+
+elliptic.Curve getCurveByJwk(publicKeyJwk) {
+  if (publicKeyJwk['crv'] == 'P-256') {
+    return elliptic.getP256();
+  } else if (publicKeyJwk['crv'] == 'P-384') {
+    return elliptic.getP384();
+  } else if (publicKeyJwk['crv'] == 'P-521') {
+    return elliptic.getP521();
+  } else if (publicKeyJwk['crv'] == 'secp256k1') {
+    return elliptic.getSecp256k1();
+  } else {
+    throw UnimplementedError("Curve `${publicKeyJwk['crv']}` not supported");
+  }
+}
+
+elliptic.PublicKey publicKeyFromPoint({
+  required elliptic.Curve curve,
+  required String x,
+  required String y,
+}) {
+  return elliptic.PublicKey.fromPoint(
+      curve,
+      elliptic.AffinePoint.fromXY(
+          bytesToUnsignedInt(base64Decode(addPaddingToBase64(x))),
+          bytesToUnsignedInt(base64Decode(addPaddingToBase64(y)))));
+}
+
+elliptic.PrivateKey getPrivateKeyFromBytes(
+  Uint8List bytes, {
+  required KeyType keyType,
+}) {
+  if (keyType == KeyType.p256) {
+    return elliptic.PrivateKey.fromBytes(elliptic.getP256(), bytes);
+  }
+
+  if (keyType == KeyType.secp256k1) {
+    return elliptic.PrivateKey.fromBytes(elliptic.getSecp256k1(), bytes);
+  }
+
+  throw Exception('Can\'t convert bytes for key type ${keyType.name}');
+}
+
+elliptic.PrivateKey getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
+  var crv = privateKeyJwk['crv'];
+
+  elliptic.Curve? c;
+  dynamic receiverPrivate, epkPublic;
+
+  if (crv.startsWith('P') || crv.startsWith('secp256k1')) {
+    if (crv == 'P-256') {
+      c = elliptic.getP256();
+    } else if (crv == 'P-384') {
+      c = elliptic.getP384();
+    } else if (crv == 'P-521') {
+      c = elliptic.getP521();
+    } else if (crv == 'secp256k1') {
+      c = elliptic.getSecp256k1();
+    } else {
+      throw UnimplementedError("Curve `$crv` not supported");
+    }
+
+    receiverPrivate = elliptic.PrivateKey(
+        c,
+        bytesToUnsignedInt(
+            base64Decode(addPaddingToBase64(privateKeyJwk['d']))));
+    epkPublic = elliptic.PublicKey.fromPoint(
+        c,
+        elliptic.AffinePoint.fromXY(
+            bytesToUnsignedInt(
+                base64Decode(addPaddingToBase64(epkHeader!['x']))),
+            bytesToUnsignedInt(
+                base64Decode(addPaddingToBase64(epkHeader!['y'])))));
+  } else if (crv.startsWith('X')) {
+    receiverPrivate = base64Decode(addPaddingToBase64(privateKeyJwk['d']));
+    epkPublic = base64Decode(addPaddingToBase64(epkHeader!['x']));
+  } else {
+    throw UnimplementedError("Curve `$crv` not supported");
+  }
+
+  return receiverPrivate;
+}
+
+bool isSecp256OrPCurve(String crv) {
+  return crv.startsWith('P') || crv.startsWith('secp256k');
 }
 
 /// Signs the given String (normal or Json-Object) or Json-Object (Dart Map<String, dynamic>) [toSign] with key-pair of [didToSignWith].

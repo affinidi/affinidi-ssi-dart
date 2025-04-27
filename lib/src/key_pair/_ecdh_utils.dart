@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:crypto_keys/crypto_keys.dart' as ck;
 import 'package:elliptic/elliptic.dart';
 import 'package:elliptic/ecdh.dart';
 import 'package:cryptography/cryptography.dart' as crypto;
+import 'package:ssi/src/key_pair/secp256k1_key_pair.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';

@@ -1,8 +1,3 @@
-import 'package:ssi/src/didcomm/didcomm_encrypted_message.dart';
-import 'package:ssi/src/didcomm/didcomm_message.dart';
-import 'package:ssi/src/didcomm/didcomm_plaintext_message.dart';
-import 'package:ssi/src/didcomm/didcomm_signed_message.dart';
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 
 void main() async {
@@ -12,11 +7,11 @@ void main() async {
   KeyStore bobKeyStore = InMemoryKeyStore();
   GenericWallet bobWallet = GenericWallet(bobKeyStore);
 
-  PublicKey alicePublicKey = await aliceWallet.generateKey();
-  PublicKey bobPublicKey = await bobWallet.generateKey();
+  KeyPair aliceKeyPair = await aliceWallet.generateKey();
+  KeyPair bobKeyPair = await bobWallet.generateKey();
 
-  DidDocument aliceDidDoc = DidKey.generateDocument(alicePublicKey);
-  DidDocument bobDidDoc = DidKey.generateDocument(bobPublicKey);
+  DidDocument aliceDidDoc = DidKey.generateDocument(aliceKeyPair.publicKey);
+  DidDocument bobDidDoc = DidKey.generateDocument(bobKeyPair.publicKey);
 
   Jwk aliceJwk =
       (aliceDidDoc.resolveKeyIds().keyAgreement[0] as VerificationMethod)
@@ -27,8 +22,7 @@ void main() async {
 
   DidSigner aliceSigner = DidSigner(
     didDocument: aliceDidDoc,
-    wallet: aliceWallet,
-    walletKeyId: alicePublicKey.id,
+    keyPair: aliceKeyPair,
     didKeyId: aliceDidDoc.verificationMethod[0].id,
     signatureScheme: SignatureScheme.ecdsa_p256_sha256,
   );
@@ -52,8 +46,7 @@ void main() async {
 
   DidSigner bobSigner = DidSigner(
     didDocument: bobDidDoc,
-    wallet: bobWallet,
-    walletKeyId: bobPublicKey.id,
+    keyPair: bobKeyPair,
     didKeyId: bobDidDoc.verificationMethod[0].id,
     signatureScheme: SignatureScheme.ecdsa_p256_sha256,
   );
@@ -67,12 +60,14 @@ void main() async {
   DidcommEncryptedMessage bobsEncryptedMessage = await bobsSignedMessage
       .encrypt(
           wallet: bobWallet,
-          keyId: bobPublicKey.id,
+          keyId: bobKeyPair.id,
           recipientPublicKeyJwks: [aliceJwk.toJson()]);
 
-  DidcommSignedMessage bobsDecrypytedSignedMessage = await bobsEncryptedMessage
-          .decrypt(wallet: aliceWallet, keyId: alicePublicKey.id)
-      as DidcommSignedMessage;
+  DidcommEncryptedMessage getFromJson =
+      DidcommEncryptedMessage.fromJson(bobsEncryptedMessage.toJson());
+
+  DidcommSignedMessage bobsDecrypytedSignedMessage = await getFromJson.decrypt(
+      wallet: aliceWallet, keyId: aliceKeyPair.id) as DidcommSignedMessage;
 
   await bobsDecrypytedSignedMessage.verify(bobJwk);
   print(bobsDecrypytedSignedMessage.payload);

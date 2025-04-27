@@ -1,5 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
+import 'package:ssi/src/key_pair/secp256k1_key_pair.dart';
+
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
@@ -135,9 +138,11 @@ class GenericWallet implements Wallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
+    ECDHProfile? ecdhProfile,
   }) async {
     final keyPair = await _getKeyPair(keyId);
-    return keyPair.encrypt(data, publicKey: publicKey);
+    return keyPair.encrypt(data,
+        publicKey: publicKey, ecdhProfile: ecdhProfile);
   }
 
   @override
@@ -145,9 +150,11 @@ class GenericWallet implements Wallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
+    ECDHProfile? ecdhProfile,
   }) async {
     final keyPair = await _getKeyPair(keyId);
-    return keyPair.decrypt(data, publicKey: publicKey);
+    return keyPair.decrypt(data,
+        publicKey: publicKey, ecdhProfile: ecdhProfile);
   }
 
   Future<KeyPair> _getKeyPair(String keyId) async {

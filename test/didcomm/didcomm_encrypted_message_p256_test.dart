@@ -1,39 +1,39 @@
-import 'dart:typed_data';
-
-import 'package:ssi/src/didcomm/didcomm_encrypted_message.dart';
-import 'package:ssi/src/didcomm/didcomm_plaintext_message.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('DIDComm message encryption / decryption (secp256k1)', () {
-    late Bip32Ed25519Wallet aliceWallet;
-    late Bip32Ed25519Wallet bobWallet;
-    late Bip32Ed25519Wallet eveWallet;
+  group('DIDComm message encryption / decryption (P256)', () {
+    late GenericWallet aliceWallet;
+    late GenericWallet bobWallet;
+    late GenericWallet eveWallet;
+
+    late InMemoryKeyStore aliceKeyStore;
+    late InMemoryKeyStore bobKeyStore;
+    late InMemoryKeyStore eveKeyStore;
 
     late DidcommPlaintextMessage message;
     late DidDocument aliceDidDoc;
     late DidDocument bobDidDoc;
 
-    const aliceKeyId = '1234-0';
-    const bobKeyId = '2345-0';
-    const eveKeyId = '3456-0';
+    const aliceKeyId = 'alice-p256-key';
+    const bobKeyId = 'bob-p256-key';
+    const eveKeyId = 'eve-p256-key';
 
     late PublicKey alicePublicKey;
     late PublicKey bobPublicKey;
 
-    generateSeed() =>
-        Uint8List.fromList(List.generate(32, (index) => index + 1));
-
     setUp(() async {
-      aliceWallet = await Bip32Ed25519Wallet.fromSeed(generateSeed());
-      bobWallet = await Bip32Ed25519Wallet.fromSeed(generateSeed());
-      eveWallet = await Bip32Ed25519Wallet.fromSeed(generateSeed());
+      aliceKeyStore = InMemoryKeyStore();
+      bobKeyStore = InMemoryKeyStore();
+      eveKeyStore = InMemoryKeyStore();
 
-      await aliceWallet.generateKey(
-          keyId: aliceKeyId, keyType: KeyType.ed25519);
-      await bobWallet.generateKey(keyId: bobKeyId, keyType: KeyType.ed25519);
-      await eveWallet.generateKey(keyId: eveKeyId, keyType: KeyType.ed25519);
+      aliceWallet = GenericWallet(aliceKeyStore);
+      bobWallet = GenericWallet(bobKeyStore);
+      eveWallet = GenericWallet(eveKeyStore);
+
+      await aliceWallet.generateKey(keyId: aliceKeyId, keyType: KeyType.p256);
+      await bobWallet.generateKey(keyId: bobKeyId, keyType: KeyType.p256);
+      await eveWallet.generateKey(keyId: eveKeyId, keyType: KeyType.p256);
 
       alicePublicKey = await aliceWallet.getPublicKey(aliceKeyId);
       bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
@@ -61,7 +61,7 @@ void main() {
       final encryptedFromPlaintext = await message.encrypt(
           wallet: aliceWallet,
           keyId: alicePublicKey.id,
-          recipientPublicKeyJwk: bobKeyAgreements);
+          recipientPublicKeyJwks: bobKeyAgreements);
 
       final actual = await encryptedFromPlaintext.decrypt(
           wallet: bobWallet, keyId: bobPublicKey.id);
@@ -81,7 +81,7 @@ void main() {
       final encryptedFromPlaintext = await message.encrypt(
           wallet: aliceWallet,
           keyId: alicePublicKey.id,
-          recipientPublicKeyJwk: bobKeyAgreements);
+          recipientPublicKeyJwks: bobKeyAgreements);
 
       final newMessage =
           DidcommEncryptedMessage.fromJson(encryptedFromPlaintext.toJson());
@@ -104,7 +104,7 @@ void main() {
       final encryptedFromPlaintext = await message.encrypt(
           wallet: aliceWallet,
           keyId: alicePublicKey.id,
-          recipientPublicKeyJwk: bobKeyAgreements);
+          recipientPublicKeyJwks: bobKeyAgreements);
 
       expect(
           () => encryptedFromPlaintext.decrypt(

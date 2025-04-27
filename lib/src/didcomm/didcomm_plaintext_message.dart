@@ -69,13 +69,13 @@ class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
       EncryptionAlgorithm encryptionAlgorithm = EncryptionAlgorithm.a256cbc,
       required Wallet wallet,
       required String keyId,
-      required List<Map<String, dynamic>> recipientPublicKeyJwk}) {
+      required List<Map<String, dynamic>> recipientPublicKeyJwks}) {
     return DidcommEncryptedMessage.fromPlaintext(
         keyWrapAlgorithm: keyWrapAlgorithm,
         encryptionAlgorithm: encryptionAlgorithm,
         wallet: wallet,
         keyId: keyId,
-        recipientPublicKeyJwks: recipientPublicKeyJwk,
+        recipientPublicKeyJwks: recipientPublicKeyJwks,
         message: this);
   }
 

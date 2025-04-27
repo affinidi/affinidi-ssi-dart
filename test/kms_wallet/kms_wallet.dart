@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
 import 'package:ssi/ssi.dart';
 
 import 'kms_key_pair.dart';
@@ -73,20 +74,18 @@ class KmsWallet implements Wallet {
   }
 
   @override
-  Future<Uint8List> encrypt(
-    Uint8List data, {
-    required String keyId,
-    Uint8List? publicKey,
-  }) async {
+  Future<Uint8List> encrypt(Uint8List data,
+      {required String keyId,
+      Uint8List? publicKey,
+      ECDHProfile? ecdhProfile}) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<Uint8List> decrypt(
-    Uint8List data, {
-    required String keyId,
-    Uint8List? publicKey,
-  }) async {
+  Future<Uint8List> decrypt(Uint8List data,
+      {required String keyId,
+      Uint8List? publicKey,
+      ECDHProfile? ecdhProfile}) async {
     throw UnimplementedError();
   }
 

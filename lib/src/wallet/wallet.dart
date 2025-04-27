@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
+
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
@@ -93,6 +95,7 @@ abstract interface class Wallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
+    ECDHProfile? ecdhProfile,
   });
 
   /// Decrypts data using the specified key.
@@ -110,5 +113,6 @@ abstract interface class Wallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
+    ECDHProfile? ecdhProfile,
   });
 }

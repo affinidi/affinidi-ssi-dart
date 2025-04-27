@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -189,9 +190,11 @@ class Bip32Wallet implements DeterministicWallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
+    ECDHProfile? ecdhProfile,
   }) async {
     final keyPair = await _getKeyPair(keyId);
-    return keyPair.encrypt(data, publicKey: publicKey);
+    return keyPair.encrypt(data,
+        publicKey: publicKey, ecdhProfile: ecdhProfile);
   }
 
   @override
@@ -199,9 +202,11 @@ class Bip32Wallet implements DeterministicWallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
+    ECDHProfile? ecdhProfile,
   }) async {
     final keyPair = await _getKeyPair(keyId);
-    return keyPair.decrypt(data, publicKey: publicKey);
+    return keyPair.decrypt(data,
+        publicKey: publicKey, ecdhProfile: ecdhProfile);
   }
 
   Future<Secp256k1KeyPair> _getKeyPair(String keyId) async {
