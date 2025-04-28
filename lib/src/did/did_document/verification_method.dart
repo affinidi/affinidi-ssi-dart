@@ -8,7 +8,7 @@ import '../../util/json_util.dart';
 import '../public_key_utils.dart';
 import 'did_document.dart';
 
-abstract interface class VerificationMethod implements JsonObject {
+sealed class VerificationMethod implements JsonObject {
   String get id;
 
   String get controller;
@@ -18,6 +18,21 @@ abstract interface class VerificationMethod implements JsonObject {
   Jwk asJwk();
 
   Uint8List asMultiKey();
+
+  factory VerificationMethod.fromJson(dynamic value, Map<Uri, VerificationMethod> verificationMethod,) {
+    if (value is String) {
+      final verificationMethod = verificationMethod[Uri.parse(value)];
+      return VerificationMethodRef(reference: Uri.parse(value), method: verificationMethod);
+    } else if (value is Map<String, dynamic>) {
+      return EmbeddedVerificationMethod.fromJson(value);
+    } else if (value is VerificationMethod) {
+      return value;
+    } else if (value is VerificationMethodRef) {
+      return value;
+    } else {
+      throw FormatException('unknown Datatype for VerificationMethod');
+    }
+  }
 }
 
 abstract class EmbeddedVerificationMethod
@@ -146,4 +161,19 @@ class VerificationMethodMultibase extends EmbeddedVerificationMethod {
 
     return jsonObject;
   }
+}
+
+class VerificationMethodRef implements VerificationMethod {
+  final EmbeddedVerificationMethod method;
+  final Uri reference;
+
+  VerificationMethodRef({this.reference, this.method});
+
+  bool get isReference =>
+
+  dynamic toJson();
+
+  String? get idOrNull;
+
+  VerificationRelationship resolveWith(Map<String, VerificationMethod> veriMap);
 }
