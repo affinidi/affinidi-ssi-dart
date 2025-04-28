@@ -24,29 +24,30 @@ void main() {
   });
   group('verify embedded proof', () {
     final unsignedCredential = MutableVcDataModelV1(
-        context: [
-          'https://www.w3.org/2018/credentials/v1',
-          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
-        id: Uri.parse('uuid:123456abcd'),
-        type: {'VerifiableCredential', 'UserProfile'},
-        credentialSubject: [
-          MutableCredentialSubject({
-            'Fname': 'Fname',
-            'Lname': 'Lame',
-            'Age': '22',
-            'Address': 'Eihhornstr'
-          })
-        ],
-        holder: Holder.uri('did:example:1'),
-        credentialSchema: [
-          MutableCredentialSchema(
-              id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
-              type: 'JsonSchemaValidator2018')
-        ],
-        issuanceDate: DateTime.now(),
-        issuer: Issuer.uri('did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa'),
-      );
+      context: [
+        'https://www.w3.org/2018/credentials/v1',
+        'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+      ],
+      id: Uri.parse('uuid:123456abcd'),
+      type: {'VerifiableCredential', 'UserProfile'},
+      credentialSubject: [
+        MutableCredentialSubject({
+          'Fname': 'Fname',
+          'Lname': 'Lame',
+          'Age': '22',
+          'Address': 'Eihhornstr'
+        })
+      ],
+      holder: Holder.uri('did:example:1'),
+      credentialSchema: [
+        MutableCredentialSchema(
+            id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+            type: 'JsonSchemaValidator2018')
+      ],
+      issuanceDate: DateTime.now(),
+      issuer: Issuer.uri(
+          'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa'),
+    );
 
     test('should create proof and validate successfully', () async {
       final proofGenerator = Secp256k1Signature2019Generator(

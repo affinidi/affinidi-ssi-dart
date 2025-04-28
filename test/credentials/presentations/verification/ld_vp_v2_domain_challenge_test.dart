@@ -19,15 +19,13 @@ void main() async {
   final signer = await initSigner(testSeed);
 
   group('VP LD V2 Domain Challenge Verification', () {
-          final v2Vp = MutableVpDataModelV2(
-          context: [VpDataModelV2.contextUrl],
-          id: Uri.parse('testVpV2'),
-          type: {'VerifiablePresentation'},
-          holder: Holder.uri(signer.did),
-          verifiableCredential: [ldV2VC]);
+    final v2Vp = MutableVpDataModelV2(
+        context: [VpDataModelV2.contextUrl],
+        id: Uri.parse('testVpV2'),
+        type: {'VerifiablePresentation'},
+        holder: Holder.uri(signer.did),
+        verifiableCredential: [ldV2VC]);
     test('should be able to verify domain and challenge of VP proof', () async {
-
-
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
       var issuedCredential = await LdVpDm2Suite().issue(
@@ -43,8 +41,6 @@ void main() async {
     });
 
     test('should fail for invalid provided domain', () async {
-
-
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
       var issuedCredential = await LdVpDm2Suite().issue(
@@ -60,8 +56,6 @@ void main() async {
     });
 
     test('should fail for invalid provided challenge', () async {
-
-
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
       var issuedCredential = await LdVpDm2Suite().issue(

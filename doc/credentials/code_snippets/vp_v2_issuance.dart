@@ -41,7 +41,9 @@ Future<void> main() async {
   // Issue the VP using the V2 suite
   final vpToSign = VpDataModelV2.fromJson(v2Vp.toJson());
   final issuedVp = await LdVpDm2Suite().issue(
-      unsignedData: vpToSign, issuer: signer.did, proofGenerator: proofGenerator);
+      unsignedData: vpToSign,
+      issuer: signer.did,
+      proofGenerator: proofGenerator);
 
   // Output result
   print('Serialized VP:\n${issuedVp.serialized}');

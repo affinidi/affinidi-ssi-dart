@@ -20,14 +20,12 @@ void main() async {
 
   group('VP LD V1 Domain Challenge Verification', () {
     final v1Vp = MutableVpDataModelV1(
-          context: [VpDataModelV1.contextUrl],
-          id: Uri.parse('testVpV1'),
-          type: {'VerifiablePresentation'},
-          holder: Holder.uri(signer.did),
-          verifiableCredential: [ldV1VC]);
+        context: [VpDataModelV1.contextUrl],
+        id: Uri.parse('testVpV1'),
+        type: {'VerifiablePresentation'},
+        holder: Holder.uri(signer.did),
+        verifiableCredential: [ldV1VC]);
     test('should be able to verify domain and challenge of VP proof', () async {
-      
-
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
       var issuedCredential = await LdVpDm1Suite().issue(
@@ -43,8 +41,6 @@ void main() async {
     });
 
     test('should fail for invalid provided domain', () async {
-
-
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
       var issuedCredential = await LdVpDm1Suite().issue(
@@ -60,8 +56,6 @@ void main() async {
     });
 
     test('should fail for invalid provided challenge', () async {
-
-
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
       var issuedCredential = await LdVpDm1Suite().issue(

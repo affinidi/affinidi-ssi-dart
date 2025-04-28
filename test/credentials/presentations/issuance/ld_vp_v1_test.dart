@@ -33,8 +33,7 @@ void main() async {
       final proofGenerator = Secp256k1Signature2019Generator(
         signer: signer,
       );
-      final issuedPresentation = await LdVpDm1Suite()
-          .issue(
+      final issuedPresentation = await LdVpDm1Suite().issue(
           unsignedData: VpDataModelV1.fromJson(v1Vp.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);

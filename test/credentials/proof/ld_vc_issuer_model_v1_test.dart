@@ -53,7 +53,7 @@ void main() async {
 
       final issuedCredential = await LdVcDm1Suite().issue(
         issuer: signer.did,
-        unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()) ,
+        unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
         proofGenerator: proofGenerator,
       );
 

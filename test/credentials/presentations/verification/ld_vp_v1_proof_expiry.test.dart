@@ -20,14 +20,12 @@ void main() async {
 
   group('VP LD V1 Proof Expiry Verification', () {
     final v1Vp = MutableVpDataModelV1(
-          context: [VpDataModelV1.contextUrl],
-          id: Uri.parse('testVpV1'),
-          type: {'VerifiablePresentation'},
-          holder: Holder.uri(signer.did),
-          verifiableCredential: [ldV1VC]);
+        context: [VpDataModelV1.contextUrl],
+        id: Uri.parse('testVpV1'),
+        type: {'VerifiablePresentation'},
+        holder: Holder.uri(signer.did),
+        verifiableCredential: [ldV1VC]);
     test('should be able to verify expiry of VP proof', () async {
-      
-
       final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
       var issuedCredential = await LdVpDm1Suite().issue(
           unsignedData: VpDataModelV1.fromJson(v1Vp.toJson()),
@@ -41,8 +39,6 @@ void main() async {
     });
 
     test('should be able to verify for expired  VP proof', () async {
-
-
       final proofGenerator =
           Secp256k1Signature2019Generator(signer: signer, expires: getPast());
       var issuedCredential = await LdVpDm1Suite().issue(
@@ -57,8 +53,6 @@ void main() async {
     });
 
     test('should be able to verify for future expiry of  VP proof', () async {
-
-
       final proofGenerator =
           Secp256k1Signature2019Generator(signer: signer, expires: getFuture());
       var issuedCredential = await LdVpDm1Suite().issue(
