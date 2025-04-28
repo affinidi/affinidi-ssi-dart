@@ -7,12 +7,7 @@ import '../suites/vc_suite.dart';
 import 'ld_base_suite.dart';
 import 'ld_vc_data_model_v2.dart';
 
-class LdVcDm2Options extends LdOptions {
-  /// Creates an options object for LdVcDm2Options.
-  ///
-  /// [embeddedProofSuiteConfig] - Specify suite config for issuance.
-  LdVcDm2Options({super.embeddedProofSuiteConfig});
-}
+class LdVcDm2Options extends LdOptions {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
 final class LdVcDm2Suite

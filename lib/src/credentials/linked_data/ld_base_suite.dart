@@ -12,15 +12,7 @@ import '../proof/embedded_proof_suite.dart';
 ///
 /// Contains configuration parameters for LD based data model operations
 /// in the context of W3C Verifiable Credentials Data Model.
-abstract class LdOptions {
-  /// proof suit config for issuance.
-  final EmbeddedProofSuiteConfig? embeddedProofSuiteConfig;
-
-  /// Creates an options object for LdVcDm1Options.
-  ///
-  /// [embeddedProofSuiteConfig] - Specify suite config for issuance.
-  LdOptions({this.embeddedProofSuiteConfig});
-}
+abstract class LdOptions {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
 abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,

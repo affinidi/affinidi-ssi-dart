@@ -7,12 +7,7 @@ import '../models/v1/vp_data_model_v1_view.dart';
 import '../suites/vp_suite.dart';
 
 /// Options specific to Linked Data VPv1 operations.
-class LdVpDm1Options extends LdOptions {
-  /// Creates an options object for LdVpDm1Options.
-  ///
-  /// [embeddedProofSuiteConfig] - Specify suite config for issuance.
-  LdVpDm1Options({super.embeddedProofSuiteConfig});
-}
+class LdVpDm1Options extends LdOptions {}
 
 /// Implementation for parsing and processing JSON-LD Verifiable Presentations v1.1.
 ///

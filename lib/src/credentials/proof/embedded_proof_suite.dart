@@ -7,31 +7,6 @@ import 'embedded_proof.dart';
 /// Takes a [url] and returns the document content as a JSON map, or null if not found.
 typedef DocumentLoader = Future<Map<String, dynamic>?> Function(Uri url);
 
-/// proof suite config for issuance
-class EmbeddedProofSuiteConfig {
-  /// The date and time when embedded proof expires.
-  final DateTime? expires;
-
-  /// The domains this proof is bound to.
-  /// Can be a single string or a list of strings.
-  final List<String>? domain;
-
-  /// A challenge to prevent replay attacks.
-  final String? challenge;
-
-  /// The purpose of embedded proof.
-  final ProofPurpose? proofPurpose;
-
-  /// Creates an options object for EmbeddedProofSuiteConfig.
-  ///
-  /// [expires] - Specify expiry of proof.
-  /// [domain] - Specify one or more security domains in which the proof is meant to be used.
-  /// [challenge] - Specify challenge for domain in proof.
-  /// [proofPurpose] - Specify proofPurpose
-  EmbeddedProofSuiteConfig(
-      {this.expires, this.domain, this.challenge, this.proofPurpose});
-}
-
 /// Options for creating cryptographic proofs.
 ///
 /// Contains settings that control how a proof is created, such as
