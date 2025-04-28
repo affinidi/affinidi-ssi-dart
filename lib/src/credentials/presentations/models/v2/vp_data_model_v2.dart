@@ -27,7 +27,7 @@ part 'mutable_vp_data_model_v2.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class VpDataModelV2 extends _VpDataModelV2 implements VerifiablePresentation {
+class VpDataModelV2 implements VerifiablePresentation {
   static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
 
   /// The JSON-LD context for this presentation.
@@ -60,8 +60,24 @@ class VpDataModelV2 extends _VpDataModelV2 implements VerifiablePresentation {
   @override
   final UnmodifiableListView<EmbeddedProof> proof;
 
-  @override
   final UnmodifiableListView<TermsOfUse> termsOfUse;
+
+  /// Converts this presentation to a JSON-serializable map.
+  @override
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.id.key] = id?.toString();
+    json[_P.type.key] = type.toList();
+    json[_P.holder.key] = holder.toJson();
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    json[_P.verifiableCredential.key] =
+        verifiableCredential.map(presentVC).toList();
+
+    return cleanEmpty(json);
+  }
 
   /// Creates a [VpDataModelV2] instance.
   ///

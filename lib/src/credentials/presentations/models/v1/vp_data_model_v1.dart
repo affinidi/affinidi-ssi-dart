@@ -26,7 +26,7 @@ part './mutable_vp_data_model_v1.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
+class VpDataModelV1 implements VerifiablePresentation {
   /// The default JSON-LD context URL for VP v1
   static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
 
@@ -59,6 +59,21 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
   /// The cryptographic proof(s) created by the holder.
   @override
   final UnmodifiableListView<EmbeddedProof> proof;
+
+  @override
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.id.key] = id?.toString();
+    json[_P.type.key] = type.toList();
+    json[_P.holder.key] = holder.toJson();
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.verifiableCredential.key] =
+        verifiableCredential.map(presentVC).toList();
+
+    return cleanEmpty(json);
+  }
 
   /// Creates a [VpDataModelV1] instance.
   ///

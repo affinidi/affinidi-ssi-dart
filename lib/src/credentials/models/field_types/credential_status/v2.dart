@@ -1,5 +1,18 @@
 import '../../../../util/json_util.dart';
 
+abstract interface class _CredentialStatusV2Interface {
+  Uri? get id;
+  String? get type;
+
+  /// Converts this status to a JSON-serializable map.
+  ///
+  /// Returns a map containing the 'type' field and 'id' field if present.
+  Map<String, dynamic> toJson() => cleanEmpty({
+        'id': id?.toString(),
+        'type': type,
+      });
+}
+
 /// Represents a schema for verifiable credentials following W3C standards.
 ///
 /// A credential schema defines the structure and constraints of a verifiable credential.
@@ -12,7 +25,7 @@ import '../../../../util/json_util.dart';
 ///   schema: 'PersonCredential',
 /// );
 /// ```
-class MutableCredentialStatusV2 {
+class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
   /// The URL identifier for this status information.
   Uri? id;
 
@@ -28,16 +41,18 @@ class MutableCredentialStatusV2 {
     this.type,
   });
 
-  /// Converts this status to a JSON-serializable map.
+  /// Creates a [MutableCredentialStatusV2] from JSON data.
   ///
-  /// Returns a map containing the 'type' field and 'id' field if present.
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-        'type': type,
-      });
+  /// The [json] must contain a 'type' field and may contain an 'id' field.
+  factory MutableCredentialStatusV2.fromJson(Map<String, dynamic> json) {
+    final id = getUri(json, 'id');
+    final type = getString(json, 'type');
+
+    return MutableCredentialStatusV2(id: id, type: type);
+  }
 }
 
-class CredentialStatusV2 extends MutableCredentialStatusV2 {
+class CredentialStatusV2 extends _CredentialStatusV2Interface {
   final Uri? _id;
   final String _type;
 

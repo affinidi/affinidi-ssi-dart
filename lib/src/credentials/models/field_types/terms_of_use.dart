@@ -1,6 +1,17 @@
 import '../../../util/json_util.dart';
 
-class MutableTermsOfUse {
+abstract interface class _TermsOfUseInterface {
+  Uri? get id;
+  String? get type;
+
+  /// Converts this status to a JSON-serializable map.
+  ///
+  /// Returns a map containing the 'type' field and 'id' field if present.
+  Map<String, dynamic> toJson() =>
+      cleanEmpty({'id': id?.toString(), 'type': type});
+}
+
+class MutableTermsOfUse extends _TermsOfUseInterface {
   Uri? id;
 
   String? type;
@@ -10,16 +21,18 @@ class MutableTermsOfUse {
     this.type,
   });
 
-  /// Converts this status to a JSON-serializable map.
+  /// Creates a [TermsOfUse] from JSON data.
   ///
-  /// Returns a map containing the 'type' field and 'id' field if present.
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-        'type': type,
-      });
+  /// The [json] must contain a 'type' field and may contain an 'id' field.
+  factory MutableTermsOfUse.fromJson(Map<String, dynamic> json) {
+    final id = getUri(json, 'id');
+    final type = getString(json, 'type');
+
+    return MutableTermsOfUse(id: id, type: type);
+  }
 }
 
-class TermsOfUse extends MutableTermsOfUse {
+class TermsOfUse extends _TermsOfUseInterface {
   final Uri? _id;
   final String _type;
 

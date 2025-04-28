@@ -1,5 +1,3 @@
-import 'package:ssi/src/types.dart';
-
 import '../../../../ssi.dart';
 import '../../verification/vc_proof_expiry_verifier.dart';
 import '../models/parsed_vp.dart';

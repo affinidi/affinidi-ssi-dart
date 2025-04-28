@@ -16,35 +16,29 @@ part of 'vp_data_model_v1.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class MutableVpDataModelV1 extends _VpDataModelV1 {
+class MutableVpDataModelV1 {
   /// The JSON-LD context for this presentation.
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
-  @override
   List<String> context;
 
   /// The optional identifier for this presentation.
-  @override
   Uri? id;
 
   /// The type definitions for this presentation.
   ///
   /// Must include 'VerifiablePresentation'.
-  @override
   Set<String> type;
 
   /// The identifier of the holder presenting the credentials.
   ///
   /// Typically a DID.
-  @override
   MutableHolder? holder;
 
   /// The list of verifiable credentials embedded in this presentation.
-  @override
   List<ParsedVerifiableCredential> verifiableCredential;
 
   /// The cryptographic proof(s) created by the holder.
-  @override
   List<EmbeddedProof> proof;
 
   /// Creates a [VpDataModelV1] instance.
@@ -65,20 +59,6 @@ class MutableVpDataModelV1 extends _VpDataModelV1 {
         type = type ?? {},
         proof = proof ?? [],
         verifiableCredential = verifiableCredential ?? [];
-}
-
-abstract class _VpDataModelV1 {
-  List<String> get context;
-
-  Uri? get id;
-
-  Set<String> get type;
-
-  MutableHolder? get holder;
-
-  List<ParsedVerifiableCredential> get verifiableCredential;
-
-  List<EmbeddedProof> get proof;
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};

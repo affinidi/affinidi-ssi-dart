@@ -1,17 +1,28 @@
-import '../../../../ssi.dart';
 import '../../../util/json_util.dart';
 
-class MutableHolder {
+abstract interface class _HolderInterface {
+  Uri? get id;
+
+  /// Converts this status to a JSON-serializable map.
+  ///
+  /// Returns a map containing the 'type' field and 'id' field if present.
+  Map<String, dynamic> toJson() => cleanEmpty({'id': id?.toString()});
+}
+
+class MutableHolder extends _HolderInterface {
   Uri? id;
 
   MutableHolder({this.id});
 
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-      });
+  factory MutableHolder.fromJson(dynamic json) {
+    final id = getUri(json, 'id');
+    return MutableHolder(id: id);
+  }
+
+  factory MutableHolder.uri(dynamic json) => MutableHolder.fromJson(json);
 }
 
-class Holder extends MutableHolder {
+class Holder extends _HolderInterface {
   final Uri _id;
 
   @override
@@ -20,21 +31,7 @@ class Holder extends MutableHolder {
   Holder({required Uri id}) : _id = id;
 
   factory Holder.fromJson(dynamic json) {
-    Uri id;
-
-    if (json is String) {
-      id = Uri.parse(json);
-    } else if (json is Uri) {
-      id = json;
-    } else if (json is Map<String, dynamic>) {
-      id = getMandatoryUri(json, 'id');
-    } else {
-      throw SsiException(
-        message: 'id should be a String or a Uri',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
-
+    final id = getMandatoryUri(json, 'id');
     return Holder(id: id);
   }
 

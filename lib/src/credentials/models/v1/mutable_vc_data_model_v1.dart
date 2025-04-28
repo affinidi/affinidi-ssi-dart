@@ -1,47 +1,57 @@
 part of 'vc_data_model_v1.dart';
 
-class MutableVcDataModelV1 extends _VcDataModelV1 {
-  @override
+const String DMV1ContextUrl = 'https://www.w3.org/2018/credentials/v1';
+
+class MutableVcDataModelV1 {
   List<String> context;
 
-  @override
   Uri? id;
 
-  @override
   Set<String> type;
 
-  @override
   List<MutableCredentialSchema> credentialSchema;
 
-  @override
   List<MutableCredentialSubject> credentialSubject;
 
-  @override
   MutableIssuer? issuer;
 
-  @override
   DateTime? issuanceDate;
 
-  @override
   DateTime? expirationDate;
 
-  @override
   MutableHolder? holder;
 
-  @override
   List<EmbeddedProof> proof;
 
-  @override
   MutableCredentialStatusV1? credentialStatus;
 
-  @override
   List<MutableRefreshServiceV1> refreshService;
 
-  @override
   List<MutableTermsOfUse> termsOfUse;
 
-  @override
   List<MutableEvidence> evidence;
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.issuer.key] = issuer?.toJson();
+    json[_P.type.key] = type.toList();
+    json[_P.id.key] = id?.toString();
+    json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
+    json[_P.holder.key] = holder?.toJson();
+    json[_P.issuanceDate.key] = issuanceDate?.toIso8601String();
+    json[_P.expirationDate.key] = expirationDate?.toIso8601String();
+    json[_P.credentialSubject.key] =
+        encodeListToSingleOrArray(credentialSubject);
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.credentialStatus.key] = credentialStatus?.toJson();
+    json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
+    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
+
+    return cleanEmpty(json);
+  }
 
   MutableVcDataModelV1({
     List<String>? context,
@@ -66,57 +76,80 @@ class MutableVcDataModelV1 extends _VcDataModelV1 {
         refreshService = refreshService ?? [],
         termsOfUse = termsOfUse ?? [],
         evidence = evidence ?? [];
-}
 
-abstract interface class _VcDataModelV1 {
-  List<String> get context;
+  factory MutableVcDataModelV1.fromJson(dynamic input) {
+    final json = jsonToMap(input);
 
-  Uri? get id;
+    final context = getStringList(json, _P.context.key);
+    final id = getUri(json, _P.id.key);
+    final type =
+        getStringList(json, _P.type.key, allowSingleValue: true).toSet();
 
-  List<MutableCredentialSchema> get credentialSchema;
+    final issuer = MutableIssuer.fromJson(json[_P.issuer.key]);
 
-  List<CredentialSubjectInterface> get credentialSubject;
+    final credentialSubject = parseListOrSingleItem<MutableCredentialSubject>(
+        json,
+        _P.credentialSubject.key,
+        (item) =>
+            MutableCredentialSubject.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  MutableIssuer? get issuer;
+    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
+        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  Set<String> get type;
+    final credentialSchema = parseListOrSingleItem<MutableCredentialSchema>(
+        json,
+        _P.credentialSchema.key,
+        (item) =>
+            MutableCredentialSchema.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  List<EmbeddedProof> get proof;
+    final issuanceDate = getDateTime(json, _P.issuanceDate.key);
+    final expirationDate = getDateTime(json, _P.expirationDate.key);
 
-  MutableCredentialStatusV1? get credentialStatus;
+    final holder = MutableHolder.fromJson(json[_P.holder.key]);
 
-  DateTime? get issuanceDate;
+    MutableCredentialStatusV1? credentialStatus;
+    if (json.containsKey(_P.credentialStatus.key)) {
+      credentialStatus = MutableCredentialStatusV1.fromJson(
+          json[_P.credentialStatus.key] as Map<String, dynamic>);
+    }
 
-  DateTime? get expirationDate;
+    final refreshService = parseListOrSingleItem<MutableRefreshServiceV1>(
+        json,
+        _P.refreshService.key,
+        (item) =>
+            MutableRefreshServiceV1.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  MutableHolder? get holder;
+    final termsOfUse = parseListOrSingleItem<MutableTermsOfUse>(
+        json,
+        _P.termsOfUse.key,
+        (item) => MutableTermsOfUse.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  List<MutableRefreshServiceV1> get refreshService;
+    final evidence = parseListOrSingleItem<MutableEvidence>(
+        json,
+        _P.evidence.key,
+        (item) => MutableEvidence.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  List<MutableTermsOfUse> get termsOfUse;
-
-  List<MutableEvidence> get evidence;
-
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-
-    json[_P.context.key] = context;
-    json[_P.issuer.key] = issuer?.toJson();
-    json[_P.type.key] = type.toList();
-    json[_P.id.key] = id?.toString();
-    json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
-    json[_P.holder.key] = holder?.toJson();
-    json[_P.issuanceDate.key] = issuanceDate?.toIso8601String();
-    json[_P.expirationDate.key] = expirationDate?.toIso8601String();
-    json[_P.credentialSubject.key] =
-        encodeListToSingleOrArray(credentialSubject);
-    json[_P.proof.key] = encodeListToSingleOrArray(proof);
-    json[_P.credentialStatus.key] = credentialStatus?.toJson();
-    json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
-    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
-    json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
-
-    return cleanEmpty(json);
+    return MutableVcDataModelV1(
+        context: context,
+        id: id,
+        credentialSubject: credentialSubject,
+        issuer: issuer,
+        type: type,
+        issuanceDate: issuanceDate,
+        credentialSchema: credentialSchema,
+        expirationDate: expirationDate,
+        holder: holder,
+        proof: proof,
+        credentialStatus: credentialStatus,
+        refreshService: refreshService,
+        termsOfUse: termsOfUse,
+        evidence: evidence);
   }
 }
 

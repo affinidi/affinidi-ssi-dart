@@ -16,7 +16,7 @@ final class LdVcDm1Suite
             LdVcDm1Options> {
   LdVcDm1Suite()
       : super(
-          contextUrl: VcDataModelV1.contextUrl,
+          contextUrl: DMV1ContextUrl,
         );
 
   @override
