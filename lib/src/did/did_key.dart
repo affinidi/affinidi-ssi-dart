@@ -5,7 +5,7 @@ import '../exceptions/ssi_exception_type.dart';
 import '../json_ld/context.dart';
 import '../key_pair/public_key.dart';
 import '../utility.dart';
-import 'did_document.dart';
+import 'did_document/index.dart';
 import 'public_key_utils.dart';
 
 /// Builds a DID document for Ed25519 keys.

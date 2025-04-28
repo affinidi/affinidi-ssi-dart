@@ -6,7 +6,7 @@ library;
 export 'src/credentials/suites/universal_parser.dart';
 export 'src/credentials/models/credential_schema.dart';
 export 'src/credentials/models/verifiable_credential.dart';
-export 'src/did/did_document.dart';
+export 'src/did/did_document/index.dart';
 export 'src/did/did_key.dart';
 export 'src/did/did_peer.dart';
 export 'src/did/did_signer.dart';

@@ -94,8 +94,9 @@ void main() {
         });
 
         test("it retrieves correct authentication", () {
-          expect(didDoc.authentication[0], "did:web:example.com#key-0");
-          expect(didDoc.authentication[1], isA<VerificationMethod>());
+          expect(
+              didDoc.authentication[0].idOrNull, "did:web:example.com#key-0");
+          expect(didDoc.authentication[1], isA<VerificationRelationship>());
         });
 
         test("it retrieves correct also know as", () {
@@ -104,22 +105,25 @@ void main() {
 
         test("it retrieves correct capability invacation", () {
           expect(
-            didDoc.capabilityInvocation[0],
+            didDoc.capabilityInvocation[0].idOrNull,
             "did:web:example.com#key-0",
           );
-          expect(didDoc.capabilityInvocation[1], isA<VerificationMethod>());
+          expect(
+              didDoc.capabilityInvocation[1], isA<VerificationRelationship>());
         });
 
         test("it retrieves correct capability delegation", () {
           expect(
-            didDoc.capabilityDelegation[0],
+            didDoc.capabilityDelegation[0].idOrNull,
             "did:web:example.com#key-1",
           );
-          expect(didDoc.capabilityDelegation[1], isA<VerificationMethod>());
+          expect(
+              didDoc.capabilityDelegation[1], isA<VerificationRelationship>());
         });
 
         test("it retrieves correct aasertion method", () {
-          expect(didDoc.assertionMethod[0], "did:web:example.com#key-0");
+          expect(
+              didDoc.assertionMethod[0].idOrNull, "did:web:example.com#key-0");
         });
 
         test("it retrieves correct verififcation methods", () {
@@ -149,7 +153,15 @@ void main() {
 
         test("it resolves key ids successfully", () {
           final newDidDoc = didDoc.resolveKeyIds();
-          expect(newDidDoc.assertionMethod[0], didDoc.verificationMethod[0]);
+          final resolvedMethod = newDidDoc.assertionMethod[0];
+          expect(
+            resolvedMethod,
+            isA<VerificationRelationship>(),
+          );
+          expect(
+            (resolvedMethod as VerificationRelationshipMethod).method.id,
+            "did:web:example.com#key-0",
+          );
         });
       });
 
@@ -194,19 +206,208 @@ void main() {
       });
 
       test('it retrieves correct service endpoint', () {
-        expect(serviceEndpoint.serviceEndpoint, [
-          {
-            "accept": ["didcomm/v2"],
-            "routingKeys": [],
-            "uri": "https://example.com"
-          },
-          {
-            "accept": ["didcomm/v2"],
-            "routingKeys": [],
-            "uri": "wss://example.com/ws"
-          }
-        ]);
+        final endpoints = serviceEndpoint.serviceEndpoint;
+        expect(endpoints.length, 2);
+        expect(endpoints[0].uri, "https://example.com");
+        expect(endpoints[0].accept, ["didcomm/v2"]);
+        expect(endpoints[0].routingKeys, []);
+        expect(endpoints[1].uri, "wss://example.com/ws");
       });
+    });
+  });
+
+  group('VerificationRelationship', () {
+    test('fromJson with string returns VerificationRelationshipId', () {
+      final rel = VerificationRelationship.fromJson('did:example:123#key-1');
+      expect(rel, isA<VerificationRelationshipId>());
+      expect(rel.idOrNull, 'did:example:123#key-1');
+      expect(rel.toJson(), 'did:example:123#key-1');
+    });
+
+    test(
+        'fromJson with VerificationMethod returns VerificationRelationshipMethod',
+        () {
+      final vm = VerificationMethodJwk(
+        id: '#key1',
+        controller: 'did:example:1',
+        type: 'JsonWebKey2020',
+        publicKeyJwk: Jwk.fromJson({
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "Zmq-CJA17UpFeVmJ-nIKDuDEhUnoRSNIXFbxyBtCh6Y"
+        }),
+      );
+      final rel = VerificationRelationship.fromJson(vm);
+      expect(rel, isA<VerificationRelationshipMethod>());
+      expect(rel.idOrNull, '#key1');
+      expect(rel.toJson(), vm.toJson());
+    });
+
+    test('fromJson with VerificationRelationship returns itself', () {
+      final rel = VerificationRelationshipId('did:example:123#key-1');
+      final rel2 = VerificationRelationship.fromJson(rel);
+      expect(identical(rel, rel2), true);
+    });
+
+    test('fromJson with invalid type throws', () {
+      expect(
+          () => VerificationRelationship.fromJson(123), throwsFormatException);
+    });
+
+    test('_resolveWith upgrades id to method if found', () {
+      final vm = VerificationMethodJwk(
+        id: 'did:example:123#key-1',
+        controller: 'did:example:123',
+        type: 'JsonWebKey2020',
+        publicKeyJwk: Jwk.fromJson({
+          "kty": "OKP",
+          "crv": "Ed25519",
+          "x": "Zmq-CJA17UpFeVmJ-nIKDuDEhUnoRSNIXFbxyBtCh6Y"
+        }),
+      );
+      final rel = VerificationRelationshipId('did:example:123#key-1');
+      final resolved = rel.resolveWith({'did:example:123#key-1': vm});
+      expect(resolved, isA<VerificationRelationshipMethod>());
+      expect((resolved as VerificationRelationshipMethod).method, vm);
+    });
+
+    test('_resolveWith returns self if id not found', () {
+      final rel = VerificationRelationshipId('did:example:123#key-2');
+      final resolved = rel.resolveWith({
+        'did:example:123#key-1': VerificationMethodJwk(
+          id: 'did:example:123#key-1',
+          controller: 'did:example:123',
+          type: 'JsonWebKey2020',
+          publicKeyJwk: Jwk.fromJson({
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": "Zmq-CJA17UpFeVmJ-nIKDuDEhUnoRSNIXFbxyBtCh6Y"
+          }),
+        )
+      });
+      expect(resolved, rel);
+    });
+  });
+
+  group('VerificationMethod', () {
+    test('fromJson throws if no key material', () {
+      expect(
+          () => VerificationMethod.fromJson(
+              {'id': 'id', 'type': 'type', 'controller': 'controller'}),
+          throwsA(isA<SsiException>()));
+    });
+    test('toJson roundtrip for Jwk', () {
+      final orig = VerificationMethodJwk(
+        id: 'id',
+        controller: 'controller',
+        type: 'JsonWebKey2020',
+        publicKeyJwk:
+            Jwk.fromJson({"kty": "OKP", "crv": "Ed25519", "x": "abc"}),
+      );
+      final json = orig.toJson();
+      final parsed = VerificationMethod.fromJson(json);
+      expect(parsed.toJson(), json);
+    });
+    test('toJson roundtrip for Multibase', () {
+      final orig = VerificationMethodMultibase(
+        id: 'id',
+        controller: 'controller',
+        type: 'Multikey',
+        publicKeyMultibase: 'z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu',
+      );
+      final json = orig.toJson();
+      final parsed = VerificationMethod.fromJson({
+        ...json,
+        'publicKeyMultibase':
+            'z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu',
+      });
+      expect(parsed.toJson(), json);
+    });
+  });
+
+  group('DidDocument', () {
+    test('toJson roundtrip', () {
+      final didDoc = DidDocument.fromJson(DidDocumentFixtures.didDocumentValid);
+      final json = didDoc.toJson();
+      final didDoc2 = DidDocument.fromJson(json);
+      expect(didDoc2.toJson(), json);
+    });
+    test('handles empty lists', () {
+      final didDoc = DidDocument(id: 'did:example:empty');
+      final json = didDoc.toJson();
+      expect(json['id'], 'did:example:empty');
+      expect(json['alsoKnownAs'], isNull);
+      expect(json['controller'], isNull);
+      expect(json['verificationMethod'], isNull);
+      expect(json['authentication'], isNull);
+      expect(json['keyAgreement'], isNull);
+      expect(json['service'], isNull);
+      expect(json['assertionMethod'], isNull);
+      expect(json['capabilityDelegation'], isNull);
+      expect(json['capabilityInvocation'], isNull);
+    });
+    test('can be constructed with all fields', () {
+      final didDoc = DidDocument(
+        id: 'did:example:all',
+        alsoKnownAs: ['did:example:aka'],
+        controller: ['did:example:ctrl'],
+        verificationMethod: [
+          VerificationMethodJwk(
+            id: 'id',
+            controller: 'controller',
+            type: 'JsonWebKey2020',
+            publicKeyJwk:
+                Jwk.fromJson({"kty": "OKP", "crv": "Ed25519", "x": "abc"}),
+          )
+        ],
+        authentication: [VerificationRelationshipId('id')],
+        keyAgreement: [VerificationRelationshipId('id')],
+        service: [],
+        assertionMethod: [VerificationRelationshipId('id')],
+        capabilityDelegation: [VerificationRelationshipId('id')],
+        capabilityInvocation: [VerificationRelationshipId('id')],
+      );
+      expect(didDoc.id, 'did:example:all');
+      expect(didDoc.alsoKnownAs, isNotEmpty);
+      expect(didDoc.controller, isNotEmpty);
+      expect(didDoc.verificationMethod, isNotEmpty);
+      expect(didDoc.authentication, isNotEmpty);
+      expect(didDoc.keyAgreement, isNotEmpty);
+      expect(didDoc.assertionMethod, isNotEmpty);
+      expect(didDoc.capabilityDelegation, isNotEmpty);
+      expect(didDoc.capabilityInvocation, isNotEmpty);
+    });
+  });
+
+  group('ServiceEndpoint', () {
+    test('throws if id missing', () {
+      expect(
+          () => ServiceEndpoint.fromJson({'type': 't', 'serviceEndpoint': []}),
+          throwsFormatException);
+    });
+    test('throws if type missing', () {
+      expect(() => ServiceEndpoint.fromJson({'id': 'i', 'serviceEndpoint': []}),
+          throwsFormatException);
+    });
+    test('throws if serviceEndpoint missing', () {
+      expect(() => ServiceEndpoint.fromJson({'id': 'i', 'type': 't'}),
+          throwsFormatException);
+    });
+    test('throws if serviceEndpoint is not a list', () {
+      expect(
+          () => ServiceEndpoint.fromJson(
+              {'id': 'i', 'type': 't', 'serviceEndpoint': {}}),
+          throwsFormatException);
+    });
+    test('toString returns json string', () {
+      final se = ServiceEndpoint(
+        id: 'id',
+        type: 'type',
+        serviceEndpoint: [
+          DIDCommServiceEndpoint(accept: ['a'], routingKeys: [], uri: 'u')
+        ],
+      );
+      expect(jsonDecode(se.toString()), se.toJson());
     });
   });
 }

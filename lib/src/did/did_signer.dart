@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
-import 'did_document.dart';
+import 'did_document/index.dart';
 
 /// A signer that uses a key pair associated with a DID document to sign data.
 class DidSigner {

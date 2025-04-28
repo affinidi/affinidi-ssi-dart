@@ -9,7 +9,7 @@ import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../utility.dart';
-import 'did_document.dart';
+import 'did_document/index.dart';
 import 'public_key_utils.dart';
 
 /// Enum representing the prefixes used in encoding for peer DIDs.
