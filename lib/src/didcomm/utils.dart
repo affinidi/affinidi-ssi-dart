@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
-import 'package:dart_multihash/dart_multihash.dart';
 import 'package:elliptic/elliptic.dart' as ec;
 import 'package:ssi/src/key_pair/ed25519_key_pair.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
@@ -20,24 +18,6 @@ Map<String, dynamic> credentialToMap(dynamic credential) {
     throw Exception(
         'Unknown datatype ${credential.runtimeType} for $credential. Only String or Map<String, dynamic> accepted');
   }
-}
-
-bool checkMultiHash(Uint8List hash, Uint8List data) {
-  var multihash = Multihash.decode(hash);
-  if (multihash.code != 0x12) {
-    throw Exception("Hash function must be "
-        "sha2-256 for now (Code: 34893)");
-  }
-
-  var hashedData = sha256.convert(data).bytes;
-  for (var i = 0; i < hashedData.length; i++) {
-    var a = multihash.digest[i];
-    var b = hashedData[i];
-    if (a != b) {
-      return false;
-    }
-  }
-  return hashedData.length == multihash.digest.length;
 }
 
 String getCurveByPublicKey(PublicKey publickey) {
