@@ -114,7 +114,7 @@ final class JwtDm1Suite
   Future<bool> verifyProofExpiry(JwtVcDataModelV1 input,
       {DateTime Function() getNow = DateTime.now}) async {
     var now = getNow();
-    final exp = input._jws.payload['exp'];
+    final exp = input.jws.payload['exp'];
     if (exp != null && now.isAfter(DateTime.parse(exp as String))) {
       return false;
     }
