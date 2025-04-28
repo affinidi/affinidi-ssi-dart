@@ -39,3 +39,5 @@ Sharing a list of VCs using VP V2 (LD VC V1 + LD VC V2 + SD-JWT V2) - [view exam
 Verify VP Expiry  - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/doc/credentials/code_snippets/vp_expiry_verification.dart).
 
 Verify VP Integrity  - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/doc/credentials/code_snippets/vp_integrity_verification.dart).
+
+Verify Vp Domain and challenge - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/doc/credentials/code_snippets/vp_domain_challenge_verification.dart)
