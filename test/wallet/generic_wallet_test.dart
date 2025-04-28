@@ -22,7 +22,7 @@ void main() {
       expect(newKey.id, isNotNull);
       expect(newKey.id, isNotEmpty);
       expect(await wallet.hasKey(newKey.id), isTrue);
-      expect(newKey.type, KeyType.p256);
+      expect(newKey.publicKey.type, KeyType.p256);
 
       final storedData = await keyStore.get(newKey.id);
       expect(storedData, isNotNull);
@@ -38,7 +38,7 @@ void main() {
       expect(newKey.id, isNotNull);
       expect(newKey.id, isNotEmpty);
       expect(await wallet.hasKey(newKey.id), isTrue);
-      expect(newKey.type, KeyType.p256);
+      expect(newKey.publicKey.type, KeyType.p256);
 
       final storedData = await keyStore.get(newKey.id);
       expect(storedData, isNotNull);
@@ -53,7 +53,7 @@ void main() {
       expect(newKey.id, isNotNull);
       expect(newKey.id, isNotEmpty);
       expect(await wallet.hasKey(newKey.id), isTrue);
-      expect(newKey.type, KeyType.ed25519);
+      expect(newKey.publicKey.type, KeyType.ed25519);
 
       final storedData = await keyStore.get(newKey.id);
       expect(storedData, isNotNull);
@@ -72,7 +72,7 @@ void main() {
       expect(newKey1.id, isNotEmpty);
       expect(newKey1.id.length, 32); // Check against the actual length used
       expect(await wallet.hasKey(newKey1.id), isTrue);
-      expect(newKey1.type, KeyType.p256);
+      expect(newKey1.publicKey.type, KeyType.p256);
 
       // Generate another one to ensure IDs are different
       final newKey2 = await wallet.generateKey(keyType: KeyType.ed25519);
@@ -90,7 +90,25 @@ void main() {
       final secondCallKey =
           await wallet.generateKey(keyId: existingId, keyType: KeyType.p256);
       expect(secondCallKey.id, firstKey.id);
-      expect(secondCallKey.bytes, firstKey.bytes);
+      expect(secondCallKey.publicKey.bytes, firstKey.publicKey.bytes);
+    });
+
+    test('generateKey should assign and allow retrieval by provided keyId',
+        () async {
+      const p256Id = 'my-custom-p256-id';
+      const ed25519Id = 'my-custom-ed25519-id';
+
+      // Test P256
+      final p256KeyPair =
+          await wallet.generateKey(keyId: p256Id, keyType: KeyType.p256);
+      expect(p256KeyPair.id, equals(p256Id));
+      expect((await wallet.getPublicKey(p256Id)).id, equals(p256Id));
+
+      // Test Ed25519
+      final edKeyPair =
+          await wallet.generateKey(keyId: ed25519Id, keyType: KeyType.ed25519);
+      expect(edKeyPair.id, equals(ed25519Id));
+      expect((await wallet.getPublicKey(ed25519Id)).id, equals(ed25519Id));
     });
 
     test('createKeyPair should throw for unsupported key type', () async {
@@ -109,7 +127,7 @@ void main() {
       final retrievedKey = await wallet.getPublicKey(createdKey.id);
 
       expect(retrievedKey.type, KeyType.p256);
-      expect(retrievedKey.bytes, createdKey.bytes);
+      expect(retrievedKey.bytes, createdKey.publicKey.bytes);
     });
 
     test('getKeyPair should retrieve existing Ed25519 key pair', () async {
@@ -117,7 +135,7 @@ void main() {
       final retrievedKey = await wallet.getPublicKey(createdKey.id);
 
       expect(retrievedKey.type, KeyType.ed25519);
-      expect(retrievedKey.bytes, createdKey.bytes);
+      expect(retrievedKey.bytes, createdKey.publicKey.bytes);
     });
 
     test('getKeyPair should throw for non-existent keyId', () async {
@@ -155,14 +173,14 @@ void main() {
     test('getPublicKey should return the correct public key', () async {
       final expectedKey = await wallet.generateKey(keyType: KeyType.p256);
       final retrievedKey = await wallet.getPublicKey(expectedKey.id);
-      expect(retrievedKey.bytes, equals(expectedKey.bytes));
+      expect(retrievedKey.bytes, equals(expectedKey.publicKey.bytes));
       // P256 compressed public key size
       expect(retrievedKey.bytes.length, 33); // P256 size
 
       // Test Ed25519 key
       final edKey = await wallet.generateKey(keyType: KeyType.ed25519);
       final edRetrievedKey = await wallet.getPublicKey(edKey.id);
-      expect(edRetrievedKey.bytes, equals(edKey.bytes));
+      expect(edRetrievedKey.bytes, equals(edKey.publicKey.bytes));
       expect(edRetrievedKey.bytes.length, 32); // Ed25519 public key size
     });
 
@@ -372,9 +390,9 @@ void main() {
     late InMemoryKeyStore bobKeyStore;
     late InMemoryKeyStore eveKeyStore;
     final plainText = Uint8List.fromList([1, 1, 2, 3, 5, 8]);
-    late PublicKey aliceKey;
-    late PublicKey bobKey;
-    late PublicKey eveKey;
+    late KeyPair aliceKey;
+    late KeyPair bobKey;
+    late KeyPair eveKey;
 
     setUp(() async {
       aliceKeyStore = InMemoryKeyStore();
@@ -395,14 +413,14 @@ void main() {
       final encryptedData = await aliceWallet.encrypt(
         plainText,
         keyId: aliceKey.id,
-        publicKey: bobKey.bytes,
+        publicKey: bobKey.publicKey.bytes,
       );
 
       // Bob decrypts using Alice's public key and his wallet
       final decryptedData = await bobWallet.decrypt(
         encryptedData,
         keyId: bobKey.id,
-        publicKey: aliceKey.bytes,
+        publicKey: aliceKey.publicKey.bytes,
       );
 
       expect(decryptedData, equals(plainText));
@@ -433,7 +451,7 @@ void main() {
       final encryptedData = await aliceWallet.encrypt(
         plainText,
         keyId: aliceKey.id,
-        publicKey: bobKey.bytes, // Use Bob's public key bytes
+        publicKey: bobKey.publicKey.bytes, // Use Bob's public key bytes
       );
 
       // Bob tries to decrypt using Eve's public key instead of Alice's, using his wallet
@@ -441,7 +459,7 @@ void main() {
         () async => await bobWallet.decrypt(
           encryptedData,
           keyId: bobKey.id,
-          publicKey: eveKey.bytes, // Wrong sender public key (Eve's)
+          publicKey: eveKey.publicKey.bytes, // Wrong sender public key (Eve's)
         ),
         throwsA(isA<SsiException>().having((error) => error.code, 'code',
             SsiExceptionType.unableToDecrypt.code)),
@@ -457,9 +475,9 @@ void main() {
     late InMemoryKeyStore bobKeyStore;
     late InMemoryKeyStore eveKeyStore;
     final plainText = Uint8List.fromList([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
-    late PublicKey aliceKey;
-    late PublicKey bobKey;
-    late PublicKey eveKey;
+    late KeyPair aliceKey;
+    late KeyPair bobKey;
+    late KeyPair eveKey;
 
     setUp(() async {
       aliceKeyStore = InMemoryKeyStore();

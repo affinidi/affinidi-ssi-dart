@@ -149,7 +149,7 @@ void main() {
 
   group('Test key pair encrypt decrypt', () {
     test('p256 without pub key', () async {
-      P256KeyPair p256Key = P256KeyPair();
+      var (p256Key, privateKeyBytes) = P256KeyPair.generate();
       // Encrypt with ephemeral key
       var encrypted = await p256Key.encrypt(data);
       // Decrypt the message
@@ -159,14 +159,14 @@ void main() {
     });
 
     test('p256 with pub key parameter', () async {
-      P256KeyPair p256KeyAlice = P256KeyPair();
-      P256KeyPair p256KeyBob = P256KeyPair();
+      var (p256KeyAlice, aliceKeyBytes) = P256KeyPair.generate();
+      var (p256KeyBob, bobKeyBytes) = P256KeyPair.generate();
 
-      var bobPubKey = await p256KeyBob.publicKey;
+      var bobPubKey = p256KeyBob.publicKey;
       var encryptedByAlice =
           await p256KeyAlice.encrypt(data, publicKey: bobPubKey.bytes);
 
-      var alicePubKey = await p256KeyAlice.publicKey;
+      var alicePubKey = p256KeyAlice.publicKey;
       var decryptedByBob = await p256KeyBob.decrypt(encryptedByAlice,
           publicKey: alicePubKey.bytes);
 
@@ -218,11 +218,11 @@ void main() {
       Secp256k1KeyPair secpBob = Secp256k1KeyPair(
           node: BIP32.fromPrivateKey(privateKeyBob, chainCode));
 
-      var bobPubKey = await secpBob.publicKey;
+      var bobPubKey = secpBob.publicKey;
       var encryptedByAlice =
           await secpAlice.encrypt(data, publicKey: bobPubKey.bytes);
 
-      var alicePubKey = await secpAlice.publicKey;
+      var alicePubKey = secpAlice.publicKey;
       var decryptedByBob =
           await secpBob.decrypt(encryptedByAlice, publicKey: alicePubKey.bytes);
 
