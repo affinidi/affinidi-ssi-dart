@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:ssi/src/didcomm/types.dart';
 import 'package:ssi/src/didcomm/utils.dart';
-import 'package:ssi/ssi.dart';
+import 'package:ssi/src/types.dart';
 
 class WebRedirect implements JsonObject {
   late String redirectUrl;

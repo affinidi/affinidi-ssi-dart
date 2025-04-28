@@ -1,7 +1,15 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ssi/src/did/did_document.dart';
+import 'package:ssi/src/did/did_key.dart';
+import 'package:ssi/src/did/universal_did_resolver.dart';
+import 'package:ssi/src/key_pair/public_key.dart';
+import 'package:ssi/src/wallet/wallet.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:crypto_keys/crypto_keys.dart' as ck;
+import 'package:elliptic/elliptic.dart' as ec;
+
 import 'package:ssi/src/didcomm/message/_ecdh_profile.dart';
 import 'package:ssi/src/didcomm/message/didcomm_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_message_recipient.dart';
@@ -10,9 +18,7 @@ import 'package:ssi/src/didcomm/message/_ecdh1pu.dart';
 import 'package:ssi/src/didcomm/message/jwe_header.dart';
 import 'package:ssi/src/didcomm/types.dart';
 import 'package:ssi/src/didcomm/utils.dart';
-import 'package:elliptic/elliptic.dart' as ec;
-import 'package:ssi/ssi.dart';
-import 'package:web3dart/crypto.dart';
+import 'package:ssi/src/types.dart';
 
 class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
   static const List<String> supportedAlgs = ['ECDH-1PU', 'ECDH-ES'];

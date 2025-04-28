@@ -2,12 +2,15 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
-import 'package:ssi/src/didcomm/types.dart';
-
-import 'package:ssi/src/didcomm/utils.dart';
-import 'package:ssi/ssi.dart';
-import 'package:elliptic/elliptic.dart' as elliptic;
+import 'package:elliptic/elliptic.dart' as ec;
 import 'package:web3dart/crypto.dart' as c;
+
+import 'package:ssi/src/did/did_document.dart';
+import 'package:ssi/src/did/did_key.dart';
+import 'package:ssi/src/didcomm/types.dart';
+import 'package:ssi/src/didcomm/utils.dart';
+import 'package:ssi/src/key_pair/public_key.dart';
+import 'package:ssi/src/types.dart';
 
 class JweHeader implements JsonObject {
   final String? skid;
@@ -131,7 +134,7 @@ class JweHeader implements JsonObject {
   ) {
     if (senderPublicKey.type == KeyType.p256 ||
         senderPublicKey.type == KeyType.secp256k1) {
-      elliptic.PrivateKey privateKey = getPrivateKeyFromBytes(privateKeyBytes,
+      ec.PrivateKey privateKey = getPrivateKeyFromBytes(privateKeyBytes,
           keyType: senderPublicKey.type);
 
       final crvPoint = _getPublicKeyPoint(privateKey.publicKey);
@@ -151,8 +154,7 @@ class JweHeader implements JsonObject {
     throw Exception('Unknown key type for EPK header');
   }
 
-  static ({String X, String Y}) _getPublicKeyPoint(
-      elliptic.PublicKey publicKey) {
+  static ({String X, String Y}) _getPublicKeyPoint(ec.PublicKey publicKey) {
     String X = removePaddingFromBase64(base64UrlEncode(publicKey.X < BigInt.zero
         ? c.intToBytes(publicKey.X)
         : c.unsignedIntToBytes(publicKey.X)));
