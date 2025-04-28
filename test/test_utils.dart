@@ -31,3 +31,15 @@ Future<Map<String, dynamic>?> testLoadDocument(Uri url) {
   }
   return Future.value(null);
 }
+
+DateTime getNow() {
+  return DateTime.parse('2025-04-25');
+}
+
+DateTime getPast() {
+  return getNow().subtract(const Duration(days: 400));
+}
+
+DateTime getFuture() {
+  return getNow().add(const Duration(days: 400));
+}

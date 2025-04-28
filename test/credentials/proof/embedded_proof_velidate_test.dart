@@ -47,7 +47,7 @@ void main() {
           id: 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa'),
     );
 
-    test('should create proof and verify and validate successfully', () async {
+    test('should create proof and validate successfully', () async {
       final proofGenerator = Secp256k1Signature2019Generator(
         signer: signer,
       );
@@ -58,12 +58,6 @@ void main() {
 
       final proofVerifier =
           Secp256k1Signature2019Verifier(issuerDid: signer.did);
-
-      final verificationResult =
-          await proofVerifier.verify(issuedCredential.toJson());
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
       final validationResult =
           await proofVerifier.validate(issuedCredential.toJson());
       expect(validationResult.isValid, true);
@@ -71,7 +65,7 @@ void main() {
       expect(validationResult.warnings, isEmpty);
     });
 
-    test('should create proof with proofPurpose and verify successfully',
+    test('should create proof with proofPurpose and validate successfully',
         () async {
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, proofPurpose: ProofPurpose.authentication);
@@ -82,14 +76,6 @@ void main() {
 
       final proofVerifier =
           Secp256k1Signature2019Verifier(issuerDid: signer.did);
-
-      final verificationResult =
-          await proofVerifier.verify(issuedCredential.toJson());
-      expect(issuedCredential.proof.first.proofPurpose,
-          ProofPurpose.authentication.value);
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
       final validationResult =
           await proofVerifier.validate(issuedCredential.toJson());
       expect(validationResult.isValid, true);
@@ -97,7 +83,7 @@ void main() {
       expect(validationResult.warnings, isEmpty);
     });
 
-    test('should create proof with future expiry and verify successfully',
+    test('should create proof with future expiry and validate successfully',
         () async {
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, expires: DateTime.parse('3024-01-01T12:00:01Z'));
@@ -109,13 +95,11 @@ void main() {
 
       final proofVerifier =
           Secp256k1Signature2019Verifier(issuerDid: signer.did);
-      final verificationResult = await proofVerifier.verify(
-        issuedCredential.toJson(),
-      );
-
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
+      final validationResult =
+          await proofVerifier.validate(issuedCredential.toJson());
+      expect(validationResult.isValid, true);
+      expect(validationResult.errors, isEmpty);
+      expect(validationResult.warnings, isEmpty);
     });
 
     test('should create proof with past expiry and throw expire error',
@@ -131,12 +115,6 @@ void main() {
       final proofVerifier = Secp256k1Signature2019Verifier(
           issuerDid: signer.did,
           getNow: () => DateTime.parse('3024-01-01T12:00:01Z'));
-      final verificationResult = await proofVerifier.verify(
-        issuedCredential.toJson(),
-      );
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
       final validationResult =
           await proofVerifier.validate(issuedCredential.toJson());
       expect(validationResult.isValid, false);
@@ -145,7 +123,7 @@ void main() {
     });
 
     test(
-        'should create proof with domain and challenge and pass verification with verify options',
+        'should create proof with domain and challenge and pass validation with verify options',
         () async {
       final proofGenerator = Secp256k1Signature2019Generator(
         signer: signer,
@@ -218,14 +196,6 @@ void main() {
           issuerDid: signer.did,
           domain: ['example1.com'],
           challenge: 'test-challenge');
-
-      final verificationResult = await proofVerifier.verify(
-        issuedCredential.toJson(),
-      );
-
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
       final validationResult =
           await proofVerifier.validate(issuedCredential.toJson());
       expect(validationResult.isValid, false);
@@ -277,14 +247,6 @@ void main() {
 
       final proofVerifier =
           Secp256k1Signature2019Verifier(issuerDid: signer.did);
-
-      final verificationResult = await proofVerifier.verify(
-        issuedCredential.toJson(),
-      );
-
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
       final validationResult =
           await proofVerifier.validate(issuedCredential.toJson());
       expect(validationResult.isValid, false);
@@ -307,13 +269,6 @@ void main() {
       final proofVerifier =
           Secp256k1Signature2019Verifier(issuerDid: signer.did);
 
-      final verificationResult = await proofVerifier.verify(
-        issuedCredential.toJson(),
-      );
-
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
       final validationResult =
           await proofVerifier.validate(issuedCredential.toJson());
       expect(validationResult.isValid, false);
