@@ -1,3 +1,4 @@
+import 'package:ssi/src/didcomm/message/didcomm_encrypted_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_plaintext_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_signed_message.dart';
 import 'package:ssi/src/didcomm/message/jwe_header.dart';
@@ -28,7 +29,7 @@ abstract class DidcommMessage implements JsonObject {
     }
 
     if (json.containsKey('ciphertext')) {
-      return DidcommSignedMessage.fromJson(json);
+      return DidcommEncryptedMessage.fromJson(json);
     }
 
     if (json.containsKey('signatures')) {
