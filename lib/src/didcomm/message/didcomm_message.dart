@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:ssi/src/didcomm/message/didcomm_encrypted_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_plaintext_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_signed_message.dart';
 import 'package:ssi/src/didcomm/message/jwe_header.dart';
+import 'package:ssi/src/didcomm/utils.dart';
 import 'package:ssi/src/types.dart';
 
 abstract class DidcommMessage implements JsonObject {
@@ -36,11 +39,10 @@ abstract class DidcommMessage implements JsonObject {
       return DidcommSignedMessage.fromJson(json);
     }
 
-    // TODO: do we need?
-    // } else if (message.containsKey('payload')) {
-    //   m = DidcommPlaintextMessage.fromJson(
-    //       utf8.decode(base64Decode(addPaddingToBase64(message['payload']))));
-
+    if (json.containsKey('payload')) {
+      return DidcommPlaintextMessage.fromJson(
+          decodeBase64ToString(json['payload']));
+    }
     throw Exception('Unknown message type');
   }
 }
