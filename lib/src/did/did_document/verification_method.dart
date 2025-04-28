@@ -8,26 +8,36 @@ import '../../util/json_util.dart';
 import '../public_key_utils.dart';
 import 'did_document.dart';
 
-abstract class VerificationMethod implements JsonObject {
+abstract interface class VerificationMethod implements JsonObject {
+  String get id;
+
+  String get controller;
+
+  String get type;
+
+  Jwk asJwk();
+
+  Uint8List asMultiKey();
+}
+
+abstract class EmbeddedVerificationMethod
+    implements VerificationMethod, JsonObject {
+  @override
   final String id;
+
+  @override
   final String controller;
+
+  @override
   final String type;
 
-  VerificationMethod({
+  EmbeddedVerificationMethod({
     required this.id,
     required this.controller,
     required this.type,
   });
 
-  Jwk asJwk();
-
-  Uint8List asMultiKey();
-
-  String asMultiBase() {
-    return toMultiBase(asMultiKey());
-  }
-
-  factory VerificationMethod.fromJson(dynamic input) {
+  factory EmbeddedVerificationMethod.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
     final id = getMandatoryString(json, 'id');
@@ -77,7 +87,7 @@ abstract class VerificationMethod implements JsonObject {
   }
 }
 
-class VerificationMethodJwk extends VerificationMethod {
+class VerificationMethodJwk extends EmbeddedVerificationMethod {
   final Jwk publicKeyJwk;
 
   VerificationMethodJwk({
@@ -107,7 +117,7 @@ class VerificationMethodJwk extends VerificationMethod {
   }
 }
 
-class VerificationMethodMultibase extends VerificationMethod {
+class VerificationMethodMultibase extends EmbeddedVerificationMethod {
   late final Uint8List publicKeyMultikey;
   final String publicKeyMultibase;
 

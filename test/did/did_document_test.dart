@@ -26,23 +26,6 @@ void main() {
       expect(vm.asJwk().toJson(), expectedJson);
     });
 
-    test('multicodec conversion for Ed25519', () async {
-      final vm = VerificationMethodJwk(
-        id: '#key1',
-        controller: 'did:example:1',
-        type: 'Multikey',
-        publicKeyJwk: Jwk.fromJson({
-          "kty": "OKP",
-          "crv": "Ed25519",
-          "x": "Zmq-CJA17UpFeVmJ-nIKDuDEhUnoRSNIXFbxyBtCh6Y"
-        }),
-      );
-
-      final expectedMultibase =
-          'z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu';
-      expect(vm.asMultiBase(), expectedMultibase);
-    });
-
     test('JWK conversion for secp256k1', () async {
       final vm = VerificationMethodMultibase(
         id: '#key1',
@@ -61,24 +44,6 @@ void main() {
       ''');
 
       expect(vm.asJwk().toJson(), expectedJson);
-    });
-
-    test('multicodec conversion for secp256k1', () async {
-      final vm = VerificationMethodJwk(
-        id: '#key1',
-        controller: 'did:example:1',
-        type: 'Multikey',
-        publicKeyJwk: Jwk.fromJson({
-          "kty": "EC",
-          "crv": "secp256k1",
-          "x": "8G9rBdSs9mib1X_2K4ify7wFDLT4ZhoVD7aCy-jimUg",
-          "y": "4D9aPYTmYa68Xw3OeFuFE33-l4JrSpQ8Bh4VkBdXvT8"
-        }),
-      );
-
-      final expectedMultibase =
-          'zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
-      expect(vm.asMultiBase(), expectedMultibase);
     });
   });
 
@@ -292,7 +257,7 @@ void main() {
   group('VerificationMethod', () {
     test('fromJson throws if no key material', () {
       expect(
-          () => VerificationMethod.fromJson(
+          () => EmbeddedVerificationMethod.fromJson(
               {'id': 'id', 'type': 'type', 'controller': 'controller'}),
           throwsA(isA<SsiException>()));
     });
@@ -305,7 +270,7 @@ void main() {
             Jwk.fromJson({"kty": "OKP", "crv": "Ed25519", "x": "abc"}),
       );
       final json = orig.toJson();
-      final parsed = VerificationMethod.fromJson(json);
+      final parsed = EmbeddedVerificationMethod.fromJson(json);
       expect(parsed.toJson(), json);
     });
     test('toJson roundtrip for Multibase', () {
@@ -316,7 +281,7 @@ void main() {
         publicKeyMultibase: 'z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu',
       );
       final json = orig.toJson();
-      final parsed = VerificationMethod.fromJson({
+      final parsed = EmbeddedVerificationMethod.fromJson({
         ...json,
         'publicKeyMultibase':
             'z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu',

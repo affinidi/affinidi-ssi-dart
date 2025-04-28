@@ -7,7 +7,8 @@ sealed class VerificationRelationship {
     if (value is String) {
       return VerificationRelationshipId(value);
     } else if (value is Map<String, dynamic>) {
-      return VerificationRelationshipMethod(VerificationMethod.fromJson(value));
+      return VerificationRelationshipMethod(
+          EmbeddedVerificationMethod.fromJson(value));
     } else if (value is VerificationMethod) {
       return VerificationRelationshipMethod(value);
     } else if (value is VerificationRelationship) {

@@ -56,9 +56,8 @@ class DidDocument implements JsonObject {
     }
     if (input is List) {
       return input
-          .map((item) => item is ServiceEndpoint
-              ? item
-              : ServiceEndpoint.fromJson(item))
+          .map((item) =>
+              item is ServiceEndpoint ? item : ServiceEndpoint.fromJson(item))
           .toList();
     }
     return [];
@@ -113,7 +112,7 @@ class DidDocument implements JsonObject {
       if (tmp.isNotEmpty) {
         verificationMethod = [];
         for (final v in tmp) {
-          verificationMethod.add(VerificationMethod.fromJson(v));
+          verificationMethod.add(EmbeddedVerificationMethod.fromJson(v));
         }
       }
     }
