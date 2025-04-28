@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
-import 'package:ssi/src/key_pair/key_pair.dart';
 import 'package:ssi/ssi.dart';
 
 const _signatureSchemeToKmsAlgorithm = {
@@ -19,11 +18,17 @@ kms.SigningAlgorithmSpec signingAlgorithmForScheme(SignatureScheme scheme) {
 
 class KmsKeyPair implements KeyPair {
   final kms.KMS kmsClient;
-  final String keyId;
+  @override
+  final String id;
+  final Uint8List _publicKeyBytes;
 
-  KmsKeyPair(this.kmsClient, this.keyId);
+  KmsKeyPair._(this.kmsClient, this.id, this._publicKeyBytes);
 
-  Future<String> get id async => keyId;
+  static Future<KmsKeyPair> generate(kms.KMS kmsClient, String id) async {
+    final response = await kmsClient.getPublicKey(keyId: id);
+    final publicKeyBytes = Uint8List.fromList(response.publicKey ?? []);
+    return KmsKeyPair._(kmsClient, id, publicKeyBytes);
+  }
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [
@@ -31,18 +36,8 @@ class KmsKeyPair implements KeyPair {
       ];
 
   @override
-  Future<PublicKeyData> get publicKey async {
-    final response = await kmsClient.getPublicKey(keyId: keyId);
-    return PublicKeyData(
-        Uint8List.fromList(response.publicKey ?? []), KeyType.rsa);
-  }
-
-  @override
-  Future<Uint8List> get privateKey {
-    throw SsiException(
-      message: "KmsKeyPair does not allow extracting the private key",
-      code: SsiExceptionType.keyPairMissingPrivateKey.code,
-    );
+  PublicKey get publicKey {
+    return PublicKey(id, _publicKeyBytes, KeyType.rsa);
   }
 
   @override
@@ -59,7 +54,7 @@ class KmsKeyPair implements KeyPair {
     }
 
     final response = await kmsClient.sign(
-      keyId: keyId,
+      keyId: id,
       message: data,
       messageType: kms.MessageType.raw,
       signingAlgorithm: signingAlgorithmForScheme(signatureScheme),
@@ -74,7 +69,7 @@ class KmsKeyPair implements KeyPair {
 
     try {
       final response = await kmsClient.verify(
-        keyId: keyId,
+        keyId: id,
         message: data,
         messageType: kms.MessageType.raw,
         signature: signature,

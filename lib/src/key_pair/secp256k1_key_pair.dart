@@ -7,9 +7,11 @@ import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import '../utility.dart';
 import 'key_pair.dart';
 
 import './_ecdh_utils.dart' as ecdh_utils;
+import 'public_key.dart';
 
 /// A key pair implementation that uses secp256k1 for crypto operations.
 ///
@@ -19,29 +21,21 @@ class Secp256k1KeyPair implements KeyPair {
   /// The BIP32 node containing the key material.
   final BIP32 _node;
   final ec.Curve _secp256k1 = ec.getSecp256k1();
+  @override
+  final String id;
 
   /// Creates a new [Secp256k1KeyPair] instance.
   ///
   /// [node] - The BIP32 node containing the key material.
+  /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
   Secp256k1KeyPair({
     required BIP32 node,
-  }) : _node = node;
+    String? id,
+  })  : _node = node,
+        id = id ?? randomId();
 
   @override
-  Future<PublicKeyData> get publicKey =>
-      Future.value(PublicKeyData(_node.publicKey, KeyType.secp256k1));
-
-  @override
-  Future<Uint8List> get privateKey {
-    final privateKey = _node.privateKey;
-    if (privateKey == null) {
-      throw SsiException(
-        message: 'Private key missing.',
-        code: SsiExceptionType.keyPairMissingPrivateKey.code,
-      );
-    }
-    return Future.value(privateKey);
-  }
+  PublicKey get publicKey => PublicKey(id, _node.publicKey, KeyType.secp256k1);
 
   @override
   Future<Uint8List> sign(

@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:pointycastle/export.dart' as pce;
 import 'package:pointycastle/pointycastle.dart' as pc;
+import 'package:pointycastle/src/utils.dart' as p_utils;
 
 class EncryptionUtils {
   final _ivLength = 16;
@@ -156,4 +157,11 @@ class EncryptionUtils {
         padded.sublist(0, padded.length - pce.PKCS7Padding().padCount(padded));
     return unpadded;
   }
+
+  Uint8List unsignedIntToBytes(BigInt number) {
+    assert(!number.isNegative);
+    return p_utils.encodeBigIntAsUnsigned(number);
+  }
+
+  Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
 }

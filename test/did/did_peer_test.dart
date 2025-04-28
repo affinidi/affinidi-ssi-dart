@@ -24,7 +24,8 @@ void main() {
       keyStore = InMemoryKeyStore();
       wallet = await Bip32Ed25519Wallet.fromSeed(seed, keyStore);
       accountPublicKey =
-          await wallet.deriveKey(derivationPath: "m/44'/60'/0'/0'/0'");
+          (await wallet.deriveKey(derivationPath: "m/44'/60'/0'/0'/0'"))
+              .publicKey;
     });
 
     test('generateDocument for did:peer:0 should match expected', () async {
@@ -65,7 +66,7 @@ void main() {
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
       final key = await wallet.deriveKey(derivationPath: derivedKeyPath);
       final doc = DidPeer.generateDocument(
-        [key, key],
+        [key.publicKey, key.publicKey],
         serviceEndpoint: 'https://denys.com/income',
       );
       final actualDid = doc.id;
@@ -87,8 +88,8 @@ void main() {
       final key = await wallet.deriveKey(derivationPath: derivedKeyPath);
       final actualDid = DidPeer.getDid(
         [
-          key,
-          key
+          key.publicKey,
+          key.publicKey
         ], // Using same key twice for simplicity, matching generateDocument test
         serviceEndpoint: 'https://denys.com/income',
       );
