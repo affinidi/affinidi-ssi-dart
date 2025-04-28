@@ -275,9 +275,16 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         _findMessageRecipientByPublicKey(receiverPublicKey);
 
     if (protectedHeader.isAnonCrypt()) {
+      Jwk senderJwk = await _findSenderJwk(protectedHeader.skid!);
+      ec.PublicKey senderPublicKey = publicKeyFromPoint(
+          curve: getCurveByJwk(senderJwk.toJson()),
+          x: senderJwk.doc['x']!,
+          y: senderJwk.doc['y']!);
+
       return wallet.decrypt(
         recipient.encryptedKey,
         keyId: keyId,
+        publicKey: hexToBytes(senderPublicKey.toCompressedHex()),
       );
     } else if (protectedHeader.isAuthCrypt()) {
       if (protectedHeader.skid == null) {
