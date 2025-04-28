@@ -155,9 +155,16 @@ final class SdJwtDm2Suite
   ///
   /// Returns true if the credential's signature is valid, false otherwise.
   @override
-  Future<bool> verifyIntegrity(SdJwtDataModelV2 input) async {
+  Future<bool> verifyIntegrity(SdJwtDataModelV2 input,
+      {DateTime Function() getNow = DateTime.now}) async {
     final algorithm =
         SignatureScheme.fromString(input.sdJwt.header['alg'] as String);
+    var now = getNow();
+    final exp = input.sdJwt.payload['exp'];
+    if (exp != null &&
+        now.isAfter(DateTime.fromMillisecondsSinceEpoch(exp * 1000))) {
+      return false;
+    }
 
     final verifier = await SdJwtDidVerifier.create(
       algorithm: algorithm,
@@ -171,19 +178,6 @@ final class SdJwtDm2Suite
     );
 
     return isVerified!;
-  }
-
-  /// Verify expiry of sdjwt payload
-  @override
-  Future<bool> verifyProofExpiry(SdJwtDataModelV2 input,
-      {DateTime Function() getNow = DateTime.now}) async {
-    var now = getNow();
-    final exp = input.sdJwt.payload['exp'];
-    if (exp != null && now.isAfter(DateTime.parse(exp as String))) {
-      return false;
-    }
-
-    return true;
   }
 
   /// Creates a default disclosure frame if none is provided.

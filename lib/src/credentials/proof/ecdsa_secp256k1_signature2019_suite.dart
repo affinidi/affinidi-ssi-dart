@@ -107,7 +107,8 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
   });
 
   @override
-  Future<VerificationResult> verify(Map<String, dynamic> document) async {
+  Future<VerificationResult> verify(Map<String, dynamic> document,
+      {DateTime Function() getNow = DateTime.now}) async {
     final copy = Map.of(document);
     final proof = copy.remove('proof');
 
@@ -115,6 +116,12 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
       return VerificationResult.invalid(
         errors: ['invalid or missing proof'],
       );
+    }
+    var now = getNow();
+
+    final expires = proof['expires'];
+    if (expires != null && now.isAfter(expires)) {
+      return VerificationResult.invalid(errors: ['Not valid proof']);
     }
 
     Uri verificationMethod;
@@ -141,70 +148,6 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
     }
 
     return VerificationResult.ok();
-  }
-
-  VerificationResult _verifyProofProperties(dynamic proof) {
-    final expires = proof['expires'];
-    if (expires != null &&
-        getNow().isAfter(DateTime.parse(expires as String))) {
-      return VerificationResult.invalid(errors: ['proof is no longer valid']);
-    }
-
-    final proofDomain = proof['domain'];
-    final proofChallenge = proof['challenge'];
-
-    if (proofDomain != null) {
-      bool isDomainValid = false;
-      if (proofDomain is String) {
-        isDomainValid = proofDomain.trim().isNotEmpty && domain != null
-            ? domain!.contains(proofDomain)
-            : true;
-      } else if (proofDomain is List) {
-        isDomainValid = proofDomain.every((d) =>
-            (d.trim() as String).isNotEmpty && domain != null
-                ? domain!.contains(d)
-                : true);
-      }
-
-      if (!isDomainValid) {
-        return VerificationResult.invalid(
-            errors: ['invalid or missing proof.domain']);
-      }
-      if (proofDomain is! String && proofDomain is! List) {
-        return VerificationResult.invalid(
-            errors: ['invalid proof.domain format']);
-      }
-      if (proofChallenge == null ||
-          proofChallenge is! String ||
-          proofChallenge.trim().isEmpty) {
-        return VerificationResult.invalid(
-            errors: ['invalid or missing proof.challenge']);
-      }
-
-      if (challenge != null && proofChallenge != challenge) {
-        return VerificationResult.invalid(
-            errors: ['invalid or missing proof.challenge']);
-      }
-    } else if (proofChallenge != null) {
-      return VerificationResult.invalid(
-          errors: ['proof.challenge must be accompanied by proof.domain']);
-    }
-    return VerificationResult.ok();
-  }
-
-  @override
-  Future<VerificationResult> validate(Map<String, dynamic> document) async {
-    final copy = Map.of(document);
-    final proof = copy.remove('proof');
-
-    if (proof == null || proof is! Map<String, dynamic>) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof'],
-      );
-    }
-
-    final proofValidationResult = _verifyProofProperties(proof);
-    return proofValidationResult;
   }
 }
 

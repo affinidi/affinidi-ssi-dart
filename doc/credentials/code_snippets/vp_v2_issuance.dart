@@ -4,10 +4,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
-import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/ssi.dart';
+import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
+import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 
 import 'did_signer.dart';
 

@@ -10,8 +10,9 @@ import 'vp_verifier.dart';
 ///
 /// Example:
 /// ```dart
-/// final verifier = VpDomainChallengeVerifier(challenge: 'your-challenge', domain: ['your-domain.com']);
-/// final result = await verifier.verify(vp);
+///  final domainVerifier = VpDomainChallengeVerifier(domain: ['your-domain'], challenge: 'your-challenge');
+///   final verifier =UniversalPresentationVerifier(customVerifiers: [domainVerifier]);
+///   final verificationStatus = await verifier.verify(vp);
 /// if (!result.isValid) {
 ///   print("Presentation contains invalid domain or challenge");
 /// }

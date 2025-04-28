@@ -73,7 +73,8 @@ final class JwtDm1Suite
   }
 
   @override
-  Future<bool> verifyIntegrity(JwtVcDataModelV1 input) async {
+  Future<bool> verifyIntegrity(JwtVcDataModelV1 input,
+      {DateTime Function() getNow = DateTime.now}) async {
     final segments = input.serialized.split('.');
 
     if (segments.length != 3) {
@@ -81,6 +82,13 @@ final class JwtDm1Suite
         message: 'Invalid JWT',
         code: SsiExceptionType.invalidVC.code,
       );
+    }
+
+    var now = getNow();
+    final exp = input.jws.payload['exp'];
+    if (exp != null &&
+        now.isAfter(DateTime.fromMillisecondsSinceEpoch(exp * 1000))) {
+      return false;
     }
 
     final encodedHeader = segments[0];
@@ -107,19 +115,6 @@ final class JwtDm1Suite
     );
 
     return verifier.verify(toSign, base64UrlNoPadDecode(encodedSignature));
-  }
-
-  /// Verify expiry of JwtVC payload
-  @override
-  Future<bool> verifyProofExpiry(JwtVcDataModelV1 input,
-      {DateTime Function() getNow = DateTime.now}) async {
-    var now = getNow();
-    final exp = input._jws.payload['exp'];
-    if (exp != null && now.isAfter(DateTime.parse(exp as String))) {
-      return false;
-    }
-
-    return true;
   }
 
   @override
