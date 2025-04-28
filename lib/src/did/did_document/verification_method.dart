@@ -8,21 +8,34 @@ import '../../util/json_util.dart';
 import '../public_key_utils.dart';
 import 'did_document.dart';
 
-sealed class VerificationMethod implements JsonObject {
+sealed class VerificationMethod {
   String get id;
 
   String get controller;
 
   String get type;
 
+  bool get isReference;
+
   Jwk asJwk();
 
   Uint8List asMultiKey();
 
-  factory VerificationMethod.fromJson(dynamic value, Map<Uri, VerificationMethod> verificationMethod,) {
+  factory VerificationMethod.fromJson(
+    dynamic value,
+    Map<String, EmbeddedVerificationMethod> verificationMethodMap,
+  ) {
     if (value is String) {
-      final verificationMethod = verificationMethod[Uri.parse(value)];
-      return VerificationMethodRef(reference: Uri.parse(value), method: verificationMethod);
+      final verificationMethod = verificationMethodMap[value];
+      if (verificationMethod == null) {
+        throw FormatException(
+          'verification method reference "$value" not found',
+        );
+      }
+      return VerificationMethodRef(
+        reference: value,
+        method: verificationMethod,
+      );
     } else if (value is Map<String, dynamic>) {
       return EmbeddedVerificationMethod.fromJson(value);
     } else if (value is VerificationMethod) {
@@ -33,6 +46,8 @@ sealed class VerificationMethod implements JsonObject {
       throw FormatException('unknown Datatype for VerificationMethod');
     }
   }
+
+  dynamic toJson();
 }
 
 abstract class EmbeddedVerificationMethod
@@ -45,6 +60,8 @@ abstract class EmbeddedVerificationMethod
 
   @override
   final String type;
+
+  bool get isReference => false;
 
   EmbeddedVerificationMethod({
     required this.id,
@@ -165,15 +182,31 @@ class VerificationMethodMultibase extends EmbeddedVerificationMethod {
 
 class VerificationMethodRef implements VerificationMethod {
   final EmbeddedVerificationMethod method;
-  final Uri reference;
+  final String reference;
 
-  VerificationMethodRef({this.reference, this.method});
+  VerificationMethodRef({
+    required this.reference,
+    required this.method,
+  });
 
-  bool get isReference =>
+  @override
+  Jwk asJwk() => method.asJwk();
 
-  dynamic toJson();
+  @override
+  Uint8List asMultiKey() => method.asMultiKey();
 
-  String? get idOrNull;
+  @override
+  String get controller => method.controller;
 
-  VerificationRelationship resolveWith(Map<String, VerificationMethod> veriMap);
+  @override
+  String get id => method.id;
+
+  @override
+  dynamic toJson() => reference;
+
+  @override
+  String get type => method.type;
+
+  @override
+  bool get isReference => true;
 }

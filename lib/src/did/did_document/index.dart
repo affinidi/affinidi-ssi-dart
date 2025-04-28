@@ -2,4 +2,3 @@
 export 'did_document.dart';
 export 'service_endpoint.dart';
 export 'verification_method.dart';
-export 'verification_relationship.dart';

@@ -7,24 +7,37 @@ import '../../types.dart';
 import '../../util/json_util.dart';
 import 'service_endpoint.dart';
 import 'verification_method.dart';
-import 'verification_relationship.dart';
 
 class DidDocument implements JsonObject {
   Context context;
   late String id;
   List<String> alsoKnownAs;
   List<String> controller;
-  List<VerificationMethod> verificationMethod;
-  List<VerificationRelationship> authentication;
-  List<VerificationRelationship> assertionMethod;
-  List<VerificationRelationship> keyAgreement;
-  List<VerificationRelationship> capabilityInvocation;
-  List<VerificationRelationship> capabilityDelegation;
+  List<EmbeddedVerificationMethod> verificationMethod;
+  List<VerificationMethod> authentication;
+  List<VerificationMethod> assertionMethod;
+  List<VerificationMethod> keyAgreement;
+  List<VerificationMethod> capabilityInvocation;
+  List<VerificationMethod> capabilityDelegation;
   List<ServiceEndpoint> service;
 
-  DidDocument({
-    context,
+  DidDocument._internal({
+    required this.context,
     required this.id,
+    required this.alsoKnownAs,
+    required this.controller,
+    required this.verificationMethod,
+    required this.authentication,
+    required this.keyAgreement,
+    required this.service,
+    required this.assertionMethod,
+    required this.capabilityDelegation,
+    required this.capabilityInvocation,
+  });
+
+  factory DidDocument.create({
+    context,
+    required String id,
     alsoKnownAs,
     controller,
     verificationMethod,
@@ -34,18 +47,23 @@ class DidDocument implements JsonObject {
     assertionMethod,
     capabilityDelegation,
     capabilityInvocation,
-  })  : context = context ?? Context.fromJson(""),
-        alsoKnownAs = alsoKnownAs ?? [],
-        controller = controller ?? [],
-        verificationMethod = verificationMethod ?? [],
-        authentication = _convertToVerificationRelationship(authentication),
-        keyAgreement = _convertToVerificationRelationship(keyAgreement),
-        service = _convertToServiceEndpoint(service),
-        assertionMethod = _convertToVerificationRelationship(assertionMethod),
-        capabilityDelegation =
-            _convertToVerificationRelationship(capabilityDelegation),
-        capabilityInvocation =
-            _convertToVerificationRelationship(capabilityInvocation);
+  }) {
+    return DidDocument._internal(
+      context: context ?? Context.fromJson(""),
+      id: id,
+      alsoKnownAs: alsoKnownAs ?? [],
+      controller: controller ?? [],
+      verificationMethod: verificationMethod ?? [],
+      authentication: _convertToVerificationRelationship(authentication),
+      keyAgreement: _convertToVerificationRelationship(keyAgreement),
+      service: _convertToServiceEndpoint(service),
+      assertionMethod: _convertToVerificationRelationship(assertionMethod),
+      capabilityDelegation:
+          _convertToVerificationRelationship(capabilityDelegation),
+      capabilityInvocation:
+          _convertToVerificationRelationship(capabilityInvocation),
+    );
+  }
 
   static List<ServiceEndpoint> _convertToServiceEndpoint(dynamic input) {
     if (input == null) {
@@ -63,19 +81,23 @@ class DidDocument implements JsonObject {
     return [];
   }
 
-  static List<VerificationRelationship> _convertToVerificationRelationship(
-      dynamic input) {
+  static List<VerificationMethod> _convertToVerificationRelationship(
+    dynamic input,
+    Map<String, EmbeddedVerificationMethod> verificationMethodMap,
+  ) {
     if (input == null) {
       return [];
     }
-    if (input is List<VerificationRelationship>) {
+    if (input is List<VerificationMethod>) {
       return input;
     }
     if (input is List) {
       return input
-          .map((item) => item is VerificationRelationship
-              ? item
-              : VerificationRelationship.fromJson(item))
+          .map(
+            (item) => item is VerificationMethodRef
+                ? item
+                : VerificationMethod.fromJson(item, verificationMethodMap),
+          )
           .toList();
     }
     return [];
@@ -107,12 +129,15 @@ class DidDocument implements JsonObject {
       alsoKnownAs = document['alsoKnownAs'].cast<String>();
     }
 
+    final vmMap = <String, EmbeddedVerificationMethod>{};
     if (document.containsKey('verificationMethod')) {
       List tmp = document['verificationMethod'];
       if (tmp.isNotEmpty) {
         verificationMethod = [];
         for (final v in tmp) {
-          verificationMethod.add(EmbeddedVerificationMethod.fromJson(v));
+          var vm = EmbeddedVerificationMethod.fromJson(v);
+          verificationMethod.add(vm);
+          vmMap[vm.id] = vm;
         }
       }
     }
@@ -122,7 +147,7 @@ class DidDocument implements JsonObject {
       if (tmp.isNotEmpty) {
         authentication = [];
         for (final v in tmp) {
-          authentication.add(VerificationRelationship.fromJson(v));
+          authentication.add(VerificationMethod.fromJson(v, vmMap));
         }
       }
     }
@@ -132,7 +157,7 @@ class DidDocument implements JsonObject {
       if (tmp.isNotEmpty) {
         keyAgreement = [];
         for (final v in tmp) {
-          keyAgreement.add(VerificationRelationship.fromJson(v));
+          keyAgreement.add(VerificationMethod.fromJson(v, vmMap));
         }
       }
     }
@@ -142,7 +167,7 @@ class DidDocument implements JsonObject {
       if (tmp.isNotEmpty) {
         assertionMethod = [];
         for (final v in tmp) {
-          assertionMethod.add(VerificationRelationship.fromJson(v));
+          assertionMethod.add(VerificationMethod.fromJson(v, vmMap));
         }
       }
     }
@@ -152,7 +177,7 @@ class DidDocument implements JsonObject {
       if (tmp.isNotEmpty) {
         capabilityInvocation = [];
         for (final v in tmp) {
-          capabilityInvocation.add(VerificationRelationship.fromJson(v));
+          capabilityInvocation.add(VerificationMethod.fromJson(v, vmMap));
         }
       }
     }
@@ -162,7 +187,7 @@ class DidDocument implements JsonObject {
       if (tmp.isNotEmpty) {
         capabilityDelegation = [];
         for (final v in tmp) {
-          capabilityDelegation.add(VerificationRelationship.fromJson(v));
+          capabilityDelegation.add(VerificationMethod.fromJson(v, vmMap));
         }
       }
     }
@@ -176,52 +201,6 @@ class DidDocument implements JsonObject {
         }
       }
     }
-  }
-
-  DidDocument resolveKeyIds() {
-    if (verificationMethod.isEmpty) {
-      return this;
-    }
-    final newDdo = DidDocument(
-        id: id,
-        context: context,
-        controller: controller,
-        alsoKnownAs: alsoKnownAs,
-        service: service,
-        verificationMethod: verificationMethod);
-    Map<String, VerificationMethod> veriMap = {};
-    for (final v in verificationMethod) {
-      veriMap[v.id] = v;
-      if (v.id.contains('#')) {
-        final s = v.id.split('#');
-        if (s.length == 2) {
-          veriMap[s[1]] = v;
-          veriMap['#${s[1]}'] = v;
-        }
-      }
-    }
-    if (assertionMethod.isNotEmpty) {
-      newDdo.assertionMethod = _resolveIds(veriMap, assertionMethod);
-    }
-    if (keyAgreement.isNotEmpty) {
-      newDdo.keyAgreement = _resolveIds(veriMap, keyAgreement);
-    }
-    if (authentication.isNotEmpty) {
-      newDdo.authentication = _resolveIds(veriMap, authentication);
-    }
-    if (capabilityInvocation.isNotEmpty) {
-      newDdo.capabilityInvocation = _resolveIds(veriMap, capabilityInvocation);
-    }
-    if (capabilityDelegation.isNotEmpty) {
-      newDdo.capabilityDelegation = _resolveIds(veriMap, capabilityDelegation);
-    }
-    return newDdo;
-  }
-
-  List<VerificationRelationship> _resolveIds(
-      Map<String, VerificationMethod> veriMap,
-      List<VerificationRelationship> old) {
-    return old.map((entry) => entry.resolveWith(veriMap)).toList();
   }
 
   // TODO: Implement or remove this method
