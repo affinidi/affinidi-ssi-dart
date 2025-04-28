@@ -145,74 +145,27 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
   }) async {
     List<DidCommMessageRecipient> recipientList = [];
     PublicKey publicKey = await wallet.getPublicKey(keyId);
-
     String senderCurve = getCurveByPublicKey(publicKey);
-    DidDocument didDoc = DidKey.generateDocument(publicKey);
 
     for (var key in recipientPublicKeyJwks) {
       if (key['crv'] != senderCurve) continue;
 
       late Uint8List encryptedCek;
       if (keyWrapAlgorithm == KeyWrapAlgorithm.ecdhES) {
-        Uint8List receiverPubKey;
-
-        if (isSecp256OrPCurve(key['crv'])) {
-          receiverPubKey = hexToBytes(publicKeyFromPoint(
-            curve: getEllipticCurveByPublicKey(publicKey),
-            x: key['x'],
-            y: key['y'],
-          ).toCompressedHex());
-        } else if (isEdwardCurve(key['crv'])) {
-          receiverPubKey = decodeBase64(key['x']);
-        } else {
-          throw Exception('Not implemented');
-        }
-
-        encryptedCek = await wallet.encrypt(cek.keyValue,
-            keyId: keyId, publicKey: receiverPubKey);
+        encryptedCek = await _encryptCekUsingECDH_ES(cek,
+            wallet: wallet, keyId: keyId, key: key, publicKey: publicKey);
       } else if (keyWrapAlgorithm == KeyWrapAlgorithm.ecdh1PU) {
-        late ECDH1PU ecdh1pu;
-        late Uint8List receiverPubKeyBytes;
-
-        if (isSecp256OrPCurve(key['crv'])) {
-          ec.PublicKey receiverPubKey = publicKeyFromPoint(
-            curve: getEllipticCurveByPublicKey(publicKey),
-            x: key['x'],
-            y: key['y'],
-          );
-
-          ecdh1pu = ECDH1PU_Elliptic(
-              authenticationTag: authenticationTag,
-              keyWrapAlgorithm: keyWrapAlgorithm,
-              apu: removePaddingFromBase64(
-                  base64Encode(utf8.encode(didDoc.verificationMethod[0].id))),
-              apv: jweHeader.apv,
-              public1: receiverPubKey,
-              public2: receiverPubKey,
-              private1: ec.PrivateKey.fromBytes(
-                getEllipticCurveByPublicKey(publicKey),
-                epkPrivateKey,
-              ));
-
-          receiverPubKeyBytes = hexToBytes(receiverPubKey.toCompressedHex());
-        } else if (isEdwardCurve(key['crv'])) {
-          receiverPubKeyBytes = base64Decode(addPaddingToBase64(key['x']!));
-
-          ecdh1pu = ECDH1PU_X25519(
-              authenticationTag: authenticationTag,
-              keyWrapAlgorithm: keyWrapAlgorithm,
-              apu: removePaddingFromBase64(
-                  base64Encode(utf8.encode(didDoc.verificationMethod[0].id))),
-              apv: jweHeader.apv,
-              public1: receiverPubKeyBytes,
-              public2: receiverPubKeyBytes,
-              private1: epkPrivateKey);
-        } else {
-          throw Exception('Not implemented');
-        }
-
-        encryptedCek = await wallet.encrypt(cek.keyValue,
-            keyId: keyId, publicKey: receiverPubKeyBytes, ecdhProfile: ecdh1pu);
+        encryptedCek = await _encryptCekUsingECDH_1PU(cek,
+            wallet: wallet,
+            keyId: keyId,
+            key: key,
+            publicKey: publicKey,
+            jweHeader: jweHeader,
+            epkPrivateKey: epkPrivateKey,
+            authenticationTag: authenticationTag,
+            keyWrapAlgorithm: keyWrapAlgorithm);
+      } else {
+        throw Exception('Not implemented');
       }
 
       recipientList.add(DidCommMessageRecipient(
@@ -220,6 +173,83 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
           encryptedKey: encryptedCek));
     }
     return recipientList;
+  }
+
+  static Future<Uint8List> _encryptCekUsingECDH_ES(
+    ck.SymmetricKey cek, {
+    required Wallet wallet,
+    required String keyId,
+    required Map<String, dynamic> key,
+    required PublicKey publicKey,
+  }) {
+    Uint8List receiverPubKey;
+
+    if (isSecp256OrPCurve(key['crv'])) {
+      receiverPubKey = hexToBytes(publicKeyFromPoint(
+        curve: getEllipticCurveByPublicKey(publicKey),
+        x: key['x'],
+        y: key['y'],
+      ).toCompressedHex());
+    } else if (isEdwardCurve(key['crv'])) {
+      receiverPubKey = decodeBase64(key['x']);
+    } else {
+      throw Exception('Not implemented');
+    }
+
+    return wallet.encrypt(cek.keyValue,
+        keyId: keyId, publicKey: receiverPubKey);
+  }
+
+  static Future<Uint8List> _encryptCekUsingECDH_1PU(ck.SymmetricKey cek,
+      {required Wallet wallet,
+      required String keyId,
+      required Map<String, dynamic> key,
+      required PublicKey publicKey,
+      required Uint8List authenticationTag,
+      required KeyWrapAlgorithm keyWrapAlgorithm,
+      required JweHeader jweHeader,
+      required Uint8List epkPrivateKey}) {
+    late ECDH1PU ecdh1pu;
+    late Uint8List receiverPubKeyBytes;
+
+    DidDocument didDoc = DidKey.generateDocument(publicKey);
+
+    if (isSecp256OrPCurve(key['crv'])) {
+      ec.PublicKey receiverPubKey = publicKeyFromPoint(
+        curve: getEllipticCurveByPublicKey(publicKey),
+        x: key['x'],
+        y: key['y'],
+      );
+
+      ecdh1pu = ECDH1PU_Elliptic(
+          authenticationTag: authenticationTag,
+          keyWrapAlgorithm: keyWrapAlgorithm,
+          apu: removePaddingFromBase64(
+              base64Encode(utf8.encode(didDoc.verificationMethod[0].id))),
+          apv: jweHeader.apv,
+          public1: receiverPubKey,
+          public2: receiverPubKey,
+          private1: ec.PrivateKey.fromBytes(
+            getEllipticCurveByPublicKey(publicKey),
+            epkPrivateKey,
+          ));
+
+      receiverPubKeyBytes = hexToBytes(receiverPubKey.toCompressedHex());
+    } else if (isEdwardCurve(key['crv'])) {
+      receiverPubKeyBytes = base64Decode(addPaddingToBase64(key['x']!));
+
+      ecdh1pu = ECDH1PU_X25519(
+          authenticationTag: authenticationTag,
+          keyWrapAlgorithm: keyWrapAlgorithm,
+          apu: removePaddingFromBase64(
+              base64Encode(utf8.encode(didDoc.verificationMethod[0].id))),
+          apv: jweHeader.apv,
+          public1: receiverPubKeyBytes,
+          public2: receiverPubKeyBytes,
+          private1: epkPrivateKey);
+    }
+    return wallet.encrypt(cek.keyValue,
+        keyId: keyId, publicKey: receiverPubKeyBytes, ecdhProfile: ecdh1pu);
   }
 
   static _encryptWithCek(ck.SymmetricKey cek, EncryptionAlgorithm alg,
