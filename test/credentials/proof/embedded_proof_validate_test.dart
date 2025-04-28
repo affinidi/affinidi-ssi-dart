@@ -38,7 +38,7 @@ void main() {
           'Address': 'Eihhornstr'
         })
       ],
-      holder: Holder.uri('did:example:1'),
+      holder: MutableHolder.uri('did:example:1'),
       credentialSchema: [
         MutableCredentialSchema(
             id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),

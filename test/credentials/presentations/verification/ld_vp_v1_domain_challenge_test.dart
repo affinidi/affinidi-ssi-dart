@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/models/field_types/holder.dart';
+import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v1_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v1/vp_data_model_v1.dart';
 import 'package:ssi/src/credentials/presentations/verification/vp_domain_challenge_verifier.dart';
@@ -20,10 +21,10 @@ void main() async {
 
   group('VP LD V1 Domain Challenge Verification', () {
     final v1Vp = MutableVpDataModelV1(
-        context: [VpDataModelV1.contextUrl],
+        context: [DMV1ContextUrl],
         id: Uri.parse('testVpV1'),
         type: {'VerifiablePresentation'},
-        holder: Holder.uri(signer.did),
+        holder: MutableHolder.uri(signer.did),
         verifiableCredential: [ldV1VC]);
     test('should be able to verify domain and challenge of VP proof', () async {
       final proofGenerator = Secp256k1Signature2019Generator(
@@ -37,7 +38,7 @@ void main() async {
               domain: ['fun.com'], challenge: 'test-challenge')
           .verify(issuedCredential);
       expect(verificationStatus.isValid, true);
-      expect(verificationStatus.errors, []);
+      expect(verificationStatus.errors, <String>[]);
     });
 
     test('should fail for invalid provided domain', () async {

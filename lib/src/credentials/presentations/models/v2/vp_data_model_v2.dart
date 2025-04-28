@@ -5,6 +5,7 @@ import '../../../../util/json_util.dart';
 import '../../../models/field_types/holder.dart';
 import '../../../models/field_types/terms_of_use.dart';
 import '../../../models/parsed_vc.dart';
+import '../../../models/v2/vc_data_model_v2.dart';
 import '../../../proof/embedded_proof.dart';
 import '../vc_parse_present.dart';
 import '../verifiable_presentation.dart';
@@ -28,8 +29,6 @@ part 'mutable_vp_data_model_v2.dart';
 /// );
 /// ```
 class VpDataModelV2 implements VerifiablePresentation {
-  static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
-
   /// The JSON-LD context for this presentation.
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
@@ -79,6 +78,32 @@ class VpDataModelV2 implements VerifiablePresentation {
     return cleanEmpty(json);
   }
 
+  bool validate() {
+    if (context.isEmpty) {
+      throw SsiException(
+        message: '`${_P.context.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (context.first != DMV2ContextUrl) {
+      throw SsiException(
+        message:
+            'The first URI of `${_P.context.key}` property should always be $DMV2ContextUrl',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (type.isEmpty) {
+      throw SsiException(
+        message: '`${_P.type.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    return true;
+  }
+
   /// Creates a [VpDataModelV2] instance.
   ///
   /// The [context] is the JSON-LD context array (required).
@@ -86,7 +111,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   /// The [holder] is an identifier for the presenter (optional).
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
-  VpDataModelV2._(
+  VpDataModelV2(
       {required List<String> context,
       this.id,
       required Set<String> type,
@@ -98,7 +123,9 @@ class VpDataModelV2 implements VerifiablePresentation {
         type = UnmodifiableSetView(type),
         verifiableCredential = UnmodifiableListView(verifiableCredential),
         proof = UnmodifiableListView(proof),
-        termsOfUse = UnmodifiableListView(termsOfUse ?? []);
+        termsOfUse = UnmodifiableListView(termsOfUse ?? []) {
+    validate();
+  }
 
   /// Creates a [VpDataModelV2] from JSON input.
   ///
@@ -108,13 +135,6 @@ class VpDataModelV2 implements VerifiablePresentation {
     final json = jsonToMap(input);
 
     final context = getStringList(json, _P.context.key, mandatory: true);
-    if (context.isEmpty || context.first != contextUrl) {
-      throw SsiException(
-        message:
-            'The first URI of @context property should always be $contextUrl',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(
@@ -140,7 +160,7 @@ class VpDataModelV2 implements VerifiablePresentation {
         (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
         allowSingleValue: true);
 
-    return VpDataModelV2._(
+    return VpDataModelV2(
         context: context,
         id: id,
         type: type,
@@ -151,7 +171,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   }
 
   VpDataModelV2.clone(VpDataModelV2 input)
-      : this._(
+      : this(
             context: input.context,
             id: input.id,
             type: input.type,

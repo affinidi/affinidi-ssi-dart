@@ -41,6 +41,20 @@ class MutableVpDataModelV1 {
   /// The cryptographic proof(s) created by the holder.
   List<EmbeddedProof> proof;
 
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.id.key] = id?.toString();
+    json[_P.type.key] = type.toList();
+    json[_P.holder.key] = holder?.toJson();
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.verifiableCredential.key] =
+        verifiableCredential.map(presentVC).toList();
+
+    return cleanEmpty(json);
+  }
+
   /// Creates a [VpDataModelV1] instance.
   ///
   /// The [context] is the JSON-LD context array (required).
@@ -60,18 +74,39 @@ class MutableVpDataModelV1 {
         proof = proof ?? [],
         verifiableCredential = verifiableCredential ?? [];
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
+  /// Creates a [VpDataModelV1] from JSON input.
+  ///
+  /// The [input] can be a JSON string or a [Map<String, dynamic>].
+  /// Parses both mandatory and optional fields.
+  factory MutableVpDataModelV1.fromJson(dynamic input) {
+    final json = jsonToMap(input);
 
-    json[_P.context.key] = context;
-    json[_P.id.key] = id?.toString();
-    json[_P.type.key] = type.toList();
-    json[_P.holder.key] = holder?.toJson();
-    json[_P.proof.key] = encodeListToSingleOrArray(proof);
-    json[_P.verifiableCredential.key] =
-        verifiableCredential.map(presentVC).toList();
+    final context = getStringList(json, _P.context.key);
 
-    return cleanEmpty(json);
+    final id = getUri(json, _P.id.key);
+    final type = getStringList(
+      json,
+      _P.type.key,
+      allowSingleValue: true,
+    ).toSet();
+
+    final holder = MutableHolder.fromJson(json[_P.holder.key]);
+
+    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
+        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
+
+    final credentials = parseListOrSingleItem<ParsedVerifiableCredential>(
+        json, _P.verifiableCredential.key, parseVC,
+        allowSingleValue: true);
+
+    return MutableVpDataModelV1(
+        context: context,
+        id: id,
+        type: type,
+        proof: proof,
+        holder: holder,
+        verifiableCredential: credentials);
   }
 }
 

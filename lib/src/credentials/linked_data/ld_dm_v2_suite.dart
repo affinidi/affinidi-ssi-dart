@@ -16,7 +16,7 @@ final class LdVcDm2Suite
             LdVcDm2Options> {
   LdVcDm2Suite()
       : super(
-          contextUrl: VcDataModelV2.contextUrl,
+          contextUrl: DMV2ContextUrl,
         );
 
   @override

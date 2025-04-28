@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/models/field_types/holder.dart';
+import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 import 'package:ssi/src/credentials/presentations/verification/vp_proof_expiry_verifier.dart';
@@ -21,10 +22,10 @@ void main() async {
 
   group('VP LD V2 Proof Expiry Verification', () {
     final v2Vp = MutableVpDataModelV2(
-        context: [VpDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('testVpV2'),
         type: {'VerifiablePresentation'},
-        holder: Holder.uri(signer.did),
+        holder: MutableHolder.uri(signer.did),
         verifiableCredential: [ldV2VC]);
     test('should be able to verify expiry of VP proof', () async {
       final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
@@ -36,7 +37,7 @@ void main() async {
       final verificationStatus =
           await VpProofExpiryVerifier(getNow: getNow).verify(issuedCredential);
       expect(verificationStatus.isValid, true);
-      expect(verificationStatus.errors, []);
+      expect(verificationStatus.errors, <String>[]);
     });
 
     test('should be able to verify for expired  VP proof', () async {
@@ -64,7 +65,7 @@ void main() async {
       final verificationStatus =
           await VpProofExpiryVerifier(getNow: getPast).verify(issuedCredential);
       expect(verificationStatus.isValid, true);
-      expect(verificationStatus.errors, []);
+      expect(verificationStatus.errors, <String>[]);
     });
   });
 }

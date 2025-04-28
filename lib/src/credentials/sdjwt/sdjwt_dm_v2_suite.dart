@@ -67,7 +67,7 @@ final class SdJwtDm2Suite
   @override
   bool hasValidPayload(SdJwt data) {
     final context = data.payload[VcDataModelV2Key.context.key];
-    return (context is List) && context.contains(VcDataModelV2.contextUrl);
+    return (context is List) && context.contains(DMV2ContextUrl);
   }
 
   /// Determines if the provided input can be parsed by this suite.

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../linked_data/ld_base_suite.dart';
+import '../../models/v2/vc_data_model_v2.dart';
 import '../models/parsed_vp.dart';
 import '../models/v2/vp_data_model_v2.dart';
 import '../suites/vp_suite.dart';
@@ -20,8 +21,7 @@ final class LdVpDm2Suite
   /// Creates a new [LdVpDm2Suite] with the v2.2 context URL.
   LdVpDm2Suite()
       : super(
-            contextUrl: VpDataModelV2.contextUrl,
-            issuerKey: VpDataModelV2Key.holder.key);
+            contextUrl: DMV2ContextUrl, issuerKey: VpDataModelV2Key.holder.key);
 
   /// Parses a [String] input and payload [Map] into a [LdVpDataModelV2] instance.
   @override

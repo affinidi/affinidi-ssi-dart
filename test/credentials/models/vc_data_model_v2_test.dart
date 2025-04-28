@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 void main() {
   group('VcDataModelV2 Tests', () {
     test('should correctly assign context', () {
-      final ctx = [VcDataModelV2.contextUrl, 'https://example.org/context/v2'];
+      final ctx = [DMV2ContextUrl, 'https://example.org/context/v2'];
       final vc = MutableVcDataModelV2(
           context: ctx,
           id: Uri.parse('http://example.edu/credentials/abcde'),
@@ -30,7 +30,7 @@ void main() {
     test('should correctly assign id', () {
       final id = Uri.parse('http://example.edu/credentials/abcde');
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: id,
         type: {'VerifiableCredential'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -44,7 +44,7 @@ void main() {
     test('should correctly assign type', () {
       final type = {'VerifiableCredential', 'ExampleCredentialV2'};
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: type,
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -58,7 +58,7 @@ void main() {
     test('should correctly assign issuer', () {
       final issuer = Issuer.uri('did:example:issuerV2');
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: issuer,
@@ -73,7 +73,7 @@ void main() {
     test('should correctly assign validFrom', () {
       final vf = DateTime.utc(2024, 01, 01, 12, 0, 0);
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -88,7 +88,7 @@ void main() {
     test('should correctly assign validUntil', () {
       final vu = DateTime.utc(2025, 01, 01, 12, 0, 0);
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -107,7 +107,7 @@ void main() {
       });
 
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -131,7 +131,7 @@ void main() {
             type: 'AnotherSchemaValidator'),
       ];
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -150,7 +150,7 @@ void main() {
         type: 'CredentialStatusList2021',
       );
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -184,7 +184,7 @@ void main() {
         ),
       ];
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -202,11 +202,11 @@ void main() {
     });
 
     test('should correctly assign refreshService', () {
-      final rs = RefreshServiceV2(
+      final rs = MutableRefreshServiceV2(
         type: 'ManualRefreshService2021',
       );
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -223,14 +223,14 @@ void main() {
 
     test('should correctly assign termsOfUse', () {
       final terms = [
-        TermsOfUse(
+        MutableTermsOfUse(
           id: Uri.parse('https://example.com/tos/v2/1'),
           type: 'IssuerPolicyV2',
         ),
-        TermsOfUse(type: 'AnotherTermV2'),
+        MutableTermsOfUse(type: 'AnotherTermV2'),
       ];
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -247,14 +247,14 @@ void main() {
 
     test('should correctly assign evidence', () {
       final evidences = [
-        Evidence(
+        MutableEvidence(
           id: Uri.parse('https://example.edu/evidence/v2/1'),
           type: 'DocumentVerificationV2',
         ),
-        Evidence(type: 'AnotherEvidenceV2'),
+        MutableEvidence(type: 'AnotherEvidenceV2'),
       ];
       final vc = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -268,7 +268,7 @@ void main() {
     });
 
     test('toJson() should produce correct map (multiple proofs)', () {
-      final ctx = [VcDataModelV2.contextUrl, 'https://example.org/context/v2'];
+      final ctx = [DMV2ContextUrl, 'https://example.org/context/v2'];
       final id = Uri.parse('http://example.edu/credentials/abcde');
       final type = ['VerifiableCredential', 'ExampleCredentialV2'];
       final issuer = Issuer.uri('did:example:issuerV2');
@@ -311,16 +311,16 @@ void main() {
       ];
       final rs = MutableRefreshServiceV2(type: 'ManualRefreshService2021');
       final terms = [
-        TermsOfUse(
+        MutableTermsOfUse(
             id: Uri.parse('https://example.com/tos/v2/1'),
             type: 'IssuerPolicyV2'),
-        TermsOfUse(type: 'AnotherTermV2')
+        MutableTermsOfUse(type: 'AnotherTermV2')
       ];
       final evidences = [
-        Evidence(
+        MutableEvidence(
             id: Uri.parse('https://example.edu/evidence/v2/1'),
             type: 'DocumentVerificationV2'),
-        Evidence(type: 'AnotherEvidenceV2')
+        MutableEvidence(type: 'AnotherEvidenceV2')
       ];
       final vc = MutableVcDataModelV2(
         context: ctx,
@@ -354,7 +354,7 @@ void main() {
     });
 
     test('toJson() should produce correct map (single proof)', () {
-      final ctx = [VcDataModelV2.contextUrl, 'https://example.org/context/v2'];
+      final ctx = [DMV2ContextUrl, 'https://example.org/context/v2'];
       final id = Uri.parse('http://example.edu/credentials/abcde');
       final type = ['VerifiableCredential', 'ExampleCredentialV2'];
       final issuer = Issuer.uri('did:example:issuerV2');
@@ -383,14 +383,14 @@ void main() {
           cryptosuite: 'eddsa-jcs-2022',
         )
       ];
-      final rs = RefreshServiceV2(type: 'ManualRefreshService2021');
+      final rs = MutableRefreshServiceV2(type: 'ManualRefreshService2021');
       final terms = [
-        TermsOfUse(
+        MutableTermsOfUse(
             id: Uri.parse('https://example.com/tos/v2/1'),
             type: 'IssuerPolicyV2')
       ];
       final evidences = [
-        Evidence(
+        MutableEvidence(
             id: Uri.parse('https://example.edu/evidence/v2/1'),
             type: 'DocumentVerificationV2')
       ];
@@ -426,7 +426,7 @@ void main() {
     });
 
     test('fromJson() should correctly parse map (multiple proofs)', () {
-      final ctx = [VcDataModelV2.contextUrl];
+      final ctx = [DMV2ContextUrl];
       final vcOriginal = MutableVcDataModelV2(
         context: ctx,
         id: Uri.parse('id'),
@@ -470,7 +470,7 @@ void main() {
     });
 
     test('fromJson() should correctly parse map (single proof object)', () {
-      final ctx = [VcDataModelV2.contextUrl];
+      final ctx = [DMV2ContextUrl];
       final proof = [
         EmbeddedProof(
           type: 'DataIntegrityProof',
@@ -503,7 +503,7 @@ void main() {
     });
 
     test('fromJson() should handle missing optional fields', () {
-      final ctx = [VcDataModelV2.contextUrl];
+      final ctx = [DMV2ContextUrl];
       final map = {
         '@context': ctx,
         'id': 'id',

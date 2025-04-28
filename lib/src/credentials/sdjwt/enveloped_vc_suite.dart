@@ -38,7 +38,7 @@ final class EnvelopedVcDm2Suite
     final envelopedData = data['id'];
 
     return (context is List) &&
-        context.contains(VcDataModelV2.contextUrl) &&
+        context.contains(DMV2ContextUrl) &&
         (type != null) &&
         (type is List) &&
         (type.contains('EnvelopedVerifiableCredential')) &&
