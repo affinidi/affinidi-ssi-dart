@@ -21,8 +21,4 @@ abstract class VerifiablePresentationSuite<
 
   /// Verifies the cryptographic integrity of the [input] presentation.
   Future<bool> verifyIntegrity(ParsedVP input);
-
-  /// Verifies the time validity of cryptographic integrity of the [input] presentation.
-  Future<bool> verifyProofExpiry(ParsedVP input,
-      {DateTime Function() getNow = DateTime.now});
 }

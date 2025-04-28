@@ -84,28 +84,16 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     return fromParsed(input, decode(input));
   }
 
-  Future<bool> verifyIntegrity(Model input) async {
+  Future<bool> verifyIntegrity(Model input,
+      {DateTime Function() getNow = DateTime.now}) async {
     //TODO(FTL-20735): discover proof type
     final document = input.toJson();
     final issuerDid = document[issuerKey] as String;
     final proofSuite = Secp256k1Signature2019Verifier(issuerDid: issuerDid);
-    final verificationResult = await proofSuite.verify(document);
+    final verificationResult =
+        await proofSuite.verify(document, getNow: getNow);
 
     return verificationResult.isValid;
-  }
-
-  Future<bool> verifyProofExpiry(Model input,
-      {DateTime Function() getNow = DateTime.now}) async {
-    var now = getNow();
-
-    for (final proof in input.proof) {
-      final expires = proof.expires;
-      if (expires != null && now.isAfter(expires)) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   Map<String, dynamic> present(Model input) {

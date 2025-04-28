@@ -107,7 +107,8 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
   });
 
   @override
-  Future<VerificationResult> verify(Map<String, dynamic> document) async {
+  Future<VerificationResult> verify(Map<String, dynamic> document,
+      {DateTime Function() getNow = DateTime.now}) async {
     final copy = Map.of(document);
     final proof = copy.remove('proof');
 
@@ -115,6 +116,12 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
       return VerificationResult.invalid(
         errors: ['invalid or missing proof'],
       );
+    }
+    var now = getNow();
+
+    final expires = proof['expires'];
+    if (expires != null && now.isAfter(expires)) {
+      return VerificationResult.invalid(errors: ['Not valid proof']);
     }
 
     Uri verificationMethod;
