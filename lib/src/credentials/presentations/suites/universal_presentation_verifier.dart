@@ -25,10 +25,7 @@ final class UniversalPresentationVerifier {
   ///
   /// Includes expiry and integrity checks.
   static final List<VpVerifier> defaultVerifiers = List.unmodifiable(
-    <VpVerifier>[
-      VpExpiryVerifier(),
-      VpIntegrityVerifier(),
-    ],
+    <VpVerifier>[VpExpiryVerifier(), VpIntegrityVerifier()],
   );
 
   /// Creates a new [UniversalPresentationVerifier].

@@ -1,4 +1,3 @@
-import '../../../did/did_signer.dart';
 import '../models/parsed_vp.dart';
 import '../models/verifiable_presentation.dart';
 
@@ -22,14 +21,4 @@ abstract class VerifiablePresentationSuite<
 
   /// Verifies the cryptographic integrity of the [input] presentation.
   Future<bool> verifyIntegrity(ParsedVP input);
-
-  /// Issues a new presentation by signing the [data] with the provided [signer].
-  ///
-  /// Returns a parsed verifiable presentation with the appropriate signature.
-  /// Optional [options] can customize the issuing process.
-  Future<ParsedVP> issue(
-    VP data,
-    DidSigner signer, {
-    Options? options,
-  });
 }

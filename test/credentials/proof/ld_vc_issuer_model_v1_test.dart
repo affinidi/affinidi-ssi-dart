@@ -7,7 +7,6 @@ import 'package:ssi/src/credentials/models/field_types/holder.dart';
 import 'package:ssi/src/credentials/models/field_types/issuer.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
-import 'package:ssi/src/credentials/proof/embedded_proof.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -48,21 +47,21 @@ void main() async {
         issuer: Issuer.uri(signer.did),
       );
 
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final proof = await proofSuite.createProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019CreateOptions(
-          signer: signer,
-        ),
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
       );
 
-      unsignedCredential.proof = [EmbeddedProof.fromJson(proof.toJson())];
-
-      final verificationResult = await proofSuite.verifyProof(
-        unsignedCredential.toJson(),
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: _testLoadDocument, issuerDid: signer.did),
+      final issuedCredential = await LdVcDm1Suite().issue(
+        issuer: signer.did,
+        unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
+        proofGenerator: proofGenerator,
       );
+
+      final proofVerifier =
+          Secp256k1Signature2019Verifier(issuerDid: signer.did);
+
+      final verificationResult =
+          await proofVerifier.verify(issuedCredential.toJson());
 
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
@@ -70,13 +69,9 @@ void main() async {
     });
 
     test('CWE issued must verify', () async {
-      final proofSuite = EcdsaSecp256k1Signature2019();
-      final verificationResult = await proofSuite.verifyProof(
-        cweResponse,
-        EcdsaSecp256k1Signature2019VerifyOptions(
-            customDocumentLoader: _testLoadDocument,
-            issuerDid: cweResponse['issuer'] as String),
-      );
+      final proofVerifier = Secp256k1Signature2019Verifier(
+          issuerDid: cweResponse['issuer'] as String);
+      final verificationResult = await proofVerifier.verify(cweResponse);
 
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
@@ -92,20 +87,29 @@ void main() async {
 
       expect(validationResult, true);
     });
+
+    test('LdVCDM1 fixture VC verify', () async {
+      final unsigned = LdVcDm1Suite().parse(VerifiableCredentialDataFixtures
+          .credentialWithValidProofDataModelV11JsonEncoded);
+
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+      );
+
+      final issuedCredential = await LdVcDm1Suite().issue(
+        issuer: signer.did,
+        unsignedData: unsigned,
+        proofGenerator: proofGenerator,
+      );
+
+      final validationResult =
+          await LdVcDm1Suite().verifyIntegrity(issuedCredential);
+
+      expect(validationResult, true);
+    });
   });
 }
 
 final cweResponse = jsonDecode(
   VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe,
 ) as Map<String, dynamic>;
-
-final _userProfile = jsonDecode(r'''
-{"@context":{"UserProfile":{"@id":"https://schema.affinidi.com/UserProfileV1-0.jsonld","@context":{"@version":1.1,"@protected":true}},"Fname":{"@id":"schema-id:Fname","@type":"https://schema.org/Text"},"Lname":{"@id":"schema-id:Lname","@type":"https://schema.org/Text"},"Age":{"@id":"schema-id:Age","@type":"https://schema.org/Text"},"Address":{"@id":"schema-id:Address","@type":"https://schema.org/Text"}}}
-''');
-
-Future<Map<String, dynamic>?> _testLoadDocument(Uri url) {
-  if (url.toString() == 'https://schema.affinidi.com/UserProfileV1-0.jsonld') {
-    return Future.value(_userProfile as Map<String, dynamic>);
-  }
-  return Future.value(null);
-}

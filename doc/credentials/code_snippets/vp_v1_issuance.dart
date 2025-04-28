@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v1_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v1/vp_data_model_v1.dart';
@@ -30,9 +31,17 @@ Future<void> main() async {
     verifiableCredential: [ldV1VC, jwtV1VC],
   );
 
+  // create a proof Generator
+  final proofGenerator = Secp256k1Signature2019Generator(
+    signer: signer,
+  );
+
   // Issue the VP using the V1 suite
   final vpToSign = VpDataModelV1.fromJson(v1Vp.toJson());
-  final issuedVp = await LdVpDm1Suite().issue(vpToSign, signer);
+  final issuedVp = await LdVpDm1Suite().issue(
+      unsignedData: vpToSign,
+      issuer: signer.did,
+      proofGenerator: proofGenerator);
 
   // Output result
   print('Serialized VP:\n${issuedVp.serialized}');

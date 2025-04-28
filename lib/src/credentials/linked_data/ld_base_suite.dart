@@ -1,13 +1,17 @@
 import 'dart:convert';
 
-import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/doc_with_embedded_proof.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
+import '../proof/embedded_proof_suite.dart';
 
+/// Options for LD based data model operations.
+///
+/// Contains configuration parameters for LD based data model operations
+/// in the context of W3C Verifiable Credentials Data Model.
 abstract class LdOptions {}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
@@ -43,23 +47,26 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
 
   Model fromParsed(String input, Map<String, dynamic> payload);
 
-  Future<Model> issue(
-    VC data,
-    DidSigner signer, {
-    Options? options,
+  Future<Model> issue({
+    required VC unsignedData,
+    required String issuer,
+    required EmbeddedProofGenerator proofGenerator,
   }) async {
-    //TODO(FTL-20735): extend option to select proof suite
-    var json = data.toJson();
+    var json = unsignedData.toJson();
     // remove proof in case it's already there
     json.remove(proofKey);
 
     // set the issuer to match the signer
-    json[issuerKey] = signer.did;
+    json[issuerKey] = issuer;
 
-    final proof = await _proofSuite.createProof(
-      json,
-      EcdsaSecp256k1Signature2019CreateOptions(signer: signer),
-    );
+    final proof = await proofGenerator.generate(json);
+
+    if (proof.verificationMethod?.split('#').first != issuer) {
+      throw SsiException(
+        message: 'Issuer mismatch',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
 
     json[proofKey] = proof.toJson();
 
@@ -77,15 +84,14 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     return fromParsed(input, decode(input));
   }
 
-  Future<bool> verifyIntegrity(Model input) async {
+  Future<bool> verifyIntegrity(Model input,
+      {DateTime Function() getNow = DateTime.now}) async {
     //TODO(FTL-20735): discover proof type
-    final proofSuite = EcdsaSecp256k1Signature2019();
     final document = input.toJson();
     final issuerDid = document[issuerKey] as String;
-    final verificationResult = await proofSuite.verifyProof(
-      document,
-      EcdsaSecp256k1Signature2019VerifyOptions(issuerDid: issuerDid),
-    );
+    final proofSuite = Secp256k1Signature2019Verifier(issuerDid: issuerDid);
+    final verificationResult =
+        await proofSuite.verify(document, getNow: getNow);
 
     return verificationResult.isValid;
   }
@@ -94,5 +100,3 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     return input.toJson();
   }
 }
-
-final _proofSuite = EcdsaSecp256k1Signature2019();

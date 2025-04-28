@@ -1,4 +1,5 @@
 import '../../types.dart';
+import '../proof/proof_purpose.dart';
 import 'embedded_proof.dart';
 
 /// Function type for loading external documents referenced in proofs.
@@ -14,10 +15,32 @@ class EmbeddedProofSuiteCreateOptions {
   /// The document loader to use when creating proofs.
   final DocumentLoader customDocumentLoader;
 
+  /// The date and time when this proof expires.
+  final DateTime? expires;
+
+  /// The domains this proof is bound to.
+  /// Can be a single string or a list of strings.
+  final List<String>? domain;
+
+  /// A challenge to prevent replay attacks.
+  final String? challenge;
+
+  /// The purpose of embedded proof.
+  final ProofPurpose? proofPurpose;
+
   /// Creates a new [EmbeddedProofSuiteCreateOptions] instance.
   ///
   /// Uses [_noOpLoader] as the default document loader if none is provided.
-  EmbeddedProofSuiteCreateOptions({this.customDocumentLoader = _noOpLoader});
+  /// [expires] - Specify expiry of proof.
+  /// [domain] - Specify one or more security domains in which the proof is meant to be used.
+  /// [challenge] - Specify challenge for domain in proof.
+  EmbeddedProofSuiteCreateOptions({
+    this.customDocumentLoader = _noOpLoader,
+    this.proofPurpose = ProofPurpose.assertionMethod,
+    this.expires,
+    this.domain,
+    this.challenge,
+  });
 }
 
 /// Options for verifying cryptographic proofs.
@@ -34,28 +57,20 @@ class EmbeddedProofSuiteVerifyOptions {
   EmbeddedProofSuiteVerifyOptions({this.customDocumentLoader = _noOpLoader});
 }
 
-/// Base class for cryptographic proof suites that can create and verify embedded proofs.
-///
-/// Implementations provide specific algorithms for creating and verifying
-/// cryptographic proofs within documents like verifiable credentials.
-abstract class EmbeddedProofSuite<
-    CreateOptions extends EmbeddedProofSuiteCreateOptions,
-    VerifyOptions extends EmbeddedProofSuiteVerifyOptions> {
-  /// Creates a proof for the specified [document] using the provided [options].
+/// Interface used by issuance
+abstract class EmbeddedProofGenerator {
+  /// Generate an `EmbeddedProof` for the given document
   ///
-  /// Returns an [EmbeddedProof] that can be added to the document.
-  Future<EmbeddedProof> createProof(
-    Map<String, dynamic> document,
-    CreateOptions options,
-  );
+  /// Implementations should bind any needed parameters
+  Future<EmbeddedProof> generate(Map<String, dynamic> document);
+}
 
-  /// Verifies the proof in the specified [document] using the provided [options].
+/// Interface used by verification
+abstract class EmbeddedProofVerifier {
+  /// Verify the embedded proofs in the document
   ///
-  /// Returns a [VerificationResult] indicating whether the proof is valid.
-  Future<VerificationResult> verifyProof(
-    Map<String, dynamic> document,
-    VerifyOptions options,
-  );
+  /// Implementations should bind any needed parameters
+  Future<VerificationResult> verify(Map<String, dynamic> document);
 }
 
 /// A no-operation document loader that always returns null.

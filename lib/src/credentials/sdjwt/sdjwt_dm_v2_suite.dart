@@ -113,7 +113,6 @@ final class SdJwtDm2Suite
   /// Returns a parsed SD-JWT credential with appropriate signatures and disclosures.
   ///
   /// Throws [SsiException] if the credential is invalid or if signing fails.
-  @override
   Future<SdJwtDataModelV2> issue(
     VcDataModelV2 vc,
     DidSigner signer, {
@@ -156,9 +155,16 @@ final class SdJwtDm2Suite
   ///
   /// Returns true if the credential's signature is valid, false otherwise.
   @override
-  Future<bool> verifyIntegrity(SdJwtDataModelV2 input) async {
+  Future<bool> verifyIntegrity(SdJwtDataModelV2 input,
+      {DateTime Function() getNow = DateTime.now}) async {
     final algorithm =
         SignatureScheme.fromString(input.sdJwt.header['alg'] as String);
+    var now = getNow();
+    final exp = input.sdJwt.payload['exp'];
+    if (exp != null &&
+        now.isAfter(DateTime.fromMillisecondsSinceEpoch(exp * 1000))) {
+      return false;
+    }
 
     final verifier = await SdJwtDidVerifier.create(
       algorithm: algorithm,
