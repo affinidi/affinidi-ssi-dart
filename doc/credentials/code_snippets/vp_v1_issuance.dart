@@ -24,14 +24,15 @@ Future<void> main() async {
 
   // Create a Verifiable Presentation (V1)
   final v1Vp = MutableVpDataModelV1(
-    context: [MutableVpDataModelV1.contextUrl],
-    id: 'testVpV1Id',
-    type: ['VerifiablePresentation'],
+    context: [VpDataModelV1.contextUrl],
+    id: Uri.parse('testVpV1Id'),
+    type: {'VerifiablePresentation'},
     verifiableCredential: [ldV1VC, jwtV1VC],
   );
 
   // Issue the VP using the V1 suite
-  final issuedVp = await LdVpDm1Suite().issue(v1Vp, signer);
+  final vpToSign = VpDataModelV1.fromJson(v1Vp.toJson());
+  final issuedVp = await LdVpDm1Suite().issue(vpToSign, signer);
 
   // Output result
   print('Serialized VP:\n${issuedVp.serialized}');

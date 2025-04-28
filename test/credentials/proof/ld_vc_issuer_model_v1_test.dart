@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/linked_data/ld_dm_v1_suite.dart';
-import 'package:ssi/src/credentials/models/credential_subject.dart';
-import 'package:ssi/src/credentials/models/holder.dart';
-import 'package:ssi/src/credentials/models/issuer.dart';
+import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
+import 'package:ssi/src/credentials/models/field_types/holder.dart';
+import 'package:ssi/src/credentials/models/field_types/issuer.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/src/credentials/proof/embedded_proof.dart';
@@ -28,23 +28,24 @@ void main() async {
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
         ],
-        id: "uuid:123456abcd",
-        type: ["VerifiableCredential", "UserProfile"],
-        credentialSubject: CredentialSubject(claims: {
-          "Fname": "Fname",
-          "Lname": "Lame",
-          "Age": "22",
-          "Address": "Eihhornstr"
-        }),
-        holder: Holder(id: Uri.parse("did:example:1")),
-        credentialSchema: [
-          CredentialSchema.fromJson({
-            'id': 'https://schema.affinidi.com/UserProfileV1-0.json',
-            'type': 'JsonSchemaValidator2018'
+        id: Uri.parse('uuid:123456abcd'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        credentialSubject: [
+          MutableCredentialSubject({
+            'Fname': 'Fname',
+            'Lname': 'Lame',
+            'Age': '22',
+            'Address': 'Eihhornstr'
           })
         ],
+        holder: Holder.uri('did:example:1'),
+        credentialSchema: [
+          MutableCredentialSchema(
+              id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+              type: 'JsonSchemaValidator2018')
+        ],
         issuanceDate: DateTime.now(),
-        issuer: Issuer(id: signer.did),
+        issuer: Issuer.uri(signer.did),
       );
 
       final proofSuite = EcdsaSecp256k1Signature2019();

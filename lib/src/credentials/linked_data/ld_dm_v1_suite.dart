@@ -1,11 +1,10 @@
 import 'dart:convert';
 
+import '../models/parsed_vc.dart';
 import '../models/v1/vc_data_model_v1.dart';
-import '../models/v1/vc_data_model_v1_view.dart';
 import '../models/verifiable_credential.dart';
 import '../suites/vc_suite.dart';
 import 'ld_base_suite.dart';
-import 'ld_vc_data_model_v1.dart';
 
 class LdVcDm1Options extends LdOptions {}
 
@@ -17,22 +16,21 @@ final class LdVcDm1Suite
             LdVcDm1Options> {
   LdVcDm1Suite()
       : super(
-          contextUrl: MutableVcDataModelV1.contextUrl,
+          contextUrl: VcDataModelV1.contextUrl,
         );
 
   @override
   LdVcDataModelV1 fromParsed(String input, Map<String, dynamic> payload) =>
-      _LdVcDataModelV1Impl.fromParsed(input, payload);
+      LdVcDataModelV1.fromParsed(input, payload);
 }
 
-class _LdVcDataModelV1Impl extends MutableVcDataModelV1
-    implements LdVcDataModelV1 {
+class LdVcDataModelV1 extends VcDataModelV1
+    implements ParsedVerifiableCredential<String> {
   final String _serialized;
 
-  _LdVcDataModelV1Impl.fromParsed(String serialized, super.input)
+  LdVcDataModelV1.fromParsed(String serialized, Map<String, dynamic> input)
       : _serialized = serialized,
-        // use parsing from VcDataModelV1
-        super.fromJson();
+        super.clone(VcDataModelV1.fromJson(input));
 
   @override
   Map<String, dynamic> toJson() {

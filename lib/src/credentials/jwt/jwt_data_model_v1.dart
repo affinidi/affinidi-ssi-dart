@@ -1,7 +1,23 @@
 part of 'jwt_dm_v1_suite.dart';
 
-abstract interface class JwtVcDataModelV1
-    implements ParsedVerifiableCredential<String>, VcDataModelV1 {
+/// Allows creating a VcDataModel from a JWT token containing an VcDataModel version 1.1
+/// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
+class JwtVcDataModelV1 extends VcDataModelV1
+    implements ParsedVerifiableCredential<String> {
+  final Jws _jws;
+
+  JwtVcDataModelV1.fromJws(Jws jws)
+      : _jws = jws,
+        super.clone(VcDataModelV1.fromJson(jwtToJson(jws.payload)));
+
+  @override
+  String get serialized => _jws.serialized;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _jws.payload['vc'] as Map<String, dynamic>;
+  }
+
   static (Map<String, dynamic> header, Map<String, dynamic> payload) vcToJws(
     Map<String, dynamic> json,
     DidSigner signer,
@@ -41,21 +57,6 @@ abstract interface class JwtVcDataModelV1
 
     return (header, payload);
   }
-}
-
-/// Allows creating a VcDataModel from a JWT token containing an VcDataModel version 1.1
-/// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
-class _JwtVcDataModelV1 extends MutableVcDataModelV1
-    implements JwtVcDataModelV1 {
-  final Jws _jws;
-
-  _JwtVcDataModelV1.fromJws(Jws jws)
-      : _jws = jws,
-        // use parsing from VcDataModelV1
-        super.fromJson(jwtToJson(jws.payload));
-
-  @override
-  String get serialized => _jws.serialized;
 
   static Map<String, dynamic> jwtToJson(Map<String, dynamic> payload) {
     final json = payload['vc'] as Map<String, dynamic>;

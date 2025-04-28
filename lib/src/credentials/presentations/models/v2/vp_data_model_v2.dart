@@ -1,173 +1,146 @@
-import 'package:ssi/src/credentials/models/vc_models.dart';
-import 'package:ssi/src/credentials/presentations/models/vc_parse_present.dart';
+import 'dart:collection';
 
+import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
-import '../../../models/holder.dart';
+import '../../../models/field_types/holder.dart';
+import '../../../models/field_types/terms_of_use.dart';
 import '../../../models/parsed_vc.dart';
 import '../../../proof/embedded_proof.dart';
-import 'vp_data_model_v2_view.dart';
+import '../vc_parse_present.dart';
+import '../verifiable_presentation.dart';
 
-/// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v2.0.
+part 'mutable_vp_data_model_v2.dart';
+
+/// Represents a Verifiable Presentation (VP) according to the W3C VC Data Model v1.1.
 ///
-/// A Verifiable Presentation in v2.0 may include credentials, cryptographic proof,
-/// and optional terms of use. It is expressed using JSON-LD with support for richer
-/// semantics and vocabulary extensions.
+/// A Verifiable Presentation is a container for one or more Verifiable Credentials (VCs),
+/// optionally including a `proof` issued by the `holder`.
+///
+/// This class supports JSON serialization and deserialization for interoperability.
 ///
 /// Example:
 /// ```dart
-/// final vp = VpDataModelV2(
-///   context: ['https://www.w3.org/ns/credentials/v2'],
+/// final vp = VpDataModelV1(
+///   context: ['https://www.w3.org/2018/credentials/v1'],
 ///   type: ['VerifiablePresentation'],
 ///   holder: 'did:example:holder',
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class MutableVpDataModelV2 implements VpDataModelV2 {
-  /// The default JSON-LD context URL for VP v2
+class VpDataModelV2 extends _VpDataModelV2 implements VerifiablePresentation {
   static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
 
   /// The JSON-LD context for this presentation.
   ///
-  /// Must include 'https://www.w3.org/ns/credentials/v2'.
+  /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
-  List<String> context;
+  final UnmodifiableListView<String> context;
 
-  /// The unique identifier for this presentation.
+  /// The optional identifier for this presentation.
   @override
-  String? id;
+  Uri? id;
 
   /// The type definitions for this presentation.
   ///
   /// Must include 'VerifiablePresentation'.
   @override
-  List<String> type;
+  final UnmodifiableSetView<String> type;
 
-  /// The identifier of the entity presenting the credentials.
+  /// The identifier of the holder presenting the credentials.
   ///
-  /// Usually a DID.
+  /// Typically a DID.
   @override
-  Holder? holder;
+  Holder holder;
 
-  /// The terms of use describing conditions for credential usage.
+  /// The list of verifiable credentials embedded in this presentation.
   @override
-  List<TermOfUse> termsOfUse;
+  final UnmodifiableListView<ParsedVerifiableCredential> verifiableCredential;
 
-  /// The verifiable credentials included in this presentation.
+  /// The cryptographic proof(s) created by the holder.
   @override
-  List<ParsedVerifiableCredential> verifiableCredential;
+  final UnmodifiableListView<EmbeddedProof> proof;
 
-  /// The cryptographic proof securing this presentation.
-  ///
-  /// Can be a DataIntegrityProof, JWT, or other proof format.
   @override
-  List<EmbeddedProof> proof;
+  final UnmodifiableListView<TermsOfUse> termsOfUse;
 
   /// Creates a [VpDataModelV2] instance.
   ///
-  /// The [context] must include the v2 credentials context.
-  /// The [type] must include 'VerifiablePresentation'.
-  /// The [holder] identifies who is presenting the credentials.
-  /// The [termsOfUse] specifies any usage conditions.
-  /// The [verifiableCredential] contains the credentials being presented.
-  /// The [proof] provides cryptographic verification.
-  MutableVpDataModelV2({
-    required this.context,
-    this.id,
-    required this.type,
-    this.holder,
-    List<TermOfUse>? termsOfUse,
-    List<ParsedVerifiableCredential>? verifiableCredential,
-    List<EmbeddedProof>? proof,
-  })  : termsOfUse = termsOfUse ?? [],
-        verifiableCredential = verifiableCredential ?? [],
-        proof = proof ?? [EmbeddedProof(type: 'Ed25519Signature2018')];
-
-  /// Converts this presentation to a JSON-serializable map.
-  @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-
-    json[_P.context.key] = context;
-    if (id != null) json[_P.id.key] = id;
-    json[_P.type.key] = type;
-    if (holder != null) {
-      json[_P.holder.key] = holder!.toJson();
-    }
-
-    if (termsOfUse.isNotEmpty) {
-      json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
-    }
-
-    if (verifiableCredential.isNotEmpty) {
-      json[_P.verifiableCredential.key] =
-          verifiableCredential.map(presentVC).toList();
-    }
-
-    json[_P.proof.key] = encodeListToSingleOrArray(proof);
-
-    return json;
-  }
+  /// The [context] is the JSON-LD context array (required).
+  /// The [type] is an array that must include 'VerifiablePresentation'.
+  /// The [holder] is an identifier for the presenter (optional).
+  /// The [verifiableCredential] is a list of embedded credentials (optional).
+  /// The [proof] is a cryptographic proof (optional).
+  VpDataModelV2._(
+      {required List<String> context,
+      this.id,
+      required Set<String> type,
+      required this.holder,
+      required List<ParsedVerifiableCredential> verifiableCredential,
+      required List<EmbeddedProof> proof,
+      List<TermsOfUse>? termsOfUse})
+      : context = UnmodifiableListView(context),
+        type = UnmodifiableSetView(type),
+        verifiableCredential = UnmodifiableListView(verifiableCredential),
+        proof = UnmodifiableListView(proof),
+        termsOfUse = UnmodifiableListView(termsOfUse ?? []);
 
   /// Creates a [VpDataModelV2] from JSON input.
   ///
-  /// Supports context normalization, handles optional fields, and accepts
-  /// both single and array formats for credentials.
-  MutableVpDataModelV2.fromJson(dynamic input)
-      : context = [],
-        type = [],
-        termsOfUse = [],
-        verifiableCredential = [],
-        proof = [] {
+  /// The [input] can be a JSON string or a [Map<String, dynamic>].
+  /// Parses both mandatory and optional fields.
+  factory VpDataModelV2.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    context = getStringList(json, _P.context.key, mandatory: true);
-    id = getString(json, _P.id.key);
-    type = getStringList(json, _P.type.key,
-        allowSingleValue: true, mandatory: true);
-
-    if (json.containsKey(_P.holder.key)) {
-      holder = Holder.fromJson(json[_P.holder.key]);
-    }
-
-    if (json.containsKey(_P.termsOfUse.key)) {
-      termsOfUse = parseListOrSingleItem<TermOfUse>(
-        json[_P.termsOfUse.key],
-        (item) => TermOfUse.fromJson(jsonToMap(item)),
+    final context = getStringList(json, _P.context.key, mandatory: true);
+    if (context.isEmpty || context.first != contextUrl) {
+      throw SsiException(
+        message:
+            'The first URI of @context property should always be $contextUrl',
+        code: SsiExceptionType.invalidJson.code,
       );
     }
 
-    final credentials = json[_P.verifiableCredential.key];
-    if (credentials != null) {
-      if (credentials is List) {
-        verifiableCredential = credentials.map(parseVC).toList();
-      } else if (credentials is Map) {
-        verifiableCredential = [parseVC(credentials)];
-      }
-    }
+    final id = getUri(json, _P.id.key);
+    final type = getStringList(
+      json,
+      _P.type.key,
+      allowSingleValue: true,
+      mandatory: true,
+    ).toSet();
 
-    if (json.containsKey(_P.proof.key)) {
-      proof = parseListOrSingleItem<EmbeddedProof>(
-        json[_P.proof.key],
-        (item) => EmbeddedProof.fromJson(jsonToMap(item)),
-      );
-    }
+    final holder = Holder.fromJson(json[_P.holder.key]);
+
+    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
+        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
+
+    final credentials = parseListOrSingleItem<ParsedVerifiableCredential>(
+        json, _P.verifiableCredential.key, parseVC,
+        allowSingleValue: true);
+
+    final termsOfUse = parseListOrSingleItem<TermsOfUse>(
+        json,
+        _P.termsOfUse.key,
+        (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
+
+    return VpDataModelV2._(
+        context: context,
+        id: id,
+        type: type,
+        proof: proof,
+        holder: holder,
+        verifiableCredential: credentials,
+        termsOfUse: termsOfUse);
   }
-}
 
-typedef _P = VpDataModelV2Key;
-
-enum VpDataModelV2Key {
-  context(key: '@context'),
-  id,
-  type,
-  holder,
-  verifiableCredential,
-  proof,
-  termsOfUse;
-
-  final String? _key;
-
-  String get key => _key ?? name;
-
-  const VpDataModelV2Key({String? key}) : _key = key;
+  VpDataModelV2.clone(VpDataModelV2 input)
+      : this._(
+            context: input.context,
+            id: input.id,
+            type: input.type,
+            holder: input.holder,
+            verifiableCredential: input.verifiableCredential,
+            proof: input.proof,
+            termsOfUse: input.termsOfUse);
 }

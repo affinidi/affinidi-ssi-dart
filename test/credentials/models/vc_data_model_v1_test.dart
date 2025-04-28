@@ -1,13 +1,13 @@
-import 'package:ssi/src/credentials/models/credential_schema.dart';
-import 'package:ssi/src/credentials/models/credential_status.dart';
-import 'package:ssi/src/credentials/models/credential_subject.dart';
-import 'package:ssi/src/credentials/models/holder.dart';
-import 'package:ssi/src/credentials/models/issuer.dart';
+import 'package:ssi/src/credentials/models/field_types/credential_status/v1.dart';
+import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
+import 'package:ssi/src/credentials/models/field_types/evidence.dart';
+import 'package:ssi/src/credentials/models/field_types/holder.dart';
+import 'package:ssi/src/credentials/models/field_types/issuer.dart';
+import 'package:ssi/src/credentials/models/field_types/refresh_service/v1.dart';
+import 'package:ssi/src/credentials/models/field_types/terms_of_use.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
-import 'package:ssi/src/credentials/models/vc_models.dart';
 import 'package:ssi/src/credentials/proof/embedded_proof.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../../fixtures/verifiable_credentials_data_fixtures.dart';
@@ -20,16 +20,16 @@ void main() {
       final raw = jsonFixture['@context'];
       final expectedContext =
           raw is List ? List<String>.from(raw) : [raw as String];
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.context, expectedContext);
     });
 
     test('should correctly assign id', () {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
-      final expectedId = jsonFixture['id'] as String;
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
-      expect(vc.id, expectedId);
+      final expectedId = Uri.parse(jsonFixture['id'] as String).toString();
+      final vc = VcDataModelV1.fromJson(jsonFixture);
+      expect(vc.id.toString(), expectedId);
     });
 
     test('should correctly assign type', () {
@@ -38,7 +38,7 @@ void main() {
       final raw = jsonFixture['type'];
       final expectedType =
           raw is List ? List<String>.from(raw) : [raw as String];
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.type, expectedType);
     });
 
@@ -46,7 +46,7 @@ void main() {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final expected = Issuer.fromJson(jsonFixture['issuer']);
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.issuer.id, expected.id);
     });
 
@@ -54,7 +54,7 @@ void main() {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final expected = DateTime.parse(jsonFixture['issuanceDate'] as String);
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.issuanceDate, expected);
       expect(vc.validFrom, expected);
     });
@@ -63,7 +63,7 @@ void main() {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final expected = DateTime.parse(jsonFixture['expirationDate'] as String);
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.expirationDate, expected);
       expect(vc.validUntil, expected);
     });
@@ -73,9 +73,9 @@ void main() {
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final expected =
           CredentialSubject.fromJson(jsonFixture['credentialSubject']);
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
-      expect(vc.credentialSubject.id, expected.id);
-      expect(vc.credentialSubject['email'], expected['email']);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
+      expect(vc.credentialSubject.first.id, expected.id);
+      expect(vc.credentialSubject.first['email'], expected['email']);
     });
 
     test('should correctly assign credentialSchema', () {
@@ -85,7 +85,7 @@ void main() {
       final expected = rawSchema is List
           ? rawSchema.map((e) => CredentialSchema.fromJson(e)).toList()
           : [];
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
       expect([0, 1], contains(vc.credentialSchema.length));
       for (var i = 0;
           i < expected.length && i < vc.credentialSchema.length;
@@ -99,9 +99,9 @@ void main() {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final rawStatus = jsonFixture['credentialStatus'];
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
       if (rawStatus != null) {
-        final expected = CredentialStatus.fromJson(rawStatus);
+        final expected = CredentialStatusV1.fromJson(rawStatus);
         expect(vc.credentialStatus?.id, expected.id);
         expect(vc.credentialStatus?.type, expected.type);
       } else {
@@ -113,7 +113,7 @@ void main() {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final expected = Holder.fromJson(jsonFixture['holder']);
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.holder?.id, expected.id);
     });
 
@@ -121,7 +121,7 @@ void main() {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final expected = EmbeddedProof.fromJson(jsonFixture['proof']);
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture);
+      final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.proof.length, 1);
       expect(vc.proof.first.type, expected.type);
       expect(vc.proof.first.verificationMethod, expected.verificationMethod);
@@ -130,35 +130,43 @@ void main() {
     test('should correctly assign refreshService', () {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture)
-        ..refreshService = RefreshService(id: 'test-refresh-service-id');
-      expect(vc.refreshService?.id, 'test-refresh-service-id');
-      expect(vc.refreshService?.type, isNull);
+      final vc = VcDataModelV1.fromJson({
+        ...jsonFixture,
+        'refreshService': RefreshServiceV1(
+                id: Uri.parse('test-refresh-service-id'), type: 't')
+            .toJson()
+      });
+      expect(vc.refreshService.first.id.toString(), 'test-refresh-service-id');
+      expect(vc.refreshService.first.type, 't');
     });
 
     test('should correctly assign termsOfUse', () {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture)
-        ..termsOfUse = [
-          TermOfUse(id: 'test-terms-of-use-id'),
-          TermOfUse(type: 'AnotherTermV1')
-        ];
+      final vc = VcDataModelV1.fromJson({
+        ...jsonFixture,
+        'termsOfUse': [
+          TermsOfUse(id: Uri.parse('test-terms-of-use-id'), type: 't').toJson(),
+          TermsOfUse(type: 'AnotherTermV1').toJson()
+        ],
+      });
       expect(vc.termsOfUse.length, 2);
-      expect(vc.termsOfUse[0].id, 'test-terms-of-use-id');
+      expect(vc.termsOfUse[0].id.toString(), 'test-terms-of-use-id');
       expect(vc.termsOfUse[1].type, 'AnotherTermV1');
     });
 
     test('should correctly assign evidence', () {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
-      final vc = MutableVcDataModelV1.fromJson(jsonFixture)
-        ..evidence = [
-          Evidence(id: 'test-evidence-id'),
-          Evidence(type: 'AnotherEvidenceV1')
-        ];
+      final vc = VcDataModelV1.fromJson({
+        ...jsonFixture,
+        'evidence': [
+          Evidence(id: Uri.parse('test-evidence-id'), type: 't').toJson(),
+          Evidence(type: 'AnotherEvidenceV1').toJson()
+        ]
+      });
       expect(vc.evidence.length, 2);
-      expect(vc.evidence[0].id, 'test-evidence-id');
+      expect(vc.evidence[0].id.toString(), 'test-evidence-id');
       expect(vc.evidence[1].type, 'AnotherEvidenceV1');
     });
 
@@ -166,26 +174,30 @@ void main() {
       test('toJson() should produce the correct map structure', () {
         final jsonFixture =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
-        final vc = MutableVcDataModelV1.fromJson(jsonFixture)
-          ..refreshService = RefreshService(id: 'test-refresh-service-id')
-          ..termsOfUse = [
-            TermOfUse(id: 'test-terms-of-use-id'),
-            TermOfUse(type: 'AnotherTermV1')
+        final vc = VcDataModelV1.fromJson({
+          ...jsonFixture,
+          'refreshService': RefreshServiceV1(
+                  id: Uri.parse('test-refresh-service-id'), type: 't')
+              .toJson(),
+          'termsOfUse': [
+            TermsOfUse(id: Uri.parse('test-terms-of-use-id'), type: 't')
+                .toJson(),
+            TermsOfUse(type: 'AnotherTermV1').toJson()
+          ],
+          'evidence': [
+            Evidence(id: Uri.parse('test-evidence-id'), type: 't').toJson(),
+            Evidence(type: 'AnotherEvidenceV1').toJson()
           ]
-          ..evidence = [
-            Evidence(id: 'test-evidence-id'),
-            Evidence(type: 'AnotherEvidenceV1')
-          ];
+        });
         final jsonMap = vc.toJson();
 
         expect(jsonMap['@context'], jsonFixture['@context']);
-        expect(jsonMap['id'], jsonFixture['id']);
+        expect(jsonMap['id'], Uri.parse(jsonFixture['id']).toString());
         expect(jsonMap['type'], jsonFixture['type']);
         if (jsonMap['issuer'] is Map && jsonFixture['issuer'] is Map) {
           expect(jsonMap['issuer'], jsonFixture['issuer']);
         } else {
-          expect(
-              jsonMap['issuer'].toString(), jsonFixture['issuer'].toString());
+          expect(jsonMap['issuer']['id'], jsonFixture['issuer'].toString());
         }
         expect(jsonMap['issuanceDate'], jsonFixture['issuanceDate']);
         expect(jsonMap['expirationDate'], jsonFixture['expirationDate']);
@@ -237,13 +249,13 @@ void main() {
         } else {
           expect(jsonMap['proof'].toString(), jsonFixture['proof'].toString());
         }
-        expect(jsonMap['refreshService'], {'id': 'test-refresh-service-id'});
+        expect(jsonMap['refreshService']['id'], 'test-refresh-service-id');
         expect(jsonMap['termsOfUse'], [
-          {'id': 'test-terms-of-use-id'},
+          {'id': 'test-terms-of-use-id', 'type': 't'},
           {'type': 'AnotherTermV1'}
         ]);
         expect(jsonMap['evidence'], [
-          {'id': 'test-evidence-id'},
+          {'id': 'test-evidence-id', 'type': 't'},
           {'type': 'AnotherEvidenceV1'}
         ]);
       });
@@ -251,17 +263,22 @@ void main() {
       test('fromJson() should correctly parse the map', () {
         final jsonFixture =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
-        final vc = MutableVcDataModelV1.fromJson(jsonFixture)
-          ..refreshService = RefreshService(id: 'test-refresh-service-id')
-          ..termsOfUse = [
-            TermOfUse(id: 'test-terms-of-use-id'),
-            TermOfUse(type: 'AnotherTermV1')
+        final vc = VcDataModelV1.fromJson({
+          ...jsonFixture,
+          'refreshService': RefreshServiceV1(
+                  id: Uri.parse('test-refresh-service-id'), type: 't')
+              .toJson(),
+          'termsOfUse': [
+            TermsOfUse(id: Uri.parse('test-terms-of-use-id'), type: 't')
+                .toJson(),
+            TermsOfUse(type: 'AnotherTermV1').toJson()
+          ],
+          'evidence': [
+            Evidence(id: Uri.parse('test-evidence-id'), type: 't').toJson(),
+            Evidence(type: 'AnotherEvidenceV1').toJson()
           ]
-          ..evidence = [
-            Evidence(id: 'test-evidence-id'),
-            Evidence(type: 'AnotherEvidenceV1')
-          ];
-        final parsed = MutableVcDataModelV1.fromJson(vc.toJson());
+        });
+        final parsed = VcDataModelV1.fromJson(vc.toJson());
 
         expect(parsed.context, vc.context);
         expect(parsed.id, vc.id);
@@ -269,13 +286,14 @@ void main() {
         expect(parsed.issuer.id, vc.issuer.id);
         expect(parsed.issuanceDate, vc.issuanceDate);
         expect(parsed.expirationDate, vc.expirationDate);
-        expect(parsed.credentialSubject.id, vc.credentialSubject.id);
+        expect(
+            parsed.credentialSubject.first.id, vc.credentialSubject.first.id);
         expect(parsed.credentialSchema.length, vc.credentialSchema.length);
         expect(parsed.credentialStatus?.id, vc.credentialStatus?.id);
         expect(parsed.holder?.id, vc.holder?.id);
         expect(parsed.proof.length, vc.proof.length);
         expect(parsed.proof.first.type, vc.proof.first.type);
-        expect(parsed.refreshService?.id, vc.refreshService?.id);
+        expect(parsed.refreshService.first.id, vc.refreshService.first.id);
         expect(parsed.termsOfUse.length, vc.termsOfUse.length);
         expect(parsed.evidence.length, vc.evidence.length);
       });
@@ -311,15 +329,15 @@ void main() {
       };
 
       try {
-        final parsed = MutableVcDataModelV1.fromJson(jsonMap);
+        final parsed = VcDataModelV1.fromJson(jsonMap);
 
         expect(parsed.context, testContext);
-        expect(parsed.id, jsonFixture['id']);
+        expect(parsed.id.toString(), Uri.parse(jsonFixture['id']).toString());
         expect(parsed.type, testType);
         expect(parsed.issuer.id, testIssuer.id);
         expect(parsed.issuanceDate, testIssuanceDate);
         expect(parsed.expirationDate, isNull);
-        expect(parsed.credentialSubject.id, testCredentialSubject.id);
+        expect(parsed.credentialSubject.first.id, testCredentialSubject.id);
         expect(parsed.credentialSchema, isEmpty);
 
         if (jsonMap['credentialStatus'] is Map) {
@@ -333,7 +351,7 @@ void main() {
           expect(parsed.holder, isNull);
         }
         expect(parsed.proof, isEmpty);
-        expect(parsed.refreshService, isNull);
+        expect(parsed.refreshService, isEmpty);
         expect(parsed.termsOfUse, isEmpty);
         expect(parsed.evidence, isEmpty);
       } catch (e) {
@@ -361,7 +379,7 @@ void main() {
           'evidence': 'not a list',
         };
         expect(
-          () => MutableVcDataModelV1.fromJson(invalid),
+          () => VcDataModelV1.fromJson(invalid),
           throwsA(isA<SsiException>().having(
             (e) => e.code,
             'code',
