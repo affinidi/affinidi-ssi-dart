@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:ssi/src/did/did_document.dart';
+import 'package:ssi/src/did/did_signer.dart';
+import 'package:ssi/src/did/did_verifier.dart';
 import 'package:ssi/src/didcomm/message/didcomm_encrypted_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_plaintext_message.dart';
@@ -7,7 +10,8 @@ import 'package:ssi/src/didcomm/message/jws_header.dart';
 import 'package:ssi/src/didcomm/signature_object.dart';
 import 'package:ssi/src/didcomm/types.dart';
 import 'package:ssi/src/didcomm/utils.dart';
-import 'package:ssi/ssi.dart';
+import 'package:ssi/src/types.dart';
+import 'package:ssi/src/wallet/wallet.dart';
 
 class DidcommSignedMessage implements JsonObject, DidcommMessage {
   late DidcommMessage payload;

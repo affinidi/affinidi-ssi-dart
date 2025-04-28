@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
-import 'package:elliptic/elliptic.dart' as elliptic;
+import 'package:elliptic/elliptic.dart' as ec;
 import 'package:elliptic/ecdh.dart' as ecdh;
-import 'package:ssi/src/key_pair/_ecdh_profile.dart';
-import 'package:ssi/ssi.dart';
 import 'package:crypto_keys/crypto_keys.dart' as ck;
 import 'package:x25519/x25519.dart' as x25519;
+
+import 'package:ssi/src/didcomm/types.dart';
+import 'package:ssi/src/didcomm/utils.dart';
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
 
 abstract class ECDH1PU implements ECDHProfile {
   final List<int> authenticationTag;
@@ -94,9 +96,9 @@ abstract class ECDH1PU implements ECDHProfile {
 }
 
 class ECDH1PU_Elliptic extends ECDH1PU implements ECDHProfile {
-  final elliptic.PublicKey public1;
-  final elliptic.PublicKey public2;
-  final elliptic.PrivateKey? private1;
+  final ec.PublicKey public1;
+  final ec.PublicKey public2;
+  final ec.PrivateKey? private1;
 
   ECDH1PU_Elliptic(
       {required super.authenticationTag,
@@ -113,8 +115,8 @@ class ECDH1PU_Elliptic extends ECDH1PU implements ECDHProfile {
       throw Exception('Private key needed for encryption data.');
     }
 
-    elliptic.PrivateKey privateKey =
-        elliptic.PrivateKey.fromBytes(public1.curve, privateKeyBytes);
+    ec.PrivateKey privateKey =
+        ec.PrivateKey.fromBytes(public1.curve, privateKeyBytes);
 
     List<int> ze = ecdh.computeSecret(private1!, public1);
     List<int> zs = ecdh.computeSecret(privateKey, public2);
@@ -123,8 +125,8 @@ class ECDH1PU_Elliptic extends ECDH1PU implements ECDHProfile {
 
   ({Uint8List ze, Uint8List zs}) getDecryptionSecrets(
       Uint8List privateKeyBytes) {
-    elliptic.PrivateKey privateKey =
-        elliptic.PrivateKey.fromBytes(public1.curve, privateKeyBytes);
+    ec.PrivateKey privateKey =
+        ec.PrivateKey.fromBytes(public1.curve, privateKeyBytes);
 
     List<int> ze = ecdh.computeSecret(privateKey, public1);
     List<int> zs = ecdh.computeSecret(privateKey, public2);

@@ -4,9 +4,9 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:dart_multihash/dart_multihash.dart';
 import 'package:elliptic/elliptic.dart' as ec;
+import 'package:ssi/src/key_pair/ed25519_key_pair.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
 import 'package:ssi/src/types.dart';
-import 'package:ssi/ssi.dart';
 import 'package:web3dart/crypto.dart';
 
 Map<String, dynamic> credentialToMap(dynamic credential) {

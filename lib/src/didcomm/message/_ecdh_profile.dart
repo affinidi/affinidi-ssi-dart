@@ -2,10 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:elliptic/elliptic.dart' as ec;
+
 import 'package:ssi/src/didcomm/message/_ecdh1pu.dart';
 import 'package:ssi/src/didcomm/types.dart';
 import 'package:ssi/src/didcomm/utils.dart';
-import 'package:ssi/ssi.dart';
+import 'package:ssi/src/key_pair/public_key.dart';
 
 class ECDHProfile {
   static ECDH1PU_Elliptic buildElliptic({
