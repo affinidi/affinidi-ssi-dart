@@ -3,7 +3,6 @@ import 'dart:convert';
 import '../../linked_data/ld_base_suite.dart';
 import '../models/parsed_vp.dart';
 import '../models/v2/vp_data_model_v2.dart';
-import '../models/v2/vp_data_model_v2_view.dart';
 import '../suites/vp_suite.dart';
 
 /// Options specific to Linked Data VPv2 operations.
@@ -21,23 +20,18 @@ final class LdVpDm2Suite
   /// Creates a new [LdVpDm2Suite] with the v2.2 context URL.
   LdVpDm2Suite()
       : super(
-            contextUrl: MutableVpDataModelV2.contextUrl,
+            contextUrl: VpDataModelV2.contextUrl,
             issuerKey: VpDataModelV2Key.holder.key);
 
   /// Parses a [String] input and payload [Map] into a [LdVpDataModelV2] instance.
   @override
   LdVpDataModelV2 fromParsed(String input, Map<String, dynamic> payload) =>
-      _LdVpDataModelV2Impl.fromParsed(input, payload);
+      LdVpDataModelV2.fromParsed(input, payload);
 }
 
-/// Interface combining [ParsedVerifiablePresentation] and [VpDataModelV2]
-/// for Linked Data Verifiable Presentations.
-abstract interface class LdVpDataModelV2
-    implements ParsedVerifiablePresentation<String>, VpDataModelV2 {}
-
 /// Implementation of [LdVpDataModelV2] backed by a parsed JSON-LD string.
-class _LdVpDataModelV2Impl extends MutableVpDataModelV2
-    implements LdVpDataModelV2 {
+class LdVpDataModelV2 extends VpDataModelV2
+    implements ParsedVerifiablePresentation<String> {
   /// The serialized JSON-LD presentation string.
   final String _serialized;
 
@@ -45,10 +39,10 @@ class _LdVpDataModelV2Impl extends MutableVpDataModelV2
   ///
   /// The input map is passed to the [MutableVpDataModelV2] constructor, and
   /// the JSON string is parsed for `toJson`.
-  _LdVpDataModelV2Impl.fromParsed(String serialized, super.input)
+  LdVpDataModelV2.fromParsed(String serialized, Map<String, dynamic> input)
       : _serialized = serialized,
         // use parsing from VcDataModelV2
-        super.fromJson();
+        super.clone(VpDataModelV2.fromJson(input));
 
   /// Returns the JSON representation of the serialized presentation.
   @override

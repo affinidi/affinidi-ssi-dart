@@ -3,10 +3,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
+import 'package:ssi/src/credentials/models/field_types/issuer.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
-import 'package:ssi/src/credentials/models/credential_subject.dart';
-import 'package:ssi/src/credentials/models/issuer.dart';
 import 'did_signer.dart';
 
 Future<void> main() async {
@@ -22,25 +22,25 @@ Future<void> main() async {
 
   // Create a sample verifiable credential
   final credential = MutableVcDataModelV2(
-    context: [MutableVcDataModelV2.contextUrl],
-    id: 'urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd',
-    issuer: Issuer(id: 'did:example:issuer'),
-    type: ['VerifiableCredential', 'UniversityDegreeCredential'],
-    validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
-    validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
-    credentialSubject: CredentialSubject(
-      id: 'did:example:subject',
-      claims: {
-        'degree': {
-          'type': 'BachelorDegree',
-          'name': 'Bachelor of Science and Arts',
-        },
-      },
-    ),
-  );
+      context: [VcDataModelV2.contextUrl],
+      id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+      issuer: Issuer.uri('did:example:issuer'),
+      type: {'VerifiableCredential', 'UniversityDegreeCredential'},
+      validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
+      validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
+      credentialSubject: [
+        MutableCredentialSubject({
+          'id': 'did:example:subject',
+          'degree': {
+            'type': 'BachelorDegree',
+            'name': 'Bachelor of Science and Arts',
+          },
+        })
+      ]);
 
   // Issue the VC
-  final issuedCredential = await suite.issue(credential, signer);
+  final credentialToSign = VcDataModelV2.fromJson(credential.toJson());
+  final issuedCredential = await suite.issue(credentialToSign, signer);
 
   // Print the serialized credential
   print('Issued VC:\n${issuedCredential.serialized}');

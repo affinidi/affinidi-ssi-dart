@@ -1,259 +1,194 @@
-import '../../../exceptions/ssi_exception.dart';
-import '../../../exceptions/ssi_exception_type.dart';
+import 'dart:collection';
+
+import '../../../../ssi.dart';
 import '../../../util/json_util.dart';
 import '../../proof/embedded_proof.dart';
-import '../credential_schema.dart';
-import '../credential_status.dart';
-import '../credential_subject.dart';
-import '../holder.dart';
-import '../issuer.dart';
-import '../vc_models.dart';
-import 'vc_data_model_v1_view.dart';
+import '../field_types/credential_status/v1.dart';
+import '../field_types/credential_subject.dart';
+import '../field_types/evidence.dart';
+import '../field_types/holder.dart';
+import '../field_types/issuer.dart';
+import '../field_types/refresh_service/v1.dart';
+import '../field_types/terms_of_use.dart';
+part 'mutable_vc_data_model_v1.dart';
 
-// TODO(FTL-20734): must match fields in the spec https://www.w3.org/TR/vc-data-model/
-class MutableVcDataModelV1 implements VcDataModelV1 {
+class VcDataModelV1 extends _VcDataModelV1 implements VerifiableCredential {
   static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
 
   @override
-  List<String> context;
+  final UnmodifiableListView<String> context; // Atleast one must
 
   @override
-  String? id;
+  final Uri? id;
 
   @override
-  List<CredentialSchema> credentialSchema;
+  final UnmodifiableSetView<String> type;
 
   @override
-  CredentialStatus? credentialStatus;
+  final Issuer issuer;
 
   @override
-  CredentialSubject credentialSubject;
+  final UnmodifiableListView<CredentialSubject> credentialSubject; // must
 
   @override
-  Issuer issuer;
+  final UnmodifiableListView<EmbeddedProof> proof; // must
 
   @override
-  List<String> type;
+  final UnmodifiableListView<CredentialSchema> credentialSchema;
 
   @override
-  DateTime? issuanceDate;
+  final DateTime issuanceDate;
 
   @override
-  DateTime? expirationDate;
+  final DateTime? expirationDate;
 
   @override
-  DateTime? get validFrom => issuanceDate;
+  DateTime get validFrom => issuanceDate;
 
   @override
   DateTime? get validUntil => expirationDate;
 
   @override
-  Holder? holder;
+  final Holder? holder;
 
   @override
-  List<EmbeddedProof> proof;
+  final CredentialStatusV1? credentialStatus;
 
   @override
-  RefreshService? refreshService;
+  final UnmodifiableListView<RefreshServiceV1> refreshService;
 
   @override
-  List<TermOfUse> termsOfUse;
+  final UnmodifiableListView<TermsOfUse> termsOfUse;
 
   @override
-  List<Evidence> evidence;
+  final UnmodifiableListView<Evidence> evidence;
 
-  MutableVcDataModelV1({
-    required this.context,
+  VcDataModelV1._({
+    required List<String> context,
     this.id,
-    List<CredentialSchema>? credentialSchema,
-    CredentialSubject? credentialSubject,
+    required List<CredentialSubject> credentialSubject,
     required this.issuer,
-    required this.type,
-    this.issuanceDate,
+    required Set<String> type,
+    required this.issuanceDate,
+    List<CredentialSchema>? credentialSchema,
     this.expirationDate,
     this.holder,
     List<EmbeddedProof>? proof,
     this.credentialStatus,
-    this.refreshService,
-    List<TermOfUse>? termsOfUse,
+    List<RefreshServiceV1>? refreshService,
+    List<TermsOfUse>? termsOfUse,
     List<Evidence>? evidence,
-  })  : credentialSchema = credentialSchema ?? [],
-        credentialSubject = credentialSubject ?? CredentialSubject(claims: {}),
-        termsOfUse = termsOfUse ?? [],
-        evidence = evidence ?? [],
-        proof = proof ?? [EmbeddedProof(type: 'Ed25519Signature2018')];
+  })  : context = UnmodifiableListView(context),
+        credentialSubject = UnmodifiableListView(credentialSubject),
+        type = UnmodifiableSetView(type),
+        proof = UnmodifiableListView(proof ?? []),
+        credentialSchema = UnmodifiableListView(credentialSchema ?? []),
+        refreshService = UnmodifiableListView(refreshService ?? []),
+        termsOfUse = UnmodifiableListView(termsOfUse ?? []),
+        evidence = UnmodifiableListView(evidence ?? []);
 
-  @override
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-
-    json[_P.context.key] = context;
-    json[_P.issuer.key] = issuer.toJson();
-    json[_P.type.key] = type;
-
-    if (id != null) {
-      json[_P.id.key] = id;
-    }
-
-    if (credentialSchema.isNotEmpty) {
-      json[_P.credentialSchema.key] =
-          encodeListToSingleOrArray(credentialSchema);
-    }
-
-    final issDate = issuanceDate;
-    if (issDate != null) {
-      json[_P.issuanceDate.key] = issDate.toIso8601String();
-    }
-
-    final expDate = expirationDate;
-    if (expDate != null) {
-      json[_P.expirationDate.key] = expDate.toIso8601String();
-    }
-
-    json[_P.credentialSubject.key] = credentialSubject.toJson();
-
-    if (holder != null) {
-      json[_P.holder.key] = holder!.toJson();
-    }
-
-    // V1 spec expects a single proof object, not an array
-    if (proof.isNotEmpty) {
-      json[_P.proof.key] = proof.first.toJson();
-    }
-
-    var credStatus = credentialStatus;
-    if (credStatus != null) {
-      json[_P.credentialStatus.key] = credStatus.toJson();
-    }
-
-    if (refreshService != null) {
-      json[_P.refreshService.key] = refreshService!.toJson();
-    }
-
-    if (termsOfUse.isNotEmpty) {
-      json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
-    }
-
-    if (evidence.isNotEmpty) {
-      json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
-    }
-
-    return json;
-  }
-
-  MutableVcDataModelV1.fromJson(dynamic input)
-      : context = [],
-        credentialSchema = [],
-        credentialSubject = CredentialSubject(claims: {}),
-        holder = null,
-        issuer = Issuer(id: ''),
-        type = [],
-        proof = [],
-        termsOfUse = [],
-        evidence = [],
-        refreshService = null {
+  factory VcDataModelV1.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    context = getStringList(json, _P.context.key, mandatory: true);
-    id = getString(json, _P.id.key);
+    final context = getStringList(json, _P.context.key, mandatory: true);
+    if (context.isEmpty || context.first != contextUrl) {
+      throw SsiException(
+        message:
+            'The first URI of @context property should always be $contextUrl',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
 
-    // Parse issuer - can be string or object
-    issuer = Issuer.fromJson(json[_P.issuer.key]);
-
-    type = getStringList(
+    final id = getUri(json, _P.id.key);
+    final type = getStringList(
       json,
       _P.type.key,
       allowSingleValue: true,
       mandatory: true,
-    );
+    ).toSet();
 
-    issuanceDate = getDateTime(json, _P.issuanceDate.key);
-    expirationDate = getDateTime(json, _P.expirationDate.key);
+    final issuer = Issuer.fromJson(json[_P.issuer.key]);
 
-    if (json.containsKey(_P.credentialSubject.key)) {
-      credentialSubject = CredentialSubject.fromJson(
-          json[_P.credentialSubject.key] as Map<String, dynamic>);
-    }
+    final credentialSubject = parseListOrSingleItem<CredentialSubject>(
+        json,
+        _P.credentialSubject.key,
+        (item) => CredentialSubject.fromJson(item as Map<String, dynamic>),
+        mandatory: true,
+        allowSingleValue: true);
 
-    switch (json[_P.credentialSchema.key]) {
-      case Map m:
-        credentialSchema = [CredentialSchema.fromJson(jsonToMap(m))];
+    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
+        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-      case List l:
-        credentialSchema = l
-            .map((e) => CredentialSchema.fromJson(jsonToMap(e)))
-            .toList(growable: true);
+    final credentialSchema = parseListOrSingleItem<CredentialSchema>(
+        json,
+        _P.credentialSchema.key,
+        (item) => CredentialSchema.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-      case null:
-        break;
+    final issuanceDate =
+        getDateTime(json, _P.issuanceDate.key, mandatory: true)!;
 
-      default:
-        throw SsiException(
-          message: 'invalid credentialSchema',
-          code: SsiExceptionType.invalidJson.code,
-        );
-    }
+    final expirationDate = getDateTime(json, _P.expirationDate.key);
 
+    Holder? holder;
     if (json.containsKey(_P.holder.key)) {
       holder = Holder.fromJson(json[_P.holder.key]);
     }
 
-    // V1 spec expects a single proof object, not an array
-    if (json.containsKey(_P.proof.key)) {
-      proof = [
-        EmbeddedProof.fromJson(json[_P.proof.key] as Map<String, dynamic>)
-      ];
-    }
-
+    CredentialStatusV1? credentialStatus;
     if (json.containsKey(_P.credentialStatus.key)) {
-      credentialStatus = CredentialStatus.fromJson(
+      credentialStatus = CredentialStatusV1.fromJson(
           json[_P.credentialStatus.key] as Map<String, dynamic>);
     }
 
-    if (json.containsKey(_P.refreshService.key)) {
-      refreshService =
-          RefreshService.fromJson(jsonToMap(json[_P.refreshService.key]));
-    }
+    final refreshService = parseListOrSingleItem<RefreshServiceV1>(
+        json,
+        _P.refreshService.key,
+        (item) => RefreshServiceV1.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-    if (json.containsKey(_P.termsOfUse.key)) {
-      termsOfUse = parseListOrSingleItem<TermOfUse>(
-        json[_P.termsOfUse.key],
-        (item) => TermOfUse.fromJson(jsonToMap(item)),
-      );
-    }
+    final termsOfUse = parseListOrSingleItem<TermsOfUse>(
+        json,
+        _P.termsOfUse.key,
+        (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-    if (json.containsKey(_P.evidence.key)) {
-      evidence = parseListOrSingleItem<Evidence>(
-        json[_P.evidence.key],
-        (item) => Evidence.fromJson(jsonToMap(item)),
-      );
-    }
+    final evidence = parseListOrSingleItem<Evidence>(json, _P.evidence.key,
+        (item) => Evidence.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
+
+    return VcDataModelV1._(
+        context: context,
+        id: id,
+        credentialSubject: credentialSubject,
+        issuer: issuer,
+        type: type,
+        issuanceDate: issuanceDate,
+        credentialSchema: credentialSchema,
+        expirationDate: expirationDate,
+        holder: holder,
+        proof: proof,
+        credentialStatus: credentialStatus,
+        refreshService: refreshService,
+        termsOfUse: termsOfUse,
+        evidence: evidence);
   }
-}
 
-/// Shortcut to make the code easier to read, p comes from property
-typedef _P = VcDataModelV1Key;
-
-enum VcDataModelV1Key {
-  context(key: '@context'),
-  proof,
-  expirationDate,
-  issuer,
-  credentialSchema,
-  credentialSubject,
-  id,
-  type,
-  issuanceDate,
-  credentialStatus,
-  holder,
-  refreshService,
-  termsOfUse,
-  evidence,
-  ;
-
-  final String? _key;
-
-  String get key => _key ?? name;
-
-  const VcDataModelV1Key({String? key}) : _key = key;
+  VcDataModelV1.clone(VcDataModelV1 input)
+      : this._(
+            context: input.context,
+            id: input.id,
+            credentialSubject: input.credentialSubject,
+            issuer: input.issuer,
+            type: input.type,
+            issuanceDate: input.issuanceDate,
+            credentialSchema: input.credentialSchema,
+            expirationDate: input.expirationDate,
+            holder: input.holder,
+            proof: input.proof,
+            credentialStatus: input.credentialStatus,
+            refreshService: input.refreshService,
+            termsOfUse: input.termsOfUse,
+            evidence: input.evidence);
 }

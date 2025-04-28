@@ -6,7 +6,7 @@ import '../exceptions/ssi_exception_type.dart';
 /// Converts [input] to a `Map<String, dynamic>`
 Map<String, dynamic> jsonToMap(dynamic input) {
   if (input is String) {
-    return jsonDecode(input);
+    return jsonDecode(input) as Map<String, dynamic>;
   } else if (input is Map<String, dynamic>) {
     return input;
   } else if (input is Map<dynamic, dynamic>) {
@@ -38,7 +38,7 @@ String? getString(Map<String, dynamic> json, String fieldName) {
       code: SsiExceptionType.invalidJson.code,
     );
   }
-  return json[fieldName];
+  return json[fieldName] as String?;
 }
 
 /// Return [fieldName] as `String`. Throws an exception if the field
@@ -50,7 +50,7 @@ String getMandatoryString(Map<String, dynamic> json, String fieldName) {
       code: SsiExceptionType.invalidJson.code,
     );
   }
-  return json[fieldName];
+  return json[fieldName] as String;
 }
 
 /// Return [fieldName] as `List<String>`
@@ -85,6 +85,12 @@ List<String> getStringList(
       return [s];
 
     case List l:
+      if (l.isEmpty) {
+        throw SsiException(
+          message: '`$fieldName` property must have at least one value',
+          code: SsiExceptionType.invalidJson.code,
+        );
+      }
       return l.map((e) => e as String).toList(growable: true);
 
     default:
@@ -114,6 +120,7 @@ DateTime? getDateTime(
   }
 
   final jsonValue = json[fieldName];
+
   switch (jsonValue) {
     case String s:
       return DateTime.parse(s);
@@ -124,6 +131,42 @@ DateTime? getDateTime(
         code: SsiExceptionType.invalidJson.code,
       );
   }
+}
+
+/// Return [fieldName] as `String`, or null. Throws an exception if the field
+/// value is not a string.
+Uri? getUri(Map<String, dynamic> json, String fieldName) {
+  if (json.containsKey(fieldName)) {
+    final value = json[fieldName];
+    switch (value) {
+      case null:
+        return null;
+      case String s:
+        return Uri.parse(s);
+      case Uri u:
+        return u;
+      default:
+        throw SsiException(
+          message: '`$fieldName` must be a string or uri',
+          code: SsiExceptionType.invalidJson.code,
+        );
+    }
+  }
+
+  return null;
+}
+
+/// Return [fieldName] as `String`. Throws an exception if the field
+/// value is not a string or the field does not exist.
+Uri getMandatoryUri(Map<String, dynamic> json, String fieldName) {
+  if (!json.containsKey(fieldName)) {
+    throw SsiException(
+      message: '`$fieldName` property is mandatory',
+      code: SsiExceptionType.invalidJson.code,
+    );
+  }
+
+  return getUri(json, fieldName)!;
 }
 
 /// Add an optional field to [json] if [fieldValue] is not null
@@ -162,24 +205,65 @@ void addList<E>(
   }
 }
 
-List<T> parseListOrSingleItem<T>(dynamic json, T Function(dynamic) parser) {
-  if (json == null) {
+List<T> parseListOrSingleItem<T>(
+  dynamic json,
+  String fieldName,
+  T Function(dynamic) parser, {
+  bool allowSingleValue = false,
+  bool mandatory = false,
+}) {
+  final jsonValue = json[fieldName];
+
+  if (jsonValue == null) {
+    if (mandatory) {
+      throw SsiException(
+        message: '`$fieldName` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
     return [];
-  } else if (json is List) {
-    return json.map((item) => parser(item)).toList();
-  } else {
-    return [parser(json)];
   }
+
+  if (jsonValue is List) {
+    if (jsonValue.isEmpty && mandatory) {
+      throw SsiException(
+        message: '`$fieldName` property should have at least one value',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    return jsonValue.map((item) => parser(item)).toList();
+  }
+
+  if (!allowSingleValue) {
+    throw SsiException(
+      message: '`$fieldName` must be a list',
+      code: SsiExceptionType.invalidJson.code,
+    );
+  }
+
+  return [parser(jsonValue)];
 }
 
 dynamic encodeListToSingleOrArray<T>(List<T> items) {
   if (items.isEmpty) {
-    return [];
+    return <T>[];
   } else if (items.length == 1) {
     return (items.first as dynamic).toJson();
   } else {
     return items.map((item) => (item as dynamic).toJson()).toList();
   }
+}
+
+Map<String, dynamic> cleanEmpty(Map<String, dynamic> input) {
+  final entries = input.entries.where((entry) => switch (entry.value) {
+        null => false,
+        List a => a.isNotEmpty,
+        _ => true
+      });
+
+  return Map.fromEntries(entries);
 }
 
 // /// Return [fieldName] as `List<String>`, or throw an exception
