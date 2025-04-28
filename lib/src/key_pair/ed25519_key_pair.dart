@@ -211,10 +211,9 @@ class Ed25519KeyPair implements KeyPair {
       pubKeyToUse = publicKey;
     }
 
-    // if (ecdhProfile != null) {
-    //   return ecdhProfile.decryptData(
-    //       privateKey: await privateKey, data: ivAndBytes);
-    // }
+    if (ecdhProfile != null) {
+      return ecdhProfile.decryptData(privateKey: pubKeyToUse, data: ivAndBytes);
+    }
 
     final sharedSecret = await computeEcdhSecret(pubKeyToUse);
 

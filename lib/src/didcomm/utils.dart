@@ -3,24 +3,11 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:dart_multihash/dart_multihash.dart';
-import 'package:elliptic/elliptic.dart' as elliptic;
+import 'package:elliptic/elliptic.dart' as ec;
 import 'package:ssi/src/key_pair/public_key.dart';
 import 'package:ssi/src/types.dart';
+import 'package:ssi/ssi.dart';
 import 'package:web3dart/crypto.dart';
-
-String addPaddingToBase64(String base64Input) {
-  while (base64Input.length % 4 != 0) {
-    base64Input += '=';
-  }
-  return base64Input;
-}
-
-String removePaddingFromBase64(String base64Input) {
-  while (base64Input.endsWith('=')) {
-    base64Input = base64Input.substring(0, base64Input.length - 1);
-  }
-  return base64Input;
-}
 
 Map<String, dynamic> credentialToMap(dynamic credential) {
   if (credential is String) {
@@ -64,89 +51,85 @@ String getCurveByPublicKey(PublicKey publickey) {
   throw Exception('curve for public key not implemented');
 }
 
-elliptic.Curve getEllipticCurveByPublicKey(PublicKey publickey) {
+ec.Curve getEllipticCurveByPublicKey(PublicKey publickey) {
   if (publickey.type == KeyType.p256) {
-    return elliptic.getP256();
+    return ec.getP256();
   } else if (publickey.type == KeyType.secp256k1) {
-    return elliptic.getSecp256k1();
+    return ec.getSecp256k1();
   }
   throw Exception('curve for public key not implemented');
 }
 
-elliptic.Curve getCurveByJwk(publicKeyJwk) {
+ec.Curve getCurveByJwk(publicKeyJwk) {
   if (publicKeyJwk['crv'] == 'P-256') {
-    return elliptic.getP256();
+    return ec.getP256();
   } else if (publicKeyJwk['crv'] == 'P-384') {
-    return elliptic.getP384();
+    return ec.getP384();
   } else if (publicKeyJwk['crv'] == 'P-521') {
-    return elliptic.getP521();
+    return ec.getP521();
   } else if (publicKeyJwk['crv'] == 'secp256k1') {
-    return elliptic.getSecp256k1();
+    return ec.getSecp256k1();
   } else {
     throw UnimplementedError("Curve `${publicKeyJwk['crv']}` not supported");
   }
 }
 
-elliptic.PublicKey publicKeyFromPoint({
-  required elliptic.Curve curve,
+ec.PublicKey publicKeyFromPoint({
+  required ec.Curve curve,
   required String x,
   required String y,
 }) {
-  return elliptic.PublicKey.fromPoint(
+  return ec.PublicKey.fromPoint(
       curve,
-      elliptic.AffinePoint.fromXY(
-          bytesToUnsignedInt(base64Decode(addPaddingToBase64(x))),
-          bytesToUnsignedInt(base64Decode(addPaddingToBase64(y)))));
+      ec.AffinePoint.fromXY(bytesToUnsignedInt(decodeBase64(x)),
+          bytesToUnsignedInt(decodeBase64(y))));
 }
 
-elliptic.PrivateKey getPrivateKeyFromBytes(
+ec.PrivateKey getPrivateKeyFromBytes(
   Uint8List bytes, {
   required KeyType keyType,
 }) {
   if (keyType == KeyType.p256) {
-    return elliptic.PrivateKey.fromBytes(elliptic.getP256(), bytes);
+    return ec.PrivateKey.fromBytes(ec.getP256(), bytes);
   }
 
   if (keyType == KeyType.secp256k1) {
-    return elliptic.PrivateKey.fromBytes(elliptic.getSecp256k1(), bytes);
+    return ec.PrivateKey.fromBytes(ec.getSecp256k1(), bytes);
   }
 
   throw Exception('Can\'t convert bytes for key type ${keyType.name}');
 }
 
-elliptic.PrivateKey getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
+ec.PrivateKey getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
   var crv = privateKeyJwk['crv'];
 
-  elliptic.Curve? c;
+  ec.Curve? c;
   dynamic receiverPrivate, epkPublic;
 
   if (crv.startsWith('P') || crv.startsWith('secp256k1')) {
     if (crv == 'P-256') {
-      c = elliptic.getP256();
+      c = ec.getP256();
     } else if (crv == 'P-384') {
-      c = elliptic.getP384();
+      c = ec.getP384();
     } else if (crv == 'P-521') {
-      c = elliptic.getP521();
+      c = ec.getP521();
     } else if (crv == 'secp256k1') {
-      c = elliptic.getSecp256k1();
+      c = ec.getSecp256k1();
     } else {
       throw UnimplementedError("Curve `$crv` not supported");
     }
 
-    receiverPrivate = elliptic.PrivateKey(
+    receiverPrivate = ec.PrivateKey(
         c,
         bytesToUnsignedInt(
             base64Decode(addPaddingToBase64(privateKeyJwk['d']))));
-    epkPublic = elliptic.PublicKey.fromPoint(
+    epkPublic = ec.PublicKey.fromPoint(
         c,
-        elliptic.AffinePoint.fromXY(
-            bytesToUnsignedInt(
-                base64Decode(addPaddingToBase64(epkHeader!['x']))),
-            bytesToUnsignedInt(
-                base64Decode(addPaddingToBase64(epkHeader!['y'])))));
+        ec.AffinePoint.fromXY(bytesToUnsignedInt(decodeBase64(epkHeader['x'])),
+            bytesToUnsignedInt(decodeBase64(epkHeader['y']))));
   } else if (crv.startsWith('X')) {
-    receiverPrivate = base64Decode(addPaddingToBase64(privateKeyJwk['d']));
-    epkPublic = base64Decode(addPaddingToBase64(epkHeader!['x']));
+    receiverPrivate = decodeBase64(privateKeyJwk['d']);
+    epkPublic = decodeBase64(epkHeader['x']);
   } else {
     throw UnimplementedError("Curve `$crv` not supported");
   }
@@ -154,203 +137,66 @@ elliptic.PrivateKey getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
   return receiverPrivate;
 }
 
+({Uint8List privateKeyBytes, Uint8List? publicKeyBytes}) getEphemeralPrivateKey(
+  PublicKey publicKey,
+) {
+  if (publicKey.type == KeyType.p256) {
+    return (
+      privateKeyBytes:
+          Uint8List.fromList(ec.getP256().generatePrivateKey().bytes),
+      publicKeyBytes: null
+    );
+  }
+
+  if (publicKey.type == KeyType.secp256k1) {
+    return (
+      privateKeyBytes:
+          Uint8List.fromList(ec.getSecp256k1().generatePrivateKey().bytes),
+      publicKeyBytes: null
+    );
+  }
+
+  if (publicKey.type == KeyType.ed25519) {
+    final (keyPair, privateKeyBytes) = Ed25519KeyPair.generate();
+    return (
+      privateKeyBytes: privateKeyBytes,
+      publicKeyBytes: keyPair.publicKey.bytes
+    );
+  }
+
+  throw Exception('Key type not supported');
+}
+
 bool isSecp256OrPCurve(String crv) {
   return crv.startsWith('P') || crv.startsWith('secp256k');
 }
 
-/// Signs the given String (normal or Json-Object) or Json-Object (Dart Map<String, dynamic>) [toSign] with key-pair of [didToSignWith].
-///
-/// Returned signature is formatted as jws. If a detached jws (header..signature) should be returned [detached] must be set to true.
-/// If no custom [jwsHeader] is given, the default one is
-/// ```
-/// {
-///   "alg" : "ES256K-R",
-///   "b64" : false,
-///   "crit" : ["b64"]
-/// }
-/// ```
-/// if did is of type did:ethr or
-/// ```
-/// {
-///   "alg" : "EdDSA",
-///   "crv" : "Ed25519"
-/// }
-/// ```
-/// if did is of type did:key with appropriate key-Material
-/// If a custom one should be used, it has to be given in its json representation (dart String or Map) and the value of alg has to be ES256K-R or EdDSA with curve Ed25519,
-/// because for now this is the only supported signature algorithm.
-// Future<String> signStringOrJson(
-//     {WalletStore? wallet,
-//     String? didToSignWith,
-//     Map<String, dynamic>? jwk,
-//     required dynamic toSign,
-//     Signer? signer,
-//     bool detached = false,
-//     dynamic jwsHeader}) async {
-//   signer ??= jwk != null
-//       ? _determineSignerForJwk(jwk, null)
-//       : jwsHeader != null
-//           ? _determineSignerForJwsHeader(jwsHeader, loadDocument)
-//           : _determineSignerForDid(didToSignWith!, null);
-//   return signer.sign(
-//       data: toSign,
-//       wallet: wallet,
-//       did: didToSignWith,
-//       jwk: jwk,
-//       detached: detached,
-//       jwsHeader: jwsHeader);
-// }
+bool isEdwardCurve(String crv) {
+  return crv.startsWith('X');
+}
 
-/// Verifies the signature in [jws].
-///
-/// If a detached jws is given the signed string must be given separately as [toSign].
-/// [toSign] could be a String or a json-object (Dart Map).
-// Future<bool> verifyStringSignature(String jws,
-//     {String? expectedDid,
-//     Map<String, dynamic>? jwk,
-//     dynamic toSign,
-//     Erc1056? erc1056}) async {
-//   var signer = _determineSignerForJwsHeader(jws.split('.').first, null);
-//   if (expectedDid != null &&
-//       expectedDid.startsWith('did:ethr') &&
-//       erc1056 != null) {
-//     expectedDid = await erc1056.identityOwner(expectedDid);
-//   }
+String decodeBase64ToString(String data) {
+  return utf8.decode(decodeBase64(data));
+}
 
-//   return signer.verify(jws, did: expectedDid, jwk: jwk, data: toSign);
-// }
+String encodeBase64(Uint8List data) {
+  return removePaddingFromBase64(base64UrlEncode(data));
+}
 
-// Signer _determineSignerForJwsHeader(dynamic jwsHeader,
-//     Function(Uri url, LoadDocumentOptions? options)? loadDocumentFunction) {
-//   var header = jwsHeader is Map
-//       ? jwsHeader
-//       : jsonDecode(utf8.decode(base64Decode(addPaddingToBase64(jwsHeader))));
-//   var alg = header['alg'];
-//   if (alg == 'EdDSA') {
-//     return EdDsaSigner(loadDocumentFunction);
-//   } else if (alg == 'ES256K-R') {
-//     return EcdsaRecoverySignature(loadDocumentFunction);
-//   } else if (alg == 'ES256') {
-//     return Es256Signer();
-//   } else if (alg == 'ES256K') {
-//     return Es256k1Signer();
-//   } else {
-//     throw Exception('could not examine signature type');
-//   }
-// }
+Uint8List decodeBase64(String data) {
+  return base64Decode(addPaddingToBase64(data));
+}
 
-// List<int> ecdhES(dynamic privateKey, dynamic publicKey, String alg, String enc,
-//     {String? apu, String? apv}) {
-//   List<int> z;
-//   if (privateKey is elliptic.PrivateKey && publicKey is elliptic.PublicKey) {
-//     z = ecdh.computeSecret(privateKey, publicKey);
-//   } else if (privateKey is List<int> && publicKey is List<int>) {
-//     z = x25519.X25519(privateKey, publicKey);
-//   } else if (publicKey is Map && privateKey is Map) {
-//     // keys given as jwks
-//     var crv = privateKey['crv'];
-//     if (crv != publicKey['crv']) {
-//       throw Exception('curves do not match ($crv != ${publicKey['crv']}');
-//     }
-//     elliptic.Curve? c;
+String addPaddingToBase64(String base64Input) {
+  while (base64Input.length % 4 != 0) {
+    base64Input += '=';
+  }
+  return base64Input;
+}
 
-//     if (crv.startsWith('P') || crv.startsWith('secp256k1')) {
-//       if (crv == 'P-256') {
-//         c = elliptic.getP256();
-//       } else if (crv == 'P-384') {
-//         c = elliptic.getP384();
-//       } else if (crv == 'P-521') {
-//         c = elliptic.getP521();
-//       } else if (crv == 'secp256k1') {
-//         c = elliptic.getSecp256k1();
-//       } else {
-//         throw UnimplementedError("Curve `$crv` not supported");
-//       }
-
-//       var castedPrivate = elliptic.PrivateKey(
-//           c,
-//           bytesToUnsignedInt(
-//               base64Decode(addPaddingToBase64(privateKey['d']))));
-//       var castedPublic = elliptic.PublicKey.fromPoint(
-//           c,
-//           elliptic.AffinePoint.fromXY(
-//               bytesToUnsignedInt(
-//                   base64Decode(addPaddingToBase64(publicKey['x']))),
-//               bytesToUnsignedInt(
-//                   base64Decode(addPaddingToBase64(publicKey['y'])))));
-//       z = ecdh.computeSecret(castedPrivate, castedPublic);
-//     } else if (crv.startsWith('X')) {
-//       var castedPrivate = base64Decode(addPaddingToBase64(privateKey['d']));
-//       var castedPublic = base64Decode(addPaddingToBase64(publicKey['x']));
-//       z = x25519.X25519(castedPrivate, castedPublic);
-//     } else {
-//       throw UnimplementedError("Curve `$crv` not supported");
-//     }
-//   } else {
-//     throw Exception('Unknown key-Type');
-//   }
-
-//   var keyDataLen = 128;
-//   Uint8List encAscii;
-//   if (alg == 'ECDH-ES') {
-//     encAscii = ascii.encode(enc);
-//     if (enc.contains('128')) {
-//       keyDataLen = 128;
-//     }
-//     if (enc.contains('192')) {
-//       keyDataLen = 192;
-//     }
-//     if (enc.contains('256')) {
-//       keyDataLen = 256;
-//     }
-//   } else {
-//     // with KeyWrap
-//     encAscii = ascii.encode(alg);
-//     if (alg.contains('128')) {
-//       keyDataLen = 128;
-//     }
-//     if (alg.contains('192')) {
-//       keyDataLen = 192;
-//     }
-//     if (alg.contains('256')) {
-//       keyDataLen = 256;
-//     }
-//   }
-//   print('enc: $enc, alg: $alg, len: $keyDataLen');
-//   var suppPubInfo = _int32BigEndianBytes(keyDataLen);
-
-//   var encLength = _int32BigEndianBytes(encAscii.length);
-
-//   List<int> partyU, partyULength;
-//   if (apu != null) {
-//     partyU = base64Decode(addPaddingToBase64(apu));
-//     partyULength = _int32BigEndianBytes(partyU.length);
-//   } else {
-//     partyU = [];
-//     partyULength = _int32BigEndianBytes(0);
-//   }
-
-//   List<int> partyV, partyVLength;
-//   if (apv != null) {
-//     partyV = base64Decode(addPaddingToBase64(apv));
-//     partyVLength = _int32BigEndianBytes(partyV.length);
-//   } else {
-//     partyV = [];
-//     partyVLength = _int32BigEndianBytes(0);
-//   }
-
-//   var otherInfo = encLength +
-//       encAscii +
-//       partyULength +
-//       partyU +
-//       partyVLength +
-//       partyV +
-//       suppPubInfo;
-
-//   var kdfIn = [0, 0, 0, 1] + z + otherInfo;
-//   var digest = sha256.convert(kdfIn);
-//   return digest.bytes.sublist(0, keyDataLen ~/ 8);
-// }
-
-Uint8List _int32BigEndianBytes(int value) =>
-    Uint8List(4)..buffer.asByteData().setInt32(0, value, Endian.big);
+String removePaddingFromBase64(String base64Input) {
+  while (base64Input.endsWith('=')) {
+    base64Input = base64Input.substring(0, base64Input.length - 1);
+  }
+  return base64Input;
+}

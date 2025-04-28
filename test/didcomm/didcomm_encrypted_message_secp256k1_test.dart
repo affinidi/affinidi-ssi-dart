@@ -125,5 +125,30 @@ void main() {
               wallet: eveWallet, keyId: evePublicKey.id),
           throwsException);
     });
+
+    // test('decrypt with jwk', () async {
+    //   List<Map<String, String>> bobKeyAgreements = bobDidDoc
+    //       .resolveKeyIds()
+    //       .keyAgreement
+    //       .map((ka) => (ka as VerificationMethod).asJwk().toJson())
+    //       .toList();
+
+    //   final meetingplace =
+    //       await UniversalDIDResolver.resolve('did:web:meetingplace.world');
+
+    //   List<Map<String, String>> meetingPlaceAgreements = meetingplace
+    //       .resolveKeyIds()
+    //       .keyAgreement
+    //       .map((ka) => (ka as VerificationMethod).asJwk().toJson())
+    //       .toList();
+
+    //   final encryptedFromPlaintext = await message.encrypt(
+    //       wallet: aliceWallet,
+    //       keyId: aliceKeyPair.id,
+    //       recipientPublicKeyJwks: meetingPlaceAgreements);
+
+    //   print(await encryptedFromPlaintext.decryptWithPrivateJwk(
+    //       privateKeyJwk, 'did:web:meetingplace.world'));
+    // });
   });
 }

@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:ssi/src/didcomm/didcomm_encrypted_message.dart';
-import 'package:ssi/src/didcomm/didcomm_message.dart';
-import 'package:ssi/src/didcomm/didcomm_plaintext_message.dart';
-import 'package:ssi/src/didcomm/jws_header.dart';
+import 'package:ssi/src/didcomm/message/didcomm_encrypted_message.dart';
+import 'package:ssi/src/didcomm/message/didcomm_message.dart';
+import 'package:ssi/src/didcomm/message/didcomm_plaintext_message.dart';
+import 'package:ssi/src/didcomm/message/jws_header.dart';
 import 'package:ssi/src/didcomm/signature_object.dart';
 import 'package:ssi/src/didcomm/types.dart';
 import 'package:ssi/src/didcomm/utils.dart';
@@ -102,7 +102,6 @@ class DidcommSignedMessage implements JsonObject, DidcommMessage {
         alg: signer.signatureScheme.alg!,
         crv: signer.signatureScheme.crv!);
 
-    // TODO: improve this one here
     String data = _base64Payload != null
         ? utf8.decode(base64Decode(_base64Payload!))
         : jsonEncode(payload.toJson());
