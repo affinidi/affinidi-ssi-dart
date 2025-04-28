@@ -363,15 +363,12 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         epk: protectedHeader.epk,
       );
     } else if (publicKeyJwk['crv'].startsWith('X')) {
-      // elliptic.PublicKey? senderPublicKey =
-      //     protectedHeader.isAuthCrypt() ? await _findSender() : null;
       Uint8List senderPublicKey = base64Decode(protectedHeader.epk['x']);
-
       Uint8List epkPublic = base64Decode(protectedHeader.epk['x']);
 
       ecdh1pu = ECDH1PU_X25519(
         public1: epkPublic,
-        public2: senderPublicKey!,
+        public2: senderPublicKey,
         private1: privateKey.bytes,
         authenticationTag: tag,
         keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,

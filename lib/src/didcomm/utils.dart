@@ -119,10 +119,8 @@ ec.PrivateKey getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
       throw UnimplementedError("Curve `$crv` not supported");
     }
 
-    receiverPrivate = ec.PrivateKey(
-        c,
-        bytesToUnsignedInt(
-            base64Decode(addPaddingToBase64(privateKeyJwk['d']))));
+    receiverPrivate =
+        ec.PrivateKey(c, bytesToUnsignedInt(decodeBase64(privateKeyJwk['d'])));
     epkPublic = ec.PublicKey.fromPoint(
         c,
         ec.AffinePoint.fromXY(bytesToUnsignedInt(decodeBase64(epkHeader['x'])),

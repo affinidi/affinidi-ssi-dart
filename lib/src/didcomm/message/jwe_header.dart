@@ -74,7 +74,7 @@ class JweHeader implements JsonObject {
     return JweHeader(
         skid: jsonData['skid'] ??
             jsonData['apu'] ??
-            utf8.decode(base64Decode(addPaddingToBase64(jsonData['apu']))),
+            decodeBase64ToString(jsonData['apu']),
         apv: jsonData['apv'],
         enc: jsonData['enc'],
         alg: jsonData['alg'],
@@ -95,7 +95,7 @@ class JweHeader implements JsonObject {
     String keyId,
   ) {
     return keyWrapAlgorithm == KeyWrapAlgorithm.ecdh1PU
-        ? removePaddingFromBase64(base64UrlEncode(utf8.encode(keyId)))
+        ? encodeBase64(utf8.encode(keyId))
         : null;
   }
 
@@ -155,13 +155,13 @@ class JweHeader implements JsonObject {
   }
 
   static ({String X, String Y}) _getPublicKeyPoint(ec.PublicKey publicKey) {
-    String X = removePaddingFromBase64(base64UrlEncode(publicKey.X < BigInt.zero
+    String X = encodeBase64(publicKey.X < BigInt.zero
         ? c.intToBytes(publicKey.X)
-        : c.unsignedIntToBytes(publicKey.X)));
+        : c.unsignedIntToBytes(publicKey.X));
 
-    String Y = removePaddingFromBase64(base64UrlEncode(publicKey.Y < BigInt.zero
+    String Y = encodeBase64(publicKey.Y < BigInt.zero
         ? c.intToBytes(publicKey.Y)
-        : c.unsignedIntToBytes(publicKey.Y)));
+        : c.unsignedIntToBytes(publicKey.Y));
 
     return (X: X, Y: Y);
   }
