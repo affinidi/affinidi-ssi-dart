@@ -145,7 +145,8 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
 
   VerificationResult _verifyProofProperties(dynamic proof) {
     final expires = proof['expires'];
-    if (expires != null && getNow().isAfter(DateTime.parse(expires))) {
+    if (expires != null &&
+        getNow().isAfter(DateTime.parse(expires as String))) {
       return VerificationResult.invalid(errors: ['proof is no longer valid']);
     }
 
@@ -160,7 +161,9 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
             : true;
       } else if (proofDomain is List) {
         isDomainValid = proofDomain.every((d) =>
-            d.trim().isNotEmpty && domain != null ? domain!.contains(d) : true);
+            (d.trim() as String).isNotEmpty && domain != null
+                ? domain!.contains(d)
+                : true);
       }
 
       if (!isDomainValid) {

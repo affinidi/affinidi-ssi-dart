@@ -32,16 +32,16 @@ class VpDomainChallengeVerifier implements VpVerifier {
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {
     if (data.proof.isEmpty) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof'],
-      );
+      // proof is not present then return success
+      return VerificationResult.ok();
     }
+
     for (final proof in data.proof) {
       final proofDomain = proof.domain;
       final proofChallenge = proof.challenge;
 
       if (proofDomain != null) {
-        bool isDomainValid = proofDomain.every((d) =>
+        var isDomainValid = proofDomain.every((d) =>
             d.trim().isNotEmpty && domain != null ? domain!.contains(d) : true);
 
         if (!isDomainValid) {

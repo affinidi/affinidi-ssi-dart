@@ -173,6 +173,19 @@ final class SdJwtDm2Suite
     return isVerified!;
   }
 
+  /// Verify expiry of sdjwt payload
+  @override
+  Future<bool> verifyProofExpiry(SdJwtDataModelV2 input,
+      {DateTime Function() getNow = DateTime.now}) async {
+    var now = getNow();
+    final exp = input.sdJwt.payload['exp'];
+    if (exp != null && now.isAfter(DateTime.parse(exp as String))) {
+      return false;
+    }
+
+    return true;
+  }
+
   /// Creates a default disclosure frame if none is provided.
   ///
   /// [payload] - The credential payload.

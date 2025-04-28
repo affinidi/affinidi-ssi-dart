@@ -25,5 +25,9 @@ abstract interface class VerifiableCredentialSuite<
   /// `nonce` must be separately validated
   Future<bool> verifyIntegrity(ParsedVC input);
 
+  /// Verifies the time validity of the integrity proof of the [input] credential.
+  Future<bool> verifyProofExpiry(ParsedVC input,
+      {DateTime Function() getNow = DateTime.now});
+
   dynamic present(ParsedVC input);
 }

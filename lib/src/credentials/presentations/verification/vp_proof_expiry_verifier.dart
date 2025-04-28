@@ -1,6 +1,9 @@
 import 'package:ssi/src/types.dart';
 
+import '../../../../ssi.dart';
+import '../../verification/vc_proof_expiry_verifier.dart';
 import '../models/parsed_vp.dart';
+import '../suites/vp_suites.dart';
 import 'vp_verifier.dart';
 
 /// A verifier that checks expiry of the proof if it present
@@ -26,19 +29,35 @@ class VpProofExpiryVerifier implements VpVerifier {
 
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {
-    if (data.proof.isEmpty) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof'],
+    final vpSuite = VpSuites.getVpSuite(data);
+
+    var proofExpiryValid = false;
+
+    try {
+      proofExpiryValid = await vpSuite.verifyProofExpiry(data, getNow: _getNow);
+    } catch (e) {
+      proofExpiryValid = false;
+    }
+
+    if (!proofExpiryValid) {
+      return Future.value(
+        VerificationResult.invalid(
+          errors: [SsiExceptionType.failedIntegrityVerification.code],
+        ),
       );
     }
-    var now = _getNow();
-    for (final proof in data.proof) {
-      final expires = proof.expires;
-      if (expires != null && now.isAfter(expires)) {
-        return VerificationResult.invalid(errors: ['proof is no longer valid']);
+
+    for (final credential in data.verifiableCredential) {
+      var vcProofExpiry =
+          await VcProofExpiryVerifier(getNow: _getNow).verify(credential);
+
+      if (!vcProofExpiry.isValid) {
+        return vcProofExpiry;
       }
     }
 
-    return VerificationResult.ok();
+    return Future.value(
+      VerificationResult.ok(),
+    );
   }
 }

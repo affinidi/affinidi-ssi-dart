@@ -94,6 +94,15 @@ final class EnvelopedVcDm2Suite
   }
 
   @override
+  Future<bool> verifyProofExpiry(ParsedVerifiableCredential<String> input,
+      {DateTime Function() getNow = DateTime.now}) {
+    throw SsiException(
+      message: 'Call verification on ${VcSuites.getVcSuite(input).runtimeType}',
+      code: SsiExceptionType.unsupportedEnvelopeVCOperation.code,
+    );
+  }
+
+  @override
   Map<String, dynamic> present(ParsedVerifiableCredential<String> input) {
     final suite = VcSuites.getVcSuite(input);
     final mediaTypeEntry = mediaTypeSuites.entries

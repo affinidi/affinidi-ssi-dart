@@ -1,6 +1,5 @@
 import '../../../types.dart';
 import '../models/parsed_vp.dart';
-import '../verification/vp_domain_challenge_verifier.dart';
 import '../verification/vp_expiry_verifier.dart';
 import '../verification/vp_integrity_verifier.dart';
 import '../verification/vp_proof_expiry_verifier.dart';
@@ -30,7 +29,6 @@ final class UniversalPresentationVerifier {
     <VpVerifier>[
       VpExpiryVerifier(),
       VpIntegrityVerifier(),
-      VpDomainChallengeVerifier(),
       VpProofExpiryVerifier()
     ],
   );

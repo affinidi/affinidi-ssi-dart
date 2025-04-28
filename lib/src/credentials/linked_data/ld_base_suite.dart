@@ -94,6 +94,20 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     return verificationResult.isValid;
   }
 
+  Future<bool> verifyProofExpiry(Model input,
+      {DateTime Function() getNow = DateTime.now}) async {
+    var now = getNow();
+
+    for (final proof in input.proof) {
+      final expires = proof.expires;
+      if (expires != null && now.isAfter(expires)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   Map<String, dynamic> present(Model input) {
     return input.toJson();
   }
