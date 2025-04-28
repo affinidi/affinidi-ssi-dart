@@ -1,17 +1,17 @@
 import 'dart:convert';
 
 import 'package:ssi/src/didcomm/attachment/attachment.dart';
-import 'package:ssi/src/didcomm/didcomm_encrypted_message.dart';
+import 'package:ssi/src/didcomm/message/didcomm_encrypted_message.dart';
 import 'package:ssi/src/didcomm/didcomm_jwt.dart';
-import 'package:ssi/src/didcomm/didcomm_signed_message.dart';
+import 'package:ssi/src/didcomm/message/didcomm_signed_message.dart';
 import 'package:ssi/src/didcomm/utils.dart';
 import 'package:ssi/src/didcomm/web_redirect.dart';
 import 'package:ssi/src/wallet/wallet.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../types.dart';
 import '../types.dart';
-import 'types.dart';
 import 'didcomm_message.dart';
 
 class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
