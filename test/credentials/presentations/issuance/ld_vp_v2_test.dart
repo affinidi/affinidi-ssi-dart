@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/holder.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
@@ -25,26 +26,28 @@ void main() async {
     test('should be able to create a presentation containing V2 compatible VCs',
         () async {
       final v2Vp = MutableVpDataModelV2(
-          context: [MutableVpDataModelV2.contextUrl],
-          id: 'testVpV2',
-          type: ['VerifiablePresentation'],
+          context: [VpDataModelV2.contextUrl],
+          id: Uri.parse('testVpV2'),
+          type: {'VerifiablePresentation'},
+          holder: Holder.uri(signer.did),
           verifiableCredential: [ldV1VC, ldV2VC, sdjwtV2VC]);
 
       final proofGenerator = Secp256k1Signature2019Generator(
         signer: signer,
       );
-      var issuedCredential = await LdVpDm2Suite().issue(
-          unsignedData: v2Vp,
+      final issuedPresentation = await LdVpDm2Suite()
+          .issue(
+          unsignedData: VpDataModelV2.fromJson(v2Vp.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
-      expect(issuedCredential, isNotNull);
-      expect(issuedCredential.serialized, isNotNull);
-      expect(issuedCredential.serialized, isA<String>());
-      expect(issuedCredential.holder, isNotNull);
-      expect(issuedCredential.context.first, isNotEmpty);
-      expect(MutableVpDataModelV2.contextUrl, isIn(issuedCredential.context));
-      expect(issuedCredential.proof, isNotEmpty);
+      expect(issuedPresentation, isNotNull);
+      expect(issuedPresentation.serialized, isNotNull);
+      expect(issuedPresentation.serialized, isA<String>());
+      expect(issuedPresentation.holder, isNotNull);
+      expect(issuedPresentation.context.first, isNotEmpty);
+      expect(VpDataModelV2.contextUrl, isIn(issuedPresentation.context));
+      expect(issuedPresentation.proof, isNotEmpty);
     });
 
     // TODO: Add failure tests once validations are added to issuance.

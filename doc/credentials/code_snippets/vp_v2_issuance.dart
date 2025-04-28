@@ -28,9 +28,9 @@ Future<void> main() async {
 
   // Create a Verifiable Presentation (V2)
   final v2Vp = MutableVpDataModelV2(
-      context: [MutableVpDataModelV2.contextUrl],
-      id: 'testVpV2',
-      type: ['VerifiablePresentation'],
+      context: [VpDataModelV2.contextUrl],
+      id: Uri.parse('testVpV2'),
+      type: {'VerifiablePresentation'},
       verifiableCredential: [ldV1VC, ldV2VC, sdjwtV2VC]);
 
   // create a proof Generator
@@ -39,8 +39,9 @@ Future<void> main() async {
   );
 
   // Issue the VP using the V2 suite
+  final vpToSign = VpDataModelV2.fromJson(v2Vp.toJson());
   final issuedVp = await LdVpDm2Suite().issue(
-      unsignedData: v2Vp, issuer: signer.did, proofGenerator: proofGenerator);
+      unsignedData: vpToSign, issuer: signer.did, proofGenerator: proofGenerator);
 
   // Output result
   print('Serialized VP:\n${issuedVp.serialized}');

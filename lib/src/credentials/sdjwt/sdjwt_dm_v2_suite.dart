@@ -8,7 +8,6 @@ import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
-import '../models/v2/vc_data_model_v2_view.dart';
 import '../parsers/sdjwt_parser.dart';
 import '../suites/vc_suite.dart';
 import 'enveloped_vc_suite.dart';
@@ -57,8 +56,8 @@ final class SdJwtDm2Suite
     with
         SdJwtParser
     implements
-        VerifiableCredentialSuite<String, MutableVcDataModelV2,
-            SdJwtDataModelV2, SdJwtDm2Options> {
+        VerifiableCredentialSuite<String, VcDataModelV2, SdJwtDataModelV2,
+            SdJwtDm2Options> {
   /// Checks if the SD-JWT payload represents a valid VC Data Model v2 structure.
   ///
   /// [data] - The SD-JWT structure to validate.
@@ -68,8 +67,7 @@ final class SdJwtDm2Suite
   @override
   bool hasValidPayload(SdJwt data) {
     final context = data.payload[VcDataModelV2Key.context.key];
-    return (context is List) &&
-        context.contains(MutableVcDataModelV2.contextUrl);
+    return (context is List) && context.contains(VcDataModelV2.contextUrl);
   }
 
   /// Determines if the provided input can be parsed by this suite.
@@ -99,7 +97,7 @@ final class SdJwtDm2Suite
       );
     }
 
-    return _SdJwtDataModelV2.fromSdJwt(decode(input));
+    return SdJwtDataModelV2.fromSdJwt(decode(input));
   }
 
   @override
@@ -116,13 +114,10 @@ final class SdJwtDm2Suite
   ///
   /// Throws [SsiException] if the credential is invalid or if signing fails.
   Future<SdJwtDataModelV2> issue(
-    MutableVcDataModelV2 vc,
+    VcDataModelV2 vc,
     DidSigner signer, {
     SdJwtDm2Options? options,
   }) async {
-    // Validate the credential
-    _validateCredential(vc);
-
     final payload = vc.toJson();
 
     payload[VcDataModelV2Key.issuer.key] = signer.did;
@@ -142,7 +137,7 @@ final class SdJwtDm2Suite
         hasher: options?.hasher ?? Base64EncodedOutputHasher.base64Sha256,
         holderPublicKey: options?.holderPublicKey,
       );
-      return _SdJwtDataModelV2.fromSdJwt(await sdJwt);
+      return SdJwtDataModelV2.fromSdJwt(await sdJwt);
     } catch (e, stacktrace) {
       Error.throwWithStackTrace(
           SsiException(
@@ -167,8 +162,9 @@ final class SdJwtDm2Suite
     final verifier = await SdJwtDidVerifier.create(
       algorithm: algorithm,
       kid: input.sdJwt.header['kid'] as String?,
-      issuerDid: input.issuer.id,
+      issuerDid: input.issuer.id.toString(),
     );
+
     final SdJwt(:bool? isVerified) = SdJwtHandlerV1().verify(
       sdJwt: input.sdJwt,
       verifier: verifier,
@@ -196,36 +192,6 @@ final class SdJwtDm2Suite
       };
     } else {
       return {};
-    }
-  }
-
-  /// Validates the credential before issuing.
-  ///
-  /// [vc] - The credential to validate.
-  ///
-  /// Throws [SsiException] if any required fields are missing.
-  void _validateCredential(MutableVcDataModelV2 vc) {
-    final errors = <String>[];
-
-    // Check required fields
-    if (vc.context.isEmpty) {
-      errors.add('Context is required');
-    }
-
-    if (vc.type.isEmpty) {
-      errors.add('Type is required');
-    }
-
-    if (vc.issuer.isEmpty) {
-      errors.add('Issuer is required');
-    }
-
-    // If any errors were found, throw an exception
-    if (errors.isNotEmpty) {
-      throw SsiException(
-        message: 'Invalid VC: ${errors.join(', ')}',
-        code: SsiExceptionType.invalidVC.code,
-      );
     }
   }
 }
@@ -278,16 +244,12 @@ class _DidSignerAdapter implements Signer {
   }
 }
 
-abstract interface class SdJwtDataModelV2
-    implements ParsedVerifiableCredential<String>, VcDataModelV2 {
-  SdJwt get sdJwt;
-}
-
-class _SdJwtDataModelV2 extends MutableVcDataModelV2
-    implements SdJwtDataModelV2 {
-  @override
+class SdJwtDataModelV2 extends VcDataModelV2
+    implements ParsedVerifiableCredential<String> {
   final SdJwt sdJwt;
-  _SdJwtDataModelV2.fromSdJwt(this.sdJwt) : super.fromJson(sdJwt.claims);
+
+  SdJwtDataModelV2.fromSdJwt(this.sdJwt)
+      : super.clone(VcDataModelV2.fromJson(sdJwt.claims));
 
   @override
   String get serialized => sdJwt.serialized;

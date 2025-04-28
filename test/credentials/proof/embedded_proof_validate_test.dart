@@ -1,8 +1,9 @@
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/linked_data/ld_dm_v1_suite.dart';
-import 'package:ssi/src/credentials/models/credential_subject.dart';
-import 'package:ssi/src/credentials/models/holder.dart';
-import 'package:ssi/src/credentials/models/issuer.dart';
+import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
+import 'package:ssi/src/credentials/models/field_types/holder.dart';
+import 'package:ssi/src/credentials/models/field_types/issuer.dart';
+
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/src/credentials/proof/proof_purpose.dart';
@@ -23,36 +24,36 @@ void main() {
   });
   group('verify embedded proof', () {
     final unsignedCredential = MutableVcDataModelV1(
-      context: [
-        "https://www.w3.org/2018/credentials/v1",
-        "https://schema.affinidi.com/UserProfileV1-0.jsonld"
-      ],
-      id: "uuid:123456abcd",
-      type: ["VerifiableCredential", "UserProfile"],
-      credentialSubject: CredentialSubject(claims: {
-        "Fname": "Fname",
-        "Lname": "Lame",
-        "Age": "22",
-        "Address": "Eihhornstr"
-      }),
-      holder: Holder(id: Uri.parse("did:example:1")),
-      credentialSchema: [
-        CredentialSchema.fromJson({
-          "id": "https://schema.affinidi.com/UserProfileV1-0.json",
-          "type": "JsonSchemaValidator2018"
-        })
-      ],
-      issuanceDate: DateTime.now(),
-      issuer: Issuer(
-          id: 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa'),
-    );
+        context: [
+          'https://www.w3.org/2018/credentials/v1',
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+        ],
+        id: Uri.parse('uuid:123456abcd'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        credentialSubject: [
+          MutableCredentialSubject({
+            'Fname': 'Fname',
+            'Lname': 'Lame',
+            'Age': '22',
+            'Address': 'Eihhornstr'
+          })
+        ],
+        holder: Holder.uri('did:example:1'),
+        credentialSchema: [
+          MutableCredentialSchema(
+              id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+              type: 'JsonSchemaValidator2018')
+        ],
+        issuanceDate: DateTime.now(),
+        issuer: Issuer.uri('did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa'),
+      );
 
     test('should create proof and validate successfully', () async {
       final proofGenerator = Secp256k1Signature2019Generator(
         signer: signer,
       );
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
@@ -70,7 +71,7 @@ void main() {
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, proofPurpose: ProofPurpose.authentication);
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
@@ -89,7 +90,7 @@ void main() {
           signer: signer, expires: DateTime.parse('3024-01-01T12:00:01Z'));
 
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
@@ -108,7 +109,7 @@ void main() {
           signer: signer, expires: DateTime.now());
 
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
@@ -133,7 +134,7 @@ void main() {
       );
 
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
@@ -161,7 +162,7 @@ void main() {
       );
 
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
@@ -188,7 +189,7 @@ void main() {
       );
 
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
@@ -214,7 +215,7 @@ void main() {
       );
 
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
@@ -241,7 +242,7 @@ void main() {
       );
 
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 
@@ -262,7 +263,7 @@ void main() {
       );
 
       final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: unsignedCredential,
+          unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
           issuer: signer.did,
           proofGenerator: proofGenerator);
 

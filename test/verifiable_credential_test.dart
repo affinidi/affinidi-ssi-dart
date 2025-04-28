@@ -32,7 +32,7 @@ void main() {
         test(
           'it retrieves the correct issuer',
           () async {
-            expect(verifiableCredential.issuer.id,
+            expect(verifiableCredential.issuer.id.toString(),
                 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa');
           },
         );
@@ -56,7 +56,7 @@ void main() {
         test(
           'it retrieves the correct credentials subject',
           () {
-            expect(verifiableCredential.credentialSubject['email'],
+            expect(verifiableCredential.credentialSubject.first['email'],
                 'user@affinidi.com');
           },
         );
@@ -64,14 +64,17 @@ void main() {
         test(
           'it retrieves the correct id',
           () {
-            expect(verifiableCredential.id, 'claimId:02-aaaaaa-aaaaaaaaaaa');
+            expect(verifiableCredential.id.toString(),
+                'claimid:02-aaaaaa-aaaaaaaaaaa');
           },
         );
 
         test(
           'it retrieves the correct schema',
           () {
-            expect(verifiableCredential.credentialSchema.firstOrNull?.id,
+            expect(
+                verifiableCredential.credentialSchema.firstOrNull?.id
+                    .toString(),
                 'credentialSchemaId');
             expect(verifiableCredential.credentialSchema.firstOrNull?.type,
                 'credentialSchemaType');
@@ -118,9 +121,10 @@ void main() {
             'it does not update the verifiable credential identifier',
             () {
               expect(
-                  verifiableCredential.id,
-                  VerifiableCredentialDataFixtures
-                      .credentialWithProofDataModelV11['id']);
+                  verifiableCredential.id.toString(),
+                  Uri.parse(VerifiableCredentialDataFixtures
+                          .credentialWithProofDataModelV11['id'] as String)
+                      .toString());
             },
           );
         });
@@ -173,7 +177,7 @@ void main() {
       test(
         'it can encode & decode',
         () async {
-          final dataModel = MutableVcDataModelV1.fromJson(
+          final dataModel = VcDataModelV1.fromJson(
             VerifiableCredentialDataFixtures.credentialWithoutProofDataModelV11,
           );
 
@@ -189,7 +193,7 @@ void main() {
       test(
         'it retrieves the correct issuer',
         () {
-          expect(verifiableCredential.issuer.id,
+          expect(verifiableCredential.issuer.id.toString(),
               'https://example.edu/issuers/565049');
         },
       );
@@ -213,7 +217,7 @@ void main() {
       test(
         'it retrieves the correct credential subject with a profession position',
         () {
-          expect(verifiableCredential.credentialSubject.id,
+          expect(verifiableCredential.credentialSubject.first.id.toString(),
               'did:example:ebfeb1f712ebc6f1c276e12ec21');
         },
       );
@@ -221,8 +225,8 @@ void main() {
       test(
         'it retrieves the correct id',
         () {
-          expect(
-              verifiableCredential.id, 'http://example.edu/credentials/3732');
+          expect(verifiableCredential.id.toString(),
+              'http://example.edu/credentials/3732');
         },
       );
 
@@ -253,6 +257,7 @@ void main() {
           }
           final actual =
               Map<String, dynamic>.from(verifiableCredential.toJson());
+
           // Remove 'proof' if not present in expected
           if (!expected.containsKey('proof')) {
             actual.remove('proof');
@@ -298,7 +303,7 @@ void main() {
         test(
           'it retrieves the correct issuer',
           () {
-            expect(verifiableCredential.issuer.id,
+            expect(verifiableCredential.issuer.id.toString(),
                 'did:example:6fb1f712ebe12c27cc26eebfe11');
           },
         );
@@ -322,7 +327,7 @@ void main() {
         test(
           'it retrieves the correct credentials subject',
           () {
-            expect(verifiableCredential.credentialSubject.id,
+            expect(verifiableCredential.credentialSubject.first.id.toString(),
                 'https://subject.example/subject/3921');
           },
         );
@@ -330,7 +335,7 @@ void main() {
         test(
           'it retrieves the correct id',
           () {
-            expect(verifiableCredential.id,
+            expect(verifiableCredential.id.toString(),
                 'https://example.gov/credentials/3732');
           },
         );
@@ -338,11 +343,14 @@ void main() {
         test(
           'it retrieves the correct schema',
           () {
-            expect(verifiableCredential.credentialSchema.firstOrNull?.id,
+            expect(
+                verifiableCredential.credentialSchema.firstOrNull?.id
+                    .toString(),
                 'https://example.org/examples/degree.json');
             expect(verifiableCredential.credentialSchema.firstOrNull?.type,
                 'JsonSchema');
-            expect(verifiableCredential.credentialSchema.lastOrNull?.id,
+            expect(
+                verifiableCredential.credentialSchema.lastOrNull?.id.toString(),
                 'https://example.org/examples/alumni.json');
             expect(verifiableCredential.credentialSchema.lastOrNull?.type,
                 'JsonSchema');
@@ -372,8 +380,10 @@ void main() {
                 Map<String, dynamic>.from(verifiableCredential.toJson());
             // Normalize 'created' field in proof if present
             if (expected['proof'] != null && actual['proof'] != null) {
-              final expProof = Map<String, dynamic>.from(expected['proof']);
-              final actProof = Map<String, dynamic>.from(actual['proof']);
+              final expProof = Map<String, dynamic>.from(
+                  expected['proof'] as Map<String, dynamic>);
+              final actProof = Map<String, dynamic>.from(
+                  actual['proof'] as Map<String, dynamic>);
               if (expProof['created'] != null && actProof['created'] != null) {
                 // Remove milliseconds if present in actual
                 actProof['created'] =
