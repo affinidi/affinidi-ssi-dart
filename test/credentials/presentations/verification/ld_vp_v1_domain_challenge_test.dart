@@ -30,8 +30,7 @@ void main() async {
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
       var issuedCredential = await LdVpDm1Suite().issue(
-          unsignedData: VpDataModelV1.fromJson(v1Vp.toJson()),
-          issuer: signer.did,
+          unsignedData: VpDataModelV1.fromMutable(v1Vp),
           proofGenerator: proofGenerator);
 
       final verificationStatus = await VpDomainChallengeVerifier(
@@ -45,8 +44,7 @@ void main() async {
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
       var issuedCredential = await LdVpDm1Suite().issue(
-          unsignedData: VpDataModelV1.fromJson(v1Vp.toJson()),
-          issuer: signer.did,
+          unsignedData: VpDataModelV1.fromMutable(v1Vp),
           proofGenerator: proofGenerator);
 
       final verificationStatus = await VpDomainChallengeVerifier(
@@ -60,8 +58,7 @@ void main() async {
       final proofGenerator = Secp256k1Signature2019Generator(
           signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
       var issuedCredential = await LdVpDm1Suite().issue(
-          unsignedData: VpDataModelV1.fromJson(v1Vp.toJson()),
-          issuer: signer.did,
+          unsignedData: VpDataModelV1.fromMutable(v1Vp),
           proofGenerator: proofGenerator);
 
       final verificationStatus = await VpDomainChallengeVerifier(

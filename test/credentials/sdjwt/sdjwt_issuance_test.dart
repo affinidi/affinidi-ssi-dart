@@ -26,7 +26,7 @@ void main() {
       final credential = MutableVcDataModelV2(
         context: [DMV2ContextUrl],
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-        issuer: Issuer.uri('did:example:issuer'),
+        issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'UniversityDegreeCredential'},
         validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
         validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
@@ -42,7 +42,7 @@ void main() {
       );
 
       final issuedCredential = await suite.issue(
-          VcDataModelV2.fromJson(credential.toJson()), signer);
+          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
 
       expect(issuedCredential, isNotNull);
       expect(issuedCredential.serialized, isNotNull);
@@ -72,7 +72,7 @@ void main() {
       final credential = MutableVcDataModelV2(
         context: [DMV2ContextUrl],
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-        issuer: Issuer.uri('did:example:issuer'),
+        issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'UniversityDegreeCredential'},
         validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
         validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
@@ -100,11 +100,9 @@ void main() {
       };
 
       final issuedCredential = await suite.issue(
-        VcDataModelV2.fromJson(credential.toJson()),
-        signer,
-        options: SdJwtDm2Options(
-          disclosureFrame: disclosureFrame,
-        ),
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+        disclosureFrame: disclosureFrame,
       );
 
       expect(issuedCredential, isNotNull);
@@ -127,7 +125,8 @@ void main() {
 
       expect(
         () => suite.issue(
-            VcDataModelV2.fromJson(invalidCredential.toJson()), signer),
+            unsignedData: VcDataModelV2.fromMutable(invalidCredential),
+            signer: signer),
         throwsA(isA<SsiException>()),
       );
     });

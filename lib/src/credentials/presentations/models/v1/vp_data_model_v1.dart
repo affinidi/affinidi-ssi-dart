@@ -174,4 +174,7 @@ class VpDataModelV1 implements VerifiablePresentation {
             holder: input.holder,
             verifiableCredential: input.verifiableCredential,
             proof: input.proof);
+
+  factory VpDataModelV1.fromMutable(MutableVpDataModelV1 data) =>
+      VpDataModelV1.fromJson(data.toJson());
 }

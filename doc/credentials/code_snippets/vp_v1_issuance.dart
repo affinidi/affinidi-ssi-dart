@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/holder.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/ssi.dart';
@@ -29,6 +30,7 @@ Future<void> main() async {
     context: [DMV1ContextUrl],
     id: Uri.parse('testVpV1Id'),
     type: {'VerifiablePresentation'},
+    holder: MutableHolder.uri(signer.did),
     verifiableCredential: [ldV1VC, jwtV1VC],
   );
 
@@ -38,11 +40,9 @@ Future<void> main() async {
   );
 
   // Issue the VP using the V1 suite
-  final vpToSign = VpDataModelV1.fromJson(v1Vp.toJson());
-  final issuedVp = await LdVpDm1Suite().issue(
-      unsignedData: vpToSign,
-      issuer: signer.did,
-      proofGenerator: proofGenerator);
+  final vpToSign = VpDataModelV1.fromMutable(v1Vp);
+  final issuedVp = await LdVpDm1Suite()
+      .issue(unsignedData: vpToSign, proofGenerator: proofGenerator);
 
   // Output result
   print('Serialized VP:\n${issuedVp.serialized}');

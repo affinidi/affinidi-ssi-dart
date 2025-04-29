@@ -37,8 +37,7 @@ void main() async {
         signer: signer,
       );
       final issuedPresentation = await LdVpDm2Suite().issue(
-          unsignedData: VpDataModelV2.fromJson(v2Vp.toJson()),
-          issuer: signer.did,
+          unsignedData: VpDataModelV2.fromMutable(v2Vp),
           proofGenerator: proofGenerator);
 
       expect(issuedPresentation, isNotNull);
