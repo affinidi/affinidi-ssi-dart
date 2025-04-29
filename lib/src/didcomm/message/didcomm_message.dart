@@ -31,17 +31,18 @@ abstract class DidcommMessage implements JsonObject {
     }
 
     if (json.containsKey('ciphertext')) {
-      return DidcommEncryptedMessage.fromJson(json);
-    }
-
-    if (json.containsKey('signatures')) {
       return DidcommSignedMessage.fromJson(json);
     }
 
     if (json.containsKey('payload')) {
       return DidcommPlaintextMessage.fromJson(
-          decodeBase64ToString(json['payload']));
+          utf8.decode(base64Decode(addPaddingToBase64(json['payload']))));
     }
+
+    if (json.containsKey('signatures')) {
+      return DidcommEncryptedMessage.fromJson(json);
+    }
+
     throw Exception('Unknown message type');
   }
 }
