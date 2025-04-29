@@ -45,22 +45,11 @@ abstract class ECDHES implements ECDHProfile {
   }
 
   _generateSharedSecret(List<int> z) {
-    var keyDataLen = 128;
-    Uint8List encAscii;
-
-    encAscii = ascii.encode(enc);
-    if (enc.contains('128')) {
-      keyDataLen = 128;
-    }
-    if (enc.contains('192')) {
-      keyDataLen = 192;
-    }
-    if (enc.contains('256')) {
-      keyDataLen = 256;
-    }
-
+    //Didcomm only uses A256KW
+    final keyDataLen = 256;
     final suppPubInfo = _int32BigEndianBytes(keyDataLen);
 
+    final encAscii = ascii.encode('ECDH-ES+A256KW');
     final encLength = _int32BigEndianBytes(encAscii.length);
 
     List<int> partyU, partyULength;
@@ -81,7 +70,7 @@ abstract class ECDHES implements ECDHProfile {
       partyVLength = _int32BigEndianBytes(0);
     }
 
-    final otherInfo = encLength +
+    var otherInfo = encLength +
         encAscii +
         partyULength +
         partyU +
@@ -89,9 +78,9 @@ abstract class ECDHES implements ECDHProfile {
         partyV +
         suppPubInfo;
 
-    final kdfIn = [0, 0, 0, 1] + z + otherInfo;
-    final digest = sha256.convert(kdfIn);
-    return digest.bytes.sublist(0, keyDataLen ~/ 8);
+    var kdfIn = [0, 0, 0, 1] + z + otherInfo;
+    var digest = sha256.convert(kdfIn);
+    return digest.bytes;
   }
 
   ck.Encrypter _getKeyWrapEncrypter(List<int> sharedSecret) {
