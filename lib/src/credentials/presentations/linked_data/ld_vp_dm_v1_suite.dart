@@ -6,18 +6,13 @@ import '../models/parsed_vp.dart';
 import '../models/v1/vp_data_model_v1.dart';
 import '../suites/vp_suite.dart';
 
-/// Options specific to Linked Data VPv1 operations.
-class LdVpDm1Options extends LdOptions {}
-
 /// Implementation for parsing and processing JSON-LD Verifiable Presentations v1.1.
 ///
 /// Handles the parsing, validation, and processing of W3C Verifiable Presentations
 /// following the Data Model v1.1 specification in JSON-LD format.
-final class LdVpDm1Suite
-    extends LdBaseSuite<VpDataModelV1, LdVpDataModelV1, LdVpDm1Options>
+final class LdVpDm1Suite extends LdBaseSuite<VpDataModelV1, LdVpDataModelV1>
     implements
-        VerifiablePresentationSuite<String, VpDataModelV1, LdVpDataModelV1,
-            LdVpDm1Options> {
+        VerifiablePresentationSuite<String, VpDataModelV1, LdVpDataModelV1> {
   /// Creates a new [LdVpDm1Suite] with the v1.1 context URL.
   LdVpDm1Suite()
       : super(
