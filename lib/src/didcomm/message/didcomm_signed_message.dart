@@ -130,7 +130,7 @@ class DidcommSignedMessage implements JsonObject, DidcommMessage {
     return this;
   }
 
-  Future<bool> verify(Jwk jwk) async {
+  Future<bool> verifyUsingJwk(Jwk jwk) async {
     if (jwk.doc['crv'] == null) {
       throw Exception('Jwk without crv parameter');
     }
@@ -156,6 +156,32 @@ class DidcommSignedMessage implements JsonObject, DidcommMessage {
         algorithm: sigScheme,
         issuerDid: jwk.toJson()['kid']!.split('#').first,
       );
+
+      valid = verifier.verify(ascii.encode('$encodedHeader.$encodedPayload'),
+          base64Decode(addPaddingToBase64(s.signature)));
+
+      if (!valid) {
+        throw Exception('A Signature is wrong');
+      }
+    }
+
+    return valid;
+  }
+
+  Future<bool> verify(DidVerifier verifier) async {
+    if (signatures == null || signatures!.isEmpty) {
+      throw Exception('Nothing to verify');
+    }
+
+    bool valid = true;
+
+    for (var s in signatures!) {
+      var encodedHeader = removePaddingFromBase64(
+          base64UrlEncode(utf8.encode(jsonEncode(s.protected))));
+
+      var encodedPayload = _base64Payload ??
+          removePaddingFromBase64(
+              base64UrlEncode(utf8.encode(payload.toString())));
 
       valid = verifier.verify(ascii.encode('$encodedHeader.$encodedPayload'),
           base64Decode(addPaddingToBase64(s.signature)));
