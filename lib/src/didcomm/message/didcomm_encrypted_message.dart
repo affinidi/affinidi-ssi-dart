@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:ssi/src/did/did_document.dart';
 import 'package:ssi/src/did/did_key.dart';
 import 'package:ssi/src/did/universal_did_resolver.dart';
+import 'package:ssi/src/didcomm/message/_ecdhes.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
 import 'package:ssi/src/wallet/wallet.dart';
 import 'package:web3dart/crypto.dart';
@@ -158,8 +159,15 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
 
       late Uint8List encryptedCek;
       if (keyWrapAlgorithm == KeyWrapAlgorithm.ecdhES) {
-        encryptedCek = await _encryptCekUsingECDH_ES(cek,
-            wallet: wallet, keyId: keyId, key: key, publicKey: publicKey);
+        encryptedCek = await _encryptCekUsingECDH_ES(
+          cek,
+          wallet: wallet,
+          keyId: keyId,
+          recipientPublicKeyJwk: recipientPublicKeyJwk,
+          publicKey: publicKey,
+          epkPrivateKey: epkPrivateKey,
+          jweHeader: jweHeader,
+        );
       } else if (keyWrapAlgorithm == KeyWrapAlgorithm.ecdh1PU) {
         encryptedCek = await _encryptCekUsingECDH_1PU(cek,
             wallet: wallet,
@@ -290,18 +298,35 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     DidCommMessageRecipient recipient =
         _findMessageRecipientByPublicKey(receiverPublicKey);
 
+    Jwk senderJwk = await _findSenderJwk(protectedHeader.skid!);
     if (protectedHeader.isAnonCrypt()) {
-      Jwk senderJwk = await _findSenderJwk(protectedHeader.skid!);
-      ec.PublicKey senderPublicKey = publicKeyFromPoint(
-          curve: getCurveByJwk(senderJwk.toJson()),
-          x: senderJwk.doc['x']!,
-          y: senderJwk.doc['y']!);
+      final senderPublicKeyBytes = publicKeyBytesFromJwk(senderJwk.toJson());
 
-      return wallet.decrypt(
-        recipient.encryptedKey,
-        keyId: keyId,
-        publicKey: hexToBytes(senderPublicKey.toCompressedHex()),
-      );
+      late ECDHES ecdhProfile;
+      if (isSecp256OrPCurve(protectedHeader.epk['crv'])) {
+        ec.PublicKey epkPublicKey = publicKeyFromPoint(
+            curve: getCurveByJwk(protectedHeader.epk),
+            x: protectedHeader.epk['x'],
+            y: protectedHeader.epk['y']);
+
+        ecdhProfile = ECDHES_Elliptic(
+          publicKey: epkPublicKey,
+          enc: protectedHeader.enc,
+          apv: protectedHeader.apv,
+        );
+      } else if (isXCurve(protectedHeader.epk['crv'])) {
+        ecdhProfile = ECDHES_X25519(
+            apv: protectedHeader.apv,
+            enc: protectedHeader.enc,
+            publicKey: publicKeyBytesFromJwk(protectedHeader.epk));
+      } else {
+        throw Exception('Curve not implemented');
+      }
+
+      return wallet.decrypt(recipient.encryptedKey,
+          keyId: keyId,
+          publicKey: senderPublicKeyBytes,
+          ecdhProfile: ecdhProfile);
     } else if (protectedHeader.isAuthCrypt()) {
       if (protectedHeader.skid == null) {
         throw Exception('sender id needed when using AuthCrypt');
