@@ -219,4 +219,7 @@ class VcDataModelV2 implements VerifiableCredential {
             refreshService: input.refreshService,
             termsOfUse: input.termsOfUse,
             evidence: input.evidence);
+
+  factory VcDataModelV2.fromMutable(MutableVcDataModelV2 data) =>
+      VcDataModelV2.fromJson(data.toJson());
 }

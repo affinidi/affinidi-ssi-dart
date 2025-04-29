@@ -5,8 +5,7 @@ import '../models/verifiable_credential.dart';
 abstract interface class VerifiableCredentialSuite<
     SerializedType,
     VC extends VerifiableCredential,
-    ParsedVC extends ParsedVerifiableCredential<SerializedType>,
-    Options> {
+    ParsedVC extends ParsedVerifiableCredential<SerializedType>> {
   /// Determines whether the provided [data] can be parsed by this suite.
   bool canParse(Object data);
 

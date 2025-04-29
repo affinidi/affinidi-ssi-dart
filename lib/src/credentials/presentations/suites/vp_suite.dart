@@ -5,8 +5,7 @@ import '../models/verifiable_presentation.dart';
 abstract class VerifiablePresentationSuite<
     SerializedType,
     VP extends VerifiablePresentation,
-    ParsedVP extends ParsedVerifiablePresentation<SerializedType>,
-    Options> {
+    ParsedVP extends ParsedVerifiablePresentation<SerializedType>> {
   /// Determines whether the provided [data] can be parsed by this suite.
   bool canParse(Object data);
 
