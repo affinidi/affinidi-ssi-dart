@@ -37,9 +37,9 @@ class JweHeader implements JsonObject {
     required Uint8List epkPrivate,
     required Uint8List? epkPublic,
   }) async {
-    String curve = getCurveByPublicKey(senderPublicKey);
-    DidDocument didDoc = DidKey.generateDocument(senderPublicKey);
-    String kid = didDoc.keyAgreement.first;
+    final curve = getCurveByPublicKey(senderPublicKey);
+    final didDoc = DidKey.generateDocument(senderPublicKey);
+    final kid = didDoc.keyAgreement.first;
 
     return JweHeader(
       skid: kid,
@@ -115,8 +115,8 @@ class JweHeader implements JsonObject {
     List<Map<String, dynamic>> jwks,
     String curve,
   ) {
-    List<dynamic> receiverKeyIds = _getReceiverKeyIds(jwks, curve);
-    String keyIdString = receiverKeyIds.join('.');
+    final receiverKeyIds = _getReceiverKeyIds(jwks, curve);
+    final keyIdString = receiverKeyIds.join('.');
 
     if (keyIdString.isEmpty) {
       throw Exception('Cant find keys with matching crv parameter');
@@ -134,7 +134,7 @@ class JweHeader implements JsonObject {
   ) {
     if (senderPublicKey.type == KeyType.p256 ||
         senderPublicKey.type == KeyType.secp256k1) {
-      ec.PrivateKey privateKey = getPrivateKeyFromBytes(privateKeyBytes,
+      final privateKey = getPrivateKeyFromBytes(privateKeyBytes,
           keyType: senderPublicKey.type);
 
       final crvPoint = _getPublicKeyPoint(privateKey.publicKey);
@@ -147,7 +147,7 @@ class JweHeader implements JsonObject {
     }
 
     if (senderPublicKey.type == KeyType.ed25519) {
-      String X = removePaddingFromBase64(base64UrlEncode(epkPublic!.toList()));
+      final X = removePaddingFromBase64(base64UrlEncode(epkPublic!.toList()));
       return {'crv': curve, 'x': X, 'kty': 'OKP'};
     }
 
@@ -155,11 +155,11 @@ class JweHeader implements JsonObject {
   }
 
   static ({String X, String Y}) _getPublicKeyPoint(ec.PublicKey publicKey) {
-    String X = encodeBase64(publicKey.X < BigInt.zero
+    final X = encodeBase64(publicKey.X < BigInt.zero
         ? c.intToBytes(publicKey.X)
         : c.unsignedIntToBytes(publicKey.X));
 
-    String Y = encodeBase64(publicKey.Y < BigInt.zero
+    final Y = encodeBase64(publicKey.Y < BigInt.zero
         ? c.intToBytes(publicKey.Y)
         : c.unsignedIntToBytes(publicKey.Y));
 

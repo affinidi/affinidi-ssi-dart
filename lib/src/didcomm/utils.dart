@@ -2,12 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:elliptic/elliptic.dart' as ec;
-import 'package:ssi/src/did/did_document.dart';
-import 'package:ssi/src/key_pair/ed25519_key_pair.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
 import 'package:ssi/src/types.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:x25519/x25519.dart' as x25519;
 
 Map<String, dynamic> credentialToMap(dynamic credential) {
   if (credential is String) {
@@ -69,7 +66,7 @@ ec.PublicKey publicKeyFromPoint({
 
 Uint8List publicKeyBytesFromJwk(Map<String, dynamic> jwk) {
   if (isSecp256OrPCurve(jwk['crv']!)) {
-    ec.PublicKey publicKey = publicKeyFromPoint(
+    final publicKey = publicKeyFromPoint(
         curve: getCurveByJwk(jwk), x: jwk['x']!, y: jwk['y']!);
     return hexToBytes(publicKey.toCompressedHex());
   } else if (isXCurve(jwk['crv']!)) {
@@ -94,7 +91,7 @@ ec.PrivateKey getPrivateKeyFromBytes(
 }
 
 ec.PrivateKey getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
-  var crv = privateKeyJwk['crv'];
+  final crv = privateKeyJwk['crv'];
 
   ec.Curve? c;
   dynamic receiverPrivate, epkPublic;
