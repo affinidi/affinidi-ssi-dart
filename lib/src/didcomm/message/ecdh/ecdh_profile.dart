@@ -18,8 +18,8 @@ class ECDHProfile {
     required String apv,
     required Map epk,
   }) {
-    ec.Curve c = getEllipticCurveByPublicKey(receiverPublicKey);
-    ec.PublicKey epkPublicKey = publicKeyFromPoint(
+    final c = getEllipticCurveByPublicKey(receiverPublicKey);
+    final epkPublicKey = publicKeyFromPoint(
       x: epk['x'],
       y: epk['y'],
       curve: c,
@@ -44,7 +44,7 @@ class ECDHProfile {
     required String apv,
     required Map epk,
   }) {
-    ec.PublicKey epkPublicKey = publicKeyFromPoint(
+    final epkPublicKey = publicKeyFromPoint(
       x: epk['x'],
       y: epk['y'],
       curve: curve,
@@ -68,7 +68,7 @@ class ECDHProfile {
     required String apv,
     required Map epk,
   }) {
-    Uint8List epkPublicKeyBytes = base64Decode(addPaddingToBase64(epk['x']));
+    final epkPublicKeyBytes = base64Decode(addPaddingToBase64(epk['x']));
 
     return ECDH1PU_X25519(
       public1: epkPublicKeyBytes,

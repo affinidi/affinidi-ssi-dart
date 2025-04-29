@@ -38,7 +38,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       required this.recipients});
 
   factory DidcommEncryptedMessage.fromJson(dynamic message) {
-    Map<String, dynamic> decoded = credentialToMap(message);
+    final decoded = credentialToMap(message);
 
     return DidcommEncryptedMessage(
         ciphertext: decodeBase64(decoded['ciphertext']),
@@ -67,7 +67,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
           'For authcrypted messages the from-header of the plaintext message must not be null');
     }
 
-    PublicKey publicKey = await wallet.getPublicKey(keyId);
+    final publicKey = await wallet.getPublicKey(keyId);
     final epkKeyPair = getEphemeralPrivateKey(publicKey);
 
     JweHeader jweHeader = await JweHeader.encryptedDidCommMessage(
@@ -78,20 +78,19 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         epkPrivate: epkKeyPair.privateKeyBytes,
         epkPublic: epkKeyPair.publicKeyBytes);
 
-    ck.SymmetricKey cek = _createCek(encryptionAlgorithm);
-    ck.EncryptionResult encrypted = _encryptWithCek(
+    final cek = _createCek(encryptionAlgorithm);
+    final encrypted = _encryptWithCek(
         cek, encryptionAlgorithm, jweHeader.toString(), message);
 
-    List<DidCommMessageRecipient> recipientList =
-        await _encryptCekForRecipients(
-            keyWrapAlgorithm: keyWrapAlgorithm,
-            authenticationTag: encrypted.authenticationTag!,
-            wallet: wallet,
-            keyId: keyId,
-            cek: cek,
-            epkPrivateKey: epkKeyPair.privateKeyBytes,
-            recipientPublicKeyJwks: recipientPublicKeyJwks,
-            jweHeader: jweHeader);
+    final recipientList = await _encryptCekForRecipients(
+        keyWrapAlgorithm: keyWrapAlgorithm,
+        authenticationTag: encrypted.authenticationTag!,
+        wallet: wallet,
+        keyId: keyId,
+        cek: cek,
+        epkPrivateKey: epkKeyPair.privateKeyBytes,
+        recipientPublicKeyJwks: recipientPublicKeyJwks,
+        jweHeader: jweHeader);
 
     return DidcommEncryptedMessage(
         recipients: recipientList,
@@ -108,16 +107,15 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     _isAlgorhythmSupportedForDecryption();
     Uint8List decryptedCek = await _decryptCek(wallet: wallet, keyId: keyId);
 
-    ck.SymmetricKey cek = ck.SymmetricKey(keyValue: decryptedCek);
-    ck.Encrypter e = _createEncrypterByEncryptionAlg(protectedHeader.enc, cek);
+    final cek = ck.SymmetricKey(keyValue: decryptedCek);
+    final e = _createEncrypterByEncryptionAlg(protectedHeader.enc, cek);
 
-    var toDecrypt = ck.EncryptionResult(ciphertext,
+    final toDecrypt = ck.EncryptionResult(ciphertext,
         authenticationTag: tag,
         additionalAuthenticatedData: ascii.encode(protectedHeader.toString()),
         initializationVector: iv);
 
-    Map<String, dynamic> message =
-        jsonDecode(utf8.decode(e.decrypt(toDecrypt)));
+    final message = jsonDecode(utf8.decode(e.decrypt(toDecrypt)));
 
     return DidcommMessage.fromDecrypted(message, protectedHeader);
   }
@@ -126,21 +124,19 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     final decryptedCek =
         await _decryptCekWithPrivateJwk(privateKeyJwk, receiverDid);
 
-    ck.SymmetricKey cek = ck.SymmetricKey(keyValue: decryptedCek);
-    ck.Encrypter e = _createEncrypterByEncryptionAlg(protectedHeader.enc, cek);
+    final cek = ck.SymmetricKey(keyValue: decryptedCek);
+    final e = _createEncrypterByEncryptionAlg(protectedHeader.enc, cek);
 
-    var toDecrypt = ck.EncryptionResult(ciphertext,
+    final toDecrypt = ck.EncryptionResult(ciphertext,
         authenticationTag: tag,
         additionalAuthenticatedData: ascii.encode(protectedHeader.toString()),
         initializationVector: iv);
 
-    Map<String, dynamic> message =
-        jsonDecode(utf8.decode(e.decrypt(toDecrypt)));
-
+    final message = jsonDecode(utf8.decode(e.decrypt(toDecrypt)));
     return DidcommMessage.fromDecrypted(message, protectedHeader);
   }
 
-  static _encryptCekForRecipients({
+  static Future<List<DidCommMessageRecipient>> _encryptCekForRecipients({
     required KeyWrapAlgorithm keyWrapAlgorithm,
     required Wallet wallet,
     required String keyId,
@@ -150,9 +146,9 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     required JweHeader jweHeader,
     required Uint8List epkPrivateKey,
   }) async {
-    List<DidCommMessageRecipient> recipientList = [];
-    PublicKey publicKey = await wallet.getPublicKey(keyId);
-    String senderCurve = getCurveByPublicKey(publicKey);
+    final List<DidCommMessageRecipient> recipientList = [];
+    final publicKey = await wallet.getPublicKey(keyId);
+    final senderCurve = getCurveByPublicKey(publicKey);
 
     for (var recipientPublicKeyJwk in recipientPublicKeyJwks) {
       if (recipientPublicKeyJwk['crv'] != senderCurve) continue;
@@ -245,7 +241,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     DidDocument didDoc = DidKey.generateDocument(publicKey);
 
     if (isSecp256OrPCurve(recipientPublicKeyJwk['crv'])) {
-      ec.PublicKey receiverPubKey = publicKeyFromPoint(
+      final receiverPubKey = publicKeyFromPoint(
         curve: getEllipticCurveByPublicKey(publicKey),
         x: recipientPublicKeyJwk['x'],
         y: recipientPublicKeyJwk['y'],
@@ -284,7 +280,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
 
   static _encryptWithCek(ck.SymmetricKey cek, EncryptionAlgorithm alg,
       String headers, DidcommMessage message) {
-    ck.Encrypter e = _createEncrypterByEncryptionAlg(alg.value, cek);
+    final e = _createEncrypterByEncryptionAlg(alg.value, cek);
     return e.encrypt(Uint8List.fromList(utf8.encode(message.toString())),
         additionalAuthenticatedData: ascii.encode(headers));
   }
@@ -293,18 +289,16 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     required Wallet wallet,
     required String keyId,
   }) async {
-    PublicKey receiverPublicKey = await wallet.getPublicKey(keyId);
+    final receiverPublicKey = await wallet.getPublicKey(keyId);
+    final recipient = _findMessageRecipientByPublicKey(receiverPublicKey);
 
-    DidCommMessageRecipient recipient =
-        _findMessageRecipientByPublicKey(receiverPublicKey);
-
-    Jwk senderJwk = await _findSenderJwk(protectedHeader.skid!);
+    final senderJwk = await _findSenderJwk(protectedHeader.skid!);
     if (protectedHeader.isAnonCrypt()) {
       final senderPublicKeyBytes = publicKeyBytesFromJwk(senderJwk.toJson());
 
       late ECDHES ecdhProfile;
       if (isSecp256OrPCurve(protectedHeader.epk['crv'])) {
-        ec.PublicKey epkPublicKey = publicKeyFromPoint(
+        final epkPublicKey = publicKeyFromPoint(
             curve: getCurveByJwk(protectedHeader.epk),
             x: protectedHeader.epk['x'],
             y: protectedHeader.epk['y']);
@@ -380,21 +374,19 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     Map privateKeyJwk,
     String receiverDid,
   ) async {
-    Map<String, dynamic> publicKeyJwk = privateKeyJwk['verificationMethod']
-        .firstWhere(
-            (m) => m['publicKeyJwk']?['crv'] == protectedHeader.epk['crv'],
-            orElse: () => throw Exception(''))['publicKeyJwk'];
+    final publicKeyJwk = privateKeyJwk['verificationMethod'].firstWhere(
+        (m) => m['publicKeyJwk']?['crv'] == protectedHeader.epk['crv'],
+        orElse: () => throw Exception(''))['publicKeyJwk'];
 
-    ec.PrivateKey privateKey =
-        getPrivateKeyFromJwk(publicKeyJwk, protectedHeader.epk);
+    final privateKey = getPrivateKeyFromJwk(publicKeyJwk, protectedHeader.epk);
 
-    DidCommMessageRecipient recipient = _findMessageRecipientByDid(receiverDid);
-    Jwk senderJwk = await _findSenderJwk(protectedHeader.skid!);
+    final recipient = _findMessageRecipientByDid(receiverDid);
+    final senderJwk = await _findSenderJwk(protectedHeader.skid!);
 
     late ECDH1PU ecdh1pu;
     if (isSecp256OrPCurve(publicKeyJwk['crv'])) {
-      ec.Curve receiverCurve = getCurveByJwk(publicKeyJwk);
-      ec.PublicKey senderPublicKey = publicKeyFromPoint(
+      final receiverCurve = getCurveByJwk(publicKeyJwk);
+      final senderPublicKey = publicKeyFromPoint(
           curve: getCurveByJwk(senderJwk.toJson()),
           x: senderJwk.doc['x']!,
           y: senderJwk.doc['y']!);
@@ -409,8 +401,8 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         epk: protectedHeader.epk,
       );
     } else if (isXCurve(publicKeyJwk['crv'])) {
-      Uint8List senderPublicKey = base64Decode(protectedHeader.epk['x']);
-      Uint8List epkPublic = base64Decode(protectedHeader.epk['x']);
+      final senderPublicKey = base64Decode(protectedHeader.epk['x']);
+      final epkPublic = base64Decode(protectedHeader.epk['x']);
 
       ecdh1pu = ECDH1PU_X25519(
         public1: epkPublic,
@@ -445,13 +437,12 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
   }
 
   Future<Jwk> _findSenderJwk(String skid) async {
-    DidDocument didDoc =
-        (await UniversalDIDResolver.resolve(skid.split('#').first))
-            .resolveKeyIds();
+    final didDoc = (await UniversalDIDResolver.resolve(skid.split('#').first))
+        .resolveKeyIds();
 
     return didDoc.keyAgreement.whereType<VerificationMethod>().firstWhere(
         (key) {
-      String? kid = key.asJwk().toJson()['kid'];
+      final kid = key.asJwk().toJson()['kid'];
       return kid == skid || key.id == skid;
     }, orElse: () => throw Exception('No key found in did document')).asJwk();
   }
@@ -485,7 +476,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
   DidCommMessageRecipient _findMessageRecipientByPublicKey(
     PublicKey receiverPublicKey,
   ) {
-    String receiverDid = DidKey.getDid(receiverPublicKey);
+    final receiverDid = DidKey.getDid(receiverPublicKey);
     return _findMessageRecipientByDid(receiverDid);
   }
 

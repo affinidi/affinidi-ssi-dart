@@ -26,9 +26,9 @@ class FromPriorJWT {
       throw FormatException(
           'compact serialization must consist of three parts separated by point(.).');
     }
-    Map<String, dynamic> header =
+    final header =
         jsonDecode(utf8.decode(base64Decode(addPaddingToBase64(splitted[0]))));
-    Map<String, dynamic> payload =
+    final payload =
         jsonDecode(utf8.decode(base64Decode(addPaddingToBase64(splitted[1]))));
     signature = splitted[2];
 

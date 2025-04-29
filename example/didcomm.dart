@@ -1,26 +1,26 @@
 import 'package:ssi/ssi.dart';
 
 void main() async {
-  KeyStore aliceKeyStore = InMemoryKeyStore();
-  GenericWallet aliceWallet = GenericWallet(aliceKeyStore);
+  final aliceKeyStore = InMemoryKeyStore();
+  final aliceWallet = GenericWallet(aliceKeyStore);
 
-  KeyStore bobKeyStore = InMemoryKeyStore();
-  GenericWallet bobWallet = GenericWallet(bobKeyStore);
+  final bobKeyStore = InMemoryKeyStore();
+  final bobWallet = GenericWallet(bobKeyStore);
 
-  KeyPair aliceKeyPair = await aliceWallet.generateKey();
-  KeyPair bobKeyPair = await bobWallet.generateKey();
+  final aliceKeyPair = await aliceWallet.generateKey();
+  final bobKeyPair = await bobWallet.generateKey();
 
-  DidDocument aliceDidDoc = DidKey.generateDocument(aliceKeyPair.publicKey);
-  DidDocument bobDidDoc = DidKey.generateDocument(bobKeyPair.publicKey);
+  final aliceDidDoc = DidKey.generateDocument(aliceKeyPair.publicKey);
+  final bobDidDoc = DidKey.generateDocument(bobKeyPair.publicKey);
 
-  Jwk aliceJwk =
+  final aliceJwk =
       (aliceDidDoc.resolveKeyIds().keyAgreement[0] as VerificationMethod)
           .asJwk();
 
-  Jwk bobJwk =
+  final bobJwk =
       (bobDidDoc.resolveKeyIds().keyAgreement[0] as VerificationMethod).asJwk();
 
-  DidSigner aliceSigner = DidSigner(
+  final aliceSigner = DidSigner(
     didDocument: aliceDidDoc,
     keyPair: aliceKeyPair,
     didKeyId: aliceDidDoc.verificationMethod[0].id,
@@ -28,47 +28,46 @@ void main() async {
   );
 
   // ==== sign using DidcommPlaintextMessage.sign method
-  DidcommPlaintextMessage message = DidcommPlaintextMessage.to(bobDidDoc.id,
+  final message = DidcommPlaintextMessage.to(bobDidDoc.id,
       type: 'type', body: {'foo': 'bar'});
 
-  DidcommSignedMessage aliceSignedMessageUsingMessageDirectly =
+  final aliceSignedMessageUsingMessageDirectly =
       await message.sign(aliceSigner);
 
-  await aliceSignedMessageUsingMessageDirectly.verify(aliceJwk);
+  await aliceSignedMessageUsingMessageDirectly.verifyUsingJwk(aliceJwk);
   // ====
 
   // ==== sign using DidcommSignedMessage.fromPlaintext method
-  DidcommSignedMessage aliceSignedMessage =
+  final aliceSignedMessage =
       await DidcommSignedMessage.fromPlaintext(message, signer: aliceSigner);
 
-  await aliceSignedMessage.verify(aliceJwk);
+  await aliceSignedMessage.verifyUsingJwk(aliceJwk);
   // ====
 
-  DidSigner bobSigner = DidSigner(
+  final bobSigner = DidSigner(
     didDocument: bobDidDoc,
     keyPair: bobKeyPair,
     didKeyId: bobDidDoc.verificationMethod[0].id,
     signatureScheme: SignatureScheme.ecdsa_p256_sha256,
   );
 
-  DidcommSignedMessage bobsSignedMessage = await message.sign(bobSigner);
+  final bobsSignedMessage = await message.sign(bobSigner);
 
-  await bobsSignedMessage.verify(
-      (bobDidDoc.resolveKeyIds().keyAgreement[0] as VerificationMethod)
-          .asJwk());
+  final didVerifier = await DidVerifier.create(
+      algorithm: SignatureScheme.ecdsa_p256_sha256, issuerDid: bobDidDoc.id);
+  await bobsSignedMessage.verify(didVerifier);
 
-  DidcommEncryptedMessage bobsEncryptedMessage = await bobsSignedMessage
-      .encrypt(
-          wallet: bobWallet,
-          keyId: bobKeyPair.id,
-          recipientPublicKeyJwks: [aliceJwk.toJson()]);
+  final bobsEncryptedMessage = await bobsSignedMessage.encrypt(
+      wallet: bobWallet,
+      keyId: bobKeyPair.id,
+      recipientPublicKeyJwks: [aliceJwk.toJson()]);
 
-  DidcommEncryptedMessage getFromJson =
+  final getFromJson =
       DidcommEncryptedMessage.fromJson(bobsEncryptedMessage.toJson());
 
-  DidcommSignedMessage bobsDecrypytedSignedMessage = await getFromJson.decrypt(
+  final bobsDecrypytedSignedMessage = await getFromJson.decrypt(
       wallet: aliceWallet, keyId: aliceKeyPair.id) as DidcommSignedMessage;
 
-  await bobsDecrypytedSignedMessage.verify(bobJwk);
+  await bobsDecrypytedSignedMessage.verifyUsingJwk(bobJwk);
   print(bobsDecrypytedSignedMessage.payload);
 }

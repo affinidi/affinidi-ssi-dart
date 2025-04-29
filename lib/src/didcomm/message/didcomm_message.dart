@@ -11,8 +11,7 @@ abstract class DidcommMessage implements JsonObject {
   factory DidcommMessage.fromDecrypted(
       dynamic json, JweHeader protectedHeader) {
     if (json.containsKey('id')) {
-      DidcommPlaintextMessage decryptedMessage =
-          DidcommPlaintextMessage.fromJson(json);
+      final decryptedMessage = DidcommPlaintextMessage.fromJson(json);
 
       if (!protectedHeader.isAuthCrypt()) {
         return decryptedMessage;

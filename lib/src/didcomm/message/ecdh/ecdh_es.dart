@@ -26,9 +26,9 @@ abstract class ECDHES implements ECDHProfile {
     required Uint8List data,
   }) {
     final secret = getEncryptionSecret(privateKey);
-    List<int> sharedSecret = _generateSharedSecret(secret);
+    final sharedSecret = _generateSharedSecret(secret);
 
-    ck.Encrypter kw = _getKeyWrapEncrypter(sharedSecret);
+    final kw = _getKeyWrapEncrypter(sharedSecret);
     return kw.encrypt(data).data;
   }
 
@@ -38,9 +38,9 @@ abstract class ECDHES implements ECDHProfile {
     required Uint8List data,
   }) {
     final secret = getDecryptionSecret(privateKey);
-    List<int> sharedSecret = _generateSharedSecret(secret);
+    final sharedSecret = _generateSharedSecret(secret);
 
-    ck.Encrypter kw = _getKeyWrapEncrypter(sharedSecret);
+    final kw = _getKeyWrapEncrypter(sharedSecret);
     return kw.decrypt(ck.EncryptionResult(data));
   }
 
@@ -59,9 +59,9 @@ abstract class ECDHES implements ECDHProfile {
       keyDataLen = 256;
     }
 
-    var suppPubInfo = _int32BigEndianBytes(keyDataLen);
+    final suppPubInfo = _int32BigEndianBytes(keyDataLen);
 
-    var encLength = _int32BigEndianBytes(encAscii.length);
+    final encLength = _int32BigEndianBytes(encAscii.length);
 
     List<int> partyU, partyULength;
     if (apu != null) {
@@ -81,7 +81,7 @@ abstract class ECDHES implements ECDHProfile {
       partyVLength = _int32BigEndianBytes(0);
     }
 
-    var otherInfo = encLength +
+    final otherInfo = encLength +
         encAscii +
         partyULength +
         partyU +
@@ -89,8 +89,8 @@ abstract class ECDHES implements ECDHProfile {
         partyV +
         suppPubInfo;
 
-    var kdfIn = [0, 0, 0, 1] + z + otherInfo;
-    var digest = sha256.convert(kdfIn);
+    final kdfIn = [0, 0, 0, 1] + z + otherInfo;
+    final digest = sha256.convert(kdfIn);
     return digest.bytes.sublist(0, keyDataLen ~/ 8);
   }
 
@@ -100,7 +100,7 @@ abstract class ECDHES implements ECDHProfile {
       'k': base64UrlEncode(sharedSecret)
     };
 
-    var keyWrapKey = ck.KeyPair.fromJwk(sharedSecretJwk);
+    final keyWrapKey = ck.KeyPair.fromJwk(sharedSecretJwk);
     return keyWrapKey.publicKey!
         .createEncrypter(ck.algorithms.encryption.aes.keyWrap);
   }
@@ -126,13 +126,13 @@ class ECDHES_Elliptic extends ECDHES implements ECDHProfile {
       throw Exception('Private key needed for encryption data.');
     }
 
-    ec.PrivateKey privateKey =
+    final privateKey =
         ec.PrivateKey.fromBytes(publicKey.curve, privateKeyBytes!);
     return ecdh.computeSecret(privateKey, publicKey);
   }
 
   List<int> getDecryptionSecret(Uint8List privateKeyBytes) {
-    ec.PrivateKey privateKey =
+    final privateKey =
         ec.PrivateKey.fromBytes(publicKey.curve, privateKeyBytes);
     return ecdh.computeSecret(privateKey, publicKey);
   }

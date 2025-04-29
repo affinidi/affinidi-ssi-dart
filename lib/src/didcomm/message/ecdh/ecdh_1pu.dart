@@ -32,9 +32,9 @@ abstract class ECDH1PU implements ECDHProfile {
     required Uint8List data,
   }) {
     final secrets = getEncryptionSecrets(privateKey);
-    List<int> sharedSecret = _generateSharedSecret(secrets.ze, secrets.zs);
+    final sharedSecret = _generateSharedSecret(secrets.ze, secrets.zs);
 
-    ck.Encrypter kw = _getKeyWrapEncrypter(sharedSecret);
+    final kw = _getKeyWrapEncrypter(sharedSecret);
     return kw.encrypt(data).data;
   }
 
@@ -44,9 +44,9 @@ abstract class ECDH1PU implements ECDHProfile {
     required Uint8List data,
   }) {
     final secrets = getDecryptionSecrets(privateKey);
-    List<int> sharedSecret = _generateSharedSecret(secrets.ze, secrets.zs);
+    final sharedSecret = _generateSharedSecret(secrets.ze, secrets.zs);
 
-    ck.Encrypter kw = _getKeyWrapEncrypter(sharedSecret);
+    final kw = _getKeyWrapEncrypter(sharedSecret);
     return kw.decrypt(ck.EncryptionResult(data));
   }
 
@@ -54,21 +54,21 @@ abstract class ECDH1PU implements ECDHProfile {
     var z = ze + zs;
 
     //Didcomm only uses A256KW
-    int keyDataLen = 256;
-    Uint8List cctagLen = _int32BigEndianBytes(authenticationTag.length);
-    List<int> suppPubInfo =
+    final keyDataLen = 256;
+    final cctagLen = _int32BigEndianBytes(authenticationTag.length);
+    final suppPubInfo =
         _int32BigEndianBytes(keyDataLen) + cctagLen + authenticationTag;
 
-    Uint8List encAscii = ascii.encode(keyWrapAlgorithm.value);
-    Uint8List encLength = _int32BigEndianBytes(encAscii.length);
+    final encAscii = ascii.encode(keyWrapAlgorithm.value);
+    final encLength = _int32BigEndianBytes(encAscii.length);
 
-    Uint8List partyU = base64Decode(addPaddingToBase64(apu));
-    Uint8List partyULength = _int32BigEndianBytes(partyU.length);
+    final partyU = base64Decode(addPaddingToBase64(apu));
+    final partyULength = _int32BigEndianBytes(partyU.length);
 
-    Uint8List partyV = base64Decode(addPaddingToBase64(apv));
-    Uint8List partyVLength = _int32BigEndianBytes(partyV.length);
+    final partyV = base64Decode(addPaddingToBase64(apv));
+    final partyVLength = _int32BigEndianBytes(partyV.length);
 
-    List<int> otherInfo = encLength +
+    final otherInfo = encLength +
         encAscii +
         partyULength +
         partyU +
@@ -76,17 +76,14 @@ abstract class ECDH1PU implements ECDHProfile {
         partyV +
         suppPubInfo;
 
-    List<int> kdfIn = [0, 0, 0, 1] + z + otherInfo;
+    final kdfIn = [0, 0, 0, 1] + z + otherInfo;
     return sha256.convert(kdfIn).bytes;
   }
 
   ck.Encrypter _getKeyWrapEncrypter(List<int> sharedSecret) {
-    Map<String, dynamic> sharedSecretJwk = {
-      'kty': 'oct',
-      'k': base64UrlEncode(sharedSecret)
-    };
+    final sharedSecretJwk = {'kty': 'oct', 'k': base64UrlEncode(sharedSecret)};
+    final keyWrapKey = ck.KeyPair.fromJwk(sharedSecretJwk);
 
-    var keyWrapKey = ck.KeyPair.fromJwk(sharedSecretJwk);
     return keyWrapKey.publicKey!
         .createEncrypter(ck.algorithms.encryption.aes.keyWrap);
   }
@@ -115,21 +112,20 @@ class ECDH1PU_Elliptic extends ECDH1PU implements ECDHProfile {
       throw Exception('Private key needed for encryption data.');
     }
 
-    ec.PrivateKey privateKey =
-        ec.PrivateKey.fromBytes(public1.curve, privateKeyBytes);
+    final privateKey = ec.PrivateKey.fromBytes(public1.curve, privateKeyBytes);
 
-    List<int> ze = ecdh.computeSecret(private1!, public1);
-    List<int> zs = ecdh.computeSecret(privateKey, public2);
+    final ze = ecdh.computeSecret(private1!, public1);
+    final zs = ecdh.computeSecret(privateKey, public2);
     return (ze: Uint8List.fromList(ze), zs: Uint8List.fromList(zs));
   }
 
   ({Uint8List ze, Uint8List zs}) getDecryptionSecrets(
       Uint8List privateKeyBytes) {
-    ec.PrivateKey privateKey =
-        ec.PrivateKey.fromBytes(public1.curve, privateKeyBytes);
+    final privateKey = ec.PrivateKey.fromBytes(public1.curve, privateKeyBytes);
 
-    List<int> ze = ecdh.computeSecret(privateKey, public1);
-    List<int> zs = ecdh.computeSecret(privateKey, public2);
+    final ze = ecdh.computeSecret(privateKey, public1);
+    final zs = ecdh.computeSecret(privateKey, public2);
+
     return (ze: Uint8List.fromList(ze), zs: Uint8List.fromList(zs));
   }
 }
@@ -153,14 +149,14 @@ class ECDH1PU_X25519 extends ECDH1PU {
       throw Exception('Private key needed for encryption data.');
     }
 
-    Uint8List ze = x25519.X25519(private1!, public1);
-    Uint8List zs = x25519.X25519(private2, public2);
+    final ze = x25519.X25519(private1!, public1);
+    final zs = x25519.X25519(private2, public2);
     return (ze: ze, zs: zs);
   }
 
   ({Uint8List ze, Uint8List zs}) getDecryptionSecrets(Uint8List private2) {
-    Uint8List ze = x25519.X25519(private2, public1);
-    Uint8List zs = x25519.X25519(private2, public2);
+    final ze = x25519.X25519(private2, public1);
+    final zs = x25519.X25519(private2, public2);
     return (ze: ze, zs: zs);
   }
 }
