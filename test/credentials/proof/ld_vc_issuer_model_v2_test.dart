@@ -49,8 +49,7 @@ void main() {
         signer: signer,
       );
       final issuedCredential = await LdVcDm2Suite().issue(
-          unsignedData: VcDataModelV2.fromJson(unsignedCredential.toJson()),
-          issuer: signer.did,
+          unsignedData: VcDataModelV2.fromMutable(unsignedCredential),
           proofGenerator: proofGenerator);
 
       final verificationResult =

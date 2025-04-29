@@ -24,7 +24,7 @@ Future<void> main() async {
   final credential = MutableVcDataModelV2(
       context: [DMV2ContextUrl],
       id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-      issuer: Issuer.uri('did:example:issuer'),
+      issuer: Issuer.uri(signer.did),
       type: {'VerifiableCredential', 'UniversityDegreeCredential'},
       validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
       validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
@@ -39,8 +39,9 @@ Future<void> main() async {
       ]);
 
   // Issue the VC
-  final credentialToSign = VcDataModelV2.fromJson(credential.toJson());
-  final issuedCredential = await suite.issue(credentialToSign, signer);
+  final credentialToSign = VcDataModelV2.fromMutable(credential);
+  final issuedCredential =
+      await suite.issue(unsignedData: credentialToSign, signer: signer);
 
   // Print the serialized credential
   print('Issued VC:\n${issuedCredential.serialized}');

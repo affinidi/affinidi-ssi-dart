@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:ssi/src/credentials/models/field_types/issuer.dart';
+
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/doc_with_embedded_proof.dart';
@@ -8,15 +10,9 @@ import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../proof/embedded_proof_suite.dart';
 
-/// Options for LD based data model operations.
-///
-/// Contains configuration parameters for LD based data model operations
-/// in the context of W3C Verifiable Credentials Data Model.
-abstract class LdOptions {}
-
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
-    Options extends LdOptions> with LdParser {
+abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
+    with LdParser {
   final String contextUrl;
 
   final String proofKey;
@@ -49,19 +45,16 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
 
   Future<Model> issue({
     required VC unsignedData,
-    required String issuer,
     required EmbeddedProofGenerator proofGenerator,
   }) async {
     var json = unsignedData.toJson();
     // remove proof in case it's already there
     json.remove(proofKey);
 
-    // set the issuer to match the signer
-    json[issuerKey] = issuer;
-
     final proof = await proofGenerator.generate(json);
 
-    if (proof.verificationMethod?.split('#').first != issuer) {
+    final issuer = Issuer.fromJson(json[issuerKey]);
+    if (proof.verificationMethod?.split('#').first != issuer.id.toString()) {
       throw SsiException(
         message: 'Issuer mismatch',
         code: SsiExceptionType.invalidJson.code,
@@ -88,8 +81,9 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
       {DateTime Function() getNow = DateTime.now}) async {
     //TODO(FTL-20735): discover proof type
     final document = input.toJson();
-    final issuerDid = document[issuerKey] as String;
-    final proofSuite = Secp256k1Signature2019Verifier(issuerDid: issuerDid);
+    final issuerDid = Issuer.uri(document[issuerKey]);
+    final proofSuite =
+        Secp256k1Signature2019Verifier(issuerDid: issuerDid.id.toString());
     final verificationResult =
         await proofSuite.verify(document, getNow: getNow);
 

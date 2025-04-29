@@ -52,8 +52,7 @@ void main() async {
       );
 
       final issuedCredential = await LdVcDm1Suite().issue(
-        issuer: signer.did,
-        unsignedData: VcDataModelV1.fromJson(unsignedCredential.toJson()),
+        unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
         proofGenerator: proofGenerator,
       );
 
@@ -89,16 +88,19 @@ void main() async {
     });
 
     test('LdVCDM1 fixture VC verify', () async {
-      final unsigned = LdVcDm1Suite().parse(VerifiableCredentialDataFixtures
-          .credentialWithValidProofDataModelV11JsonEncoded);
+      final unsigned = MutableVcDataModelV1.fromJson(LdVcDm1Suite()
+          .parse(VerifiableCredentialDataFixtures
+              .credentialWithValidProofDataModelV11JsonEncoded)
+          .toJson());
+
+      unsigned.issuer = MutableIssuer.uri(signer.did);
 
       final proofGenerator = Secp256k1Signature2019Generator(
         signer: signer,
       );
 
       final issuedCredential = await LdVcDm1Suite().issue(
-        issuer: signer.did,
-        unsignedData: unsigned,
+        unsignedData: VcDataModelV1.fromMutable(unsigned),
         proofGenerator: proofGenerator,
       );
 
