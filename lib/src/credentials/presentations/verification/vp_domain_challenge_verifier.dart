@@ -11,11 +11,11 @@ import 'vp_verifier.dart';
 /// Example:
 /// ```dart
 ///  final domainVerifier = VpDomainChallengeVerifier(domain: ['your-domain'], challenge: 'your-challenge');
-///   final verifier =UniversalPresentationVerifier(customVerifiers: [domainVerifier]);
-///   final verificationStatus = await verifier.verify(vp);
-/// if (!result.isValid) {
-///   print("Presentation contains invalid domain or challenge");
-/// }
+///  final verifier = UniversalPresentationVerifier(customVerifiers: [domainVerifier]);
+///  final verificationStatus = await verifier.verify(vp);
+///  if (!result.isValid) {
+///    print("Presentation contains invalid domain or challenge");
+///  }
 /// ```
 class VpDomainChallengeVerifier implements VpVerifier {
   /// Domain against which vp need to be verified
