@@ -38,15 +38,24 @@ void main() {
       );
     });
 
-    test('Sign & verify message', () async {
+    test('Sign & verify message using DidVerifier', () async {
+      DidcommSignedMessage signedMessage = await message.sign(aliceSigner);
+      bool actual = await signedMessage.verify(await DidVerifier.create(
+          algorithm: SignatureScheme.ecdsa_p256_sha256,
+          issuerDid: aliceDidDoc.id));
+
+      expect(signedMessage.payload, equals(message));
+      expect(actual, equals(true));
+    });
+
+    test('Sign & verify message using JWK', () async {
       DidcommSignedMessage signedMessage = await message.sign(aliceSigner);
 
-      // TODO: improve interface and take multiple key agreements into account?
       bool actual = await signedMessage
-          .verify(aliceDidDoc.resolveKeyIds().keyAgreement[0].asJwk());
+          .verifyUsingJwk(aliceDidDoc.resolveKeyIds().keyAgreement[0].asJwk());
 
-      expect(signedMessage.payload, message);
-      expect(actual, true);
+      expect(signedMessage.payload, equals(message));
+      expect(actual, equals(true));
     });
 
     test('set plaintext message sender (from) when signing', () async {
@@ -84,7 +93,7 @@ void main() {
 
       expect(
           () => signedMessage
-              .verify(bobDidDoc.resolveKeyIds().keyAgreement[0].asJwk()),
+              .verifyUsingJwk(bobDidDoc.resolveKeyIds().keyAgreement[0].asJwk()),
           throwsException);
     });
 
