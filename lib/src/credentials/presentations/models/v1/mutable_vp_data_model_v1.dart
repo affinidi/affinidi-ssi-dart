@@ -16,36 +16,44 @@ part of 'vp_data_model_v1.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class MutableVpDataModelV1 extends _VpDataModelV1 {
+class MutableVpDataModelV1 {
   /// The JSON-LD context for this presentation.
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
-  @override
   List<String> context;
 
   /// The optional identifier for this presentation.
-  @override
   Uri? id;
 
   /// The type definitions for this presentation.
   ///
   /// Must include 'VerifiablePresentation'.
-  @override
   Set<String> type;
 
   /// The identifier of the holder presenting the credentials.
   ///
   /// Typically a DID.
-  @override
   MutableHolder? holder;
 
   /// The list of verifiable credentials embedded in this presentation.
-  @override
   List<ParsedVerifiableCredential> verifiableCredential;
 
   /// The cryptographic proof(s) created by the holder.
-  @override
   List<EmbeddedProof> proof;
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.id.key] = id?.toString();
+    json[_P.type.key] = type.toList();
+    json[_P.holder.key] = holder?.toJson();
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.verifiableCredential.key] =
+        verifiableCredential.map(presentVC).toList();
+
+    return cleanEmpty(json);
+  }
 
   /// Creates a [VpDataModelV1] instance.
   ///
@@ -65,33 +73,40 @@ class MutableVpDataModelV1 extends _VpDataModelV1 {
         type = type ?? {},
         proof = proof ?? [],
         verifiableCredential = verifiableCredential ?? [];
-}
 
-abstract class _VpDataModelV1 {
-  List<String> get context;
+  /// Creates a [VpDataModelV1] from JSON input.
+  ///
+  /// The [input] can be a JSON string or a [Map<String, dynamic>].
+  /// Parses both mandatory and optional fields.
+  factory MutableVpDataModelV1.fromJson(dynamic input) {
+    final json = jsonToMap(input);
 
-  Uri? get id;
+    final context = getStringList(json, _P.context.key);
 
-  Set<String> get type;
+    final id = getUri(json, _P.id.key);
+    final type = getStringList(
+      json,
+      _P.type.key,
+      allowSingleValue: true,
+    ).toSet();
 
-  MutableHolder? get holder;
+    final holder = MutableHolder.fromJson(json[_P.holder.key]);
 
-  List<ParsedVerifiableCredential> get verifiableCredential;
+    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
+        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  List<EmbeddedProof> get proof;
+    final credentials = parseListOrSingleItem<ParsedVerifiableCredential>(
+        json, _P.verifiableCredential.key, parseVC,
+        allowSingleValue: true);
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-
-    json[_P.context.key] = context;
-    json[_P.id.key] = id?.toString();
-    json[_P.type.key] = type.toList();
-    json[_P.holder.key] = holder?.toJson();
-    json[_P.proof.key] = encodeListToSingleOrArray(proof);
-    json[_P.verifiableCredential.key] =
-        verifiableCredential.map(presentVC).toList();
-
-    return cleanEmpty(json);
+    return MutableVpDataModelV1(
+        context: context,
+        id: id,
+        type: type,
+        proof: proof,
+        holder: holder,
+        verifiableCredential: credentials);
   }
 }
 

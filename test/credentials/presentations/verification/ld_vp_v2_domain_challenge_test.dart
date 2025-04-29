@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/models/field_types/holder.dart';
+import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 import 'package:ssi/src/credentials/presentations/verification/vp_domain_challenge_verifier.dart';
@@ -20,10 +21,10 @@ void main() async {
 
   group('VP LD V2 Domain Challenge Verification', () {
     final v2Vp = MutableVpDataModelV2(
-        context: [VpDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('testVpV2'),
         type: {'VerifiablePresentation'},
-        holder: Holder.uri(signer.did),
+        holder: MutableHolder.uri(signer.did),
         verifiableCredential: [ldV2VC]);
     test('should be able to verify domain and challenge of VP proof', () async {
       final proofGenerator = Secp256k1Signature2019Generator(

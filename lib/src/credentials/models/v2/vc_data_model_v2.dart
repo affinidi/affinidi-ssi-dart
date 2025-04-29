@@ -12,9 +12,7 @@ import '../field_types/terms_of_use.dart';
 
 part './mutable_vc_data_model_v2.dart';
 
-class VcDataModelV2 extends _VcDataModelV2View implements VerifiableCredential {
-  static const String contextUrl = 'https://www.w3.org/ns/credentials/v2';
-
+class VcDataModelV2 implements VerifiableCredential {
   @override
   final UnmodifiableListView<String> context;
 
@@ -42,19 +40,71 @@ class VcDataModelV2 extends _VcDataModelV2View implements VerifiableCredential {
   @override
   final DateTime? validUntil;
 
-  @override
   final UnmodifiableListView<CredentialStatusV2> credentialStatus;
 
-  @override
   final UnmodifiableListView<RefreshServiceV2> refreshService;
 
   @override
   final UnmodifiableListView<TermsOfUse> termsOfUse;
 
-  @override
   final UnmodifiableListView<Evidence> evidence;
 
-  VcDataModelV2._({
+  @override
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.issuer.key] = issuer.toJson();
+    json[_P.type.key] = type.toList();
+    json[_P.id.key] = id?.toString();
+    json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
+    json[_P.validFrom.key] = validFrom?.toIso8601String();
+    json[_P.validUntil.key] = validUntil?.toIso8601String();
+    json[_P.credentialSubject.key] =
+        encodeListToSingleOrArray(credentialSubject);
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.credentialStatus.key] = encodeListToSingleOrArray(credentialStatus);
+    json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
+    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
+
+    return cleanEmpty(json);
+  }
+
+  bool validate() {
+    if (context.isEmpty) {
+      throw SsiException(
+        message: '`${_P.context.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (context.first != DMV2ContextUrl) {
+      throw SsiException(
+        message:
+            'The first URI of `${_P.context.key}` property should always be $DMV2ContextUrl',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (type.isEmpty) {
+      throw SsiException(
+        message: '`${_P.type.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (credentialSubject.isEmpty) {
+      throw SsiException(
+        message: '`${_P.credentialSubject.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    return true;
+  }
+
+  VcDataModelV2({
     required List<String> context,
     this.id,
     required List<CredentialSubject> credentialSubject,
@@ -76,19 +126,14 @@ class VcDataModelV2 extends _VcDataModelV2View implements VerifiableCredential {
         credentialStatus = UnmodifiableListView(credentialStatus ?? []),
         refreshService = UnmodifiableListView(refreshService ?? []),
         termsOfUse = UnmodifiableListView(termsOfUse ?? []),
-        evidence = UnmodifiableListView(evidence ?? []);
+        evidence = UnmodifiableListView(evidence ?? []) {
+    validate();
+  }
 
   factory VcDataModelV2.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
     final context = getStringList(json, _P.context.key, mandatory: true);
-    if (context.isEmpty || context.first != contextUrl) {
-      throw SsiException(
-        message:
-            'The first URI of @context property should always be $contextUrl',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(
@@ -143,7 +188,7 @@ class VcDataModelV2 extends _VcDataModelV2View implements VerifiableCredential {
         (item) => Evidence.fromJson(item as Map<String, dynamic>),
         allowSingleValue: true);
 
-    return VcDataModelV2._(
+    return VcDataModelV2(
         context: context,
         id: id,
         credentialSubject: credentialSubject,
@@ -160,7 +205,7 @@ class VcDataModelV2 extends _VcDataModelV2View implements VerifiableCredential {
   }
 
   VcDataModelV2.clone(VcDataModelV2 input)
-      : this._(
+      : this(
             context: input.context,
             id: input.id,
             credentialSubject: input.credentialSubject,

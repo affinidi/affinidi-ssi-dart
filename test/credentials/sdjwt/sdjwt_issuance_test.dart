@@ -24,7 +24,7 @@ void main() {
 
     test('can issue a credential with default options', () async {
       final credential = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri('did:example:issuer'),
         type: {'VerifiableCredential', 'UniversityDegreeCredential'},
@@ -70,7 +70,7 @@ void main() {
 
     test('can issue a credential with custom disclosure frame', () async {
       final credential = MutableVcDataModelV2(
-        context: [VcDataModelV2.contextUrl],
+        context: [DMV2ContextUrl],
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri('did:example:issuer'),
         type: {'VerifiableCredential', 'UniversityDegreeCredential'},

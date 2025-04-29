@@ -22,7 +22,7 @@ void main() {
 
       final unsignedCredential = MutableVcDataModelV2(
         context: [
-          VcDataModelV2.contextUrl,
+          DMV2ContextUrl,
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
         ],
         id: Uri.parse('uuid:123456abcd'),

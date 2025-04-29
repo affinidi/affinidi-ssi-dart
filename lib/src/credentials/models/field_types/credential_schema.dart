@@ -1,5 +1,18 @@
 import '../../../util/json_util.dart';
 
+abstract interface class _CredentialSchemaInterface {
+  Uri? get id;
+  String? get type;
+
+  /// Converts this status to a JSON-serializable map.
+  ///
+  /// Returns a map containing the 'type' field and 'id' field if present.
+  Map<String, dynamic> toJson() => cleanEmpty({
+        'id': id?.toString(),
+        'type': type,
+      });
+}
+
 /// Represents a schema for verifiable credentials following W3C standards.
 ///
 /// A credential schema defines the structure and constraints of a verifiable credential.
@@ -12,7 +25,7 @@ import '../../../util/json_util.dart';
 ///   schema: 'PersonCredential',
 /// );
 /// ```
-class MutableCredentialSchema {
+class MutableCredentialSchema extends _CredentialSchemaInterface {
   /// The URL of the schema including domain and filename.
   Uri? id;
 
@@ -40,16 +53,18 @@ class MutableCredentialSchema {
     return MutableCredentialSchema(id: id, type: type);
   }
 
-  /// Converts this schema to a JSON-serializable map.
+  /// Creates a [MutableCredentialSchema] from JSON data.
   ///
-  /// Returns a map containing 'id' and 'type' fields.
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-        'type': type,
-      });
+  /// The [json] must contain 'id' and 'type' fields.
+  factory MutableCredentialSchema.fromJson(Map<String, dynamic> json) {
+    final id = getUri(json, 'id');
+    final type = getString(json, 'type');
+
+    return MutableCredentialSchema(id: id, type: type);
+  }
 }
 
-class CredentialSchema extends MutableCredentialSchema {
+class CredentialSchema extends _CredentialSchemaInterface {
   final Uri _id;
   final String _type;
 
@@ -67,7 +82,7 @@ class CredentialSchema extends MutableCredentialSchema {
       : _id = id,
         _type = type;
 
-  /// Creates a [MutableCredentialSchema] from JSON data.
+  /// Creates a [CredentialSchema] from JSON data.
   ///
   /// The [json] must contain 'id' and 'type' fields.
   factory CredentialSchema.fromJson(Map<String, dynamic> json) {

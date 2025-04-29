@@ -16,39 +16,48 @@ part of 'vp_data_model_v2.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class MutableVpDataModelV2 extends _VpDataModelV2 {
+class MutableVpDataModelV2 {
   /// The JSON-LD context for this presentation.
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
-  @override
   List<String> context;
 
   /// The optional identifier for this presentation.
-  @override
   Uri? id;
 
   /// The type definitions for this presentation.
   ///
   /// Must include 'VerifiablePresentation'.
-  @override
   Set<String> type;
 
   /// The identifier of the holder presenting the credentials.
   ///
   /// Typically a DID.
-  @override
   MutableHolder? holder;
 
   /// The list of verifiable credentials embedded in this presentation.
-  @override
   List<ParsedVerifiableCredential> verifiableCredential;
 
   /// The cryptographic proof(s) created by the holder.
-  @override
   List<EmbeddedProof> proof;
 
-  @override
   List<TermsOfUse> termsOfUse;
+
+  /// Converts this presentation to a JSON-serializable map.
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.id.key] = id?.toString();
+    json[_P.type.key] = type.toList();
+    json[_P.holder.key] = holder?.toJson();
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    json[_P.verifiableCredential.key] =
+        verifiableCredential.map(presentVC).toList();
+
+    return cleanEmpty(json);
+  }
 
   /// Creates a [MutableVpDataModelV2] instance.
   ///
@@ -70,52 +79,47 @@ class MutableVpDataModelV2 extends _VpDataModelV2 {
         proof = proof ?? [],
         termsOfUse = termsOfUse ?? [],
         verifiableCredential = verifiableCredential ?? [];
-}
 
-abstract class _VpDataModelV2 {
-  /// The JSON-LD context for this presentation.
+  /// Creates a [VpDataModelV2] from JSON input.
   ///
-  /// Must include 'https://www.w3.org/ns/credentials/v2'.
-  List<String> get context;
+  /// The [input] can be a JSON string or a [Map<String, dynamic>].
+  /// Parses both mandatory and optional fields.
+  factory MutableVpDataModelV2.fromJson(dynamic input) {
+    final json = jsonToMap(input);
 
-  /// The unique identifier for this presentation.
-  Uri? get id;
+    final context = getStringList(json, _P.context.key);
 
-  /// The type definitions for this presentation.
-  ///
-  /// Must include 'VerifiablePresentation'.
-  Set<String> get type;
+    final id = getUri(json, _P.id.key);
+    final type = getStringList(
+      json,
+      _P.type.key,
+      allowSingleValue: true,
+    ).toSet();
 
-  /// The entity presenting the credentials.
-  ///
-  /// Usually identified by a DID.
-  MutableHolder? get holder;
+    final holder = MutableHolder.fromJson(json[_P.holder.key]);
 
-  /// The terms of use describing conditions for credential usage.
-  List<TermsOfUse> get termsOfUse;
+    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
+        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  /// The verifiable credentials included in this presentation.
-  List<ParsedVerifiableCredential> get verifiableCredential;
+    final credentials = parseListOrSingleItem<ParsedVerifiableCredential>(
+        json, _P.verifiableCredential.key, parseVC,
+        allowSingleValue: true);
 
-  /// The cryptographic proof securing this presentation.
-  ///
-  /// Can be a DataIntegrityProof, JWT, or other proof format.
-  List<EmbeddedProof> get proof;
+    final termsOfUse = parseListOrSingleItem<TermsOfUse>(
+        json,
+        _P.termsOfUse.key,
+        (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  /// Converts this presentation to a JSON-serializable map.
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-
-    json[_P.context.key] = context;
-    json[_P.id.key] = id?.toString();
-    json[_P.type.key] = type.toList();
-    json[_P.holder.key] = holder?.toJson();
-    json[_P.proof.key] = encodeListToSingleOrArray(proof);
-    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
-    json[_P.verifiableCredential.key] =
-        verifiableCredential.map(presentVC).toList();
-
-    return cleanEmpty(json);
+    return MutableVpDataModelV2(
+        context: context,
+        id: id,
+        type: type,
+        proof: proof,
+        holder: holder,
+        verifiableCredential: credentials,
+        termsOfUse: termsOfUse);
   }
 }
 

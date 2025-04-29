@@ -1,6 +1,6 @@
 import 'package:ssi/src/credentials/jwt/jwt_dm_v1_suite.dart';
 import 'package:ssi/src/credentials/linked_data/ld_dm_v1_suite.dart';
-import 'package:ssi/src/credentials/presentations/models/v1/vp_data_model_v1.dart';
+import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/presentations/suites/universal_presentation_parser.dart';
 import 'package:test/test.dart';
 
@@ -17,7 +17,7 @@ void main() async {
       expect(v1Vp, isNotNull);
       expect(v1Vp.serialized, isNotNull);
       expect(v1Vp.serialized, isA<String>());
-      expect(VpDataModelV1.contextUrl, isIn(v1Vp.context));
+      expect(DMV1ContextUrl, isIn(v1Vp.context));
       expect(v1Vp.holder, isNotNull);
       expect(v1Vp.proof, isNotEmpty);
       expect(v1Vp.verifiableCredential.length, 2);

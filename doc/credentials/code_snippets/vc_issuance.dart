@@ -22,7 +22,7 @@ Future<void> main() async {
 
   // Create a sample verifiable credential
   final credential = MutableVcDataModelV2(
-      context: [VcDataModelV2.contextUrl],
+      context: [DMV2ContextUrl],
       id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
       issuer: Issuer.uri('did:example:issuer'),
       type: {'VerifiableCredential', 'UniversityDegreeCredential'},

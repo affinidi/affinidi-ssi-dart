@@ -1,44 +1,54 @@
 part of 'vc_data_model_v2.dart';
 
-class MutableVcDataModelV2 extends _VcDataModelV2View {
-  @override
+const String DMV2ContextUrl = 'https://www.w3.org/ns/credentials/v2';
+
+class MutableVcDataModelV2 {
   List<String> context;
 
-  @override
   Uri? id;
 
-  @override
   Set<String> type;
 
-  @override
   List<MutableCredentialSchema> credentialSchema;
 
-  @override
   List<MutableCredentialSubject> credentialSubject;
 
-  @override
   MutableIssuer? issuer;
 
-  @override
   DateTime? validFrom;
 
-  @override
   DateTime? validUntil;
 
-  @override
   List<EmbeddedProof> proof;
 
-  @override
   List<MutableCredentialStatusV2> credentialStatus;
 
-  @override
   List<MutableRefreshServiceV2> refreshService;
 
-  @override
   List<MutableTermsOfUse> termsOfUse;
 
-  @override
   List<MutableEvidence> evidence;
+
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.issuer.key] = issuer?.toJson();
+    json[_P.type.key] = type.toList();
+    json[_P.id.key] = id?.toString();
+    json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
+    json[_P.validFrom.key] = validFrom?.toIso8601String();
+    json[_P.validUntil.key] = validUntil?.toIso8601String();
+    json[_P.credentialSubject.key] =
+        encodeListToSingleOrArray(credentialSubject);
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.credentialStatus.key] = encodeListToSingleOrArray(credentialStatus);
+    json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
+    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
+    json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
+
+    return cleanEmpty(json);
+  }
 
   MutableVcDataModelV2({
     List<String>? context,
@@ -63,54 +73,80 @@ class MutableVcDataModelV2 extends _VcDataModelV2View {
         refreshService = refreshService ?? [],
         termsOfUse = termsOfUse ?? [],
         evidence = evidence ?? [];
-}
 
-abstract interface class _VcDataModelV2View {
-  List<String> get context;
+  factory MutableVcDataModelV2.fromJson(dynamic input) {
+    final json = jsonToMap(input);
 
-  Uri? get id;
+    final context = getStringList(json, _P.context.key);
 
-  Set<String> get type;
+    final id = getUri(json, _P.id.key);
+    final type =
+        getStringList(json, _P.type.key, allowSingleValue: true).toSet();
 
-  List<MutableCredentialSchema> get credentialSchema;
+    final issuer = MutableIssuer.fromJson(json[_P.issuer.key]);
 
-  List<CredentialSubjectInterface> get credentialSubject;
+    final credentialSubject = parseListOrSingleItem<MutableCredentialSubject>(
+        json,
+        _P.credentialSubject.key,
+        (item) =>
+            MutableCredentialSubject.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  MutableIssuer? get issuer;
+    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
+        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  DateTime? get validFrom;
+    final credentialSchema = parseListOrSingleItem<MutableCredentialSchema>(
+        json,
+        _P.credentialSchema.key,
+        (item) =>
+            MutableCredentialSchema.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  DateTime? get validUntil;
+    final validFrom = getDateTime(json, _P.validFrom.key);
 
-  List<EmbeddedProof> get proof;
+    final validUntil = getDateTime(json, _P.validUntil.key);
 
-  List<MutableCredentialStatusV2> get credentialStatus;
+    final credentialStatus = parseListOrSingleItem<MutableCredentialStatusV2>(
+        json,
+        _P.credentialStatus.key,
+        (item) =>
+            MutableCredentialStatusV2.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  List<MutableRefreshServiceV2> get refreshService;
+    final refreshService = parseListOrSingleItem<MutableRefreshServiceV2>(
+        json,
+        _P.refreshService.key,
+        (item) =>
+            MutableRefreshServiceV2.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  List<MutableTermsOfUse> get termsOfUse;
+    final termsOfUse = parseListOrSingleItem<MutableTermsOfUse>(
+        json,
+        _P.termsOfUse.key,
+        (item) => MutableTermsOfUse.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  List<MutableEvidence> get evidence;
+    final evidence = parseListOrSingleItem<MutableEvidence>(
+        json,
+        _P.evidence.key,
+        (item) => MutableEvidence.fromJson(item as Map<String, dynamic>),
+        allowSingleValue: true);
 
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
-
-    json[_P.context.key] = context;
-    json[_P.issuer.key] = issuer?.toJson();
-    json[_P.type.key] = type.toList();
-    json[_P.id.key] = id?.toString();
-    json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
-    json[_P.validFrom.key] = validFrom?.toIso8601String();
-    json[_P.validUntil.key] = validUntil?.toIso8601String();
-    json[_P.credentialSubject.key] =
-        encodeListToSingleOrArray(credentialSubject);
-    json[_P.proof.key] = encodeListToSingleOrArray(proof);
-    json[_P.credentialStatus.key] = encodeListToSingleOrArray(credentialStatus);
-    json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
-    json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
-    json[_P.evidence.key] = encodeListToSingleOrArray(evidence);
-
-    return cleanEmpty(json);
+    return MutableVcDataModelV2(
+        context: context,
+        id: id,
+        credentialSubject: credentialSubject,
+        issuer: issuer,
+        type: type,
+        validFrom: validFrom,
+        credentialSchema: credentialSchema,
+        validUntil: validUntil,
+        proof: proof,
+        credentialStatus: credentialStatus,
+        refreshService: refreshService,
+        termsOfUse: termsOfUse,
+        evidence: evidence);
   }
 }
 

@@ -1,13 +1,25 @@
-import '../../../../ssi.dart';
 import '../../../util/json_util.dart';
 
-class MutableIssuer {
+abstract interface class _IssuerInterface {
+  Uri? get id;
+
+  /// Converts this status to a JSON-serializable map.
+  ///
+  /// Returns a map containing the 'type' field and 'id' field if present.
+  Map<String, dynamic> toJson() => cleanEmpty({'id': id?.toString()});
+}
+
+class MutableIssuer extends _IssuerInterface {
   Uri? id;
 
   MutableIssuer({this.id});
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-      });
+
+  factory MutableIssuer.fromJson(dynamic json) {
+    final id = getUri(json, 'id');
+    return MutableIssuer(id: id);
+  }
+
+  factory MutableIssuer.uri(dynamic json) => MutableIssuer.fromJson(json);
 }
 
 class Issuer extends MutableIssuer {
@@ -19,21 +31,7 @@ class Issuer extends MutableIssuer {
   Issuer({required Uri id}) : _id = id;
 
   factory Issuer.fromJson(dynamic json) {
-    Uri id;
-
-    if (json is String) {
-      id = Uri.parse(json);
-    } else if (json is Uri) {
-      id = json;
-    } else if (json is Map<String, dynamic>) {
-      id = getMandatoryUri(json, 'id');
-    } else {
-      throw SsiException(
-        message: 'id should be a String or a Uri',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
-
+    final id = getMandatoryUri(json, 'id');
     return Issuer(id: id);
   }
 
