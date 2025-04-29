@@ -4,15 +4,9 @@ import 'dart:typed_data';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-void main() {
-  getMessage({required String to, String? from}) => DidcommPlaintextMessage(
-        id: '2fb19055-581d-488e-b357-9d026bee98fc',
-        to: [to],
-        from: from,
-        type: 'type',
-        body: {"foo": 'bar'},
-      );
+import '../fixtures/didcomm_message_fixtures.dart';
 
+void main() {
   group('DIDComm message encryption / decryption (secp256k1)', () {
     late Bip32Wallet aliceWallet;
     late Bip32Wallet bobWallet;
@@ -67,7 +61,9 @@ void main() {
 
     group('key wrap algorithm :: ECDH-ES', () {
       test('Two-party encrypt/decrypt should succeed', () async {
-        DidcommPlaintextMessage message = getMessage(to: bobDidDoc.id);
+        DidcommPlaintextMessage message =
+            DidcommMessageFixtures.getMessage(to: bobDidDoc.id);
+
         DidcommEncryptedMessage encryptedMessage = await message.encrypt(
             keyWrapAlgorithm: KeyWrapAlgorithm.ecdhES,
             wallet: aliceWallet,
@@ -80,7 +76,9 @@ void main() {
       });
 
       test('Third party fails to decrypt', () async {
-        DidcommPlaintextMessage message = getMessage(to: bobDidDoc.id);
+        DidcommPlaintextMessage message =
+            DidcommMessageFixtures.getMessage(to: bobDidDoc.id);
+
         DidcommEncryptedMessage encryptedMessage = await message.encrypt(
             keyWrapAlgorithm: KeyWrapAlgorithm.ecdhES,
             wallet: aliceWallet,
@@ -94,7 +92,9 @@ void main() {
       });
 
       test('should have valid encrypted message', () async {
-        DidcommPlaintextMessage message = getMessage(to: bobDidDoc.id);
+        DidcommPlaintextMessage message =
+            DidcommMessageFixtures.getMessage(to: bobDidDoc.id);
+
         DidcommEncryptedMessage encryptedMessage = await message.encrypt(
             keyWrapAlgorithm: KeyWrapAlgorithm.ecdhES,
             wallet: aliceWallet,
@@ -131,8 +131,8 @@ void main() {
 
     group('key wrap algorithm :: ECDH-1PU+A256KW', () {
       test('Two-party encrypt/decrypt should succeed', () async {
-        DidcommPlaintextMessage message =
-            getMessage(to: bobDidDoc.id, from: aliceDidDoc.id);
+        DidcommPlaintextMessage message = DidcommMessageFixtures.getMessage(
+            to: bobDidDoc.id, from: aliceDidDoc.id);
 
         DidcommEncryptedMessage encryptedMessage = await message.encrypt(
             keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
@@ -146,8 +146,8 @@ void main() {
       });
 
       test('Third party fails to decrypt', () async {
-        DidcommPlaintextMessage message =
-            getMessage(to: bobDidDoc.id, from: aliceDidDoc.id);
+        DidcommPlaintextMessage message = DidcommMessageFixtures.getMessage(
+            to: bobDidDoc.id, from: aliceDidDoc.id);
 
         DidcommEncryptedMessage encryptedMessage = await message.encrypt(
             keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
@@ -162,8 +162,8 @@ void main() {
       });
 
       test('should have valid encrypted message', () async {
-        DidcommPlaintextMessage message =
-            getMessage(to: bobDidDoc.id, from: aliceDidDoc.id);
+        DidcommPlaintextMessage message = DidcommMessageFixtures.getMessage(
+            to: bobDidDoc.id, from: aliceDidDoc.id);
 
         DidcommEncryptedMessage encryptedMessage = await message.encrypt(
             keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
@@ -199,7 +199,8 @@ void main() {
       });
 
       test('should throw exception if message.from is emtpy', () {
-        DidcommPlaintextMessage message = getMessage(to: bobDidDoc.id);
+        DidcommPlaintextMessage message =
+            DidcommMessageFixtures.getMessage(to: bobDidDoc.id);
         expect(
             () => message.encrypt(
                 keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
@@ -215,8 +216,8 @@ void main() {
       test(
           'Two-party encrypt/decrypt should succeed with alternative encryption algorhithm A256GCM',
           () async {
-        DidcommPlaintextMessage message =
-            getMessage(to: bobDidDoc.id, from: aliceDidDoc.id);
+        DidcommPlaintextMessage message = DidcommMessageFixtures.getMessage(
+            to: bobDidDoc.id, from: aliceDidDoc.id);
 
         DidcommEncryptedMessage encryptedMessage = await message.encrypt(
             keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,

@@ -1,115 +1,225 @@
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../fixtures/didcomm_message_fixtures.dart';
+
 void main() {
   group('DIDComm message encryption / decryption (P256)', () {
     late GenericWallet aliceWallet;
     late GenericWallet bobWallet;
     late GenericWallet eveWallet;
 
-    late InMemoryKeyStore aliceKeyStore;
-    late InMemoryKeyStore bobKeyStore;
-    late InMemoryKeyStore eveKeyStore;
+    late KeyPair aliceKeyPair;
+    late KeyPair bobKeyPair;
+    late KeyPair eveKeyPair;
 
     late DidcommPlaintextMessage message;
     late DidDocument aliceDidDoc;
     late DidDocument bobDidDoc;
 
-    const aliceKeyId = 'alice-p256-key';
-    const bobKeyId = 'bob-p256-key';
-    const eveKeyId = 'eve-p256-key';
-
     late PublicKey alicePublicKey;
     late PublicKey bobPublicKey;
 
+    late List<Map<String, String>> bobKeyAgreements;
+
     setUp(() async {
-      aliceKeyStore = InMemoryKeyStore();
-      bobKeyStore = InMemoryKeyStore();
-      eveKeyStore = InMemoryKeyStore();
+      aliceWallet = GenericWallet(InMemoryKeyStore());
+      bobWallet = GenericWallet(InMemoryKeyStore());
+      eveWallet = GenericWallet(InMemoryKeyStore());
 
-      aliceWallet = GenericWallet(aliceKeyStore);
-      bobWallet = GenericWallet(bobKeyStore);
-      eveWallet = GenericWallet(eveKeyStore);
+      aliceKeyPair = await aliceWallet.generateKey(keyType: KeyType.p256);
+      bobKeyPair = await bobWallet.generateKey(keyType: KeyType.p256);
+      eveKeyPair = await eveWallet.generateKey(keyType: KeyType.p256);
 
-      await aliceWallet.generateKey(keyId: aliceKeyId, keyType: KeyType.p256);
-      await bobWallet.generateKey(keyId: bobKeyId, keyType: KeyType.p256);
-      await eveWallet.generateKey(keyId: eveKeyId, keyType: KeyType.p256);
-
-      alicePublicKey = await aliceWallet.getPublicKey(aliceKeyId);
-      bobPublicKey = await bobWallet.getPublicKey(bobKeyId);
+      alicePublicKey = await aliceWallet.getPublicKey(aliceKeyPair.id);
+      bobPublicKey = await bobWallet.getPublicKey(bobKeyPair.id);
 
       aliceDidDoc = DidKey.generateDocument(alicePublicKey);
       bobDidDoc = DidKey.generateDocument(bobPublicKey);
 
-      message = DidcommPlaintextMessage(
-        id: '2fb19055-581d-488e-b357-9d026bee98fc',
-        to: [bobDidDoc.id],
-        from: aliceDidDoc.id,
-        type: 'type',
-        body: {"foo": 'bar'},
-      );
-    });
-
-    test('Two-party encrypt/decrypt should succeed', () async {
-      // Get keys from respective wallets
-      List<Map<String, String>> bobKeyAgreements = bobDidDoc
+      bobKeyAgreements = bobDidDoc
           .resolveKeyIds()
           .keyAgreement
           .map((ka) => (ka as VerificationMethod).asJwk().toJson())
           .toList();
-
-      final encryptedFromPlaintext = await message.encrypt(
-          wallet: aliceWallet,
-          keyId: alicePublicKey.id,
-          recipientPublicKeyJwks: bobKeyAgreements);
-
-      final actual = await encryptedFromPlaintext.decrypt(
-          wallet: bobWallet, keyId: bobPublicKey.id);
-
-      expect(message.toJson(), actual.toJson());
     });
 
-    test(
-        'Two-party encrypt/decrypt including json encoding / decoding should succeed',
-        () async {
-      List<Map<String, String>> bobKeyAgreements = bobDidDoc
-          .resolveKeyIds()
-          .keyAgreement
-          .map((ka) => (ka as VerificationMethod).asJwk().toJson())
-          .toList();
+    group('key wrap algorithm :: ECDH-ES', () {
+      test('Two-party encrypt/decrypt should succeed', () async {
+        DidcommPlaintextMessage message =
+            DidcommMessageFixtures.getMessage(to: bobDidDoc.id);
 
-      final encryptedFromPlaintext = await message.encrypt(
-          wallet: aliceWallet,
-          keyId: alicePublicKey.id,
-          recipientPublicKeyJwks: bobKeyAgreements);
+        DidcommEncryptedMessage encryptedMessage = await message.encrypt(
+            keyWrapAlgorithm: KeyWrapAlgorithm.ecdhES,
+            wallet: aliceWallet,
+            keyId: aliceKeyPair.id,
+            recipientPublicKeyJwks: bobKeyAgreements);
 
-      final newMessage =
-          DidcommEncryptedMessage.fromJson(encryptedFromPlaintext.toJson());
+        DidcommMessage actual = await encryptedMessage.decrypt(
+            wallet: bobWallet, keyId: bobKeyPair.id);
+        expect(actual.toJson(), equals(message.toJson()));
+      });
 
-      final actual =
-          await newMessage.decrypt(wallet: bobWallet, keyId: bobPublicKey.id);
+      test('Third party fails to decrypt', () async {
+        DidcommPlaintextMessage message =
+            DidcommMessageFixtures.getMessage(to: bobDidDoc.id);
 
-      expect(message.toJson(), actual.toJson());
+        DidcommEncryptedMessage encryptedMessage = await message.encrypt(
+            keyWrapAlgorithm: KeyWrapAlgorithm.ecdhES,
+            wallet: aliceWallet,
+            keyId: aliceKeyPair.id,
+            recipientPublicKeyJwks: bobKeyAgreements);
+
+        expect(
+            () => encryptedMessage.decrypt(
+                wallet: eveWallet, keyId: eveKeyPair.id),
+            throwsException);
+      });
+
+      test('should have valid encrypted message', () async {
+        DidcommPlaintextMessage message =
+            DidcommMessageFixtures.getMessage(to: bobDidDoc.id);
+
+        DidcommEncryptedMessage encryptedMessage = await message.encrypt(
+            keyWrapAlgorithm: KeyWrapAlgorithm.ecdhES,
+            wallet: aliceWallet,
+            keyId: aliceKeyPair.id,
+            recipientPublicKeyJwks: bobKeyAgreements);
+
+        Map<String, dynamic> aHeader =
+            encryptedMessage.protectedHeader.toJson();
+
+        // check recipients
+        expect(encryptedMessage.recipients.length, equals(1));
+        expect(encryptedMessage.recipients[0].header.kid,
+            equals(bobDidDoc.verificationMethod[0].id));
+        expect(encryptedMessage.recipients[0].encryptedKey, isNotNull);
+
+        // check JWE header
+        expect(aHeader['skid'], equals(aliceDidDoc.verificationMethod[0].id));
+        expect(aHeader['enc'], equals(EncryptionAlgorithm.a256cbc.value));
+        expect(aHeader['alg'], equals(KeyWrapAlgorithm.ecdhES.value));
+        expect(aHeader['typ'], equals(DidcommMessageTyp.encrypted.value));
+        expect(aHeader['apu'], isNull);
+        expect(aHeader['apv'], isNotNull);
+        expect(aHeader['epk']['crv'], equals('P-256'));
+        expect(aHeader['epk']['kty'], equals('EC'));
+        expect(aHeader['epk']['x'], isNotNull);
+        expect(aHeader['epk']['y'], isNotNull);
+
+        // others
+        expect(encryptedMessage.ciphertext, isNotNull);
+        expect(encryptedMessage.tag, isNotNull);
+        expect(encryptedMessage.iv, isNotNull);
+      });
     });
 
-    test('Third party fails to decrypt', () async {
-      final evePublicKey = await eveWallet.getPublicKey(eveKeyId);
+    group('key wrap algorithm :: ECDH-1PU+A256KW', () {
+      test('Two-party encrypt/decrypt should succeed', () async {
+        DidcommPlaintextMessage message = DidcommMessageFixtures.getMessage(
+            to: bobDidDoc.id, from: aliceDidDoc.id);
 
-      List<Map<String, String>> bobKeyAgreements = bobDidDoc
-          .resolveKeyIds()
-          .keyAgreement
-          .map((ka) => (ka as VerificationMethod).asJwk().toJson())
-          .toList();
+        DidcommEncryptedMessage encryptedMessage = await message.encrypt(
+            keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
+            wallet: aliceWallet,
+            keyId: aliceKeyPair.id,
+            recipientPublicKeyJwks: bobKeyAgreements);
 
-      final encryptedFromPlaintext = await message.encrypt(
-          wallet: aliceWallet,
-          keyId: alicePublicKey.id,
-          recipientPublicKeyJwks: bobKeyAgreements);
+        DidcommMessage actual = await encryptedMessage.decrypt(
+            wallet: bobWallet, keyId: bobKeyPair.id);
+        expect(actual.toJson(), equals(message.toJson()));
+      });
 
-      expect(
-          () => encryptedFromPlaintext.decrypt(
-              wallet: eveWallet, keyId: evePublicKey.id),
-          throwsException);
+      test('Third party fails to decrypt', () async {
+        DidcommPlaintextMessage message = DidcommMessageFixtures.getMessage(
+            to: bobDidDoc.id, from: aliceDidDoc.id);
+
+        DidcommEncryptedMessage encryptedMessage = await message.encrypt(
+            keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
+            wallet: aliceWallet,
+            keyId: aliceKeyPair.id,
+            recipientPublicKeyJwks: bobKeyAgreements);
+
+        expect(
+            () => encryptedMessage.decrypt(
+                wallet: eveWallet, keyId: eveKeyPair.id),
+            throwsException);
+      });
+
+      test('should have valid encrypted message', () async {
+        DidcommPlaintextMessage message = DidcommMessageFixtures.getMessage(
+            to: bobDidDoc.id, from: aliceDidDoc.id);
+
+        DidcommEncryptedMessage encryptedMessage = await message.encrypt(
+            keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
+            wallet: aliceWallet,
+            keyId: aliceKeyPair.id,
+            recipientPublicKeyJwks: bobKeyAgreements);
+
+        Map<String, dynamic> aHeader =
+            encryptedMessage.protectedHeader.toJson();
+
+        // check recipients
+        expect(encryptedMessage.recipients.length, equals(1));
+        expect(encryptedMessage.recipients[0].header.kid,
+            equals(bobDidDoc.verificationMethod[0].id));
+        expect(encryptedMessage.recipients[0].encryptedKey, isNotNull);
+
+        // check JWE header
+        expect(aHeader['skid'], equals(aliceDidDoc.verificationMethod[0].id));
+        expect(aHeader['enc'], equals(EncryptionAlgorithm.a256cbc.value));
+        expect(aHeader['alg'], equals(KeyWrapAlgorithm.ecdh1PU.value));
+        expect(aHeader['typ'], equals(DidcommMessageTyp.encrypted.value));
+        expect(aHeader['apu'], isNotNull);
+        expect(aHeader['apv'], isNotNull);
+        expect(aHeader['epk']['crv'], equals('P-256'));
+        expect(aHeader['epk']['kty'], equals('EC'));
+        expect(aHeader['epk']['x'], isNotNull);
+        expect(aHeader['epk']['y'], isNotNull);
+
+        // others
+        expect(encryptedMessage.ciphertext, isNotNull);
+        expect(encryptedMessage.tag, isNotNull);
+        expect(encryptedMessage.iv, isNotNull);
+      });
+
+      test('should throw exception if message.from is emtpy', () {
+        DidcommPlaintextMessage message =
+            DidcommMessageFixtures.getMessage(to: bobDidDoc.id);
+        expect(
+            () => message.encrypt(
+                keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
+                wallet: aliceWallet,
+                keyId: aliceKeyPair.id,
+                recipientPublicKeyJwks: bobKeyAgreements),
+            throwsA(predicate((e) =>
+                e is Exception &&
+                (e as dynamic).message ==
+                    'For authcrypted messages the from-header of the plaintext message must not be null')));
+      });
+
+      test(
+          'Two-party encrypt/decrypt should succeed with alternative encryption algorhithm A256GCM',
+          () async {
+        DidcommPlaintextMessage message = DidcommMessageFixtures.getMessage(
+            to: bobDidDoc.id, from: aliceDidDoc.id);
+
+        DidcommEncryptedMessage encryptedMessage = await message.encrypt(
+            keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
+            encryptionAlgorithm: EncryptionAlgorithm.a256gcm,
+            wallet: aliceWallet,
+            keyId: aliceKeyPair.id,
+            recipientPublicKeyJwks: bobKeyAgreements);
+
+        DidcommMessage actual = await encryptedMessage.decrypt(
+            wallet: bobWallet, keyId: bobKeyPair.id);
+
+        expect(actual.toJson(), equals(message.toJson()));
+
+        Map<String, dynamic> aHeader =
+            encryptedMessage.protectedHeader.toJson();
+        expect(aHeader['enc'], equals(EncryptionAlgorithm.a256gcm.value));
+      });
     });
   });
 }
