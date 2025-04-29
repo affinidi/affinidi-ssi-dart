@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:elliptic/elliptic.dart' as ec;
+import 'package:ssi/src/did/did_document.dart';
 import 'package:ssi/src/key_pair/ed25519_key_pair.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
 import 'package:ssi/src/types.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:x25519/x25519.dart' as x25519;
 
 Map<String, dynamic> credentialToMap(dynamic credential) {
   if (credential is String) {

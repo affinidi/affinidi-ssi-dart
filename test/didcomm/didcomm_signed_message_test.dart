@@ -92,8 +92,8 @@ void main() {
       DidDocument bobDidDoc = DidKey.generateDocument(bobKeyPair.publicKey);
 
       expect(
-          () => signedMessage
-              .verifyUsingJwk(bobDidDoc.resolveKeyIds().keyAgreement[0].asJwk()),
+          () => signedMessage.verifyUsingJwk(
+              bobDidDoc.resolveKeyIds().keyAgreement[0].asJwk()),
           throwsException);
     });
 
