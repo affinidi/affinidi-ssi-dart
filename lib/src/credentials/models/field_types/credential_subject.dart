@@ -12,16 +12,32 @@ abstract interface class _CredentialSubjectInterface
   }
 }
 
+/// Represents a Mutable CredentialSubject for verifiable credentials following W3C standards.
+///
+/// A verifiable credential contains claims about one or more subjects.
+/// This specification defines a credentialSubject property for the expression of claims about one or more subjects.
+///
+/// Example:
+/// ```dart
+/// final schema = MutableCredentialSubject(
+///   id: 'did:example:subjectV2',
+///   'email': 'user@test.com',
+/// );
+/// ```
 class MutableCredentialSubject extends _CredentialSubjectInterface {
   @override
   Uri? get id => getUri(_claims, 'id');
 
   final Map<String, dynamic> _claims;
 
+  /// Creates a [MutableCredentialSubject]
+  ///
+  /// The [claims]- is An assertion made about subject.
   MutableCredentialSubject(
     Map<String, dynamic>? claims,
   ) : _claims = claims ?? {};
 
+  /// Creates a [MutableCredentialSubject] from JSON data.
   factory MutableCredentialSubject.fromJson(Map<String, dynamic> json) {
     final claimsMap = Map<String, dynamic>.from(json);
     return MutableCredentialSubject(claimsMap);
@@ -55,6 +71,18 @@ class MutableCredentialSubject extends _CredentialSubjectInterface {
   dynamic remove(Object? key) => _claims.remove(key);
 }
 
+/// Represents a CredentialSubject for verifiable credentials following W3C standards.
+///
+/// A verifiable credential contains claims about one or more subjects.
+/// This specification defines a credentialSubject property for the expression of claims about one or more subjects.
+///
+/// Example:
+/// ```dart
+/// final schema = CredentialSubject(
+///   id: 'did:example:subjectV2',
+///   'email': 'user@test.com',
+/// );
+/// ```
 class CredentialSubject extends _CredentialSubjectInterface {
   @override
   Uri? get id => getUri(_claims, 'id');
@@ -65,6 +93,7 @@ class CredentialSubject extends _CredentialSubjectInterface {
     UnmodifiableMapView<String, dynamic>? claims,
   ) : _claims = claims ?? UnmodifiableMapView<String, dynamic>({});
 
+  /// Creates a [CredentialSubject] from JSON data.
   factory CredentialSubject.fromJson(Map<String, dynamic> json) {
     final claimsMap = UnmodifiableMapView<String, dynamic>(json);
     return CredentialSubject._(claimsMap);

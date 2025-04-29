@@ -13,16 +13,16 @@ abstract interface class _CredentialStatusV2Interface {
       });
 }
 
-/// Represents a schema for verifiable credentials following W3C standards.
+/// Represents a Mutable Credential Status for verifiable credentials following W3C standards.
 ///
-/// A credential schema defines the structure and constraints of a verifiable credential.
-/// It uses JSON Schema format to validate credential data.
+/// This specification defines the credentialStatus property for discovering information related
+/// to the status of a verifiable credential, such as whether it is suspended or revoked.
 ///
 /// Example:
 /// ```dart
-/// final schema = CredentialSchema(
-///   domain: 'https://example.com/schemas',
-///   schema: 'PersonCredential',
+/// final schema = MutableCredentialStatusV1(
+///   id: 'https://license.example/credentials/status/84#14278',
+///   type: 'BitstringStatusListEntry',
 /// );
 /// ```
 class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
@@ -52,6 +52,18 @@ class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
   }
 }
 
+/// Represents a Credential Status for verifiable credentials following W3C standards.
+///
+/// This specification defines the credentialStatus property for discovering information related
+/// to the status of a verifiable credential, such as whether it is suspended or revoked.
+///
+/// Example:
+/// ```dart
+/// final schema = CredentialStatusV1(
+///   id: 'https://license.example/credentials/status/84#14278',
+///   type: 'BitstringStatusListEntry',
+/// );
+/// ```
 class CredentialStatusV2 extends _CredentialStatusV2Interface {
   final Uri? _id;
   final String _type;
@@ -66,6 +78,10 @@ class CredentialStatusV2 extends _CredentialStatusV2Interface {
   @override
   String get type => _type;
 
+  /// Creates a [CredentialStatusV2] instance.
+  ///
+  /// The [id] is the URL where status information can be found.
+  /// The [type] identifies the status mechanism being used.
   CredentialStatusV2({Uri? id, required String type})
       : _id = id,
         _type = type;

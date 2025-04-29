@@ -13,16 +13,16 @@ abstract interface class _CredentialSchemaInterface {
       });
 }
 
-/// Represents a schema for verifiable credentials following W3C standards.
+/// Represents a Mutable schema for verifiable credentials following W3C standards.
 ///
 /// A credential schema defines the structure and constraints of a verifiable credential.
 /// It uses JSON Schema format to validate credential data.
 ///
 /// Example:
 /// ```dart
-/// final schema = CredentialSchema(
-///   domain: 'https://example.com/schemas',
-///   schema: 'PersonCredential',
+/// final schema = MutableCredentialSchema(
+///   id: Uri.parse('https://example.com/schemas'),
+///   type: 'JsonSchemaValidator2018',
 /// );
 /// ```
 class MutableCredentialSchema extends _CredentialSchemaInterface {
@@ -34,6 +34,10 @@ class MutableCredentialSchema extends _CredentialSchemaInterface {
   /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
   String? type;
 
+  /// Creates a [MutableCredentialSchema]
+  ///
+  /// The [id] - is id of credential schema.
+  /// The [type]- is schema validation type, defaults to 'JsonSchemaValidator2018'.
   MutableCredentialSchema({
     this.id,
     this.type = 'JsonSchemaValidator2018',
@@ -64,6 +68,18 @@ class MutableCredentialSchema extends _CredentialSchemaInterface {
   }
 }
 
+/// Represents a Credential Schema for verifiable credentials following W3C standards.
+///
+/// A credential schema defines the structure and constraints of a verifiable credential.
+/// It uses JSON Schema format to validate credential data.
+///
+/// Example:
+/// ```dart
+/// final schema = CredentialSchema(
+///   id: Uri.parse('https://example.com/schemas'),
+///   type: 'JsonSchemaValidator2018',
+/// );
+/// ```
 class CredentialSchema extends _CredentialSchemaInterface {
   final Uri _id;
   final String _type;
@@ -78,6 +94,10 @@ class CredentialSchema extends _CredentialSchemaInterface {
   @override
   String get type => _type;
 
+  /// Creates a [MutableCredentialSchema]
+  ///
+  /// The [id] - is id of credential schema.
+  /// The [type]- is schema validation type.
   CredentialSchema({required Uri id, required String type})
       : _id = id,
         _type = type;
