@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:elliptic/elliptic.dart' as ec;
 
-import 'package:ssi/src/didcomm/message/_ecdh1pu.dart';
+import 'package:ssi/src/didcomm/message/ecdh/ecdh_1pu.dart';
 import 'package:ssi/src/didcomm/types.dart';
 import 'package:ssi/src/didcomm/utils.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
