@@ -168,10 +168,6 @@ class Ed25519KeyPair implements KeyPair {
       publicKeyToUse = publicKey;
     }
 
-    // if (ecdhProfile != null) {
-    //   return ecdhProfile.decryptData(privateKey: await privateKey, data: data);
-    // }
-
     final sharedSecret = await computeEcdhSecret(publicKeyToUse);
 
     final algorithm = crypto.Hkdf(
@@ -209,10 +205,6 @@ class Ed25519KeyPair implements KeyPair {
       pubKeyToUse = ephemeralPublicKeyBytes;
     } else {
       pubKeyToUse = publicKey;
-    }
-
-    if (ecdhProfile != null) {
-      return ecdhProfile.decryptData(privateKey: pubKeyToUse, data: ivAndBytes);
     }
 
     final sharedSecret = await computeEcdhSecret(pubKeyToUse);
