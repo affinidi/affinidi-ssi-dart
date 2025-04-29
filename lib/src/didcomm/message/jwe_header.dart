@@ -142,7 +142,7 @@ class JweHeader implements JsonObject {
         'crv': curve,
         'x': crvPoint.X,
         'y': crvPoint.Y,
-        'kty': senderPublicKey.type == KeyType.p256 ? 'P-256' : 'EC',
+        'kty': 'EC',
       };
     }
 

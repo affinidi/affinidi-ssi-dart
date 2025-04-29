@@ -26,7 +26,7 @@ String getCurveByPublicKey(PublicKey publickey) {
   } else if (publickey.type == KeyType.secp256k1) {
     return 'secp256k1';
   } else if (publickey.type == KeyType.ed25519) {
-    return 'X25519';
+    throw Exception('ed25519 not supported.');
   }
   throw Exception('curve for public key not implemented');
 }
@@ -63,6 +63,17 @@ ec.PublicKey publicKeyFromPoint({
       curve,
       ec.AffinePoint.fromXY(bytesToUnsignedInt(decodeBase64(x)),
           bytesToUnsignedInt(decodeBase64(y))));
+}
+
+Uint8List publicKeyBytesFromJwk(Map<String, dynamic> jwk) {
+  if (isSecp256OrPCurve(jwk['crv']!)) {
+    ec.PublicKey publicKey = publicKeyFromPoint(
+        curve: getCurveByJwk(jwk), x: jwk['x']!, y: jwk['y']!);
+    return hexToBytes(publicKey.toCompressedHex());
+  } else if (isXCurve(jwk['crv']!)) {
+    return decodeBase64(jwk['x']!);
+  }
+  throw Exception('JWK to public key bytes convertion not supported');
 }
 
 ec.PrivateKey getPrivateKeyFromBytes(
@@ -135,11 +146,7 @@ ec.PrivateKey getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
   }
 
   if (publicKey.type == KeyType.ed25519) {
-    final (keyPair, privateKeyBytes) = Ed25519KeyPair.generate();
-    return (
-      privateKeyBytes: privateKeyBytes,
-      publicKeyBytes: keyPair.publicKey.bytes
-    );
+    throw Exception('ed25519 not supported.');
   }
 
   throw Exception('Key type not supported');
@@ -149,7 +156,7 @@ bool isSecp256OrPCurve(String crv) {
   return crv.startsWith('P') || crv.startsWith('secp256k');
 }
 
-bool isEdwardCurve(String crv) {
+bool isXCurve(String crv) {
   return crv.startsWith('X');
 }
 

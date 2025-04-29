@@ -153,8 +153,8 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     PublicKey publicKey = await wallet.getPublicKey(keyId);
     String senderCurve = getCurveByPublicKey(publicKey);
 
-    for (var key in recipientPublicKeyJwks) {
-      if (key['crv'] != senderCurve) continue;
+    for (var recipientPublicKeyJwk in recipientPublicKeyJwks) {
+      if (recipientPublicKeyJwk['crv'] != senderCurve) continue;
 
       late Uint8List encryptedCek;
       if (keyWrapAlgorithm == KeyWrapAlgorithm.ecdhES) {
@@ -164,7 +164,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         encryptedCek = await _encryptCekUsingECDH_1PU(cek,
             wallet: wallet,
             keyId: keyId,
-            key: key,
+            recipientPublicKeyJwk: recipientPublicKeyJwk,
             publicKey: publicKey,
             jweHeader: jweHeader,
             epkPrivateKey: epkPrivateKey,
@@ -175,7 +175,8 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       }
 
       recipientList.add(DidCommMessageRecipient(
-          header: DidCommMessageRecipientHeader(kid: key['kid']),
+          header:
+              DidCommMessageRecipientHeader(kid: recipientPublicKeyJwk['kid']),
           encryptedKey: encryptedCek));
     }
     return recipientList;
@@ -185,31 +186,46 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     ck.SymmetricKey cek, {
     required Wallet wallet,
     required String keyId,
-    required Map<String, dynamic> key,
+    required Map<String, dynamic> recipientPublicKeyJwk,
     required PublicKey publicKey,
+    required Uint8List epkPrivateKey,
+    required JweHeader jweHeader,
   }) {
-    Uint8List receiverPubKey;
-
-    if (isSecp256OrPCurve(key['crv'])) {
-      receiverPubKey = hexToBytes(publicKeyFromPoint(
+    late ECDHES ecdhProfile;
+    if (isSecp256OrPCurve(jweHeader.epk['crv'])) {
+      ec.PublicKey recipientPublicKey = publicKeyFromPoint(
         curve: getEllipticCurveByPublicKey(publicKey),
-        x: key['x'],
-        y: key['y'],
-      ).toCompressedHex());
-    } else if (isEdwardCurve(key['crv'])) {
-      receiverPubKey = decodeBase64(key['x']);
+        x: recipientPublicKeyJwk['x'],
+        y: recipientPublicKeyJwk['y'],
+      );
+
+      ecdhProfile = ECDHES_Elliptic(
+        privateKeyBytes: epkPrivateKey,
+        publicKey: recipientPublicKey,
+        apv: jweHeader.apv,
+        enc: jweHeader.enc,
+      );
+    } else if (isXCurve(jweHeader.epk['crv'])) {
+      ecdhProfile = ECDHES_X25519(
+        privateKey: epkPrivateKey,
+        publicKey: publicKeyBytesFromJwk(recipientPublicKeyJwk),
+        apv: jweHeader.apv,
+        enc: jweHeader.enc,
+      );
     } else {
-      throw Exception('Not implemented');
+      throw Exception('Curve not implemented.');
     }
 
     return wallet.encrypt(cek.keyValue,
-        keyId: keyId, publicKey: receiverPubKey);
+        keyId: keyId,
+        publicKey: publicKeyBytesFromJwk(recipientPublicKeyJwk),
+        ecdhProfile: ecdhProfile);
   }
 
   static Future<Uint8List> _encryptCekUsingECDH_1PU(ck.SymmetricKey cek,
       {required Wallet wallet,
       required String keyId,
-      required Map<String, dynamic> key,
+      required Map<String, dynamic> recipientPublicKeyJwk,
       required PublicKey publicKey,
       required Uint8List authenticationTag,
       required KeyWrapAlgorithm keyWrapAlgorithm,
@@ -220,11 +236,11 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
 
     DidDocument didDoc = DidKey.generateDocument(publicKey);
 
-    if (isSecp256OrPCurve(key['crv'])) {
+    if (isSecp256OrPCurve(recipientPublicKeyJwk['crv'])) {
       ec.PublicKey receiverPubKey = publicKeyFromPoint(
         curve: getEllipticCurveByPublicKey(publicKey),
-        x: key['x'],
-        y: key['y'],
+        x: recipientPublicKeyJwk['x'],
+        y: recipientPublicKeyJwk['y'],
       );
 
       ecdh1pu = ECDH1PU_Elliptic(
@@ -241,8 +257,8 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
           ));
 
       receiverPubKeyBytes = hexToBytes(receiverPubKey.toCompressedHex());
-    } else if (isEdwardCurve(key['crv'])) {
-      receiverPubKeyBytes = base64Decode(addPaddingToBase64(key['x']!));
+    } else if (isXCurve(recipientPublicKeyJwk['crv'])) {
+      receiverPubKeyBytes = publicKeyBytesFromJwk(recipientPublicKeyJwk);
 
       ecdh1pu = ECDH1PU_X25519(
           authenticationTag: authenticationTag,
@@ -294,7 +310,6 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       late ECDH1PU ecdh1puProfile;
       late Uint8List senderPublicKeyBytes;
 
-      Jwk senderJwk = await _findSenderJwk(protectedHeader.skid!);
       if (isSecp256OrPCurve(protectedHeader.epk['crv'])) {
         ec.PublicKey? senderPublicKey = publicKeyFromPoint(
             curve: getCurveByJwk(senderJwk.toJson()),
@@ -312,7 +327,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         );
 
         senderPublicKeyBytes = hexToBytes(senderPublicKey.toCompressedHex());
-      } else if (isEdwardCurve(protectedHeader.epk['crv'])) {
+      } else if (isXCurve(protectedHeader.epk['crv'])) {
         senderPublicKeyBytes = base64Decode(senderJwk.toJson()['x']!);
 
         ecdh1puProfile = ECDHProfile.buildX25519(
@@ -349,10 +364,9 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         getPrivateKeyFromJwk(publicKeyJwk, protectedHeader.epk);
 
     DidCommMessageRecipient recipient = _findMessageRecipientByDid(receiverDid);
+    Jwk senderJwk = await _findSenderJwk(protectedHeader.skid!);
 
     late ECDH1PU ecdh1pu;
-
-    Jwk senderJwk = await _findSenderJwk(protectedHeader.skid!);
     if (isSecp256OrPCurve(publicKeyJwk['crv'])) {
       ec.Curve receiverCurve = getCurveByJwk(publicKeyJwk);
       ec.PublicKey senderPublicKey = publicKeyFromPoint(
@@ -369,7 +383,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         apv: protectedHeader.apv,
         epk: protectedHeader.epk,
       );
-    } else if (publicKeyJwk['crv'].startsWith('X')) {
+    } else if (isXCurve(publicKeyJwk['crv'])) {
       Uint8List senderPublicKey = base64Decode(protectedHeader.epk['x']);
       Uint8List epkPublic = base64Decode(protectedHeader.epk['x']);
 
