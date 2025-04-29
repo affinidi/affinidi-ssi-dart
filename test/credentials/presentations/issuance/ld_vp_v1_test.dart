@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:ssi/src/credentials/models/field_types/holder.dart';
+import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v1_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v1/vp_data_model_v1.dart';
+import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -23,19 +25,22 @@ void main() async {
     test('should be able to create a presentation containing V1 compatible VCs',
         () async {
       final v1Vp = MutableVpDataModelV1(
-          context: [VpDataModelV1.contextUrl],
+          context: [DMV1ContextUrl],
           id: Uri.parse('testVpV1'),
           type: {'VerifiablePresentation'},
-          holder: Holder.uri(signer.did),
+          holder: MutableHolder.uri(signer.did),
           verifiableCredential: [ldV1VC, jwtV1VC]);
 
-      final issuedPresentation = await LdVpDm1Suite()
-          .issue(VpDataModelV1.fromJson(v1Vp.toJson()), signer);
-
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+      );
+      final issuedPresentation = await LdVpDm1Suite().issue(
+          unsignedData: VpDataModelV1.fromMutable(v1Vp),
+          proofGenerator: proofGenerator);
       expect(issuedPresentation, isNotNull);
       expect(issuedPresentation.serialized, isNotNull);
       expect(issuedPresentation.serialized, isA<String>());
-      expect(VpDataModelV1.contextUrl, isIn(issuedPresentation.context));
+      expect(DMV1ContextUrl, isIn(issuedPresentation.context));
       expect(issuedPresentation.holder, isNotNull);
       expect(issuedPresentation.proof, isNotEmpty);
     });

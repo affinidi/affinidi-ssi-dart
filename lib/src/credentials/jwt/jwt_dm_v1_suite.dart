@@ -9,15 +9,11 @@ import '../suites/vc_suite.dart';
 
 part 'jwt_data_model_v1.dart';
 
-class JwtOptions {}
-
 /// Class to parse and convert JWT token strings into a [VerifiableCredential]
 final class JwtDm1Suite
-    with
-        JwtParser
+    with JwtParser
     implements
-        VerifiableCredentialSuite<String, VcDataModelV1, JwtVcDataModelV1,
-            JwtOptions> {
+        VerifiableCredentialSuite<String, VcDataModelV1, JwtVcDataModelV1> {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   /// [data] must be a valid jwt string with a header a payload and a signature
   @override
@@ -42,13 +38,17 @@ final class JwtDm1Suite
     return JwtVcDataModelV1.fromJws(jws);
   }
 
-  @override
   Future<JwtVcDataModelV1> issue(
-    VcDataModelV1 vc,
-    DidSigner signer, {
-    JwtOptions? options,
-  }) async {
-    final (header, payload) = JwtVcDataModelV1.vcToJws(vc.toJson(), signer);
+      {required VcDataModelV1 unsignedData, required DidSigner signer}) async {
+    if (signer.did != unsignedData.issuer.id.toString()) {
+      throw SsiException(
+        message: 'Issuer mismatch',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    final (header, payload) =
+        JwtVcDataModelV1.vcToJws(unsignedData.toJson(), signer);
 
     final encodedHeader = base64UrlNoPadEncode(
       utf8.encode(jsonEncode(header)),
@@ -74,7 +74,8 @@ final class JwtDm1Suite
   }
 
   @override
-  Future<bool> verifyIntegrity(JwtVcDataModelV1 input) async {
+  Future<bool> verifyIntegrity(JwtVcDataModelV1 input,
+      {DateTime Function() getNow = DateTime.now}) async {
     final segments = input.serialized.split('.');
 
     if (segments.length != 3) {
@@ -82,6 +83,13 @@ final class JwtDm1Suite
         message: 'Invalid JWT',
         code: SsiExceptionType.invalidVC.code,
       );
+    }
+
+    var now = getNow();
+    final exp = input.jws.payload['exp'];
+    if (exp != null &&
+        now.isAfter(DateTime.fromMillisecondsSinceEpoch(exp * 1000))) {
+      return false;
     }
 
     final encodedHeader = segments[0];

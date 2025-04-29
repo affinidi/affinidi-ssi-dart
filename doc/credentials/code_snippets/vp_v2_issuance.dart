@@ -3,6 +3,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/holder.dart';
+import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
+import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
@@ -27,13 +30,21 @@ Future<void> main() async {
 
   // Create a Verifiable Presentation (V2)
   final v2Vp = MutableVpDataModelV2(
-      context: [VpDataModelV2.contextUrl],
+      context: [DMV2ContextUrl],
       id: Uri.parse('testVpV2'),
       type: {'VerifiablePresentation'},
+      holder: MutableHolder.uri(signer.did),
       verifiableCredential: [ldV1VC, ldV2VC, sdjwtV2VC]);
+
+  // create a proof Generator
+  final proofGenerator = Secp256k1Signature2019Generator(
+    signer: signer,
+  );
+
   // Issue the VP using the V2 suite
-  final vpToSign = VpDataModelV2.fromJson(v2Vp.toJson());
-  final issuedVp = await LdVpDm2Suite().issue(vpToSign, signer);
+  final vpToSign = VpDataModelV2.fromMutable(v2Vp);
+  final issuedVp = await LdVpDm2Suite()
+      .issue(unsignedData: vpToSign, proofGenerator: proofGenerator);
 
   // Output result
   print('Serialized VP:\n${issuedVp.serialized}');

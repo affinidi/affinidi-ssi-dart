@@ -82,7 +82,7 @@ class VerifiableCredentialDataFixtures {
           'type': 'credentialSchemaType'
         },
         'issuanceDate': '2024-07-16T20:16:05.648',
-        'expirationDate': '2024-07-18T20:16:05.648',
+        'expirationDate': '3024-07-18T20:16:05.648',
         'issuer': 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa',
       };
 

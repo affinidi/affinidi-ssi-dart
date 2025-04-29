@@ -4,18 +4,17 @@ part of 'jwt_dm_v1_suite.dart';
 /// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
 class JwtVcDataModelV1 extends VcDataModelV1
     implements ParsedVerifiableCredential<String> {
-  final Jws _jws;
+  final Jws jws;
 
-  JwtVcDataModelV1.fromJws(Jws jws)
-      : _jws = jws,
-        super.clone(VcDataModelV1.fromJson(jwtToJson(jws.payload)));
+  JwtVcDataModelV1.fromJws(this.jws)
+      : super.clone(VcDataModelV1.fromJson(jwtToJson(jws.payload)));
 
   @override
-  String get serialized => _jws.serialized;
+  String get serialized => jws.serialized;
 
   @override
   Map<String, dynamic> toJson() {
-    return _jws.payload['vc'] as Map<String, dynamic>;
+    return jws.payload['vc'] as Map<String, dynamic>;
   }
 
   static (Map<String, dynamic> header, Map<String, dynamic> payload) vcToJws(

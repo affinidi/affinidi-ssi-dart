@@ -1,6 +1,19 @@
 import '../../../util/json_util.dart';
 
-class MutableEvidence {
+abstract interface class _EvidenceInterface {
+  Uri? get id;
+  String? get type;
+
+  /// Converts this status to a JSON-serializable map.
+  ///
+  /// Returns a map containing the 'type' field and 'id' field if present.
+  Map<String, dynamic> toJson() => cleanEmpty({
+        'id': id?.toString(),
+        'type': type,
+      });
+}
+
+class MutableEvidence extends _EvidenceInterface {
   Uri? id;
 
   /// The schema type of validator used.
@@ -13,16 +26,18 @@ class MutableEvidence {
     this.type,
   });
 
-  /// Converts this schema to a JSON-serializable map.
+  /// Creates a [MutableEvidence] from JSON data.
   ///
-  /// Returns a map containing 'id' and 'type' fields.
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-        'type': type,
-      });
+  /// The [json] must contain 'id' and 'type' fields.
+  factory MutableEvidence.fromJson(Map<String, dynamic> json) {
+    final id = getUri(json, 'id');
+    final type = getString(json, 'type');
+
+    return MutableEvidence(id: id, type: type);
+  }
 }
 
-class Evidence extends MutableEvidence {
+class Evidence extends _EvidenceInterface {
   final Uri? _id;
   final String _type;
 

@@ -4,6 +4,7 @@ import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
 import '../../../models/field_types/holder.dart';
 import '../../../models/parsed_vc.dart';
+import '../../../models/v1/vc_data_model_v1.dart';
 import '../../../proof/embedded_proof.dart';
 import '../vc_parse_present.dart';
 import '../verifiable_presentation.dart';
@@ -26,10 +27,7 @@ part './mutable_vp_data_model_v1.dart';
 ///   verifiableCredential: [vc],
 /// );
 /// ```
-class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
-  /// The default JSON-LD context URL for VP v1
-  static const String contextUrl = 'https://www.w3.org/2018/credentials/v1';
-
+class VpDataModelV1 implements VerifiablePresentation {
   /// The JSON-LD context for this presentation.
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
@@ -60,6 +58,47 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
   @override
   final UnmodifiableListView<EmbeddedProof> proof;
 
+  @override
+  Map<String, dynamic> toJson() {
+    final json = <String, dynamic>{};
+
+    json[_P.context.key] = context;
+    json[_P.id.key] = id?.toString();
+    json[_P.type.key] = type.toList();
+    json[_P.holder.key] = holder.toJson();
+    json[_P.proof.key] = encodeListToSingleOrArray(proof);
+    json[_P.verifiableCredential.key] =
+        verifiableCredential.map(presentVC).toList();
+
+    return cleanEmpty(json);
+  }
+
+  bool validate() {
+    if (context.isEmpty) {
+      throw SsiException(
+        message: '`${_P.context.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (context.first != DMV1ContextUrl) {
+      throw SsiException(
+        message:
+            'The first URI of `${_P.context.key}` property should always be $DMV1ContextUrl',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (type.isEmpty) {
+      throw SsiException(
+        message: '`${_P.type.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    return true;
+  }
+
   /// Creates a [VpDataModelV1] instance.
   ///
   /// The [context] is the JSON-LD context array (required).
@@ -67,7 +106,7 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
   /// The [holder] is an identifier for the presenter (optional).
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
-  VpDataModelV1._({
+  VpDataModelV1({
     required List<String> context,
     this.id,
     required Set<String> type,
@@ -77,7 +116,9 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
   })  : context = UnmodifiableListView(context),
         type = UnmodifiableSetView(type),
         verifiableCredential = UnmodifiableListView(verifiableCredential),
-        proof = UnmodifiableListView(proof);
+        proof = UnmodifiableListView(proof) {
+    validate();
+  }
 
   /// Creates a [VpDataModelV1] from JSON input.
   ///
@@ -87,13 +128,6 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
     final json = jsonToMap(input);
 
     final context = getStringList(json, _P.context.key, mandatory: true);
-    if (context.isEmpty || context.first != contextUrl) {
-      throw SsiException(
-        message:
-            'The first URI of @context property should always be $contextUrl',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(
@@ -113,7 +147,7 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
         json, _P.verifiableCredential.key, parseVC,
         allowSingleValue: true);
 
-    return VpDataModelV1._(
+    return VpDataModelV1(
         context: context,
         id: id,
         type: type,
@@ -123,11 +157,14 @@ class VpDataModelV1 extends _VpDataModelV1 implements VerifiablePresentation {
   }
 
   VpDataModelV1.clone(VpDataModelV1 input)
-      : this._(
+      : this(
             context: input.context,
             id: input.id,
             type: input.type,
             holder: input.holder,
             verifiableCredential: input.verifiableCredential,
             proof: input.proof);
+
+  factory VpDataModelV1.fromMutable(MutableVpDataModelV1 data) =>
+      VpDataModelV1.fromJson(data.toJson());
 }

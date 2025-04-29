@@ -6,17 +6,13 @@ import '../models/verifiable_credential.dart';
 import '../suites/vc_suite.dart';
 import 'ld_base_suite.dart';
 
-class LdVcDm1Options extends LdOptions {}
-
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-final class LdVcDm1Suite
-    extends LdBaseSuite<VcDataModelV1, LdVcDataModelV1, LdVcDm1Options>
+final class LdVcDm1Suite extends LdBaseSuite<VcDataModelV1, LdVcDataModelV1>
     implements
-        VerifiableCredentialSuite<String, VcDataModelV1, LdVcDataModelV1,
-            LdVcDm1Options> {
+        VerifiableCredentialSuite<String, VcDataModelV1, LdVcDataModelV1> {
   LdVcDm1Suite()
       : super(
-          contextUrl: VcDataModelV1.contextUrl,
+          contextUrl: DMV1ContextUrl,
         );
 
   @override

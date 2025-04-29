@@ -1,4 +1,3 @@
-import '../../../did/did_signer.dart';
 import '../models/parsed_vp.dart';
 import '../models/verifiable_presentation.dart';
 
@@ -6,8 +5,7 @@ import '../models/verifiable_presentation.dart';
 abstract class VerifiablePresentationSuite<
     SerializedType,
     VP extends VerifiablePresentation,
-    ParsedVP extends ParsedVerifiablePresentation<SerializedType>,
-    Options> {
+    ParsedVP extends ParsedVerifiablePresentation<SerializedType>> {
   /// Determines whether the provided [data] can be parsed by this suite.
   bool canParse(Object data);
 
@@ -22,14 +20,4 @@ abstract class VerifiablePresentationSuite<
 
   /// Verifies the cryptographic integrity of the [input] presentation.
   Future<bool> verifyIntegrity(ParsedVP input);
-
-  /// Issues a new presentation by signing the [data] with the provided [signer].
-  ///
-  /// Returns a parsed verifiable presentation with the appropriate signature.
-  /// Optional [options] can customize the issuing process.
-  Future<ParsedVP> issue(
-    VP data,
-    DidSigner signer, {
-    Options? options,
-  });
 }

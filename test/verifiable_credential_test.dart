@@ -1,5 +1,6 @@
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/jwt/jwt_dm_v1_suite.dart';
+import 'package:ssi/src/credentials/models/field_types/issuer.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -177,12 +178,14 @@ void main() {
       test(
         'it can encode & decode',
         () async {
-          final dataModel = VcDataModelV1.fromJson(
+          final dataModel = MutableVcDataModelV1.fromJson(
             VerifiableCredentialDataFixtures.credentialWithoutProofDataModelV11,
-          );
+          )..issuer = MutableIssuer.uri(signer.did);
 
           final suite = JwtDm1Suite();
-          final jwt = await suite.issue(dataModel, signer);
+          final jwt = await suite.issue(
+              unsignedData: VcDataModelV1.fromMutable(dataModel),
+              signer: signer);
 
           var actualIntegrity = await suite.verifyIntegrity(jwt);
 

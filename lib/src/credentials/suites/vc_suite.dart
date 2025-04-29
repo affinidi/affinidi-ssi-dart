@@ -1,4 +1,3 @@
-import '../../did/did_signer.dart';
 import '../models/parsed_vc.dart';
 import '../models/verifiable_credential.dart';
 
@@ -6,8 +5,7 @@ import '../models/verifiable_credential.dart';
 abstract interface class VerifiableCredentialSuite<
     SerializedType,
     VC extends VerifiableCredential,
-    ParsedVC extends ParsedVerifiableCredential<SerializedType>,
-    Options> {
+    ParsedVC extends ParsedVerifiableCredential<SerializedType>> {
   /// Determines whether the provided [data] can be parsed by this suite.
   bool canParse(Object data);
 
@@ -21,17 +19,11 @@ abstract interface class VerifiableCredentialSuite<
   ParsedVC parse(Object data);
 
   /// Verifies the cryptographic integrity of the [input] credential.
-  Future<bool> verifyIntegrity(ParsedVC input);
-
-  /// Issues a new credential by signing the [data] with the provided [signer].
   ///
-  /// Returns a parsed verifiable credential with the appropriate signature.
-  /// Optional [options] can customize the issuing process.
-  Future<ParsedVC> issue(
-    VC data,
-    DidSigner signer, {
-    Options? options,
-  });
+  /// NOTE: only the signature is verified, other claims like `challenge` or
+  /// `nonce` must be separately validated
+  Future<bool> verifyIntegrity(ParsedVC input,
+      {DateTime Function() getNow = DateTime.now});
 
   dynamic present(ParsedVC input);
 }

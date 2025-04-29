@@ -3,6 +3,7 @@ import 'package:ssi/src/credentials/linked_data/ld_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
 import 'package:ssi/src/credentials/models/field_types/issuer.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
+import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/src/credentials/suites/universal_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -21,7 +22,7 @@ void main() {
 
       final unsignedCredential = MutableVcDataModelV2(
         context: [
-          VcDataModelV2.contextUrl,
+          DMV2ContextUrl,
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
         ],
         id: Uri.parse('uuid:123456abcd'),
@@ -44,8 +45,12 @@ void main() {
         issuer: Issuer.uri(signer.did),
       );
 
-      final issuedCredential = await LdVcDm2Suite()
-          .issue(VcDataModelV2.fromJson(unsignedCredential.toJson()), signer);
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+      );
+      final issuedCredential = await LdVcDm2Suite().issue(
+          unsignedData: VcDataModelV2.fromMutable(unsignedCredential),
+          proofGenerator: proofGenerator);
 
       final verificationResult =
           await UniversalVerifier().verify(issuedCredential);

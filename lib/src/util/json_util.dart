@@ -135,38 +135,55 @@ DateTime? getDateTime(
 
 /// Return [fieldName] as `String`, or null. Throws an exception if the field
 /// value is not a string.
-Uri? getUri(Map<String, dynamic> json, String fieldName) {
-  if (json.containsKey(fieldName)) {
-    final value = json[fieldName];
-    switch (value) {
-      case null:
+Uri? getUri(dynamic json, String? fieldName) {
+  switch (json) {
+    case null:
+      return null;
+    case Map<String, dynamic> m:
+      if (!m.containsKey(fieldName)) {
         return null;
-      case String s:
-        return Uri.parse(s);
-      case Uri u:
-        return u;
-      default:
-        throw SsiException(
-          message: '`$fieldName` must be a string or uri',
-          code: SsiExceptionType.invalidJson.code,
-        );
-    }
+      }
+      return _toUri(m[fieldName]);
+    default:
+      return _toUri(json);
   }
-
-  return null;
 }
 
 /// Return [fieldName] as `String`. Throws an exception if the field
 /// value is not a string or the field does not exist.
-Uri getMandatoryUri(Map<String, dynamic> json, String fieldName) {
-  if (!json.containsKey(fieldName)) {
-    throw SsiException(
-      message: '`$fieldName` property is mandatory',
-      code: SsiExceptionType.invalidJson.code,
-    );
-  }
+Uri getMandatoryUri(dynamic json, String? fieldName) {
+  switch (json) {
+    case null:
+      throw SsiException(
+        message: '`$fieldName` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    case Map<String, dynamic> m:
+      if (!m.containsKey(fieldName)) {
+        throw SsiException(
+          message: '`$fieldName` property is mandatory',
+          code: SsiExceptionType.invalidJson.code,
+        );
+      }
 
-  return getUri(json, fieldName)!;
+      return _toUri(m[fieldName]);
+    default:
+      return _toUri(json);
+  }
+}
+
+Uri _toUri(dynamic input) {
+  switch (input) {
+    case Uri u:
+      return u;
+    case String s:
+      return Uri.parse(s);
+    default:
+      throw SsiException(
+        message: 'id should be a String or a Uri',
+        code: SsiExceptionType.invalidJson.code,
+      );
+  }
 }
 
 /// Add an optional field to [json] if [fieldValue] is not null
