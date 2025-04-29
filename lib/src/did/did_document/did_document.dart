@@ -21,7 +21,7 @@ class DidDocument implements JsonObject {
   List<VerificationMethod> capabilityDelegation;
   List<ServiceEndpoint> service;
 
-  DidDocument._internal({
+  DidDocument._({
     required this.context,
     required this.id,
     required this.alsoKnownAs,
@@ -48,23 +48,36 @@ class DidDocument implements JsonObject {
     capabilityDelegation,
     capabilityInvocation,
   }) {
-    return DidDocument._internal(
+    final List<VerificationMethod> methods = verificationMethod ?? [];
+    final Map<String, EmbeddedVerificationMethod> vmMap = {};
+    for (final vm in methods) {
+      if (vm is EmbeddedVerificationMethod) {
+        vmMap[vm.id] = vm;
+        if (vm.id.contains('#')) {
+          final fragment = vm.id.split('#').last;
+          vmMap['#$fragment'] = vm;
+          vmMap[fragment] = vm;
+        }
+      }
+    }
+
+    return DidDocument._(
       context: context ?? Context.fromJson(""),
       id: id,
       alsoKnownAs: alsoKnownAs ?? [],
       controller: controller ?? [],
       verificationMethod: verificationMethod ?? [],
-      authentication: _convertToVerificationRelationship(authentication),
-      keyAgreement: _convertToVerificationRelationship(keyAgreement),
+      authentication: _convertToVerificationRelationship(authentication, vmMap),
+      keyAgreement: _convertToVerificationRelationship(keyAgreement, vmMap),
       service: _convertToServiceEndpoint(service),
-      assertionMethod: _convertToVerificationRelationship(assertionMethod),
+      assertionMethod:
+          _convertToVerificationRelationship(assertionMethod, vmMap),
       capabilityDelegation:
-          _convertToVerificationRelationship(capabilityDelegation),
+          _convertToVerificationRelationship(capabilityDelegation, vmMap),
       capabilityInvocation:
-          _convertToVerificationRelationship(capabilityInvocation),
+          _convertToVerificationRelationship(capabilityInvocation, vmMap),
     );
   }
-
   static List<ServiceEndpoint> _convertToServiceEndpoint(dynamic input) {
     if (input == null) {
       return [];
@@ -125,8 +138,22 @@ class DidDocument implements JsonObject {
       throw FormatException('id property needed in did document');
     }
 
+    if (document.containsKey('controller')) {
+      final controllerValue = document['controller'];
+      if (controllerValue is String) {
+        controller = [controllerValue];
+      } else if (controllerValue is List) {
+        controller = controllerValue.cast<String>();
+      }
+    }
+
     if (document.containsKey('alsoKnownAs')) {
-      alsoKnownAs = document['alsoKnownAs'].cast<String>();
+      final alsoKnownAsValue = document['alsoKnownAs'];
+      if (alsoKnownAsValue is String) {
+        alsoKnownAs = [alsoKnownAsValue];
+      } else if (alsoKnownAsValue is List) {
+        alsoKnownAs = alsoKnownAsValue.cast<String>();
+      }
     }
 
     final vmMap = <String, EmbeddedVerificationMethod>{};
@@ -138,6 +165,11 @@ class DidDocument implements JsonObject {
           var vm = EmbeddedVerificationMethod.fromJson(v);
           verificationMethod.add(vm);
           vmMap[vm.id] = vm;
+          if (vm.id.contains('#')) {
+            final fragment = vm.id.split('#').last;
+            vmMap['#$fragment'] = vm;
+            vmMap[fragment] = vm;
+          }
         }
       }
     }
@@ -249,6 +281,11 @@ class DidDocument implements JsonObject {
   //   return newList;
   // }
 
+  List _toJsonList(List items) {
+    if (items.isEmpty) return [];
+    return items.map((e) => e.toJson()).toList();
+  }
+
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> jsonObject = {};
@@ -256,60 +293,33 @@ class DidDocument implements JsonObject {
     jsonObject['@context'] = context.toJson();
     if (alsoKnownAs.isNotEmpty) jsonObject['alsoKnownAs'] = alsoKnownAs;
     if (controller.isNotEmpty) jsonObject['controller'] = controller;
-    if (verificationMethod.isNotEmpty) {
-      List tmp = [];
-      for (final v in verificationMethod) {
-        tmp.add(v.toJson());
-      }
-      jsonObject['verificationMethod'] = tmp;
+    final verificationMethodJson = _toJsonList(verificationMethod);
+    if (verificationMethodJson.isNotEmpty) {
+      jsonObject['verificationMethod'] = verificationMethodJson;
     }
 
     if (authentication.isNotEmpty) {
-      List tmp = [];
-      for (final v in authentication) {
-        tmp.add(v.toJson());
-      }
-      jsonObject['authentication'] = tmp;
+      jsonObject['authentication'] = _toJsonList(authentication);
     }
 
     if (capabilityDelegation.isNotEmpty) {
-      List tmp = [];
-      for (final v in capabilityDelegation) {
-        tmp.add(v.toJson());
-      }
-      jsonObject['capabilityDelegation'] = tmp;
+      jsonObject['capabilityDelegation'] = _toJsonList(capabilityDelegation);
     }
 
     if (capabilityInvocation.isNotEmpty) {
-      List tmp = [];
-      for (final v in capabilityInvocation) {
-        tmp.add(v.toJson());
-      }
-      jsonObject['capabilityInvocation'] = tmp;
+      jsonObject['capabilityInvocation'] = _toJsonList(capabilityInvocation);
     }
 
     if (keyAgreement.isNotEmpty) {
-      List tmp = [];
-      for (final v in keyAgreement) {
-        tmp.add(v.toJson());
-      }
-      jsonObject['keyAgreement'] = tmp;
+      jsonObject['keyAgreement'] = _toJsonList(keyAgreement);
     }
 
     if (assertionMethod.isNotEmpty) {
-      List tmp = [];
-      for (final v in assertionMethod) {
-        tmp.add(v.toJson());
-      }
-      jsonObject['assertionMethod'] = tmp;
+      jsonObject['assertionMethod'] = _toJsonList(assertionMethod);
     }
 
     if (service.isNotEmpty) {
-      List tmp = [];
-      for (final v in service) {
-        tmp.add(v.toJson());
-      }
-      jsonObject['service'] = tmp;
+      jsonObject['service'] = _toJsonList(service);
     }
 
     return jsonObject;

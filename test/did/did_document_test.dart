@@ -59,9 +59,9 @@ void main() {
         });
 
         test("it retrieves correct authentication", () {
-          expect(
-              didDoc.authentication[0].idOrNull, "did:web:example.com#key-0");
-          expect(didDoc.authentication[1], isA<VerificationRelationship>());
+          expect(didDoc.authentication[0].id, "did:web:example.com#key-0");
+          expect(didDoc.authentication[1], isA<EmbeddedVerificationMethod>());
+          expect(didDoc.authentication[1].id, "did:web:example.com#key-2");
         });
 
         test("it retrieves correct also know as", () {
@@ -70,28 +70,33 @@ void main() {
 
         test("it retrieves correct capability invacation", () {
           expect(
-            didDoc.capabilityInvocation[0].idOrNull,
+            didDoc.capabilityInvocation[0].id,
             "did:web:example.com#key-0",
           );
+          expect(didDoc.capabilityInvocation[1],
+              isA<EmbeddedVerificationMethod>());
           expect(
-              didDoc.capabilityInvocation[1], isA<VerificationRelationship>());
+              didDoc.capabilityInvocation[1].id, "did:web:example.com#key-2");
         });
 
         test("it retrieves correct capability delegation", () {
           expect(
-            didDoc.capabilityDelegation[0].idOrNull,
+            didDoc.capabilityDelegation[0].id,
             "did:web:example.com#key-1",
           );
+          expect(didDoc.capabilityDelegation[1],
+              isA<EmbeddedVerificationMethod>());
           expect(
-              didDoc.capabilityDelegation[1], isA<VerificationRelationship>());
+              didDoc.capabilityDelegation[1].id, "did:web:example.com#key-2");
         });
 
-        test("it retrieves correct aasertion method", () {
-          expect(
-              didDoc.assertionMethod[0].idOrNull, "did:web:example.com#key-0");
+        test("it retrieves correct assertion method", () {
+          expect(didDoc.assertionMethod[0].id, "did:web:example.com#key-0");
+          expect(didDoc.assertionMethod[1], isA<EmbeddedVerificationMethod>());
+          expect(didDoc.assertionMethod[1].id, "did:web:example.com#key-2");
         });
 
-        test("it retrieves correct verififcation methods", () {
+        test("it retrieves correct verification methods", () {
           expect(
             didDoc.verificationMethod[0].id,
             "did:web:example.com#key-0",
@@ -100,7 +105,13 @@ void main() {
             didDoc.verificationMethod[1].id,
             "did:web:example.com#key-1",
           );
+          expect(
+            didDoc.verificationMethod[2].id,
+            "did:web:example.com#key-2",
+          );
           expect(didDoc.verificationMethod[0].type, "JsonWebKey2020");
+          expect(didDoc.verificationMethod[1].type, "JsonWebKey2020");
+          expect(didDoc.verificationMethod[2].type, "JsonWebKey2020");
         });
 
         test("it retrieves correct service", () {
@@ -113,19 +124,6 @@ void main() {
             didDoc.context
                 .hasUrlContext(Uri.parse('https://www.w3.org/ns/did/v1')),
             true,
-          );
-        });
-
-        test("it resolves key ids successfully", () {
-          final newDidDoc = didDoc.resolveKeyIds();
-          final resolvedMethod = newDidDoc.assertionMethod[0];
-          expect(
-            resolvedMethod,
-            isA<VerificationRelationship>(),
-          );
-          expect(
-            (resolvedMethod as VerificationRelationshipMethod).method.id,
-            "did:web:example.com#key-0",
           );
         });
       });
@@ -159,7 +157,7 @@ void main() {
   );
 
   group("When parsing service endpoint from json", () {
-    group("and recieving valid json,", () {
+    group("and receiving valid json,", () {
       final serviceEndpoint =
           ServiceEndpoint.fromJson(DidDocumentFixtures.serviceEndpointValid);
       test("it retrieves correct id", () {
@@ -178,79 +176,6 @@ void main() {
         expect(endpoints[0].routingKeys, []);
         expect(endpoints[1].uri, "wss://example.com/ws");
       });
-    });
-  });
-
-  group('VerificationRelationship', () {
-    test('fromJson with string returns VerificationRelationshipId', () {
-      final rel = VerificationRelationship.fromJson('did:example:123#key-1');
-      expect(rel, isA<VerificationRelationshipId>());
-      expect(rel.idOrNull, 'did:example:123#key-1');
-      expect(rel.toJson(), 'did:example:123#key-1');
-    });
-
-    test(
-        'fromJson with VerificationMethod returns VerificationRelationshipMethod',
-        () {
-      final vm = VerificationMethodJwk(
-        id: '#key1',
-        controller: 'did:example:1',
-        type: 'JsonWebKey2020',
-        publicKeyJwk: Jwk.fromJson({
-          "kty": "OKP",
-          "crv": "Ed25519",
-          "x": "Zmq-CJA17UpFeVmJ-nIKDuDEhUnoRSNIXFbxyBtCh6Y"
-        }),
-      );
-      final rel = VerificationRelationship.fromJson(vm);
-      expect(rel, isA<VerificationRelationshipMethod>());
-      expect(rel.idOrNull, '#key1');
-      expect(rel.toJson(), vm.toJson());
-    });
-
-    test('fromJson with VerificationRelationship returns itself', () {
-      final rel = VerificationRelationshipId('did:example:123#key-1');
-      final rel2 = VerificationRelationship.fromJson(rel);
-      expect(identical(rel, rel2), true);
-    });
-
-    test('fromJson with invalid type throws', () {
-      expect(
-          () => VerificationRelationship.fromJson(123), throwsFormatException);
-    });
-
-    test('_resolveWith upgrades id to method if found', () {
-      final vm = VerificationMethodJwk(
-        id: 'did:example:123#key-1',
-        controller: 'did:example:123',
-        type: 'JsonWebKey2020',
-        publicKeyJwk: Jwk.fromJson({
-          "kty": "OKP",
-          "crv": "Ed25519",
-          "x": "Zmq-CJA17UpFeVmJ-nIKDuDEhUnoRSNIXFbxyBtCh6Y"
-        }),
-      );
-      final rel = VerificationRelationshipId('did:example:123#key-1');
-      final resolved = rel.resolveWith({'did:example:123#key-1': vm});
-      expect(resolved, isA<VerificationRelationshipMethod>());
-      expect((resolved as VerificationRelationshipMethod).method, vm);
-    });
-
-    test('_resolveWith returns self if id not found', () {
-      final rel = VerificationRelationshipId('did:example:123#key-2');
-      final resolved = rel.resolveWith({
-        'did:example:123#key-1': VerificationMethodJwk(
-          id: 'did:example:123#key-1',
-          controller: 'did:example:123',
-          type: 'JsonWebKey2020',
-          publicKeyJwk: Jwk.fromJson({
-            "kty": "OKP",
-            "crv": "Ed25519",
-            "x": "Zmq-CJA17UpFeVmJ-nIKDuDEhUnoRSNIXFbxyBtCh6Y"
-          }),
-        )
-      });
-      expect(resolved, rel);
     });
   });
 
@@ -298,7 +223,7 @@ void main() {
       expect(didDoc2.toJson(), json);
     });
     test('handles empty lists', () {
-      final didDoc = DidDocument(id: 'did:example:empty');
+      final didDoc = DidDocument.create(id: 'did:example:empty');
       final json = didDoc.toJson();
       expect(json['id'], 'did:example:empty');
       expect(json['alsoKnownAs'], isNull);
@@ -312,25 +237,25 @@ void main() {
       expect(json['capabilityInvocation'], isNull);
     });
     test('can be constructed with all fields', () {
-      final didDoc = DidDocument(
+      final vm = VerificationMethodJwk(
+        id: 'id',
+        controller: 'controller',
+        type: 'JsonWebKey2020',
+        publicKeyJwk:
+            Jwk.fromJson({"kty": "OKP", "crv": "Ed25519", "x": "abc"}),
+      );
+
+      final didDoc = DidDocument.create(
         id: 'did:example:all',
         alsoKnownAs: ['did:example:aka'],
         controller: ['did:example:ctrl'],
-        verificationMethod: [
-          VerificationMethodJwk(
-            id: 'id',
-            controller: 'controller',
-            type: 'JsonWebKey2020',
-            publicKeyJwk:
-                Jwk.fromJson({"kty": "OKP", "crv": "Ed25519", "x": "abc"}),
-          )
-        ],
-        authentication: [VerificationRelationshipId('id')],
-        keyAgreement: [VerificationRelationshipId('id')],
+        verificationMethod: [vm],
+        authentication: ['id'],
+        keyAgreement: ['id'],
         service: [],
-        assertionMethod: [VerificationRelationshipId('id')],
-        capabilityDelegation: [VerificationRelationshipId('id')],
-        capabilityInvocation: [VerificationRelationshipId('id')],
+        assertionMethod: ['id'],
+        capabilityDelegation: ['id'],
+        capabilityInvocation: ['id'],
       );
       expect(didDoc.id, 'did:example:all');
       expect(didDoc.alsoKnownAs, isNotEmpty);
