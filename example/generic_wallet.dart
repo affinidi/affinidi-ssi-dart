@@ -22,7 +22,6 @@ void main() async {
 
   // Sign a sample payload using the generated P256 key ID.
   print('Signing payload with P256 key...');
-  // final signatureP256 = await p256key.sign(dataToSign);
   final signatureP256 = await wallet.sign(dataToSign, keyId: p256key.id);
   print('Signature: ${signatureP256.sublist(1, 9)}...');
 

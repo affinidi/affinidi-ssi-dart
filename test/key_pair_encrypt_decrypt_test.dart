@@ -1,9 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart';
-import 'package:ssi/src/key_pair/ed25519_key_pair.dart';
-import 'package:ssi/src/key_pair/p256_key_pair.dart';
-import 'package:ssi/src/key_pair/secp256k1_key_pair.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
