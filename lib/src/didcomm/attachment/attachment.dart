@@ -5,13 +5,13 @@ import 'package:ssi/src/didcomm/utils.dart';
 import 'package:ssi/src/types.dart';
 
 class Attachment implements JsonObject {
-  String? id;
-  String? description;
-  String? filename;
-  String? mediaType;
-  String? format;
-  DateTime? lastmodTime;
-  int? byteCount;
+  final String? id;
+  final String? description;
+  final String? filename;
+  final String? mediaType;
+  final String? format;
+  final DateTime? lastmodTime;
+  final int? byteCount;
   late AttachmentData data;
 
   Attachment(
@@ -24,26 +24,33 @@ class Attachment implements JsonObject {
       this.lastmodTime,
       this.byteCount});
 
-  Attachment.fromJson(dynamic jsonData) {
+  factory Attachment.fromJson(dynamic jsonData) {
     Map<String, dynamic> decoded = credentialToMap(jsonData);
+
+    AttachmentData data;
     if (decoded.containsKey('data')) {
       data = AttachmentData.fromJson(decoded['data']);
     } else {
       throw FormatException('an Attachment must contain a data property');
     }
 
-    id = decoded['id'];
-    description = decoded['description'];
-    filename = decoded['filename'];
-    mediaType = decoded['media_type'];
-    format = decoded['format'];
+    DateTime? lastmodTime;
     if (decoded.containsKey('lastmod_time') &&
         decoded['lastmod_time'] != null) {
       lastmodTime = DateTime.fromMillisecondsSinceEpoch(
           decoded['lastmod_time'] * 1000,
           isUtc: true);
     }
-    byteCount = decoded['byte_count'];
+
+    return Attachment(
+        data: data,
+        id: decoded['id'],
+        description: decoded['description'],
+        filename: decoded['filename'],
+        mediaType: decoded['media_type'],
+        format: decoded['format'],
+        byteCount: decoded['byte_count'],
+        lastmodTime: lastmodTime);
   }
 
   @override
