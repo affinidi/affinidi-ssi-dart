@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:elliptic/elliptic.dart' as ec;
+import 'package:ssi/src/key_pair/_key_pair_utils.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
 import 'package:ssi/src/types.dart';
 import 'package:web3dart/crypto.dart';
@@ -121,17 +122,21 @@ Uint8List getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
   PublicKey publicKey,
 ) {
   if (publicKey.type == KeyType.p256) {
+    final privateKey =
+        generateValidPrivateKey(() => ec.getP256().generatePrivateKey());
+
     return (
-      privateKeyBytes:
-          Uint8List.fromList(ec.getP256().generatePrivateKey().bytes),
+      privateKeyBytes: Uint8List.fromList(privateKey.bytes),
       publicKeyBytes: null
     );
   }
 
   if (publicKey.type == KeyType.secp256k1) {
+    final privateKey =
+        generateValidPrivateKey(() => ec.getSecp256k1().generatePrivateKey());
+
     return (
-      privateKeyBytes:
-          Uint8List.fromList(ec.getSecp256k1().generatePrivateKey().bytes),
+      privateKeyBytes: Uint8List.fromList(privateKey.bytes),
       publicKeyBytes: null
     );
   }
