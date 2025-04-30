@@ -132,7 +132,7 @@ void main() {
   group('did:key with P256', () {
     test('generateDocument is as expected', () async {
       final keyStore = InMemoryKeyStore();
-      final wallet = GenericWallet(keyStore);
+      final wallet = PersistentWallet(keyStore);
       final keyId = "keyId";
       final publicKey = (await wallet.generateKey(keyId: keyId)).publicKey;
       final prefix = [128, 36];
@@ -150,7 +150,7 @@ void main() {
 
     test('getDid is as expected', () async {
       final keyStore = InMemoryKeyStore();
-      final wallet = GenericWallet(keyStore);
+      final wallet = PersistentWallet(keyStore);
       final keyId = "keyId";
       final publicKey = (await wallet.generateKey(keyId: keyId)).publicKey;
       final prefix = [128, 36];

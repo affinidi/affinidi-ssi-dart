@@ -139,7 +139,7 @@ final class SdJwtDm2Suite
     var now = getNow();
     final exp = input.sdJwt.payload['exp'];
     if (exp != null &&
-        now.isAfter(DateTime.fromMillisecondsSinceEpoch(exp * 1000))) {
+        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000))) {
       return false;
     }
 
