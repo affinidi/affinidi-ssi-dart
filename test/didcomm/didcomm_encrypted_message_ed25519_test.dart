@@ -58,19 +58,16 @@ void main() {
       eveKeyPair = await eveWallet.deriveKey(
           keyType: KeyType.ed25519, derivationPath: "m/44'/60'/0'/0'/0'");
 
-      final aliceX25519DidDoc =
-          DidKey.generateDocumentBytes(aliceX25519PublicKey, KeyType.x25519);
+      aliceDidDoc = DidKey.generateDocument(
+          PublicKey(aliceKeyPair.id, aliceX25519PublicKey, KeyType.x25519));
 
-      aliceDidDoc =
-          DidKey.generateDocumentBytes(aliceX25519PublicKey, KeyType.x25519);
-
-      bobDidDoc =
-          DidKey.generateDocumentBytes(bobX25519PublicKey, KeyType.x25519);
+      bobDidDoc = DidKey.generateDocument(
+          PublicKey(bobKeyPair.id, bobX25519PublicKey, KeyType.x25519));
 
       message = DidcommPlaintextMessage(
         id: '2fb19055-581d-488e-b357-9d026bee98fc',
         to: [bobDidDoc.id],
-        from: aliceX25519DidDoc.id,
+        from: aliceDidDoc.id,
         type: 'type',
         body: {"foo": 'bar'},
       );

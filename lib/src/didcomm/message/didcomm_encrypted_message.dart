@@ -291,11 +291,8 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     } else if (isXCurve(recipientPublicKeyJwk['crv'])) {
       final receiverPubKeyBytes = publicKeyBytesFromJwk(recipientPublicKeyJwk);
 
-      final x25519PublicKey =
-          await (wallet as Bip32Ed25519Wallet).getX25519PublicKey(keyId);
-
-      final x25519DidDoc = DidKey.generateDocumentFromPublicKeyBytes(
-          x25519PublicKey, KeyType.x25519);
+      final x25519DidDoc =
+          await getDidDocumentForX25519Key(wallet as Bip32Ed25519Wallet, keyId);
 
       final ecdh1pu = ECDH1PU_X25519(
           authenticationTag: authenticationTag,
@@ -534,13 +531,10 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       final receiverDid = DidKey.getDid(receiverPublicKey);
       return _findMessageRecipientByDid(receiverDid);
     } else if (isXCurve(protectedHeader.epk['crv'])) {
-      final x25519PublicKeyBytes =
-          await (wallet as Bip32Ed25519Wallet).getX25519PublicKey(keyId);
+      final receiverDidDoc =
+          await getDidDocumentForX25519Key(wallet as Bip32Ed25519Wallet, keyId);
 
-      final receiverDid = DidKey.generateDocumentFromPublicKeyBytes(
-          x25519PublicKeyBytes, KeyType.x25519);
-
-      return _findMessageRecipientByDid(receiverDid.id);
+      return _findMessageRecipientByDid(receiverDidDoc.id);
     } else {
       throw Exception('Curve ${protectedHeader.epk['crv']} not supported');
     }

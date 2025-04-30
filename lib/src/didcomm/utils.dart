@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:elliptic/elliptic.dart' as ec;
+import 'package:ssi/src/did/did_key.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
 import 'package:ssi/src/types.dart';
+import 'package:ssi/src/wallet/bip32_ed25519_wallet.dart';
+import 'package:ssi/ssi.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:x25519/x25519.dart' as x25519;
 
@@ -146,6 +149,13 @@ Uint8List getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
   }
 
   throw Exception('Key type not supported');
+}
+
+Future<DidDocument> getDidDocumentForX25519Key(
+    Bip32Ed25519Wallet wallet, String keyId) async {
+  final x25519PublicKey = await wallet.getX25519PublicKey(keyId);
+  return DidKey.generateDocument(
+      PublicKey(keyId, x25519PublicKey, KeyType.x25519));
 }
 
 bool isSecp256OrPCurve(String crv) {

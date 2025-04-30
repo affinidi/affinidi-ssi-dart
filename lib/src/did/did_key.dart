@@ -177,23 +177,6 @@ class DidKey {
     return _buildDoc(multibase, did);
   }
 
-  /// This method takes public key bytes and creates a DID document
-  ///
-  /// [publicKey] The public key used to create the DID
-  /// [keyType] The key type of the public key
-  ///
-  /// Returns a [DidDocument].
-  ///
-  /// Throws [SsiException] if the public key is invalid
-  static DidDocument generateDocumentFromPublicKeyBytes(
-      Uint8List publicKey, KeyType keyType) {
-    final multiKey = toMultikey(publicKey, keyType);
-    final multibase = toMultiBase(multiKey);
-    final did = '$_commonDidKeyPrefix$multibase';
-    // FIXME(FTL-20741) double check the doc
-    return _buildDoc(multibase, did);
-  }
-
   /// Resolves a DID string to a DID document.
   ///
   /// Supports the following key types:

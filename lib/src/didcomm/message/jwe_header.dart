@@ -69,10 +69,8 @@ class JweHeader implements JsonObject {
     }
 
     if (isXCurve(curve)) {
-      final x25519PublicKey =
-          await (wallet as Bip32Ed25519Wallet).getX25519PublicKey(keyId);
       final didDoc =
-          DidKey.generateDocumentBytes(x25519PublicKey, KeyType.x25519);
+          await getDidDocumentForX25519Key(wallet as Bip32Ed25519Wallet, keyId);
       return didDoc.keyAgreement.first;
     }
 
