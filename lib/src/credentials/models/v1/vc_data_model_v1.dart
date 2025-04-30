@@ -1,8 +1,10 @@
 import 'dart:collection';
 
-import '../../../../ssi.dart';
+import '../../../exceptions/ssi_exception.dart';
+import '../../../exceptions/ssi_exception_type.dart';
 import '../../../util/json_util.dart';
 import '../../proof/embedded_proof.dart';
+import '../field_types/credential_schema.dart';
 import '../field_types/credential_status/v1.dart';
 import '../field_types/credential_subject.dart';
 import '../field_types/evidence.dart';
@@ -10,6 +12,8 @@ import '../field_types/holder.dart';
 import '../field_types/issuer.dart';
 import '../field_types/refresh_service/v1.dart';
 import '../field_types/terms_of_use.dart';
+import '../verifiable_credential.dart';
+
 part 'mutable_vc_data_model_v1.dart';
 
 class VcDataModelV1 implements VerifiableCredential {
