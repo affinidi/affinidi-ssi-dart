@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v1.0.0-dev.21`](#ssi---v100-dev21)
+
+---
+
+#### `ssi` - `v1.0.0-dev.21`
+
+ - **FIX**: issue reporting link (#98).
+
+## 1.0.0-dev.21
+
+ - **FIX**: issue reporting link (#98).
+
+
+## 2025-04-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v1.0.0-dev.20`](#ssi---v100-dev20)
 
 ---
