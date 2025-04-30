@@ -25,5 +25,6 @@ abstract interface class VerifiableCredentialSuite<
   Future<bool> verifyIntegrity(ParsedVC input,
       {DateTime Function() getNow = DateTime.now});
 
+  /// Presents the [input] credential in its serialized form.
   dynamic present(ParsedVC input);
 }
