@@ -10,7 +10,7 @@ import 'package:ssi/ssi.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 
-import 'did_signer.dart';
+import '../../did/did_signer.dart';
 
 Future<void> main() async {
   // Deterministic seed for key generation
