@@ -12,6 +12,7 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
   - [Core Concepts](#core-concepts)
   - [Supported DID Methods](#supported-did-methods)
   - [Supported Key Management](#supported-key-management)
+  - [Credential Data Models](#credential-data-models)
   - [Requirements](#requirements)
   - [Installation](#installation)
   - [Usage](#usage)
