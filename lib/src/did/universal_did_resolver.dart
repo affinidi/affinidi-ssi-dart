@@ -25,7 +25,6 @@ class UniversalDIDResolver {
   /// Throws [SsiException] if:
   /// - The DID is invalid
   /// - The resolution fails
-  /// FIXME(FTL-20741) should use an URI as input or dedicated Did model
   static Future<DidDocument> resolve(
     /// The DID to resolve.
     String did, {
