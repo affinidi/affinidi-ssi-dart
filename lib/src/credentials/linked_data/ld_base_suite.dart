@@ -1,10 +1,9 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/models/field_types/issuer.dart';
-
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/doc_with_embedded_proof.dart';
+import '../models/field_types/issuer.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
