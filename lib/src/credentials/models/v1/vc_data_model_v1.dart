@@ -331,7 +331,7 @@ class VcDataModelV1 implements VerifiableCredential {
             termsOfUse: input.termsOfUse,
             evidence: input.evidence);
 
-  /// Factory constructor to create a `VcDataModelV1` instance from a mutable `MutableVcDataModelV1`
+  /// Factory constructor to create a [VcDataModelV1] instance from a mutable [MutableVcDataModelV1]
   ///
   /// Example:
   /// ```dart
