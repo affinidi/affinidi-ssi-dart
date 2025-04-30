@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -87,10 +86,8 @@ void main() {
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
       final key = await wallet.deriveKey(derivationPath: derivedKeyPath);
       final actualDid = DidPeer.getDid(
-        [
-          key.publicKey,
-          key.publicKey
-        ], // Using same key twice for simplicity, matching generateDocument test
+        [key.publicKey, key.publicKey],
+        // Using same key twice for simplicity, matching generateDocument test
         serviceEndpoint: 'https://denys.com/income',
       );
 

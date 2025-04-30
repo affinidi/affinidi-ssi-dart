@@ -1,4 +1,3 @@
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 import 'dart:typed_data';
 
