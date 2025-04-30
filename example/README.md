@@ -60,7 +60,7 @@ Create a data model using V1 - [view example](https://github.com/affinidi/affini
 
 ### 4. Parse VC String
 
-Parse a Data Model V1 VC string - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vc/ld_v2/parsing.dart).
+Parse a Data Model V2 VC string - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vc/ld_v2/parsing.dart).
 
 <hr />
 
@@ -105,4 +105,4 @@ Verify the VP with specific domain and challenge using Data Model V2 - [view exa
 
 ### 4. Parse VP String
 
-Parse a Data Model V2 VP string - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vp/ld_v/parsing.dart).
+Parse a Data Model V2 VP string - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vp/ld_v2/parsing.dart).
