@@ -292,10 +292,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     final receiverPublicKey = await wallet.getPublicKey(keyId);
     final recipient = _findMessageRecipientByPublicKey(receiverPublicKey);
 
-    final senderJwk = await _findSenderJwk(protectedHeader.skid!);
     if (protectedHeader.isAnonCrypt()) {
-      final senderPublicKeyBytes = publicKeyBytesFromJwk(senderJwk.toJson());
-
       late ECDHES ecdhProfile;
       if (isSecp256OrPCurve(protectedHeader.epk['crv'])) {
         final epkPublicKey = publicKeyFromPoint(
@@ -318,9 +315,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       }
 
       return wallet.decrypt(recipient.encryptedKey,
-          keyId: keyId,
-          publicKey: senderPublicKeyBytes,
-          ecdhProfile: ecdhProfile);
+          keyId: keyId, ecdhProfile: ecdhProfile);
     } else if (protectedHeader.isAuthCrypt()) {
       if (protectedHeader.skid == null) {
         throw Exception('sender id needed when using AuthCrypt');
@@ -329,6 +324,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       late ECDH1PU ecdh1puProfile;
       late Uint8List senderPublicKeyBytes;
 
+      final senderJwk = await _findSenderJwk(protectedHeader.skid!);
       if (isSecp256OrPCurve(protectedHeader.epk['crv'])) {
         ec.PublicKey? senderPublicKey = publicKeyFromPoint(
             curve: getCurveByJwk(senderJwk.toJson()),
