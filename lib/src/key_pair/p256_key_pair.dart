@@ -4,6 +4,8 @@ import 'package:base_codecs/base_codecs.dart';
 import 'package:ecdsa/ecdsa.dart' as ecdsa;
 import 'package:elliptic/ecdh.dart';
 import 'package:elliptic/elliptic.dart' as ec;
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
+import 'package:ssi/src/key_pair/secp256k1_key_pair.dart';
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
@@ -108,8 +110,13 @@ class P256KeyPair implements KeyPair {
       [SignatureScheme.ecdsa_p256_sha256];
 
   @override
-  encrypt(Uint8List data, {Uint8List? publicKey}) async {
+  encrypt(Uint8List data,
+      {Uint8List? publicKey, ECDHProfile? ecdhProfile}) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
+
+    if (ecdhProfile != null) {
+      return ecdhProfile.encryptData(privateKey: privateKey, data: data);
+    }
 
     return ecdh_utils.encryptData(
       data: data,
@@ -120,8 +127,13 @@ class P256KeyPair implements KeyPair {
   }
 
   @override
-  decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
+  decrypt(Uint8List ivAndBytes,
+      {Uint8List? publicKey, ECDHProfile? ecdhProfile}) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
+
+    if (ecdhProfile != null) {
+      return ecdhProfile.decryptData(privateKey: privateKey, data: ivAndBytes);
+    }
 
     return ecdh_utils.decryptData(
       encryptedPackage: ivAndBytes,

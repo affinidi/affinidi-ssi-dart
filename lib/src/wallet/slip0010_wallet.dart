@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
 import 'package:ssi/src/wallet/deterministic_wallet.dart';
 
 import '../key_pair/key_pair.dart';
@@ -62,6 +63,7 @@ class Slip0010Wallet implements DeterministicWallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
+    ECDHProfile? ecdhProfile,
   }) async {
     throw UnimplementedError();
   }
@@ -71,6 +73,7 @@ class Slip0010Wallet implements DeterministicWallet {
     Uint8List data, {
     required String keyId,
     Uint8List? publicKey,
+    ECDHProfile? ecdhProfile,
   }) async {
     throw UnimplementedError();
   }

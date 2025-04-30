@@ -74,7 +74,7 @@ void main() async {
   print('Plaintext: $plainText');
 
   // Encrypt using the profile key (no peer public key provided)
-  // This uses an ephemeral key internally for ECDH.
+  // This uses an ephemeral key internally for ECDH.  
   print('Encrypting using $account0Key1Id (single-party mode)...');
   final encryptedSingleParty = await wallet.encrypt(
     plainText,

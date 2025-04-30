@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
+import 'package:ssi/src/key_pair/_ecdh_profile.dart';
 import 'package:ssi/ssi.dart';
 
 const _signatureSchemeToKmsAlgorithm = {
@@ -84,13 +85,15 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
-  Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
+  Future<Uint8List> encrypt(Uint8List data,
+      {Uint8List? publicKey, ECDHProfile? ecdhProfile}) async {
     // TODO: add support
     throw UnimplementedError();
   }
 
   @override
-  Future<Uint8List> decrypt(Uint8List data, {Uint8List? publicKey}) async {
+  Future<Uint8List> decrypt(Uint8List data,
+      {Uint8List? publicKey, ECDHProfile? ecdhProfile}) async {
     //   TODO: add support
     throw UnimplementedError();
   }
