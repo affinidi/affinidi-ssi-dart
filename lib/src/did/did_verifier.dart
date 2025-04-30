@@ -8,7 +8,7 @@ import 'package:ssi/src/util/base64_util.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
-import 'did_document.dart';
+import 'did_document/index.dart';
 import 'universal_did_resolver.dart';
 
 class DidVerifier implements Verifier {

@@ -2,7 +2,7 @@ import 'package:http/http.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
-import 'did_document.dart';
+import 'did_document/index.dart';
 
 /// Converts a `did:web` identifier into a [Uri] pointing to its DID document.
 Uri didWebToUri(String didWeb) {
