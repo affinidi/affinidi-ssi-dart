@@ -21,6 +21,8 @@ import 'package:ssi/src/didcomm/types.dart';
 import 'package:ssi/src/didcomm/utils.dart';
 import 'package:ssi/src/types.dart';
 
+typedef ResolveDid = Future<DidDocument> Function(String did);
+
 class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
   static const List<String> supportedAlgs = ['ECDH-1PU', 'ECDH-ES'];
 
@@ -111,9 +113,11 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
   Future<DidcommMessage> decrypt({
     required Wallet wallet,
     required String keyId,
+    ResolveDid resolveDid = UniversalDIDResolver.resolve,
   }) async {
     _isAlgorhythmSupportedForDecryption();
-    Uint8List decryptedCek = await _decryptCek(wallet: wallet, keyId: keyId);
+    Uint8List decryptedCek =
+        await _decryptCek(wallet: wallet, keyId: keyId, resolveDid: resolveDid);
 
     final cek = ck.SymmetricKey(keyValue: decryptedCek);
     final e = _createEncrypterByEncryptionAlg(protectedHeader.enc, cek);
@@ -128,9 +132,13 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     return DidcommMessage.fromDecrypted(message, protectedHeader);
   }
 
-  decryptWithPrivateJwk(Map privateKeyJwk, String receiverDid) async {
+  decryptWithPrivateJwk(
+    Map privateKeyJwk,
+    String receiverDid, [
+    ResolveDid resolveDid = UniversalDIDResolver.resolve,
+  ]) async {
     final decryptedCek =
-        await _decryptCekWithPrivateJwk(privateKeyJwk, receiverDid);
+        await _decryptCekWithPrivateJwk(privateKeyJwk, receiverDid, resolveDid);
 
     final cek = ck.SymmetricKey(keyValue: decryptedCek);
     final e = _createEncrypterByEncryptionAlg(protectedHeader.enc, cek);
@@ -309,6 +317,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
   Future<Uint8List> _decryptCek({
     required Wallet wallet,
     required String keyId,
+    required ResolveDid resolveDid,
   }) async {
     final receiverPublicKey = await wallet.getPublicKey(keyId);
     final recipient = _findMessageRecipientByPublicKey(receiverPublicKey);
@@ -349,7 +358,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       late ECDH1PU ecdh1puProfile;
       late Uint8List senderPublicKeyBytes;
 
-      final senderJwk = await _findSenderJwk(protectedHeader.skid!);
+      final senderJwk = await _findSenderJwk(protectedHeader.skid!, resolveDid);
       if (isSecp256OrPCurve(protectedHeader.epk['crv'])) {
         ec.PublicKey? senderPublicKey = publicKeyFromPoint(
             curve: getCurveByJwk(senderJwk.toJson()),
@@ -392,9 +401,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
   }
 
   Future<Uint8List> _decryptCekWithPrivateJwk(
-    Map privateKeyJwk,
-    String receiverDid,
-  ) async {
+      Map privateKeyJwk, String receiverDid, ResolveDid resolveDid) async {
     final publicKeyJwk = privateKeyJwk['verificationMethod'].firstWhere(
         (m) => m['publicKeyJwk']?['crv'] == protectedHeader.epk['crv'],
         orElse: () => throw Exception(''))['publicKeyJwk'];
@@ -405,7 +412,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       throw Exception('Protected header skid is not set');
     }
 
-    final senderJwk = await _findSenderJwk(protectedHeader.skid!);
+    final senderJwk = await _findSenderJwk(protectedHeader.skid!, resolveDid);
 
     if (protectedHeader.skid == null) {
       throw Exception('Protected header apu is not set');
@@ -469,9 +476,8 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     return jsonEncode(toJson());
   }
 
-  Future<Jwk> _findSenderJwk(String skid) async {
-    final didDoc = (await UniversalDIDResolver.resolve(skid.split('#').first))
-        .resolveKeyIds();
+  Future<Jwk> _findSenderJwk(String skid, ResolveDid resolveDid) async {
+    final didDoc = (await resolveDid(skid.split('#').first)).resolveKeyIds();
 
     return didDoc.keyAgreement.whereType<VerificationMethod>().firstWhere(
         (key) {
