@@ -98,6 +98,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         wallet: wallet,
         keyId: keyId,
         cek: cek,
+        publicKey: publicKey,
         epkPrivateKey: epkKeyPair.privateKeyBytes,
         recipientPublicKeyJwks: recipientPublicKeyJwks,
         jweHeader: jweHeader);
@@ -161,9 +162,9 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     required List<Map<String, dynamic>> recipientPublicKeyJwks,
     required JweHeader jweHeader,
     required Uint8List epkPrivateKey,
+    required PublicKey publicKey,
   }) async {
     final List<DidCommMessageRecipient> recipientList = [];
-    final publicKey = await wallet.getPublicKey(keyId);
     final senderCurve = getCurveByPublicKey(publicKey);
 
     final matchingJwks =
@@ -260,8 +261,9 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     final didDoc = DidKey.generateDocument(publicKey);
 
     if (isSecp256OrPCurve(recipientPublicKeyJwk['crv'])) {
+      final curve = getEllipticCurveByPublicKey(publicKey);
       final receiverPubKey = publicKeyFromPoint(
-        curve: getEllipticCurveByPublicKey(publicKey),
+        curve: curve,
         x: recipientPublicKeyJwk['x'],
         y: recipientPublicKeyJwk['y'],
       );
@@ -274,10 +276,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
           apv: jweHeader.apv,
           public1: receiverPubKey,
           public2: receiverPubKey,
-          private1: ec.PrivateKey.fromBytes(
-            getEllipticCurveByPublicKey(publicKey),
-            epkPrivateKey,
-          ));
+          private1: ec.PrivateKey.fromBytes(curve, epkPrivateKey));
 
       return wallet.encrypt(cek.keyValue,
           keyId: keyId,
