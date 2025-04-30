@@ -10,7 +10,14 @@ final vcIntegrityVerifier = VcIntegrityVerifier();
 /// Verifier that ensures the integrity of both the Verifiable Presentation (VP)
 /// and its embedded Verifiable Credentials (VCs).
 ///
-/// This verifier fails fast: it stops at the first encountered integrity issue.
+/// This verifier fails fast: it stops at the first encountered integrity issue./// Example:
+/// ```dart
+/// final verifier = VpIntegrityVerifier();
+/// final result = await verifier.verify(vp);
+/// if (!result.isValid) {
+///   print("Presentation contains invalid signatures");
+/// }
+/// ```
 class VpIntegrityVerifier implements VpVerifier {
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {

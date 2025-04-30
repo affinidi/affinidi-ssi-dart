@@ -41,6 +41,7 @@ class MutableVpDataModelV1 {
   /// The cryptographic proof(s) created by the holder.
   List<EmbeddedProof> proof;
 
+  /// Returns the JSON representation of the MutableVpDataModelV1.
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
@@ -112,16 +113,29 @@ class MutableVpDataModelV1 {
 
 typedef _P = VpDataModelV1Key;
 
+/// Defines the keys for accessing properties within the [MutableVpDataModelV1] data model.
 enum VpDataModelV1Key {
+  /// The JSON-LD context key (`@context`).
   context(key: '@context'),
+
+  /// The identifier key (`id`).
   id,
+
+  /// The type key (`type`).
   type,
+
+  /// The holder key (`holder`).
   holder,
+
+  /// The verifiable credential key (`verifiableCredential`).
   verifiableCredential,
+
+  /// The cryptographic proof key (`proof`).
   proof;
 
   final String? _key;
 
+  /// Returns the key string (custom or enum name).
   String get key => _key ?? name;
 
   const VpDataModelV1Key({String? key}) : _key = key;
