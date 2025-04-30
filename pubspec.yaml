@@ -1,6 +1,6 @@
 name: ssi
-description: Affinidi SSI library
-version: 1.0.0-dev.19
+description: Affinidi SSI library for Dart
+version: 1.0.0-dev.20
 repository: https://github.com/affinidi/affinidi-ssi-dart
 environment:
   sdk: ^3.6.0
@@ -28,4 +28,8 @@ dev_dependencies:
   aws_kms_api: ^2.0.0
   aws_signature_v4: ^0.6.4
   shared_aws_api: ^2.0.2
-publish_to: none
+
+topics:
+  - ssi
+  - cryptography
+  - did
