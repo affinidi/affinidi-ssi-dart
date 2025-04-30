@@ -2,9 +2,13 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:elliptic/elliptic.dart' as ec;
+import 'package:ssi/src/did/did_key.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
 import 'package:ssi/src/types.dart';
+import 'package:ssi/src/wallet/bip32_ed25519_wallet.dart';
+import 'package:ssi/ssi.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:x25519/x25519.dart' as x25519;
 
 Map<String, dynamic> credentialToMap(dynamic credential) {
   if (credential is String) {
@@ -25,7 +29,7 @@ String getCurveByPublicKey(PublicKey publickey) {
   } else if (publickey.type == KeyType.secp256k1) {
     return 'secp256k1';
   } else if (publickey.type == KeyType.ed25519) {
-    throw Exception('ed25519 not supported.');
+    return 'X25519';
   }
   throw Exception('curve for public key not implemented');
 }
@@ -137,10 +141,21 @@ Uint8List getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
   }
 
   if (publicKey.type == KeyType.ed25519) {
-    throw Exception('ed25519 not supported.');
+    var eKeyPair = x25519.generateKeyPair();
+    return (
+      privateKeyBytes: Uint8List.fromList(eKeyPair.privateKey),
+      publicKeyBytes: Uint8List.fromList(eKeyPair.publicKey),
+    );
   }
 
   throw Exception('Key type not supported');
+}
+
+Future<DidDocument> getDidDocumentForX25519Key(
+    Bip32Ed25519Wallet wallet, String keyId) async {
+  final x25519PublicKey = await wallet.getX25519PublicKey(keyId);
+  return DidKey.generateDocument(
+      PublicKey(keyId, x25519PublicKey, KeyType.x25519));
 }
 
 bool isSecp256OrPCurve(String crv) {

@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/types.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
