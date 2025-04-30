@@ -55,15 +55,21 @@ Parse a JWT VC string - [view example](https://github.com/affinidi/affinidi-ssi-
 
 Create a Verifiable Credential with a mutable data using Data Model V2 - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/ld_v2/issuance.dart).
 
-### 2. Create and Sign SD-JWT
+### 2. Verify VC Expiry and Integrity
+
+Verify the expiration of the Verifiable Credential - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/ld_v2/verification/expiry_verification.dart).
+
+Verify the integrity of the Verifiable Credential - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/ld_v2/verification/integrity_verification.dart).
+
+### 3. Create and Sign SD-JWT
 
 Create a SD-JWT with a mutable data - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/sdjwt/issuance.dart).
 
-### 3. Create Data Model
+### 4. Create Data Model
 
 Create a data model using V1 - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vc/ld_v2/data_model_creation.dart).
 
-### 4. Parse VC String
+### 5. Parse VC String
 
 Parse a Data Model V2 VC string - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vc/ld_v2/parsing.dart).
 
@@ -108,6 +114,10 @@ Verify the integrity of the Verifiable Credential - [view example](https://githu
 
 Verify the VP with specific domain and challenge using Data Model V2 - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vp/ld_v2/verification/domain_challenge_verification.dart).
 
-### 4. Parse VP String
+### 4. Create Data Model
+
+Create a data model using V2 - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vp/ld_v2/data_model_creation.dart).
+
+### 5. Parse VP String
 
 Parse a Data Model V2 VP string - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vp/ld_v2/parsing.dart).
