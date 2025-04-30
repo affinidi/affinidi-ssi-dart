@@ -6,6 +6,7 @@ import 'package:ssi/src/did/did_key.dart';
 import 'package:ssi/src/did/universal_did_resolver.dart';
 import 'package:ssi/src/didcomm/message/ecdh/ecdh_es.dart';
 import 'package:ssi/src/key_pair/public_key.dart';
+import 'package:ssi/src/wallet/bip32_ed25519_wallet.dart';
 import 'package:ssi/src/wallet/wallet.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:crypto_keys/crypto_keys.dart' as ck;
@@ -73,6 +74,8 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     final epkKeyPair = getEphemeralPrivateKey(publicKey);
 
     JweHeader jweHeader = await JweHeader.encryptedDidCommMessage(
+        wallet: wallet,
+        keyId: keyId,
         keyWrapAlgorithm: keyWrapAlgorithm,
         encryptionAlgorithm: encryptionAlgorithm,
         recipientPublicKeyJwks: recipientPublicKeyJwks,
@@ -117,8 +120,11 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     ResolveDid resolveDid = UniversalDIDResolver.resolve,
   }) async {
     _isAlgorhythmSupportedForDecryption();
-    Uint8List decryptedCek =
-        await _decryptCek(wallet: wallet, keyId: keyId, resolveDid: resolveDid);
+    Uint8List decryptedCek = await _decryptCek(
+      wallet: wallet,
+      keyId: keyId,
+      resolveDid: resolveDid,
+    );
 
     final cek = ck.SymmetricKey(keyValue: decryptedCek);
     final e = _createEncrypterByEncryptionAlg(protectedHeader.enc, cek);
@@ -285,11 +291,17 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     } else if (isXCurve(recipientPublicKeyJwk['crv'])) {
       final receiverPubKeyBytes = publicKeyBytesFromJwk(recipientPublicKeyJwk);
 
+      final x25519PublicKey =
+          await (wallet as Bip32Ed25519Wallet).getX25519PublicKey(keyId);
+
+      final x25519DidDoc = DidKey.generateDocumentFromPublicKeyBytes(
+          x25519PublicKey, KeyType.x25519);
+
       final ecdh1pu = ECDH1PU_X25519(
           authenticationTag: authenticationTag,
           keyWrapAlgorithm: keyWrapAlgorithm,
           apu: removePaddingFromBase64(
-              base64Encode(utf8.encode(didDoc.verificationMethod[0].id))),
+              base64Encode(utf8.encode(x25519DidDoc.verificationMethod[0].id))),
           apv: jweHeader.apv,
           public1: receiverPubKeyBytes,
           public2: receiverPubKeyBytes,
@@ -319,7 +331,8 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     required ResolveDid resolveDid,
   }) async {
     final receiverPublicKey = await wallet.getPublicKey(keyId);
-    final recipient = _findMessageRecipientByPublicKey(receiverPublicKey);
+    final recipient = await _findMessageRecipientByPublicKey(
+        wallet, keyId, receiverPublicKey);
 
     if (protectedHeader.isAnonCrypt()) {
       late ECDHES ecdhProfile;
@@ -376,7 +389,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
 
         senderPublicKeyBytes = hexToBytes(senderPublicKey.toCompressedHex());
       } else if (isXCurve(protectedHeader.epk['crv'])) {
-        senderPublicKeyBytes = base64Decode(senderJwk.toJson()['x']!);
+        senderPublicKeyBytes = publicKeyBytesFromJwk(senderJwk.toJson());
 
         ecdh1puProfile = ECDHProfile.buildX25519(
           senderPublicKeyBytes: senderPublicKeyBytes,
@@ -512,11 +525,25 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         orElse: () => throw Exception('Unknown algorithm'));
   }
 
-  DidCommMessageRecipient _findMessageRecipientByPublicKey(
+  Future<DidCommMessageRecipient> _findMessageRecipientByPublicKey(
+    Wallet wallet,
+    String keyId,
     PublicKey receiverPublicKey,
-  ) {
-    final receiverDid = DidKey.getDid(receiverPublicKey);
-    return _findMessageRecipientByDid(receiverDid);
+  ) async {
+    if (isSecp256OrPCurve(protectedHeader.epk['crv'])) {
+      final receiverDid = DidKey.getDid(receiverPublicKey);
+      return _findMessageRecipientByDid(receiverDid);
+    } else if (isXCurve(protectedHeader.epk['crv'])) {
+      final x25519PublicKeyBytes =
+          await (wallet as Bip32Ed25519Wallet).getX25519PublicKey(keyId);
+
+      final receiverDid = DidKey.generateDocumentFromPublicKeyBytes(
+          x25519PublicKeyBytes, KeyType.x25519);
+
+      return _findMessageRecipientByDid(receiverDid.id);
+    } else {
+      throw Exception('Curve ${protectedHeader.epk['crv']} not supported');
+    }
   }
 
   DidCommMessageRecipient _findMessageRecipientByDid(String receiverDid) {

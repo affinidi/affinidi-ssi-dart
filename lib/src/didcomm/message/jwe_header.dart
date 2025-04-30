@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:elliptic/elliptic.dart' as ec;
+import 'package:ssi/src/wallet/bip32_ed25519_wallet.dart';
+import 'package:ssi/src/wallet/wallet.dart';
 import 'package:web3dart/crypto.dart' as c;
 
 import 'package:ssi/src/did/did_key.dart';
@@ -29,6 +31,8 @@ class JweHeader implements JsonObject {
       required this.apu});
 
   static encryptedDidCommMessage({
+    required Wallet wallet,
+    required String keyId,
     required KeyWrapAlgorithm keyWrapAlgorithm,
     required EncryptionAlgorithm encryptionAlgorithm,
     required List<Map<String, dynamic>> recipientPublicKeyJwks,
@@ -37,8 +41,11 @@ class JweHeader implements JsonObject {
     required Uint8List? epkPublic,
   }) async {
     final curve = getCurveByPublicKey(senderPublicKey);
-    final didDoc = DidKey.generateDocument(senderPublicKey);
-    final kid = didDoc.keyAgreement.first;
+    final kid = await _getKid(
+        wallet: wallet,
+        keyId: keyId,
+        curve: curve,
+        senderPublicKey: senderPublicKey);
 
     return JweHeader(
       skid: kid,
@@ -48,6 +55,28 @@ class JweHeader implements JsonObject {
       epk: _buildEpkHeader(epkPrivate, epkPublic, senderPublicKey, curve),
       apu: _buildApuHeader(keyWrapAlgorithm, kid),
     );
+  }
+
+  static _getKid({
+    required Wallet wallet,
+    required String keyId,
+    required String curve,
+    required PublicKey senderPublicKey,
+  }) async {
+    if (isSecp256OrPCurve(curve)) {
+      var didDoc = DidKey.generateDocument(senderPublicKey);
+      return didDoc.keyAgreement.first;
+    }
+
+    if (isXCurve(curve)) {
+      final x25519PublicKey =
+          await (wallet as Bip32Ed25519Wallet).getX25519PublicKey(keyId);
+      final didDoc =
+          DidKey.generateDocumentBytes(x25519PublicKey, KeyType.x25519);
+      return didDoc.keyAgreement.first;
+    }
+
+    throw Exception('Curve $curve not supported');
   }
 
   @override

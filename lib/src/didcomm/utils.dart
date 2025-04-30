@@ -5,6 +5,7 @@ import 'package:elliptic/elliptic.dart' as ec;
 import 'package:ssi/src/key_pair/public_key.dart';
 import 'package:ssi/src/types.dart';
 import 'package:web3dart/crypto.dart';
+import 'package:x25519/x25519.dart' as x25519;
 
 Map<String, dynamic> credentialToMap(dynamic credential) {
   if (credential is String) {
@@ -25,7 +26,7 @@ String getCurveByPublicKey(PublicKey publickey) {
   } else if (publickey.type == KeyType.secp256k1) {
     return 'secp256k1';
   } else if (publickey.type == KeyType.ed25519) {
-    throw Exception('ed25519 not supported.');
+    return 'X25519';
   }
   throw Exception('curve for public key not implemented');
 }
@@ -137,7 +138,11 @@ Uint8List getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
   }
 
   if (publicKey.type == KeyType.ed25519) {
-    throw Exception('ed25519 not supported.');
+    var eKeyPair = x25519.generateKeyPair();
+    return (
+      privateKeyBytes: Uint8List.fromList(eKeyPair.privateKey),
+      publicKeyBytes: Uint8List.fromList(eKeyPair.publicKey),
+    );
   }
 
   throw Exception('Key type not supported');

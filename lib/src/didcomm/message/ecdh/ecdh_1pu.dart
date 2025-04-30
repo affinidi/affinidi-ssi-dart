@@ -149,14 +149,14 @@ class ECDH1PU_X25519 extends ECDH1PU {
       throw Exception('Private key needed for encryption data.');
     }
 
-    final ze = x25519.X25519(private1!, public1);
-    final zs = x25519.X25519(private2, public2);
+    final ze = x25519.X25519(private1!.sublist(0, 32), public1);
+    final zs = x25519.X25519(private2.sublist(0, 32), public2);
     return (ze: ze, zs: zs);
   }
 
   ({Uint8List ze, Uint8List zs}) getDecryptionSecrets(Uint8List private2) {
-    final ze = x25519.X25519(private2, public1);
-    final zs = x25519.X25519(private2, public2);
+    final ze = x25519.X25519(private2.sublist(0, 32), public1);
+    final zs = x25519.X25519(private2.sublist(0, 32), public2);
     return (ze: ze, zs: zs);
   }
 }

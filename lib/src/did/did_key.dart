@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/types.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -168,6 +171,23 @@ class DidKey {
   /// Throws [SsiException] if the public key is invalid
   static DidDocument generateDocument(PublicKey publicKey) {
     final multiKey = toMultikey(publicKey.bytes, publicKey.type);
+    final multibase = toMultiBase(multiKey);
+    final did = '$_commonDidKeyPrefix$multibase';
+    // FIXME(FTL-20741) double check the doc
+    return _buildDoc(multibase, did);
+  }
+
+  /// This method takes public key bytes and creates a DID document
+  ///
+  /// [publicKey] The public key used to create the DID
+  /// [keyType] The key type of the public key
+  ///
+  /// Returns a [DidDocument].
+  ///
+  /// Throws [SsiException] if the public key is invalid
+  static DidDocument generateDocumentFromPublicKeyBytes(
+      Uint8List publicKey, KeyType keyType) {
+    final multiKey = toMultikey(publicKey, keyType);
     final multibase = toMultiBase(multiKey);
     final did = '$_commonDidKeyPrefix$multibase';
     // FIXME(FTL-20741) double check the doc
