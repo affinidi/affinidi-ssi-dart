@@ -5,7 +5,7 @@ SSI package provides libraries and tools for implementing Self-Sovereign Identit
 It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1.0/) methods to represent an entity's identity in the decentralised ecosystem. It leverages different key management solutions and standards for generating and managing cryptographic keys associated with the digital wallet.
 
 > **IMPORTANT:** 
-> This project does not collect or process personal data by default. However, when used as part of a broader system or application that handles personally identifiable information (PII), users are responsible for ensuring that any such use complies with applicable privacy laws and data protection obligations.
+> This project does not collect or process any personal data. However, when used as part of a broader system or application that handles personally identifiable information (PII), users are responsible for ensuring that any such use complies with applicable privacy laws and data protection obligations.
 
 ## Table of Contents
 
@@ -71,6 +71,8 @@ Each implementation of the data models enables you to create a Verifiable Creden
 - Mutable and Immutable fields.
 
 - Mutable and Immutable data.
+
+The Suite Data Model is the final form of the VC that encapsulates the signed VC, including additional attributes like the disclosures for SD-JWT VC and the JTW Header for JWT VC. The Suite Service provides the functions for parsing, serialising, and issuing a VC for a specific format.
 
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials) to learn how to create and verify credentials using different models.
 
