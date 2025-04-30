@@ -67,7 +67,7 @@ Create a SD-JWT with a mutable data - [view example](https://github.com/affinidi
 
 ### 4. Create Data Model
 
-Create a data model using V1 - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vc/ld_v2/data_model_creation.dart).
+Create a data model using V2 - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vc/ld_v2/data_model_creation.dart).
 
 ### 5. Parse VC String
 
