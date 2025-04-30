@@ -81,7 +81,7 @@ Verify the integrity of the Verifiable Credential - [view example](https://githu
 
 Verify the VP with specific domain and challenge using Data Model V1 - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vp/ld_v1/verification/domain_challenge_verification.dart).
 
-### 4. Parse VC String
+### 4. Parse VP String
 
 Parse a Data Model V1 VP string - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vp/ld_v1/parsing.dart).
 
@@ -103,6 +103,6 @@ Verify the integrity of the Verifiable Credential - [view example](https://githu
 
 Verify the VP with specific domain and challenge using Data Model V2 - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vp/ld_v2/verification/domain_challenge_verification.dart).
 
-### 4. Parse VC String
+### 4. Parse VP String
 
 Parse a Data Model V2 VP string - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vp/ld_v2/parsing.dart).
