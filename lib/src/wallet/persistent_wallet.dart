@@ -14,17 +14,18 @@ import '../types.dart';
 
 /// A non-hierarchical wallet implementation that supports multiple key types.
 ///
-/// This wallet can expects a secure [KeyStore] to store key material.
+/// This wallet expects a secure [KeyStore] to store key material.
 /// It supports signing and verifying messages, and ecrypting/decrypting payloads.
-class GenericWallet implements Wallet {
+class PersistentWallet implements Wallet {
   final KeyStore _keyStore;
+
   // Optional: Runtime cache for KeyPair objects to avoid reconstruction
   final Map<String, KeyPair> _runtimeCache = {};
 
-  /// Creates a new [GenericWallet] instance backed by a [KeyStore].
+  /// Creates a new [PersistentWallet] instance backed by a [KeyStore].
   ///
   /// [keyStore] - The KeyStore used to persist key information.
-  GenericWallet(this._keyStore);
+  PersistentWallet(this._keyStore);
 
   @override
   Future<bool> hasKey(String keyId) {
@@ -87,7 +88,7 @@ class GenericWallet implements Wallet {
       privateKeyBytes = pKeyBytes;
     } else {
       throw ArgumentError(
-          "Unsupported key type for GenericWallet: $effectiveKeyType. Only p256 and ed25519 are supported.");
+          "Unsupported key type for PersistentWallet: $effectiveKeyType. Only p256 and ed25519 are supported.");
     }
 
     final storedKey = StoredKey.fromPrivateKey(
@@ -165,7 +166,7 @@ class GenericWallet implements Wallet {
     if (storedKey.representation != StoredKeyRepresentation.privateKeyBytes) {
       throw SsiException(
           message:
-              "KeyStore entry for $keyId is not stored as private key bytes (found ${storedKey.representation}). Incompatible with GenericWallet.",
+              "KeyStore entry for $keyId is not stored as private key bytes (found ${storedKey.representation}). Incompatible with PersistentWallet.",
           code: SsiExceptionType.invalidKeyType.code);
     }
 

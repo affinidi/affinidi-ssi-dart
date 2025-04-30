@@ -152,7 +152,7 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
     var now = getNow();
 
     final expires = proof['expires'];
-    if (expires != null && now.isAfter(expires)) {
+    if (expires != null && now.isAfter(expires as DateTime)) {
       return VerificationResult.invalid(errors: ['Not valid proof']);
     }
 
@@ -216,7 +216,8 @@ class EcdsaSecp256k1Signature2019Proof extends EmbeddedProof {
 Future<Uint8List> _computeVcHash(
   Map<String, dynamic> proof,
   Map<String, dynamic> unsignedCredential,
-  Function(Uri url, LoadDocumentOptions? options) documentLoader,
+  Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
+      documentLoader,
 ) async {
   final normalizedProof = await JsonLdProcessor.normalize(
     proof,
