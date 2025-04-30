@@ -113,11 +113,21 @@ class MutableVcDataModelV2 {
     return cleanEmpty(json);
   }
 
-  /// Constructs a [MutableVcDataModelV2] instance.
+  /// Creates a [MutableVcDataModelV2] instance.
   ///
-  /// The constructor takes optional parameters to initialize the properties of the
-  /// Verifiable Credential.  If a parameter is not provided, it defaults to an
-  /// empty list, set, or null where appropriate.
+  /// The [context] is the JSON-LD context array (required).
+  /// The [id] is otptionla identifier (optional)
+  /// The [credentialSchema] is credential schema against VC is issued (optional)
+  /// the [credentialSubject] is contain claims of subject (required)
+  /// The [issuer] is issuer of this VC (required)
+  /// The [type] is an array that must include 'VerifiableCredential' (requires)
+  /// The [validFrom] is date and time at  which the credential becomes effective (optional)
+  /// The [validUntil] is date and time  at which the credential becomes invalid (optional)
+  /// The [proof] is a cryptographic proof (optional)
+  /// The [credentialStatus] is a list of Credential Status object (optional)
+  /// The [refreshService] is a list of refresh service (optional)
+  /// The [termsOfUse] is a list of terms of use (optional)
+  /// The [evidence] is a list of evidence (optional)
   MutableVcDataModelV2({
     List<String>? context,
     this.id,

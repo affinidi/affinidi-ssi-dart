@@ -17,7 +17,7 @@ abstract interface class _TermsOfUseInterface {
 ///
 /// Example:
 /// ```dart
-/// final schema = MutableTermsOfUse(
+/// final terms = MutableTermsOfUse(
 ///   id: Uri.parse('test-terms-of-use-id'),
 ///   type: 'TrustFrameworkPolicy'
 /// );
@@ -55,7 +55,7 @@ class MutableTermsOfUse extends _TermsOfUseInterface {
 ///
 /// Example:
 /// ```dart
-/// final schema = TermsOfUse(
+/// final terms = TermsOfUse(
 ///   id: Uri.parse('test-terms-of-use-id'),
 ///   type: 'TrustFrameworkPolicy'
 /// );

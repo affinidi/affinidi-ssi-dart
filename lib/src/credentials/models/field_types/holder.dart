@@ -15,7 +15,7 @@ abstract interface class _HolderInterface {
 ///
 /// Example:
 /// ```dart
-/// final schema = MutableHolder(
+/// final holder = MutableHolder(
 ///   id: Uri.parse('did:example:12345'),
 /// );
 /// ```
@@ -54,7 +54,7 @@ class MutableHolder extends _HolderInterface {
 ///
 /// Example:
 /// ```dart
-/// final schema = Holder(
+/// final holder = Holder(
 ///   id: Uri.parse('did:example:12345'),
 /// );
 /// ```

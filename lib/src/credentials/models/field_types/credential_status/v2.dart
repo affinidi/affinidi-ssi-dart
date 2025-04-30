@@ -20,8 +20,8 @@ abstract interface class _CredentialStatusV2Interface {
 ///
 /// Example:
 /// ```dart
-/// final schema = MutableCredentialStatusV1(
-///   id: 'https://license.example/credentials/status/84#14278',
+/// final credentialStatus = MutableCredentialStatusV2(
+///   id: Uri.parse('https://license.example/credentials/status/84#14278'),
 ///   type: 'BitstringStatusListEntry',
 /// );
 /// ```
@@ -59,8 +59,8 @@ class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
 ///
 /// Example:
 /// ```dart
-/// final schema = CredentialStatusV1(
-///   id: 'https://license.example/credentials/status/84#14278',
+/// final credentialStatus = CredentialStatusV2(
+///   id: Uri.parse('https://license.example/credentials/status/84#14278'),
 ///   type: 'BitstringStatusListEntry',
 /// );
 /// ```

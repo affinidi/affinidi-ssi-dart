@@ -15,7 +15,7 @@ abstract interface class _IssuerInterface {
 ///
 /// Example:
 /// ```dart
-/// final schema = MutableIssuer(
+/// final isuer = MutableIssuer(
 ///   id: Uri.parse('did:example:12345'),
 /// );
 /// ```
@@ -43,7 +43,7 @@ class MutableIssuer extends _IssuerInterface {
   ///
   /// Example:
   /// ```dart
-  /// final holder = MutableIssuer.uri("did:example:12345");
+  /// final issuer = MutableIssuer.uri("did:example:12345");
   /// ```
   factory MutableIssuer.uri(dynamic json) => MutableIssuer.fromJson(json);
 }
@@ -54,7 +54,7 @@ class MutableIssuer extends _IssuerInterface {
 ///
 /// Example:
 /// ```dart
-/// final schema = Issuer(
+/// final issuer = Issuer(
 ///   id: Uri.parse('did:example:12345'),
 /// );
 /// ```
@@ -84,7 +84,7 @@ class Issuer extends MutableIssuer {
   ///
   /// Example:
   /// ```dart
-  /// final holder = Issuer.uri("did:example:12345");
+  /// final issuer = Issuer.uri("did:example:12345");
   /// ```
   factory Issuer.uri(dynamic json) => Issuer.fromJson(json);
 }

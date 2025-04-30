@@ -20,7 +20,7 @@ abstract interface class _CredentialSubjectInterface
 /// Example:
 /// ```dart
 /// final schema = MutableCredentialSubject(
-///   id: 'did:example:subjectV2',
+///   id: Uri.parse('did:example:subjectV2'),
 ///   'email': 'user@test.com',
 /// );
 /// ```
@@ -78,8 +78,8 @@ class MutableCredentialSubject extends _CredentialSubjectInterface {
 ///
 /// Example:
 /// ```dart
-/// final schema = CredentialSubject(
-///   id: 'did:example:subjectV2',
+/// final subject = CredentialSubject(
+///   id: Uri.parse('did:example:subjectV2'),
 ///   'email': 'user@test.com',
 /// );
 /// ```

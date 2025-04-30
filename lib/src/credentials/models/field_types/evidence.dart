@@ -21,7 +21,7 @@ abstract interface class _EvidenceInterface {
 ///
 /// Example:
 /// ```dart
-/// final schema = MutableEvidence(
+/// final evidence = MutableEvidence(
 ///   id: Uri.parse('test-evidence-id'),
 ///   'type': 'Evidence1',
 /// );
@@ -61,7 +61,7 @@ class MutableEvidence extends _EvidenceInterface {
 ///
 /// Example:
 /// ```dart
-/// final schema = Evidence(
+/// final evidence = Evidence(
 ///   id: Uri.parse('test-evidence-id'),
 ///   'type': 'Evidence1',
 /// );

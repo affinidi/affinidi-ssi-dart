@@ -44,7 +44,7 @@ class MutableRefreshServiceV2 extends _RefreshServiceV2Interface {
 ///
 /// Example:
 /// ```dart
-/// final schema = RefreshServiceV2(
+/// final refreshService = RefreshServiceV2(
 ///   type: 'ManualRefreshService2021',
 /// );
 /// ```

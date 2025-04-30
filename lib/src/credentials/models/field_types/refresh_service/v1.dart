@@ -56,7 +56,7 @@ class MutableRefreshServiceV1 extends _RefreshServiceV1Interface {
 ///
 /// Example:
 /// ```dart
-/// final schema = RefreshServiceV1(
+/// final refreshService = RefreshServiceV1(
 ///   id: Uri.parse('test-refresh-service-id'),
 ///   type: 'refresh-type',
 /// );

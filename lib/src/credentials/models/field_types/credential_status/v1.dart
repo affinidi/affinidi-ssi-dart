@@ -16,18 +16,18 @@ abstract interface class _CredentialStatusV1Interface {
 /// Represents a Mutable Credential Status for verifiable credentials following W3C standards.
 ///
 /// This specification defines the credentialStatus property for discovering information related
-/// to the status of a verifiable credential, such as whether it is suspended or revoked.
-/// /// It uses JSON Schema format to check status of credential.
+/// to the status of a verifiable credential, such as whether it is revoked or not.
+/// It uses JSON Schema format to check status of credential.
 ///
 /// Example:
 /// ```dart
-/// final schema = MutableCredentialStatusV1(
+/// final credentialStatus = MutableCredentialStatusV1(
 ///   id: Uri.parse('test-credential-status-id'),
 ///   type: 'BitstringStatusListEntry',
 /// );
 /// ```
 class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
-  /// The URL of unique identifier for the credential status object.
+  /// The URL of optional unique identifier for the credential status object.
   Uri? id;
 
   /// The schema type of credential status.
@@ -56,12 +56,12 @@ class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
 /// Represents a Credential Status for verifiable credentials following W3C standards.
 ///
 /// This specification defines the credentialStatus property for discovering information related
-/// to the status of a verifiable credential, such as whether it is suspended or revoked.
+/// to the status of a verifiable credential, such as whether it is revoked or not.
 /// It uses JSON Schema format to check status of credential.
 ///
 /// Example:
 /// ```dart
-/// final schema = CredentialStatusV1(
+/// final credentialStatus = CredentialStatusV1(
 ///   id: Uri.parse('test-credential-status-id'),
 ///   type: 'BitstringStatusListEntry',
 /// );
@@ -70,7 +70,7 @@ class CredentialStatusV1 extends _CredentialStatusV1Interface {
   final Uri _id;
   final String _type;
 
-  /// The URL of unique identifier for the credential status object.
+  /// The URL of optional unique identifier for the credential status object.
   @override
   Uri get id => _id;
 
