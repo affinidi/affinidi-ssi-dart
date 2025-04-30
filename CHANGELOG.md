@@ -3,6 +3,113 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-04-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.20`](#ssi---v100-dev20)
+
+---
+
+#### `ssi` - `v1.0.0-dev.20`
+
+ - **REFACTOR**: refactor code snippets (#72).
+ - **FIX**: test concurrency (#36).
+ - **FIX**: organize exports from across the credentials code (#86).
+ - **FIX**: rename GenericWallet to PersistentWallet (#85).
+ - **FIX**: making the interface of issue methods uniform (#83).
+ - **FIX**: making the interface of issue methods uniform.
+ - **FIX**: Adding VP tests (#65).
+ - **FIX**: VP structure updated to be same as VC (#54).
+ - **FIX**: remove affinidi links.
+ - **FIX**: package publish (#46).
+ - **FIX**: apply dart_flutter_team_lints rules to credentials (#42).
+ - **FIX**: added support for meta package version 1.15.0 (#31).
+ - **FEAT**: wallet key id abstraction (#68).
+ - **FEAT**: restructure code snippets (#87).
+ - **FEAT**: adding docs for presentation (#80).
+ - **FEAT**: add credentials directory docs (#67).
+ - **FEAT**: Replaced dynamic types with strict models in DidDocument (#78).
+ - **FEAT**: Standardize VC fields (#66).
+ - **FEAT**: checking kid related to issuer did (#64).
+ - **FEAT**: cover public api members documentation for presentations (#58).
+ - **FEAT**: encrypt from wallet (#61).
+ - **FEAT**: implement LD V2 suite.
+ - **FEAT**: generic wallet (#56).
+ - **FEAT**: add support to issue VC as SdJwt (#52).
+ - **FEAT**: add support for encrypt and decrypt on existing KeyPairs (#53).
+ - **FEAT**: adding docs for model, suits and proofs (#90).
+ - **FEAT**: p256 algorithm key pair (#49).
+ - **FEAT**: refactor VC models.
+ - **FEAT**: adding docs for model under /credential (#84).
+ - **FEAT**: create tickets from TODOs (#50).
+ - **FEAT**: move AWS KMS wallet under package (#30).
+ - **FEAT**: add cache for document loader (#48).
+ - **FEAT**: parsed vcs are read only (#47).
+ - **FEAT**: implement verification service for VC (#35).
+ - **FEAT**: add VP common interface (#29).
+ - **FEAT**: extend support for embedded proof properties (#69).
+ - **FEAT**: create a shared retry generator (#76).
+ - **FEAT**: only return private key on generation (#77).
+ - **FEAT**: Tests added for VC DM v1 and v2. (#71).
+ - **FEAT**: sdjwt integrity verification (#51).
+ - **DOCS**: update readme (#63).
+ - **DOCS**: add code documentation for lib/src/credentials public members (#45).
+
+## 1.0.0-dev.20
+
+ - **REFACTOR**: refactor code snippets (#72).
+ - **FIX**: test concurrency (#36).
+ - **FIX**: organize exports from across the credentials code (#86).
+ - **FIX**: rename GenericWallet to PersistentWallet (#85).
+ - **FIX**: making the interface of issue methods uniform (#83).
+ - **FIX**: making the interface of issue methods uniform.
+ - **FIX**: Adding VP tests (#65).
+ - **FIX**: VP structure updated to be same as VC (#54).
+ - **FIX**: remove affinidi links.
+ - **FIX**: package publish (#46).
+ - **FIX**: apply dart_flutter_team_lints rules to credentials (#42).
+ - **FIX**: added support for meta package version 1.15.0 (#31).
+ - **FEAT**: wallet key id abstraction (#68).
+ - **FEAT**: restructure code snippets (#87).
+ - **FEAT**: adding docs for presentation (#80).
+ - **FEAT**: add credentials directory docs (#67).
+ - **FEAT**: Replaced dynamic types with strict models in DidDocument (#78).
+ - **FEAT**: Standardize VC fields (#66).
+ - **FEAT**: checking kid related to issuer did (#64).
+ - **FEAT**: cover public api members documentation for presentations (#58).
+ - **FEAT**: encrypt from wallet (#61).
+ - **FEAT**: implement LD V2 suite.
+ - **FEAT**: generic wallet (#56).
+ - **FEAT**: add support to issue VC as SdJwt (#52).
+ - **FEAT**: add support for encrypt and decrypt on existing KeyPairs (#53).
+ - **FEAT**: adding docs for model, suits and proofs (#90).
+ - **FEAT**: p256 algorithm key pair (#49).
+ - **FEAT**: refactor VC models.
+ - **FEAT**: adding docs for model under /credential (#84).
+ - **FEAT**: create tickets from TODOs (#50).
+ - **FEAT**: move AWS KMS wallet under package (#30).
+ - **FEAT**: add cache for document loader (#48).
+ - **FEAT**: parsed vcs are read only (#47).
+ - **FEAT**: implement verification service for VC (#35).
+ - **FEAT**: add VP common interface (#29).
+ - **FEAT**: extend support for embedded proof properties (#69).
+ - **FEAT**: create a shared retry generator (#76).
+ - **FEAT**: only return private key on generation (#77).
+ - **FEAT**: Tests added for VC DM v1 and v2. (#71).
+ - **FEAT**: sdjwt integrity verification (#51).
+ - **DOCS**: update readme (#63).
+ - **DOCS**: add code documentation for lib/src/credentials public members (#45).
+
+
 ## 2025-04-09
 
 ### Changes
