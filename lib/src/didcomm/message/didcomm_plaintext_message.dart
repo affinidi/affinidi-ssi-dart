@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:ssi/src/did/did_signer.dart';
 import 'package:ssi/src/didcomm/attachment/attachment.dart';
 import 'package:ssi/src/didcomm/message/didcomm_encrypted_message.dart';
-import 'package:ssi/src/didcomm/didcomm_jwt.dart';
 import 'package:ssi/src/didcomm/message/didcomm_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_signed_message.dart';
 import 'package:ssi/src/didcomm/utils.dart';
@@ -25,7 +24,6 @@ class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
   DateTime? createdTime;
   DateTime? expiresTime;
   late Map<String, dynamic> body;
-  FromPriorJWT? fromPrior;
   List<Attachment>? attachments;
   Map<String, dynamic>? additionalHeaders;
   List<String>? pleaseAck;
@@ -48,7 +46,6 @@ class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
       this.expiresTime,
       this.to,
       this.from,
-      this.fromPrior,
       this.attachments,
       bool pleaseAck = false,
       this.ack,
@@ -135,15 +132,6 @@ class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
           DateTime.fromMillisecondsSinceEpoch(tmp * 1000, isUtc: true);
     }
 
-    if (decoded.containsKey('from_prior')) {
-      fromPrior = FromPriorJWT.fromCompactSerialization(decoded['from_prior']);
-      if (fromPrior != null && from != null) {
-        if (from != fromPrior!.sub) {
-          throw Exception('from value must match from_prior.sub');
-        }
-      }
-    }
-
     if (decoded.containsKey('attachments')) {
       List tmp = decoded['attachments'];
       if (tmp.isNotEmpty) {
@@ -189,7 +177,6 @@ class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
     decoded.remove('created_time');
     decoded.remove('expires_time');
     decoded.remove('body');
-    decoded.remove('from_prior');
     decoded.remove('attachments');
     decoded.remove('ack');
     decoded.remove('please_ack');
