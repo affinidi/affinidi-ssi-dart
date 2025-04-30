@@ -158,9 +158,15 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     final publicKey = await wallet.getPublicKey(keyId);
     final senderCurve = getCurveByPublicKey(publicKey);
 
-    for (var recipientPublicKeyJwk in recipientPublicKeyJwks) {
-      if (recipientPublicKeyJwk['crv'] != senderCurve) continue;
+    final matchingJwks =
+        recipientPublicKeyJwks.where((jwk) => jwk['crv'] == senderCurve);
 
+    if (matchingJwks.isEmpty) {
+      throw Exception(
+          'None of recipient public key curves matches sender curve.');
+    }
+
+    for (var recipientPublicKeyJwk in matchingJwks) {
       late Uint8List encryptedCek;
       if (keyWrapAlgorithm == KeyWrapAlgorithm.ecdhES) {
         encryptedCek = await _encryptCekUsingECDH_ES(
