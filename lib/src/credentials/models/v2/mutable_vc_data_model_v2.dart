@@ -1,34 +1,97 @@
 part of 'vc_data_model_v2.dart';
 
+/// Default VC Data Model v1.2 context url
 const String DMV2ContextUrl = 'https://www.w3.org/ns/credentials/v2';
 
+/// Represents a Verifiable Credential (VC) according to the W3C VC Data Model v1.1.
+///
+///  A Verifiable Credential (VC) is a digitally signed statement, issued by issuer
+///
+/// This class supports JSON serialization and deserialization for interoperability.
+///  Example:
+/// ```dart
+/// MutableVcDataModelV2(
+///  context: [
+///    'https://www.w3.org/2018/credentials/v1',
+///    'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+///  ],
+///  id: Uri.parse('uuid:123456abcd'),
+///  type: {'VerifiableCredential', 'UserProfile'},
+///  credentialSubject: [
+///    MutableCredentialSubject({
+///      'Fname': 'Fname',
+///      'Lname': 'Lame',
+///      'Age': '22',
+///      'Address': 'Eihhornstr'
+///    })
+///   ],
+///  holder: MutableHolder.uri('did:example:1'),
+///  credentialSchema: [
+///    MutableCredentialSchema(
+///        id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+///        type: 'JsonSchemaValidator2018')
+///  ],
+///  issuanceDate: DateTime.now(),
+///  issuer: Issuer.uri(signer.did),
+///);
+/// ```
 class MutableVcDataModelV2 {
+  /// The JSON-LD context for this presentation.
+  ///
+  /// Typically includes 'https://www.w3.org/2018/credentials/v2'.
   List<String> context;
 
+  /// The optional identifier for the Verifiable Credential.
   Uri? id;
 
+  /// The type definitions for this presentation.
+  ///
+  /// Must include 'VerifiableCredential'.
   Set<String> type;
 
+  /// The schema(s) used to define the structure of the credential.
   List<MutableCredentialSchema> credentialSchema;
 
+  /// The subject data contained in this credential.
+  ///
+  /// Example of a credential subject:
+  /// ```
+  /// {
+  ///   "id": "did:example:123",
+  ///   "name": "John Doe",
+  /// }
+  /// ```
   List<MutableCredentialSubject> credentialSubject;
 
+  /// The entity that issued this credential.
+  ///
+  /// Typically a DID.
   MutableIssuer? issuer;
 
+  /// The date and time at which the credential becomes effective.
   DateTime? validFrom;
 
+  /// The date and time at which the credential becomes invalid.
   DateTime? validUntil;
 
+  /// The cryptographic proof(s) created by the issuer.
   List<EmbeddedProof> proof;
 
+  /// Credential status object to validate credentials revocation or suspension
   List<MutableCredentialStatusV2> credentialStatus;
 
+  /// service(s) for how the credential can be refreshed.
   List<MutableRefreshServiceV2> refreshService;
 
+  /// The terms of use for the Verifiable Credential.
   List<MutableTermsOfUse> termsOfUse;
 
+  /// Evidence supporting the claims in the credential.
   List<MutableEvidence> evidence;
 
+  /// Converts the [MutableVcDataModelV2] instance to a JSON representation.
+  ///
+  /// Returns a [Map<String, dynamic>] representing the JSON structure of the credential.
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
@@ -50,6 +113,21 @@ class MutableVcDataModelV2 {
     return cleanEmpty(json);
   }
 
+  /// Creates a [MutableVcDataModelV2] instance.
+  ///
+  /// The [context] is the JSON-LD context array (required).
+  /// The [id] is otptionla identifier (optional)
+  /// The [credentialSchema] is credential schema against VC is issued (optional)
+  /// the [credentialSubject] is contain claims of subject (required)
+  /// The [issuer] is issuer of this VC (required)
+  /// The [type] is an array that must include 'VerifiableCredential' (requires)
+  /// The [validFrom] is date and time at  which the credential becomes effective (optional)
+  /// The [validUntil] is date and time  at which the credential becomes invalid (optional)
+  /// The [proof] is a cryptographic proof (optional)
+  /// The [credentialStatus] is a list of Credential Status object (optional)
+  /// The [refreshService] is a list of refresh service (optional)
+  /// The [termsOfUse] is a list of terms of use (optional)
+  /// The [evidence] is a list of evidence (optional)
   MutableVcDataModelV2({
     List<String>? context,
     this.id,
@@ -74,6 +152,12 @@ class MutableVcDataModelV2 {
         termsOfUse = termsOfUse ?? [],
         evidence = evidence ?? [];
 
+  /// Constructs a [MutableVcDataModelV2] instance from a JSON object.
+  ///
+  /// The [input] parameter is a dynamic type
+  /// representing the JSON structure of the Verifiable Credential.  This factory
+  /// constructor parses the JSON and populates the properties of the
+  /// [MutableVcDataModelV2] instance.
   factory MutableVcDataModelV2.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
@@ -152,24 +236,54 @@ class MutableVcDataModelV2 {
 
 typedef _P = VcDataModelV2Key;
 
+/// Defines the keys used in the [MutableVcDataModelV2] class.
+///
+/// Each value represents a key that might be used in the JSON representation
+/// of a Verifiable Credential.
 enum VcDataModelV2Key {
+  /// Key for the `@context` property, representing the JSON-LD context.
   context(key: '@context'),
+
+  /// Key for the `proof` property, representing cryptographic proofs.
   proof,
+
+  /// Key for the `issuer` property, representing the issuer of the credential.
   issuer,
+
+  /// Key for the `credentialSchema` property, representing the schema.
   credentialSchema,
+
+  /// Key for the `credentialSubject` property, representing the subject.
   credentialSubject,
+
+  /// Key for the `id` property, representing the unique identifier.
   id,
+
+  /// Key for the `type` property, representing the credential type.
   type,
+
+  /// Key for the `validFrom` property, representing the starting of validation.
   validFrom,
+
+  /// Key for the `validUntil` property, representing the expiry.
   validUntil,
+
+  /// Key for the `credentialStatus` property, representing the credential status.
   credentialStatus,
+
+  /// Key for the `refreshService` property, representing the refresh service.
   refreshService,
+
+  /// Key for the `termsOfUse` property, representing the terms of use.
   termsOfUse,
+
+  /// Key for the `evidence` property, representing the evidence.
   evidence,
   ;
 
   final String? _key;
 
+  /// Returns the key string (custom or enum name).
   String get key => _key ?? name;
 
   const VcDataModelV2Key({String? key}) : _key = key;
