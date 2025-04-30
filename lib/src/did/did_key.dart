@@ -5,7 +5,7 @@ import '../exceptions/ssi_exception_type.dart';
 import '../json_ld/context.dart';
 import '../key_pair/public_key.dart';
 import '../utility.dart';
-import 'did_document.dart';
+import 'did_document/index.dart';
 import 'public_key_utils.dart';
 
 /// Builds a DID document for Ed25519 keys.
@@ -51,7 +51,7 @@ DidDocument _buildEDDoc(
     publicKeyMultibase: 'z$multiCodecXKey',
   );
 
-  return DidDocument(
+  return DidDocument.create(
     context: Context.fromJson(context),
     id: id,
     verificationMethod: [verification, keyAgreement],
@@ -85,7 +85,7 @@ DidDocument _buildXDoc(
     type: 'X25519KeyAgreementKey2020',
     publicKeyMultibase: 'z$keyPart',
   );
-  return DidDocument(
+  return DidDocument.create(
     context: Context.fromJson(context),
     id: id,
     verificationMethod: [verification],
@@ -117,7 +117,7 @@ DidDocument _buildOtherDoc(
     type: type,
     publicKeyMultibase: 'z$keyPart',
   );
-  return DidDocument(
+  return DidDocument.create(
     context: Context.fromJson(context),
     id: id,
     verificationMethod: [verification],

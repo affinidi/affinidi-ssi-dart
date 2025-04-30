@@ -9,7 +9,7 @@ import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../utility.dart';
-import 'did_document.dart';
+import 'did_document/index.dart';
 import 'public_key_utils.dart';
 
 /// Enum representing the prefixes used in encoding for peer DIDs.
@@ -143,7 +143,7 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
     'https://ns.did.ai/suites/multikey-2021/v1/'
   ];
 
-  List<VerificationMethod> verificationMethod = [];
+  List<EmbeddedVerificationMethod> verificationMethod = [];
   List<String> assertionMethod = [];
   List<String> keyAgreement = [];
   List<String> authentication = [];
@@ -203,7 +203,7 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
     authentication.add(kid);
   }
 
-  return DidDocument(
+  return DidDocument.create(
     context: Context.fromJson(context),
     id: did,
     verificationMethod: verificationMethod,
@@ -232,22 +232,24 @@ DidDocument _buildEDDoc(
   String verificationKeyId = '$id#$keyPart';
   String agreementKeyId = '$id#z$multiCodecXKey';
 
-  final verification = VerificationMethodMultibase(
+  final verificationMethod = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
     type: 'Ed25519VerificationKey2020',
     publicKeyMultibase: 'z$keyPart',
   );
-  // final keyAgreement = VerificationMethod(
-  //     id: agreementKeyId,
-  //     controller: id,
-  //     type: 'X25519KeyAgreementKey2020',
-  //     publicKeyMultibase: 'z$multiCodecXKey');
 
-  return DidDocument(
+  final keyAgreementMethod = VerificationMethodMultibase(
+    id: agreementKeyId,
+    controller: id,
+    type: 'X25519KeyAgreementKey2020',
+    publicKeyMultibase: 'z$multiCodecXKey',
+  );
+
+  return DidDocument.create(
     context: Context.fromJson(context),
     id: id,
-    verificationMethod: [verification],
+    verificationMethod: [verificationMethod, keyAgreementMethod],
     assertionMethod: [verificationKeyId],
     keyAgreement: [agreementKeyId],
     authentication: [verificationKeyId],
@@ -269,7 +271,7 @@ DidDocument _buildXDoc(
     type: 'X25519KeyAgreementKey2020',
     publicKeyMultibase: 'z$keyPart',
   );
-  return DidDocument(
+  return DidDocument.create(
     context: Context.fromJson(context),
     id: id,
     verificationMethod: [verification],
@@ -404,7 +406,7 @@ class DidPeer {
   }) {
     final did = getDid(keys, serviceEndpoint: serviceEndpoint);
 
-    final verificationMethods = <VerificationMethod>[];
+    final verificationMethods = <EmbeddedVerificationMethod>[];
     for (var i = 0; i < keys.length; i++) {
       final key = keys[i];
       verificationMethods.add(
@@ -424,7 +426,7 @@ class DidPeer {
 
     // FIXME(FTL-20741) should match arguments
     final keyId = verificationMethods[0].id;
-    return DidDocument(
+    return DidDocument.create(
       id: did,
       verificationMethod: verificationMethods,
       authentication: [keyId],
