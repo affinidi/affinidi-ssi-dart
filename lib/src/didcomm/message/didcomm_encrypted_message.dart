@@ -82,6 +82,14 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     final encrypted = _encryptWithCek(
         cek, encryptionAlgorithm, jweHeader.toString(), message);
 
+    if (encrypted.initializationVector == null) {
+      throw Exception('Initialization vector not set after encryption of CEK');
+    }
+
+    if (encrypted.authenticationTag == null) {
+      throw Exception('Authentication tag not set after encryption of CEK');
+    }
+
     final recipientList = await _encryptCekForRecipients(
         keyWrapAlgorithm: keyWrapAlgorithm,
         authenticationTag: encrypted.authenticationTag!,
@@ -127,12 +135,12 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     final cek = ck.SymmetricKey(keyValue: decryptedCek);
     final e = _createEncrypterByEncryptionAlg(protectedHeader.enc, cek);
 
-    final toDecrypt = ck.EncryptionResult(ciphertext,
+    final encrypted = ck.EncryptionResult(ciphertext,
         authenticationTag: tag,
         additionalAuthenticatedData: ascii.encode(protectedHeader.toString()),
         initializationVector: iv);
 
-    final message = jsonDecode(utf8.decode(e.decrypt(toDecrypt)));
+    final message = jsonDecode(utf8.decode(e.decrypt(encrypted)));
     return DidcommMessage.fromDecrypted(message, protectedHeader);
   }
 
@@ -175,7 +183,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
             authenticationTag: authenticationTag,
             keyWrapAlgorithm: keyWrapAlgorithm);
       } else {
-        throw Exception('Not implemented');
+        throw Exception('Key wrap algorithm "$keyWrapAlgorithm" not supported');
       }
 
       recipientList.add(DidCommMessageRecipient(
@@ -217,7 +225,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         enc: jweHeader.enc,
       );
     } else {
-      throw Exception('Curve not implemented.');
+      throw Exception('Curve "${jweHeader.epk['crv']}" not supported.');
     }
 
     return wallet.encrypt(cek.keyValue,
@@ -235,10 +243,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       required KeyWrapAlgorithm keyWrapAlgorithm,
       required JweHeader jweHeader,
       required Uint8List epkPrivateKey}) {
-    late ECDH1PU ecdh1pu;
-    late Uint8List receiverPubKeyBytes;
-
-    DidDocument didDoc = DidKey.generateDocument(publicKey);
+    final didDoc = DidKey.generateDocument(publicKey);
 
     if (isSecp256OrPCurve(recipientPublicKeyJwk['crv'])) {
       final receiverPubKey = publicKeyFromPoint(
@@ -247,7 +252,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         y: recipientPublicKeyJwk['y'],
       );
 
-      ecdh1pu = ECDH1PU_Elliptic(
+      final ecdh1pu = ECDH1PU_Elliptic(
           authenticationTag: authenticationTag,
           keyWrapAlgorithm: keyWrapAlgorithm,
           apu: removePaddingFromBase64(
@@ -260,11 +265,14 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
             epkPrivateKey,
           ));
 
-      receiverPubKeyBytes = hexToBytes(receiverPubKey.toCompressedHex());
+      return wallet.encrypt(cek.keyValue,
+          keyId: keyId,
+          publicKey: hexToBytes(receiverPubKey.toCompressedHex()),
+          ecdhProfile: ecdh1pu);
     } else if (isXCurve(recipientPublicKeyJwk['crv'])) {
-      receiverPubKeyBytes = publicKeyBytesFromJwk(recipientPublicKeyJwk);
+      final receiverPubKeyBytes = publicKeyBytesFromJwk(recipientPublicKeyJwk);
 
-      ecdh1pu = ECDH1PU_X25519(
+      final ecdh1pu = ECDH1PU_X25519(
           authenticationTag: authenticationTag,
           keyWrapAlgorithm: keyWrapAlgorithm,
           apu: removePaddingFromBase64(
@@ -273,13 +281,20 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
           public1: receiverPubKeyBytes,
           public2: receiverPubKeyBytes,
           private1: epkPrivateKey);
+
+      return wallet.encrypt(cek.keyValue,
+          keyId: keyId, publicKey: receiverPubKeyBytes, ecdhProfile: ecdh1pu);
+    } else {
+      throw Exception('Curve "${recipientPublicKeyJwk['crv']}" not supported');
     }
-    return wallet.encrypt(cek.keyValue,
-        keyId: keyId, publicKey: receiverPubKeyBytes, ecdhProfile: ecdh1pu);
   }
 
-  static _encryptWithCek(ck.SymmetricKey cek, EncryptionAlgorithm alg,
-      String headers, DidcommMessage message) {
+  static ck.EncryptionResult _encryptWithCek(
+    ck.SymmetricKey cek,
+    EncryptionAlgorithm alg,
+    String headers,
+    DidcommMessage message,
+  ) {
     final e = _createEncrypterByEncryptionAlg(alg.value, cek);
     return e.encrypt(Uint8List.fromList(utf8.encode(message.toString())),
         additionalAuthenticatedData: ascii.encode(headers));
@@ -311,7 +326,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
             enc: protectedHeader.enc,
             publicKey: publicKeyBytesFromJwk(protectedHeader.epk));
       } else {
-        throw Exception('Curve not implemented');
+        throw Exception('Curve "${protectedHeader.epk['crv']}" not supported');
       }
 
       return wallet.decrypt(recipient.encryptedKey,
@@ -319,6 +334,10 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     } else if (protectedHeader.isAuthCrypt()) {
       if (protectedHeader.skid == null) {
         throw Exception('sender id needed when using AuthCrypt');
+      }
+
+      if (protectedHeader.apu == null) {
+        throw Exception('Protected header apu not set');
       }
 
       late ECDH1PU ecdh1puProfile;
@@ -363,7 +382,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       );
     }
 
-    throw Exception('Decryption not supported');
+    throw Exception('Curve ${protectedHeader.epk['crv']} not supported');
   }
 
   Future<Uint8List> _decryptCekWithPrivateJwk(
@@ -373,13 +392,19 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     final publicKeyJwk = privateKeyJwk['verificationMethod'].firstWhere(
         (m) => m['publicKeyJwk']?['crv'] == protectedHeader.epk['crv'],
         orElse: () => throw Exception(''))['publicKeyJwk'];
-
     final privateKey = getPrivateKeyFromJwk(publicKeyJwk, protectedHeader.epk);
-
     final recipient = _findMessageRecipientByDid(receiverDid);
+
+    if (protectedHeader.skid == null) {
+      throw Exception('Protected header skid is not set');
+    }
+
     final senderJwk = await _findSenderJwk(protectedHeader.skid!);
 
-    late ECDH1PU ecdh1pu;
+    if (protectedHeader.skid == null) {
+      throw Exception('Protected header apu is not set');
+    }
+
     if (isSecp256OrPCurve(publicKeyJwk['crv'])) {
       final receiverCurve = getCurveByJwk(publicKeyJwk);
       final senderPublicKey = publicKeyFromPoint(
@@ -387,7 +412,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
           x: senderJwk.doc['x']!,
           y: senderJwk.doc['y']!);
 
-      ecdh1pu = ECDHProfile.buildEllipticWithReceiverCurve(
+      final ecdh1pu = ECDHProfile.buildEllipticWithReceiverCurve(
         curve: receiverCurve,
         senderPublicKey: senderPublicKey,
         authenticationTag: tag,
@@ -396,11 +421,15 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         apv: protectedHeader.apv,
         epk: protectedHeader.epk,
       );
+
+      return ecdh1pu.decryptData(
+          privateKey: Uint8List.fromList(privateKey.bytes),
+          data: recipient.encryptedKey);
     } else if (isXCurve(publicKeyJwk['crv'])) {
       final senderPublicKey = base64Decode(protectedHeader.epk['x']);
       final epkPublic = base64Decode(protectedHeader.epk['x']);
 
-      ecdh1pu = ECDH1PU_X25519(
+      final ecdh1pu = ECDH1PU_X25519(
         public1: epkPublic,
         public2: senderPublicKey,
         private1: privateKey.bytes,
@@ -409,11 +438,13 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
         apu: protectedHeader.apu!,
         apv: protectedHeader.apv,
       );
-    }
 
-    return ecdh1pu.decryptData(
-        privateKey: Uint8List.fromList(privateKey.bytes),
-        data: recipient.encryptedKey);
+      return ecdh1pu.decryptData(
+          privateKey: Uint8List.fromList(privateKey.bytes),
+          data: recipient.encryptedKey);
+    } else {
+      throw Exception('Curve ${publicKeyJwk['crv']} not supported');
+    }
   }
 
   @override

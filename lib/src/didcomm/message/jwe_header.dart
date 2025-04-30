@@ -5,7 +5,6 @@ import 'package:crypto/crypto.dart';
 import 'package:elliptic/elliptic.dart' as ec;
 import 'package:web3dart/crypto.dart' as c;
 
-import 'package:ssi/src/did/did_document.dart';
 import 'package:ssi/src/did/did_key.dart';
 import 'package:ssi/src/didcomm/types.dart';
 import 'package:ssi/src/didcomm/utils.dart';
@@ -83,11 +82,11 @@ class JweHeader implements JsonObject {
   }
 
   bool isAuthCrypt() {
-    return alg.startsWith('ECDH-1PU');
+    return alg.startsWith(KeyWrapAlgorithm.ecdh1PU.value);
   }
 
   bool isAnonCrypt() {
-    return alg.startsWith('ECDH-ES');
+    return alg.startsWith(KeyWrapAlgorithm.ecdhES.value);
   }
 
   static String? _buildApuHeader(

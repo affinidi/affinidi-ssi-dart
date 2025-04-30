@@ -9,7 +9,7 @@ import 'package:ssi/src/types.dart';
 
 abstract class DidcommMessage implements JsonObject {
   factory DidcommMessage.fromDecrypted(
-      dynamic json, JweHeader protectedHeader) {
+      Map<String, dynamic> json, JweHeader protectedHeader) {
     if (json.containsKey('id')) {
       final decryptedMessage = DidcommPlaintextMessage.fromJson(json);
 
