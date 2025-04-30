@@ -9,8 +9,8 @@ void main() async {
   // WARNING: InMemoryKeyStore is not secure for production use.
   // Replace with a secure storage implementation (e.g., Flutter Secure Storage).
   final keyStore = InMemoryKeyStore();
-  // Initialize the GenericWallet with the chosen key store.
-  final wallet = GenericWallet(keyStore);
+  // Initialize the PersistentWallet with the chosen key store.
+  final wallet = PersistentWallet(keyStore);
 
   // --- P256 Key Operations ---
   print('\n--- P256 Key Operations ---');
@@ -85,7 +85,7 @@ void main() async {
   print('\n--- Two-Party (P256) ---');
   // Create a second wallet for Bob
   final bobKeyStore = InMemoryKeyStore();
-  final bobWallet = GenericWallet(bobKeyStore);
+  final bobWallet = PersistentWallet(bobKeyStore);
 
   // Generate a P256 key pair for Bob in his wallet.
   final bobP256key = await bobWallet.generateKey(keyType: KeyType.p256);
@@ -119,7 +119,7 @@ void main() async {
 
   // Create a third wallet for Charlie (using Ed25519 for this example)
   final charlieKeyStore = InMemoryKeyStore();
-  final charlieWallet = GenericWallet(charlieKeyStore);
+  final charlieWallet = PersistentWallet(charlieKeyStore);
 
   // Generate an Ed25519 key pair for Charlie in his wallet.
   final charlieEd25519key =
