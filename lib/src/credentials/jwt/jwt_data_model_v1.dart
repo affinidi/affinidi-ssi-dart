@@ -4,8 +4,10 @@ part of 'jwt_dm_v1_suite.dart';
 /// Example: https://www.w3.org/TR/vc-data-model/#example-verifiable-credential-using-jwt-compact-serialization-non-normative
 class JwtVcDataModelV1 extends VcDataModelV1
     implements ParsedVerifiableCredential<String> {
+  /// The decoded JWS (JSON Web Signature) object.
   final Jws jws;
 
+  /// Creates a [JwtVcDataModelV1] instance from a [Jws].
   JwtVcDataModelV1.fromJws(this.jws)
       : super.clone(VcDataModelV1.fromJson(jwtToJson(jws.payload)));
 
@@ -17,6 +19,9 @@ class JwtVcDataModelV1 extends VcDataModelV1
     return jws.payload['vc'] as Map<String, dynamic>;
   }
 
+  /// Converts a VC JSON object to a pair of JWT header and payload.
+  ///
+  /// This prepares the data for signing as a JWT.
   static (Map<String, dynamic> header, Map<String, dynamic> payload) vcToJws(
     Map<String, dynamic> json,
     DidSigner signer,
@@ -57,6 +62,7 @@ class JwtVcDataModelV1 extends VcDataModelV1
     return (header, payload);
   }
 
+  /// Converts a JWT payload back into a VC JSON object.
   static Map<String, dynamic> jwtToJson(Map<String, dynamic> payload) {
     final json = payload['vc'] as Map<String, dynamic>;
 

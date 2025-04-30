@@ -10,6 +10,7 @@ import 'ld_base_suite.dart';
 final class LdVcDm1Suite extends LdBaseSuite<VcDataModelV1, LdVcDataModelV1>
     implements
         VerifiableCredentialSuite<String, VcDataModelV1, LdVcDataModelV1> {
+  /// Constructs a [LdVcDm1Suite] using the predefined [DMV1ContextUrl].
   LdVcDm1Suite()
       : super(
           contextUrl: DMV1ContextUrl,
@@ -20,10 +21,15 @@ final class LdVcDm1Suite extends LdBaseSuite<VcDataModelV1, LdVcDataModelV1>
       LdVcDataModelV1.fromParsed(input, payload);
 }
 
+/// A [VcDataModelV1] backed by a parsed JSON-LD serialized string.
+///
+/// Implements the [ParsedVerifiableCredential] interface.
 class LdVcDataModelV1 extends VcDataModelV1
     implements ParsedVerifiableCredential<String> {
+  /// The serialized JSON string representation of the credential.
   final String _serialized;
 
+  /// Creates a [LdVcDataModelV1] from a serialized [String] and parsed [input] map.
   LdVcDataModelV1.fromParsed(String serialized, Map<String, dynamic> input)
       : _serialized = serialized,
         super.clone(VcDataModelV1.fromJson(input));

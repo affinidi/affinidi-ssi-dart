@@ -6,13 +6,17 @@ import '../suites/vc_suite.dart';
 import '../suites/vc_suites.dart';
 import 'sdjwt_dm_v2_suite.dart';
 
+/// Enum representing supported media types for enveloped Verifiable Credentials.
 enum MediaTypes {
+  /// Media type for SD-JWT encoded Verifiable Credentials.
   sdJwt('data:application/vc+sd-jwt,');
 
+  /// The associated media type string.
   final String type;
   const MediaTypes(this.type);
 }
 
+/// Mapping between media type strings and their corresponding VC suites.
 final Map<String, VerifiableCredentialSuite> mediaTypeSuites = {
   MediaTypes.sdJwt.type: SdJwtDm2Suite()
 };
@@ -44,12 +48,18 @@ final class EnvelopedVcDm2Suite
         mediaTypeSuites.keys.any(envelopedData.startsWith);
   }
 
+  /// Checks if [input] can be parsed by this suite.
+  ///
+  /// Returns `true` if [input] is a decodable String.
   @override
   bool canParse(Object input) {
     if (input is! String) return false;
     return canDecode(input);
   }
 
+  /// Parses an [input] string into a [ParsedVerifiableCredential].
+  ///
+  /// Throws a [SsiException] if [input] is not a String or invalid.
   @override
   ParsedVerifiableCredential<String> parse(Object input) {
     if (input is! String) {

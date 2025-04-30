@@ -228,17 +228,25 @@ class _DidSignerAdapter implements Signer {
   }
 }
 
+/// A [VcDataModelV2] backed by an SD-JWT credential structure.
+///
+/// Represents a Verifiable Credential in the W3C Data Model v2 format
+/// issued and managed as a Selective Disclosure JWT (SD-JWT).
 class SdJwtDataModelV2 extends VcDataModelV2
     implements ParsedVerifiableCredential<String> {
+  /// The underlying [SdJwt] object representing the signed credential.
   final SdJwt sdJwt;
 
+  /// Creates an [SdJwtDataModelV2] from a parsed [SdJwt] object.
   SdJwtDataModelV2.fromSdJwt(this.sdJwt)
       : super.clone(VcDataModelV2.fromJson(sdJwt.claims));
 
   @override
   String get serialized => sdJwt.serialized;
 
+  /// Returns the header section of the SD-JWT.
   Map<String, dynamic> get header => sdJwt.header;
 
+  /// Returns the set of selective disclosure claims (disclosures).
   Set<Disclosure> get disclosures => Set.unmodifiable(sdJwt.disclosures);
 }
