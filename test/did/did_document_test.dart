@@ -17,6 +17,7 @@ void main() {
 
       final expectedJson = jsonDecode(r'''
         {
+          "kid": "#key1",
           "kty": "OKP",
           "crv": "Ed25519",
           "x": "Zmq-CJA17UpFeVmJ-nIKDuDEhUnoRSNIXFbxyBtCh6Y"
@@ -53,6 +54,7 @@ void main() {
 
       final expectedJson = jsonDecode(r'''
         {
+          "kid": "#key1",
           "kty": "EC",
           "crv": "secp256k1",
           "x": "8G9rBdSs9mib1X_2K4ify7wFDLT4ZhoVD7aCy-jimUg",
