@@ -28,12 +28,16 @@ Create a DID signer using the BIP32 wallet - [view example](https://github.com/a
 
 Create a Verifiable Credential with a mutable data using Data Model V1 - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/ld_v1/issuance.dart).
 
+Create a Verifiable Credential with a mutable data in JWT format - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/jwt_v1/issuance.dart).
+
 
 ### 2. Verify VC Expiry and Integrity
 
 Verify the expiration of the Verifiable Credential - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/ld_v1/verification/expiry_verification.dart).
 
 Verify the integrity of the Verifiable Credential - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/ld_v1/verification/integrity_verification.dart).
+
+Verify JWT VC string - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/jwt_v1/verification.dart).
 
 ### 3. Create Data Model
 
@@ -43,6 +47,7 @@ Create a data model using V1 - [view example](https://github.com/affinidi/affini
 
 Parse a Data Model V1 VC string - [view example](https://github.com/affinidi/affinidi-ssi-dart/blob/main/example/code_snippets/credentials/vc/ld_v1/parsing.dart).
 
+Parse a JWT VC string - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/jwt_v1/parsing.dart).
 
 ## Verifiable Credential (VC) Data Model V2
 
