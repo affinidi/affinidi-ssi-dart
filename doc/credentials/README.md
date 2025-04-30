@@ -1,5 +1,8 @@
+# Credential folder structure
 
-### Models
+- VC handling is organized with **Models** that specify the data structure for various VC formats, ensuring consistent representation. **Suites** then provide the processing logic for these formats, including parsing, cryptographic verification, and serialization, while **Proofs** handle the creation and validation of digital signatures to guarantee authenticity and integrity.
+
+## Models
 
 - Verifiable Credential Models define the structure and data within different VC versions, representing specific formats like JWT, SD-JWT, VC Data Model v1.1, and VC Data Model v1.2. They ensure consistent representation and handling of VC properties (e.g., issuer, subject, claims) for each format, facilitating interoperability by providing a standardized way to work with diverse VC formats.
 - refer [Models](https://github.com/affinidi/affinidi-ssi-dart/tree/main/lib/src/credentials/models) for more implementation.
@@ -26,21 +29,21 @@
 
 ```
 
-#### Creating a new VC model/format
+### Creating a new VC model/format
 
 - Create your own VC format based on baseDataModel. refer this for implementation of [jwt](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/credentials/jwt/jwt_data_model_v1.dart) based Vc implementation.
 
-### Suites
+## Suites
 
 - Verifiable Credential Suites handle the processing of VCs for specific formats, providing functionality to parse (using canParse and parse), verify cryptographic integrity (using verifyIntegrity), and serialize (using present) VCs.  They employ generics (SerializedType, VC, ParsedVC) to abstract over diverse VC representations and promote a modular, extensible design that can accommodate multiple VC formats.
 
 - refer [Suites](https://github.com/affinidi/affinidi-ssi-dart/tree/main/lib/src/credentials/suites) for more detail implementation.
 
-### Proofs
+## Proofs
 
 - Proofs are used to create and verify data authenticity and integrity, with creation and verification operations handled using `EmbeddedProofSuiteCreateOptions` and `EmbeddedProofSuiteVerifyOptions`, and managed by `EmbeddedProofGenerator` and `EmbeddedProofVerifier`
 
-#### extending proof suites
+### extending proof suites
 
 - To support new ways of signing and verifying data within Linked Data, you create custom proof handling. This involves defining a new structure for your proof and the logic to create and validate these proofs. You'll need a class that describes your proof and separate classes to handle the generation (signing) and verification of these proofs.
 
