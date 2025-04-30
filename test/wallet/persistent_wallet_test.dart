@@ -8,13 +8,13 @@ void main() {
   final dataToSign = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
   const nonExistentKeyId = 'non-existent-key';
 
-  group('GenericWallet', () {
-    late GenericWallet wallet;
+  group('PersistentWallet', () {
+    late PersistentWallet wallet;
     late InMemoryKeyStore keyStore;
 
     setUp(() {
       keyStore = InMemoryKeyStore();
-      wallet = GenericWallet(keyStore);
+      wallet = PersistentWallet(keyStore);
     });
 
     test('createKeyPair should create a P256 key pair', () async {
@@ -382,10 +382,10 @@ void main() {
     });
   });
 
-  group('GenericWallet Encryption/Decryption (P256)', () {
-    late GenericWallet aliceWallet;
-    late GenericWallet bobWallet;
-    late GenericWallet eveWallet;
+  group('PersistentWallet Encryption/Decryption (P256)', () {
+    late PersistentWallet aliceWallet;
+    late PersistentWallet bobWallet;
+    late PersistentWallet eveWallet;
     late InMemoryKeyStore aliceKeyStore;
     late InMemoryKeyStore bobKeyStore;
     late InMemoryKeyStore eveKeyStore;
@@ -399,9 +399,9 @@ void main() {
       bobKeyStore = InMemoryKeyStore();
       eveKeyStore = InMemoryKeyStore();
 
-      aliceWallet = GenericWallet(aliceKeyStore);
-      bobWallet = GenericWallet(bobKeyStore);
-      eveWallet = GenericWallet(eveKeyStore);
+      aliceWallet = PersistentWallet(aliceKeyStore);
+      bobWallet = PersistentWallet(bobKeyStore);
+      eveWallet = PersistentWallet(eveKeyStore);
 
       aliceKey = await aliceWallet.generateKey(keyType: KeyType.p256);
       bobKey = await bobWallet.generateKey(keyType: KeyType.p256);
@@ -467,10 +467,10 @@ void main() {
     });
   });
 
-  group('GenericWallet Encryption/Decryption (Ed25519)', () {
-    late GenericWallet aliceWallet;
-    late GenericWallet bobWallet;
-    late GenericWallet eveWallet;
+  group('PersistentWallet Encryption/Decryption (Ed25519)', () {
+    late PersistentWallet aliceWallet;
+    late PersistentWallet bobWallet;
+    late PersistentWallet eveWallet;
     late InMemoryKeyStore aliceKeyStore;
     late InMemoryKeyStore bobKeyStore;
     late InMemoryKeyStore eveKeyStore;
@@ -484,9 +484,9 @@ void main() {
       bobKeyStore = InMemoryKeyStore();
       eveKeyStore = InMemoryKeyStore();
 
-      aliceWallet = GenericWallet(aliceKeyStore);
-      bobWallet = GenericWallet(bobKeyStore);
-      eveWallet = GenericWallet(eveKeyStore);
+      aliceWallet = PersistentWallet(aliceKeyStore);
+      bobWallet = PersistentWallet(bobKeyStore);
+      eveWallet = PersistentWallet(eveKeyStore);
 
       aliceKey = await aliceWallet.generateKey(keyType: KeyType.ed25519);
       bobKey = await bobWallet.generateKey(keyType: KeyType.ed25519);

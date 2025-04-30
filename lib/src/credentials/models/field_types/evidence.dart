@@ -13,14 +13,30 @@ abstract interface class _EvidenceInterface {
       });
 }
 
+/// Represents a Mutable Evidence for verifiable credentials following W3C standards.
+///
+/// Evidence can be included by an issuer to provide the verifier with
+/// additional supporting information in a verifiable credential
+/// It uses JSON Schema format to check evidence.
+///
+/// Example:
+/// ```dart
+/// final evidence = MutableEvidence(
+///   id: Uri.parse('test-evidence-id'),
+///   'type': 'Evidence1',
+/// );
+/// ```
 class MutableEvidence extends _EvidenceInterface {
+  /// the URL of  unique identifier for the evidence object
   Uri? id;
 
-  /// The schema type of validator used.
-  ///
-  /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
+  /// the type of evidence information
   String? type;
 
+  /// Creates a [MutableEvidence]
+  ///
+  /// The [id] - is id for the evidence object.
+  /// The [type]- is type of evidence information.
   MutableEvidence({
     this.id,
     this.type,
@@ -37,20 +53,35 @@ class MutableEvidence extends _EvidenceInterface {
   }
 }
 
+/// Represents a Evidence for verifiable credentials following W3C standards.
+///
+/// Evidence can be included by an issuer to provide the verifier with
+/// additional supporting information in a verifiable credential
+/// It uses JSON Schema format to check evidence.
+///
+/// Example:
+/// ```dart
+/// final evidence = Evidence(
+///   id: Uri.parse('test-evidence-id'),
+///   'type': 'Evidence1',
+/// );
+/// ```
 class Evidence extends _EvidenceInterface {
   final Uri? _id;
   final String _type;
 
-  /// The URL of the schema including domain and filename.
+  /// the URL of  unique identifier for the evidence object
   @override
   Uri? get id => _id;
 
-  /// The schema type of validator used.
-  ///
-  /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
+  /// the type of evidence information
   @override
   String get type => _type;
 
+  /// Creates a [Evidence]
+  ///
+  /// The [id] - is id for the evidence object.
+  /// The [type]- is type of evidence information.
   Evidence({Uri? id, required String type})
       : _id = id,
         _type = type;

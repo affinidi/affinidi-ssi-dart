@@ -13,23 +13,24 @@ abstract interface class _CredentialStatusV1Interface {
       });
 }
 
-/// Represents a schema for verifiable credentials following W3C standards.
+/// Represents a Mutable Credential Status for verifiable credentials following W3C standards.
 ///
-/// A credential schema defines the structure and constraints of a verifiable credential.
-/// It uses JSON Schema format to validate credential data.
+/// This specification defines the credentialStatus property for discovering information related
+/// to the status of a verifiable credential, such as whether it is revoked or not.
+/// It uses JSON Schema format to check status of credential.
 ///
 /// Example:
 /// ```dart
-/// final schema = CredentialSchema(
-///   domain: 'https://example.com/schemas',
-///   schema: 'PersonCredential',
+/// final credentialStatus = MutableCredentialStatusV1(
+///   id: Uri.parse('test-credential-status-id'),
+///   type: 'BitstringStatusListEntry',
 /// );
 /// ```
 class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
-  /// The URL identifier for this status information.
+  /// The URL of optional unique identifier for the credential status object.
   Uri? id;
 
-  /// The type of status mechanism used.
+  /// The schema type of credential status.
   String? type;
 
   /// Creates a [MutableCredentialStatusV1] instance.
@@ -52,20 +53,35 @@ class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
   }
 }
 
+/// Represents a Credential Status for verifiable credentials following W3C standards.
+///
+/// This specification defines the credentialStatus property for discovering information related
+/// to the status of a verifiable credential, such as whether it is revoked or not.
+/// It uses JSON Schema format to check status of credential.
+///
+/// Example:
+/// ```dart
+/// final credentialStatus = CredentialStatusV1(
+///   id: Uri.parse('test-credential-status-id'),
+///   type: 'BitstringStatusListEntry',
+/// );
+/// ```
 class CredentialStatusV1 extends _CredentialStatusV1Interface {
   final Uri _id;
   final String _type;
 
-  /// The URL of the schema including domain and filename.
+  /// The URL of optional unique identifier for the credential status object.
   @override
   Uri get id => _id;
 
-  /// The schema type of validator used.
-  ///
-  /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
+  /// The schema type of credential status.
   @override
   String get type => _type;
 
+  /// Creates a [CredentialStatusV1] instance.
+  ///
+  /// The [id] is the URL where status information can be found.
+  /// The [type] identifies the status mechanism being used.
   CredentialStatusV1({required Uri id, required String type})
       : _id = id,
         _type = type;
