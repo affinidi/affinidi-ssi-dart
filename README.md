@@ -18,7 +18,6 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
   - [Usage](#usage)
   - [Support & feedback](#support--feedback)
   - [Contributing](#contributing)
-  - [Tests](#tests)
 
 
 ## Core Concepts
