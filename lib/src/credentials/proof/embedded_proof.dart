@@ -48,6 +48,7 @@ class EmbeddedProof {
   /// Additional properties (from Proof).
   final Map<String, dynamic>? additionalProperties;
 
+  /// Constructs an [EmbeddedProof].
   EmbeddedProof({
     this.id,
     required this.type,

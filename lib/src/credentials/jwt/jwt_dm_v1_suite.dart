@@ -9,6 +9,9 @@ import '../suites/vc_suite.dart';
 
 part 'jwt_data_model_v1.dart';
 
+/// Options for configuring JWT issuance or parsing.
+class JwtOptions {}
+
 /// Class to parse and convert JWT token strings into a [VerifiableCredential]
 final class JwtDm1Suite
     with JwtParser
@@ -38,6 +41,9 @@ final class JwtDm1Suite
     return JwtVcDataModelV1.fromJws(jws);
   }
 
+  /// Issues a signed [JwtVcDataModelV1] from a [VcDataModelV1] using a [DidSigner].
+  ///
+  /// Optionally takes [options] for JWT issuance configuration.
   Future<JwtVcDataModelV1> issue(
       {required VcDataModelV1 unsignedData, required DidSigner signer}) async {
     if (signer.did != unsignedData.issuer.id.toString()) {
