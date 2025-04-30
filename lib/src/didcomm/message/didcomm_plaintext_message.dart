@@ -1,17 +1,28 @@
 import 'dart:convert';
+import 'package:uuid/uuid.dart';
 
 import 'package:ssi/src/did/did_signer.dart';
 import 'package:ssi/src/didcomm/attachment/attachment.dart';
 import 'package:ssi/src/didcomm/message/didcomm_encrypted_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_message.dart';
 import 'package:ssi/src/didcomm/message/didcomm_signed_message.dart';
+import 'package:ssi/src/didcomm/types.dart';
 import 'package:ssi/src/didcomm/utils.dart';
 import 'package:ssi/src/didcomm/web_redirect.dart';
+import 'package:ssi/src/types.dart';
 import 'package:ssi/src/wallet/wallet.dart';
-import 'package:uuid/uuid.dart';
 
-import '../../types.dart';
-import '../types.dart';
+const typeMap = {
+  'application/didcomm-plain+json': DidcommMessageTyp.plain,
+  'application/didcomm-signed+json': DidcommMessageTyp.signed,
+  'application/didcomm-encrypted+json': DidcommMessageTyp.encrypted,
+};
+
+const returnRouteMap = {
+  'all': ReturnRouteValue.all,
+  'none': ReturnRouteValue.none,
+  'thread': ReturnRouteValue.thread,
+};
 
 class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
   List<dynamic>? to;
@@ -80,111 +91,55 @@ class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
     return DidcommSignedMessage.fromPlaintext(this, signer: signer);
   }
 
-  DidcommPlaintextMessage.fromJson(dynamic message) {
+  factory DidcommPlaintextMessage.fromJson(dynamic message) {
     Map<String, dynamic> decoded = credentialToMap(message);
-    id = decoded['id']!;
-    type = decoded['type']!;
-    replyUrl = decoded['reply_url'];
-    if (decoded.containsKey('reply_to') && decoded['reply_to'] != null) {
-      replyTo = decoded['reply_to'].cast<String>();
+    if (!decoded.containsKey('body') && _isEmptyMessageType(decoded['type'])) {
+      throw Exception('Empty Body only allowed in Empty Message');
     }
+
+    if (decoded.containsKey('typ') && typeMap[decoded['typ']] == null) {
+      throw Exception('Unknown typ field ${decoded['typ']}');
+    }
+
+    Map<String, dynamic> body = {};
     if (decoded.containsKey('body')) {
       Map tmp = decoded['body'];
-      if (tmp.isEmpty) {
-        body = {};
-      } else {
-        body = tmp.cast<String, dynamic>();
-      }
-    } else {
-      body = {};
-      if (type != 'https://didcomm.org/empty/1.0') {
-        throw Exception('Empty Body only allowed in Empty Message');
-      }
-    }
-    from = decoded['from'];
-    to = decoded['to'];
-    threadId = decoded['thid'];
-    parentThreadId = decoded['pthid'];
-    if (decoded.containsKey('typ')) {
-      String typTmp = decoded['typ'];
-      switch (typTmp) {
-        case 'application/didcomm-plain+json':
-          typ = DidcommMessageTyp.plain;
-          break;
-        case 'application/didcomm-signed+json':
-          typ = DidcommMessageTyp.signed;
-          break;
-        case 'application/didcomm-encrypted+json':
-          typ = DidcommMessageTyp.encrypted;
-          break;
-        default:
-          throw Exception('Unknown typ field $typTmp');
-      }
-    }
-    var tmp = decoded['created_time'];
-    if (tmp != null) {
-      createdTime =
-          DateTime.fromMillisecondsSinceEpoch(tmp * 1000, isUtc: true);
-    }
-    tmp = decoded['expires_time'];
-    if (tmp != null) {
-      expiresTime =
-          DateTime.fromMillisecondsSinceEpoch(tmp * 1000, isUtc: true);
+      body = tmp.isEmpty ? {} : tmp.cast<String, dynamic>();
     }
 
-    if (decoded.containsKey('attachments')) {
-      List tmp = decoded['attachments'];
-      if (tmp.isNotEmpty) {
-        attachments = [];
-        for (var a in tmp) {
-          attachments!.add(Attachment.fromJson(a));
-        }
+    List<Attachment>? attachments;
+    if (decoded.containsKey('attachments') && decoded['attachments'] is List) {
+      List decodedAttachments = decoded['attachments'];
+      attachments = [];
+      for (var a in decodedAttachments) {
+        attachments.add(Attachment.fromJson(a));
       }
     }
-    if (decoded.containsKey('please_ack') && decoded['please_ack'] != null) {
-      pleaseAck = decoded['please_ack'].cast<String>();
-    }
-    if (decoded.containsKey('ack') && decoded['ack'] != null) {
-      ack = decoded['ack'].cast<String>();
-    }
 
-    if (decoded.containsKey('web_redirect') &&
-        decoded['web_redirect'] != null) {
-      webRedirect = WebRedirect.fromJson(decoded['web_redirect']);
-    }
-
-    if (decoded.containsKey('return_route')) {
-      var tmp = decoded['return_route'];
-      switch (tmp) {
-        case 'all':
-          returnRoute = ReturnRouteValue.all;
-          break;
-        case 'none':
-          returnRoute = ReturnRouteValue.none;
-          break;
-        case 'thread':
-          returnRoute = ReturnRouteValue.thread;
-          break;
-      }
-    }
-    decoded.remove('to');
-    decoded.remove('from');
-    decoded.remove('id');
-    decoded.remove('type');
-    decoded.remove('typ');
-    decoded.remove('thid');
-    decoded.remove('pthid');
-    decoded.remove('created_time');
-    decoded.remove('expires_time');
-    decoded.remove('body');
-    decoded.remove('attachments');
-    decoded.remove('ack');
-    decoded.remove('please_ack');
-    decoded.remove('reply_to');
-    decoded.remove('reply_url');
-    decoded.remove('web_redirect');
-    decoded.remove('return_route');
-    if (decoded.isNotEmpty) additionalHeaders = decoded;
+    return DidcommPlaintextMessage(
+      id: decoded['id'],
+      type: decoded['type'],
+      body: body,
+      from: decoded['from'],
+      to: decoded['to'],
+      threadId: decoded['thid'],
+      parentThreadId: decoded['pthid'],
+      typ: typeMap[decoded['typ']],
+      replyUrl: decoded['reply_url'],
+      replyTo: decoded['reply_to']?.cast<String>(),
+      pleaseAck: decoded['please_ack']?.cast<bool>() ?? false,
+      ack: decoded['ack']?.cast<String>(),
+      webRedirect: decoded['web_redirect'] != null
+          ? WebRedirect.fromJson(decoded['web_redirect'])
+          : null,
+      returnRoute: decoded['return_route'] != null
+          ? returnRouteMap[decoded['return_route']]
+          : null,
+      createdTime: _convertToDateTimeIfNotNull(decoded['created_time']),
+      expiresTime: _convertToDateTimeIfNotNull(decoded['expires_time']),
+      additionalHeaders: decoded['additionalHeaders'],
+      attachments: attachments,
+    );
   }
 
   @override
@@ -230,5 +185,14 @@ class DidcommPlaintextMessage implements JsonObject, DidcommMessage {
   @override
   String toString() {
     return jsonEncode(toJson());
+  }
+
+  static DateTime? _convertToDateTimeIfNotNull(int? ms) {
+    if (ms == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(ms * 1000, isUtc: true);
+  }
+
+  static bool _isEmptyMessageType(String type) {
+    return type == 'https://didcomm.org/empty/1.0';
   }
 }
