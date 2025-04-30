@@ -25,7 +25,7 @@ export 'src/types.dart';
 export 'src/wallet/bip32_ed25519_wallet.dart';
 export 'src/wallet/bip32_wallet.dart';
 export 'src/wallet/deterministic_wallet.dart';
-export 'src/wallet/generic_wallet.dart';
+export 'src/wallet/persistent_wallet.dart';
 export 'src/wallet/key_store/key_store_interface.dart';
 export 'src/wallet/key_store/stored_key.dart';
 export 'src/wallet/wallet.dart';
