@@ -257,7 +257,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       required Uint8List authenticationTag,
       required KeyWrapAlgorithm keyWrapAlgorithm,
       required JweHeader jweHeader,
-      required Uint8List epkPrivateKey}) {
+      required Uint8List epkPrivateKey}) async {
     final didDoc = DidKey.generateDocument(publicKey);
 
     if (isSecp256OrPCurve(recipientPublicKeyJwk['crv'])) {
@@ -404,7 +404,8 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
     final publicKeyJwk = privateKeyJwk['verificationMethod'].firstWhere(
         (m) => m['publicKeyJwk']?['crv'] == protectedHeader.epk['crv'],
         orElse: () => throw Exception(''))['publicKeyJwk'];
-    final privateKey = getPrivateKeyFromJwk(publicKeyJwk, protectedHeader.epk);
+    final privateKeyBytes =
+        getPrivateKeyFromJwk(publicKeyJwk, protectedHeader.epk);
     final recipient = _findMessageRecipientByDid(receiverDid);
 
     if (protectedHeader.skid == null) {
@@ -435,7 +436,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       );
 
       return ecdh1pu.decryptData(
-          privateKey: Uint8List.fromList(privateKey.bytes),
+          privateKey: Uint8List.fromList(privateKeyBytes),
           data: recipient.encryptedKey);
     } else if (isXCurve(publicKeyJwk['crv'])) {
       final senderPublicKey = base64Decode(protectedHeader.epk['x']);
@@ -444,7 +445,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       final ecdh1pu = ECDH1PU_X25519(
         public1: epkPublic,
         public2: senderPublicKey,
-        private1: privateKey.bytes,
+        private1: privateKeyBytes,
         authenticationTag: tag,
         keyWrapAlgorithm: KeyWrapAlgorithm.ecdh1PU,
         apu: protectedHeader.apu!,
@@ -452,7 +453,7 @@ class DidcommEncryptedMessage implements JsonObject, DidcommMessage {
       );
 
       return ecdh1pu.decryptData(
-          privateKey: Uint8List.fromList(privateKey.bytes),
+          privateKey: Uint8List.fromList(privateKeyBytes),
           data: recipient.encryptedKey);
     } else {
       throw Exception('Curve ${publicKeyJwk['crv']} not supported');

@@ -131,8 +131,7 @@ class JweHeader implements JsonObject {
     PublicKey senderPublicKey,
     String curve,
   ) {
-    if (senderPublicKey.type == KeyType.p256 ||
-        senderPublicKey.type == KeyType.secp256k1) {
+    if (isSecp256OrPCurve(curve)) {
       final privateKey = getPrivateKeyFromBytes(privateKeyBytes,
           keyType: senderPublicKey.type);
 
@@ -145,7 +144,7 @@ class JweHeader implements JsonObject {
       };
     }
 
-    if (senderPublicKey.type == KeyType.ed25519) {
+    if (isXCurve(curve)) {
       final X = removePaddingFromBase64(base64UrlEncode(epkPublic!.toList()));
       return {'crv': curve, 'x': X, 'kty': 'OKP'};
     }

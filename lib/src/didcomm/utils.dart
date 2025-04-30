@@ -90,13 +90,11 @@ ec.PrivateKey getPrivateKeyFromBytes(
   throw Exception('Can\'t convert bytes for key type ${keyType.name}');
 }
 
-ec.PrivateKey getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
+Uint8List getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
   final crv = privateKeyJwk['crv'];
 
-  ec.Curve? c;
-  dynamic receiverPrivate, epkPublic;
-
   if (crv.startsWith('P') || crv.startsWith('secp256k1')) {
+    ec.Curve? c;
     if (crv == 'P-256') {
       c = ec.getP256();
     } else if (crv == 'P-384') {
@@ -109,20 +107,14 @@ ec.PrivateKey getPrivateKeyFromJwk(Map privateKeyJwk, Map epkHeader) {
       throw UnimplementedError("Curve `$crv` not supported");
     }
 
-    receiverPrivate =
+    final receiverPrivate =
         ec.PrivateKey(c, bytesToUnsignedInt(decodeBase64(privateKeyJwk['d'])));
-    epkPublic = ec.PublicKey.fromPoint(
-        c,
-        ec.AffinePoint.fromXY(bytesToUnsignedInt(decodeBase64(epkHeader['x'])),
-            bytesToUnsignedInt(decodeBase64(epkHeader['y']))));
+    return Uint8List.fromList(receiverPrivate.bytes);
   } else if (crv.startsWith('X')) {
-    receiverPrivate = decodeBase64(privateKeyJwk['d']);
-    epkPublic = decodeBase64(epkHeader['x']);
+    return decodeBase64(privateKeyJwk['d']);
   } else {
     throw UnimplementedError("Curve `$crv` not supported");
   }
-
-  return receiverPrivate;
 }
 
 ({Uint8List privateKeyBytes, Uint8List? publicKeyBytes}) getEphemeralPrivateKey(
