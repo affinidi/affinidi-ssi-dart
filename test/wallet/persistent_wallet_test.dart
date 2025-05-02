@@ -122,20 +122,22 @@ void main() {
       );
     });
 
-    test('getKeyPair should retrieve existing P256 key pair', () async {
+    test('getKeyPair should retrieve existing key pairs', () async {
+      // P256
       final createdKey = await wallet.generateKey(keyType: KeyType.p256);
-      final retrievedKey = await wallet.getPublicKey(createdKey.id);
+      final retrievedKeyPair = await wallet.getKeyPair(createdKey.id);
+      expect(retrievedKeyPair, isNotNull);
+      expect(retrievedKeyPair.id, createdKey.id);
+      expect(retrievedKeyPair.publicKey.type, KeyType.p256);
+      expect(retrievedKeyPair.publicKey.bytes, createdKey.publicKey.bytes);
 
-      expect(retrievedKey.type, KeyType.p256);
-      expect(retrievedKey.bytes, createdKey.publicKey.bytes);
-    });
-
-    test('getKeyPair should retrieve existing Ed25519 key pair', () async {
-      final createdKey = await wallet.generateKey(keyType: KeyType.ed25519);
-      final retrievedKey = await wallet.getPublicKey(createdKey.id);
-
-      expect(retrievedKey.type, KeyType.ed25519);
-      expect(retrievedKey.bytes, createdKey.publicKey.bytes);
+      // Ed25519
+      final createdEdKey = await wallet.generateKey(keyType: KeyType.ed25519);
+      final retrievedEdKeyPair = await wallet.getKeyPair(createdEdKey.id);
+      expect(retrievedEdKeyPair, isNotNull);
+      expect(retrievedEdKeyPair.id, createdEdKey.id);
+      expect(retrievedEdKeyPair.publicKey.type, KeyType.ed25519);
+      expect(retrievedEdKeyPair.publicKey.bytes, createdEdKey.publicKey.bytes);
     });
 
     test('getKeyPair should throw for non-existent keyId', () async {
@@ -149,8 +151,7 @@ void main() {
       );
     });
 
-    test(
-        '_getKeyPair should throw for unsupported stored key type from KeyStore',
+    test('getKeyPair should throw for unsupported stored key type from KeyStore',
         () async {
       const unsupportedKeyId = 'unsupported-stored-key';
       // Manually insert data with unsupported type
@@ -161,7 +162,7 @@ void main() {
       await keyStore.set(unsupportedKeyId, unsupportedStoredKey);
 
       expect(
-        () async => await wallet.getPublicKey(unsupportedKeyId),
+        () async => await wallet.getKeyPair(unsupportedKeyId),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
