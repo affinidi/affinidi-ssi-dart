@@ -1,3 +1,0 @@
-// class DataIntegrityProof extends EmbeddedProofSuite {
-//
-// }

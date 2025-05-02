@@ -1,6 +1,10 @@
 import 'dart:convert';
 
-import '../../../ssi.dart';
+import '../../did/did_signer.dart';
+import '../../did/did_verifier.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
+import '../../types.dart';
 import '../../util/base64_util.dart';
 import '../models/parsed_vc.dart';
 import '../models/v1/vc_data_model_v1.dart';
@@ -9,15 +13,14 @@ import '../suites/vc_suite.dart';
 
 part 'jwt_data_model_v1.dart';
 
+/// Options for configuring JWT issuance or parsing.
 class JwtOptions {}
 
 /// Class to parse and convert JWT token strings into a [VerifiableCredential]
 final class JwtDm1Suite
-    with
-        JwtParser
+    with JwtParser
     implements
-        VerifiableCredentialSuite<String, VcDataModelV1, JwtVcDataModelV1,
-            JwtOptions> {
+        VerifiableCredentialSuite<String, VcDataModelV1, JwtVcDataModelV1> {
   /// Checks if the [data] provided matches the right criteria to attempt a parse
   /// [data] must be a valid jwt string with a header a payload and a signature
   @override
@@ -42,12 +45,20 @@ final class JwtDm1Suite
     return JwtVcDataModelV1.fromJws(jws);
   }
 
+  /// Issues a signed [JwtVcDataModelV1] from a [VcDataModelV1] using a [DidSigner].
+  ///
+  /// Optionally takes [options] for JWT issuance configuration.
   Future<JwtVcDataModelV1> issue(
-    VcDataModelV1 vc,
-    DidSigner signer, {
-    JwtOptions? options,
-  }) async {
-    final (header, payload) = JwtVcDataModelV1.vcToJws(vc.toJson(), signer);
+      {required VcDataModelV1 unsignedData, required DidSigner signer}) async {
+    if (signer.did != unsignedData.issuer.id.toString()) {
+      throw SsiException(
+        message: 'Issuer mismatch',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    final (header, payload) =
+        JwtVcDataModelV1.vcToJws(unsignedData.toJson(), signer);
 
     final encodedHeader = base64UrlNoPadEncode(
       utf8.encode(jsonEncode(header)),
@@ -87,7 +98,7 @@ final class JwtDm1Suite
     var now = getNow();
     final exp = input.jws.payload['exp'];
     if (exp != null &&
-        now.isAfter(DateTime.fromMillisecondsSinceEpoch(exp * 1000))) {
+        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000))) {
       return false;
     }
 

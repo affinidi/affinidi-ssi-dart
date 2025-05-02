@@ -3,10 +3,8 @@
 /// More dartdocs go here.
 library;
 
-export 'src/credentials/suites/universal_parser.dart';
-export 'src/credentials/models/field_types/credential_schema.dart';
-export 'src/credentials/models/verifiable_credential.dart';
-export 'src/did/did_document.dart';
+export 'src/credentials/credentials.dart';
+export 'src/did/did_document/index.dart';
 export 'src/did/did_key.dart';
 export 'src/did/did_peer.dart';
 export 'src/did/did_signer.dart';
@@ -25,7 +23,7 @@ export 'src/types.dart';
 export 'src/wallet/bip32_ed25519_wallet.dart';
 export 'src/wallet/bip32_wallet.dart';
 export 'src/wallet/deterministic_wallet.dart';
-export 'src/wallet/generic_wallet.dart';
+export 'src/wallet/persistent_wallet.dart';
 export 'src/wallet/key_store/key_store_interface.dart';
 export 'src/wallet/key_store/stored_key.dart';
 export 'src/wallet/wallet.dart';

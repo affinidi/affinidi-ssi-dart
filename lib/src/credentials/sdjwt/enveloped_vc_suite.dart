@@ -1,4 +1,5 @@
-import '../../../ssi.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
 import '../models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
 import '../parsers/ld_parser.dart';
@@ -6,19 +7,20 @@ import '../suites/vc_suite.dart';
 import '../suites/vc_suites.dart';
 import 'sdjwt_dm_v2_suite.dart';
 
+/// Enum representing supported media types for enveloped Verifiable Credentials.
 enum MediaTypes {
+  /// Media type for SD-JWT encoded Verifiable Credentials.
   sdJwt('data:application/vc+sd-jwt,');
 
+  /// The associated media type string.
   final String type;
   const MediaTypes(this.type);
 }
 
+/// Mapping between media type strings and their corresponding VC suites.
 final Map<String, VerifiableCredentialSuite> mediaTypeSuites = {
   MediaTypes.sdJwt.type: SdJwtDm2Suite()
 };
-
-/// Options for SD-JWT Data Model v2 operations.
-class EnvelopedVcDm2Options {}
 
 /// Suite for working with W3C VC Data Model v2 credentials in SD-JWT format.
 ///
@@ -30,7 +32,7 @@ final class EnvelopedVcDm2Suite
         LdParser
     implements
         VerifiableCredentialSuite<String, VcDataModelV2,
-            ParsedVerifiableCredential<String>, EnvelopedVcDm2Options> {
+            ParsedVerifiableCredential<String>> {
   @override
   bool hasValidPayload(Map<String, dynamic> data) {
     final context = data[VcDataModelV2Key.context.key];
@@ -47,12 +49,18 @@ final class EnvelopedVcDm2Suite
         mediaTypeSuites.keys.any(envelopedData.startsWith);
   }
 
+  /// Checks if [input] can be parsed by this suite.
+  ///
+  /// Returns `true` if [input] is a decodable String.
   @override
   bool canParse(Object input) {
     if (input is! String) return false;
     return canDecode(input);
   }
 
+  /// Parses an [input] string into a [ParsedVerifiableCredential].
+  ///
+  /// Throws a [SsiException] if [input] is not a String or invalid.
   @override
   ParsedVerifiableCredential<String> parse(Object input) {
     if (input is! String) {
@@ -72,17 +80,6 @@ final class EnvelopedVcDm2Suite
 
     return mediaType.value.parse(serialized)
         as ParsedVerifiableCredential<String>;
-  }
-
-  Future<SdJwtDataModelV2> issue(
-    VcDataModelV2 vc,
-    DidSigner signer, {
-    EnvelopedVcDm2Options? options,
-  }) async {
-    throw SsiException(
-      message: 'Cannot issue an enveloped VC.',
-      code: SsiExceptionType.unsupportedEnvelopeVCOperation.code,
-    );
   }
 
   @override

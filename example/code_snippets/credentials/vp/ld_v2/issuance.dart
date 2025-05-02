@@ -1,20 +1,19 @@
 // ignore_for_file: avoid_print
 
-import 'dart:convert';
-import 'dart:typed_data';
-
+import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/models/field_types/holder.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
 import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 
-import 'did_signer.dart';
+import '../../did/did_signer.dart';
 
 Future<void> main() async {
   // Deterministic seed for key generation
-  final testSeed = Uint8List.fromList(
-    utf8.encode('test seed for deterministic key generation'),
+  final testSeed = hexDecode(
+    'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
   );
 
   // Initialize signer from seed
@@ -32,6 +31,7 @@ Future<void> main() async {
       context: [DMV2ContextUrl],
       id: Uri.parse('testVpV2'),
       type: {'VerifiablePresentation'},
+      holder: MutableHolder.uri(signer.did),
       verifiableCredential: [ldV1VC, ldV2VC, sdjwtV2VC]);
 
   // create a proof Generator
@@ -40,11 +40,9 @@ Future<void> main() async {
   );
 
   // Issue the VP using the V2 suite
-  final vpToSign = VpDataModelV2.fromJson(v2Vp.toJson());
-  final issuedVp = await LdVpDm2Suite().issue(
-      unsignedData: vpToSign,
-      issuer: signer.did,
-      proofGenerator: proofGenerator);
+  final vpToSign = VpDataModelV2.fromMutable(v2Vp);
+  final issuedVp = await LdVpDm2Suite()
+      .issue(unsignedData: vpToSign, proofGenerator: proofGenerator);
 
   // Output result
   print('Serialized VP:\n${issuedVp.serialized}');

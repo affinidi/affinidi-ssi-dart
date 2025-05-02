@@ -73,6 +73,12 @@ class VpDataModelV1 implements VerifiablePresentation {
     return cleanEmpty(json);
   }
 
+  /// Validates the essential Verifiable Presentation properties (`context`, `type`).
+  ///
+  /// Ensures [context] is not empty and starts with [DMV1ContextUrl],
+  /// and that [type] is not empty.
+  ///
+  /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
     if (context.isEmpty) {
       throw SsiException(
@@ -156,6 +162,10 @@ class VpDataModelV1 implements VerifiablePresentation {
         verifiableCredential: credentials);
   }
 
+  /// Creates a new [VpDataModelV1] instance as a deep copy of the provided [input].
+  ///
+  /// This constructor initializes a new object with the same values as the
+  /// properties of the [input] `VpDataModelV1` instance.
   VpDataModelV1.clone(VpDataModelV1 input)
       : this(
             context: input.context,
@@ -164,4 +174,7 @@ class VpDataModelV1 implements VerifiablePresentation {
             holder: input.holder,
             verifiableCredential: input.verifiableCredential,
             proof: input.proof);
+
+  factory VpDataModelV1.fromMutable(MutableVpDataModelV1 data) =>
+      VpDataModelV1.fromJson(data.toJson());
 }

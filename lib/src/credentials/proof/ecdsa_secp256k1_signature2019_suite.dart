@@ -18,10 +18,20 @@ final _sha256 = Digest('SHA-256');
 const _signatureType = 'EcdsaSecp256k1Signature2019';
 const _securityContext = 'https://w3id.org/security/v2';
 
+/// Generates Linked Data Proofs using the EcdsaSecp256k1Signature2019 signature suite.
+///
+/// Signs Verifiable Credentials by normalizing the credential and the proof separately,
+/// hashing them, and then signing the combined hash using a [DidSigner].
 class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
     implements EmbeddedProofGenerator {
+  /// The DID signer used to produce the proof signature.
   final DidSigner signer;
 
+  /// Constructs a new [Secp256k1Signature2019Generator].
+  ///
+  /// [signer]: The DID signer responsible for creating the proof signature.
+  /// Optional parameters like [proofPurpose], [customDocumentLoader], [expires],
+  /// [challenge], and [domain] configure the proof metadata.
   Secp256k1Signature2019Generator({
     required this.signer,
     super.proofPurpose,
@@ -31,6 +41,8 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
     super.domain,
   });
 
+  /// Generates an [EmbeddedProof] for the given [document].
+  @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
     final proof = {
@@ -91,13 +103,30 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
   }
 }
 
+/// Verifies Linked Data Proofs signed with the EcdsaSecp256k1Signature2019 signature suite.
+///
+/// Normalizes and hashes the credential and proof separately, then verifies
+/// the combined hash against the provided proof signature using the issuer's DID key.
 class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
     implements EmbeddedProofVerifier {
+  /// The DID of the issuer expected to have signed the credential.
   final String issuerDid;
+
+  /// Function to supply the current timestamp for proof expiry validation.
   final DateTime Function() getNow;
+
+  /// Optional domain to validate within the proof.
   final List<String>? domain;
+
+  /// Optional challenge string to validate within the proof.
   final String? challenge;
 
+  /// Constructs a new [Secp256k1Signature2019Verifier].
+  ///
+  /// [issuerDid]: The expected issuer DID.
+  /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
+  /// [domain]: Optional expected domain(s).
+  /// [challenge]: Optional expected challenge string.
   Secp256k1Signature2019Verifier({
     required this.issuerDid,
     this.getNow = DateTime.now,
@@ -106,6 +135,9 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
     super.customDocumentLoader,
   });
 
+  /// Verifies the proof embedded in the provided [document].
+  ///
+  /// Returns a [VerificationResult] indicating success or listing errors.
   @override
   Future<VerificationResult> verify(Map<String, dynamic> document,
       {DateTime Function() getNow = DateTime.now}) async {
@@ -120,7 +152,7 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
     var now = getNow();
 
     final expires = proof['expires'];
-    if (expires != null && now.isAfter(expires)) {
+    if (expires != null && now.isAfter(expires as DateTime)) {
       return VerificationResult.invalid(errors: ['Not valid proof']);
     }
 
@@ -151,9 +183,18 @@ class Secp256k1Signature2019Verifier extends EmbeddedProofSuiteVerifyOptions
   }
 }
 
+/// Data model representing a Linked Data Proof of type EcdsaSecp256k1Signature2019.
+///
+/// Contains signature metadata and the actual JWS signature.
 class EcdsaSecp256k1Signature2019Proof extends EmbeddedProof {
+  /// The JWS (JSON Web Signature) string that signs the normalized data.
+
   final String jws;
 
+  /// Constructs a new [EcdsaSecp256k1Signature2019Proof].
+  ///
+  /// Required fields include [type], [created], [verificationMethod], [proofPurpose], and [jws].
+  /// Optional fields include [expires], [challenge], and [domain].
   EcdsaSecp256k1Signature2019Proof(
       {required super.type,
       required super.created,
@@ -175,7 +216,8 @@ class EcdsaSecp256k1Signature2019Proof extends EmbeddedProof {
 Future<Uint8List> _computeVcHash(
   Map<String, dynamic> proof,
   Map<String, dynamic> unsignedCredential,
-  Function(Uri url, LoadDocumentOptions? options) documentLoader,
+  Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
+      documentLoader,
 ) async {
   final normalizedProof = await JsonLdProcessor.normalize(
     proof,

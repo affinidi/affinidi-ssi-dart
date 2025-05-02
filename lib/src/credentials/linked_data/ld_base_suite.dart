@@ -3,26 +3,30 @@ import 'dart:convert';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/doc_with_embedded_proof.dart';
+import '../models/field_types/issuer.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../proof/embedded_proof_suite.dart';
 
-/// Options for LD based data model operations.
-///
-/// Contains configuration parameters for LD based data model operations
-/// in the context of W3C Verifiable Credentials Data Model.
-abstract class LdOptions {}
-
 /// Class to parse and convert a json representation of a [VerifiableCredential]
-abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
-    Options extends LdOptions> with LdParser {
+abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
+    with LdParser {
+  /// The required context url
   final String contextUrl;
 
+  /// The JSON key used for the proof object (default: 'proof').
   final String proofKey;
+
+  /// The JSON key used for the context object (default: '@context').
   final String contextKey;
+
+  /// The JSON key used for the issuer field (default: 'issuer').
   final String issuerKey;
 
+  /// Constructs a new [LdBaseSuite] with the required context URL.
+  ///
+  /// Optional [proofKey], [contextKey], and [issuerKey] parameters
   LdBaseSuite({
     required this.contextUrl,
     this.proofKey = 'proof',
@@ -39,29 +43,33 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     return (context is List) && context.contains(contextUrl);
   }
 
+  /// Checks if the given [input] can be parsed.
+  ///
+  /// Returns `true` if [input] is a String and can be decoded into a JSON object.
   bool canParse(Object input) {
     if (input is! String) return false;
 
     return canDecode(input);
   }
 
+  /// Creates a [Model] instance from the parsed JSON [payload] and original [input] string.
   Model fromParsed(String input, Map<String, dynamic> payload);
 
+  /// Issues a signed [Model] by applying an embedded proof.
+  ///
+  /// Throws a [SsiException] if the issuer in the proof does not match the credential's
   Future<Model> issue({
     required VC unsignedData,
-    required String issuer,
     required EmbeddedProofGenerator proofGenerator,
   }) async {
     var json = unsignedData.toJson();
     // remove proof in case it's already there
     json.remove(proofKey);
 
-    // set the issuer to match the signer
-    json[issuerKey] = issuer;
-
     final proof = await proofGenerator.generate(json);
 
-    if (proof.verificationMethod?.split('#').first != issuer) {
+    final issuer = Issuer.fromJson(json[issuerKey]);
+    if (proof.verificationMethod?.split('#').first != issuer.id.toString()) {
       throw SsiException(
         message: 'Issuer mismatch',
         code: SsiExceptionType.invalidJson.code,
@@ -73,6 +81,9 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     return fromParsed(jsonEncode(json), json);
   }
 
+  /// Parses the [input] string into a [Model].
+  ///
+  /// Throws a [SsiException] if [input] is not a valid String.
   Model parse(Object input) {
     if (input is! String) {
       throw SsiException(
@@ -84,18 +95,23 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC,
     return fromParsed(input, decode(input));
   }
 
+  /// Verifies the cryptographic integrity of the [input] credential.
+  ///
+  /// Optionally accepts [getNow] to provide a custom "now" time for expiry and validity
   Future<bool> verifyIntegrity(Model input,
       {DateTime Function() getNow = DateTime.now}) async {
     //TODO(FTL-20735): discover proof type
     final document = input.toJson();
-    final issuerDid = document[issuerKey] as String;
-    final proofSuite = Secp256k1Signature2019Verifier(issuerDid: issuerDid);
+    final issuerDid = Issuer.uri(document[issuerKey]);
+    final proofSuite =
+        Secp256k1Signature2019Verifier(issuerDid: issuerDid.id.toString());
     final verificationResult =
         await proofSuite.verify(document, getNow: getNow);
 
     return verificationResult.isValid;
   }
 
+  /// Presents the [input] credential as a JSON object.
   Map<String, dynamic> present(Model input) {
     return input.toJson();
   }

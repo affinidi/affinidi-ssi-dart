@@ -59,6 +59,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   @override
   final UnmodifiableListView<EmbeddedProof> proof;
 
+  /// The list of termsOfUse under which this presentations is issued
   final UnmodifiableListView<TermsOfUse> termsOfUse;
 
   /// Converts this presentation to a JSON-serializable map.
@@ -78,6 +79,12 @@ class VpDataModelV2 implements VerifiablePresentation {
     return cleanEmpty(json);
   }
 
+  /// Validates the essential Verifiable Presentation properties (`context`, `type`).
+  ///
+  /// Ensures [context] is not empty and starts with [DMV2ContextUrl],
+  /// and that [type] is not empty.
+  ///
+  /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
     if (context.isEmpty) {
       throw SsiException(
@@ -170,6 +177,10 @@ class VpDataModelV2 implements VerifiablePresentation {
         termsOfUse: termsOfUse);
   }
 
+  /// Creates a new [VpDataModelV2] instance as a deep copy of the provided [input].
+  ///
+  /// This constructor initializes a new object with the same values as the
+  /// properties of the [input] `VpDataModelV2` instance.
   VpDataModelV2.clone(VpDataModelV2 input)
       : this(
             context: input.context,
@@ -179,4 +190,7 @@ class VpDataModelV2 implements VerifiablePresentation {
             verifiableCredential: input.verifiableCredential,
             proof: input.proof,
             termsOfUse: input.termsOfUse);
+
+  factory VpDataModelV2.fromMutable(MutableVpDataModelV2 data) =>
+      VpDataModelV2.fromJson(data.toJson());
 }
