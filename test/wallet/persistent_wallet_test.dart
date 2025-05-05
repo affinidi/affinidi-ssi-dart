@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -27,8 +26,6 @@ void main() {
       final storedData = await keyStore.get(newKey.id);
       expect(storedData, isNotNull);
       expect(storedData!.keyType, KeyType.p256);
-      expect(
-          storedData.representation, StoredKeyRepresentation.privateKeyBytes);
       expect(storedData.privateKeyBytes, isA<Uint8List>());
     });
 
@@ -43,8 +40,6 @@ void main() {
       final storedData = await keyStore.get(newKey.id);
       expect(storedData, isNotNull);
       expect(storedData!.keyType, KeyType.p256);
-      expect(
-          storedData.representation, StoredKeyRepresentation.privateKeyBytes);
       expect(storedData.privateKeyBytes, isA<Uint8List>());
     });
 
@@ -58,8 +53,6 @@ void main() {
       final storedData = await keyStore.get(newKey.id);
       expect(storedData, isNotNull);
       expect(storedData!.keyType, KeyType.ed25519);
-      expect(
-          storedData.representation, StoredKeyRepresentation.privateKeyBytes);
       expect(storedData.privateKeyBytes, isA<Uint8List>());
       expect(storedData.privateKeyBytes,
           hasLength(64)); // Ed25519 private key is 64 bytes (seed + pub)
@@ -156,10 +149,9 @@ void main() {
         () async {
       const unsupportedKeyId = 'unsupported-stored-key';
       // Manually insert data with unsupported type
-      final unsupportedStoredKey = StoredKey.fromPrivateKey(
-        keyType: KeyType.secp256k1,
-        keyBytes: Uint8List.fromList([1, 2, 3]),
-      );
+      final unsupportedStoredKey = StoredKey(
+          keyType: KeyType.secp256k1,
+          privateKeyBytes: Uint8List.fromList([1, 2, 3]));
       await keyStore.set(unsupportedKeyId, unsupportedStoredKey);
 
       expect(
