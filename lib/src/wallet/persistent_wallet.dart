@@ -91,7 +91,8 @@ class PersistentWallet implements Wallet {
           "Unsupported key type for PersistentWallet: $effectiveKeyType. Only p256 and ed25519 are supported.");
     }
 
-    final storedKey = StoredKey(effectiveKeyType, privateKeyBytes);
+    final storedKey =
+        StoredKey(keyType: effectiveKeyType, privateKeyBytes: privateKeyBytes);
     await _keyStore.set(effectiveKeyId, storedKey);
     _runtimeCache[effectiveKeyId] = keyPairInstance;
 

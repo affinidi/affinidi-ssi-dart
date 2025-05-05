@@ -148,8 +148,9 @@ void main() {
         () async {
       const unsupportedKeyId = 'unsupported-stored-key';
       // Manually insert data with unsupported type
-      final unsupportedStoredKey =
-          StoredKey(KeyType.secp256k1, Uint8List.fromList([1, 2, 3]));
+      final unsupportedStoredKey = StoredKey(
+          keyType: KeyType.secp256k1,
+          privateKeyBytes: Uint8List.fromList([1, 2, 3]));
       await keyStore.set(unsupportedKeyId, unsupportedStoredKey);
 
       expect(

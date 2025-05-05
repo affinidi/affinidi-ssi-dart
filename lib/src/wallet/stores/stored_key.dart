@@ -10,7 +10,7 @@ class StoredKey {
   final Uint8List privateKeyBytes;
 
   /// Creates a StoredKey instance.
-  StoredKey(this.keyType, this.privateKeyBytes);
+  StoredKey({required this.keyType, required this.privateKeyBytes});
 
   /// Creates a StoredKey from a JSON map (for persistence).
   factory StoredKey.fromJson(Map<String, dynamic> json) {
@@ -23,7 +23,10 @@ class StoredKey {
       throw ArgumentError(
           'Missing privateKeyBytes for privateKeyBytes representation');
     }
-    return StoredKey(keyType, Uint8List.fromList(keyBytesList));
+    return StoredKey(
+      keyType: keyType,
+      privateKeyBytes: Uint8List.fromList(keyBytesList),
+    );
   }
 
   /// Converts this StoredKey to a JSON map (for persistence).

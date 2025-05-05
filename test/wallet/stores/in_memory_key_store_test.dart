@@ -8,8 +8,8 @@ void main() {
   group('InMemoryKeyStore', () {
     late InMemoryKeyStore keyStore;
     const testKeyId = 'test-key';
-    final testStoredKey =
-        StoredKey(KeyType.p256, Uint8List.fromList([1, 2, 3]));
+    final testStoredKey = StoredKey(
+        keyType: KeyType.p256, privateKeyBytes: Uint8List.fromList([1, 2, 3]));
 
     setUp(() {
       keyStore = InMemoryKeyStore();
