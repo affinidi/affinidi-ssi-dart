@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/wallet/stores/in_memory_seed_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
