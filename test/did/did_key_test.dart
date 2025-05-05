@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
+import 'package:ssi/src/wallet/stores/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -17,15 +17,12 @@ void main() {
 
   group('did:key with BIP32', () {
     late Bip32Wallet wallet;
-    late InMemoryKeyStore keyStore;
     late PublicKey accountPublicKey;
 
     setUp(() async {
-      keyStore = InMemoryKeyStore();
-      wallet = await Bip32Wallet.fromSeed(seed, keyStore);
+      wallet = await Bip32Wallet.fromSeed(seed);
       accountPublicKey =
-          (await wallet.deriveKey(derivationPath: "m/44'/60'/0'/0/0"))
-              .publicKey;
+          (await wallet.generateKey(keyId: "m/44'/60'/0'/0/0")).publicKey;
     });
 
     test('generateDocument should match expected', () async {
@@ -61,7 +58,7 @@ void main() {
       final expectedDidKeyPrefix = 'did:key:zQ3s';
 
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0/0";
-      final key = await wallet.deriveKey(derivationPath: derivedKeyPath);
+      final key = await wallet.generateKey(keyId: derivedKeyPath);
       final doc = DidKey.generateDocument(key.publicKey);
       final actualDid = doc.id;
 

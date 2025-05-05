@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -17,15 +16,12 @@ void main() {
 
   group('Test DID', () {
     late Bip32Ed25519Wallet wallet;
-    late InMemoryKeyStore keyStore;
     late PublicKey accountPublicKey;
 
     setUp(() async {
-      keyStore = InMemoryKeyStore();
-      wallet = await Bip32Ed25519Wallet.fromSeed(seed, keyStore);
+      wallet = await Bip32Ed25519Wallet.fromSeed(seed);
       accountPublicKey =
-          (await wallet.deriveKey(derivationPath: "m/44'/60'/0'/0'/0'"))
-              .publicKey;
+          (await wallet.generateKey(keyId: "m/44'/60'/0'/0'/0'")).publicKey;
     });
 
     test('generateDocument for did:peer:0 should match expected', () async {
@@ -64,7 +60,7 @@ void main() {
           'did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0';
 
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
-      final key = await wallet.deriveKey(derivationPath: derivedKeyPath);
+      final key = await wallet.generateKey(keyId: derivedKeyPath);
       final doc = DidPeer.generateDocument(
         [key.publicKey, key.publicKey],
         serviceEndpoint: 'https://denys.com/income',
@@ -85,7 +81,7 @@ void main() {
           'did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0';
 
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
-      final key = await wallet.deriveKey(derivationPath: derivedKeyPath);
+      final key = await wallet.generateKey(keyId: derivedKeyPath);
       final actualDid = DidPeer.getDid(
         [
           key.publicKey,
