@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-05-05
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.22`](#ssi---v100-dev22)
+
+---
+
+#### `ssi` - `v1.0.0-dev.22`
+
+ - **FEAT**: expose getKeyPair (#101).
+
+## 1.0.0-dev.22
+
+ - **FEAT**: expose getKeyPair (#101).
+
+
 ## 2025-04-30
 
 ### Changes

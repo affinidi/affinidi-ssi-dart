@@ -42,7 +42,7 @@ class PersistentWallet implements Wallet {
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
 
@@ -52,7 +52,7 @@ class PersistentWallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
@@ -63,7 +63,7 @@ class PersistentWallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.verify(data, signature, signatureScheme: signatureScheme);
   }
 
@@ -75,7 +75,7 @@ class PersistentWallet implements Wallet {
     final effectiveKeyId = keyId ?? randomId();
     if (await _keyStore.contains(effectiveKeyId)) {
       // Found key in key store
-      return _getKeyPair(effectiveKeyId);
+      return getKeyPair(effectiveKeyId);
     }
 
     final effectiveKeyType = keyType ?? KeyType.p256;
@@ -106,7 +106,7 @@ class PersistentWallet implements Wallet {
 
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     final keyData = keyPair.publicKey;
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
@@ -120,7 +120,7 @@ class PersistentWallet implements Wallet {
   ///
   /// Returns a [Future] that completes with the X25519 public key as a [Uint8List].
   Future<Uint8List> getX25519PublicKey(String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     if (keyPair is Ed25519KeyPair) {
       final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();
       return Uint8List.fromList(x25519PublicKey.bytes);
@@ -140,7 +140,7 @@ class PersistentWallet implements Wallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.encrypt(data, publicKey: publicKey);
   }
 
@@ -150,11 +150,12 @@ class PersistentWallet implements Wallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  Future<KeyPair> _getKeyPair(String keyId) async {
+  @override
+  Future<KeyPair> getKeyPair(String keyId) async {
     if (_runtimeCache.containsKey(keyId)) {
       return _runtimeCache[keyId]!;
     }

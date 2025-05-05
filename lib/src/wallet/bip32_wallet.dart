@@ -86,7 +86,7 @@ class Bip32Wallet implements Wallet {
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
 
@@ -96,7 +96,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
@@ -107,7 +107,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.verify(
       data,
       signature,
@@ -153,7 +153,7 @@ class Bip32Wallet implements Wallet {
 
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     final keyData = keyPair.publicKey;
     return PublicKey(keyData.id, keyData.bytes, keyData.type);
   }
@@ -164,7 +164,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.encrypt(data, publicKey: publicKey);
   }
 
@@ -174,11 +174,12 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  Future<Secp256k1KeyPair> _getKeyPair(String keyId) async {
+  @override
+  Future<Secp256k1KeyPair> getKeyPair(String keyId) async {
     if (_runtimeCache.containsKey(keyId)) {
       return _runtimeCache[keyId]!;
     }
