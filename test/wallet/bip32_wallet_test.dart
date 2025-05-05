@@ -11,7 +11,7 @@ void main() {
   final dataToSign = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
   const derivationPath1 = "m/44'/60'/0'/0/0";
   const derivationPath2 = "m/44'/60'/0'/0/1";
-  const nonExistentKeyId = 'non-existent-key';
+  const invalidDerivationPath = 'invalid-path';
 
   group('Bip32Wallet (Secp256k1)', () {
     late Bip32Wallet wallet;
@@ -25,13 +25,11 @@ void main() {
         () async {
       final newKey = await wallet.generateKey(keyId: derivationPath1);
       expect(newKey.id, derivationPath1);
-      expect(await wallet.hasKey(newKey.id), isTrue);
       expect(newKey.publicKey.type, KeyType.secp256k1);
     });
 
     test('generateKey with existing path should return cached key', () async {
       final firstKey = await wallet.generateKey(keyId: derivationPath1);
-      expect(await wallet.hasKey(derivationPath1), isTrue);
 
       final sameKey = await wallet.generateKey(keyId: derivationPath1);
       expect(sameKey.publicKey.bytes, firstKey.publicKey.bytes);
@@ -68,22 +66,15 @@ void main() {
       );
     });
 
-    test('getPublicKey should retrieve derived key pairs', () async {
+    test('getPublicKey should retrieve derived key pairs even if not generated',
+        () async {
       final generatedKey = await wallet.generateKey(keyId: derivationPath1);
-      final derivedKey = await wallet.getPublicKey(generatedKey.id);
-      expect(derivedKey.type, KeyType.secp256k1);
-      expect(derivedKey.id, generatedKey.id);
-    });
-
-    test('getPublicKey should throw for non-existent keyId', () async {
-      expect(
-        () async => await wallet.getPublicKey(nonExistentKeyId),
-        throwsA(isA<SsiException>().having(
-          (e) => e.code,
-          'code',
-          SsiExceptionType.keyNotFound.code,
-        )),
-      );
+      final derivedKey1 = await wallet.getPublicKey(generatedKey.id);
+      final derivedKey2 = await wallet.getPublicKey(derivationPath2);
+      expect(derivedKey1.type, KeyType.secp256k1);
+      expect(derivedKey1.id, generatedKey.id);
+      expect(derivedKey2.type, KeyType.secp256k1);
+      expect(derivedKey2.id, derivationPath2);
     });
 
     test('getPublicKey should return the correct public key', () async {
@@ -93,14 +84,11 @@ void main() {
       expect(retrievedKey.bytes.length, 33);
     });
 
-    test('getPublicKey should throw for non-existent keyId', () async {
+    test('getPublicKey should throw for invalid derivation path format',
+        () async {
       expect(
-        () async => await wallet.getPublicKey('99-98'),
-        throwsA(isA<SsiException>().having(
-          (e) => e.code,
-          'code',
-          SsiExceptionType.keyNotFound.code,
-        )),
+        () async => await wallet.getPublicKey(invalidDerivationPath),
+        throwsArgumentError,
       );
     });
 
@@ -108,27 +96,29 @@ void main() {
       final key1 = await wallet.generateKey(keyId: derivationPath1);
       final key2 = await wallet.generateKey(keyId: derivationPath2);
 
-      final derivedSignature = await wallet.sign(dataToSign, keyId: key1.id);
+      // Sign with explicitly generated key
+      final signature1 = await wallet.sign(dataToSign, keyId: key1.id);
       expect(
           await wallet.verify(dataToSign,
-              signature: derivedSignature, keyId: key1.id),
+              signature: signature1, keyId: key1.id),
           isTrue);
 
       // Verification should fail with wrong key
       expect(
           await wallet.verify(dataToSign,
-              signature: derivedSignature, keyId: key2.id), // Use key2's ID
+              signature: signature1, keyId: key2.id), // Use key2's ID
           isFalse);
 
+      // --- Test on-demand derivation ---
       // Verification should fail with tampered data
       final tamperedData = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(
           await wallet.verify(tamperedData,
-              signature: derivedSignature, keyId: key1.id),
+              signature: signature1, keyId: key1.id),
           isFalse);
 
       // Verification should fail with tampered signature
-      final tamperedSignature = Uint8List.fromList(derivedSignature);
+      final tamperedSignature = Uint8List.fromList(signature1);
       tamperedSignature[0] = tamperedSignature[0] ^ 0xFF;
       expect(
           await wallet.verify(dataToSign,
@@ -136,35 +126,29 @@ void main() {
           isFalse);
     });
 
-    test('sign should throw for non-existent keyId', () async {
+    test('sign/verify should throw for invalid derivation path format',
+        () async {
       expect(
-        () async => await wallet.sign(dataToSign, keyId: '99-97'),
-        throwsA(isA<SsiException>().having(
-          (e) => e.code,
-          'code',
-          SsiExceptionType.keyNotFound.code,
-        )),
-      );
+          () async =>
+              await wallet.sign(dataToSign, keyId: invalidDerivationPath),
+          throwsArgumentError);
+      // Need a valid signature to test verify's path check
+      final validSig = await wallet.sign(dataToSign, keyId: derivationPath1);
+      expect(
+          () async => await wallet.verify(dataToSign,
+              signature: validSig, keyId: invalidDerivationPath),
+          throwsArgumentError);
     });
 
-    test('verify should throw for non-existent keyId', () async {
-      final key = await wallet.generateKey(keyId: derivationPath1);
-      final signature = await wallet.sign(dataToSign, keyId: key.id);
-      expect(
-        () async => await wallet.verify(dataToSign,
-            signature: signature, keyId: nonExistentKeyId),
-        throwsA(isA<SsiException>().having(
-          (e) => e.code,
-          'code',
-          SsiExceptionType.keyNotFound.code,
-        )),
-      );
-    });
+    test('Derived keys should be consistent', () async {
+      final key1 = await wallet.generateKey(keyId: derivationPath1);
 
-    test('hasKey should correctly report key existence', () async {
-      final generatedKey = await wallet.generateKey(keyId: derivationPath1);
-      expect(await wallet.hasKey(generatedKey.id), isTrue);
-      expect(await wallet.hasKey(nonExistentKeyId), isFalse);
+      // Create a new wallet instance with the same seed
+      final wallet2 = await Bip32Wallet.fromSeed(seed);
+      // Derive the same key path
+      final key2 = await wallet2.getPublicKey(derivationPath1);
+
+      expect(key1.publicKey.bytes, equals(key2.bytes));
     });
 
     test('Derived keys should be consistent', () async {
@@ -194,15 +178,13 @@ void main() {
       expect(derivedSchemes.length, 1);
     });
 
-    test('getSupportedSignatureSchemes should throw for non-existent keyId',
+    test(
+        'getSupportedSignatureSchemes should throw for invalid derivation path format',
         () async {
       expect(
-        () async => await wallet.getSupportedSignatureSchemes('99-95'),
-        throwsA(isA<SsiException>().having(
-          (e) => e.code,
-          'code',
-          SsiExceptionType.keyNotFound.code,
-        )),
+        () async =>
+            await wallet.getSupportedSignatureSchemes(invalidDerivationPath),
+        throwsArgumentError,
       );
     });
   });

@@ -83,12 +83,6 @@ class Bip32Wallet implements Wallet {
   }
 
   @override
-  Future<bool> hasKey(String derivationPath) {
-    // Only checks runtime cache as keys are not persisted outside the seed
-    return Future.value(_runtimeCache.containsKey(derivationPath));
-  }
-
-  @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String derivationPath) async {
     final keyPair = await _getKeyPair(derivationPath);

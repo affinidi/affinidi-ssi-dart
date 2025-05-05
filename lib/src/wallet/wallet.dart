@@ -65,15 +65,6 @@ abstract interface class Wallet {
   /// Throws an [SsiException] if the operation fails.
   Future<PublicKey> getPublicKey(String keyId);
 
-  /// Checks if a key with the specified identifier exists in the wallet.
-  ///
-  /// [keyId] - The identifier of the key to check. For deterministic wallets
-  ///           (e.g., BIP32), this is typically the derivation path.
-  ///
-  /// Returns a [Future] that completes with `true` if the key exists,
-  /// `false` otherwise.
-  Future<bool> hasKey(String keyId);
-
   /// Generates a new key pair with the specified identifier.
   ///
   /// [keyId] - The identifier for the new key pair. While optional in the interface,

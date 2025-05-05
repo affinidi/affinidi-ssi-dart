@@ -27,7 +27,13 @@ class PersistentWallet implements Wallet {
   /// [keyStore] - The KeyStore used to persist key information.
   PersistentWallet(this._keyStore);
 
-  @override
+  /// Checks if a key with the specified identifier exists in the wallet.
+  ///
+  /// [keyId] - The identifier of the key to check. For deterministic wallets
+  ///           (e.g., BIP32), this is typically the derivation path.
+  ///
+  /// Returns a [Future] that completes with `true` if the key exists,
+  /// `false` otherwise.
   Future<bool> hasKey(String keyId) {
     // Check cache first, then keystore
     if (_runtimeCache.containsKey(keyId)) return Future.value(true);
