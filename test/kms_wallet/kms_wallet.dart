@@ -89,7 +89,6 @@ class KmsWallet implements Wallet {
     throw UnimplementedError();
   }
 
-  @override
   Future<KmsKeyPair> getKeyPair(String keyId) async {
     return KmsKeyPair.generate(kmsClient, keyId);
   }
