@@ -10,8 +10,8 @@ import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
 import '../utility.dart';
 import 'deterministic_wallet.dart';
-import 'key_store/key_store_interface.dart';
-import 'key_store/stored_key.dart';
+import 'stores/key_store_interface.dart';
+import 'stores/stored_key.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with secp256k1 keys.
 ///

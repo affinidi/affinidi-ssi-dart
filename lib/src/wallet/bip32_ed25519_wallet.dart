@@ -10,8 +10,7 @@ import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../utility.dart';
 import 'deterministic_wallet.dart';
-import 'key_store/key_store_interface.dart';
-import 'key_store/stored_key.dart';
+import 'stores/seed_store_interface.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with Ed25519 keys.
 ///

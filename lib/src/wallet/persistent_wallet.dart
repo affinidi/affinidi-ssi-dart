@@ -5,8 +5,8 @@ import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/p256_key_pair.dart';
 import '../utility.dart';
-import 'key_store/key_store_interface.dart';
-import 'key_store/stored_key.dart';
+import 'stores/key_store_interface.dart';
+import 'stores/stored_key.dart';
 import 'wallet.dart';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
@@ -91,10 +91,7 @@ class PersistentWallet implements Wallet {
           "Unsupported key type for PersistentWallet: $effectiveKeyType. Only p256 and ed25519 are supported.");
     }
 
-    final storedKey = StoredKey.fromPrivateKey(
-      keyType: effectiveKeyType,
-      keyBytes: privateKeyBytes,
-    );
+    final storedKey = StoredKey(effectiveKeyType, privateKeyBytes);
     await _keyStore.set(effectiveKeyId, storedKey);
     _runtimeCache[effectiveKeyId] = keyPairInstance;
 
@@ -163,21 +160,8 @@ class PersistentWallet implements Wallet {
           code: SsiExceptionType.keyNotFound.code);
     }
 
-    if (storedKey.representation != StoredKeyRepresentation.privateKeyBytes) {
-      throw SsiException(
-          message:
-              "KeyStore entry for $keyId is not stored as private key bytes (found ${storedKey.representation}). Incompatible with PersistentWallet.",
-          code: SsiExceptionType.invalidKeyType.code);
-    }
-
     final keyType = storedKey.keyType;
     final privateKeyBytes = storedKey.privateKeyBytes;
-    if (privateKeyBytes == null) {
-      throw SsiException(
-          message:
-              "StoredKey for $keyId has privateKeyBytes representation but null bytes.",
-          code: SsiExceptionType.other.code);
-    }
 
     KeyPair keyPair;
     if (keyType == KeyType.p256) {
