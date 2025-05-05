@@ -9,7 +9,6 @@ import '../key_pair/public_key.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
 import 'stores/seed_store_interface.dart';
-import 'stores/in_memory_seed_store.dart';
 import 'wallet.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with secp256k1 keys.
@@ -18,7 +17,7 @@ import 'wallet.dart';
 /// It supports signing and verifying messages using secp256k1 signature scheme,
 /// and ecrypting/decrypting payloads.
 class Bip32Wallet implements Wallet {
-  final SeedStore _seedStore;
+  final SeedStore? _seedStore;
   // Runtime cache for derived KeyPair objects
   final Map<String, Secp256k1KeyPair> _runtimeCache = {};
   // Cache for the seed to avoid repeated SeedStore lookups
@@ -26,18 +25,14 @@ class Bip32Wallet implements Wallet {
   Uint8List? _cachedSeed;
 
   /// Creates a new [Bip32Wallet] instance backed by a [SeedStore].
-  /// The [SeedStore] *must* contain a seed set via `setSeed` or be populated
-  /// using the `fromSeed` factory.
-  ///
-  /// [seedStore] - The SeedStore used to persist the master seed.
-  Bip32Wallet(this._seedStore);
+  /// Use the factory constructors `fromSeed` or `fromSeedStore` for typical instantiation.
+  Bip32Wallet._(this._seedStore);
 
   /// Creates a new [Bip32Wallet] using the provided seed and stores
   /// the seed in the [seedStore]. Overwrites existing seed.
   ///
-  /// If no [seedStore] is provided, an [InMemorySeedStore] will be used,
-  /// meaning the seed will not be persisted beyond the lifetime of this
-  /// wallet instance.
+  /// If no [seedStore] is provided the seed will not be persisted beyond the lifetime of
+  /// this wallet instance.
   ///
   /// [seed] - The master seed bytes. Must be 16, 32, or 64 bytes.
   /// [seedStore] - An optional SeedStore to persist the seed.
@@ -48,10 +43,10 @@ class Bip32Wallet implements Wallet {
     if (seed.length != 16 && seed.length != 32 && seed.length != 64) {
       throw ArgumentError('BIP32 seed length must be 16, 32, or 64 bytes.');
     }
-    // Use provided store or default to in-memory if none is given
-    final effectiveSeedStore = seedStore ?? InMemorySeedStore();
-    await effectiveSeedStore.setSeed(seed);
-    final wallet = Bip32Wallet(effectiveSeedStore);
+    if (seedStore != null) {
+      await seedStore.setSeed(seed);
+    }
+    final wallet = Bip32Wallet._(seedStore);
     wallet._cachedSeed = seed;
     return wallet;
   }
@@ -70,14 +65,14 @@ class Bip32Wallet implements Wallet {
               'Seed not found in SeedStore. Cannot create Bip32Wallet from this SeedStore.',
           code: SsiExceptionType.seedNotFound.code);
     }
-    final wallet = Bip32Wallet(seedStore);
+    final wallet = Bip32Wallet._(seedStore);
     wallet._cachedSeed = seed;
     return wallet;
   }
 
   Future<Uint8List> _getSeed() async {
     if (_cachedSeed != null) return _cachedSeed!;
-    final seed = await _seedStore.getSeed();
+    final seed = await _seedStore?.getSeed();
     if (seed == null) {
       throw SsiException(
           message: 'Seed not found in SeedStore during operation.',
