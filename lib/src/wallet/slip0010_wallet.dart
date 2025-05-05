@@ -9,11 +9,6 @@ import 'wallet.dart';
 
 class Slip0010Wallet implements Wallet {
   @override
-  Future<bool> hasKey(String keyId) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Uint8List> sign(
     Uint8List data, {
     required String keyId,
@@ -39,15 +34,6 @@ class Slip0010Wallet implements Wallet {
 
   @override
   Future<KeyPair> generateKey({String? keyId, KeyType? keyType}) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<KeyPair> deriveKey({
-    String? keyId,
-    KeyType? keyType,
-    required String derivationPath,
-  }) {
     throw UnimplementedError();
   }
 
