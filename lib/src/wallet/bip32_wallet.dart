@@ -21,9 +21,8 @@ class Bip32Wallet implements Wallet {
   // Runtime cache for derived KeyPair objects
   final Map<String, Secp256k1KeyPair> _runtimeCache =
       {}; // Keyed by keyId which is equivalent to derivation path
-  // Cache for the seed to avoid repeated SeedStore lookups
-  // TODO: cache the root node instead
-  Uint8List? _cachedSeed;
+  // Cache for the root node to avoid repeated SeedStore lookups and BIP32 derivation
+  BIP32? _cachedRootNode;
 
   /// Creates a new [Bip32Wallet] instance backed by a [SeedStore].
   /// Use the factory constructors `fromSeed` or `fromSeedStore` for typical instantiation.
@@ -48,7 +47,7 @@ class Bip32Wallet implements Wallet {
       await seedStore.setSeed(seed);
     }
     final wallet = Bip32Wallet._(seedStore);
-    wallet._cachedSeed = seed;
+    wallet._cachedRootNode = BIP32.fromSeed(seed);
     return wallet;
   }
 
@@ -67,20 +66,21 @@ class Bip32Wallet implements Wallet {
           code: SsiExceptionType.seedNotFound.code);
     }
     final wallet = Bip32Wallet._(seedStore);
-    wallet._cachedSeed = seed;
+    wallet._cachedRootNode = BIP32.fromSeed(seed);
     return wallet;
   }
 
-  Future<Uint8List> _getSeed() async {
-    if (_cachedSeed != null) return _cachedSeed!;
+  Future<BIP32> _getRootNode() async {
+    if (_cachedRootNode != null) return _cachedRootNode!;
     final seed = await _seedStore?.getSeed();
     if (seed == null) {
       throw SsiException(
-          message: 'Seed not found in SeedStore during operation.',
+          message:
+              'Root node not cached and seed not found in SeedStore during operation.',
           code: SsiExceptionType.seedNotFound.code);
     }
-    _cachedSeed = seed;
-    return seed;
+    _cachedRootNode = BIP32.fromSeed(seed);
+    return _cachedRootNode!;
   }
 
   @override
@@ -144,8 +144,7 @@ class Bip32Wallet implements Wallet {
     }
 
     // Derive the key
-    final seed = await _getSeed();
-    final rootNode = BIP32.fromSeed(seed);
+    final rootNode = await _getRootNode();
     final derivedNode = rootNode.derivePath(keyId);
     final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
     _runtimeCache[keyId] = keyPair;
@@ -184,8 +183,7 @@ class Bip32Wallet implements Wallet {
       return _runtimeCache[keyId]!;
     }
 
-    final seed = await _getSeed();
-    final rootNode = BIP32.fromSeed(seed);
+    final rootNode = await _getRootNode();
     final derivedNode = rootNode.derivePath(keyId);
     final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
 
@@ -195,6 +193,6 @@ class Bip32Wallet implements Wallet {
 
   void clearCache() {
     _runtimeCache.clear();
-    _cachedSeed = null;
+    _cachedRootNode = null;
   }
 }
