@@ -29,4 +29,3 @@ class InMemoryKeyStore implements KeyStore {
     _keyPairStore.clear();
   }
 }
-
