@@ -19,7 +19,8 @@ import 'wallet.dart';
 class Bip32Wallet implements Wallet {
   final SeedStore? _seedStore;
   // Runtime cache for derived KeyPair objects
-  final Map<String, Secp256k1KeyPair> _runtimeCache = {};
+  final Map<String, Secp256k1KeyPair> _runtimeCache =
+      {}; // Keyed by keyId which is equivalent to derivation path
   // Cache for the seed to avoid repeated SeedStore lookups
   // TODO: cache the root node instead
   Uint8List? _cachedSeed;
@@ -84,8 +85,8 @@ class Bip32Wallet implements Wallet {
 
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
-      String derivationPath) async {
-    final keyPair = await _getKeyPair(derivationPath);
+      String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
 
@@ -121,10 +122,8 @@ class Bip32Wallet implements Wallet {
           'keyId is required for Bip32Wallet as it defines the derivation path');
     }
 
-    final derivationPath = keyId;
-
     // TODO: thoroughly validate derivation path
-    if (!derivationPath.startsWith('m/')) {
+    if (!keyId.startsWith('m/')) {
       throw ArgumentError(
           'Invalid derivation path format. Must start with "m/".');
     }
@@ -140,22 +139,22 @@ class Bip32Wallet implements Wallet {
     }
 
     // Check runtime cache first
-    if (_runtimeCache.containsKey(derivationPath)) {
-      return _runtimeCache[derivationPath]!;
+    if (_runtimeCache.containsKey(keyId)) {
+      return _runtimeCache[keyId]!;
     }
 
     // Derive the key
     final seed = await _getSeed();
     final rootNode = BIP32.fromSeed(seed);
-    final derivedNode = rootNode.derivePath(derivationPath);
-    final keyPair = Secp256k1KeyPair(node: derivedNode, id: derivationPath);
-    _runtimeCache[derivationPath] = keyPair;
+    final derivedNode = rootNode.derivePath(keyId);
+    final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
+    _runtimeCache[keyId] = keyPair;
     return keyPair;
   }
 
   @override
-  Future<PublicKey> getPublicKey(String derivationPath) async {
-    final keyPair = await _getKeyPair(derivationPath);
+  Future<PublicKey> getPublicKey(String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
     final keyData = keyPair.publicKey;
     return PublicKey(keyData.id, keyData.bytes, keyData.type);
   }
@@ -180,17 +179,17 @@ class Bip32Wallet implements Wallet {
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  Future<Secp256k1KeyPair> _getKeyPair(String derivationPath) async {
-    if (_runtimeCache.containsKey(derivationPath)) {
-      return _runtimeCache[derivationPath]!;
+  Future<Secp256k1KeyPair> _getKeyPair(String keyId) async {
+    if (_runtimeCache.containsKey(keyId)) {
+      return _runtimeCache[keyId]!;
     }
 
     final seed = await _getSeed();
     final rootNode = BIP32.fromSeed(seed);
-    final derivedNode = rootNode.derivePath(derivationPath);
-    final keyPair = Secp256k1KeyPair(node: derivedNode, id: derivationPath);
+    final derivedNode = rootNode.derivePath(keyId);
+    final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
 
-    _runtimeCache[derivationPath] = keyPair;
+    _runtimeCache[keyId] = keyPair;
     return keyPair;
   }
 

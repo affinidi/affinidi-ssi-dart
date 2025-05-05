@@ -20,7 +20,7 @@ class Bip32Ed25519Wallet implements Wallet {
   final SeedStore? _seedStore;
   // Runtime cache for derived KeyPair objects
   final Map<String, Ed25519KeyPair> _runtimeCache =
-      {}; // Keyed by derivationPath
+      {}; // Keyed by keyId which is equivalent to derivation path
   // Cache for the seed to avoid repeated KeyStore lookups
   Uint8List? _cachedSeed;
 
@@ -81,8 +81,8 @@ class Bip32Ed25519Wallet implements Wallet {
 
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
-      String derivationPath) async {
-    final keyPair = await _getKeyPair(derivationPath);
+      String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
 
@@ -118,10 +118,8 @@ class Bip32Ed25519Wallet implements Wallet {
           'keyId is required for Bip32Wallet as it defines the derivation path');
     }
 
-    final derivationPath = keyId;
-
     // TODO: thoroughly validate derivation path. If not fully hardened did peer fails
-    if (!derivationPath.startsWith('m/')) {
+    if (!keyId.startsWith('m/')) {
       throw ArgumentError(
           'Invalid derivation path format. Must start with "m/".');
     }
@@ -136,36 +134,37 @@ class Bip32Ed25519Wallet implements Wallet {
     }
 
     // Check runtime cache first
-    if (_runtimeCache.containsKey(derivationPath)) {
-      return _runtimeCache[derivationPath]!;
+    if (_runtimeCache.containsKey(keyId)) {
+      return _runtimeCache[keyId]!;
     }
 
     // Derive the key
     final seed = await _getSeed();
-    final derivedData = await ED25519_HD_KEY.derivePath(derivationPath, seed);
-    final keyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key),
-        id: derivationPath);
-    _runtimeCache[derivationPath] = keyPair;
+    final derivedData = await ED25519_HD_KEY.derivePath(keyId, seed);
+    final keyPair =
+        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
+    _runtimeCache[keyId] = keyPair;
     return keyPair;
   }
 
   @override
-  Future<PublicKey> getPublicKey(String derivationPath) async {
-    final keyPair = await _getKeyPair(derivationPath);
+  Future<PublicKey> getPublicKey(String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
     final keyData = keyPair.publicKey;
     return PublicKey(keyData.id, keyData.bytes, keyData.type);
   }
 
-  /// Retrieves the X25519 public key corresponding to the key at the given derivation path.
+  /// Retrieves the X25519 public key corresponding to the key at the given
+  /// keyId (derivation path).
   ///
   /// This is used for cryptographic operations like ECDH key agreement.
   /// Throws an [SsiException] if the key is invalid or not found.
   ///
-  /// [derivationPath] - The derivation path of the Ed25519 key pair.
+  /// [keyId] - The derivation path of the Ed25519 key pair.
   ///
   /// Returns a [Future] that completes with the X25519 public key as a [Uint8List].
-  Future<Uint8List> getX25519PublicKey(String derivationPath) async {
-    final keyPair = await _getKeyPair(derivationPath);
+  Future<Uint8List> getX25519PublicKey(String keyId) async {
+    final keyPair = await _getKeyPair(keyId);
     final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();
     return Uint8List.fromList(x25519PublicKey.bytes);
   }
@@ -190,17 +189,17 @@ class Bip32Ed25519Wallet implements Wallet {
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  Future<Ed25519KeyPair> _getKeyPair(String derivationPath) async {
-    if (_runtimeCache.containsKey(derivationPath)) {
-      return _runtimeCache[derivationPath]!;
+  Future<Ed25519KeyPair> _getKeyPair(String keyId) async {
+    if (_runtimeCache.containsKey(keyId)) {
+      return _runtimeCache[keyId]!;
     }
 
     final seed = await _getSeed();
-    final derivedData = await ED25519_HD_KEY.derivePath(derivationPath, seed);
-    final keyPair = Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key),
-        id: derivationPath);
+    final derivedData = await ED25519_HD_KEY.derivePath(keyId, seed);
+    final keyPair =
+        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
 
-    _runtimeCache[derivationPath] = keyPair;
+    _runtimeCache[keyId] = keyPair;
     return keyPair;
   }
 
