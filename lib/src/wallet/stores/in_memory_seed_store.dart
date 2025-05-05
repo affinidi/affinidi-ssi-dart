@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'seed_store_interface.dart';
 
+/// In memory seed store used for testing
 class InMemorySeedStore implements SeedStore {
   Uint8List? _seed;
 

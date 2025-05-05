@@ -1,6 +1,7 @@
 import 'key_store_interface.dart';
 import 'stored_key.dart';
 
+/// In memory key store used for testing
 class InMemoryKeyStore implements KeyStore {
   final Map<String, StoredKey> _keyPairStore = {};
 
