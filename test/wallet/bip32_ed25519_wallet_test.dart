@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
+import 'package:ssi/src/wallet/stores/in_memory_seed_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -9,73 +9,40 @@ void main() {
   // IMPORTANT: Do not use this seed for production keys.
   final seed = Uint8List.fromList(List.generate(32, (index) => index + 1));
   final dataToSign = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 0]);
-  const testPath1 = "m/44'/60'/0'/0'/0'";
-  const testKeyId1 = 'key-44-1-0-0-0';
-  const testPath2 = "m/44'/60'/0'/0'/1'";
+  const derivationPath1 =
+      "m/44'/1'/0'/0'/0'"; // Using 1' for Ed25519 coin type example
+  const derivationPath2 = "m/44'/1'/0'/0'/1'";
   const nonExistentKeyId = 'non-existent-key';
 
   group('Bip32Ed25519Wallet', () {
     late Bip32Ed25519Wallet wallet;
-    late InMemoryKeyStore keyStore;
 
     setUp(() async {
-      keyStore = InMemoryKeyStore();
-      wallet = await Bip32Ed25519Wallet.fromSeed(seed, keyStore);
+      wallet = await Bip32Ed25519Wallet.fromSeed(seed);
     });
 
-    test('deriveKey should derive a new Ed25519 key pair', () async {
-      final newKey = await wallet.deriveKey(derivationPath: testPath1);
-      expect(newKey.id, isNotNull);
-      expect(newKey.id, isNotEmpty);
+    test('generateKey should derive a new Ed25519 key pair using keyId as path',
+        () async {
+      final newKey = await wallet.generateKey(keyId: derivationPath1);
+      expect(newKey.id, derivationPath1);
       expect(await wallet.hasKey(newKey.id), isTrue);
       expect(newKey.publicKey.type, KeyType.ed25519);
-
-      final storedKey = await keyStore.get(newKey.id);
-      expect(storedKey, isNotNull);
-      expect(storedKey!.representation, StoredKeyRepresentation.derivationPath);
-      expect(storedKey.derivationPath, testPath1);
-      expect(storedKey.keyType, KeyType.ed25519);
     });
 
-    test(
-        'deriveKey with existing ID and matching path should return existing key',
-        () async {
-      final firstKey =
-          await wallet.deriveKey(keyId: testKeyId1, derivationPath: testPath1);
-      expect(await wallet.hasKey(testKeyId1), isTrue);
+    test('generateKey with existing path should return cached key', () async {
+      final firstKey = await wallet.generateKey(keyId: derivationPath1);
+      expect(await wallet.hasKey(derivationPath1), isTrue);
 
-      final sameKey =
-          await wallet.deriveKey(keyId: testKeyId1, derivationPath: testPath1);
+      final sameKey = await wallet.generateKey(keyId: derivationPath1);
       expect(sameKey.publicKey.bytes, firstKey.publicKey.bytes);
       expect(sameKey.id, firstKey.id);
       expect(sameKey.publicKey.type, firstKey.publicKey.type);
     });
 
-    test('deriveKey should assign and allow retrieval by provided keyId',
-        () async {
-      const customId = 'my-derived-ed-key';
-      final keyPair =
-          await wallet.deriveKey(keyId: customId, derivationPath: testPath1);
-      expect(keyPair.id, equals(customId));
-      expect((await wallet.getPublicKey(customId)).id, equals(customId));
-    });
-
-    test('deriveKey with existing ID and different path should throw',
-        () async {
-      await wallet.deriveKey(keyId: testKeyId1, derivationPath: testPath1);
+    test('generateKey should throw for unsupported key type', () async {
       expect(
-        () async => await wallet.deriveKey(
-            keyId: testKeyId1, derivationPath: testPath2),
-        throwsArgumentError,
-      );
-    });
-
-    test('deriveKey should throw for unsupported key type', () async {
-      expect(
-        () async => await wallet.deriveKey(
-            keyId: testKeyId1,
-            derivationPath: testPath1,
-            keyType: KeyType.secp256k1),
+        () async => await wallet.generateKey(
+            keyId: derivationPath1, keyType: KeyType.secp256k1),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
@@ -84,15 +51,25 @@ void main() {
       );
     });
 
-    test('generateKey should throw for hd wallets', () async {
+    test('generateKey should throw if keyId (derivationPath) is null',
+        () async {
       expect(
-        () async => await wallet.generateKey(keyId: testKeyId1),
-        throwsUnsupportedError,
+        () async => await wallet.generateKey(keyId: null),
+        throwsArgumentError,
       );
     });
 
-    test('getPublicKey should retrieve existing key pairs', () async {
-      final generatedKey = await wallet.deriveKey(derivationPath: testPath1);
+    test('generateKey should throw if keyId (derivationPath) is invalid format',
+        () async {
+      expect(
+        () async =>
+            await wallet.generateKey(keyId: "44'/1'/0'/0'/0'"), // Missing 'm/'
+        throwsArgumentError,
+      );
+    });
+
+    test('getPublicKey should retrieve derived key pairs', () async {
+      final generatedKey = await wallet.generateKey(keyId: derivationPath1);
       final derivedKey = await wallet.getPublicKey(generatedKey.id);
       expect(derivedKey.type, KeyType.ed25519);
       expect(derivedKey.id, generatedKey.id);
@@ -110,7 +87,7 @@ void main() {
     });
 
     test('getPublicKey should return the correct public key', () async {
-      final derivedKey = await wallet.deriveKey(derivationPath: testPath1);
+      final derivedKey = await wallet.generateKey(keyId: derivationPath1);
       final retrievedKey = await wallet.getPublicKey(derivedKey.id);
       expect(retrievedKey.bytes, equals(derivedKey.publicKey.bytes));
       expect(retrievedKey.bytes.length, 32); // Ed25519 public key size
@@ -128,8 +105,8 @@ void main() {
     });
 
     test('sign and verify should work for derived keys', () async {
-      final key1 = await wallet.deriveKey(derivationPath: testPath1);
-      final key2 = await wallet.deriveKey(derivationPath: testPath2);
+      final key1 = await wallet.generateKey(keyId: derivationPath1);
+      final key2 = await wallet.generateKey(keyId: derivationPath2);
 
       // Sign with derived key
       final derivedSignature = await wallet.sign(dataToSign, keyId: key1.id);
@@ -166,7 +143,7 @@ void main() {
     });
 
     test('sign and verify should work with specific schemes', () async {
-      final key = await wallet.deriveKey(derivationPath: testPath1);
+      final key = await wallet.generateKey(keyId: derivationPath1);
 
       // Sign and verify with ed25519_sha256
       final sigSha256 = await wallet.sign(dataToSign,
@@ -201,7 +178,7 @@ void main() {
     });
 
     test('verify should throw for non-existent keyId', () async {
-      final key = await wallet.deriveKey(derivationPath: testPath1);
+      final key = await wallet.generateKey(keyId: derivationPath1);
       final signature = await wallet.sign(dataToSign, keyId: key.id);
       expect(
         () async => await wallet.verify(dataToSign,
@@ -215,27 +192,25 @@ void main() {
     });
 
     test('hasKey should correctly report key existence', () async {
-      final generatedKey = await wallet.deriveKey(derivationPath: testPath1);
+      final generatedKey = await wallet.generateKey(keyId: derivationPath1);
       expect(await wallet.hasKey(generatedKey.id), isTrue);
       expect(await wallet.hasKey(nonExistentKeyId), isFalse);
     });
 
     test('Derived keys should be consistent', () async {
-      final key1 =
-          await wallet.deriveKey(keyId: testKeyId1, derivationPath: testPath1);
+      final key1 = await wallet.generateKey(keyId: derivationPath1);
 
-      final keyStore2 = InMemoryKeyStore();
-      final wallet2 = await Bip32Ed25519Wallet.fromSeed(seed, keyStore2);
-      final key2 =
-          await wallet2.deriveKey(keyId: testKeyId1, derivationPath: testPath1);
+      final wallet2 = await Bip32Ed25519Wallet.fromSeed(seed);
+      final key2 = await wallet2.generateKey(keyId: derivationPath1);
 
       expect(key1.publicKey.bytes, equals(key2.publicKey.bytes));
     });
 
     test('Different derivation paths should produce different keys', () async {
-      final key1 = await wallet.deriveKey(derivationPath: testPath1);
-      final key2 = await wallet.deriveKey(derivationPath: testPath2);
-      final key3 = await wallet.deriveKey(derivationPath: "m/44'/60'/1'/0'/0'");
+      final key1 = await wallet.generateKey(keyId: derivationPath1);
+      final key2 = await wallet.generateKey(keyId: derivationPath2);
+      final key3 = await wallet.generateKey(
+          keyId: "m/44'/1'/1'/0'/0'"); // Different path
 
       expect(key1.publicKey.bytes, isNot(equals(key2.publicKey.bytes)));
       expect(key1.publicKey.bytes, isNot(equals(key3.publicKey.bytes)));
@@ -244,7 +219,7 @@ void main() {
 
     test('getSupportedSignatureSchemes should return correct schemes',
         () async {
-      final key = await wallet.deriveKey(derivationPath: testPath1);
+      final key = await wallet.generateKey(keyId: derivationPath1);
       final derivedSchemes = await wallet.getSupportedSignatureSchemes(key.id);
       expect(derivedSchemes, contains(SignatureScheme.ed25519_sha256));
       expect(derivedSchemes, contains(SignatureScheme.eddsa_sha512));
@@ -264,27 +239,30 @@ void main() {
     });
   });
 
-  group('Bip32Ed25519Wallet from KeyStore', () {
-    late InMemoryKeyStore keyStore;
+  group('Bip32Ed25519Wallet from SeedStore', () {
+    late InMemorySeedStore seedStore;
 
     setUp(() {
-      keyStore = InMemoryKeyStore();
+      seedStore = InMemorySeedStore();
     });
 
-    test('fromKeyStore successfully creates wallet', () async {
-      await keyStore.setSeed(seed);
-      final ksWallet = await Bip32Ed25519Wallet.fromKeyStore(keyStore);
-      final key = await ksWallet.deriveKey(derivationPath: testPath1);
+    test('fromSeedStore successfully creates wallet', () async {
+      await seedStore.setSeed(seed);
+      final ksWallet =
+          await Bip32Ed25519Wallet.fromSeedStore(seedStore: seedStore);
+      final key = await ksWallet.generateKey(keyId: derivationPath1);
       expect(key.publicKey.type, KeyType.ed25519);
+      expect(await seedStore.getSeed(), seed);
     });
 
-    test('fromKeyStore throws SsiException if seed key is missing', () async {
+    test('fromSeedStore throws SsiException if seed key is missing', () async {
       expect(
-        () async => await Bip32Ed25519Wallet.fromKeyStore(keyStore),
+        () async =>
+            await Bip32Ed25519Wallet.fromSeedStore(seedStore: seedStore),
         throwsA(isA<SsiException>().having(
           (e) => e.message,
           'message',
-          contains('Seed not found in KeyStore'),
+          contains('Seed not found in SeedStore'),
         )),
       );
     });
@@ -293,8 +271,6 @@ void main() {
   group('Bip32Ed25519Wallet Encryption/Decryption', () {
     late Bip32Ed25519Wallet aliceWallet;
     late Bip32Ed25519Wallet bobWallet;
-    late InMemoryKeyStore aliceKeyStore;
-    late InMemoryKeyStore bobKeyStore;
     const alicePath = "m/44'/1'/0'/0'/0'";
     const bobPath = "m/44'/1'/1'/0'/0'";
     final aliceSeed =
@@ -306,12 +282,10 @@ void main() {
     late KeyPair bobKey;
 
     setUp(() async {
-      aliceKeyStore = InMemoryKeyStore();
-      bobKeyStore = InMemoryKeyStore();
-      aliceWallet = await Bip32Ed25519Wallet.fromSeed(aliceSeed, aliceKeyStore);
-      bobWallet = await Bip32Ed25519Wallet.fromSeed(bobSeed, bobKeyStore);
-      aliceKey = await aliceWallet.deriveKey(derivationPath: alicePath);
-      bobKey = await bobWallet.deriveKey(derivationPath: bobPath);
+      aliceWallet = await Bip32Ed25519Wallet.fromSeed(aliceSeed);
+      bobWallet = await Bip32Ed25519Wallet.fromSeed(bobSeed);
+      aliceKey = await aliceWallet.generateKey(keyId: alicePath);
+      bobKey = await bobWallet.generateKey(keyId: bobPath);
     });
 
     test('Two-party encrypt/decrypt should succeed', () async {
@@ -363,12 +337,11 @@ void main() {
           await bobWallet.getX25519PublicKey(bobKey.id);
 
       // Generate a third party key
-      final eveKeyStore = InMemoryKeyStore();
       final eveWallet = await Bip32Ed25519Wallet.fromSeed(
-          Uint8List.fromList(List.generate(32, (i) => i + 30)), eveKeyStore);
+          Uint8List.fromList(List.generate(32, (i) => i + 30)));
       const evePath = "m/44'/1'/2'/0'/0'";
-      // Generate Eve's key without ID
-      final eveKey = await eveWallet.deriveKey(derivationPath: evePath);
+      // Generate Eve's key
+      final eveKey = await eveWallet.generateKey(keyId: evePath);
       final eveX25519PublicKeyBytes =
           await eveWallet.getX25519PublicKey(eveKey.id);
 
