@@ -91,6 +91,26 @@ void main() {
       );
     });
 
+    test('getKeyPair should retrieve existing key pairs', () async {
+      final generatedKey = await wallet.deriveKey(derivationPath: testPath1);
+      final retrievedKeyPair = await wallet.getKeyPair(generatedKey.id);
+      expect(retrievedKeyPair, isNotNull);
+      expect(retrievedKeyPair.id, generatedKey.id);
+      expect(retrievedKeyPair.publicKey.type, KeyType.ed25519);
+      expect(retrievedKeyPair.publicKey.bytes, generatedKey.publicKey.bytes);
+    });
+
+    test('getKeyPair should throw for non-existent keyId', () async {
+      expect(
+        () async => await wallet.getKeyPair(nonExistentKeyId),
+        throwsA(isA<SsiException>().having(
+          (e) => e.code,
+          'code',
+          SsiExceptionType.keyNotFound.code,
+        )),
+      );
+    });
+
     test('getPublicKey should retrieve existing key pairs', () async {
       final generatedKey = await wallet.deriveKey(derivationPath: testPath1);
       final derivedKey = await wallet.getPublicKey(generatedKey.id);

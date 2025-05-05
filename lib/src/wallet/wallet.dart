@@ -58,6 +58,14 @@ abstract interface class Wallet {
   /// Throws an [SsiException] if the operation fails.
   Future<PublicKey> getPublicKey(String keyId);
 
+  /// Retrieves the KeyPair object for the specified key identifier.
+  /// Use with caution, as this exposes the private key material if the
+  /// KeyPair implementation allows it.
+  ///
+  /// [keyId] - The identifier of the key.
+  /// Returns a [Future] that completes with the [KeyPair].
+  Future<KeyPair> getKeyPair(String keyId);
+
   /// Checks if a key with the specified identifier exists in the wallet.
   ///
   /// [keyId] - The identifier of the key to check.

@@ -83,7 +83,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
 
@@ -93,7 +93,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
@@ -104,7 +104,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.verify(
       data,
       signature,
@@ -143,7 +143,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
               StoredKeyRepresentation.derivationPath &&
           existingStoredKey.derivationPath == derivationPath &&
           existingStoredKey.keyType == effectiveKeyType) {
-        return _getKeyPair(effectiveKeyId);
+        return getKeyPair(effectiveKeyId);
       } else {
         throw ArgumentError(
             "Key ID $effectiveKeyId already exists in KeyStore but with incompatible data.");
@@ -175,7 +175,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
 
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     final keyData = keyPair.publicKey;
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
@@ -189,7 +189,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
   ///
   /// Returns a [Future] that completes with the X25519 public key as a [Uint8List].
   Future<Uint8List> getX25519PublicKey(String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();
     return Uint8List.fromList(x25519PublicKey.bytes);
   }
@@ -200,7 +200,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.encrypt(data, publicKey: publicKey);
   }
 
@@ -210,11 +210,12 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  Future<Ed25519KeyPair> _getKeyPair(String keyId) async {
+  @override
+  Future<Ed25519KeyPair> getKeyPair(String keyId) async {
     if (_runtimeCache.containsKey(keyId)) {
       return _runtimeCache[keyId]!;
     }

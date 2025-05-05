@@ -16,7 +16,7 @@ class KmsWallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
@@ -27,20 +27,20 @@ class KmsWallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.verify(data, signature, signatureScheme: signatureScheme);
   }
 
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
 
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = await getKeyPair(keyId);
     final keyData = keyPair.publicKey;
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
@@ -90,7 +90,8 @@ class KmsWallet implements Wallet {
     throw UnimplementedError();
   }
 
-  Future<KmsKeyPair> _getKeyPair(String keyId) async {
+  @override
+  Future<KmsKeyPair> getKeyPair(String keyId) async {
     return KmsKeyPair.generate(kmsClient, keyId);
   }
 }

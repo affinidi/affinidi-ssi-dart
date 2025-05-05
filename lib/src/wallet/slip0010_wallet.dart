@@ -58,6 +58,11 @@ class Slip0010Wallet implements DeterministicWallet {
   }
 
   @override
+  Future<KeyPair> getKeyPair(String keyId) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Uint8List> encrypt(
     Uint8List data, {
     required String keyId,
