@@ -9,6 +9,7 @@ import '../key_pair/public_key.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
 import 'stores/seed_store_interface.dart';
+import 'stores/in_memory_seed_store.dart';
 import 'wallet.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with secp256k1 keys.
@@ -34,17 +35,23 @@ class Bip32Wallet implements Wallet {
   /// Creates a new [Bip32Wallet] using the provided seed and stores
   /// the seed in the [seedStore]. Overwrites existing seed.
   ///
+  /// If no [seedStore] is provided, an [InMemorySeedStore] will be used,
+  /// meaning the seed will not be persisted beyond the lifetime of this
+  /// wallet instance.
+  ///
   /// [seed] - The master seed bytes. Must be 16, 32, or 64 bytes.
-  /// [seedStore] - The SeedStore to use.
+  /// [seedStore] - An optional SeedStore to persist the seed.
   static Future<Bip32Wallet> fromSeed(
     Uint8List seed, {
-    required SeedStore seedStore,
+    SeedStore? seedStore,
   }) async {
     if (seed.length != 16 && seed.length != 32 && seed.length != 64) {
       throw ArgumentError('BIP32 seed length must be 16, 32, or 64 bytes.');
     }
-    await seedStore.setSeed(seed);
-    final wallet = Bip32Wallet(seedStore);
+    // Use provided store or default to in-memory if none is given
+    final effectiveSeedStore = seedStore ?? InMemorySeedStore();
+    await effectiveSeedStore.setSeed(seed);
+    final wallet = Bip32Wallet(effectiveSeedStore);
     wallet._cachedSeed = seed;
     return wallet;
   }

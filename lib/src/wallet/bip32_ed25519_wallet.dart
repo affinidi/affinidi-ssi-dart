@@ -10,6 +10,7 @@ import '../key_pair/public_key.dart';
 import '../types.dart';
 import 'wallet.dart';
 import 'stores/seed_store_interface.dart';
+import 'stores/in_memory_seed_store.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with Ed25519 keys.
 ///
@@ -34,14 +35,20 @@ class Bip32Ed25519Wallet implements Wallet {
   /// Creates a new [Bip32Ed25519Wallet] using the provided seed and stores
   /// the seed in the [seedStore]. Overwrites existing seed.
   ///
+  /// If no [seedStore] is provided, an [InMemorySeedStore] will be used,
+  /// meaning the seed will not be persisted beyond the lifetime of this
+  /// wallet instance.
+  ///
   /// [seed] - The master seed bytes.
-  /// [seedStore] - The SeedStore to use.
+  /// [seedStore] - An optional SeedStore to persist the seed.
   static Future<Bip32Ed25519Wallet> fromSeed(
     Uint8List seed, {
-    required SeedStore seedStore,
+    SeedStore? seedStore,
   }) async {
-    await seedStore.setSeed(seed);
-    final wallet = Bip32Ed25519Wallet(seedStore);
+    // Use provided store or default to in-memory if none is given
+    final effectiveSeedStore = seedStore ?? InMemorySeedStore();
+    await effectiveSeedStore.setSeed(seed);
+    final wallet = Bip32Ed25519Wallet(effectiveSeedStore);
     wallet._cachedSeed = seed;
     return wallet;
   }
