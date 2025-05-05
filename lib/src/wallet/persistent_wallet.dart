@@ -154,7 +154,10 @@ class PersistentWallet implements Wallet {
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  @override
+  /// Retrieves the KeyPair object for the specified key identifier.
+  ///
+  /// [keyId] - The identifier of the key.
+  /// Returns a [Future] that completes with the [KeyPair].
   Future<KeyPair> getKeyPair(String keyId) async {
     if (_runtimeCache.containsKey(keyId)) {
       return _runtimeCache[keyId]!;

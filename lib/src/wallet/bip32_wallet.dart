@@ -86,7 +86,7 @@ class Bip32Wallet implements Wallet {
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String keyId) async {
-    final keyPair = await getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
 
@@ -96,7 +96,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
@@ -107,7 +107,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.verify(
       data,
       signature,
@@ -138,22 +138,12 @@ class Bip32Wallet implements Wallet {
       );
     }
 
-    // Check runtime cache first
-    if (_runtimeCache.containsKey(keyId)) {
-      return _runtimeCache[keyId]!;
-    }
-
-    // Derive the key
-    final rootNode = await _getRootNode();
-    final derivedNode = rootNode.derivePath(keyId);
-    final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
-    _runtimeCache[keyId] = keyPair;
-    return keyPair;
+    return _getKeyPair(keyId);
   }
 
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
-    final keyPair = await getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     final keyData = keyPair.publicKey;
     return PublicKey(keyData.id, keyData.bytes, keyData.type);
   }
@@ -164,7 +154,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.encrypt(data, publicKey: publicKey);
   }
 
@@ -174,12 +164,11 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await getKeyPair(keyId);
+    final keyPair = await _getKeyPair(keyId);
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  @override
-  Future<Secp256k1KeyPair> getKeyPair(String keyId) async {
+  Future<Secp256k1KeyPair> _getKeyPair(String keyId) async {
     if (_runtimeCache.containsKey(keyId)) {
       return _runtimeCache[keyId]!;
     }
