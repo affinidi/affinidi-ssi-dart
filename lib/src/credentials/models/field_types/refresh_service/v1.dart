@@ -27,9 +27,11 @@ abstract interface class _RefreshServiceV1Interface {
 /// ```
 class MutableRefreshServiceV1 extends _RefreshServiceV1Interface {
   /// The URL of refresh service
+  @override
   Uri? id;
 
   /// type of refresh service
+  @override
   String? type;
 
   /// Creates a [MutableRefreshServiceV1] instance.

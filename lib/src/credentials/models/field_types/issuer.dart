@@ -21,6 +21,7 @@ abstract interface class _IssuerInterface {
 /// ```
 class MutableIssuer extends _IssuerInterface {
   /// the URL of  unique identifier for the issuer object
+  @override
   Uri? id;
 
   /// Creates a [MutableIssuer]

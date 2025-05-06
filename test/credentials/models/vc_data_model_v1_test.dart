@@ -1,12 +1,3 @@
-import 'package:ssi/src/credentials/models/field_types/credential_status/v1.dart';
-import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
-import 'package:ssi/src/credentials/models/field_types/evidence.dart';
-import 'package:ssi/src/credentials/models/field_types/holder.dart';
-import 'package:ssi/src/credentials/models/field_types/issuer.dart';
-import 'package:ssi/src/credentials/models/field_types/refresh_service/v1.dart';
-import 'package:ssi/src/credentials/models/field_types/terms_of_use.dart';
-import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
-import 'package:ssi/src/credentials/proof/embedded_proof.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 

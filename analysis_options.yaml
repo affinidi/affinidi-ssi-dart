@@ -15,7 +15,7 @@ include: package:lints/recommended.yaml
 linter:
   rules:
     - avoid_print
-    - public_member_api_docs
+    - public_member_api_docs: false
     - omit_local_variable_types: false
 analyzer:
   exclude:

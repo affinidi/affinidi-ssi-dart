@@ -1,9 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
-import 'package:ssi/src/credentials/models/field_types/issuer.dart';
-import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +20,7 @@ void main() {
 
     test('can issue a credential with default options', () async {
       final credential = MutableVcDataModelV2(
-        context: [DMV2ContextUrl],
+        context: [dmV2ContextUrl],
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'UniversityDegreeCredential'},
@@ -70,7 +66,7 @@ void main() {
 
     test('can issue a credential with custom disclosure frame', () async {
       final credential = MutableVcDataModelV2(
-        context: [DMV2ContextUrl],
+        context: [dmV2ContextUrl],
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'UniversityDegreeCredential'},

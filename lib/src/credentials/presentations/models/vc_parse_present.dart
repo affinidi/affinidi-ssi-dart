@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/models/parsed_vc.dart';
-import 'package:ssi/src/credentials/suites/vc_suites.dart';
 import 'package:ssi/ssi.dart';
 
 /// Parses a [ParsedVerifiableCredential] from JSON or string input.

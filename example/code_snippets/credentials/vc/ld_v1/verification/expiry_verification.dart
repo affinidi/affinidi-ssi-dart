@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
 
 import 'package:ssi/ssi.dart';
-import 'package:ssi/src/credentials/verification/vc_expiry_verifier.dart';
 
 void main() async {
   // Parse the VC string into a VerifiableCredential object

@@ -16,7 +16,7 @@ final class LdVpDm2Suite extends LdBaseSuite<VpDataModelV2, LdVpDataModelV2>
   /// Creates a new [LdVpDm2Suite] with the v2.2 context URL.
   LdVpDm2Suite()
       : super(
-            contextUrl: DMV2ContextUrl, issuerKey: VpDataModelV2Key.holder.key);
+            contextUrl: dmV2ContextUrl, issuerKey: VpDataModelV2Key.holder.key);
 
   /// Parses a [String] input and payload [Map] into a [LdVpDataModelV2] instance.
   @override

@@ -21,6 +21,7 @@ abstract interface class _HolderInterface {
 /// ```
 class MutableHolder extends _HolderInterface {
   /// the URL of  unique identifier for the holder object
+  @override
   Uri? id;
 
   /// Creates a [MutableHolder]

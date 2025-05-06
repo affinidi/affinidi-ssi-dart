@@ -1,7 +1,4 @@
 import '../../../../ssi.dart';
-import '../../verification/vc_expiry_verifier.dart';
-import '../models/parsed_vp.dart';
-import 'vp_verifier.dart';
 
 /// A verifier that checks whether any of the credentials in a Verifiable Presentation (VP)
 /// have expired.

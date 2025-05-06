@@ -21,7 +21,7 @@ void main() async {
 
   group('VP LD V1 Domain Challenge Verification', () {
     final v1Vp = MutableVpDataModelV1(
-        context: [DMV1ContextUrl],
+        context: [dmV1ContextUrl],
         id: Uri.parse('testVpV1'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(signer.did),

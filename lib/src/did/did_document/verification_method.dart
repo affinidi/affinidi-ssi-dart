@@ -61,6 +61,7 @@ abstract class EmbeddedVerificationMethod
   @override
   final String type;
 
+  @override
   bool get isReference => false;
 
   EmbeddedVerificationMethod({

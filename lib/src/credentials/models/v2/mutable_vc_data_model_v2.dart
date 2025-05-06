@@ -1,7 +1,7 @@
 part of 'vc_data_model_v2.dart';
 
 /// Default VC Data Model v1.2 context url
-const String DMV2ContextUrl = 'https://www.w3.org/ns/credentials/v2';
+const String dmV2ContextUrl = 'https://www.w3.org/ns/credentials/v2';
 
 /// Represents a Verifiable Credential (VC) according to the W3C VC Data Model v1.1.
 ///

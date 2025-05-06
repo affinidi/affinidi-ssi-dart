@@ -1,12 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/credentials/models/field_types/holder.dart';
-import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
 import 'package:ssi/ssi.dart';
-import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
-import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 
 import '../../did/did_signer.dart';
 
@@ -28,7 +23,7 @@ Future<void> main() async {
 
   // Create a Verifiable Presentation (V2)
   final v2Vp = MutableVpDataModelV2(
-      context: [DMV2ContextUrl],
+      context: [dmV2ContextUrl],
       id: Uri.parse('testVpV2'),
       type: {'VerifiablePresentation'},
       holder: MutableHolder.uri(signer.did),

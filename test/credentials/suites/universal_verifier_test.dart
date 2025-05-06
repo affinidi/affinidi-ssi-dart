@@ -1,6 +1,3 @@
-import 'package:ssi/src/credentials/models/parsed_vc.dart';
-import 'package:ssi/src/credentials/suites/universal_verifier.dart';
-import 'package:ssi/src/credentials/verification/vc_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
