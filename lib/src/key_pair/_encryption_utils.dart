@@ -11,8 +11,10 @@ import 'package:pointycastle/src/utils.dart' as p_utils;
 class EncryptionUtils {
   /// The length of the IV.
   final _ivLength = 16;
+
   /// The block size in bytes.
   final _blockSizeBytes = 16;
+
   /// The secure random generator.
   final _secureRandom = pce.FortunaRandom();
 

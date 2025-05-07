@@ -69,7 +69,7 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
 
   // see https://www.w3.org/TR/cid-1.0/#Multikey for indicators
   // FIXME add validations for length
-  Map<String, dynamic> jwk = {};
+  var jwk = <String, dynamic>{};
   if (indicatorHex == 'ED01') {
     jwk['kty'] = 'OKP';
     jwk['crv'] = 'Ed25519';
@@ -186,10 +186,10 @@ Uint8List _ecJwkToMultiKey({
   int start = 0,
 }) {
   if (varint.isEmpty || start >= varint.length) {
-    throw FormatException('Empty input');
+    throw const FormatException('Empty input');
   }
 
-  Map<int, int> masks = {
+  var masks = <int, int>{
     7: 0x01,
     6: 0x03,
     5: 0x07,
@@ -199,13 +199,13 @@ Uint8List _ecJwkToMultiKey({
     1: 0x7F,
   };
 
-  List<int> intValue = [];
+  var intValue = <int>[];
 
-  int i = start + 1;
-  int leftOver = varint[start] & 0x7F;
-  int leftOverLen = 7;
+  var i = start + 1;
+  var leftOver = varint[start] & 0x7F;
+  var leftOverLen = 7;
 
-  bool hasNext = (varint[start] & 0x80) > 0;
+  var hasNext = (varint[start] & 0x80) > 0;
   while (hasNext && i < varint.length) {
     final packedByte = varint[i] & 0x7F;
 
@@ -261,6 +261,7 @@ enum MultiKeyIndicator {
 
   /// The indicator bytes for the key type.
   final List<int> indicator;
+
   /// The key type.
   final KeyType keyType;
 
@@ -273,7 +274,7 @@ final Map<KeyType, MultiKeyIndicator> keyIndicators = _initKeyIndicatorsMap();
 
 /// Initializes the map of [KeyType] to [MultiKeyIndicator].
 Map<KeyType, MultiKeyIndicator> _initKeyIndicatorsMap() {
-  final Map<KeyType, MultiKeyIndicator> map = {};
+  final map = <KeyType, MultiKeyIndicator>{};
   for (final keyIndicator in MultiKeyIndicator.values) {
     map[keyIndicator.keyType] = keyIndicator;
   }
@@ -287,7 +288,7 @@ Uint8List toMultikey(
 ) {
   if (!keyIndicators.containsKey(keyType)) {
     throw SsiException(
-      message: "toMultikey: $keyType not supported",
+      message: 'toMultikey: $keyType not supported',
       code: SsiExceptionType.invalidKeyType.code,
     );
   }
@@ -302,10 +303,10 @@ final b256 = BigInt.from(256);
 Uint8List encodeBigInt(BigInt number) {
   // see https://github.com/dart-lang/sdk/issues/32803
   // Not handling negative numbers. Decide how you want to do that.
-  int bytes = (number.bitLength + 7) >> 3;
+  var bytes = (number.bitLength + 7) >> 3;
 
   final result = Uint8List(bytes);
-  for (int i = 0; i < bytes; i++) {
+  for (var i = 0; i < bytes; i++) {
     result[bytes - 1 - i] = number.remainder(b256).toInt();
     number = number >> 8;
   }
@@ -316,7 +317,7 @@ Uint8List encodeBigInt(BigInt number) {
 /// Decodes a [Uint8List] to a [BigInt].
 BigInt decodeBigInt(Uint8List bytes) {
   // see https://github.com/dart-lang/sdk/issues/32803
-  BigInt result = BigInt.zero;
+  var result = BigInt.zero;
 
   for (final byte in bytes) {
     // reading in big-endian, so we essentially concat the new byte to the end

@@ -50,7 +50,7 @@ sealed class VerificationMethod {
     } else if (value is VerificationMethodRef) {
       return value;
     } else {
-      throw FormatException('unknown Datatype for VerificationMethod');
+      throw const FormatException('unknown Datatype for VerificationMethod');
     }
   }
 
@@ -122,7 +122,7 @@ abstract class EmbeddedVerificationMethod
   /// Converts this embedded verification method to a JSON-serializable map.
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> jsonObject = {};
+    final jsonObject = <String, dynamic>{};
     jsonObject['id'] = id;
     jsonObject['controller'] = controller;
     jsonObject['type'] = type;
@@ -174,6 +174,7 @@ class VerificationMethodJwk extends EmbeddedVerificationMethod {
 class VerificationMethodMultibase extends EmbeddedVerificationMethod {
   /// The public key in multikey format.
   late final Uint8List publicKeyMultikey;
+
   /// The public key in multibase format.
   final String publicKeyMultibase;
 
@@ -209,6 +210,7 @@ class VerificationMethodMultibase extends EmbeddedVerificationMethod {
 class VerificationMethodRef implements VerificationMethod {
   /// The embedded verification method being referenced.
   final EmbeddedVerificationMethod method;
+
   /// The reference string.
   final String reference;
 

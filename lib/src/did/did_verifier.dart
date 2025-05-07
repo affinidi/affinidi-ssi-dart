@@ -2,14 +2,14 @@ import 'dart:typed_data';
 
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:jose_plus/jose.dart' as jose;
-import 'package:ssi/src/did/verifier.dart';
-import 'package:ssi/src/util/base64_util.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import '../util/base64_util.dart';
 import 'did_document/index.dart';
 import 'universal_did_resolver.dart';
+import 'verifier.dart';
 
 /// A verifier for DID documents.
 ///
@@ -67,8 +67,8 @@ class DidVerifier implements Verifier {
       );
     }
 
-    final Jwk jwk = verificationMethod.asJwk();
-    final Map<String, dynamic> jwkMap = Map<String, dynamic>.from(jwk.toJson());
+    final jwk = verificationMethod.asJwk();
+    final jwkMap = Map<String, dynamic>.from(jwk.toJson());
 
     return DidVerifier._(algorithm, kid, jwkMap);
   }
@@ -80,7 +80,7 @@ class DidVerifier implements Verifier {
     }
 
     try {
-      final jose.JsonWebKey? publicKey = jose.JsonWebKey.fromJson(_jwk);
+      final publicKey = jose.JsonWebKey.fromJson(_jwk);
       return publicKey!.usableForAlgorithm(algorithm);
     } catch (_) {
       return false;

@@ -30,7 +30,7 @@ class Bip32Wallet implements DeterministicWallet {
   /// The KeyStore *must* contain a seed set via `setSeed` or be populated
   /// using the `fromSeed` factory.
   ///
-  /// [keyStore] - The KeyStore used to persist key derivation paths and the master seed.
+  /// keyStore - The KeyStore used to persist key derivation paths and the master seed.
   Bip32Wallet(this._keyStore);
 
   /// Creates a new [Bip32Wallet] using the provided seed and stores
@@ -150,7 +150,7 @@ class Bip32Wallet implements DeterministicWallet {
         return getKeyPair(effectiveKeyId);
       } else {
         throw ArgumentError(
-            "Key ID $effectiveKeyId already exists in KeyStore but with incompatible data.");
+            'Key ID $effectiveKeyId already exists in KeyStore but with incompatible data.');
       }
     }
 
@@ -201,7 +201,7 @@ class Bip32Wallet implements DeterministicWallet {
     Uint8List? publicKey,
   }) async {
     final keyPair = await getKeyPair(keyId);
-    return keyPair.decrypt(data, publicKey: publicKey);
+    return await keyPair.decrypt(data, publicKey: publicKey);
   }
 
   @override
@@ -213,20 +213,20 @@ class Bip32Wallet implements DeterministicWallet {
     final storedKey = await _keyStore.get(keyId);
     if (storedKey == null) {
       throw SsiException(
-          message: "Key not found in KeyStore: $keyId",
+          message: 'Key not found in KeyStore: $keyId',
           code: SsiExceptionType.keyNotFound.code);
     }
 
     if (storedKey.representation != StoredKeyRepresentation.derivationPath) {
       throw SsiException(
           message:
-              "KeyStore entry for $keyId is not stored as a derivation path (found ${storedKey.representation}). Incompatible with Bip32Wallet.",
+              'KeyStore entry for $keyId is not stored as a derivation path (found ${storedKey.representation}). Incompatible with Bip32Wallet.',
           code: SsiExceptionType.invalidKeyType.code);
     }
     if (storedKey.keyType != KeyType.secp256k1) {
       throw SsiException(
           message:
-              "KeyStore entry for $keyId indicates type ${storedKey.keyType}, but Bip32Wallet requires secp256k1.",
+              'KeyStore entry for $keyId indicates type ${storedKey.keyType}, but Bip32Wallet requires secp256k1.',
           code: SsiExceptionType.invalidKeyType.code);
     }
 
@@ -234,7 +234,7 @@ class Bip32Wallet implements DeterministicWallet {
     if (derivationPath == null) {
       throw SsiException(
           message:
-              "StoredKey for $keyId has derivationPath representation but null path.",
+              'StoredKey for $keyId has derivationPath representation but null path.',
           code: SsiExceptionType.other.code);
     }
 

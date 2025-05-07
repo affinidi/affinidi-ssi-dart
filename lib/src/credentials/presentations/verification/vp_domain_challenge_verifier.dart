@@ -1,5 +1,4 @@
-import 'package:ssi/src/types.dart';
-
+import '../../../types.dart';
 import '../models/parsed_vp.dart';
 import 'vp_verifier.dart';
 

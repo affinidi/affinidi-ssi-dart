@@ -8,17 +8,39 @@ import '../../util/json_util.dart';
 import 'service_endpoint.dart';
 import 'verification_method.dart';
 
+/// Represents a DID Document as defined by the W3C DID specification.
 class DidDocument implements JsonObject {
+  /// The JSON-LD context of the DID document.
   Context context;
+
+  /// The DID that the DID document is about.
   late String id;
+
+  /// Alternative identifiers for the DID subject.
   List<String> alsoKnownAs;
+
+  /// The DIDs of entities that have the authority to make changes to the DID document.
   List<String> controller;
+
+  /// The verification methods of the DID document.
   List<EmbeddedVerificationMethod> verificationMethod;
+
+  /// Authentication verification methods.
   List<VerificationMethod> authentication;
+
+  /// Assertion method verification methods.
   List<VerificationMethod> assertionMethod;
+
+  /// Key agreement verification methods.
   List<VerificationMethod> keyAgreement;
+
+  /// Capability invocation verification methods.
   List<VerificationMethod> capabilityInvocation;
+
+  /// Capability delegation verification methods.
   List<VerificationMethod> capabilityDelegation;
+
+  /// Services offered by the DID subject.
   List<ServiceEndpoint> service;
 
   DidDocument._({
@@ -35,6 +57,9 @@ class DidDocument implements JsonObject {
     required this.capabilityInvocation,
   });
 
+  /// Creates a new DID document with the specified properties.
+  ///
+  /// [id] The DID that the DID document is about.
   factory DidDocument.create({
     context,
     required String id,
@@ -49,7 +74,7 @@ class DidDocument implements JsonObject {
     capabilityInvocation,
   }) {
     final List<VerificationMethod> methods = verificationMethod ?? [];
-    final Map<String, EmbeddedVerificationMethod> vmMap = {};
+    final vmMap = <String, EmbeddedVerificationMethod>{};
     for (final vm in methods) {
       if (vm is EmbeddedVerificationMethod) {
         vmMap[vm.id] = vm;
@@ -62,7 +87,7 @@ class DidDocument implements JsonObject {
     }
 
     return DidDocument._(
-      context: context ?? Context.fromJson(""),
+      context: context ?? Context.fromJson(''),
       id: id,
       alsoKnownAs: alsoKnownAs ?? [],
       controller: controller ?? [],
@@ -78,6 +103,10 @@ class DidDocument implements JsonObject {
           _convertToVerificationRelationship(capabilityInvocation, vmMap),
     );
   }
+
+  /// Converts a list of service endpoints to the proper format.
+  ///
+  /// [input] The input to convert.
   static List<ServiceEndpoint> _convertToServiceEndpoint(dynamic input) {
     if (input == null) {
       return [];
@@ -94,6 +123,10 @@ class DidDocument implements JsonObject {
     return [];
   }
 
+  /// Converts a list of verification methods to the proper format.
+  ///
+  /// [input] The input to convert.
+  /// [verificationMethodMap] The map of verification methods.
   static List<VerificationMethod> _convertToVerificationRelationship(
     dynamic input,
     Map<String, EmbeddedVerificationMethod> verificationMethodMap,
@@ -117,8 +150,11 @@ class DidDocument implements JsonObject {
   }
 
   // TODO: convert to factory method
+  /// Creates a [DidDocument] from JSON data.
+  ///
+  /// [jsonObject] The JSON data to create the DID document from.
   DidDocument.fromJson(dynamic jsonObject)
-      : context = Context.fromJson(""),
+      : context = Context.fromJson(''),
         alsoKnownAs = [],
         controller = [],
         verificationMethod = [],
@@ -135,7 +171,7 @@ class DidDocument implements JsonObject {
     if (document.containsKey('id')) {
       id = document['id'];
     } else {
-      throw FormatException('id property needed in did document');
+      throw const FormatException('id property needed in did document');
     }
 
     if (document.containsKey('controller')) {
@@ -235,6 +271,9 @@ class DidDocument implements JsonObject {
     }
   }
 
+  /// Converts a list of items to a JSON list.
+  ///
+  /// [items] The items to convert.
   List _toJsonList(List items) {
     if (items.isEmpty) return [];
     return items.map((e) => e.toJson()).toList();
@@ -242,7 +281,7 @@ class DidDocument implements JsonObject {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> jsonObject = {};
+    var jsonObject = <String, dynamic>{};
     jsonObject['id'] = id;
     jsonObject['@context'] = context.toJson();
     if (alsoKnownAs.isNotEmpty) jsonObject['alsoKnownAs'] = alsoKnownAs;
@@ -285,9 +324,14 @@ class DidDocument implements JsonObject {
   }
 }
 
+/// Represents a JSON Web Key (JWK) used in DID documents.
 class Jwk {
+  /// The JWK document as a map.
   late final Map<String, String> doc;
 
+  /// Creates a [Jwk] from JSON data.
+  ///
+  /// [input] The JSON data to create the JWK from.
   Jwk.fromJson(dynamic input) {
     final map = jsonToMap(input);
 
@@ -305,6 +349,7 @@ class Jwk {
     }
   }
 
+  /// Converts the JWK to JSON.
   Map<String, String> toJson() {
     return doc;
   }

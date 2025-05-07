@@ -37,12 +37,12 @@ void main() async {
       .verify(issuedPresentation);
 
   // Print results
-  print("Is VP valid? ${verificationStatus.isValid}");
+  print('Is VP valid? ${verificationStatus.isValid}');
   if (!verificationStatus.isValid) {
-    print("Errors: ${verificationStatus.errors}");
+    print('Errors: ${verificationStatus.errors}');
   }
   if (verificationStatus.warnings.isNotEmpty) {
-    print("Warnings: ${verificationStatus.warnings}");
+    print('Warnings: ${verificationStatus.warnings}');
   }
 }
 

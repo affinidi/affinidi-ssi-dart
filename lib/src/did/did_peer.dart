@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/json_ld/context.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../json_ld/context.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../utility.dart';
@@ -21,13 +20,13 @@ import 'public_key_utils.dart';
 
 enum Numalgo2Prefix {
   /// Prefix for authentication keys.
-  authentication("V"),
+  authentication('V'),
 
   /// Prefix for key agreement keys.
-  keyAgreement("E"),
+  keyAgreement('E'),
 
   /// Prefix for service entries.
-  service("S");
+  service('S');
 
   /// String value of the prefix.
   final String value;
@@ -65,15 +64,15 @@ DidDocument _resolveDidPeer0(String did) {
   }
 
   final contextEdward = [
-    "https://www.w3.org/ns/did/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1"
+    'https://www.w3.org/ns/did/v1',
+    'https://w3id.org/security/suites/ed25519-2020/v1'
   ];
   const contextEdX = [
-    "https://www.w3.org/ns/did/v1",
-    "https://w3id.org/security/suites/x25519-2020/v1"
+    'https://www.w3.org/ns/did/v1',
+    'https://w3id.org/security/suites/x25519-2020/v1'
   ];
 
-  String keyPart = did.substring(11);
+  var keyPart = did.substring(11);
 
   if (keyPart.startsWith('6Mk')) {
     return _buildEDDoc(contextEdward, did, keyPart);
@@ -97,10 +96,10 @@ DidDocument _resolveDidPeer0(String did) {
 
 /// Resolves a numalgo2 peer DID to a DID document.
 DidDocument _resolveDidPeer2(String did) {
-  String keysPart = did.substring(11);
+  var keysPart = did.substring(11);
 
-  List<String> authenticationKeys = [];
-  List<String> agreementKeys = [];
+  var authenticationKeys = <String>[];
+  var agreementKeys = <String>[];
   String? serviceString;
 
   final keys = keysPart.split('.');
@@ -140,21 +139,21 @@ DidDocument _resolveDidPeer2(String did) {
 DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
     List<String> authenticationKeys, String? serviceStr) {
   final context = [
-    "https://www.w3.org/ns/did/v1",
+    'https://www.w3.org/ns/did/v1',
     'https://ns.did.ai/suites/multikey-2021/v1/'
   ];
 
-  List<EmbeddedVerificationMethod> verificationMethod = [];
-  List<String> assertionMethod = [];
-  List<String> keyAgreement = [];
-  List<String> authentication = [];
+  var verificationMethod = <EmbeddedVerificationMethod>[];
+  var assertionMethod = <String>[];
+  var keyAgreement = <String>[];
+  var authentication = <String>[];
 
   List<ServiceEndpoint>? service;
   if (serviceStr != null) {
-    int paddingNeeded = (4 - serviceStr.length % 4) % 4;
-    String padded = serviceStr + ('=' * paddingNeeded);
+    var paddingNeeded = (4 - serviceStr.length % 4) % 4;
+    var padded = serviceStr + ('=' * paddingNeeded);
 
-    Uint8List serviceList = base64Decode(padded);
+    var serviceList = base64Decode(padded);
     final serviceJson = json.decode(utf8.decode(serviceList));
     serviceJson['serviceEndpoint'] = serviceJson['s'];
     serviceJson['accept'] = serviceJson['a'];
@@ -173,7 +172,7 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
         ? 'X25519KeyAgreementKey2020'
         : 'Ed25519VerificationKey2020';
 
-    String kid = '#key-$i';
+    var kid = '#key-$i';
     final verification = VerificationMethodMultibase(
       id: kid,
       controller: did,
@@ -191,7 +190,7 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
         ? 'X25519KeyAgreementKey2020'
         : 'Ed25519VerificationKey2020';
 
-    String kid = '#key-$i';
+    var kid = '#key-$i';
     final verification = VerificationMethodMultibase(
       id: kid,
       controller: did,
@@ -230,8 +229,8 @@ DidDocument _buildEDDoc(
     );
   }
 
-  String verificationKeyId = '$id#$keyPart';
-  String agreementKeyId = '$id#z$multiCodecXKey';
+  var verificationKeyId = '$id#$keyPart';
+  var agreementKeyId = '$id#z$multiCodecXKey';
 
   final verificationMethod = VerificationMethodMultibase(
     id: verificationKeyId,
@@ -265,7 +264,7 @@ DidDocument _buildXDoc(
   String id,
   String keyPart,
 ) {
-  String verificationKeyId = '$id#z$keyPart';
+  var verificationKeyId = '$id#z$keyPart';
   final verification = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
@@ -290,7 +289,7 @@ class DidPeer {
   ///
   /// Returns a [DidPeerType].
   ///
-  /// Throws [SsiException] if the DID is not a valid peer DID.
+  /// Throws an [SsiException] if the DID is not a valid peer DID.
   static DidPeerType determineType(String did) {
     for (final entry in _didTypePrefixes.entries) {
       if (did.startsWith(entry.value)) {
@@ -308,7 +307,7 @@ class DidPeer {
       return '';
     }
 
-    String jsonString = json.encode({
+    var jsonString = json.encode({
       'id': 'new-id',
       't': 'dm', // "type": "DIDCommMessaging"
       's': serviceEndpoint, // serviceEndpoint
@@ -320,24 +319,23 @@ class DidPeer {
 
   static String _pubKeysToPeerDid(List<PublicKey> signingKeys,
       [List<PublicKey>? agreementKeys, String? serviceEndpoint]) {
-    bool isDid0 = signingKeys.length == 1 &&
+    var isDid0 = signingKeys.length == 1 &&
         (agreementKeys == null && serviceEndpoint == null);
 
     if (isDid0) {
-      PublicKey signingKey = signingKeys[0];
+      var signingKey = signingKeys[0];
       final multibase = toMultiBase(
         toMultikey(signingKey.bytes, signingKey.type),
       );
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
 
-    String encSep = '.${Numalgo2Prefix.keyAgreement.value}';
-    String authSep = '.${Numalgo2Prefix.authentication.value}';
+    var encSep = '.${Numalgo2Prefix.keyAgreement.value}';
+    var authSep = '.${Numalgo2Prefix.authentication.value}';
 
-    bool isAgreementNotEmpty =
-        agreementKeys != null && agreementKeys.isNotEmpty;
+    var isAgreementNotEmpty = agreementKeys != null && agreementKeys.isNotEmpty;
 
-    String agreementKeysStr = isAgreementNotEmpty
+    var agreementKeysStr = isAgreementNotEmpty
         ? encSep +
             agreementKeys
                 .map(
@@ -347,7 +345,7 @@ class DidPeer {
                 )
                 .join(encSep)
         : '';
-    String authKeysStr = signingKeys.isNotEmpty
+    var authKeysStr = signingKeys.isNotEmpty
         ? authSep +
             signingKeys
                 .map(
@@ -357,7 +355,7 @@ class DidPeer {
                 )
                 .join(authSep)
         : '';
-    String serviceStr = _buildServiceEncoded(serviceEndpoint);
+    var serviceStr = _buildServiceEncoded(serviceEndpoint);
 
     return '${_didTypePrefixes[DidPeerType.peer2]}$agreementKeysStr$authKeysStr$serviceStr';
   }
@@ -381,7 +379,7 @@ class DidPeer {
       );
     }
     // bool isDid0 = keyPairs.length == 1 && serviceEndpoint == null;
-    DidPeerType didType = publicKeys.length == 1 && serviceEndpoint == null
+    var didType = publicKeys.length == 1 && serviceEndpoint == null
         ? DidPeerType.peer0
         : DidPeerType.peer2;
 
@@ -394,12 +392,12 @@ class DidPeer {
 
   /// Creates a DID Document for a list of key pairs.
   ///
-  /// [keyPairs] - The list of key pairs.
-  /// [serviceEndpoint] - Optional service endpoint.
+  /// keys - The list of public keys.
+  /// serviceEndpoint - Optional service endpoint.
   ///
   /// Returns a [DidDocument].
   ///
-  /// Throws [SsiException] if empty key pairs.
+  /// Throws an [SsiException] if empty key pairs.
   //FIXME(FTL-20741) should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
   static DidDocument generateDocument(
     List<PublicKey> keys, {
@@ -452,7 +450,7 @@ class DidPeer {
       );
     }
 
-    bool isPeer0 = did[9] == '0';
+    var isPeer0 = did[9] == '0';
     if (isPeer0) {
       return _resolveDidPeer0(did);
     } else {

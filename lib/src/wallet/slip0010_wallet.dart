@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/wallet/deterministic_wallet.dart';
-
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
+import 'deterministic_wallet.dart';
 
 // TODO(FTL-20739): Implement SLIP-0010 wallet
 
+/// Implementation of a SLIP-0010 deterministic wallet.
 class Slip0010Wallet implements DeterministicWallet {
   @override
   Future<bool> hasKey(String keyId) {

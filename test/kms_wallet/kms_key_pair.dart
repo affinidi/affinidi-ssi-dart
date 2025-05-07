@@ -48,7 +48,7 @@ class KmsKeyPair implements KeyPair {
     if (signatureScheme != SignatureScheme.rsa_pkcs1_sha256) {
       throw SsiException(
         message:
-            "Unsupported signature scheme. Currently only RSA is supported with SHA256",
+            'Unsupported signature scheme. Currently only RSA is supported with SHA256',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
@@ -96,7 +96,7 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
-  noSuchMethod(Invocation invocation) {
+  dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
 }

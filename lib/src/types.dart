@@ -39,53 +39,61 @@ enum HashingAlgorithm {
 enum SignatureScheme {
   /// ECDSA with secp256k1 curve and SHA-256 hashing.
   ecdsa_secp256k1_sha256(
-    alg: "ES256K",
-    crv: "secp256k1",
-    w3c: "EcdsaSecp256k1Signature2019",
+    alg: 'ES256K',
+    crv: 'secp256k1',
+    w3c: 'EcdsaSecp256k1Signature2019',
     keyType: KeyType.secp256k1,
     hashingAlgorithm: HashingAlgorithm.sha256,
   ),
+
   /// ECDSA with P-256 curve and SHA-256 hashing.
   ecdsa_p256_sha256(
-    alg: "ES256",
-    crv: "P-256",
-    w3c: "EcdsaSecp256r1Signature2019",
+    alg: 'ES256',
+    crv: 'P-256',
+    w3c: 'EcdsaSecp256r1Signature2019',
     keyType: KeyType.p256,
     hashingAlgorithm: HashingAlgorithm.sha256,
   ),
+
   /// EdDSA with Ed25519 curve and SHA-512 hashing.
   eddsa_sha512(
-    alg: "EdDSA",
-    crv: "Ed25519",
+    alg: 'EdDSA',
+    crv: 'Ed25519',
     w3c: null,
     keyType: KeyType.ed25519,
     hashingAlgorithm: HashingAlgorithm.sha512,
   ),
+
   /// Ed25519 with SHA-256 hashing.
   ed25519_sha256(
     alg: null,
-    crv: "Ed25519",
-    w3c: "Ed25519Signature2020",
+    crv: 'Ed25519',
+    w3c: 'Ed25519Signature2020',
     keyType: KeyType.ed25519,
     hashingAlgorithm: HashingAlgorithm.sha256,
   ),
+
   /// RSA with PKCS1 and SHA-256 hashing.
   rsa_pkcs1_sha256(
-    alg: "RS256",
+    alg: 'RS256',
     crv: null,
-    w3c: "RsaSignature2018",
+    w3c: 'RsaSignature2018',
     keyType: KeyType.rsa,
     hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   /// The algorithm identifier.
   final String? alg;
+
   /// The W3C identifier.
   final String? w3c;
+
   /// The curve identifier.
   final String? crv;
+
   /// The key type.
   final KeyType keyType;
+
   /// The hashing algorithm.
   final HashingAlgorithm hashingAlgorithm;
 
@@ -112,7 +120,13 @@ enum SignatureScheme {
 }
 
 /// Supported DID peer types.
-enum DidPeerType { peer0, peer2 }
+enum DidPeerType {
+  /// DID Peer type 0.
+  peer0,
+
+  /// DID Peer type 2.
+  peer2
+}
 
 /// Abstract class for JSON objects.
 abstract class JsonObject {
@@ -131,6 +145,7 @@ abstract class JsonObject {
 class VerificationResult {
   /// The list of errors.
   final List<String> errors;
+
   /// The list of warnings.
   final List<String> warnings;
 

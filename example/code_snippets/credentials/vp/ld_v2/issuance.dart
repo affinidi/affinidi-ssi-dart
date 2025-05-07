@@ -15,9 +15,9 @@ Future<void> main() async {
   final signer = await initSigner(testSeed);
 
   // Load example credentials (LD VC V1 + LD VC V2 + SD-JWT V2)
-  final ldV1VC = UniversalParser.parse((v1VcString));
+  final ldV1VC = UniversalParser.parse(v1VcString);
 
-  final ldV2VC = UniversalParser.parse((v2VcString));
+  final ldV2VC = UniversalParser.parse(v2VcString);
 
   final sdjwtV2VC = UniversalParser.parse(jwtVcString);
 

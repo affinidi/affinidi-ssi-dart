@@ -7,8 +7,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('DidVerifier', () {
-    final String didKey =
-        'did:key:z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu';
+    final didKey = 'did:key:z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu';
     final kid = 'z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu';
 
     test('should correctly handle algorithm support for Ed25519 keys',

@@ -23,10 +23,10 @@ void main() {
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
           MutableCredentialSubject({
-            "Fname": "Fname",
-            "Lname": "Lame",
-            "Age": "22",
-            "Address": "Eihhornstr"
+            'Fname': 'Fname',
+            'Lname': 'Lame',
+            'Age': '22',
+            'Address': 'Eihhornstr'
           })
         ],
         credentialSchema: [

@@ -35,8 +35,8 @@ DidDocument _buildEDDoc(
       code: SsiExceptionType.invalidDidKey.code,
     );
   }
-  String verificationKeyId = '$id#z$keyPart';
-  String agreementKeyId = '$id#z$multiCodecXKey';
+  var verificationKeyId = '$id#z$keyPart';
+  var agreementKeyId = '$id#z$multiCodecXKey';
 
   final verification = VerificationMethodMultibase(
     id: verificationKeyId,
@@ -78,7 +78,7 @@ DidDocument _buildXDoc(
   String id,
   String keyPart,
 ) {
-  String verificationKeyId = '$id#z$keyPart';
+  var verificationKeyId = '$id#z$keyPart';
   final verification = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
@@ -110,7 +110,7 @@ DidDocument _buildOtherDoc(
   String keyPart,
   String type,
 ) {
-  String verificationKeyId = '$id#z$keyPart';
+  var verificationKeyId = '$id#z$keyPart';
   final verification = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
@@ -136,13 +136,13 @@ class DidKey {
   /// Creates a DID document from a list of key pairs.
 
   static const _context = [
-    "https://www.w3.org/ns/did/v1",
-    "https://w3id.org/security/suites/ed25519-2020/v1",
-    "https://w3id.org/security/suites/x25519-2020/v1"
+    'https://www.w3.org/ns/did/v1',
+    'https://w3id.org/security/suites/ed25519-2020/v1',
+    'https://w3id.org/security/suites/x25519-2020/v1'
   ];
 
   static const _context2 = [
-    "https://www.w3.org/ns/did/v1",
+    'https://www.w3.org/ns/did/v1',
     'https://ns.did.ai/suites/multikey-2021/v1/'
   ];
 
@@ -204,7 +204,7 @@ class DidKey {
       );
     }
 
-    String multibase = splited[2];
+    var multibase = splited[2];
     final multibaseIndicator = multibase[0];
 
     if (multibaseIndicator != 'z') {

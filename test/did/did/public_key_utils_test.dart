@@ -38,7 +38,8 @@ void main() {
     });
 
     test('decode should throw exception end of stream', () async {
-      shouldThrow() => decodeVarint(Uint8List.fromList([0xFF]));
+      (Uint8List, int) shouldThrow() =>
+          decodeVarint(Uint8List.fromList([0xFF]));
 
       expect(
         shouldThrow,

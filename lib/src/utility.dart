@@ -5,7 +5,10 @@ import 'package:base_codecs/base_codecs.dart';
 // ignore: implementation_imports
 import 'package:x25519/src/curve25519.dart' as x25519;
 
-//ported from https://github.com/oasisprotocol/ed25519/blob/master/extra/x25519/x25519.go
+/// Converts an Ed25519 public key to an X25519 public key.
+///
+/// Returns a Base58-encoded X25519 public key as a string.
+/// Ported from https://github.com/oasisprotocol/ed25519/blob/master/extra/x25519/x25519.go
 String ed25519PublicToX25519Public(List<int> ed25519Public) {
   final Y = x25519.FieldElement();
   x25519.feFromBytes(Y, ed25519Public);

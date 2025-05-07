@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:elliptic/elliptic.dart';
-import 'package:elliptic/ecdh.dart';
 import 'package:cryptography/cryptography.dart' as crypto;
+import 'package:elliptic/ecdh.dart';
+import 'package:elliptic/elliptic.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -93,7 +93,7 @@ Future<Uint8List> decryptData({
       encryptedPackage.sublist(0, fullPublicKeyLength + 1);
   final encryptedData = encryptedPackage.sublist(fullPublicKeyLength + 1);
 
-  final PublicKey pubKeyToUse = publicKeyBytes == null
+  final pubKeyToUse = publicKeyBytes == null
       ? curve.hexToPublicKey(hex.encode(ephemeralPublicKeyBytes))
       : curve.compressedHexToPublicKey(hex.encode(publicKeyBytes));
 

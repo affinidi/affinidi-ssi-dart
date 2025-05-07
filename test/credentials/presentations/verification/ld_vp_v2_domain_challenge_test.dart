@@ -37,7 +37,7 @@ void main() async {
               domain: ['fun.com'], challenge: 'test-challenge')
           .verify(issuedCredential);
       expect(verificationStatus.isValid, true);
-      expect(verificationStatus.errors, []);
+      expect(verificationStatus.errors, <String>[]);
     });
 
     test('should fail for invalid provided domain', () async {

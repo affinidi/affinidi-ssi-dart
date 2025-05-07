@@ -54,13 +54,13 @@ void main() {
 
   // Serialize to JSON and print
   final serialized = vc.toJson();
-  print("Serialized VC V2:");
+  print('Serialized VC V2:');
   print(serialized);
 
   // Deserialize back into VcDataModelV2
   final parsed = VcDataModelV2.fromJson(serialized);
-  print("\nParsed VC ID: ${parsed.id}");
-  print("Parsed VC Issuer: ${parsed.issuer.id}");
-  print("Parsed VC Subject: ${parsed.credentialSubject.first.toJson()}");
-  print("Parsed Proof Type: ${parsed.proof.first.type}");
+  print('\nParsed VC ID: ${parsed.id}');
+  print('Parsed VC Issuer: ${parsed.issuer.id}');
+  print('Parsed VC Subject: ${parsed.credentialSubject.first.toJson()}');
+  print('Parsed Proof Type: ${parsed.proof.first.type}');
 }

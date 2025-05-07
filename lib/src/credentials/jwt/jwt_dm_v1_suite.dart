@@ -1,15 +1,7 @@
 import 'dart:convert';
 
-import '../../did/did_signer.dart';
-import '../../did/did_verifier.dart';
-import '../../exceptions/ssi_exception.dart';
-import '../../exceptions/ssi_exception_type.dart';
-import '../../types.dart';
+import '../../../ssi.dart';
 import '../../util/base64_util.dart';
-import '../models/parsed_vc.dart';
-import '../models/v1/vc_data_model_v1.dart';
-import '../parsers/jwt_parser.dart';
-import '../suites/vc_suite.dart';
 
 part 'jwt_data_model_v1.dart';
 
@@ -45,9 +37,9 @@ final class JwtDm1Suite
     return JwtVcDataModelV1.fromJws(jws);
   }
 
-  /// Issues a signed [JwtVcDataModelV1] from a [VcDataModelV1] using a [DidSigner].
+  /// Issues a signed [JwtVcDataModelV1] from a [VcDataModelV1] using a DidSigner.
   ///
-  /// Optionally takes [options] for JWT issuance configuration.
+  /// Optionally takes options for JWT issuance configuration.
   Future<JwtVcDataModelV1> issue(
       {required VcDataModelV1 unsignedData, required DidSigner signer}) async {
     if (signer.did != unsignedData.issuer.id.toString()) {

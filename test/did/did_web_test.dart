@@ -32,7 +32,7 @@ void main() {
     test('throws SsiException on non-200 response', () async {
       final did = 'did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2';
 
-      expectLater(
+      await expectLater(
         DidWeb.resolve(did),
         throwsA(isA<SsiException>().having(
             (e) => e.code, 'code', SsiExceptionType.invalidDidWeb.code)),

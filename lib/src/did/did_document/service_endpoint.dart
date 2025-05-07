@@ -7,8 +7,10 @@ import '../../util/json_util.dart';
 class DIDCommServiceEndpoint {
   /// The list of accepted media types.
   final List<String> accept;
+
   /// The list of routing keys.
   final List<String> routingKeys;
+
   /// The URI of the service endpoint.
   final String uri;
 
@@ -40,8 +42,10 @@ class DIDCommServiceEndpoint {
 class ServiceEndpoint implements JsonObject {
   /// The identifier of the service endpoint.
   late String id;
+
   /// The type of the service endpoint.
   late String type;
+
   /// The list of DIDComm service endpoints.
   late List<DIDCommServiceEndpoint> serviceEndpoint;
   String? _originalStringEndpoint;
@@ -60,12 +64,13 @@ class ServiceEndpoint implements JsonObject {
     if (se.containsKey('id')) {
       id = se['id'];
     } else {
-      throw FormatException('id property is needed in serviceEndpoint');
+      throw const FormatException('id property is needed in serviceEndpoint');
     }
     if (se.containsKey('type')) {
       type = se['type'];
     } else {
-      throw FormatException('format property is needed in serviceEndpoint');
+      throw const FormatException(
+          'format property is needed in serviceEndpoint');
     }
     if (se.containsKey('serviceEndpoint')) {
       final endpoint = se['serviceEndpoint'];
@@ -86,10 +91,11 @@ class ServiceEndpoint implements JsonObject {
               uri: endpoint, accept: <String>[], routingKeys: <String>[])
         ];
       } else {
-        throw FormatException('serviceEndpoint must be a list, map, or string');
+        throw const FormatException(
+            'serviceEndpoint must be a list, map, or string');
       }
     } else {
-      throw FormatException(
+      throw const FormatException(
           'serviceEndpoint property is needed in serviceEndpoint');
     }
   }
@@ -97,7 +103,7 @@ class ServiceEndpoint implements JsonObject {
   /// Converts this service endpoint to a JSON-serializable map.
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> jsonObject = {};
+    var jsonObject = <String, dynamic>{};
     jsonObject['id'] = id;
     jsonObject['type'] = type;
 

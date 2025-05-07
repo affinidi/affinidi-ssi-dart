@@ -133,7 +133,7 @@ void main() {
     test('generateDocument is as expected', () async {
       final keyStore = InMemoryKeyStore();
       final wallet = PersistentWallet(keyStore);
-      final keyId = "keyId";
+      final keyId = 'keyId';
       final publicKey = (await wallet.generateKey(keyId: keyId)).publicKey;
       final prefix = [128, 36];
       final expectedId =
@@ -151,7 +151,7 @@ void main() {
     test('getDid is as expected', () async {
       final keyStore = InMemoryKeyStore();
       final wallet = PersistentWallet(keyStore);
-      final keyId = "keyId";
+      final keyId = 'keyId';
       final publicKey = (await wallet.generateKey(keyId: keyId)).publicKey;
       final prefix = [128, 36];
       final expectedId =
@@ -162,23 +162,23 @@ void main() {
     });
   });
 
-  group("When resolving did key with", () {
-    group("using did:test", () {
-      test("it throws invalid did key exception", () async {
+  group('When resolving did key with', () {
+    group('using did:test', () {
+      test('it throws invalid did key exception', () async {
         expect(
-          () => DidKey.resolve("did:test:something"),
+          () => DidKey.resolve('did:test:something'),
           throwsA(isA<SsiException>().having(
-              (e) => e.code, "code", SsiExceptionType.invalidDidKey.code)),
+              (e) => e.code, 'code', SsiExceptionType.invalidDidKey.code)),
         );
       });
     });
 
-    group("using misformatted did", () {
-      test("it throws invalid did key exception", () async {
+    group('using misformatted did', () {
+      test('it throws invalid did key exception', () async {
         expect(
-          () => DidKey.resolve("did:key:something:sometimes"),
+          () => DidKey.resolve('did:key:something:sometimes'),
           throwsA(isA<SsiException>().having(
-              (e) => e.code, "code", SsiExceptionType.invalidDidKey.code)),
+              (e) => e.code, 'code', SsiExceptionType.invalidDidKey.code)),
         );
       });
     });
