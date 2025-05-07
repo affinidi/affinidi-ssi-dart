@@ -399,7 +399,6 @@ class DidPeer {
   /// Returns a [DidDocument].
   ///
   /// Throws [SsiException] if empty key pairs.
-  //FIXME(FTL-20741) should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
   static DidDocument generateDocument(
     List<PublicKey> keys, {
     String? serviceEndpoint,
@@ -412,7 +411,7 @@ class DidPeer {
       verificationMethods.add(
         VerificationMethodMultibase(
           id: did,
-          controller: 'key$i', // FIXME(FTL-20741) should come from the outside
+          controller: 'key$i',
           type: 'Multikey',
           publicKeyMultibase: toMultiBase(
             toMultikey(
@@ -424,7 +423,6 @@ class DidPeer {
       );
     }
 
-    // FIXME(FTL-20741) should match arguments
     final keyId = verificationMethods[0].id;
     return DidDocument.create(
       id: did,

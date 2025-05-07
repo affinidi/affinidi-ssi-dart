@@ -25,7 +25,6 @@ class DidSigner {
   /// [didKeyId] - The identifier of the key inside the DID document.
   /// [keyPair] - The key pair to use for signing.
   /// [signatureScheme] - The signature scheme to use for signing.
-  // TODO(FTL-20741) validations, eg. keyId in doc, signature scheme supported, etc.
   DidSigner({
     required DidDocument didDocument,
     required this.didKeyId,

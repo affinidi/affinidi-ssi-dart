@@ -6,8 +6,6 @@ import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 
-// TODO(FTL-20739): Implement SLIP-0010 wallet
-
 class Slip0010Wallet implements DeterministicWallet {
   @override
   Future<bool> hasKey(String keyId) {

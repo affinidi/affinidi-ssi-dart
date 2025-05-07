@@ -100,7 +100,6 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   /// Optionally accepts [getNow] to provide a custom "now" time for expiry and validity
   Future<bool> verifyIntegrity(Model input,
       {DateTime Function() getNow = DateTime.now}) async {
-    //TODO(FTL-20735): discover proof type
     final document = input.toJson();
     final issuerDid = Issuer.uri(document[issuerKey]);
     final proofSuite =
