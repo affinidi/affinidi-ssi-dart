@@ -2,19 +2,10 @@
 
 import 'package:ssi/ssi.dart';
 
-import 'package:ssi/src/credentials/models/field_types/credential_status/v2.dart';
-import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
-import 'package:ssi/src/credentials/models/field_types/evidence.dart';
-import 'package:ssi/src/credentials/models/field_types/issuer.dart';
-import 'package:ssi/src/credentials/models/field_types/refresh_service/v2.dart';
-import 'package:ssi/src/credentials/models/field_types/terms_of_use.dart';
-import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'package:ssi/src/credentials/proof/embedded_proof.dart';
-
 void main() {
   // Create a sample VcDataModelV2 with realistic fields
   final vc = MutableVcDataModelV2(
-    context: [DMV2ContextUrl, 'https://example.org/context/v2'],
+    context: [dmV2ContextUrl, 'https://example.org/context/v2'],
     id: Uri.parse('http://example.edu/credentials/abcde'),
     type: {'VerifiableCredential', 'ExampleCredentialV2'},
     issuer: Issuer.uri('did:example:issuerV2'),
@@ -63,13 +54,13 @@ void main() {
 
   // Serialize to JSON and print
   final serialized = vc.toJson();
-  print("Serialized VC V2:");
+  print('Serialized VC V2:');
   print(serialized);
 
   // Deserialize back into VcDataModelV2
   final parsed = VcDataModelV2.fromJson(serialized);
-  print("\nParsed VC ID: ${parsed.id}");
-  print("Parsed VC Issuer: ${parsed.issuer.id}");
-  print("Parsed VC Subject: ${parsed.credentialSubject.first.toJson()}");
-  print("Parsed Proof Type: ${parsed.proof.first.type}");
+  print('\nParsed VC ID: ${parsed.id}');
+  print('Parsed VC Issuer: ${parsed.issuer.id}');
+  print('Parsed VC Subject: ${parsed.credentialSubject.first.toJson()}');
+  print('Parsed Proof Type: ${parsed.proof.first.type}');
 }

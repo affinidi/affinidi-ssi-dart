@@ -1,7 +1,8 @@
 import 'dart:typed_data';
+
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/ssi.dart';
 import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
+import 'package:ssi/ssi.dart';
 
 void main() async {
   final seed = hexDecode(
@@ -39,14 +40,14 @@ void main() async {
   final isRootSignatureValid =
       await wallet.verify(data, signature: signature, keyId: account0Key0.id);
   print('Account 0 key 0 signature verification result: $isRootSignatureValid');
-  assert(isRootSignatureValid, "Account 0 key 0 verification failed");
+  assert(isRootSignatureValid, 'Account 0 key 0 verification failed');
 
   final account0Key0DidKey = DidKey.generateDocument(account0Key0.publicKey);
   print('Account 0 Key 0 DID: ${account0Key0DidKey.id}');
 
   // Use the next key in account 0
   const account0Key1DerivationPath = "m/44'/60'/0'/0/1";
-  final account0Key1Id = "account0-key1";
+  final account0Key1Id = 'account0-key1';
   print(
       '\n--- Account 0 Key 1 Operations ($account0Key1Id, $account0Key1DerivationPath) ---');
   print('Deriving account 0 key 1 ($account0Key1Id)...');
@@ -62,7 +63,7 @@ void main() async {
       signature: account0Key1Signature, keyId: account0Key1Id);
   print(
       'Account 0 key 1 signature verification result: $isProfileSignatureValid');
-  assert(isProfileSignatureValid, "Account 0 key 1 verification failed");
+  assert(isProfileSignatureValid, 'Account 0 key 1 verification failed');
   final account0Key1DidKey = DidKey.generateDocument(account0Key1.publicKey);
   print('Account 0 key 1 DID: ${account0Key1DidKey.id}');
 

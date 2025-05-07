@@ -109,8 +109,8 @@ void main() {
       });
 
       test('encrypt and decrypt should succeed for two parties', () async {
-        final alicePublicKey = await keyPairAlice.publicKey;
-        final bobPublicKey = await keyPairBob.publicKey;
+        final alicePublicKey = keyPairAlice.publicKey;
+        final bobPublicKey = keyPairBob.publicKey;
 
         // Alice encrypts for Bob
         final encryptedData = await keyPairAlice.encrypt(
@@ -140,11 +140,11 @@ void main() {
 
       test('decrypt should fail if wrong public key is provided (two-party)',
           () async {
-        final bobPublicKey = await keyPairBob.publicKey;
+        final bobPublicKey = keyPairBob.publicKey;
         // Create a third party (Eve)
         final eveNode = rootNode.derivePath("m/44'/60'/3'/0/0");
         final keyPairEve = Secp256k1KeyPair(node: eveNode);
-        final evePublicKey = await keyPairEve.publicKey;
+        final evePublicKey = keyPairEve.publicKey;
 
         // Alice encrypts for Bob
         final encryptedData = await keyPairAlice.encrypt(
@@ -165,8 +165,8 @@ void main() {
 
       test('decrypt should fail if wrong private key is used (two-party)',
           () async {
-        final alicePublicKey = await keyPairAlice.publicKey;
-        final bobPublicKey = await keyPairBob.publicKey;
+        final alicePublicKey = keyPairAlice.publicKey;
+        final bobPublicKey = keyPairBob.publicKey;
         // Create a third party (Eve)
         final eveNode = rootNode.derivePath("m/44'/60'/3'/0/0");
         final keyPairEve = Secp256k1KeyPair(node: eveNode);

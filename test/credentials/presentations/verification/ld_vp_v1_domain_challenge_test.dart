@@ -21,7 +21,7 @@ void main() async {
 
   group('VP LD V1 Domain Challenge Verification', () {
     final v1Vp = MutableVpDataModelV1(
-        context: [DMV1ContextUrl],
+        context: [dmV1ContextUrl],
         id: Uri.parse('testVpV1'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(signer.did),
@@ -37,7 +37,7 @@ void main() async {
               domain: ['fun.com'], challenge: 'test-challenge')
           .verify(issuedCredential);
       expect(verificationStatus.isValid, true);
-      expect(verificationStatus.errors, []);
+      expect(verificationStatus.errors, <String>[]);
     });
 
     test('should fail for invalid provided domain', () async {

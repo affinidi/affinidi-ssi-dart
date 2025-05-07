@@ -1,5 +1,4 @@
 import '../../../../ssi.dart';
-import '../models/parsed_vp.dart';
 
 /// Interface for verifying Verifiable Presentations (VPs).
 ///

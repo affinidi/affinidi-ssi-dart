@@ -28,9 +28,11 @@ abstract interface class _CredentialStatusV1Interface {
 /// ```
 class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
   /// The URL of optional unique identifier for the credential status object.
+  @override
   Uri? id;
 
   /// The schema type of credential status.
+  @override
   String? type;
 
   /// Creates a [MutableCredentialStatusV1] instance.

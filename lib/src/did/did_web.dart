@@ -6,7 +6,7 @@ import 'did_document/index.dart';
 
 /// Converts a `did:web` identifier into a [Uri] pointing to its DID document.
 Uri didWebToUri(String didWeb) {
-  String did = didWeb.replaceFirst('did:web:', '');
+  var did = didWeb.replaceFirst('did:web:', '');
   did = did.replaceAll(':', '/');
   did = did.replaceAll('%3A', ':');
   did = did.replaceAll('%2B', '/');
@@ -39,7 +39,7 @@ class DidWeb {
 
     var res = await get(didWebToUri(didToResolve),
             headers: {'Accept': 'application/json'})
-        .timeout(Duration(seconds: 30), onTimeout: () {
+        .timeout(const Duration(seconds: 30), onTimeout: () {
       return Response('Timeout', 408);
     });
 

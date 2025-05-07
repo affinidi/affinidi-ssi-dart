@@ -3,7 +3,10 @@ import '../../types.dart';
 
 /// Enum to distinguish how the key is stored.
 enum StoredKeyRepresentation {
+  /// The key is stored as raw private key bytes.
   privateKeyBytes,
+
+  /// The key is stored as a derivation path.
   derivationPath,
 }
 

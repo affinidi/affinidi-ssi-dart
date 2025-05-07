@@ -1,18 +1,17 @@
 import 'dart:typed_data';
 
+import 'package:cryptography/cryptography.dart' as crypto;
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:x25519/x25519.dart' as x25519;
-import 'package:cryptography/cryptography.dart' as crypto;
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../utility.dart';
+import './_encryption_utils.dart';
 import '_ecdh_utils.dart';
 import 'key_pair.dart';
-
-import './_encryption_utils.dart';
 import 'public_key.dart';
 
 /// A [KeyPair] implementation using the Ed25519 signature scheme.
@@ -141,12 +140,18 @@ class Ed25519KeyPair implements KeyPair {
   List<SignatureScheme> get supportedSignatureSchemes =>
       const [SignatureScheme.ed25519_sha256, SignatureScheme.eddsa_sha512];
 
+  /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
     // Generate a completely new ephemeral X25519 key pair
     final eKeyPair = x25519.generateKeyPair();
     return eKeyPair.publicKey;
   }
 
+  /// Computes the ECDH shared secret using the provided public key.
+  ///
+  /// [publicKey] - The public key to use for computing the shared secret.
+  ///
+  /// Returns a [Future] that completes with the shared secret as a [Uint8List].
   Future<Uint8List> computeEcdhSecret(List<int> publicKey) async {
     // Convert Ed25519 private key to X25519 private key
     // Ed25519 uses SHA-512 to derive the scalar and prefix from the seed
@@ -157,7 +162,7 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   @override
-  encrypt(Uint8List data, {Uint8List? publicKey}) async {
+  Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
     List<int> publicKeyToUse;
     if (publicKey == null) {
       publicKeyToUse = generateEphemeralPubKey();
@@ -181,7 +186,7 @@ class Ed25519KeyPair implements KeyPair {
 
     final derivedKeyBytes = await derivedKey.extractBytes();
 
-    Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
+    var symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
     final encryptedData = _encryptionUtils.encryptToBytes(symmetricKey, data);
 
@@ -189,7 +194,8 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   @override
-  decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
+  Future<Uint8List> decrypt(Uint8List ivAndBytes,
+      {Uint8List? publicKey}) async {
     // Extract the ephemeral public key and the encrypted data
     final ephemeralPublicKeyBytes =
         ivAndBytes.sublist(0, compressedPublidKeyLength);
@@ -217,7 +223,7 @@ class Ed25519KeyPair implements KeyPair {
 
     final derivedKeyBytes = await derivedKey.extractBytes();
 
-    Uint8List symmetricKey = Uint8List.fromList(derivedKeyBytes);
+    var symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
     final decryptedData =
         _encryptionUtils.decryptFromBytes(symmetricKey, encryptedData);
@@ -232,6 +238,7 @@ class Ed25519KeyPair implements KeyPair {
     return decryptedData;
   }
 
+  /// Converts the Ed25519 key to an X25519 public key.
   Future<crypto.SimplePublicKey> ed25519KeyToX25519PublicKey() async {
     // Convert Ed25519 private key to X25519 private key
     final seed = ed.seed(_privateKey);

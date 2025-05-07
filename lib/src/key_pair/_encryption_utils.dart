@@ -1,13 +1,21 @@
-import 'dart:typed_data';
+// ignore_for_file: implementation_imports
+
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart' as pce;
 import 'package:pointycastle/pointycastle.dart' as pc;
 import 'package:pointycastle/src/utils.dart' as p_utils;
 
+/// Utility class for encryption operations.
 class EncryptionUtils {
+  /// The length of the IV.
   final _ivLength = 16;
+
+  /// The block size in bytes.
   final _blockSizeBytes = 16;
+
+  /// The secure random generator.
   final _secureRandom = pce.FortunaRandom();
 
   void _initializeSecureRandomSeed() {
@@ -23,6 +31,7 @@ class EncryptionUtils {
     _initializeSecureRandomSeed();
   }
 
+  /// Decrypts data using AES CBC.
   Uint8List aesCbcDecrypt({
     required Uint8List key,
     required Uint8List iv,
@@ -57,6 +66,7 @@ class EncryptionUtils {
     return paddedPlainText;
   }
 
+  /// Encrypts data using AES CBC.
   Uint8List _aesCbcEncrypt({
     required Uint8List key,
     required Uint8List iv,
@@ -102,6 +112,7 @@ class EncryptionUtils {
     return cipherText;
   }
 
+  /// Encrypts data to bytes.
   Uint8List encryptToBytes(Uint8List key, Uint8List data) {
     // Started encrypting to bytes
     final iv = _secureRandom.nextBytes(_ivLength);
@@ -117,6 +128,7 @@ class EncryptionUtils {
     return Uint8List.fromList([...iv, ...bytes]);
   }
 
+  /// Decrypts data from bytes.
   Uint8List? decryptFromBytes(Uint8List key, Uint8List ivAndBytes) {
     // Started decrypting from bytes
     try {
@@ -137,6 +149,7 @@ class EncryptionUtils {
     }
   }
 
+  /// Pads the input bytes to the block size.
   Uint8List _pad(List<int> bytes, int blockSizeBytes) {
     // The PKCS #7 padding just fills the extra bytes with the same value.
     // That value is the number of bytes of padding there is.
@@ -152,16 +165,19 @@ class EncryptionUtils {
     return padded;
   }
 
+  /// Removes padding from the input bytes.
   Uint8List _unpad(Uint8List padded) {
     final unpadded =
         padded.sublist(0, padded.length - pce.PKCS7Padding().padCount(padded));
     return unpadded;
   }
 
+  /// Converts an unsigned [BigInt] to bytes.
   Uint8List unsignedIntToBytes(BigInt number) {
     assert(!number.isNegative);
     return p_utils.encodeBigIntAsUnsigned(number);
   }
 
+  /// Converts a [BigInt] to bytes.
   Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
 }

@@ -1,15 +1,14 @@
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/parsed_vc.dart';
-import '../models/verifiable_credential.dart';
 import 'vc_suites.dart';
 
 /// Entry point to all supported Verifiable Credential (VC) parsers.
 ///
-/// Attempts to automatically detect and parse the input [rawData]
-/// using the available VC suites registered in [VcSuites].
+/// Attempts to automatically detect and parse the input rawData
+/// using the available VC suites registered in VcSuites.
 final class UniversalParser {
-  /// Returns a [VerifiableCredential] instance.
+  /// Returns a [ParsedVerifiableCredential] instance.
   ///
   /// A [SsiException] may be thrown with the following error code:
   /// - **unableToParseVerifiableCredential**:

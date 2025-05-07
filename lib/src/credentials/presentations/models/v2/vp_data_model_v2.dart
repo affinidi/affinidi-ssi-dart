@@ -2,13 +2,7 @@ import 'dart:collection';
 
 import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
-import '../../../models/field_types/holder.dart';
-import '../../../models/field_types/terms_of_use.dart';
-import '../../../models/parsed_vc.dart';
-import '../../../models/v2/vc_data_model_v2.dart';
-import '../../../proof/embedded_proof.dart';
 import '../vc_parse_present.dart';
-import '../verifiable_presentation.dart';
 
 part 'mutable_vp_data_model_v2.dart';
 
@@ -81,7 +75,7 @@ class VpDataModelV2 implements VerifiablePresentation {
 
   /// Validates the essential Verifiable Presentation properties (`context`, `type`).
   ///
-  /// Ensures [context] is not empty and starts with [DMV2ContextUrl],
+  /// Ensures [context] is not empty and starts with [dmV2ContextUrl],
   /// and that [type] is not empty.
   ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
@@ -93,10 +87,10 @@ class VpDataModelV2 implements VerifiablePresentation {
       );
     }
 
-    if (context.first != DMV2ContextUrl) {
+    if (context.first != dmV2ContextUrl) {
       throw SsiException(
         message:
-            'The first URI of `${_P.context.key}` property should always be $DMV2ContextUrl',
+            'The first URI of `${_P.context.key}` property should always be $dmV2ContextUrl',
         code: SsiExceptionType.invalidJson.code,
       );
     }
@@ -191,6 +185,9 @@ class VpDataModelV2 implements VerifiablePresentation {
             proof: input.proof,
             termsOfUse: input.termsOfUse);
 
+  /// Creates a [VpDataModelV2] instance from a mutable model.
+  ///
+  /// The [data] is a mutable VP data model.
   factory VpDataModelV2.fromMutable(MutableVpDataModelV2 data) =>
       VpDataModelV2.fromJson(data.toJson());
 }

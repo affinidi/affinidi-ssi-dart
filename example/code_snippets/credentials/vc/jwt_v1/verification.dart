@@ -1,8 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'package:ssi/src/credentials/jwt/jwt_dm_v1_suite.dart';
-import 'package:ssi/src/credentials/verification/vc_expiry_verifier.dart';
-import 'package:ssi/src/credentials/verification/vc_integrity_verifier.dart';
 import 'package:ssi/ssi.dart';
 
 void main() async {

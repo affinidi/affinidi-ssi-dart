@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
 
 import 'package:ssi/ssi.dart';
-import 'package:ssi/src/credentials/verification/vc_expiry_verifier.dart';
 
 void main() async {
   // Parse the VC string into a VerifiableCredential object
@@ -16,12 +15,12 @@ void main() async {
   final result = await verifier.verify(verifiableCredential);
 
   // Print results
-  print("Is VC valid? ${result.isValid}");
+  print('Is VC valid? ${result.isValid}');
   if (!result.isValid) {
-    print("Errors: ${result.errors}");
+    print('Errors: ${result.errors}');
   }
   if (result.warnings.isNotEmpty) {
-    print("Warnings: ${result.warnings}");
+    print('Warnings: ${result.warnings}');
   }
 }
 

@@ -8,11 +8,16 @@ import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
 
+/// Supported multibase encodings.
 enum MultiBase {
+  /// Base58 encoding using the Bitcoin alphabet.
   base58bitcoin,
+
+  /// Base64 URL encoding without padding.
   base64UrlNoPad,
 }
 
+/// Converts a multibase string to a [Uint8List].
 Uint8List multiBaseToUint8List(String multibase) {
   if (multibase.isEmpty) {
     throw SsiException(
@@ -38,6 +43,7 @@ Uint8List multiBaseToUint8List(String multibase) {
   }
 }
 
+/// Converts bytes to a multibase string.
 String toMultiBase(
   Uint8List multibase, {
   MultiBase base = MultiBase.base58bitcoin,
@@ -51,8 +57,10 @@ String toMultiBase(
   }
 }
 
+/// Checks if the given string is a valid URI.
 bool isUri(String uri) => Uri.tryParse(uri) != null;
 
+/// Converts a multikey to a JWK map.
 Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
   final indicator = multikey.sublist(0, 2);
   final key = multikey.sublist(2);
@@ -61,7 +69,7 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
 
   // see https://www.w3.org/TR/cid-1.0/#Multikey for indicators
   // FIXME add validations for length
-  Map<String, dynamic> jwk = {};
+  var jwk = <String, dynamic>{};
   if (indicatorHex == 'ED01') {
     jwk['kty'] = 'OKP';
     jwk['crv'] = 'Ed25519';
@@ -107,6 +115,7 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
   return jwk;
 }
 
+/// Converts a JWK map to a multikey.
 Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
   final crv = jwk['crv'];
 
@@ -171,17 +180,16 @@ Uint8List _ecJwkToMultiKey({
   );
 }
 
-/// Returns a decoded varint staring at the first byte of [varint] and the
-/// number of bytes read.
+/// Returns a decoded varint staring at the first byte of [varint] and the number of bytes read.
 (Uint8List decoded, int readBytes) decodeVarint(
   Uint8List varint, {
   int start = 0,
 }) {
   if (varint.isEmpty || start >= varint.length) {
-    throw FormatException('Empty input');
+    throw const FormatException('Empty input');
   }
 
-  Map<int, int> masks = {
+  var masks = <int, int>{
     7: 0x01,
     6: 0x03,
     5: 0x07,
@@ -191,13 +199,13 @@ Uint8List _ecJwkToMultiKey({
     1: 0x7F,
   };
 
-  List<int> intValue = [];
+  var intValue = <int>[];
 
-  int i = start + 1;
-  int leftOver = varint[start] & 0x7F;
-  int leftOverLen = 7;
+  var i = start + 1;
+  var leftOver = varint[start] & 0x7F;
+  var leftOverLen = 7;
 
-  bool hasNext = (varint[start] & 0x80) > 0;
+  var hasNext = (varint[start] & 0x80) > 0;
   while (hasNext && i < varint.length) {
     final packedByte = varint[i] & 0x7F;
 
@@ -231,37 +239,56 @@ Uint8List _ecJwkToMultiKey({
   return (Uint8List.fromList(intValue), readBytes);
 }
 
+/// Supported multikey indicators.
 enum MultiKeyIndicator {
+  /// Indicator for X25519 keys.
   x25519(KeyType.x25519, [0xEC, 0x01]),
+
+  /// Indicator for Ed25519 keys.
   ed25519(KeyType.ed25519, [0xED, 0x01]),
+
+  /// Indicator for secp256k1 keys.
   secp256k1(KeyType.secp256k1, [0xE7, 0x01]),
+
+  /// Indicator for P-256 keys.
   p256(KeyType.p256, [0x80, 0x24]),
+
+  /// Indicator for P-384 keys.
   p384(KeyType.p384, [0x81, 0x24]),
+
+  /// Indicator for P-521 keys.
   p521(KeyType.p521, [0x82, 0x24]);
 
+  /// The indicator bytes for the key type.
   final List<int> indicator;
+
+  /// The key type.
   final KeyType keyType;
 
+  /// Creates a [MultiKeyIndicator] instance.
   const MultiKeyIndicator(this.keyType, this.indicator);
 }
 
+/// Returns a map of [KeyType] to [MultiKeyIndicator].
 final Map<KeyType, MultiKeyIndicator> keyIndicators = _initKeyIndicatorsMap();
 
+/// Initializes the map of [KeyType] to [MultiKeyIndicator].
 Map<KeyType, MultiKeyIndicator> _initKeyIndicatorsMap() {
-  final Map<KeyType, MultiKeyIndicator> map = {};
+  final map = <KeyType, MultiKeyIndicator>{};
   for (final keyIndicator in MultiKeyIndicator.values) {
     map[keyIndicator.keyType] = keyIndicator;
   }
   return map;
 }
 
+/// Converts a public key and key type to a multikey [Uint8List].
 Uint8List toMultikey(
   Uint8List pubKeyBytes,
   KeyType keyType,
 ) {
   if (!keyIndicators.containsKey(keyType)) {
     throw SsiException(
-      message: "toMultikey: $keyType not supported",
+      message: 'toMultikey: $keyType not supported',
       code: SsiExceptionType.invalidKeyType.code,
     );
   }
@@ -269,15 +296,17 @@ Uint8List toMultikey(
   return Uint8List.fromList([...indicator.indicator, ...pubKeyBytes]);
 }
 
+/// The value 256 as a [BigInt].
 final b256 = BigInt.from(256);
 
+/// Encodes a [BigInt] to a [Uint8List].
 Uint8List encodeBigInt(BigInt number) {
   // see https://github.com/dart-lang/sdk/issues/32803
   // Not handling negative numbers. Decide how you want to do that.
-  int bytes = (number.bitLength + 7) >> 3;
+  var bytes = (number.bitLength + 7) >> 3;
 
   final result = Uint8List(bytes);
-  for (int i = 0; i < bytes; i++) {
+  for (var i = 0; i < bytes; i++) {
     result[bytes - 1 - i] = number.remainder(b256).toInt();
     number = number >> 8;
   }
@@ -285,9 +314,10 @@ Uint8List encodeBigInt(BigInt number) {
   return result;
 }
 
+/// Decodes a [Uint8List] to a [BigInt].
 BigInt decodeBigInt(Uint8List bytes) {
   // see https://github.com/dart-lang/sdk/issues/32803
-  BigInt result = BigInt.zero;
+  var result = BigInt.zero;
 
   for (final byte in bytes) {
     // reading in big-endian, so we essentially concat the new byte to the end
