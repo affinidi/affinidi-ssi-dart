@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
-import '../../ssi.dart';
+import '../exceptions/ssi_exception.dart';
+import '../types.dart';
+import 'public_key.dart';
 
 /// An abstract interface for cryptographic key pairs used for signing and verifying data.
 abstract interface class KeyPair {

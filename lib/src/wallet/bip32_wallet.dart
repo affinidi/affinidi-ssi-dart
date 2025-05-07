@@ -201,7 +201,7 @@ class Bip32Wallet implements DeterministicWallet {
     Uint8List? publicKey,
   }) async {
     final keyPair = await getKeyPair(keyId);
-    return await keyPair.decrypt(data, publicKey: publicKey);
+    return keyPair.decrypt(data, publicKey: publicKey);
   }
 
   @override
