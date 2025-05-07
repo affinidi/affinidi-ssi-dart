@@ -195,6 +195,7 @@ class PersistentWallet implements Wallet {
     return keyPair;
   }
 
+  /// Clears the runtime cache.
   void clearCache() {
     _runtimeCache.clear();
   }

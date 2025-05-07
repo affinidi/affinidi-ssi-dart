@@ -3,17 +3,23 @@ import 'dart:convert';
 import '../../types.dart';
 import '../../util/json_util.dart';
 
+/// Represents a DIDComm service endpoint.
 class DIDCommServiceEndpoint {
+  /// The list of accepted media types.
   final List<String> accept;
+  /// The list of routing keys.
   final List<String> routingKeys;
+  /// The URI of the service endpoint.
   final String uri;
 
+  /// Creates a [DIDCommServiceEndpoint] instance.
   DIDCommServiceEndpoint({
     required this.accept,
     required this.routingKeys,
     required this.uri,
   });
 
+  /// Creates a [DIDCommServiceEndpoint] from JSON input.
   factory DIDCommServiceEndpoint.fromJson(Map<String, dynamic> json) {
     return DIDCommServiceEndpoint(
       accept: (json['accept'] as List).cast<String>(),
@@ -22,6 +28,7 @@ class DIDCommServiceEndpoint {
     );
   }
 
+  /// Converts this service endpoint to a JSON-serializable map.
   Map<String, dynamic> toJson() => {
         'accept': accept,
         'routingKeys': routingKeys,
@@ -29,19 +36,25 @@ class DIDCommServiceEndpoint {
       };
 }
 
+/// Represents a service endpoint in a DID Document.
 class ServiceEndpoint implements JsonObject {
+  /// The identifier of the service endpoint.
   late String id;
+  /// The type of the service endpoint.
   late String type;
+  /// The list of DIDComm service endpoints.
   late List<DIDCommServiceEndpoint> serviceEndpoint;
   String? _originalStringEndpoint;
   Map<String, dynamic>? _originalMapEndpoint;
 
+  /// Creates a [ServiceEndpoint] instance.
   ServiceEndpoint({
     required this.id,
     required this.type,
     required this.serviceEndpoint,
   });
 
+  /// Creates a [ServiceEndpoint] from JSON input.
   ServiceEndpoint.fromJson(dynamic jsonObject) {
     final se = jsonToMap(jsonObject);
     if (se.containsKey('id')) {
@@ -81,6 +94,7 @@ class ServiceEndpoint implements JsonObject {
     }
   }
 
+  /// Converts this service endpoint to a JSON-serializable map.
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> jsonObject = {};
@@ -99,6 +113,7 @@ class ServiceEndpoint implements JsonObject {
     return jsonObject;
   }
 
+  /// Returns the JSON string representation of the service endpoint.
   @override
   String toString() {
     return jsonEncode(toJson());

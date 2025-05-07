@@ -38,10 +38,11 @@ enum Numalgo2Prefix {
   const Numalgo2Prefix(this.value);
 }
 
+/// Regular expression pattern for matching peer DIDs.
 final RegExp peerDIDPattern = RegExp(
     r'^did:peer:((0(z)[1-9a-km-zA-HJ-NP-Z]+)|(2(\.[AEVID](z)[1-9a-km-zA-HJ-NP-Z]+)+)+(\.(S)[0-9a-zA-Z]*)?)');
 
-/// Validates if a given string matches the peer DID.
+/// Validates if a given string matches the peer DID pattern.
 ///
 /// [peerDID] - The string to validate.
 ///

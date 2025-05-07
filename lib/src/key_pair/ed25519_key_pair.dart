@@ -141,12 +141,18 @@ class Ed25519KeyPair implements KeyPair {
   List<SignatureScheme> get supportedSignatureSchemes =>
       const [SignatureScheme.ed25519_sha256, SignatureScheme.eddsa_sha512];
 
+  /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
     // Generate a completely new ephemeral X25519 key pair
     final eKeyPair = x25519.generateKeyPair();
     return eKeyPair.publicKey;
   }
 
+  /// Computes the ECDH shared secret using the provided public key.
+  ///
+  /// [publicKey] - The public key to use for computing the shared secret.
+  ///
+  /// Returns a [Future] that completes with the shared secret as a [Uint8List].
   Future<Uint8List> computeEcdhSecret(List<int> publicKey) async {
     // Convert Ed25519 private key to X25519 private key
     // Ed25519 uses SHA-512 to derive the scalar and prefix from the seed
@@ -232,6 +238,7 @@ class Ed25519KeyPair implements KeyPair {
     return decryptedData;
   }
 
+  /// Converts the Ed25519 key to an X25519 public key.
   Future<crypto.SimplePublicKey> ed25519KeyToX25519PublicKey() async {
     // Convert Ed25519 private key to X25519 private key
     final seed = ed.seed(_privateKey);

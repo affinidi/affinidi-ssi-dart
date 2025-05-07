@@ -258,6 +258,7 @@ class Bip32Ed25519Wallet implements DeterministicWallet {
     return keyPair;
   }
 
+  /// Clears the runtime cache and cached seed.
   void clearCache() {
     _runtimeCache.clear();
     _cachedSeed = null;

@@ -66,5 +66,6 @@ enum SsiExceptionType {
 
   const SsiExceptionType({required this.code});
 
+  /// The code for this exception type.
   final String code;
 }

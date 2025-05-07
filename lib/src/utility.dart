@@ -28,6 +28,9 @@ String ed25519PublicToX25519Public(List<int> ed25519Public) {
   return base58Bitcoin.encode(Uint8List.fromList(xMultiCodec + dst));
 }
 
+/// Generates a random identifier as a hexadecimal string.
+///
+/// Returns a 32-character string consisting of random hexadecimal digits.
 String randomId() {
   final rnd = Random.secure();
   return List.generate(32, (idx) => rnd.nextInt(16).toRadixString(16)).join();

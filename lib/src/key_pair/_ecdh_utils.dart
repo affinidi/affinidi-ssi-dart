@@ -10,23 +10,33 @@ import '../exceptions/ssi_exception_type.dart';
 import './_encryption_utils.dart';
 import './_key_pair_utils.dart';
 
+/// The length of a full public key.
 const fullPublicKeyLength = 64;
+
+/// The length of a compressed public key.
 const compressedPublidKeyLength = 32;
+
+/// A static nonce used for HKDF key derivation.
 final staticHkdNonce = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
+
+/// The encryption utils instance.
 final encryptionUtils = EncryptionUtils();
 
+/// Generates an ephemeral public key for the given curve.
 PublicKey generateEphemeralPubKey(Curve curve) {
   final privateKey = generateValidPrivateKey(() => curve.generatePrivateKey());
 
   return curve.privateToPublicKey(privateKey);
 }
 
+/// Computes the ECDH shared secret.
 Future<Uint8List> computeEcdhSecret(
     PrivateKey privateKey, PublicKey publicKey) async {
   final secret = computeSecret(privateKey, publicKey);
   return Uint8List.fromList(secret);
 }
 
+/// Encrypts data using ECDH and AES-GCM.
 Future<Uint8List> encryptData({
   required Uint8List data,
   required Uint8List privateKeyBytes,
@@ -70,6 +80,7 @@ Future<Uint8List> encryptData({
   return Uint8List.fromList(publicKeyToUseBytes + encryptedData);
 }
 
+/// Decrypts data using ECDH and AES-GCM.
 Future<Uint8List> decryptData({
   required Uint8List encryptedPackage,
   required Uint8List privateKeyBytes,

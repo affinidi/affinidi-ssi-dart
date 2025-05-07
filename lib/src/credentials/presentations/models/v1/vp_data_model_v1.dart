@@ -170,6 +170,9 @@ class VpDataModelV1 implements VerifiablePresentation {
             verifiableCredential: input.verifiableCredential,
             proof: input.proof);
 
+  /// Creates a [VpDataModelV1] instance from a mutable model.
+  ///
+  /// The [data] is a mutable VP data model.
   factory VpDataModelV1.fromMutable(MutableVpDataModelV1 data) =>
       VpDataModelV1.fromJson(data.toJson());
 }

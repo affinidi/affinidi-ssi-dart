@@ -11,6 +11,10 @@ import '../types.dart';
 import 'did_document/index.dart';
 import 'universal_did_resolver.dart';
 
+/// A verifier for DID documents.
+///
+/// This class provides methods to verify signatures using a specified signature scheme
+/// and a JSON Web Key (JWK) containing public key information.
 class DidVerifier implements Verifier {
   /// The signature scheme to use for verification.
   final SignatureScheme _algorithm;
@@ -21,6 +25,7 @@ class DidVerifier implements Verifier {
   /// The JSON Web Key (JWK) containing the public key information.
   final Map<String, dynamic> _jwk;
 
+  /// Creates a [DidVerifier] instance with the specified algorithm, key ID, and JWK.
   DidVerifier._(this._algorithm, this._kId, this._jwk);
 
   /// Creates a new [DidVerifier] instance.
