@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:bip32/bip32.dart' as bip32;
+import 'package:bip32_plus/bip32_plus.dart' as bip32;
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 

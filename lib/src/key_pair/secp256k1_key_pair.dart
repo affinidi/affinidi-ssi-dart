@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:bip32/bip32.dart';
+import 'package:bip32_plus/bip32_plus.dart';
 import 'package:elliptic/elliptic.dart' as ec;
 
 import '../digest_utils.dart';
