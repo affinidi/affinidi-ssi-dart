@@ -18,7 +18,7 @@ dependencies:
   jose_plus: ^0.4.7
   json_ld_processor: ^1.0.4
   pointycastle: ^4.0.0
-  selective_disclosure_jwt: ^1.0.2
+  selective_disclosure_jwt: ^1.0.3
   x25519: ^0.1.1
 
 dev_dependencies:
