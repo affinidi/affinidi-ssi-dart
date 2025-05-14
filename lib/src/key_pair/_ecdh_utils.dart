@@ -24,7 +24,7 @@ final encryptionUtils = EncryptionUtils();
 
 /// Generates an ephemeral public key for the given curve.
 PublicKey generateEphemeralPubKey(Curve curve) {
-  final privateKey = generateValidPrivateKey(() => curve.generatePrivateKey());
+  final privateKey = curve.generatePrivateKey();
 
   return curve.privateToPublicKey(privateKey);
 }
