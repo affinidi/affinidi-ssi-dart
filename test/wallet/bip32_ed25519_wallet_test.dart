@@ -17,7 +17,7 @@ void main() {
     late Bip32Ed25519Wallet wallet;
 
     setUp(() async {
-      wallet = await Bip32Ed25519Wallet.fromSeed(seed);
+      wallet = Bip32Ed25519Wallet.fromSeed(seed);
     });
 
     test('generateKey should derive a new Ed25519 key pair using keyId as path',
@@ -168,7 +168,7 @@ void main() {
       final key1 = await wallet.generateKey(keyId: derivationPath1);
 
       // Create a new wallet instance with the same seed
-      final wallet2 = await Bip32Ed25519Wallet.fromSeed(seed);
+      final wallet2 = Bip32Ed25519Wallet.fromSeed(seed);
       // Derive the same key path
       final key2 = await wallet2
           .getPublicKey(derivationPath1); // Use getPublicKey to derive
@@ -179,7 +179,7 @@ void main() {
     test('Derived keys should be consistent', () async {
       final key1 = await wallet.generateKey(keyId: derivationPath1);
 
-      final wallet2 = await Bip32Ed25519Wallet.fromSeed(seed);
+      final wallet2 = Bip32Ed25519Wallet.fromSeed(seed);
       final key2 = await wallet2.generateKey(keyId: derivationPath1);
 
       expect(key1.publicKey.bytes, equals(key2.publicKey.bytes));
@@ -216,35 +216,6 @@ void main() {
     });
   });
 
-  group('Bip32Ed25519Wallet from SeedStore', () {
-    late InMemorySeedStore seedStore;
-
-    setUp(() {
-      seedStore = InMemorySeedStore();
-    });
-
-    test('fromSeedStore successfully creates wallet', () async {
-      await seedStore.setSeed(seed);
-      final ksWallet =
-          await Bip32Ed25519Wallet.fromSeedStore(seedStore: seedStore);
-      final key = await ksWallet.generateKey(keyId: derivationPath1);
-      expect(key.publicKey.type, KeyType.ed25519);
-      expect(await seedStore.getSeed(), seed);
-    });
-
-    test('fromSeedStore throws SsiException if seed key is missing', () async {
-      expect(
-        () async =>
-            await Bip32Ed25519Wallet.fromSeedStore(seedStore: seedStore),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('Seed not found in SeedStore'),
-        )),
-      );
-    });
-  });
-
   group('Bip32Ed25519Wallet Encryption/Decryption', () {
     late Bip32Ed25519Wallet aliceWallet;
     late Bip32Ed25519Wallet bobWallet;
@@ -259,8 +230,8 @@ void main() {
     late KeyPair bobKey;
 
     setUp(() async {
-      aliceWallet = await Bip32Ed25519Wallet.fromSeed(aliceSeed);
-      bobWallet = await Bip32Ed25519Wallet.fromSeed(bobSeed);
+      aliceWallet = Bip32Ed25519Wallet.fromSeed(aliceSeed);
+      bobWallet = Bip32Ed25519Wallet.fromSeed(bobSeed);
       aliceKey = await aliceWallet.generateKey(keyId: alicePath);
       bobKey = await bobWallet.generateKey(keyId: bobPath);
     });
@@ -314,7 +285,7 @@ void main() {
           await bobWallet.getX25519PublicKey(bobKey.id);
 
       // Generate a third party key
-      final eveWallet = await Bip32Ed25519Wallet.fromSeed(
+      final eveWallet = Bip32Ed25519Wallet.fromSeed(
           Uint8List.fromList(List.generate(32, (i) => i + 30)));
       const evePath = "m/44'/1'/2'/0'/0'";
       // Generate Eve's key

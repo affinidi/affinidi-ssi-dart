@@ -8,7 +8,6 @@ import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
-import 'stores/seed_store_interface.dart';
 import 'wallet.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with Ed25519 keys.
@@ -17,68 +16,21 @@ import 'wallet.dart';
 /// It supports signing and verifying messages using Ed25519 signature scheme,
 /// and ecrypting/decrypting payloads.
 class Bip32Ed25519Wallet implements Wallet {
-  final SeedStore? _seedStore;
   // Runtime cache for derived KeyPair objects
   final Map<String, Ed25519KeyPair> _runtimeCache =
       {}; // Keyed by keyId which is equivalent to derivation path
-  // Cache for the seed to avoid repeated KeyStore lookups
-  Uint8List? _cachedSeed;
+  // Seed used for BIP32 derivation
+  final Uint8List _seed;
 
-  /// Creates a new [Bip32Ed25519Wallet] instance backed by a [SeedStore].
-  /// Use the factory constructors `fromSeed` or `fromSeedStore` for typical instantiation.
-  ///
-  /// [_seedStore] - The KeyStore used to persist key derivation paths and the master seed.
-  Bip32Ed25519Wallet._(this._seedStore);
+  /// Creates a new [Bip32Ed25519Wallet] instance.
+  /// Use the factory constructor `fromSeed` for typical instantiation.
+  Bip32Ed25519Wallet._(this._seed);
 
-  /// Creates a new [Bip32Ed25519Wallet] using the provided seed and stores
-  /// the seed in the [seedStore]. Overwrites existing seed.
-  ///
-  /// If no [seedStore] is provided the seed will not be persisted beyond the lifetime of
-  /// this wallet instance.
+  /// Creates a new [Bip32Ed25519Wallet] using the provided seed.
   ///
   /// [seed] - The master seed bytes.
-  /// [seedStore] - An optional SeedStore to persist the seed.
-  static Future<Bip32Ed25519Wallet> fromSeed(
-    Uint8List seed, {
-    SeedStore? seedStore,
-  }) async {
-    if (seedStore != null) {
-      await seedStore.setSeed(seed);
-    }
-    final wallet = Bip32Ed25519Wallet._(seedStore);
-    wallet._cachedSeed = seed;
-    return wallet;
-  }
-
-  /// Creates a new [Bip32Ed25519Wallet] from an existing [SeedStore].
-  /// Throws if the seed is not found in the SeedStore.
-  ///
-  /// [seedStore] - The SeedStore containing the master seed.
-  static Future<Bip32Ed25519Wallet> fromSeedStore({
-    required SeedStore seedStore,
-  }) async {
-    final seed = await seedStore.getSeed();
-    if (seed == null) {
-      throw SsiException(
-          message:
-              'Seed not found in SeedStore. Cannot create Bip32Ed25519Wallet from this SeedStore.',
-          code: SsiExceptionType.seedNotFound.code);
-    }
-    final wallet = Bip32Ed25519Wallet._(seedStore);
-    wallet._cachedSeed = seed;
-    return wallet;
-  }
-
-  Future<Uint8List> _getSeed() async {
-    if (_cachedSeed != null) return _cachedSeed!;
-    final seed = await _seedStore?.getSeed();
-    if (seed == null) {
-      throw SsiException(
-          message: 'Seed not found in SeedStore during operation.',
-          code: SsiExceptionType.seedNotFound.code);
-    }
-    _cachedSeed = seed;
-    return seed;
+  static Bip32Ed25519Wallet fromSeed(Uint8List seed) {
+    return Bip32Ed25519Wallet._(seed);
   }
 
   @override
@@ -184,8 +136,7 @@ class Bip32Ed25519Wallet implements Wallet {
       return _runtimeCache[keyId]!;
     }
 
-    final seed = await _getSeed();
-    final derivedData = await ED25519_HD_KEY.derivePath(keyId, seed);
+    final derivedData = await ED25519_HD_KEY.derivePath(keyId, _seed);
     final keyPair =
         Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
 
@@ -193,9 +144,8 @@ class Bip32Ed25519Wallet implements Wallet {
     return keyPair;
   }
 
-  /// Clears the runtime cache and cached seed.
+  /// Clears the runtime cache.
   void clearCache() {
     _runtimeCache.clear();
-    _cachedSeed = null;
   }
 }

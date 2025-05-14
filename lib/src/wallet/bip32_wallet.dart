@@ -8,7 +8,6 @@ import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../key_pair/secp256k1_key_pair.dart';
 import '../types.dart';
-import 'stores/seed_store_interface.dart';
 import 'wallet.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with secp256k1 keys.
@@ -17,78 +16,31 @@ import 'wallet.dart';
 /// It supports signing and verifying messages using secp256k1 signature scheme,
 /// and ecrypting/decrypting payloads.
 class Bip32Wallet implements Wallet {
-  final SeedStore? _seedStore;
   // Runtime cache for derived KeyPair objects
   final Map<String, Secp256k1KeyPair> _runtimeCache =
       {}; // Keyed by keyId which is equivalent to derivation path
-  // Cache for the root node to avoid repeated SeedStore lookups and BIP32 derivation
-  BIP32? _cachedRootNode;
+  // Root node derived from seed and used for BIP32 derivation
+  final BIP32 _rootNode;
 
-  /// Creates a new [Bip32Wallet] instance backed by a [SeedStore].
-  /// Use the factory constructors `fromSeed` or `fromSeedStore` for typical instantiation.
-  ///
-  /// [_seedStore] - The KeyStore used to persist key derivation paths and the master seed.
-  Bip32Wallet._(this._seedStore);
+  /// Creates a new [Bip32Wallet] instance.
+  /// Use the factory constructor `fromSeed` for typical instantiation.
+  Bip32Wallet._(this._rootNode);
 
-  /// Creates a new [Bip32Wallet] using the provided seed and stores
-  /// the seed in the [seedStore]. Overwrites existing seed.
-  ///
-  /// If no [seedStore] is provided the seed will not be persisted beyond the lifetime of
-  /// this wallet instance.
+  /// Creates a new [Bip32Wallet] using the provided seed.
   ///
   /// [seed] - The master seed bytes. Must be 16, 32, or 64 bytes.
-  /// [seedStore] - An optional SeedStore to persist the seed.
-  static Future<Bip32Wallet> fromSeed(
-    Uint8List seed, {
-    SeedStore? seedStore,
-  }) async {
+  static Bip32Wallet fromSeed(Uint8List seed) {
     if (seed.length != 16 && seed.length != 32 && seed.length != 64) {
       throw ArgumentError('BIP32 seed length must be 16, 32, or 64 bytes.');
     }
-    if (seedStore != null) {
-      await seedStore.setSeed(seed);
-    }
-    final wallet = Bip32Wallet._(seedStore);
-    wallet._cachedRootNode = BIP32.fromSeed(seed);
-    return wallet;
-  }
-
-  /// Creates a new [Bip32Wallet] from an existing [SeedStore].
-  /// Throws if the seed is not found in the SeedStore.
-  ///
-  /// [seedStore] - The SeedStore containing the master seed.
-  static Future<Bip32Wallet> fromSeedStore({
-    required SeedStore seedStore,
-  }) async {
-    final seed = await seedStore.getSeed();
-    if (seed == null) {
-      throw SsiException(
-          message:
-              'Seed not found in SeedStore. Cannot create Bip32Wallet from this SeedStore.',
-          code: SsiExceptionType.seedNotFound.code);
-    }
-    final wallet = Bip32Wallet._(seedStore);
-    wallet._cachedRootNode = BIP32.fromSeed(seed);
-    return wallet;
-  }
-
-  Future<BIP32> _getRootNode() async {
-    if (_cachedRootNode != null) return _cachedRootNode!;
-    final seed = await _seedStore?.getSeed();
-    if (seed == null) {
-      throw SsiException(
-          message:
-              'Root node not cached and seed not found in SeedStore during operation.',
-          code: SsiExceptionType.seedNotFound.code);
-    }
-    _cachedRootNode = BIP32.fromSeed(seed);
-    return _cachedRootNode!;
+    final node = BIP32.fromSeed(seed);
+    return Bip32Wallet._(node);
   }
 
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
       String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = _getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
 
@@ -98,7 +50,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = _getKeyPair(keyId);
     return keyPair.sign(data, signatureScheme: signatureScheme);
   }
 
@@ -109,7 +61,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     SignatureScheme? signatureScheme,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = _getKeyPair(keyId);
     return keyPair.verify(
       data,
       signature,
@@ -145,7 +97,7 @@ class Bip32Wallet implements Wallet {
 
   @override
   Future<PublicKey> getPublicKey(String keyId) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = _getKeyPair(keyId);
     final keyData = keyPair.publicKey;
     return PublicKey(keyData.id, keyData.bytes, keyData.type);
   }
@@ -156,7 +108,7 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = _getKeyPair(keyId);
     return keyPair.encrypt(data, publicKey: publicKey);
   }
 
@@ -166,26 +118,24 @@ class Bip32Wallet implements Wallet {
     required String keyId,
     Uint8List? publicKey,
   }) async {
-    final keyPair = await _getKeyPair(keyId);
+    final keyPair = _getKeyPair(keyId);
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  Future<Secp256k1KeyPair> _getKeyPair(String keyId) async {
+  Secp256k1KeyPair _getKeyPair(String keyId) {
     if (_runtimeCache.containsKey(keyId)) {
       return _runtimeCache[keyId]!;
     }
 
-    final rootNode = await _getRootNode();
-    final derivedNode = rootNode.derivePath(keyId);
+    final derivedNode = _rootNode.derivePath(keyId);
     final keyPair = Secp256k1KeyPair(node: derivedNode, id: keyId);
 
     _runtimeCache[keyId] = keyPair;
     return keyPair;
   }
 
-  /// Clears the runtime cache and cached seed.
+  /// Clears the runtime cache.
   void clearCache() {
     _runtimeCache.clear();
-    _cachedRootNode = null;
   }
 }

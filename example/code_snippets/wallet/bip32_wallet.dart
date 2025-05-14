@@ -10,7 +10,7 @@ void main() async {
 
   print('\n--- Bip32 Wallet Operations (Secp256k1) ---');
 
-  final wallet = await Bip32Wallet.fromSeed(seed);
+  final wallet = Bip32Wallet.fromSeed(seed);
   print('Bip32 wallet created from seed.');
 
   // Use a standard BIP44 path for the first account
@@ -93,7 +93,7 @@ void main() async {
     'b2883c25545589203b66fc5e6f5a04878cc1078311be19525b10d87897fe3ddf', // Different seed for Bob
   );
   // Create KeyStore for Bob
-  final bobWallet = await Bip32Wallet.fromSeed(bobSeed);
+  final bobWallet = Bip32Wallet.fromSeed(bobSeed);
 
   // Derive a key pair for Bob
   const bobDerivationPath = "m/44'/0'/0'/0/0";

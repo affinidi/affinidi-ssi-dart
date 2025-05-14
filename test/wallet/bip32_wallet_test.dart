@@ -16,7 +16,7 @@ void main() {
     late Bip32Wallet wallet;
 
     setUp(() async {
-      wallet = await Bip32Wallet.fromSeed(seed);
+      wallet = Bip32Wallet.fromSeed(seed);
     });
 
     test(
@@ -143,7 +143,7 @@ void main() {
       final key1 = await wallet.generateKey(keyId: derivationPath1);
 
       // Create a new wallet instance with the same seed
-      final wallet2 = await Bip32Wallet.fromSeed(seed);
+      final wallet2 = Bip32Wallet.fromSeed(seed);
       // Derive the same key path
       final key2 = await wallet2.getPublicKey(derivationPath1);
 
@@ -153,7 +153,7 @@ void main() {
     test('Derived keys should be consistent', () async {
       final key1 = await wallet.generateKey(keyId: derivationPath1);
 
-      final wallet2 = await Bip32Wallet.fromSeed(seed);
+      final wallet2 = Bip32Wallet.fromSeed(seed);
       final key2 = await wallet2.generateKey(keyId: derivationPath1);
 
       expect(key1.publicKey.bytes, equals(key2.publicKey.bytes));
@@ -188,34 +188,6 @@ void main() {
     });
   });
 
-  group('Bip32Wallet (Secp256k1) from SeedStore', () {
-    late InMemorySeedStore seedStore;
-
-    setUp(() {
-      seedStore = InMemorySeedStore();
-    });
-
-    test('fromSeedStore successfully creates wallet', () async {
-      await seedStore.setSeed(seed);
-      final ksWallet = await Bip32Wallet.fromSeedStore(seedStore: seedStore);
-      final key = await ksWallet.generateKey(keyId: derivationPath1);
-      expect(key.publicKey.type, KeyType.secp256k1);
-
-      expect(await seedStore.getSeed(), seed);
-    });
-
-    test('fromSeedStore throws SsiException if seed key is missing', () async {
-      expect(
-        () async => await Bip32Wallet.fromSeedStore(seedStore: seedStore),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('Seed not found in SeedStore'),
-        )),
-      );
-    });
-  });
-
   group('Bip32Wallet (Secp256k1) Encryption/Decryption', () {
     late Bip32Wallet aliceWallet;
     late Bip32Wallet bobWallet;
@@ -230,8 +202,8 @@ void main() {
     late KeyPair bobKey;
 
     setUp(() async {
-      aliceWallet = await Bip32Wallet.fromSeed(aliceSeed);
-      bobWallet = await Bip32Wallet.fromSeed(bobSeed);
+      aliceWallet = Bip32Wallet.fromSeed(aliceSeed);
+      bobWallet = Bip32Wallet.fromSeed(bobSeed);
       aliceKey = await aliceWallet.generateKey(keyId: alicePath);
       bobKey = await bobWallet.generateKey(keyId: bobPath);
     });
@@ -276,7 +248,7 @@ void main() {
     test('Decrypt should fail if wrong public key is provided (two-party)',
         () async {
       // Generate a third party key
-      final eveWallet = await Bip32Wallet.fromSeed(
+      final eveWallet = Bip32Wallet.fromSeed(
           Uint8List.fromList(List.generate(32, (i) => i + 50)));
       const evePath = "m/44'/60'/2'/0/0";
       // Generate Eve's key

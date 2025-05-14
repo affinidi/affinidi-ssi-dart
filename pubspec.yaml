@@ -25,7 +25,7 @@ dev_dependencies:
   aws_kms_api: ^2.0.0
   aws_signature_v4: ^0.6.4
   coverage: ^1.11.1
-  dart_flutter_team_lints: ^3.5.1
+  dart_flutter_team_lints: ^3.2.1
   jwt_decoder: ^2.0.1
   melos: ^6.3.2
   shared_aws_api: ^2.0.2

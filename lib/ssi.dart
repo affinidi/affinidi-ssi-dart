@@ -24,8 +24,6 @@ export 'src/wallet/bip32_ed25519_wallet.dart';
 export 'src/wallet/bip32_wallet.dart';
 export 'src/wallet/persistent_wallet.dart';
 export 'src/wallet/stores/in_memory_key_store.dart';
-export 'src/wallet/stores/in_memory_seed_store.dart';
 export 'src/wallet/stores/key_store_interface.dart';
-export 'src/wallet/stores/seed_store_interface.dart';
 export 'src/wallet/stores/stored_key.dart';
 export 'src/wallet/wallet.dart';

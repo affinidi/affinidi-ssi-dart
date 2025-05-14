@@ -117,7 +117,7 @@ void main() async {
     'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
   );
 
-  final wallet = Bip32Wallet.fromSeed(seed);
+  final wallet = Bip32Wallet(seed);
 
   // from wallet with root key
   print("Signing and verifying from root key");

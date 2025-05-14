@@ -19,7 +19,7 @@ void main() {
     late PublicKey accountPublicKey;
 
     setUp(() async {
-      wallet = await Bip32Wallet.fromSeed(seed);
+      wallet = Bip32Wallet.fromSeed(seed);
       accountPublicKey =
           (await wallet.generateKey(keyId: "m/44'/60'/0'/0/0")).publicKey;
     });
