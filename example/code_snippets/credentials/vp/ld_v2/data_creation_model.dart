@@ -3,8 +3,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ssi/src/credentials/models/field_types/holder.dart';
-import 'package:ssi/src/credentials/presentations/models/v2/vp_data_model_v2.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../did/did_signer.dart';

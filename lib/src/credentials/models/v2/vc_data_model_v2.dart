@@ -128,7 +128,7 @@ class VcDataModelV2 implements VerifiableCredential {
 
   /// Validates the essential Verifiable Credential properties (`context`, `type`, `credentialSubject`).
   ///
-  /// Ensures [context] is not empty and starts with [DMV2ContextUrl],
+  /// Ensures [context] is not empty and starts with [dmV2ContextUrl],
   /// and the [type] is not empty.
   /// and the [credentialSubject] is not empty
   ///
@@ -141,10 +141,10 @@ class VcDataModelV2 implements VerifiableCredential {
       );
     }
 
-    if (context.first != DMV2ContextUrl) {
+    if (context.first != dmV2ContextUrl) {
       throw SsiException(
         message:
-            'The first URI of `${_P.context.key}` property should always be $DMV2ContextUrl',
+            'The first URI of `${_P.context.key}` property should always be $dmV2ContextUrl',
         code: SsiExceptionType.invalidJson.code,
       );
     }

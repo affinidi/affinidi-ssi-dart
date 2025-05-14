@@ -34,13 +34,16 @@ class DidSigner {
   })  : _keyPair = keyPair,
         _didDocument = didDocument;
 
+  /// Returns the DID identifier from the DID document.
   String get did => _didDocument.id;
 
+  /// Returns the public key from the key pair.
   PublicKey get publicKey => _keyPair.publicKey;
 
   /// The identifier of the key inside the DID document
   String get keyId => didKeyId;
 
+  /// Signs the provided data using the key pair and signature scheme.
   Future<Uint8List> sign(Uint8List data) => _keyPair.sign(
         data,
         signatureScheme: signatureScheme,

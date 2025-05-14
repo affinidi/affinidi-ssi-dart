@@ -1,10 +1,4 @@
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/credentials/linked_data/ld_dm_v2_suite.dart';
-import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
-import 'package:ssi/src/credentials/models/field_types/issuer.dart';
-import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'package:ssi/src/credentials/proof/ecdsa_secp256k1_signature2019_suite.dart';
-import 'package:ssi/src/credentials/suites/universal_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -22,17 +16,17 @@ void main() {
 
       final unsignedCredential = MutableVcDataModelV2(
         context: [
-          DMV2ContextUrl,
+          dmV2ContextUrl,
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
         ],
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
           MutableCredentialSubject({
-            "Fname": "Fname",
-            "Lname": "Lame",
-            "Age": "22",
-            "Address": "Eihhornstr"
+            'Fname': 'Fname',
+            'Lname': 'Lame',
+            'Age': '22',
+            'Address': 'Eihhornstr'
           })
         ],
         credentialSchema: [

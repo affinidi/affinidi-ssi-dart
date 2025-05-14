@@ -1,11 +1,19 @@
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 
+/// Represents a JSON-LD context.
 class Context {
+  /// The list of contexts.
   final List<dynamic> _contexts;
 
+  /// Creates a [Context] instance.
   Context._(this._contexts);
 
+  /// Creates a [Context] instance from a JSON input.
+  ///
+  /// [json] - The JSON input, which can be a string or a list.
+  ///
+  /// Throws an [SsiException] if the input is null or unsupported.
   factory Context.fromJson(dynamic json) {
     if (json == null) {
       throw SsiException(
@@ -32,6 +40,7 @@ class Context {
     return Context._(contexts);
   }
 
+  /// Converts this context to a JSON-serializable object.
   dynamic toJson() {
     if (_contexts.length == 1) {
       return _contexts.first;
@@ -39,6 +48,7 @@ class Context {
     return _contexts;
   }
 
+  /// Checks if the context contains the given URL.
   bool hasUrlContext(Uri url) {
     for (final c in _contexts) {
       var urlStr = url.toString();

@@ -7,6 +7,7 @@ import 'wallet.dart';
 
 // TODO(FTL-20739): Implement SLIP-0010 wallet
 
+/// Implementation of a SLIP-0010 wallet.
 class Slip0010Wallet implements Wallet {
   @override
   Future<Uint8List> sign(

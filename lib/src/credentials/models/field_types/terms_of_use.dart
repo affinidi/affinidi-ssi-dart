@@ -24,9 +24,11 @@ abstract interface class _TermsOfUseInterface {
 /// ```
 class MutableTermsOfUse extends _TermsOfUseInterface {
   /// the URL of unique identifier for termsOfUse
+  @override
   Uri? id;
 
   /// type of terms of user for which this crendetial issued
+  @override
   String? type;
 
   /// Creates a [MutableTermsOfUse]

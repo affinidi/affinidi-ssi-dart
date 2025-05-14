@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
 
@@ -32,7 +33,7 @@ void main() async {
   final isRootSignatureValid =
       await wallet.verify(data, signature: signature, keyId: account0Key0.id);
   print('Account 0 key 0 signature verification result: $isRootSignatureValid');
-  assert(isRootSignatureValid, "Account 0 key 0 verification failed");
+  assert(isRootSignatureValid, 'Account 0 key 0 verification failed');
 
   final account0Key0DidKey = DidKey.generateDocument(account0Key0.publicKey);
   print('Account 0 Key 0 DID: ${account0Key0DidKey.id}');
@@ -54,7 +55,7 @@ void main() async {
       signature: account0Key1Signature, keyId: account0Key1DerivationPath);
   print(
       'Account 0 key 1 signature verification result: $isProfileSignatureValid');
-  assert(isProfileSignatureValid, "Account 0 key 1 verification failed");
+  assert(isProfileSignatureValid, 'Account 0 key 1 verification failed');
   final account0Key1DidKey = DidKey.generateDocument(account0Key1.publicKey);
   print('Account 0 key 1 DID: ${account0Key1DidKey.id}');
 

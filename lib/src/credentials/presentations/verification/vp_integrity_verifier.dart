@@ -1,8 +1,4 @@
 import '../../../../ssi.dart';
-import '../../verification/vc_integrity_verifier.dart';
-import '../models/parsed_vp.dart';
-import '../suites/vp_suites.dart';
-import 'vp_verifier.dart';
 
 /// Global instance of [VcIntegrityVerifier] for credential-level integrity checks.
 final vcIntegrityVerifier = VcIntegrityVerifier();

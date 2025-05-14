@@ -3,6 +3,81 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-05-13
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.27`](#ssi---v100-dev27)
+
+---
+
+#### `ssi` - `v1.0.0-dev.27`
+
+ - **FIX**: added dependency_overrides for pointycastle (#104).
+
+## 1.0.0-dev.27
+
+ - **FIX**: added dependency_overrides for pointycastle (#104).
+
+
+## 2025-05-07
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.25`](#ssi---v100-dev25)
+
+---
+
+#### `ssi` - `v1.0.0-dev.25`
+
+ - **FIX**: version updated (#105).
+
+## 1.0.0-dev.25
+
+ - **FIX**: version updated (#105).
+
+
+## 2025-05-07
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.23`](#ssi---v100-dev23)
+
+---
+
+#### `ssi` - `v1.0.0-dev.23`
+
+ - **FIX**: pub.dev scoring related issues fixed (#103).
+
+## 1.0.0-dev.23
+
+ - **FIX**: pub.dev scoring related issues fixed (#103).
+
+
 ## 2025-05-05
 
 ### Changes

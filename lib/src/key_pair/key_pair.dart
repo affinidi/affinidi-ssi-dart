@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../exceptions/ssi_exception.dart';
 import '../types.dart';
 import 'public_key.dart';
 
@@ -43,7 +44,9 @@ abstract interface class KeyPair {
     SignatureScheme? signatureScheme,
   });
 
+  /// Encrypts the provided data using the public key.
   Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey});
 
+  /// Decrypts the provided data using the public key.
   Future<Uint8List> decrypt(Uint8List data, {Uint8List? publicKey});
 }

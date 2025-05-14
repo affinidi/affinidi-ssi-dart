@@ -10,10 +10,9 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../utility.dart';
-import 'key_pair.dart';
-
-import './_key_pair_utils.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
+import './_key_pair_utils.dart';
+import 'key_pair.dart';
 import 'public_key.dart';
 
 /// A key pair implementation that uses the P-256 (secp256r1) elliptic curve
@@ -35,8 +34,7 @@ class P256KeyPair implements KeyPair {
   /// Returns the KeyPair instance and its private key bytes.
   /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
   static (P256KeyPair, Uint8List) generate({String? id}) {
-    final privateKey =
-        generateValidPrivateKey(() => _p256.generatePrivateKey());
+    final privateKey = generateValidPrivateKey(_p256.generatePrivateKey);
     final effectiveId = id ?? randomId();
     final instance = P256KeyPair._(privateKey, effectiveId);
     final privateKeyBytes = Uint8List.fromList(privateKey.bytes);
@@ -68,7 +66,7 @@ class P256KeyPair implements KeyPair {
     if (signatureScheme != SignatureScheme.ecdsa_p256_sha256) {
       throw SsiException(
         message:
-            "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256",
+            'Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
@@ -90,7 +88,7 @@ class P256KeyPair implements KeyPair {
     if (signatureScheme != SignatureScheme.ecdsa_p256_sha256) {
       throw SsiException(
         message:
-            "Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256",
+            'Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
@@ -108,7 +106,7 @@ class P256KeyPair implements KeyPair {
       [SignatureScheme.ecdsa_p256_sha256];
 
   @override
-  encrypt(Uint8List data, {Uint8List? publicKey}) async {
+  Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
 
     return ecdh_utils.encryptData(
@@ -120,7 +118,8 @@ class P256KeyPair implements KeyPair {
   }
 
   @override
-  decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
+  Future<Uint8List> decrypt(Uint8List ivAndBytes,
+      {Uint8List? publicKey}) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
 
     return ecdh_utils.decryptData(

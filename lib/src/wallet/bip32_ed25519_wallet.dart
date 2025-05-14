@@ -8,8 +8,8 @@ import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
-import 'wallet.dart';
 import 'stores/seed_store_interface.dart';
+import 'wallet.dart';
 
 /// A wallet implementation that supports BIP32 key derivation with Ed25519 keys.
 ///
@@ -26,6 +26,8 @@ class Bip32Ed25519Wallet implements Wallet {
 
   /// Creates a new [Bip32Ed25519Wallet] instance backed by a [SeedStore].
   /// Use the factory constructors `fromSeed` or `fromSeedStore` for typical instantiation.
+  ///
+  /// [_seedStore] - The KeyStore used to persist key derivation paths and the master seed.
   Bip32Ed25519Wallet._(this._seedStore);
 
   /// Creates a new [Bip32Ed25519Wallet] using the provided seed and stores
@@ -191,6 +193,7 @@ class Bip32Ed25519Wallet implements Wallet {
     return keyPair;
   }
 
+  /// Clears the runtime cache and cached seed.
   void clearCache() {
     _runtimeCache.clear();
     _cachedSeed = null;

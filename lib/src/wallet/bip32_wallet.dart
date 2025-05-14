@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:bip32/bip32.dart';
+import 'package:bip32_plus/bip32_plus.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -26,6 +26,8 @@ class Bip32Wallet implements Wallet {
 
   /// Creates a new [Bip32Wallet] instance backed by a [SeedStore].
   /// Use the factory constructors `fromSeed` or `fromSeedStore` for typical instantiation.
+  ///
+  /// [_seedStore] - The KeyStore used to persist key derivation paths and the master seed.
   Bip32Wallet._(this._seedStore);
 
   /// Creates a new [Bip32Wallet] using the provided seed and stores
@@ -181,6 +183,7 @@ class Bip32Wallet implements Wallet {
     return keyPair;
   }
 
+  /// Clears the runtime cache and cached seed.
   void clearCache() {
     _runtimeCache.clear();
     _cachedRootNode = null;

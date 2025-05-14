@@ -18,7 +18,7 @@ void main() async {
 
   // Create a mutable VC
   final mutableVC = MutableVcDataModelV2(
-    context: [DMV2ContextUrl],
+    context: [dmV2ContextUrl],
     id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
     issuer: Issuer.uri(signer.did),
     type: {'VerifiableCredential', 'UniversityDegreeCredential'},

@@ -1,4 +1,3 @@
-import 'package:ssi/src/credentials/verification/vc_expiry_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 

@@ -61,7 +61,7 @@ class KmsWallet implements Wallet {
   }) async {
     if (keyId != null) {
       throw ArgumentError(
-          "AWS KMS creates the key identifiers. keyId should not be provided");
+          'AWS KMS creates the key identifiers. keyId should not be provided');
     }
     final response = await kmsClient.createKey(
       keyUsage: kms.KeyUsageType.signVerify,

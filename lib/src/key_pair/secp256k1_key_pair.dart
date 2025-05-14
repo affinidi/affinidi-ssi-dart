@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:bip32/bip32.dart';
+import 'package:bip32_plus/bip32_plus.dart';
 import 'package:elliptic/elliptic.dart' as ec;
 
 import '../digest_utils.dart';
@@ -8,9 +8,8 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../utility.dart';
-import 'key_pair.dart';
-
 import './_ecdh_utils.dart' as ecdh_utils;
+import 'key_pair.dart';
 import 'public_key.dart';
 
 /// A key pair implementation that uses secp256k1 for crypto operations.
@@ -85,7 +84,7 @@ class Secp256k1KeyPair implements KeyPair {
       [SignatureScheme.ecdsa_secp256k1_sha256];
 
   @override
-  encrypt(Uint8List data, {Uint8List? publicKey}) async {
+  Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
     final privateKey = _node.privateKey;
     if (privateKey == null) {
       throw ArgumentError('Private key is null');
@@ -100,7 +99,10 @@ class Secp256k1KeyPair implements KeyPair {
   }
 
   @override
-  decrypt(Uint8List ivAndBytes, {Uint8List? publicKey}) async {
+  Future<Uint8List> decrypt(
+    Uint8List ivAndBytes, {
+    Uint8List? publicKey,
+  }) async {
     final privateKey = _node.privateKey;
     if (privateKey == null) {
       throw ArgumentError('Private key is null');

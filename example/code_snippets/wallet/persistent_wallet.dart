@@ -28,7 +28,7 @@ void main() async {
   print('Verifying P256 signature...');
   final verificationP256 = await wallet.verify(dataToSign,
       signature: signatureP256, keyId: p256key.id);
-  assert(verificationP256, "Verification failed");
+  assert(verificationP256, 'Verification failed');
   print('Verification succeeded');
 
   // --- Ed25519 Key Operations ---
@@ -48,7 +48,7 @@ void main() async {
   print('Verifying Ed25519 signature...');
   final verificationEd25519 = await wallet.verify(dataToSign,
       signature: signatureEd25519, keyId: ed25519key.id);
-  assert(verificationEd25519, "Verification failed");
+  assert(verificationEd25519, 'Verification failed');
   print('Verification succeeded');
 
   print('\n--- Encryption/Decryption ---');

@@ -5,7 +5,7 @@ import 'dart:typed_data';
 String base64UrlNoPadEncode(Uint8List input) {
   final b64Padded = base64UrlEncode(input);
 
-  int lastNoPadIndex = b64Padded.length - 1;
+  var lastNoPadIndex = b64Padded.length - 1;
   while (lastNoPadIndex > 0 && b64Padded[lastNoPadIndex] == '=') {
     lastNoPadIndex--;
   }
@@ -15,7 +15,7 @@ String base64UrlNoPadEncode(Uint8List input) {
 
 /// Decode [input] from base64 URL encoding without padding
 Uint8List base64UrlNoPadDecode(String input) {
-  int pad = (4 - (input.length & 3)) & 3;
+  var pad = (4 - (input.length & 3)) & 3;
 
   return base64Url.decode(
     input.padRight(input.length + pad, '='),

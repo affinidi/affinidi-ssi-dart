@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/jwt/jwt_dm_v1_suite.dart';
 import 'package:ssi/ssi.dart';
 
 void main() {

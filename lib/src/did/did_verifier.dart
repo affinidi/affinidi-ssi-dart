@@ -2,15 +2,19 @@ import 'dart:typed_data';
 
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:jose_plus/jose.dart' as jose;
-import 'package:ssi/src/did/verifier.dart';
-import 'package:ssi/src/util/base64_util.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
+import '../util/base64_util.dart';
 import 'did_document/index.dart';
 import 'universal_did_resolver.dart';
+import 'verifier.dart';
 
+/// A verifier for DID documents.
+///
+/// This class provides methods to verify signatures using a specified signature scheme
+/// and a JSON Web Key (JWK) containing public key information.
 class DidVerifier implements Verifier {
   /// The signature scheme to use for verification.
   final SignatureScheme _algorithm;
@@ -21,6 +25,7 @@ class DidVerifier implements Verifier {
   /// The JSON Web Key (JWK) containing the public key information.
   final Map<String, dynamic> _jwk;
 
+  /// Creates a [DidVerifier] instance with the specified algorithm, key ID, and JWK.
   DidVerifier._(this._algorithm, this._kId, this._jwk);
 
   /// Creates a new [DidVerifier] instance.
@@ -62,8 +67,8 @@ class DidVerifier implements Verifier {
       );
     }
 
-    final Jwk jwk = verificationMethod.asJwk();
-    final Map<String, dynamic> jwkMap = Map<String, dynamic>.from(jwk.toJson());
+    final jwk = verificationMethod.asJwk();
+    final jwkMap = Map<String, dynamic>.from(jwk.toJson());
 
     return DidVerifier._(algorithm, kid, jwkMap);
   }
@@ -75,7 +80,7 @@ class DidVerifier implements Verifier {
     }
 
     try {
-      final jose.JsonWebKey? publicKey = jose.JsonWebKey.fromJson(_jwk);
+      final publicKey = jose.JsonWebKey.fromJson(_jwk);
       return publicKey!.usableForAlgorithm(algorithm);
     } catch (_) {
       return false;

@@ -17,13 +17,13 @@ Future<DidSigner> initSigner(Uint8List seed) async {
   return signer;
 }
 
-final userProfile = jsonDecode(r'''
+final Map<String, dynamic> userProfile = jsonDecode(r'''
 {"@context":{"UserProfile":{"@id":"https://schema.affinidi.com/UserProfileV1-0.jsonld","@context":{"@version":1.1,"@protected":true}},"Fname":{"@id":"schema-id:Fname","@type":"https://schema.org/Text"},"Lname":{"@id":"schema-id:Lname","@type":"https://schema.org/Text"},"Age":{"@id":"schema-id:Age","@type":"https://schema.org/Text"},"Address":{"@id":"schema-id:Address","@type":"https://schema.org/Text"}}}
-''');
+''') as Map<String, dynamic>;
 
 Future<Map<String, dynamic>?> testLoadDocument(Uri url) {
   if (url.toString() == 'https://schema.affinidi.com/UserProfileV1-0.jsonld') {
-    return Future.value(userProfile as Map<String, dynamic>);
+    return Future.value(userProfile);
   }
   return Future.value(null);
 }

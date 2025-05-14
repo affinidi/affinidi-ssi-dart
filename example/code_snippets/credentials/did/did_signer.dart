@@ -1,5 +1,6 @@
-import 'package:ssi/ssi.dart';
 import 'dart:typed_data';
+
+import 'package:ssi/ssi.dart';
 
 /// Initialize a DID signer from seed
 Future<DidSigner> initSigner(Uint8List seed) async {

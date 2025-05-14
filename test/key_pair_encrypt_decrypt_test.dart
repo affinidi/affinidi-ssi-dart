@@ -1,12 +1,12 @@
 import 'dart:typed_data';
 
-import 'package:bip32/bip32.dart';
+import 'package:bip32_plus/bip32_plus.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
   final data = Uint8List.fromList([1, 2, 3, 4]);
-  final Uint8List privateKey = Uint8List.fromList([
+  final privateKey = Uint8List.fromList([
     227,
     35,
     123,
@@ -40,7 +40,7 @@ void main() {
     88,
     177
   ]);
-  final Uint8List privateKeyBob = Uint8List.fromList([
+  final privateKeyBob = Uint8List.fromList([
     227,
     35,
     123,
@@ -76,7 +76,7 @@ void main() {
   ]);
   // final Uint8List publicKey = Uint8List.fromList([154, 91, 111, 200, 105, 249, 92, 207, 158, 65, 234, 210, 123, 83, 171, 151, 40, 204, 225, 21, 100, 80, 98, 246, 210, 65, 29, 151, 214, 17, 13, 132]);
 
-  final Uint8List edSeedAlice = Uint8List.fromList([
+  final edSeedAlice = Uint8List.fromList([
     23,
     28,
     184,
@@ -110,7 +110,7 @@ void main() {
     64,
     18
   ]);
-  final Uint8List edSeedBob = Uint8List.fromList([
+  final edSeedBob = Uint8List.fromList([
     13,
     36,
     195,
@@ -172,7 +172,7 @@ void main() {
     });
 
     test('ed25519 without pub key', () async {
-      Ed25519KeyPair edKey = Ed25519KeyPair.fromSeed(edSeedAlice);
+      var edKey = Ed25519KeyPair.fromSeed(edSeedAlice);
       // Encrypt with ephemeral key
       var encrypted = await edKey.encrypt(data);
       // Decrypt the message
@@ -182,8 +182,8 @@ void main() {
     });
 
     test('ed25519 with pub key parameter', () async {
-      Ed25519KeyPair edAlice = Ed25519KeyPair.fromSeed(edSeedAlice);
-      Ed25519KeyPair edBob = Ed25519KeyPair.fromSeed(edSeedBob);
+      var edAlice = Ed25519KeyPair.fromSeed(edSeedAlice);
+      var edBob = Ed25519KeyPair.fromSeed(edSeedBob);
 
       var bobPubKey = await edBob.ed25519KeyToX25519PublicKey();
       var encryptedByAlice = await edAlice.encrypt(data,
@@ -197,8 +197,8 @@ void main() {
     });
 
     test('Secp256k1 without pub key', () async {
-      Uint8List chainCode = Uint8List(32); // Empty chain code (32 bytes)
-      Secp256k1KeyPair secp =
+      var chainCode = Uint8List(32); // Empty chain code (32 bytes)
+      var secp =
           Secp256k1KeyPair(node: BIP32.fromPrivateKey(privateKey, chainCode));
 
       var encrypted = await secp.encrypt(data);
@@ -209,11 +209,11 @@ void main() {
     });
 
     test('Secp256k1 with pub key parameter', () async {
-      Uint8List chainCode = Uint8List(32); // Empty chain code (32 bytes)
-      Secp256k1KeyPair secpAlice =
+      var chainCode = Uint8List(32); // Empty chain code (32 bytes)
+      var secpAlice =
           Secp256k1KeyPair(node: BIP32.fromPrivateKey(privateKey, chainCode));
 
-      Secp256k1KeyPair secpBob = Secp256k1KeyPair(
+      var secpBob = Secp256k1KeyPair(
           node: BIP32.fromPrivateKey(privateKeyBob, chainCode));
 
       var bobPubKey = secpBob.publicKey;

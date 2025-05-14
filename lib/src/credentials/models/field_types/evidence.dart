@@ -28,9 +28,11 @@ abstract interface class _EvidenceInterface {
 /// ```
 class MutableEvidence extends _EvidenceInterface {
   /// the URL of  unique identifier for the evidence object
+  @override
   Uri? id;
 
   /// the type of evidence information
+  @override
   String? type;
 
   /// Creates a [MutableEvidence]

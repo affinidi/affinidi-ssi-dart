@@ -1,7 +1,10 @@
 import 'key_store_interface.dart';
 import 'stored_key.dart';
 
-/// In memory key store used for testing
+/// An in-memory implementation of the [KeyStore] interface.
+///
+/// This implementation stores all keys and seeds in memory and does not persist them.
+/// It is primarily used for testing purposes.
 class InMemoryKeyStore implements KeyStore {
   final Map<String, StoredKey> _keyPairStore = {};
 

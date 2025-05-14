@@ -101,6 +101,7 @@ List<String> getStringList(
   }
 }
 
+/// Returns [fieldName] as `DateTime`, or null. Throws an exception if the field value is not a string or the field does not exist.
 DateTime? getDateTime(
   Map<String, dynamic> json,
   String fieldName, {
@@ -197,6 +198,7 @@ void addOptional(
   }
 }
 
+/// Add a list field to [json].
 void addList<E>(
   Map<String, dynamic> json,
   String fieldName,
@@ -222,6 +224,7 @@ void addList<E>(
   }
 }
 
+/// Parses a list or single item from [json].
 List<T> parseListOrSingleItem<T>(
   dynamic json,
   String fieldName,
@@ -263,6 +266,7 @@ List<T> parseListOrSingleItem<T>(
   return [parser(jsonValue)];
 }
 
+/// Encodes a list to a single item or array.
 dynamic encodeListToSingleOrArray<T>(List<T> items) {
   if (items.isEmpty) {
     return <T>[];
@@ -273,6 +277,7 @@ dynamic encodeListToSingleOrArray<T>(List<T> items) {
   }
 }
 
+/// Removes empty entries from a map.
 Map<String, dynamic> cleanEmpty(Map<String, dynamic> input) {
   final entries = input.entries.where((entry) => switch (entry.value) {
         null => false,

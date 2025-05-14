@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 import './_encryption_utils.dart';
 
+/// The encryption utility instance.
 final encryptionUtils = EncryptionUtils();
 
+/// Generates a valid private key.
 T generateValidPrivateKey<T>(
   T Function() generate, {
   int maxAttempts = 3,
@@ -23,6 +25,7 @@ T generateValidPrivateKey<T>(
       'Failed to generate valid private key after $maxAttempts attempts');
 }
 
+/// Converts a [BigInt] to bytes.
 Uint8List _bigIntToBytes(BigInt value) {
   return value.isNegative
       ? encryptionUtils.intToBytes(value)

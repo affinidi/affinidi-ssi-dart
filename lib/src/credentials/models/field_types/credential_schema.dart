@@ -27,11 +27,13 @@ abstract interface class _CredentialSchemaInterface {
 /// ```
 class MutableCredentialSchema extends _CredentialSchemaInterface {
   /// The URL of the schema including domain and filename.
+  @override
   Uri? id;
 
   /// The schema type of validator used.
   ///
   /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
+  @override
   String? type;
 
   /// Creates a [MutableCredentialSchema]

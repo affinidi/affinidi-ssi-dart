@@ -27,9 +27,11 @@ abstract interface class _CredentialStatusV2Interface {
 /// ```
 class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
   /// The URL identifier for this status information.
+  @override
   Uri? id;
 
   /// The type of status mechanism used.
+  @override
   String? type;
 
   /// Creates a [MutableCredentialStatusV2] instance.

@@ -10,10 +10,10 @@ import 'ld_base_suite.dart';
 final class LdVcDm2Suite extends LdBaseSuite<VcDataModelV2, LdVcDataModelV2>
     implements
         VerifiableCredentialSuite<String, VcDataModelV2, LdVcDataModelV2> {
-  /// Constructs a [LdVcDm2Suite] using the predefined [DMV2ContextUrl].
+  /// Constructs a [LdVcDm2Suite] using the predefined [dmV2ContextUrl].
   LdVcDm2Suite()
       : super(
-          contextUrl: DMV2ContextUrl,
+          contextUrl: dmV2ContextUrl,
         );
 
   @override

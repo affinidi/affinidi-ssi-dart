@@ -149,7 +149,7 @@ class VcDataModelV1 implements VerifiableCredential {
 
   /// Validates the essential Verifiable Credential properties (`context`, `type`, `credentialSubject`).
   ///
-  /// Ensures [context] is not empty and starts with [DMV1ContextUrl],
+  /// Ensures [context] is not empty and starts with [dmV1ContextUrl],
   /// and the [type] is not empty.
   /// and the [credentialSubject] is not empty
   ///
@@ -162,10 +162,10 @@ class VcDataModelV1 implements VerifiableCredential {
       );
     }
 
-    if (context.first != DMV1ContextUrl) {
+    if (context.first != dmV1ContextUrl) {
       throw SsiException(
         message:
-            'The first URI of `${_P.context.key}` property should always be $DMV1ContextUrl',
+            'The first URI of `${_P.context.key}` property should always be $dmV1ContextUrl',
         code: SsiExceptionType.invalidJson.code,
       );
     }
