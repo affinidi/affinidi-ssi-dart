@@ -2,7 +2,10 @@ import 'dart:typed_data';
 
 import 'seed_store_interface.dart';
 
-/// In memory seed store used for testing
+/// An in-memory implementation of the [SeedStore] interface.
+///
+/// This implementation stores all keys and seeds in memory and does not persist them.
+/// It is primarily used for testing purposes.
 class InMemorySeedStore implements SeedStore {
   Uint8List? _seed;
 
