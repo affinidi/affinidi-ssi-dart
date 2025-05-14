@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-05-14
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.28`](#ssi---v100-dev28)
+
+---
+
+#### `ssi` - `v1.0.0-dev.28`
+
+ - **FIX**: dependency version conflict (#107).
+
+## 1.0.0-dev.28
+
+ - **FIX**: dependency version conflict (#107).
+
+
 ## 2025-05-13
 
 ### Changes
