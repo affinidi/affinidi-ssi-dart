@@ -10,7 +10,6 @@ analyzer:
     lines_longer_than_80_chars: ignore
     avoid_print: error
     inference_failure_on_untyped_parameter: ignore
-    strict_top_level_inference: ignore
     avoid_dynamic_calls: ignore
     invalid_assignment: ignore
     argument_type_not_assignable: ignore
