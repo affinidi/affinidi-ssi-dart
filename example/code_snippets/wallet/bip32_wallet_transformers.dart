@@ -27,8 +27,8 @@ void main() async {
   }
 
   final walletWithMappingTransformer = Bip32Wallet.fromSeed(
-    seed,
-    keyIdToDerivationPathTransformer: mappingTransformer,
+    seed: seed,
+    idToPathTransformer: mappingTransformer,
   );
 
   const userProfileKeyId = 'userProfile';
@@ -79,8 +79,8 @@ void main() async {
   }
 
   final walletWithHashingTransformer = Bip32Wallet.fromSeed(
-    seed,
-    keyIdToDerivationPathTransformer: hashingTransformer,
+    seed: seed,
+    idToPathTransformer: hashingTransformer,
   );
 
   const dynamicKeyId = 'myInvoice#12345';

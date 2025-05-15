@@ -13,7 +13,7 @@ import 'wallet.dart';
 /// A wallet implementation that supports BIP32 key derivation with secp256k1 keys.
 ///
 /// This wallet can create and manage multiple key pairs derived from a single seed.
-/// It can optionally use a [KeyIdToDerivationPathTransformer] to convert arbitrary
+/// It can optionally use a [IdToPathTransformer] to convert arbitrary
 /// string key identifiers into full BIP32 derivation paths (e.g., "m/44'/60'/0'/0/0").
 /// If no transformer is provided, the keyId itself is assumed to be the derivation path.
 class Bip32Wallet implements Wallet {
@@ -21,8 +21,8 @@ class Bip32Wallet implements Wallet {
   final Map<String, Secp256k1KeyPair> _runtimeCache = {};
   // Root node derived from seed and used for BIP32 derivation
   final BIP32 _rootNode;
-  // Optional transformer function to convert a string keyId to a full derivation path string
-  final KeyIdToDerivationPathTransformer? keyIdToDerivationPathTransformer;
+  // Transformer function to convert a string keyId to a full derivation path string
+  final IdToPathTransformer keyIdToDerivationPathTransformer;
 
   /// Creates a new [Bip32Wallet] instance.
   /// Use the factory constructor `fromSeed` for typical instantiation.
@@ -31,15 +31,14 @@ class Bip32Wallet implements Wallet {
     this.keyIdToDerivationPathTransformer,
   );
 
-  /// Creates a new [Bip32Wallet] using the provided seed and an optional ID-to-path transformer.
+  /// Creates a new [Bip32Wallet] using the provided seed and an ID-to-path transformer.
   ///
   /// [seed] - The master seed bytes. Must be 16, 32, or 64 bytes.
-  /// [keyIdToDerivationPathTransformer] - An optional function to convert a string ID
+  /// [idToPathTransformer] - A function to convert a string ID
   ///                         into a full derivation path string (must start with "m/").
-  ///                         If not provided, the keyId itself will be used as the derivation path.
-  static Bip32Wallet fromSeed(
-    Uint8List seed, {
-    KeyIdToDerivationPathTransformer? keyIdToDerivationPathTransformer,
+  static Bip32Wallet fromSeed({
+    required Uint8List seed,
+    required IdToPathTransformer idToPathTransformer,
   }) {
     if (seed.length != 16 && seed.length != 32 && seed.length != 64) {
       throw ArgumentError('BIP32 seed length must be 16, 32, or 64 bytes.');
@@ -48,7 +47,7 @@ class Bip32Wallet implements Wallet {
     final rootNode = BIP32.fromSeed(seed);
     return Bip32Wallet._(
       rootNode,
-      keyIdToDerivationPathTransformer,
+      idToPathTransformer,
     );
   }
 
@@ -136,16 +135,11 @@ class Bip32Wallet implements Wallet {
       return _runtimeCache[keyId]!;
     }
 
-    final String fullPath;
-    if (keyIdToDerivationPathTransformer != null) {
-      fullPath = await keyIdToDerivationPathTransformer!(keyId);
-    } else {
-      fullPath = keyId;
-    }
+    final String fullPath = await keyIdToDerivationPathTransformer(keyId);
 
     if (!fullPath.startsWith('m/')) {
       throw ArgumentError(
-          'The derivation path (either from idToPathTransformer or keyId directly) must start with "m/". Received: "$fullPath" for keyId: "$keyId"');
+          'The derivation path from keyIdToDerivationPathTransformer must start with "m/". Received: "$fullPath" for keyId: "$keyId"');
     }
 
     // Path validation (format, range for indices) is implicitly handled by derivePath.
@@ -167,7 +161,6 @@ class Bip32Wallet implements Wallet {
 /// An optional function that transforms a string identifier (keyId) into a full BIP32
 /// derivation path string.
 ///
-/// If provided, the returned string MUST be a full derivation path starting with "m/"
+/// The returned string MUST be a full derivation path starting with "m/"
 /// (e.g., "m/44'/60'/0'/0/0").
-/// If not provided to [Bip32Wallet], the `keyId` itself is used as the derivation path.
-typedef KeyIdToDerivationPathTransformer = Future<String> Function(String id);
+typedef IdToPathTransformer = Future<String> Function(String id);
