@@ -45,7 +45,6 @@ class KmsWallet implements Wallet {
     return Future.value(PublicKey(keyId, keyData.bytes, keyData.type));
   }
 
-  @override
   Future<bool> hasKey(String keyId) async {
     try {
       await kmsClient.describeKey(keyId: keyId);
@@ -90,7 +89,6 @@ class KmsWallet implements Wallet {
     throw UnimplementedError();
   }
 
-  @override
   Future<KmsKeyPair> getKeyPair(String keyId) async {
     return KmsKeyPair.generate(kmsClient, keyId);
   }

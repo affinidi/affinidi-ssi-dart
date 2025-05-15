@@ -13,7 +13,8 @@ abstract interface class Wallet {
   /// Returns a [Future] that completes with a list of the [SignatureScheme]s
   /// supported by a key pair key pair.
   ///
-  /// [keyId] - The identifier of the key to use for signing.
+  /// [keyId] - The identifier of the key. For deterministic wallets (e.g., BIP32),
+  ///           this is the derivation path.
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(String keyId);
 
   /// Signs the data using the specified key.
@@ -25,6 +26,8 @@ abstract interface class Wallet {
   /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
   /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
+  /// [keyId] - The identifier of the key to use for signing. For deterministic
+  ///           wallets (e.g., BIP32), this is the derivation path.
   /// Returns a [Future] that completes with the signature as a [Uint8List].
   ///
   /// Throws an [SsiException] if signing fails.
@@ -38,12 +41,15 @@ abstract interface class Wallet {
   ///
   /// [data] - The data that was signed.
   /// [signature] - The signature to verify.
-  /// [keyId] - The identifier of the key to use for verification.
+  /// [keyId] - The identifier of the key to use for verification. For deterministic
+  ///           wallets (e.g., BIP32), this is the derivation path.
   /// [signatureScheme] - The signature scheme to use. If null defaults to:
   /// - [SignatureScheme.ecdsa_secp256k1_sha256] for [Secp256k1KeyPair]
   /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
   /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
+  /// [keyId] - The identifier of the key to use for verification. For deterministic
+  ///           wallets (e.g., BIP32), this is the derivation path.
   /// Returns a [Future] that completes with `true` if the signature is valid,
   /// `false` otherwise.
   Future<bool> verify(
@@ -55,37 +61,25 @@ abstract interface class Wallet {
 
   /// Retrieves the public key for the specified key identifier.
   ///
-  /// [keyId] - The identifier of the key.
+  /// [keyId] - The identifier of the key. For deterministic wallets (e.g., BIP32),
+  ///           this is the derivation path.
   ///
   /// Returns a [Future] that completes with the public key as a [PublicKey].
   ///
   /// Throws an [SsiException] if the operation fails.
   Future<PublicKey> getPublicKey(String keyId);
 
-  /// Retrieves the KeyPair object for the specified key identifier.
-  /// Use with caution, as this exposes the private key material if the
-  /// KeyPair implementation allows it.
-  ///
-  /// [keyId] - The identifier of the key.
-  /// Returns a [Future] that completes with the [KeyPair].
-  Future<KeyPair> getKeyPair(String keyId);
-
-  /// Checks if a key with the specified identifier exists in the wallet.
-  ///
-  /// [keyId] - The identifier of the key to check.
-  ///
-  /// Returns a [Future] that completes with `true` if the key exists,
-  /// `false` otherwise.
-  Future<bool> hasKey(String keyId);
-
   /// Generates a new key pair with the specified identifier.
   ///
-  /// [keyId] - The identifier for the new key pair.
+  /// [keyId] - The identifier for the new key pair. While optional in the interface,
+  ///           some implementations, particularly deterministic wallets (e.g., BIP32),
+  ///           may require this to be provided as the derivation path. If not provided,
+  ///           implementations might generate a random ID or throw an error if an ID
+  ///           is required.
   /// [keyType] - The type of key to create. If not specified, the implementation
   /// should use a default key type.
   ///
   /// Returns a [Future] that completes with the newly created [KeyPair].
-  ///
   /// Throws an [SsiException] if a keyId is null or empty or
   /// if key creation fails.
   Future<KeyPair> generateKey({String? keyId, KeyType? keyType});
@@ -93,7 +87,8 @@ abstract interface class Wallet {
   /// Encrypts data using the specified key.
   ///
   /// [data] - The data to be encrypted.
-  /// [keyId] - The identifier of the key to use for encryption.
+  /// [keyId] - The identifier of the key to use for encryption. For deterministic
+  ///           wallets (e.g., BIP32), this is the derivation path.
   /// [publicKey] - Optional public key of the recipient. If not provided,
   ///               an ephemeral key pair might be generated depending on the
   ///               underlying key pair implementation.
@@ -110,7 +105,8 @@ abstract interface class Wallet {
   /// Decrypts data using the specified key.
   ///
   /// [data] - The encrypted data to be decrypted.
-  /// [keyId] - The identifier of the key to use for decryption.
+  /// [keyId] - The identifier of the key to use for decryption. For deterministic
+  ///           wallets (e.g., BIP32), this is the derivation path.
   /// [publicKey] - Optional public key of the sender. May be required by some
   ///               underlying key pair implementations, especially if an
   ///               ephemeral key was not used during encryption.

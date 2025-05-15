@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'key_store_interface.dart';
 import 'stored_key.dart';
 
@@ -9,7 +7,6 @@ import 'stored_key.dart';
 /// It is primarily used for testing purposes.
 class InMemoryKeyStore implements KeyStore {
   final Map<String, StoredKey> _keyPairStore = {};
-  Uint8List? _seed;
 
   @override
   Future<void> set(String key, StoredKey value) async {
@@ -19,16 +16,6 @@ class InMemoryKeyStore implements KeyStore {
   @override
   Future<StoredKey?> get(String key) async {
     return _keyPairStore[key];
-  }
-
-  @override
-  Future<void> setSeed(Uint8List seed) async {
-    _seed = seed;
-  }
-
-  @override
-  Future<Uint8List?> getSeed() async {
-    return _seed;
   }
 
   @override
@@ -44,6 +31,5 @@ class InMemoryKeyStore implements KeyStore {
   @override
   Future<void> clear() async {
     _keyPairStore.clear();
-    _seed = null;
   }
 }

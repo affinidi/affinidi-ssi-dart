@@ -8,8 +8,8 @@ import '../key_pair/p256_key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../utility.dart';
-import 'key_store/key_store_interface.dart';
-import 'key_store/stored_key.dart';
+import 'stores/key_store_interface.dart';
+import 'stores/stored_key.dart';
 import 'wallet.dart';
 
 /// A non-hierarchical wallet implementation that supports multiple key types.
@@ -27,7 +27,12 @@ class PersistentWallet implements Wallet {
   /// keyStore - The KeyStore used to persist key information.
   PersistentWallet(this._keyStore);
 
-  @override
+  /// Checks if a key with the specified identifier exists in the wallet.
+  ///
+  /// [keyId] - The identifier of the key to check.
+  ///
+  /// Returns a [Future] that completes with `true` if the key exists,
+  /// `false` otherwise.
   Future<bool> hasKey(String keyId) {
     // Check cache first, then keystore
     if (_runtimeCache.containsKey(keyId)) return Future.value(true);
@@ -91,10 +96,8 @@ class PersistentWallet implements Wallet {
           'Unsupported key type for PersistentWallet: $effectiveKeyType. Only p256 and ed25519 are supported.');
     }
 
-    final storedKey = StoredKey.fromPrivateKey(
-      keyType: effectiveKeyType,
-      keyBytes: privateKeyBytes,
-    );
+    final storedKey =
+        StoredKey(keyType: effectiveKeyType, privateKeyBytes: privateKeyBytes);
     await _keyStore.set(effectiveKeyId, storedKey);
     _runtimeCache[effectiveKeyId] = keyPairInstance;
 
@@ -151,7 +154,10 @@ class PersistentWallet implements Wallet {
     return keyPair.decrypt(data, publicKey: publicKey);
   }
 
-  @override
+  /// Retrieves the KeyPair object for the specified key identifier.
+  ///
+  /// [keyId] - The identifier of the key.
+  /// Returns a [Future] that completes with the [KeyPair].
   Future<KeyPair> getKeyPair(String keyId) async {
     if (_runtimeCache.containsKey(keyId)) {
       return _runtimeCache[keyId]!;
@@ -164,21 +170,8 @@ class PersistentWallet implements Wallet {
           code: SsiExceptionType.keyNotFound.code);
     }
 
-    if (storedKey.representation != StoredKeyRepresentation.privateKeyBytes) {
-      throw SsiException(
-          message:
-              'KeyStore entry for $keyId is not stored as private key bytes (found ${storedKey.representation}). Incompatible with PersistentWallet.',
-          code: SsiExceptionType.invalidKeyType.code);
-    }
-
     final keyType = storedKey.keyType;
     final privateKeyBytes = storedKey.privateKeyBytes;
-    if (privateKeyBytes == null) {
-      throw SsiException(
-          message:
-              'StoredKey for $keyId has privateKeyBytes representation but null bytes.',
-          code: SsiExceptionType.other.code);
-    }
 
     KeyPair keyPair;
     if (keyType == KeyType.p256) {

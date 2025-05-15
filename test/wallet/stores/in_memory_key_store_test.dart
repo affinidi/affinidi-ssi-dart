@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/wallet/key_store/in_memory_key_store.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -8,11 +7,8 @@ void main() {
   group('InMemoryKeyStore', () {
     late InMemoryKeyStore keyStore;
     const testKeyId = 'test-key';
-    final testStoredKey = StoredKey.fromPrivateKey(
-      keyType: KeyType.p256,
-      keyBytes: Uint8List.fromList([1, 2, 3]),
-    );
-    final testSeed = Uint8List.fromList([10, 20, 30]);
+    final testStoredKey = StoredKey(
+        keyType: KeyType.p256, privateKeyBytes: Uint8List.fromList([1, 2, 3]));
 
     setUp(() {
       keyStore = InMemoryKeyStore();
@@ -23,18 +19,8 @@ void main() {
       await keyStore.set(testKeyId, testStoredKey);
       final retrievedKey = await keyStore.get(testKeyId);
       expect(retrievedKey, isNotNull);
-      expect(retrievedKey!.representation,
-          StoredKeyRepresentation.privateKeyBytes);
-      expect(retrievedKey.keyType, testStoredKey.keyType);
+      expect(retrievedKey!.keyType, testStoredKey.keyType);
       expect(retrievedKey.privateKeyBytes, testStoredKey.privateKeyBytes);
-    });
-
-    test('setSeed and getSeed should store and retrieve the seed', () async {
-      expect(await keyStore.getSeed(), isNull);
-      await keyStore.setSeed(testSeed);
-      final retrievedSeed = await keyStore.getSeed();
-      expect(retrievedSeed, isNotNull);
-      expect(retrievedSeed, equals(testSeed));
     });
 
     test('contains should return true for existing key, false otherwise',
@@ -52,18 +38,15 @@ void main() {
       expect(await keyStore.get(testKeyId), isNull);
     });
 
-    test('clear should remove all keys and the seed', () async {
+    test('clear should remove all keys', () async {
       await keyStore.set(testKeyId, testStoredKey);
-      await keyStore.setSeed(testSeed);
 
       expect(await keyStore.contains(testKeyId), isTrue);
-      expect(await keyStore.getSeed(), isNotNull);
 
       await keyStore.clear();
 
       expect(await keyStore.contains(testKeyId), isFalse);
       expect(await keyStore.get(testKeyId), isNull);
-      expect(await keyStore.getSeed(), isNull);
     });
   });
 }

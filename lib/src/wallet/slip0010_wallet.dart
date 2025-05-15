@@ -3,17 +3,12 @@ import 'dart:typed_data';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
-import 'deterministic_wallet.dart';
+import 'wallet.dart';
 
 // TODO(FTL-20739): Implement SLIP-0010 wallet
 
-/// Implementation of a SLIP-0010 deterministic wallet.
-class Slip0010Wallet implements DeterministicWallet {
-  @override
-  Future<bool> hasKey(String keyId) {
-    throw UnimplementedError();
-  }
-
+/// Implementation of a SLIP-0010 wallet.
+class Slip0010Wallet implements Wallet {
   @override
   Future<Uint8List> sign(
     Uint8List data, {
@@ -44,21 +39,7 @@ class Slip0010Wallet implements DeterministicWallet {
   }
 
   @override
-  Future<KeyPair> deriveKey({
-    String? keyId,
-    KeyType? keyType,
-    required String derivationPath,
-  }) {
-    throw UnimplementedError();
-  }
-
-  @override
   Future<PublicKey> getPublicKey(String keyId) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<KeyPair> getKeyPair(String keyId) {
     throw UnimplementedError();
   }
 
