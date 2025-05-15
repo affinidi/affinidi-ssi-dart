@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-05-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.0.0-dev.29`](#ssi---v100-dev29)
+
+---
+
+#### `ssi` - `v1.0.0-dev.29`
+
+ - **FEAT**: stateless HD wallets (#102).
+
+## 1.0.0-dev.29
+
+ - **FEAT**: stateless HD wallets (#102).
+
+
 ## 2025-05-14
 
 ### Changes
