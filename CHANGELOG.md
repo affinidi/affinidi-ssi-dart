@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-05-20
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - [`ssi` - `v1.0.0`](#ssi---v100)
+
+Packages with other changes:
+
+ - There are no other changes in this release.
+
+Packages graduated to a stable release (see pre-releases prior to the stable version for changelog entries):
+
+ - `ssi` - `v1.0.0`
+
+---
+
+#### `ssi` - `v1.0.0`
+
+## 1.0.0
+
+ - Graduate package to a stable release. See pre-releases prior to this version for changelog entries.
+
+
 ## 2025-05-15
 
 ### Changes
