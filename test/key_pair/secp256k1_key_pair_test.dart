@@ -37,6 +37,30 @@ void main() {
       expect(schemes, contains(SignatureScheme.ecdsa_secp256k1_sha256));
     });
 
+  group('Test ECDH secret computation', () {
+    late Secp256k1KeyPair keyPairAlice;
+    late Secp256k1KeyPair keyPairBob;
+
+    setUp(() {
+      // Use derived keys for Alice and Bob to ensure they are different
+      final aliceNode = rootNode.derivePath("m/44'/60'/1'/0/0");
+      final bobNode = rootNode.derivePath("m/44'/60'/2'/0/0");
+      keyPairAlice = Secp256k1KeyPair(node: aliceNode);
+      keyPairBob = Secp256k1KeyPair(node: bobNode);
+    });
+
+    test('Compute ECDH shared secret for encryption', () async {
+      final secretAlice =
+          await keyPairAlice.computeEcdhSecret(keyPairBob.publicKey.bytes);
+      final secretBob =
+          await keyPairBob.computeEcdhSecret(keyPairAlice.publicKey.bytes);
+
+      expect(secretAlice, equals(secretBob));
+      expect(secretAlice.length, 32); // Secp256k1 ECDH secret length
+      expect(secretAlice, isNot(equals(Uint8List(32)))); // Ensure not all zeros
+    });
+  });
+
     group('Signing and Verification', () {
       test('sign and verify should succeed with correct data and signature',
           () async {
