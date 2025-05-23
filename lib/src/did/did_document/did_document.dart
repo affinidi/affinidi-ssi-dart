@@ -61,7 +61,7 @@ class DidDocument implements JsonObject {
   ///
   /// [id] The DID that the DID document is about.
   factory DidDocument.create({
-    context,
+    Context? context,
     required String id,
     alsoKnownAs,
     controller,

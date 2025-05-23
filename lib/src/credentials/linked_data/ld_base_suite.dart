@@ -55,6 +55,20 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   /// Creates a [Model] instance from the parsed JSON [payload] and original [input] string.
   Model fromParsed(String input, Map<String, dynamic> payload);
 
+  /// Attempts to parse the [input] and returns the result if successful, null otherwise.
+  Model? tryParse(Object input) {
+    if (input is! String) return null;
+
+    final decoded = tryDecode(input);
+    if (decoded == null) return null;
+
+    try {
+      return fromParsed(input, decoded);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Issues a signed [Model] by applying an embedded proof.
   ///
   /// Throws a [SsiException] if the issuer in the proof does not match the credential's

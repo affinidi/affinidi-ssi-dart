@@ -18,6 +18,11 @@ abstract class VerifiablePresentationSuite<
   /// suite before attempting to parse.
   ParsedVP parse(Object data);
 
+  /// Attempts to parse the [data] and returns the result if successful, null otherwise.
+  ///
+  /// This method combines validation and parsing in one step to avoid redundant operations.
+  ParsedVP? tryParse(Object data);
+
   /// Verifies the cryptographic integrity of the [input] presentation.
   Future<bool> verifyIntegrity(ParsedVP input);
 }

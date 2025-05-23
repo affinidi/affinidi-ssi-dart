@@ -18,6 +18,11 @@ abstract interface class VerifiableCredentialSuite<
   /// suite before attempting to parse.
   ParsedVC parse(Object data);
 
+  /// Attempts to parse the [data] and returns the result if successful, null otherwise.
+  ///
+  /// This method combines validation and parsing in one step to avoid redundant operations.
+  ParsedVC? tryParse(Object data);
+
   /// Verifies the cryptographic integrity of the [input] credential.
   ///
   /// NOTE: only the signature is verified, other claims like `challenge` or

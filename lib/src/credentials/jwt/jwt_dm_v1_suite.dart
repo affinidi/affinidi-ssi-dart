@@ -42,6 +42,23 @@ final class JwtDm1Suite
     return JwtVcDataModelV1.fromJws(jws);
   }
 
+  /// Attempts to parse the [data] and returns the result if successful, null otherwise.
+  ///
+  /// This method combines validation and parsing in one step
+  @override
+  JwtVcDataModelV1? tryParse(Object data) {
+    if (data is! String) return null;
+
+    final decoded = tryDecode(data);
+    if (decoded == null) return null;
+
+    try {
+      return JwtVcDataModelV1.fromJws(decoded);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Issues a signed [JwtVcDataModelV1] from a [VcDataModelV1] using a DidSigner.
   ///
   /// Optionally takes options for JWT issuance configuration.

@@ -64,6 +64,23 @@ final class SdJwtDm2Suite
     return SdJwtDataModelV2.fromSdJwt(decode(input));
   }
 
+  /// Attempts to parse the [input] and returns the result if successful, null otherwise.
+  ///
+  /// This method combines validation and parsing in one step to avoid redundant operations.
+  @override
+  SdJwtDataModelV2? tryParse(Object input) {
+    if (input is! String) return null;
+
+    final decoded = tryDecode(input);
+    if (decoded == null) return null;
+
+    try {
+      return SdJwtDataModelV2.fromSdJwt(decoded);
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Map<String, dynamic> present(SdJwtDataModelV2 input) =>
       EnvelopedVcDm2Suite().present(input);

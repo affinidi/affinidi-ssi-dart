@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -71,5 +72,43 @@ mixin JwtParser implements VerifiableDataParser<String, Jws> {
         payload: payload,
         signature: segments[2],
         serialized: input);
+  }
+
+  @override
+  Jws? tryDecode(String input) {
+    if (!input.startsWith('ey') ||
+        input.split('.').length != 3 ||
+        input.split('~').length != 1) {
+      return null;
+    }
+
+    try {
+      final segments = input.split('.');
+
+      final header = jsonDecode(
+        utf8.decode(
+          base64UrlNoPadDecode(segments[0]),
+        ),
+      ) as Map<String, dynamic>;
+
+      final payload = jsonDecode(
+        utf8.decode(
+          base64UrlNoPadDecode(segments[1]),
+        ),
+      ) as Map<String, dynamic>;
+
+      return Jws(
+          header: header,
+          payload: payload,
+          signature: segments[2],
+          serialized: input);
+    } catch (e) {
+      developer.log(
+        'JWT decode failed',
+        level: 500, // FINE
+        error: e,
+      );
+      return null;
+    }
   }
 }
