@@ -82,6 +82,34 @@ final class EnvelopedVcDm2Suite
         as ParsedVerifiableCredential<String>;
   }
 
+  /// Attempts to parse the [input] and returns the result if successful, null otherwise.
+  ///
+  /// This method combines validation and parsing in one step to avoid redundant operations.
+  @override
+  ParsedVerifiableCredential<String>? tryParse(Object input) {
+    if (input is! String) return null;
+
+    final decoded = tryDecode(input);
+    if (decoded == null) return null;
+
+    try {
+      final envelopedData = decoded['id'] as String;
+
+      final mediaType = mediaTypeSuites.entries
+          .where((e) => envelopedData.startsWith(e.key))
+          .firstOrNull;
+
+      if (mediaType == null) return null;
+
+      final serialized = envelopedData.replaceFirst(mediaType.key, '');
+
+      return mediaType.value.tryParse(serialized)
+          as ParsedVerifiableCredential<String>?;
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Future<bool> verifyIntegrity(ParsedVerifiableCredential<String> input,
       {DateTime Function() getNow = DateTime.now}) async {

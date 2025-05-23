@@ -30,22 +30,7 @@ mixin SdJwtParser implements VerifiableDataParser<String, SdJwt> {
   /// that matches the requirements defined in [hasValidPayload].
   @override
   bool canDecode(String input) {
-    // filter out other strings
-    if (!input.startsWith('ey')) return false;
-
-    try {
-      final jwt = SdJwt.parse(input);
-      if (!hasValidPayload(jwt)) return false;
-    } catch (e) {
-      developer.log(
-        'SdJwt decode failed',
-        level: 500, // FINE
-        error: e,
-      );
-      return false;
-    }
-
-    return true;
+    return tryDecode(input) != null;
   }
 
   /// Decodes the input string into an SD-JWT structure.
@@ -66,5 +51,24 @@ mixin SdJwtParser implements VerifiableDataParser<String, SdJwt> {
     }
 
     return SdJwt.parse(input);
+  }
+
+  @override
+  SdJwt? tryDecode(String input) {
+    // filter out other strings
+    if (!input.startsWith('ey')) return null;
+
+    try {
+      final jwt = SdJwt.parse(input);
+      if (!hasValidPayload(jwt)) return null;
+      return jwt;
+    } catch (e) {
+      developer.log(
+        'SdJwt decode failed',
+        level: 500, // FINE
+        error: e,
+      );
+      return null;
+    }
   }
 }
