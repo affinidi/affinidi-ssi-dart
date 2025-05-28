@@ -6,6 +6,8 @@ import '../models/doc_with_embedded_proof.dart';
 import '../models/field_types/issuer.dart';
 import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
+import '../proof/data_integrity_ecdsa_suite.dart';
+import '../proof/data_integrity_eddsa_suite.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../proof/embedded_proof_suite.dart';
 
@@ -100,14 +102,50 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   /// Optionally accepts [getNow] to provide a custom "now" time for expiry and validity
   Future<bool> verifyIntegrity(Model input,
       {DateTime Function() getNow = DateTime.now}) async {
-    //TODO(FTL-20735): discover proof type
     final document = input.toJson();
     final issuerDid = Issuer.uri(document[issuerKey]);
-    final proofSuite =
-        Secp256k1Signature2019Verifier(issuerDid: issuerDid.id.toString());
+
+    final proof = document[proofKey];
+    if (proof == null || proof is! Map<String, dynamic>) {
+      return false;
+    }
+
+    final proofType = proof['type'] as String?;
+    if (proofType == null) {
+      return false;
+    }
+
+    EmbeddedProofVerifier proofSuite;
+
+    switch (proofType) {
+      case 'DataIntegrityProof':
+        final cryptosuite = proof['cryptosuite'] as String?;
+        switch (cryptosuite) {
+          case 'ecdsa-rdfc-2019':
+            proofSuite = DataIntegrityEcdsaVerifier(
+              issuerDid: issuerDid.id.toString(),
+            );
+            break;
+          case 'eddsa-rdfc-2022':
+            proofSuite = DataIntegrityEddsaVerifier(
+              issuerDid: issuerDid.id.toString(),
+            );
+            break;
+          default:
+            return false;
+        }
+        break;
+      case 'EcdsaSecp256k1Signature2019':
+        proofSuite = Secp256k1Signature2019Verifier(
+          issuerDid: issuerDid.id.toString(),
+        );
+        break;
+      default:
+        return false;
+    }
+
     final verificationResult =
         await proofSuite.verify(document, getNow: getNow);
-
     return verificationResult.isValid;
   }
 

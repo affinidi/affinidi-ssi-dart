@@ -17,6 +17,19 @@ Future<DidSigner> initSigner(Uint8List seed) async {
   return signer;
 }
 
+Future<DidSigner> initEdSigner(Uint8List seed) async {
+  final keyPair = Ed25519KeyPair.fromSeed(seed);
+  final doc = DidKey.generateDocument(keyPair.publicKey);
+
+  final signer = DidSigner(
+    didDocument: doc,
+    didKeyId: doc.verificationMethod[0].id,
+    keyPair: keyPair,
+    signatureScheme: SignatureScheme.eddsa_sha512,
+  );
+  return signer;
+}
+
 final Map<String, dynamic> userProfile = jsonDecode(r'''
 {"@context":{"UserProfile":{"@id":"https://schema.affinidi.com/UserProfileV1-0.jsonld","@context":{"@version":1.1,"@protected":true}},"Fname":{"@id":"schema-id:Fname","@type":"https://schema.org/Text"},"Lname":{"@id":"schema-id:Lname","@type":"https://schema.org/Text"},"Age":{"@id":"schema-id:Age","@type":"https://schema.org/Text"},"Address":{"@id":"schema-id:Address","@type":"https://schema.org/Text"}}}
 ''') as Map<String, dynamic>;
