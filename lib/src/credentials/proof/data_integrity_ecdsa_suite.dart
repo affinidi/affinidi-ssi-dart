@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
+import 'package:pointycastle/api.dart';
 
 import '../../did/did_signer.dart';
 import '../../did/did_verifier.dart';
@@ -198,6 +199,9 @@ Future<Uint8List> _computeDataIntegrityHash(
       documentLoader: documentLoader,
     ),
   );
+  final proofConfigHash = Digest('SHA-256').process(
+    utf8.encode(normalizedProof),
+  );
 
   final normalizedContent = await JsonLdProcessor.normalize(
     unsignedCredential,
@@ -206,9 +210,11 @@ Future<Uint8List> _computeDataIntegrityHash(
       documentLoader: documentLoader,
     ),
   );
+  final transformedDocumentHash = Digest('SHA-256').process(
+    utf8.encode(normalizedContent),
+  );
 
-  final combinedNormalizedForms = normalizedProof + normalizedContent;
-  return Uint8List.fromList(utf8.encode(combinedNormalizedForms));
+  return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
 }
 
 Future<bool> _verifySignature(
@@ -220,7 +226,7 @@ Future<bool> _verifySignature(
   final signature = base64UrlNoPadDecode(proofValue);
 
   final verifier = await DidVerifier.create(
-    algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
+    algorithm: SignatureScheme.ecdsa_p256_sha256,
     kid: verificationMethod.toString(),
     issuerDid: issuerDid,
   );

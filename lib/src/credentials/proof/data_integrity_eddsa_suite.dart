@@ -11,7 +11,7 @@ import '../../util/base64_util.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 
-final _sha512 = Digest('SHA-512');
+final _sha256 = Digest('SHA-256');
 
 const _dataIntegrityType = 'DataIntegrityProof';
 const _eddsaCryptosuite = 'eddsa-rdfc-2022';
@@ -201,7 +201,7 @@ Future<Uint8List> _computeDataIntegrityHash(
       documentLoader: documentLoader,
     ),
   );
-  final proofDigest = _sha512.process(
+  final proofDigest = _sha256.process(
     utf8.encode(normalizedProof),
   );
 
@@ -213,7 +213,7 @@ Future<Uint8List> _computeDataIntegrityHash(
     ),
   );
 
-  final contentDigest = _sha512.process(
+  final contentDigest = _sha256.process(
     utf8.encode(normalizedContent),
   );
 
