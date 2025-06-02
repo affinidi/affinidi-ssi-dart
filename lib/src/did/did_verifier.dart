@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
-import 'package:jose_plus/jose.dart' as jose;
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -80,11 +80,28 @@ class DidVerifier implements Verifier {
     }
 
     try {
-      final publicKey = jose.JsonWebKey.fromJson(_jwk);
-      return publicKey!.usableForAlgorithm(algorithm);
+      final jwtKey = JWTKey.fromJWK(_jwk);
+      return _isKeyCompatibleWithAlgorithm(jwtKey, algorithm);
     } catch (_) {
       return false;
     }
+  }
+
+  bool _isKeyCompatibleWithAlgorithm(JWTKey key, String algorithm) {
+    if (key is RSAPublicKey) {
+      return ['RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512']
+          .contains(algorithm);
+    }
+    if (key is ECPublicKey) {
+      return ['ES256', 'ES384', 'ES512', 'ES256K'].contains(algorithm);
+    }
+    if (key is EdDSAPublicKey) {
+      return algorithm == 'EdDSA';
+    }
+    if (key is SecretKey) {
+      return ['HS256', 'HS384', 'HS512'].contains(algorithm);
+    }
+    return false;
   }
 
   @override
@@ -94,7 +111,6 @@ class DidVerifier implements Verifier {
         _jwk['kid'] = _kId;
       }
 
-      // Handle Ed25519 keys
       if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
         if (_algorithm.alg != 'EdDSA') {
           return false;
@@ -104,22 +120,26 @@ class DidVerifier implements Verifier {
         return ed.verify(ed.PublicKey(publicKeyBytes), data, signature);
       }
 
-      // the library uses the old crv value P-256K
       if (_jwk['crv'] == 'secp256k1') {
-        _jwk['crv'] = 'P-256K';
+        _jwk['crv'] = 'secp256k1';
       }
 
-      // For other key types, use the jose library
-      final publicKey = jose.JsonWebKey.fromJson(_jwk);
+      final jwtKey = JWTKey.fromJWK(_jwk);
 
-      if (publicKey == null) {
-        throw SsiException(
-          message: 'failed to create JsonWebKey from jwkMap',
-          code: SsiExceptionType.invalidDidDocument.code,
-        );
+      return _verifyWithJWTKey(jwtKey, data, signature);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _verifyWithJWTKey(JWTKey key, Uint8List data, Uint8List signature) {
+    try {
+      final algName = _algorithm.alg;
+      if (algName == null) {
+        return false;
       }
-
-      return publicKey.verify(data, signature, algorithm: _algorithm.alg);
+      final algorithm = JWTAlgorithm.fromName(algName);
+      return algorithm.verify(key, data, signature);
     } catch (_) {
       return false;
     }
