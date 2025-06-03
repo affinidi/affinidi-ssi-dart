@@ -41,7 +41,6 @@ enum SignatureScheme {
   ecdsa_secp256k1_sha256(
     alg: 'ES256K',
     crv: 'secp256k1',
-    w3c: 'EcdsaSecp256k1Signature2019',
     keyType: KeyType.secp256k1,
     hashingAlgorithm: HashingAlgorithm.sha256,
   ),
@@ -50,25 +49,32 @@ enum SignatureScheme {
   ecdsa_p256_sha256(
     alg: 'ES256',
     crv: 'P-256',
-    w3c: 'EcdsaSecp256r1Signature2019',
     keyType: KeyType.p256,
     hashingAlgorithm: HashingAlgorithm.sha256,
   ),
 
   /// EdDSA with Ed25519 curve and SHA-512 hashing.
+  ed25519(
+    alg: 'Ed25519',
+    crv: 'Ed25519',
+    keyType: KeyType.ed25519,
+    hashingAlgorithm: HashingAlgorithm.sha256,
+  ),
+
+  /// EdDSA with Ed25519 curve and SHA-512 hashing.
+  @Deprecated('see ed25519')
   eddsa_sha512(
     alg: 'EdDSA',
     crv: 'Ed25519',
-    w3c: null,
     keyType: KeyType.ed25519,
     hashingAlgorithm: HashingAlgorithm.sha512,
   ),
 
   /// Ed25519 with SHA-256 hashing.
+  @Deprecated('should not be used, except for Ed25519Signature2020')
   ed25519_sha256(
     alg: null,
     crv: 'Ed25519',
-    w3c: 'Ed25519Signature2020',
     keyType: KeyType.ed25519,
     hashingAlgorithm: HashingAlgorithm.sha256,
   ),
@@ -77,16 +83,12 @@ enum SignatureScheme {
   rsa_pkcs1_sha256(
     alg: 'RS256',
     crv: null,
-    w3c: 'RsaSignature2018',
     keyType: KeyType.rsa,
     hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   /// The algorithm identifier.
   final String? alg;
-
-  /// The W3C identifier.
-  final String? w3c;
 
   /// The curve identifier.
   final String? crv;
@@ -100,7 +102,6 @@ enum SignatureScheme {
   /// Creates a [SignatureScheme] with the given parameters.
   const SignatureScheme({
     required this.alg,
-    required this.w3c,
     required this.crv,
     required this.keyType,
     required this.hashingAlgorithm,
@@ -113,8 +114,7 @@ enum SignatureScheme {
       SignatureScheme.values.firstWhere(
         (sigSch) =>
             sigSch.name.toLowerCase() == value.toLowerCase() ||
-            sigSch.alg?.toLowerCase() == value.toLowerCase() ||
-            sigSch.w3c?.toLowerCase() == value.toLowerCase(),
+            sigSch.alg?.toLowerCase() == value.toLowerCase(),
         orElse: () => throw ArgumentError('Invalid algorithm: $value'),
       );
 }
