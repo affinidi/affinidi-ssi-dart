@@ -58,13 +58,13 @@ enum SignatureScheme {
     alg: 'Ed25519',
     crv: 'Ed25519',
     keyType: KeyType.ed25519,
-    hashingAlgorithm: HashingAlgorithm.sha256,
+    hashingAlgorithm: HashingAlgorithm.sha512,
   ),
 
   /// EdDSA with Ed25519 curve and SHA-512 hashing.
   @Deprecated('see ed25519')
   eddsa_sha512(
-    alg: 'EdDSA',
+    alg: 'Ed25519',
     crv: 'Ed25519',
     keyType: KeyType.ed25519,
     hashingAlgorithm: HashingAlgorithm.sha512,
