@@ -6,6 +6,8 @@ import 'package:pointycastle/api.dart';
 
 import '../../did/did_signer.dart';
 import '../../did/did_verifier.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'embedded_proof.dart';
@@ -38,7 +40,16 @@ class DataIntegrityEddsaGenerator extends EmbeddedProofSuiteCreateOptions
     super.expires,
     super.challenge,
     super.domain,
-  });
+  }) {
+    final expectedScheme = cryptosuiteToScheme[_eddsaCryptosuite];
+    if (signer.signatureScheme != expectedScheme) {
+      throw SsiException(
+        message:
+            'Signer algorithm ${signer.signatureScheme} is not compatible with $_eddsaCryptosuite. Expected $expectedScheme.',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
+    }
+  }
 
   /// Generates an [EmbeddedProof] for the given [document].
   @override
@@ -229,8 +240,17 @@ Future<bool> _verifySignature(
 ) async {
   final signature = base64UrlNoPadDecode(proofValue);
 
+  final expectedScheme = cryptosuiteToScheme[_eddsaCryptosuite];
+  if (expectedScheme == null) {
+    throw SsiException(
+      message:
+          'Unknown cryptosuite: $_eddsaCryptosuite, cannot determine signature scheme.',
+      code: SsiExceptionType.unsupportedSignatureScheme.code,
+    );
+  }
+
   final verifier = await DidVerifier.create(
-    algorithm: SignatureScheme.eddsa_sha512,
+    algorithm: expectedScheme,
     kid: verificationMethod.toString(),
     issuerDid: issuerDid,
   );

@@ -9,7 +9,7 @@ void main() async {
     'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
   );
 
-  final signer = await initSigner(seed);
+  final signer = await initP256Signer(seed);
 
   group('Test Data Integrity ECDSA VC issuance', () {
     test('Create and verify Data Integrity ECDSA proof', () async {
