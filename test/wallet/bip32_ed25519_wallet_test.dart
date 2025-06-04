@@ -200,9 +200,8 @@ void main() {
         () async {
       final key = await wallet.generateKey(keyId: derivationPath1);
       final derivedSchemes = await wallet.getSupportedSignatureSchemes(key.id);
-      expect(derivedSchemes, contains(SignatureScheme.ed25519_sha256));
-      expect(derivedSchemes, contains(SignatureScheme.eddsa_sha512));
-      expect(derivedSchemes.length, 2);
+      expect(derivedSchemes, contains(SignatureScheme.ed25519));
+      expect(derivedSchemes.length, 1);
     });
 
     test(

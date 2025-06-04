@@ -13,7 +13,7 @@ void main() {
     test('should correctly handle algorithm support for Ed25519 keys',
         () async {
       final verifier = await DidVerifier.create(
-        algorithm: SignatureScheme.eddsa_sha512,
+        algorithm: SignatureScheme.ed25519,
         kid: kid,
         issuerDid: didKey,
       );
@@ -26,7 +26,7 @@ void main() {
 
     test('should reject invalid signatures for Ed25519 keys', () async {
       final verifier = await DidVerifier.create(
-        algorithm: SignatureScheme.eddsa_sha512,
+        algorithm: SignatureScheme.ed25519,
         kid: kid,
         issuerDid: didKey,
       );
@@ -43,8 +43,10 @@ void main() {
     });
 
     test('should handle algorithm mismatches correctly', () async {
+      //FIXME should fail here as the resolved key does not match the required algorithm
+      //seems that we should discover alogorithm from the verification method
       final wrongAlgVerifier = await DidVerifier.create(
-        algorithm: SignatureScheme.eddsa_sha512, // Wrong algorithm for Ed25519
+        algorithm: SignatureScheme.ecdsa_p256_sha256,
         kid: kid,
         issuerDid: didKey,
       );
@@ -53,8 +55,9 @@ void main() {
       final signature = Uint8List.fromList(List.filled(64, 0));
 
       expect(wrongAlgVerifier.verify(testData, signature), isFalse);
-      expect(wrongAlgVerifier.isAllowedAlgorithm('EdDSA'), isTrue);
+      expect(wrongAlgVerifier.isAllowedAlgorithm('EdDSA'), isFalse);
       expect(wrongAlgVerifier.isAllowedAlgorithm('ES256K'), isFalse);
+      expect(wrongAlgVerifier.isAllowedAlgorithm('ES256'), isTrue);
     });
   });
 }

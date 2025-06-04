@@ -83,9 +83,8 @@ class Ed25519KeyPair implements KeyPair {
     Uint8List data, {
     SignatureScheme? signatureScheme,
   }) async {
-    signatureScheme ??= SignatureScheme.eddsa_sha512;
-    if (signatureScheme != SignatureScheme.ed25519_sha256 &&
-        signatureScheme != SignatureScheme.eddsa_sha512) {
+    signatureScheme ??= SignatureScheme.ed25519;
+    if (signatureScheme != SignatureScheme.ed25519) {
       throw SsiException(
         message:
             'Unsupported signature scheme. Only ed25519_sha256 and eddsa_sha512 are supported.',
@@ -116,9 +115,8 @@ class Ed25519KeyPair implements KeyPair {
     Uint8List signature, {
     SignatureScheme? signatureScheme,
   }) async {
-    signatureScheme ??= SignatureScheme.eddsa_sha512;
-    if (signatureScheme != SignatureScheme.ed25519_sha256 &&
-        signatureScheme != SignatureScheme.eddsa_sha512) {
+    signatureScheme ??= SignatureScheme.ed25519;
+    if (signatureScheme != SignatureScheme.ed25519) {
       throw SsiException(
         message:
             'Unsupported signature scheme. Only ed25519_sha256 and eddsa_sha512 are supported.',
@@ -138,7 +136,7 @@ class Ed25519KeyPair implements KeyPair {
   /// Returns the supported signature schemes for this key pair.
   @override
   List<SignatureScheme> get supportedSignatureSchemes =>
-      const [SignatureScheme.ed25519_sha256, SignatureScheme.eddsa_sha512];
+      const [SignatureScheme.ed25519];
 
   /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {

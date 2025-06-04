@@ -253,24 +253,14 @@ void main() {
       // Create Ed25519 key
       final edKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
-      // Sign and verify with ed25519_sha256
-      final sigSha256 = await wallet.sign(dataToSign,
-          keyId: edKey.id, signatureScheme: SignatureScheme.ed25519_sha256);
-      expect(
-          await wallet.verify(dataToSign,
-              signature: sigSha256,
-              keyId: edKey.id,
-              signatureScheme: SignatureScheme.ed25519_sha256),
-          isTrue);
-
       // Sign and verify with eddsa_sha512
       final sigSha512 = await wallet.sign(dataToSign,
-          keyId: edKey.id, signatureScheme: SignatureScheme.eddsa_sha512);
+          keyId: edKey.id, signatureScheme: SignatureScheme.ed25519);
       expect(
           await wallet.verify(dataToSign,
               signature: sigSha512,
               keyId: edKey.id,
-              signatureScheme: SignatureScheme.eddsa_sha512),
+              signatureScheme: SignatureScheme.ed25519),
           isTrue);
     });
 
@@ -317,9 +307,8 @@ void main() {
       final ed25519Key = await wallet.generateKey(keyType: KeyType.ed25519);
       final ed25519Schemes =
           await wallet.getSupportedSignatureSchemes(ed25519Key.id);
-      expect(ed25519Schemes, contains(SignatureScheme.ed25519_sha256));
-      expect(ed25519Schemes, contains(SignatureScheme.eddsa_sha512));
-      expect(ed25519Schemes.length, 2); // Ed25519KeyPair supports two
+      expect(ed25519Schemes, contains(SignatureScheme.ed25519));
+      expect(ed25519Schemes.length, 1); // Ed25519KeyPair supports two
     });
 
     test('getSupportedSignatureSchemes should throw for non-existent keyId',
