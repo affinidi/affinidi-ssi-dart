@@ -36,6 +36,8 @@ enum HashingAlgorithm {
 /// Supported signature schemes.
 // Prefer snake_case for `SignatureScheme` to make it more readable
 
+/// Set of supported signature schemes, all schemes must be fully specified
+/// including hashing algorithm, curve and key material requirements.
 enum SignatureScheme {
   /// ECDSA with secp256k1 curve and SHA-256 hashing.
   ecdsa_secp256k1_sha256(
@@ -59,24 +61,6 @@ enum SignatureScheme {
     crv: 'Ed25519',
     keyType: KeyType.ed25519,
     hashingAlgorithm: HashingAlgorithm.sha512,
-  ),
-
-  /// EdDSA with Ed25519 curve and SHA-512 hashing.
-  @Deprecated('see ed25519')
-  eddsa_sha512(
-    alg: 'Ed25519',
-    crv: 'Ed25519',
-    keyType: KeyType.ed25519,
-    hashingAlgorithm: HashingAlgorithm.sha512,
-  ),
-
-  /// Ed25519 with SHA-256 hashing.
-  @Deprecated('should not be used, except for Ed25519Signature2020')
-  ed25519_sha256(
-    alg: null,
-    crv: 'Ed25519',
-    keyType: KeyType.ed25519,
-    hashingAlgorithm: HashingAlgorithm.sha256,
   ),
 
   /// RSA with PKCS1 and SHA-256 hashing.
