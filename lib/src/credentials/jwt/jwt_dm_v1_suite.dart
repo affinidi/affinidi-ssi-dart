@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import '../../did/did_signer.dart';
 import '../../did/did_verifier.dart';
@@ -47,14 +48,19 @@ final class JwtDm1Suite
   /// This method combines validation and parsing in one step
   @override
   JwtVcDataModelV1? tryParse(Object data) {
-    if (data is! String) return null;
+    if (!canParse(data)) return null;
 
-    final decoded = tryDecode(data);
+    final decoded = tryDecode(data as String);
     if (decoded == null) return null;
 
     try {
       return JwtVcDataModelV1.fromJws(decoded);
     } catch (e) {
+      developer.log(
+        'JWT VC parsing failed',
+        level: 500, // FINE
+        error: e,
+      );
       return null;
     }
   }

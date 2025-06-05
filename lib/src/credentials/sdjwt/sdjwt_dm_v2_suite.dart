@@ -69,9 +69,9 @@ final class SdJwtDm2Suite
   /// This method combines validation and parsing in one step to avoid redundant operations.
   @override
   SdJwtDataModelV2? tryParse(Object input) {
-    if (input is! String) return null;
+    if (!canParse(input)) return null;
 
-    final decoded = tryDecode(input);
+    final decoded = tryDecode(input as String);
     if (decoded == null) return null;
 
     try {

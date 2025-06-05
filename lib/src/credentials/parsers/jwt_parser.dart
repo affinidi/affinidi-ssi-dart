@@ -76,9 +76,7 @@ mixin JwtParser implements VerifiableDataParser<String, Jws> {
 
   @override
   Jws? tryDecode(String input) {
-    if (!input.startsWith('ey') ||
-        input.split('.').length != 3 ||
-        input.split('~').length != 1) {
+    if (!canDecode(input)) {
       return null;
     }
 
