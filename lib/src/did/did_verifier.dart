@@ -120,7 +120,7 @@ class DidVerifier implements Verifier {
         return ed.verify(ed.PublicKey(publicKeyBytes), data, signature);
       }
 
-      if (_jwk['crv'] == 'secp256k1') {
+      if (_jwk['crv'] == 'P-256K') {
         _jwk['crv'] = 'secp256k1';
       }
 
