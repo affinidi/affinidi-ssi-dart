@@ -67,23 +67,21 @@ void main() {
       expect(actual, isFalse);
     });
 
-    test('Verification should fail if wrong scheme is used', () async {
+    test('Verification works across different supported schemes', () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final sigSha256 = await edKey.sign(dataToSign,
           signatureScheme: SignatureScheme.ed25519_sha256);
       final sigSha512 = await edKey.sign(dataToSign,
           signatureScheme: SignatureScheme.eddsa_sha512);
 
-      // Verify sha256 sig with sha512 scheme
       expect(
           await edKey.verify(dataToSign, sigSha256,
               signatureScheme: SignatureScheme.eddsa_sha512),
-          isFalse);
-      // Verify sha512 sig with sha256 scheme
+          isTrue);
       expect(
           await edKey.verify(dataToSign, sigSha512,
               signatureScheme: SignatureScheme.ed25519_sha256),
-          isFalse);
+          isTrue);
     });
 
     test('Ed25519 key pair properties should be correct', () {

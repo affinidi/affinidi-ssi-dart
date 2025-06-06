@@ -2,120 +2,229 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
+import 'package:pointycastle/api.dart';
 
-import '../../did/did_signer.dart';
+import '../../did/did_verifier.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
+import '../../types.dart';
 import '../../util/base64_util.dart';
-import 'base_secp256k1_verifier.dart';
-import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 
-const _signatureType = 'EcdsaSecp256k1Signature2019';
-const _securityContext = 'https://w3id.org/security/v2';
+/// Base class for SECP256K1 signature verifiers.
+abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
+    implements EmbeddedProofVerifier {
+  /// The DID of the issuer.
+  final String issuerDid;
 
-/// Generates Linked Data Proofs using the EcdsaSecp256k1Signature2019 signature suite.
-///
-/// Signs Verifiable Credentials by normalizing the credential and the proof separately,
-/// hashing them, and then signing the combined hash using a [DidSigner].
-class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
-    implements EmbeddedProofGenerator {
-  /// The DID signer used to produce the proof signature.
-  final DidSigner signer;
+  /// Function to get the current time.
+  final DateTime Function() getNow;
 
-  /// Constructs a new [Secp256k1Signature2019Generator].
-  ///
-  /// [signer]: The DID signer responsible for creating the proof signature.
-  /// Optional parameters like [proofPurpose], [customDocumentLoader], [expires],
-  /// [challenge], and [domain] configure the proof metadata.
-  Secp256k1Signature2019Generator({
-    required this.signer,
-    super.proofPurpose,
+  /// Optional domain restriction.
+  final List<String>? domain;
+
+  /// Optional challenge value.
+  final String? challenge;
+
+  /// Creates a new BaseSecp256k1Verifier.
+  BaseSecp256k1Verifier({
+    required this.issuerDid,
+    this.getNow = DateTime.now,
+    this.domain,
+    this.challenge,
     super.customDocumentLoader,
-    super.expires,
-    super.challenge,
-    super.domain,
   });
 
-  /// Generates an [EmbeddedProof] for the given [document].
-  @override
-  Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
-    final created = DateTime.now();
-    final proof = {
-      '@context': _securityContext,
-      'type': _signatureType,
-      'created': created.toIso8601String(),
-      'verificationMethod': signer.keyId,
-      'proofPurpose': proofPurpose?.value,
-      'expires': expires?.toIso8601String(),
-      'challenge': challenge,
-      'domain': domain,
-    };
+  /// The expected proof type.
+  String get expectedProofType;
 
-    document.remove('proof');
+  /// The context URL for this proof type.
+  String get contextUrl;
+
+  /// The field name containing the proof value.
+  String get proofValueField;
+
+  @override
+  Future<VerificationResult> verify(Map<String, dynamic> document,
+      {DateTime Function() getNow = DateTime.now}) async {
+    final copy = Map.of(document);
+    final proof = copy.remove('proof');
+
+    final validationResult = _validateProofStructure(proof);
+    if (!validationResult.isValid) {
+      return validationResult;
+    }
+
+    final expiryResult = _validateExpiry(proof, getNow());
+    if (!expiryResult.isValid) {
+      return expiryResult;
+    }
+
+    final Uri verificationMethod;
+    try {
+      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
+    } catch (e) {
+      return VerificationResult.invalid(
+        errors: ['invalid or missing proof.verificationMethod'],
+      );
+    }
+
+    final originalProofValue = proof.remove(proofValueField);
+    if (originalProofValue == null) {
+      return VerificationResult.invalid(
+        errors: ['missing $proofValueField'],
+      );
+    }
+
+    proof['@context'] = contextUrl;
 
     final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-    final jws = await computeVcHash(proof, document, cacheLoadDocument).then(
-      (hash) => _computeJws(hash, signer),
-    );
+    final hash = await computeSignatureHash(proof, copy, cacheLoadDocument);
+    final isValid = await verifySignature(
+        originalProofValue as String, issuerDid, verificationMethod, hash);
 
-    proof.remove('@context');
-    proof['jws'] = jws;
+    if (!isValid) {
+      return VerificationResult.invalid(
+        errors: ['signature invalid'],
+      );
+    }
 
-    return EcdsaSecp256k1Signature2019Proof(
-        type: 'EcdsaSecp256k1Signature2019',
-        created: created,
-        verificationMethod: signer.keyId,
-        proofPurpose: proofPurpose?.value,
-        jws: jws,
-        expires: expires,
-        challenge: challenge,
-        domain: domain);
+    return VerificationResult.ok();
   }
 
-  static Future<String> _computeJws(
-    Uint8List payloadToSign,
-    DidSigner signer,
-  ) async {
-    final encodedHeader = base64UrlNoPadEncode(
-      utf8.encode(
-        jsonEncode(
-          {
-            'alg': 'ES256K',
-            'b64': false,
-            'crit': ['b64'],
-          },
-        ),
-      ),
-    );
+  /// Computes the signature hash from proof and document.
+  Future<Uint8List> computeSignatureHash(
+    Map<String, dynamic> proof,
+    Map<String, dynamic> unsignedCredential,
+    Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
+        documentLoader,
+  );
 
-    final jwsToSign = Uint8List.fromList(
-      utf8.encode(encodedHeader) + utf8.encode('.') + payloadToSign,
-    );
+  /// Verifies the signature against the computed hash.
+  Future<bool> verifySignature(
+    String proofValue,
+    String issuerDid,
+    Uri verificationMethod,
+    Uint8List hash,
+  );
 
-    final jws = base64UrlNoPadEncode(await signer.sign(jwsToSign));
+  VerificationResult _validateProofStructure(dynamic proof) {
+    if (proof == null || proof is! Map<String, dynamic>) {
+      return VerificationResult.invalid(
+        errors: ['invalid or missing proof'],
+      );
+    }
 
-    return '$encodedHeader..$jws';
+    if (proof['type'] != expectedProofType) {
+      return VerificationResult.invalid(
+        errors: ['invalid proof type, expected $expectedProofType'],
+      );
+    }
+
+    return VerificationResult.ok();
   }
 
-  static LibDocumentLoader _cacheLoadDocument(
-    DocumentLoader customLoader,
-  ) =>
-      (Uri url, LoadDocumentOptions? options) async {
-        final fromCache = _documentCache[url];
-        if (fromCache != null) {
-          return Future.value(fromCache);
-        }
+  VerificationResult _validateExpiry(Map<String, dynamic> proof, DateTime now) {
+    final expires = proof['expires'];
+    if (expires != null && now.isAfter(expires as DateTime)) {
+      return VerificationResult.invalid(errors: ['Not valid proof']);
+    }
+    return VerificationResult.ok();
+  }
+}
 
-        final custom = await customLoader(url);
-        if (custom != null) {
-          return Future.value(RemoteDocument(document: custom));
-        }
+/// Computes VC hash from proof and document.
+Future<Uint8List> computeVcHash(
+  Map<String, dynamic> proof,
+  Map<String, dynamic> unsignedCredential,
+  Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
+      documentLoader,
+) async {
+  final normalizedProof = await JsonLdProcessor.normalize(
+    proof,
+    options: JsonLdOptions(
+      safeMode: true,
+      documentLoader: documentLoader,
+    ),
+  );
+  final proofDigest = Digest('SHA-256').process(
+    utf8.encode(normalizedProof),
+  );
 
-        return loadDocument(url, options);
-      };
+  final normalizedContent = await JsonLdProcessor.normalize(
+    unsignedCredential,
+    options: JsonLdOptions(
+      safeMode: true,
+      documentLoader: documentLoader,
+    ),
+  );
 
-  static final _documentCache = <Uri, RemoteDocument>{
-    Uri.parse('https://w3id.org/security/v2'): RemoteDocument(
-      document: jsonDecode(r'''
+  final contentDigest = Digest('SHA-256').process(
+    utf8.encode(normalizedContent),
+  );
+
+  final payloadToSign = Uint8List.fromList(proofDigest + contentDigest);
+  return payloadToSign;
+}
+
+/// Verifies a JWS signature.
+Future<bool> verifyJws(
+  String jws,
+  String issuerDid,
+  Uri verificationMethod,
+  Uint8List payloadToSign,
+) async {
+  final jwsParts = jws.split('..');
+  if (jwsParts.length != 2) {
+    throw SsiException(
+      message: 'Invalid jws format',
+      code: SsiExceptionType.other.code,
+    );
+  }
+
+  final encodedHeader = jwsParts[0];
+  final encodedSignature = jwsParts[1];
+
+  final signature = base64UrlNoPadDecode(encodedSignature);
+
+  final jwsToSign = Uint8List.fromList(
+    utf8.encode(encodedHeader) + utf8.encode('.') + payloadToSign,
+  );
+
+  final verifier = await DidVerifier.create(
+    algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
+    kid: verificationMethod.toString(),
+    issuerDid: issuerDid,
+  );
+  return verifier.verify(jwsToSign, signature);
+}
+
+/// Document loader function type.
+typedef LibDocumentLoader = Future<RemoteDocument> Function(
+  Uri url,
+  LoadDocumentOptions? options,
+);
+
+LibDocumentLoader _cacheLoadDocument(
+  DocumentLoader customLoader,
+) =>
+    (Uri url, LoadDocumentOptions? options) async {
+      final fromCache = _documentCache[url];
+      if (fromCache != null) {
+        return Future.value(fromCache);
+      }
+
+      final custom = await customLoader(url);
+      if (custom != null) {
+        return Future.value(RemoteDocument(document: custom));
+      }
+
+      return loadDocument(url, options);
+    };
+
+final _documentCache = <Uri, RemoteDocument>{
+  Uri.parse('https://w3id.org/security/v2'): RemoteDocument(
+    document: jsonDecode(r'''
 {
   "@context": [{
     "@version": 1.1
@@ -176,9 +285,9 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
   }]
 }
 '''),
-    ),
-    Uri.parse('https://w3id.org/security/v1'): RemoteDocument(
-      document: jsonDecode(r'''
+  ),
+  Uri.parse('https://w3id.org/security/v1'): RemoteDocument(
+    document: jsonDecode(r'''
 {
   "@context": {
     "id": "@id",
@@ -230,9 +339,9 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
   }
 }
 '''),
-    ),
-    Uri.parse('https://www.w3.org/2018/credentials/v1'): RemoteDocument(
-      document: jsonDecode(r'''
+  ),
+  Uri.parse('https://www.w3.org/2018/credentials/v1'): RemoteDocument(
+    document: jsonDecode(r'''
 {
   "@context": {
     "@version": 1.1,
@@ -471,9 +580,9 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
   }
 }
 '''),
-    ),
-    Uri.parse('https://www.w3.org/ns/credentials/v2'): RemoteDocument(
-      document: jsonDecode(r'''
+  ),
+  Uri.parse('https://www.w3.org/ns/credentials/v2'): RemoteDocument(
+    document: jsonDecode(r'''
 {
     "@context": {
         "@protected": true,
@@ -589,85 +698,5 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
     }
 }
 '''),
-    ),
-  };
-}
-
-/// Verifies Linked Data Proofs signed with the EcdsaSecp256k1Signature2019 signature suite.
-///
-/// Normalizes and hashes the credential and proof separately, then verifies
-/// the combined hash against the provided proof signature using the issuer's DID key.
-class Secp256k1Signature2019Verifier extends BaseSecp256k1Verifier {
-  /// Constructs a new [Secp256k1Signature2019Verifier].
-  ///
-  /// [issuerDid]: The expected issuer DID.
-  /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
-  /// [domain]: Optional expected domain(s).
-  /// [challenge]: Optional expected challenge string.
-  Secp256k1Signature2019Verifier({
-    required super.issuerDid,
-    super.getNow,
-    super.domain,
-    super.challenge,
-    super.customDocumentLoader,
-  });
-
-  @override
-  String get expectedProofType => _signatureType;
-
-  @override
-  String get contextUrl => _securityContext;
-
-  @override
-  String get proofValueField => 'jws';
-
-  @override
-  Future<Uint8List> computeSignatureHash(
-    Map<String, dynamic> proof,
-    Map<String, dynamic> unsignedCredential,
-    Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
-  ) async {
-    return computeVcHash(proof, unsignedCredential, documentLoader);
-  }
-
-  @override
-  Future<bool> verifySignature(
-    String proofValue,
-    String issuerDid,
-    Uri verificationMethod,
-    Uint8List hash,
-  ) async {
-    return verifyJws(proofValue, issuerDid, verificationMethod, hash);
-  }
-}
-
-/// Data model representing a Linked Data Proof of type EcdsaSecp256k1Signature2019.
-///
-/// Contains signature metadata and the actual JWS signature.
-class EcdsaSecp256k1Signature2019Proof extends EmbeddedProof {
-  /// The JWS (JSON Web Signature) string that signs the normalized data.
-
-  final String jws;
-
-  /// Constructs a new [EcdsaSecp256k1Signature2019Proof].
-  ///
-  /// Required fields include [type], [created], [verificationMethod], [proofPurpose], and [jws].
-  /// Optional fields include [expires], [challenge], and [domain].
-  EcdsaSecp256k1Signature2019Proof(
-      {required super.type,
-      required super.created,
-      required super.verificationMethod,
-      required super.proofPurpose,
-      required this.jws,
-      super.expires,
-      super.domain,
-      super.challenge});
-
-  @override
-  Map<String, dynamic> toJson() {
-    final json = super.toJson();
-    json['jws'] = jws;
-    return json;
-  }
-}
+  ),
+};

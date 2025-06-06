@@ -70,7 +70,8 @@ abstract class EmbeddedProofVerifier {
   /// Verify the embedded proofs in the document
   ///
   /// Implementations should bind any needed parameters
-  Future<VerificationResult> verify(Map<String, dynamic> document);
+  Future<VerificationResult> verify(Map<String, dynamic> document,
+      {DateTime Function() getNow = DateTime.now});
 }
 
 /// A no-operation document loader that always returns null.
