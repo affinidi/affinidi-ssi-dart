@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer' as developer;
 
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -72,23 +71,5 @@ mixin JwtParser implements VerifiableDataParser<String, Jws> {
         payload: payload,
         signature: segments[2],
         serialized: input);
-  }
-
-  @override
-  Jws? tryDecode(String input) {
-    if (!canDecode(input)) {
-      return null;
-    }
-
-    try {
-      return decode(input);
-    } catch (e) {
-      developer.log(
-        'JWT decode failed',
-        level: 500, // FINE
-        error: e,
-      );
-      return null;
-    }
   }
 }

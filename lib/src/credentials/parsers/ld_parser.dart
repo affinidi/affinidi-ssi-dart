@@ -23,6 +23,7 @@ mixin LdParser implements VerifiableDataParser<String, Map<String, dynamic>> {
       final data = jsonDecode(input) as Map<String, dynamic>;
       return hasValidPayload(data);
     } catch (e) {
+      developer.log('Failed to decode LD: $e');
       return false;
     }
   }
@@ -30,19 +31,4 @@ mixin LdParser implements VerifiableDataParser<String, Map<String, dynamic>> {
   @override
   Map<String, dynamic> decode(String input) =>
       jsonDecode(input) as Map<String, dynamic>;
-
-  @override
-  Map<String, dynamic>? tryDecode(String input) {
-    if (!canDecode(input)) return null;
-
-    try {
-      return decode(input);
-    } catch (e) {
-      developer.log(
-        'LdParser jsonDecode failed',
-        level: 500, // FINE
-      );
-      return null;
-    }
-  }
 }

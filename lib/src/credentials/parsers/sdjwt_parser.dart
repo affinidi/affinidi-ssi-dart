@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+
 import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
 
 import '../../exceptions/ssi_exception.dart';
@@ -36,6 +37,7 @@ mixin SdJwtParser implements VerifiableDataParser<String, SdJwt> {
       final jwt = SdJwt.parse(input);
       return hasValidPayload(jwt);
     } catch (e) {
+      developer.log('Failed to decode SD-JWT: $e');
       return false;
     }
   }
@@ -58,21 +60,5 @@ mixin SdJwtParser implements VerifiableDataParser<String, SdJwt> {
     }
 
     return SdJwt.parse(input);
-  }
-
-  @override
-  SdJwt? tryDecode(String input) {
-    if (!canDecode(input)) return null;
-
-    try {
-      return decode(input);
-    } catch (e) {
-      developer.log(
-        'SdJwt decode failed',
-        level: 500, // FINE
-        error: e,
-      );
-      return null;
-    }
   }
 }

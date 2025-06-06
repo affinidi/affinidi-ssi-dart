@@ -14,9 +14,4 @@ abstract interface class VerifiableDataParser<SerializedType, DecodedType> {
   ///
   /// Throws an exception if the input cannot be properly decoded.
   DecodedType decode(SerializedType input);
-
-  /// Attempts to decode the [input] and returns the result if successful, null otherwise.
-  ///
-  /// This method combines validation and parsing in one step to avoid redundant operations.
-  DecodedType? tryDecode(SerializedType input);
 }
