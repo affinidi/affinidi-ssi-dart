@@ -4,6 +4,7 @@ import 'package:base_codecs/base_codecs.dart';
 import 'package:ecdsa/ecdsa.dart' as ecdsa;
 import 'package:elliptic/ecdh.dart';
 import 'package:elliptic/elliptic.dart' as ec;
+import 'package:pointycastle/api.dart' as pc;
 
 import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
@@ -39,6 +40,18 @@ class P256KeyPair implements KeyPair {
     final instance = P256KeyPair._(privateKey, effectiveId);
     final privateKeyBytes = Uint8List.fromList(privateKey.bytes);
     return (instance, privateKeyBytes);
+  }
+
+  /// Creates a [P256KeyPair] instance from a seed.
+  ///
+  /// [seed] - The seed as a [Uint8List].
+  /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
+  factory P256KeyPair.fromSeed(Uint8List seed, {String? id}) {
+    final digest = pc.Digest('SHA-256');
+    final privateKeyBytes = digest.process(seed);
+    final effectiveId = id ?? randomId();
+    return P256KeyPair._(
+        ec.PrivateKey.fromBytes(_p256, privateKeyBytes), effectiveId);
   }
 
   /// Creates a [P256KeyPair] instance from a private key.

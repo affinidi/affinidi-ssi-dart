@@ -92,12 +92,18 @@ class Ed25519KeyPair implements KeyPair {
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
-    final digest = DigestUtils.getDigest(
-      data,
-      hashingAlgorithm: signatureScheme.hashingAlgorithm,
-    );
 
-    return ed.sign(_privateKey, digest);
+    Uint8List payloadToSign;
+    if (signatureScheme == SignatureScheme.eddsa_sha512) {
+      payloadToSign = data;
+    } else {
+      payloadToSign = DigestUtils.getDigest(
+        data,
+        hashingAlgorithm: signatureScheme.hashingAlgorithm,
+      );
+    }
+
+    return ed.sign(_privateKey, payloadToSign);
   }
 
   /// Verifies a signature using Ed25519.
@@ -125,11 +131,17 @@ class Ed25519KeyPair implements KeyPair {
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
-    final digest = DigestUtils.getDigest(
-      data,
-      hashingAlgorithm: signatureScheme.hashingAlgorithm,
-    );
-    return ed.verify(ed.public(_privateKey), digest, signature);
+
+    Uint8List payloadToVerify;
+    if (signatureScheme == SignatureScheme.eddsa_sha512) {
+      payloadToVerify = data;
+    } else {
+      payloadToVerify = DigestUtils.getDigest(
+        data,
+        hashingAlgorithm: signatureScheme.hashingAlgorithm,
+      );
+    }
+    return ed.verify(ed.public(_privateKey), payloadToVerify, signature);
   }
 
   /// Returns the original seed used to derive the Ed25519 key pair.
