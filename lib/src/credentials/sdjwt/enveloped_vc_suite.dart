@@ -82,6 +82,20 @@ final class EnvelopedVcDm2Suite
         as ParsedVerifiableCredential<String>;
   }
 
+  /// Attempts to parse the [input] and returns the result if successful, null otherwise.
+  ///
+  /// This method combines validation and parsing in one step to avoid redundant operations.
+  @override
+  ParsedVerifiableCredential<String>? tryParse(Object input) {
+    if (!canParse(input)) return null;
+
+    try {
+      return parse(input);
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Future<bool> verifyIntegrity(ParsedVerifiableCredential<String> input,
       {DateTime Function() getNow = DateTime.now}) async {
