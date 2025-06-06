@@ -89,22 +89,8 @@ final class EnvelopedVcDm2Suite
   ParsedVerifiableCredential<String>? tryParse(Object input) {
     if (!canParse(input)) return null;
 
-    final decoded = tryDecode(input as String);
-    if (decoded == null) return null;
-
     try {
-      final envelopedData = decoded['id'] as String;
-
-      final mediaType = mediaTypeSuites.entries
-          .where((e) => envelopedData.startsWith(e.key))
-          .firstOrNull;
-
-      if (mediaType == null) return null;
-
-      final serialized = envelopedData.replaceFirst(mediaType.key, '');
-
-      return mediaType.value.tryParse(serialized)
-          as ParsedVerifiableCredential<String>?;
+      return parse(input);
     } catch (e) {
       return null;
     }

@@ -16,7 +16,16 @@ mixin LdParser implements VerifiableDataParser<String, Map<String, dynamic>> {
   bool hasValidPayload(Map<String, dynamic> data);
 
   @override
-  bool canDecode(String input) => tryDecode(input) != null;
+  bool canDecode(String input) {
+    if (input.startsWith('ey')) return false;
+
+    try {
+      final data = jsonDecode(input) as Map<String, dynamic>;
+      return hasValidPayload(data);
+    } catch (e) {
+      return false;
+    }
+  }
 
   @override
   Map<String, dynamic> decode(String input) =>
@@ -24,13 +33,10 @@ mixin LdParser implements VerifiableDataParser<String, Map<String, dynamic>> {
 
   @override
   Map<String, dynamic>? tryDecode(String input) {
-    // filter out JWT tokens
-    if (input.startsWith('ey')) return null;
+    if (!canDecode(input)) return null;
 
     try {
-      final data = jsonDecode(input) as Map<String, dynamic>;
-      if (!hasValidPayload(data)) return null;
-      return data;
+      return decode(input);
     } catch (e) {
       developer.log(
         'LdParser jsonDecode failed',

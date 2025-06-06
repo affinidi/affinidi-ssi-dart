@@ -59,11 +59,8 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   Model? tryParse(Object input) {
     if (!canParse(input)) return null;
 
-    final decoded = tryDecode(input as String);
-    if (decoded == null) return null;
-
     try {
-      return fromParsed(input, decoded);
+      return parse(input);
     } catch (e) {
       return null;
     }

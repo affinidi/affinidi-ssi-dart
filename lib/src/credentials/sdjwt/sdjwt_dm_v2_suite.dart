@@ -71,11 +71,8 @@ final class SdJwtDm2Suite
   SdJwtDataModelV2? tryParse(Object input) {
     if (!canParse(input)) return null;
 
-    final decoded = tryDecode(input as String);
-    if (decoded == null) return null;
-
     try {
-      return SdJwtDataModelV2.fromSdJwt(decoded);
+      return parse(input);
     } catch (e) {
       return null;
     }

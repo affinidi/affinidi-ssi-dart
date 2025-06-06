@@ -81,25 +81,7 @@ mixin JwtParser implements VerifiableDataParser<String, Jws> {
     }
 
     try {
-      final segments = input.split('.');
-
-      final header = jsonDecode(
-        utf8.decode(
-          base64UrlNoPadDecode(segments[0]),
-        ),
-      ) as Map<String, dynamic>;
-
-      final payload = jsonDecode(
-        utf8.decode(
-          base64UrlNoPadDecode(segments[1]),
-        ),
-      ) as Map<String, dynamic>;
-
-      return Jws(
-          header: header,
-          payload: payload,
-          signature: segments[2],
-          serialized: input);
+      return decode(input);
     } catch (e) {
       developer.log(
         'JWT decode failed',

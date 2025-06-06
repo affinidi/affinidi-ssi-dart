@@ -50,11 +50,8 @@ final class JwtDm1Suite
   JwtVcDataModelV1? tryParse(Object data) {
     if (!canParse(data)) return null;
 
-    final decoded = tryDecode(data as String);
-    if (decoded == null) return null;
-
     try {
-      return JwtVcDataModelV1.fromJws(decoded);
+      return parse(data);
     } catch (e) {
       developer.log(
         'JWT VC parsing failed',
