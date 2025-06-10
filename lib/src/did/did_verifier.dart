@@ -70,7 +70,18 @@ class DidVerifier implements Verifier {
     final jwk = verificationMethod.asJwk();
     final jwkMap = Map<String, dynamic>.from(jwk.toJson());
 
-    return DidVerifier._(algorithm, kid, jwkMap);
+    final verifier = DidVerifier._(algorithm, kid, jwkMap);
+    if (algorithm.alg != null) {
+      if (!verifier.isAllowedAlgorithm(algorithm.alg!)) {
+        throw SsiException(
+          message:
+              'Algorithm ${algorithm.alg} is not compatible with the key type',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
+      }
+    }
+
+    return verifier;
   }
 
   @override

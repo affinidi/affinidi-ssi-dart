@@ -135,7 +135,7 @@ final class SdJwtDm2Suite
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input,
       {DateTime Function() getNow = DateTime.now}) async {
     final algorithm =
-        SignatureScheme.fromString(input.sdJwt.header['alg'] as String);
+        SignatureScheme.fromAlgorithm(input.sdJwt.header['alg'] as String);
     var now = getNow();
     final exp = input.sdJwt.payload['exp'];
     if (exp != null &&
