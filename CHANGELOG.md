@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-06-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.2.0`](#ssi---v120)
+
+---
+
+#### `ssi` - `v1.2.0`
+
+ - **FEAT**: enhance proof verification with new data integrity suites (#112).
+
+## 1.2.0
+
+ - **FEAT**: enhance proof verification with new data integrity suites (#112).
+
+
 ## 2025-06-06
 
 ### Changes
