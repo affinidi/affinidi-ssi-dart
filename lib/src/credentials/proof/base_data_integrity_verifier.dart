@@ -154,7 +154,10 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
         );
       }
 
-      if (now.isAfter(expiryDate)) {
+      final expiryDateUtc = expiryDate.toUtc();
+      final nowUtc = now.toUtc();
+
+      if (nowUtc.isAfter(expiryDateUtc)) {
         return VerificationResult.invalid(errors: ['proof has expired']);
       }
     }
