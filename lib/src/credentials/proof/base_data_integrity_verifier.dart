@@ -131,6 +131,14 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
+    // Validate proofPurpose is present to prevent misuse
+    // See: https://www.w3.org/TR/vc-data-integrity/#proofs
+    if (proof['proofPurpose'] == null) {
+      return VerificationResult.invalid(
+        errors: ['missing proofPurpose'],
+      );
+    }
+
     return VerificationResult.ok();
   }
 
