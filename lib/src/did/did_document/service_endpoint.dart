@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../../types.dart';
 import '../../util/json_util.dart';
+import 'service_endpoint_value.dart';
 
 /// Represents a DIDComm service endpoint.
 class DIDCommServiceEndpoint {
@@ -24,8 +25,8 @@ class DIDCommServiceEndpoint {
   /// Creates a [DIDCommServiceEndpoint] from JSON input.
   factory DIDCommServiceEndpoint.fromJson(Map<String, dynamic> json) {
     return DIDCommServiceEndpoint(
-      accept: (json['accept'] as List).cast<String>(),
-      routingKeys: (json['routingKeys'] as List).cast<String>(),
+      accept: (json['accept'] as List?)?.cast<String>() ?? <String>[],
+      routingKeys: (json['routingKeys'] as List?)?.cast<String>() ?? <String>[],
       uri: json['uri'] as String,
     );
   }
@@ -46,10 +47,8 @@ class ServiceEndpoint implements JsonObject {
   /// The type of the service endpoint.
   late String type;
 
-  /// The list of DIDComm service endpoints.
-  late List<DIDCommServiceEndpoint> serviceEndpoint;
-  String? _originalStringEndpoint;
-  Map<String, dynamic>? _originalMapEndpoint;
+  /// The service endpoint value (can be string, map, or set).
+  late ServiceEndpointValue serviceEndpoint;
 
   /// Creates a [ServiceEndpoint] instance.
   ServiceEndpoint({
@@ -69,54 +68,86 @@ class ServiceEndpoint implements JsonObject {
     if (se.containsKey('type')) {
       type = se['type'];
     } else {
-      throw const FormatException(
-          'format property is needed in serviceEndpoint');
+      throw const FormatException('type property is needed in serviceEndpoint');
     }
     if (se.containsKey('serviceEndpoint')) {
-      final endpoint = se['serviceEndpoint'];
-      if (endpoint is List) {
-        serviceEndpoint = endpoint
-            .map((e) =>
-                DIDCommServiceEndpoint.fromJson(Map<String, dynamic>.from(e)))
-            .toList();
-      } else if (endpoint is Map<String, dynamic>) {
-        _originalMapEndpoint = Map<String, dynamic>.from(endpoint);
-        serviceEndpoint = [
-          DIDCommServiceEndpoint.fromJson(_originalMapEndpoint!)
-        ];
-      } else if (endpoint is String) {
-        _originalStringEndpoint = endpoint;
-        serviceEndpoint = [
-          DIDCommServiceEndpoint(
-              uri: endpoint, accept: <String>[], routingKeys: <String>[])
-        ];
-      } else {
-        throw const FormatException(
-            'serviceEndpoint must be a list, map, or string');
-      }
+      serviceEndpoint =
+          ServiceEndpointValueParser.fromJson(se['serviceEndpoint']);
     } else {
       throw const FormatException(
           'serviceEndpoint property is needed in serviceEndpoint');
     }
   }
 
+  /// Helper method to extract DIDComm endpoints if the service is DIDComm-compatible.
+  List<DIDCommServiceEndpoint>? get didCommEndpoints {
+    final value = serviceEndpoint;
+    if (value is MapEndpoint && value.data.containsKey('uri')) {
+      try {
+        return [DIDCommServiceEndpoint.fromJson(value.data)];
+      } catch (_) {
+        return null;
+      }
+    }
+    if (value is SetEndpoint) {
+      final endpoints = <DIDCommServiceEndpoint>[];
+      for (final endpoint in value.endpoints) {
+        if (endpoint is MapEndpoint && endpoint.data.containsKey('uri')) {
+          try {
+            endpoints.add(DIDCommServiceEndpoint.fromJson(endpoint.data));
+          } catch (_) {
+            // Skip non-DIDComm endpoints
+          }
+        }
+      }
+      return endpoints.isEmpty ? null : endpoints;
+    }
+    return null;
+  }
+
+  /// Factory constructor for creating a DIDComm service endpoint.
+  factory ServiceEndpoint.didComm({
+    required String id,
+    required List<DIDCommServiceEndpoint> endpoints,
+  }) {
+    return ServiceEndpoint(
+      id: id,
+      type: 'DIDCommMessaging',
+      serviceEndpoint: endpoints.length == 1
+          ? MapEndpoint(endpoints.first.toJson())
+          : SetEndpoint(
+              endpoints.map((e) => MapEndpoint(e.toJson())).toList(),
+            ),
+    );
+  }
+
   /// Converts this service endpoint to a JSON-serializable map.
   @override
   Map<String, dynamic> toJson() {
-    var jsonObject = <String, dynamic>{};
-    jsonObject['id'] = id;
-    jsonObject['type'] = type;
-
-    if (_originalStringEndpoint != null) {
-      jsonObject['serviceEndpoint'] = _originalStringEndpoint;
-    } else if (_originalMapEndpoint != null) {
-      jsonObject['serviceEndpoint'] = _originalMapEndpoint;
-    } else {
-      jsonObject['serviceEndpoint'] =
-          serviceEndpoint.map((e) => e.toJson()).toList();
+    final dynamic jsonValue;
+    switch (serviceEndpoint) {
+      case StringEndpoint(:final url):
+        jsonValue = url;
+      case MapEndpoint(:final data):
+        jsonValue = data;
+      case SetEndpoint(:final endpoints):
+        jsonValue = endpoints.map((e) {
+          switch (e) {
+            case StringEndpoint(:final url):
+              return url;
+            case MapEndpoint(:final data):
+              return data;
+            case SetEndpoint():
+              throw StateError('Nested sets are not supported');
+          }
+        }).toList();
     }
 
-    return jsonObject;
+    return {
+      'id': id,
+      'type': type,
+      'serviceEndpoint': jsonValue,
+    };
   }
 
   /// Returns the JSON string representation of the service endpoint.

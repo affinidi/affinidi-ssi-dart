@@ -119,7 +119,6 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     if (proofSuite == null) {
       return false;
     }
-
     final verificationResult =
         await proofSuite.verify(document, getNow: getNow);
     return verificationResult.isValid;

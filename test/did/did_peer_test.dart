@@ -63,7 +63,7 @@ void main() {
       final key = await wallet.generateKey(keyId: derivedKeyPath);
       final doc = DidPeer.generateDocument(
         [key.publicKey, key.publicKey],
-        serviceEndpoint: 'https://denys.com/income',
+        serviceEndpoint: const StringEndpoint('https://denys.com/income'),
       );
       final actualDid = doc.id;
 
@@ -87,7 +87,7 @@ void main() {
           key.publicKey,
           key.publicKey
         ], // Using same key twice for simplicity, matching generateDocument test
-        serviceEndpoint: 'https://denys.com/income',
+        serviceEndpoint: const StringEndpoint('https://denys.com/income'),
       );
 
       expect(actualDid, expectedDid);

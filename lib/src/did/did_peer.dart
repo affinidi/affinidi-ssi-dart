@@ -302,23 +302,42 @@ class DidPeer {
     );
   }
 
-  static String _buildServiceEncoded(String? serviceEndpoint) {
-    if (serviceEndpoint == null) {
+  static String _buildServiceEncoded(ServiceEndpointValue? serviceValue) {
+    if (serviceValue == null) {
       return '';
     }
 
-    var jsonString = json.encode({
-      'id': 'new-id',
-      't': 'dm', // "type": "DIDCommMessaging"
-      's': serviceEndpoint, // serviceEndpoint
-      'a': ['didcomm/v2'], // accept
-    });
+    final Map<String, dynamic> serviceJson;
+    switch (serviceValue) {
+      case StringEndpoint(:final url):
+        // For string endpoints, maintain DIDComm v2 compatibility
+        serviceJson = {
+          'id': 'new-id',
+          't': 'dm', // "type": "DIDCommMessaging"
+          's': url, // serviceEndpoint
+          'a': ['didcomm/v2'], // accept
+        };
+      case MapEndpoint(:final data):
+        // For map data, preserve the structure
+        serviceJson = {
+          'id': data['id'] ?? 'new-id',
+          't': data['type'] ?? data['t'] ?? 'dm',
+          ...data,
+        };
+      case SetEndpoint():
+        // did:peer URIs cannot encode sets
+        throw SsiException(
+          message:
+              'did:peer does not support set-based service endpoints in the DID URL',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
+    }
 
-    return ".${Numalgo2Prefix.service.value}${base64UrlEncode(utf8.encode(jsonString)).replaceAll('=', '')}";
+    return ".${Numalgo2Prefix.service.value}${base64UrlEncode(utf8.encode(json.encode(serviceJson))).replaceAll('=', '')}";
   }
 
   static String _pubKeysToPeerDid(List<PublicKey> signingKeys,
-      [List<PublicKey>? agreementKeys, String? serviceEndpoint]) {
+      [List<PublicKey>? agreementKeys, ServiceEndpointValue? serviceEndpoint]) {
     var isDid0 = signingKeys.length == 1 &&
         (agreementKeys == null && serviceEndpoint == null);
 
@@ -363,14 +382,14 @@ class DidPeer {
   /// This method derives the peer DID from the given public keys
   ///
   /// [publicKeys] The public keys used to derive the DID
-  /// [serviceEndpoint] - Optional service endpoint.
+  /// [serviceEndpoint] - Optional service endpoint data.
   ///
   /// Returns the DID as [String].
   ///
   /// Throws [SsiException] if the public key is invalid
   static String getDid(
     List<PublicKey> publicKeys, {
-    String? serviceEndpoint,
+    ServiceEndpointValue? serviceEndpoint,
   }) {
     if (publicKeys.isEmpty) {
       throw SsiException(
@@ -393,7 +412,7 @@ class DidPeer {
   /// Creates a DID Document for a list of key pairs.
   ///
   /// keys - The list of public keys.
-  /// serviceEndpoint - Optional service endpoint.
+  /// serviceEndpoint - Optional service endpoint data.
   ///
   /// Returns a [DidDocument].
   ///
@@ -401,7 +420,7 @@ class DidPeer {
   //FIXME(FTL-20741) should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
   static DidDocument generateDocument(
     List<PublicKey> keys, {
-    String? serviceEndpoint,
+    ServiceEndpointValue? serviceEndpoint,
   }) {
     final did = getDid(keys, serviceEndpoint: serviceEndpoint);
 
