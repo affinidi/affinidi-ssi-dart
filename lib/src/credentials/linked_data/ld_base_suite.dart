@@ -57,6 +57,17 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   /// Creates a [Model] instance from the parsed JSON [payload] and original [input] string.
   Model fromParsed(String input, Map<String, dynamic> payload);
 
+  /// Attempts to parse the [input] and returns the result if successful, null otherwise.
+  Model? tryParse(Object input) {
+    if (!canParse(input)) return null;
+
+    try {
+      return parse(input);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Issues a signed [Model] by applying an embedded proof.
   ///
   /// Throws a [SsiException] if the issuer in the proof does not match the credential's
@@ -103,50 +114,46 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   Future<bool> verifyIntegrity(Model input,
       {DateTime Function() getNow = DateTime.now}) async {
     final document = input.toJson();
-    final issuerDid = Issuer.uri(document[issuerKey]);
+    final proofSuite = _getDocumentProofVerifier(document);
 
+    if (proofSuite == null) {
+      return false;
+    }
+    final verificationResult =
+        await proofSuite.verify(document, getNow: getNow);
+    return verificationResult.isValid;
+  }
+
+  EmbeddedProofVerifier? _getDocumentProofVerifier(
+      Map<String, dynamic> document) {
     final proof = document[proofKey];
     if (proof == null || proof is! Map<String, dynamic>) {
-      return false;
+      return null;
     }
 
     final proofType = proof['type'] as String?;
     if (proofType == null) {
-      return false;
+      return null;
     }
 
-    EmbeddedProofVerifier proofSuite;
+    final issuerDid = Issuer.uri(document[issuerKey]).id.toString();
 
     switch (proofType) {
       case 'DataIntegrityProof':
         final cryptosuite = proof['cryptosuite'] as String?;
         switch (cryptosuite) {
           case 'ecdsa-rdfc-2019':
-            proofSuite = DataIntegrityEcdsaVerifier(
-              issuerDid: issuerDid.id.toString(),
-            );
-            break;
+            return DataIntegrityEcdsaVerifier(issuerDid: issuerDid);
           case 'eddsa-rdfc-2022':
-            proofSuite = DataIntegrityEddsaVerifier(
-              issuerDid: issuerDid.id.toString(),
-            );
-            break;
+            return DataIntegrityEddsaVerifier(issuerDid: issuerDid);
           default:
-            return false;
+            return null;
         }
-        break;
       case 'EcdsaSecp256k1Signature2019':
-        proofSuite = Secp256k1Signature2019Verifier(
-          issuerDid: issuerDid.id.toString(),
-        );
-        break;
+        return Secp256k1Signature2019Verifier(issuerDid: issuerDid);
       default:
-        return false;
+        return null;
     }
-
-    final verificationResult =
-        await proofSuite.verify(document, getNow: getNow);
-    return verificationResult.isValid;
   }
 
   /// Presents the [input] credential as a JSON object.

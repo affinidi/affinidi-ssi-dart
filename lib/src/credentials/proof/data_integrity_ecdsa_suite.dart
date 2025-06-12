@@ -1,15 +1,13 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
-import 'package:pointycastle/api.dart';
 
 import '../../did/did_signer.dart';
-import '../../did/did_verifier.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
+import 'base_data_integrity_verifier.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 
@@ -67,9 +65,9 @@ class DataIntegrityEcdsaGenerator extends EmbeddedProofSuiteCreateOptions
 
     document.remove('proof');
 
-    final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
+    final cacheLoadDocument = createCacheDocumentLoader(customDocumentLoader);
     final hash =
-        await _computeDataIntegrityHash(proof, document, cacheLoadDocument);
+        await computeDataIntegrityHash(proof, document, cacheLoadDocument);
     final signature = await _computeSignature(hash, signer);
 
     proof.remove('@context');
@@ -101,20 +99,7 @@ class DataIntegrityEcdsaGenerator extends EmbeddedProofSuiteCreateOptions
 ///
 /// Normalizes and hashes the credential and proof separately, then verifies
 /// the combined hash against the provided proof signature using the issuer's DID key.
-class DataIntegrityEcdsaVerifier extends EmbeddedProofSuiteVerifyOptions
-    implements EmbeddedProofVerifier {
-  /// The DID of the issuer expected to have signed the credential.
-  final String issuerDid;
-
-  /// Function to supply the current timestamp for proof expiry validation.
-  final DateTime Function() getNow;
-
-  /// Optional domain to validate within the proof.
-  final List<String>? domain;
-
-  /// Optional challenge string to validate within the proof.
-  final String? challenge;
-
+class DataIntegrityEcdsaVerifier extends BaseDataIntegrityVerifier {
   /// Constructs a new [DataIntegrityEcdsaVerifier].
   ///
   /// [issuerDid]: The expected issuer DID.
@@ -122,219 +107,48 @@ class DataIntegrityEcdsaVerifier extends EmbeddedProofSuiteVerifyOptions
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
   DataIntegrityEcdsaVerifier({
-    required this.issuerDid,
-    this.getNow = DateTime.now,
-    this.domain,
-    this.challenge,
+    required super.issuerDid,
+    super.getNow,
+    super.domain,
+    super.challenge,
     super.customDocumentLoader,
   });
 
-  /// Verifies the proof embedded in the provided [document].
-  ///
-  /// Returns a [VerificationResult] indicating success or listing errors.
   @override
-  Future<VerificationResult> verify(Map<String, dynamic> document,
-      {DateTime Function() getNow = DateTime.now}) async {
-    final copy = Map.of(document);
-    final proof = copy.remove('proof');
+  String get expectedProofType => _dataIntegrityType;
 
-    if (proof == null || proof is! Map<String, dynamic>) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof'],
-      );
-    }
+  @override
+  String get expectedCryptosuite => _ecdsaCryptosuite;
 
-    if (proof['type'] != _dataIntegrityType) {
-      return VerificationResult.invalid(
-        errors: ['invalid proof type, expected $_dataIntegrityType'],
-      );
-    }
+  @override
+  String get contextUrl => _dataIntegrityContext;
 
-    if (proof['cryptosuite'] != _ecdsaCryptosuite) {
-      return VerificationResult.invalid(
-        errors: ['invalid cryptosuite, expected $_ecdsaCryptosuite'],
-      );
-    }
+  @override
+  String get proofValueField => 'proofValue';
 
-    var now = getNow();
-
-    final expires = proof['expires'];
-    if (expires != null && now.isAfter(DateTime.parse(expires as String))) {
-      return VerificationResult.invalid(errors: ['proof has expired']);
-    }
-
-    Uri verificationMethod;
-    try {
-      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
-    } catch (e) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof.verificationMethod'],
-      );
-    }
-
-    final originalProofValue = proof.remove('proofValue');
-    if (originalProofValue == null) {
-      return VerificationResult.invalid(
-        errors: ['missing proofValue'],
-      );
-    }
-
-    proof['@context'] = _dataIntegrityContext;
-
-    final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-    final hash =
-        await _computeDataIntegrityHash(proof, copy, cacheLoadDocument);
-    final isValid = await _verifySignature(
-        originalProofValue as String, issuerDid, verificationMethod, hash);
-
-    if (!isValid) {
-      return VerificationResult.invalid(
-        errors: ['signature invalid'],
-      );
-    }
-
-    return VerificationResult.ok();
+  @override
+  Future<Uint8List> computeSignatureHash(
+    Map<String, dynamic> proof,
+    Map<String, dynamic> unsignedCredential,
+    Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
+        documentLoader,
+  ) async {
+    return computeDataIntegrityHash(proof, unsignedCredential, documentLoader);
   }
-}
 
-Future<Uint8List> _computeDataIntegrityHash(
-  Map<String, dynamic> proof,
-  Map<String, dynamic> unsignedCredential,
-  Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-      documentLoader,
-) async {
-  final normalizedProof = await JsonLdProcessor.normalize(
-    proof,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
-  );
-  final proofConfigHash = Digest('SHA-256').process(
-    utf8.encode(normalizedProof),
-  );
-
-  final normalizedContent = await JsonLdProcessor.normalize(
-    unsignedCredential,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
-  );
-  final transformedDocumentHash = Digest('SHA-256').process(
-    utf8.encode(normalizedContent),
-  );
-
-  return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
-}
-
-Future<bool> _verifySignature(
-  String proofValue,
-  String issuerDid,
-  Uri verificationMethod,
-  Uint8List hash,
-) async {
-  final signature = base64UrlNoPadDecode(proofValue);
-
-  final expectedScheme = cryptosuiteToScheme[_ecdsaCryptosuite];
-  if (expectedScheme == null) {
-    throw SsiException(
-      message:
-          'Unknown cryptosuite: $_ecdsaCryptosuite, cannot determine signature scheme.',
-      code: SsiExceptionType.unsupportedSignatureScheme.code,
+  @override
+  Future<bool> verifySignature(
+    String proofValue,
+    String issuerDid,
+    Uri verificationMethod,
+    Uint8List hash,
+  ) async {
+    return verifyDataIntegritySignature(
+      proofValue,
+      issuerDid,
+      verificationMethod,
+      hash,
+      _ecdsaCryptosuite,
     );
   }
-
-  final verifier = await DidVerifier.create(
-    algorithm: expectedScheme,
-    kid: verificationMethod.toString(),
-    issuerDid: issuerDid,
-  );
-  return verifier.verify(hash, signature);
 }
-
-typedef _LibDocumentLoader = Future<RemoteDocument> Function(
-  Uri url,
-  LoadDocumentOptions? options,
-);
-
-_LibDocumentLoader _cacheLoadDocument(
-  DocumentLoader customLoader,
-) =>
-    (Uri url, LoadDocumentOptions? options) async {
-      final fromCache = _documentCache[url];
-      if (fromCache != null) {
-        return Future.value(fromCache);
-      }
-
-      final custom = await customLoader(url);
-      if (custom != null) {
-        return Future.value(RemoteDocument(document: custom));
-      }
-
-      return loadDocument(url, options);
-    };
-
-final _documentCache = <Uri, RemoteDocument>{
-  Uri.parse('https://w3id.org/security/data-integrity/v1'): RemoteDocument(
-    document: jsonDecode(r'''
-{
-  "@context": {
-    "@version": 1.1,
-    "@protected": true,
-    "id": "@id",
-    "type": "@type",
-    "DataIntegrityProof": {
-      "@id": "https://w3id.org/security#DataIntegrityProof",
-      "@context": {
-        "@version": 1.1,
-        "@protected": true,
-        "id": "@id",
-        "type": "@type",
-        "challenge": "https://w3id.org/security#challenge",
-        "created": {
-          "@id": "http://purl.org/dc/terms/created",
-          "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
-        },
-        "domain": "https://w3id.org/security#domain",
-        "expires": {
-          "@id": "https://w3id.org/security#expiration",
-          "@type": "http://www.w3.org/2001/XMLSchema#dateTime"
-        },
-        "nonce": "https://w3id.org/security#nonce",
-        "proofPurpose": {
-          "@id": "https://w3id.org/security#proofPurpose",
-          "@type": "@vocab",
-          "@context": {
-            "@version": 1.1,
-            "@protected": true,
-            "id": "@id",
-            "type": "@type",
-            "assertionMethod": {
-              "@id": "https://w3id.org/security#assertionMethod",
-              "@type": "@id",
-              "@container": "@set"
-            },
-            "authentication": {
-              "@id": "https://w3id.org/security#authenticationMethod",
-              "@type": "@id",
-              "@container": "@set"
-            }
-          }
-        },
-        "proofValue": {
-          "@id": "https://w3id.org/security#proofValue",
-          "@type": "https://w3id.org/security#multibase"
-        },
-        "verificationMethod": {
-          "@id": "https://w3id.org/security#verificationMethod",
-          "@type": "@id"
-        }
-      }
-    },
-    "cryptosuite": "https://w3id.org/security#cryptosuite"
-  }
-}
-'''),
-  ),
-};
