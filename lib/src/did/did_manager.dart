@@ -10,6 +10,7 @@ import '../util/base64_util.dart';
 import '../wallet/persistent_wallet.dart';
 import '../wallet/wallet.dart';
 import 'did_document/did_document.dart';
+import 'did_document/service_endpoint_value.dart';
 import 'did_document/verification_method.dart';
 import 'did_key.dart';
 import 'did_peer.dart';
@@ -103,9 +104,11 @@ class DiDManager {
         return DidKey.generateDocument(publicKeys.first);
 
       case 'peer':
+        final serviceValue =
+            serviceEndpoint != null ? StringEndpoint(serviceEndpoint) : null;
         return DidPeer.generateDocument(
           publicKeys,
-          serviceEndpoint: serviceEndpoint,
+          serviceEndpoint: serviceValue,
         );
 
       default:

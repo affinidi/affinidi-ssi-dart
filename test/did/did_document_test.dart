@@ -169,12 +169,21 @@ void main() {
       });
 
       test('it retrieves correct service endpoint', () {
-        final endpoints = serviceEndpoint.serviceEndpoint;
-        expect(endpoints.length, 2);
-        expect(endpoints[0].uri, 'https://example.com');
-        expect(endpoints[0].accept, ['didcomm/v2']);
-        expect(endpoints[0].routingKeys, <String>[]);
-        expect(endpoints[1].uri, 'wss://example.com/ws');
+        final endpointValue = serviceEndpoint.serviceEndpoint;
+        expect(endpointValue, isA<SetEndpoint>());
+
+        final setEndpoint = endpointValue as SetEndpoint;
+        expect(setEndpoint.endpoints.length, 2);
+
+        // Check first endpoint
+        final firstEndpoint = setEndpoint.endpoints[0] as MapEndpoint;
+        expect(firstEndpoint.data['uri'], 'https://example.com');
+        expect(firstEndpoint.data['accept'], ['didcomm/v2']);
+        expect(firstEndpoint.data['routingKeys'], <String>[]);
+
+        // Check second endpoint
+        final secondEndpoint = setEndpoint.endpoints[1] as MapEndpoint;
+        expect(secondEndpoint.data['uri'], 'wss://example.com/ws');
       });
     });
   });
@@ -252,7 +261,7 @@ void main() {
         verificationMethod: [vm],
         authentication: ['id'],
         keyAgreement: ['id'],
-        service: <DIDCommServiceEndpoint>[],
+        service: <ServiceEndpoint>[],
         assertionMethod: ['id'],
         capabilityDelegation: ['id'],
         capabilityInvocation: ['id'],
@@ -286,21 +295,118 @@ void main() {
       expect(() => ServiceEndpoint.fromJson({'id': 'i', 'type': 't'}),
           throwsFormatException);
     });
-    test('throws if serviceEndpoint is not a list', () {
-      expect(() => ServiceEndpoint.fromJson(
-              // ignore: inference_failure_on_collection_literal
-              {'id': 'i', 'type': 't', 'serviceEndpoint': {}}),
-          throwsFormatException);
+    test('accepts map for serviceEndpoint', () {
+      final se = ServiceEndpoint.fromJson({
+        'id': 'i',
+        'type': 't',
+        'serviceEndpoint': <String, dynamic>{
+          'uri': 'https://example.com',
+        },
+      });
+      expect(se.id, 'i');
+      expect(se.type, 't');
+      expect(se.serviceEndpoint, isA<MapEndpoint>());
+
+      final mapEndpoint = se.serviceEndpoint as MapEndpoint;
+      expect(mapEndpoint.data['uri'], 'https://example.com');
     });
     test('toString returns json string', () {
       final se = ServiceEndpoint(
         id: 'id',
         type: 'type',
-        serviceEndpoint: [
-          DIDCommServiceEndpoint(accept: ['a'], routingKeys: [], uri: 'u')
-        ],
+        serviceEndpoint: const MapEndpoint({
+          'accept': ['a'],
+          'routingKeys': <String>[],
+          'uri': 'u',
+        }),
       );
       expect(jsonDecode(se.toString()), se.toJson());
+    });
+
+    test('accepts string for serviceEndpoint', () {
+      final se = ServiceEndpoint.fromJson({
+        'id': 'service1',
+        'type': 'LinkedDomains',
+        'serviceEndpoint': 'https://example.com',
+      });
+      expect(se.id, 'service1');
+      expect(se.type, 'LinkedDomains');
+      expect(se.serviceEndpoint, isA<StringEndpoint>());
+
+      final stringEndpoint = se.serviceEndpoint as StringEndpoint;
+      expect(stringEndpoint.url, 'https://example.com');
+    });
+
+    test('accepts mixed list for serviceEndpoint', () {
+      final se = ServiceEndpoint.fromJson({
+        'id': 'service2',
+        'type': 'ExampleService',
+        'serviceEndpoint': [
+          'https://example.com/endpoint1',
+          {
+            'uri': 'https://example.com/endpoint2',
+            'accept': ['application/json'],
+          },
+        ],
+      });
+      expect(se.id, 'service2');
+      expect(se.type, 'ExampleService');
+      expect(se.serviceEndpoint, isA<SetEndpoint>());
+
+      final setEndpoint = se.serviceEndpoint as SetEndpoint;
+      expect(setEndpoint.endpoints.length, 2);
+      expect(setEndpoint.endpoints[0], isA<StringEndpoint>());
+      expect(setEndpoint.endpoints[1], isA<MapEndpoint>());
+    });
+
+    test('DIDComm helper getter works correctly', () {
+      final se = ServiceEndpoint.fromJson({
+        'id': 'didcomm',
+        'type': 'DIDCommMessaging',
+        'serviceEndpoint': {
+          'uri': 'https://example.com',
+          'accept': ['didcomm/v2'],
+          'routingKeys': ['key1', 'key2'],
+        },
+      });
+
+      final didCommEndpoints = se.didCommEndpoints;
+      expect(didCommEndpoints, isNotNull);
+      expect(didCommEndpoints!.length, 1);
+      expect(didCommEndpoints[0].uri, 'https://example.com');
+      expect(didCommEndpoints[0].accept, ['didcomm/v2']);
+      expect(didCommEndpoints[0].routingKeys, ['key1', 'key2']);
+    });
+
+    test('DIDComm factory constructor works', () {
+      final endpoints = [
+        DIDCommServiceEndpoint(
+          uri: 'https://example.com',
+          accept: ['didcomm/v2'],
+          routingKeys: [],
+        ),
+      ];
+
+      final se = ServiceEndpoint.didComm(
+        id: 'comm1',
+        endpoints: endpoints,
+      );
+
+      expect(se.id, 'comm1');
+      expect(se.type, 'DIDCommMessaging');
+      expect(se.serviceEndpoint, isA<MapEndpoint>());
+    });
+
+    test('preserves arbitrary service types', () {
+      final se = ServiceEndpoint.fromJson({
+        'id': 'social',
+        'type': 'https://social.example/ExampleSocialMediaService',
+        'serviceEndpoint': 'https://warbler.example/sal674',
+      });
+
+      expect(se.type, 'https://social.example/ExampleSocialMediaService');
+      expect((se.serviceEndpoint as StringEndpoint).url,
+          'https://warbler.example/sal674');
     });
   });
 }
