@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-06-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.2.1`](#ssi---v121)
+
+---
+
+#### `ssi` - `v1.2.1`
+
+ - **FIX**: add dh shared secret to secp256k1 (#109).
+
+## 1.2.1
+
+ - **FIX**: add dh shared secret to secp256k1 (#109).
+
+
 ## 2025-06-10
 
 ### Changes
