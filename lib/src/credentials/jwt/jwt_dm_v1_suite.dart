@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import '../../did/did_signer.dart';
 import '../../did/did_verifier.dart';
@@ -40,6 +41,25 @@ final class JwtDm1Suite
 
     final jws = decode(data);
     return JwtVcDataModelV1.fromJws(jws);
+  }
+
+  /// Attempts to parse the [data] and returns the result if successful, null otherwise.
+  ///
+  /// This method combines validation and parsing in one step
+  @override
+  JwtVcDataModelV1? tryParse(Object data) {
+    if (!canParse(data)) return null;
+
+    try {
+      return parse(data);
+    } catch (e) {
+      developer.log(
+        'JWT VC parsing failed',
+        level: 500, // FINE
+        error: e,
+      );
+      return null;
+    }
   }
 
   /// Issues a signed [JwtVcDataModelV1] from a [VcDataModelV1] using a DidSigner.

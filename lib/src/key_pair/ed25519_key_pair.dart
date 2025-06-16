@@ -4,7 +4,6 @@ import 'package:cryptography/cryptography.dart' as crypto;
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:x25519/x25519.dart' as x25519;
 
-import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
@@ -92,12 +91,9 @@ class Ed25519KeyPair implements KeyPair {
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
-    final digest = DigestUtils.getDigest(
-      data,
-      hashingAlgorithm: signatureScheme.hashingAlgorithm,
-    );
 
-    return ed.sign(_privateKey, digest);
+    // For Ed25519, the library handles hashing internally
+    return ed.sign(_privateKey, data);
   }
 
   /// Verifies a signature using Ed25519.
@@ -125,11 +121,9 @@ class Ed25519KeyPair implements KeyPair {
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
-    final digest = DigestUtils.getDigest(
-      data,
-      hashingAlgorithm: signatureScheme.hashingAlgorithm,
-    );
-    return ed.verify(ed.public(_privateKey), digest, signature);
+
+    // For Ed25519, the library handles hashing internally
+    return ed.verify(ed.public(_privateKey), data, signature);
   }
 
   /// Returns the original seed used to derive the Ed25519 key pair.
