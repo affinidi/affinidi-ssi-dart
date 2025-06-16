@@ -164,7 +164,8 @@ class Ed25519KeyPair implements KeyPair {
       publicKeyToUse = publicKey;
     }
 
-    final sharedSecret = await computeEcdhSecret(Uint8List.fromList(publicKeyToUse));
+    final sharedSecret =
+        await computeEcdhSecret(Uint8List.fromList(publicKeyToUse));
 
     final algorithm = crypto.Hkdf(
       hmac: crypto.Hmac.sha256(),

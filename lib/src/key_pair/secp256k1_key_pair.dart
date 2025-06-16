@@ -124,7 +124,8 @@ class Secp256k1KeyPair implements KeyPair {
   ///
   /// Returns the computed shared secret as a [Uint8List].
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
-    final publicKeyObj = _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
+    final publicKeyObj =
+        _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
     final privateKey = ec.PrivateKey.fromBytes(_secp256k1, _node.privateKey!);
     final secret = computeSecret(privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
