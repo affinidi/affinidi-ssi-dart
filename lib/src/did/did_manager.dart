@@ -4,16 +4,11 @@ import 'dart:typed_data';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
-import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
 import '../wallet/persistent_wallet.dart';
 import '../wallet/wallet.dart';
 import 'did_document/did_document.dart';
-import 'did_document/service_endpoint_value.dart';
-import 'did_document/verification_method.dart';
-import 'did_key.dart';
-import 'did_peer.dart';
 import 'did_signer.dart';
 import 'public_key_utils.dart';
 
@@ -45,19 +40,19 @@ class DiDManagerStore {
   List<String> get didKeyIds => _keyMapping.keys.toList();
 }
 
-/// Manages DID documents and their associated verification methods.
+/// Base class for managing DID documents and their associated verification methods.
 ///
-/// This class provides a high-level interface for creating and managing
+/// This abstract class provides shared functionality for creating and managing
 /// DID documents with multiple verification methods, handling the mapping
 /// between DID key identifiers and wallet key identifiers, and providing
 /// signing and verification capabilities.
-///
-/// The manager supports different DID methods and provides centralized
-/// document creation and management functionality.
-class DiDManager {
+abstract class DidManager {
   /// The key mapping store for this manager.
   final DiDManagerStore keyMapping;
-  final Wallet _wallet;
+
+  /// The wallet instance for key operations.
+  final Wallet wallet;
+
   DidDocument? _document;
 
   /// Creates a new DID manager instance.
@@ -65,59 +60,14 @@ class DiDManager {
   /// [keyMapping] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   /// [document] - An optional existing DID document to manage.
-  ///
-  /// TODO: Enhance DID and document creation management:
-  /// - Support multiple DID methods (did:key, did:peer, did:web)
-  /// - Provide configurable document creation strategies
-  /// - Add validation for document consistency
-  /// - Support document updates and key rotation
-  DiDManager({
+  DidManager({
     required this.keyMapping,
-    required Wallet wallet,
+    required this.wallet,
     DidDocument? document,
-  })  : _wallet = wallet,
-        _document = document;
+  }) : _document = document;
 
   /// Gets the current DID document managed by this instance.
   DidDocument? get document => _document;
-
-  /// Creates a DID document using the specified method.
-  ///
-  /// [publicKeys] - The public keys to include in the document.
-  /// [method] - The DID method to use ('key', 'peer', 'web').
-  /// [serviceEndpoint] - Optional service endpoint for did:peer.
-  ///
-  /// Returns the created DID document.
-  DidDocument createDidDocument(
-    List<PublicKey> publicKeys, {
-    String method = 'key',
-    String? serviceEndpoint,
-  }) {
-    switch (method.toLowerCase()) {
-      case 'key':
-        if (publicKeys.length != 1) {
-          throw SsiException(
-            message: 'did:key method requires exactly one public key',
-            code: SsiExceptionType.invalidDidDocument.code,
-          );
-        }
-        return DidKey.generateDocument(publicKeys.first);
-
-      case 'peer':
-        final serviceValue =
-            serviceEndpoint != null ? StringEndpoint(serviceEndpoint) : null;
-        return DidPeer.generateDocument(
-          publicKeys,
-          serviceEndpoint: serviceValue,
-        );
-
-      default:
-        throw SsiException(
-          message: 'Unsupported DID method: $method',
-          code: SsiExceptionType.invalidDidDocument.code,
-        );
-    }
-  }
 
   /// Sets the managed DID document.
   ///
@@ -142,29 +92,7 @@ class DiDManager {
     String? keyId,
     SignatureScheme? signatureScheme,
     bool useJwtThumbprint = false,
-  }) async {
-    final walletKeyId = keyId ??
-        (useJwtThumbprint
-            ? await _generateJwtThumbprintKeyId(keyType)
-            : _generateKeyId());
-    final keyPair = await _wallet.generateKey(
-      keyId: walletKeyId,
-      keyType: keyType,
-    );
-
-    final didDocument = DidKey.generateDocument(keyPair.publicKey);
-    final verificationMethodId = didDocument.verificationMethod.first.id;
-
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-
-    if (_document == null) {
-      _document = didDocument;
-    } else {
-      _addVerificationMethodToDocument(didDocument.verificationMethod.first);
-    }
-
-    return verificationMethodId;
-  }
+  });
 
   /// Adds a verification method using an existing key from the wallet.
   ///
@@ -180,21 +108,7 @@ class DiDManager {
     KeyType keyType,
     String walletKeyId, {
     SignatureScheme? signatureScheme,
-  }) async {
-    final publicKey = await _wallet.getPublicKey(walletKeyId);
-    final didDocument = DidKey.generateDocument(publicKey);
-    final verificationMethodId = didDocument.verificationMethod.first.id;
-
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-
-    if (_document == null) {
-      _document = didDocument;
-    } else {
-      _addVerificationMethodToDocument(didDocument.verificationMethod.first);
-    }
-
-    return verificationMethodId;
-  }
+  });
 
   /// Signs data using a verification method.
   ///
@@ -217,7 +131,7 @@ class DiDManager {
       );
     }
 
-    return _wallet.sign(
+    return wallet.sign(
       data,
       keyId: walletKeyId,
       signatureScheme: signatureScheme,
@@ -247,7 +161,7 @@ class DiDManager {
       );
     }
 
-    return _wallet.verify(
+    return wallet.verify(
       data,
       signature: signature,
       keyId: walletKeyId,
@@ -284,9 +198,9 @@ class DiDManager {
       );
     }
 
-    final keyPair = await _getKeyPair(walletKeyId);
+    final keyPair = await getKeyPair(walletKeyId);
     final effectiveSignatureScheme =
-        signatureScheme ?? _getDefaultSignatureScheme(keyPair);
+        signatureScheme ?? getDefaultSignatureScheme(keyPair);
 
     return DidSigner(
       didDocument: _document!,
@@ -296,15 +210,23 @@ class DiDManager {
     );
   }
 
-  Future<KeyPair> _getKeyPair(String walletKeyId) async {
-    if (_wallet is PersistentWallet) {
-      return _wallet.getKeyPair(walletKeyId);
+  /// Retrieves a key pair from the wallet.
+  ///
+  /// If the wallet is a PersistentWallet, retrieves an existing key pair.
+  /// Otherwise, generates a new key pair with the given ID.
+  Future<KeyPair> getKeyPair(String walletKeyId) async {
+    if (wallet is PersistentWallet) {
+      return (wallet as PersistentWallet).getKeyPair(walletKeyId);
     }
 
-    return _wallet.generateKey(keyId: walletKeyId);
+    return wallet.generateKey(keyId: walletKeyId);
   }
 
-  SignatureScheme _getDefaultSignatureScheme(KeyPair keyPair) {
+  /// Gets the default signature scheme for a key pair.
+  ///
+  /// Returns the first supported signature scheme if available,
+  /// otherwise returns a default scheme based on the key type.
+  SignatureScheme getDefaultSignatureScheme(KeyPair keyPair) {
     final supportedSchemes = keyPair.supportedSignatureSchemes;
     if (supportedSchemes.isNotEmpty) {
       return supportedSchemes.first;
@@ -325,50 +247,8 @@ class DiDManager {
     }
   }
 
-  void _addVerificationMethodToDocument(
-      EmbeddedVerificationMethod verificationMethod) {
-    if (_document == null) return;
-
-    final updatedVerificationMethods =
-        List<EmbeddedVerificationMethod>.from(_document!.verificationMethod)
-          ..add(verificationMethod);
-
-    final updatedAuthentication =
-        List<VerificationMethod>.from(_document!.authentication)
-          ..add(VerificationMethodRef(
-              reference: verificationMethod.id, method: verificationMethod));
-
-    final updatedAssertionMethod =
-        List<VerificationMethod>.from(_document!.assertionMethod)
-          ..add(VerificationMethodRef(
-              reference: verificationMethod.id, method: verificationMethod));
-
-    final updatedCapabilityInvocation =
-        List<VerificationMethod>.from(_document!.capabilityInvocation)
-          ..add(VerificationMethodRef(
-              reference: verificationMethod.id, method: verificationMethod));
-
-    final updatedCapabilityDelegation =
-        List<VerificationMethod>.from(_document!.capabilityDelegation)
-          ..add(VerificationMethodRef(
-              reference: verificationMethod.id, method: verificationMethod));
-
-    _document = DidDocument.create(
-      context: _document!.context,
-      id: _document!.id,
-      alsoKnownAs: _document!.alsoKnownAs,
-      controller: _document!.controller,
-      verificationMethod: updatedVerificationMethods,
-      authentication: updatedAuthentication,
-      assertionMethod: updatedAssertionMethod,
-      keyAgreement: _document!.keyAgreement,
-      capabilityInvocation: updatedCapabilityInvocation,
-      capabilityDelegation: updatedCapabilityDelegation,
-      service: _document!.service,
-    );
-  }
-
-  String _generateKeyId() {
+  /// Generates a key identifier.
+  String generateKeyId() {
     return 'key-${DateTime.now().millisecondsSinceEpoch}';
   }
 
@@ -381,8 +261,8 @@ class DiDManager {
   /// [keyType] - The key type to generate a thumbprint for.
   ///
   /// Returns a JWT thumbprint-based key identifier.
-  Future<String> _generateJwtThumbprintKeyId(KeyType keyType) async {
-    final tempKeyPair = await _wallet.generateKey(keyType: keyType);
+  Future<String> generateJwtThumbprintKeyId(KeyType keyType) async {
+    final tempKeyPair = await wallet.generateKey(keyType: keyType);
     final multikey = toMultikey(tempKeyPair.publicKey.bytes, keyType);
     final publicKeyJwk = multiKeyToJwk(multikey);
 

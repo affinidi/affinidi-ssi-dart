@@ -7,6 +7,8 @@ import '../exceptions/ssi_exception_type.dart';
 import '../json_ld/context.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
+import '../util/base64_util.dart';
+import '../util/json_util.dart';
 import '../utility.dart';
 import 'did_document/index.dart';
 import 'public_key_utils.dart';
@@ -150,11 +152,9 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
 
   List<ServiceEndpoint>? service;
   if (serviceStr != null) {
-    var paddingNeeded = (4 - serviceStr.length % 4) % 4;
-    var padded = serviceStr + ('=' * paddingNeeded);
-
-    var serviceList = base64Decode(padded);
-    final serviceJson = json.decode(utf8.decode(serviceList));
+    // Use base64UrlNoPadDecode which handles padding automatically
+    var serviceList = base64UrlNoPadDecode(serviceStr);
+    final serviceJson = jsonToMap(utf8.decode(serviceList));
     serviceJson['serviceEndpoint'] = serviceJson['s'];
     serviceJson['accept'] = serviceJson['a'];
     serviceJson['type'] = serviceJson['t'];
@@ -333,7 +333,7 @@ class DidPeer {
         );
     }
 
-    return ".${Numalgo2Prefix.service.value}${base64UrlEncode(utf8.encode(json.encode(serviceJson))).replaceAll('=', '')}";
+    return '.${Numalgo2Prefix.service.value}${base64UrlNoPadEncode(utf8.encode(json.encode(serviceJson)))}';
   }
 
   static String _pubKeysToPeerDid(List<PublicKey> signingKeys,
@@ -381,76 +381,170 @@ class DidPeer {
 
   /// This method derives the peer DID from the given public keys
   ///
-  /// [publicKeys] The public keys used to derive the DID
+  /// [authenticationKeys] The authentication keys used to derive the DID
+  /// [keyAgreementKeys] The key agreement keys used to derive the DID
   /// [serviceEndpoint] - Optional service endpoint data.
   ///
   /// Returns the DID as [String].
   ///
   /// Throws [SsiException] if the public key is invalid
   static String getDid(
-    List<PublicKey> publicKeys, {
+    List<PublicKey> authenticationKeys,
+    List<PublicKey> keyAgreementKeys, {
     ServiceEndpointValue? serviceEndpoint,
   }) {
-    if (publicKeys.isEmpty) {
+    if (authenticationKeys.isEmpty && keyAgreementKeys.isEmpty) {
       throw SsiException(
         message: 'At least one key must be provided',
         code: SsiExceptionType.invalidDidDocument.code,
       );
     }
-    // bool isDid0 = keyPairs.length == 1 && serviceEndpoint == null;
-    var didType = publicKeys.length == 1 && serviceEndpoint == null
-        ? DidPeerType.peer0
-        : DidPeerType.peer2;
 
-    if (didType != DidPeerType.peer0) {
-      return _pubKeysToPeerDid(publicKeys, publicKeys, serviceEndpoint);
+    // did:peer:0 is only for single authentication key with no agreement keys or service
+    var isDid0 = authenticationKeys.length == 1 &&
+        keyAgreementKeys.isEmpty &&
+        serviceEndpoint == null;
+
+    if (isDid0) {
+      return _pubKeysToPeerDid(authenticationKeys);
     } else {
-      return _pubKeysToPeerDid(publicKeys);
+      return _pubKeysToPeerDid(
+          authenticationKeys, keyAgreementKeys, serviceEndpoint);
     }
   }
 
   /// Creates a DID Document for a list of key pairs.
   ///
-  /// keys - The list of public keys.
+  /// authenticationKeys - The list of authentication keys.
+  /// keyAgreementKeys - The list of key agreement keys.
   /// serviceEndpoint - Optional service endpoint data.
   ///
   /// Returns a [DidDocument].
   ///
   /// Throws an [SsiException] if empty key pairs.
-  //FIXME(FTL-20741) should match resolve (i.e one parameter for each entry in Numalgo2Prefix)
   static DidDocument generateDocument(
-    List<PublicKey> keys, {
+    List<PublicKey> authenticationKeys,
+    List<PublicKey> keyAgreementKeys, {
     ServiceEndpointValue? serviceEndpoint,
   }) {
-    final did = getDid(keys, serviceEndpoint: serviceEndpoint);
-
-    final verificationMethods = <EmbeddedVerificationMethod>[];
-    for (var i = 0; i < keys.length; i++) {
-      final key = keys[i];
-      verificationMethods.add(
-        VerificationMethodMultibase(
-          id: did,
-          controller: 'key$i', // FIXME(FTL-20741) should come from the outside
-          type: 'Multikey',
-          publicKeyMultibase: toMultiBase(
-            toMultikey(
-              key.bytes,
-              key.type,
-            ),
-          ),
-        ),
+    // Validate input
+    if (authenticationKeys.isEmpty && keyAgreementKeys.isEmpty) {
+      throw SsiException(
+        message: 'At least one key must be provided',
+        code: SsiExceptionType.invalidDidDocument.code,
       );
     }
 
-    // FIXME(FTL-20741) should match arguments
-    final keyId = verificationMethods[0].id;
+    // Generate the DID
+    final did = getDid(authenticationKeys, keyAgreementKeys,
+        serviceEndpoint: serviceEndpoint);
+
+    // For did:peer:0, use original single-key logic
+    if (authenticationKeys.length == 1 &&
+        keyAgreementKeys.isEmpty &&
+        serviceEndpoint == null) {
+      final key = authenticationKeys[0];
+      final verificationMethod = VerificationMethodMultibase(
+        id: did,
+        controller: did,
+        type: 'Multikey',
+        publicKeyMultibase: toMultiBase(
+          toMultikey(key.bytes, key.type),
+        ),
+      );
+
+      return DidDocument.create(
+        id: did,
+        verificationMethod: [verificationMethod],
+        authentication: [did],
+        assertionMethod: [did],
+        capabilityInvocation: [did],
+        capabilityDelegation: [did],
+      );
+    }
+
+    // For did:peer:2, build document with proper key separation
+    final context = [
+      'https://www.w3.org/ns/did/v1',
+      'https://ns.did.ai/suites/multikey-2021/v1/'
+    ];
+
+    final verificationMethods = <EmbeddedVerificationMethod>[];
+    final keyAgreementRefs = <String>[];
+    final authenticationRefs = <String>[];
+
+    // Handle service endpoint
+    List<ServiceEndpoint>? service;
+    if (serviceEndpoint != null) {
+      final serviceStr = _buildServiceEncoded(serviceEndpoint);
+      if (serviceStr.isNotEmpty) {
+        var serviceList = base64UrlNoPadDecode(serviceStr.substring(2));
+        final serviceJson = jsonToMap(utf8.decode(serviceList));
+        serviceJson['serviceEndpoint'] = serviceJson['s'];
+        serviceJson['accept'] = serviceJson['a'];
+        serviceJson['type'] = serviceJson['t'];
+        if (serviceJson['type'] == 'dm') {
+          serviceJson['type'] = 'DIDCommMessaging';
+        }
+        service = [ServiceEndpoint.fromJson(serviceJson)];
+      }
+    }
+
+    var keyIndex = 0;
+
+    for (final key in keyAgreementKeys) {
+      keyIndex++;
+      final keyId = '#key-$keyIndex';
+
+      final keyType = key.type == KeyType.x25519
+          ? 'X25519KeyAgreementKey2020'
+          : 'Ed25519VerificationKey2020';
+
+      final verificationMethod = VerificationMethodMultibase(
+        id: keyId,
+        controller: did,
+        type: keyType,
+        publicKeyMultibase: toMultiBase(
+          toMultikey(key.bytes, key.type),
+        ),
+      );
+
+      verificationMethods.add(verificationMethod);
+      keyAgreementRefs.add(keyId);
+    }
+
+    // Add authentication keys (V prefix in the DID)
+    for (final key in authenticationKeys) {
+      keyIndex++;
+      final keyId = '#key-$keyIndex';
+
+      final keyType = key.type == KeyType.x25519
+          ? 'X25519KeyAgreementKey2020'
+          : 'Ed25519VerificationKey2020';
+
+      final verificationMethod = VerificationMethodMultibase(
+        id: keyId,
+        controller: did,
+        type: keyType,
+        publicKeyMultibase: toMultiBase(
+          toMultikey(key.bytes, key.type),
+        ),
+      );
+
+      verificationMethods.add(verificationMethod);
+      authenticationRefs.add(keyId);
+    }
+
     return DidDocument.create(
+      context: Context.fromJson(context),
       id: did,
       verificationMethod: verificationMethods,
-      authentication: [keyId],
-      assertionMethod: [keyId],
-      capabilityInvocation: [keyId],
-      capabilityDelegation: [keyId],
+      authentication: authenticationRefs,
+      assertionMethod: authenticationRefs,
+      keyAgreement: keyAgreementRefs,
+      capabilityInvocation: authenticationRefs,
+      capabilityDelegation: authenticationRefs,
+      service: service,
     );
   }
 

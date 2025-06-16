@@ -29,7 +29,7 @@ void main() {
           'did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka';
       final expectedKeyType = KeyType.ed25519;
 
-      final doc = DidPeer.generateDocument([accountPublicKey]);
+      final doc = DidPeer.generateDocument([accountPublicKey], []);
       final actualDid = doc.id;
       final actualKeyType = accountPublicKey.type;
 
@@ -47,7 +47,7 @@ void main() {
       final expectedDid =
           'did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka';
 
-      final actualDid = DidPeer.getDid([accountPublicKey]);
+      final actualDid = DidPeer.getDid([accountPublicKey], []);
 
       expect(actualDid, expectedDid);
     });
@@ -62,6 +62,7 @@ void main() {
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
       final key = await wallet.generateKey(keyId: derivedKeyPath);
       final doc = DidPeer.generateDocument(
+        [key.publicKey, key.publicKey],
         [key.publicKey, key.publicKey],
         serviceEndpoint: const StringEndpoint('https://denys.com/income'),
       );
@@ -83,6 +84,7 @@ void main() {
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
       final key = await wallet.generateKey(keyId: derivedKeyPath);
       final actualDid = DidPeer.getDid(
+        [key.publicKey, key.publicKey],
         [
           key.publicKey,
           key.publicKey
@@ -131,10 +133,42 @@ void main() {
         165
       ]);
 
-      final doc = DidPeer.generateDocument([accountPublicKey]);
+      final doc = DidPeer.generateDocument([accountPublicKey], []);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
+    });
+
+    test('generateDocument for did:peer:2 with separate keyAgreement keys',
+        () async {
+      final derivedKeyPath1 = "m/44'/60'/$accountNumber'/0'/0'";
+      final derivedKeyPath2 = "m/44'/60'/$accountNumber'/0'/1'";
+
+      final authKey = await wallet.generateKey(keyId: derivedKeyPath1);
+      final agreeKey = await wallet.generateKey(keyId: derivedKeyPath2);
+
+      final doc = DidPeer.generateDocument(
+        [authKey.publicKey],
+        [agreeKey.publicKey],
+        serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+      );
+
+      // Check that keyAgreement contains only the agreement key
+      expect(doc.keyAgreement.length, 1);
+      expect(doc.keyAgreement[0].id, '#key-1');
+
+      // Check that authentication contains only the auth key
+      expect(doc.authentication.length, 1);
+      expect(doc.authentication[0].id, '#key-2');
+
+      // Verify the DID contains both E and V prefixed keys
+      expect(doc.id, contains('.Ez')); // Agreement key (E prefix)
+      expect(doc.id, contains('.Vz')); // Authentication key (V prefix)
+
+      // Verify verification methods are created correctly
+      expect(doc.verificationMethod.length, 2);
+      expect(doc.verificationMethod[0].id, '#key-1');
+      expect(doc.verificationMethod[1].id, '#key-2');
     });
   });
 }
