@@ -49,4 +49,7 @@ abstract interface class KeyPair {
 
   /// Decrypts the provided data using the public key.
   Future<Uint8List> decrypt(Uint8List data, {Uint8List? publicKey});
+
+  /// Computes the ECDH shared secret using the provided public key.
+  Future<Uint8List> computeEcdhSecret(Uint8List publicKey);
 }
