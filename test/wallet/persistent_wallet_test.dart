@@ -109,10 +109,6 @@ void main() {
         () async => await wallet.generateKey(keyType: KeyType.secp256k1),
         throwsArgumentError,
       );
-      expect(
-        () async => await wallet.generateKey(keyType: KeyType.rsa),
-        throwsArgumentError,
-      );
     });
 
     test('getKeyPair should retrieve existing key pairs', () async {

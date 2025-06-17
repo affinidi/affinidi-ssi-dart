@@ -74,10 +74,6 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
     jwk['kty'] = 'OKP';
     jwk['crv'] = 'Ed25519';
     jwk['x'] = base64UrlNoPadEncode(key);
-  } else if (indicatorHex == 'EC01') {
-    jwk['kty'] = 'OKP';
-    jwk['crv'] = 'X25519';
-    jwk['x'] = base64UrlNoPadEncode(key);
   } else if (indicatorHex == '8024') {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'P-256';
@@ -89,20 +85,6 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
     jwk['kty'] = 'EC';
     jwk['crv'] = 'secp256k1';
     final c = elliptic.getSecp256k1();
-    final pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
-    jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
-  } else if (indicatorHex == '8124') {
-    jwk['kty'] = 'EC';
-    jwk['crv'] = 'P-384';
-    final c = elliptic.getP384();
-    final pub = c.compressedHexToPublicKey(hex.encode(key));
-    jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
-    jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
-  } else if (indicatorHex == '8224') {
-    jwk['kty'] = 'EC';
-    jwk['crv'] = 'P-521';
-    final c = elliptic.getP521();
     final pub = c.compressedHexToPublicKey(hex.encode(key));
     jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
     jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
@@ -138,20 +120,6 @@ Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
         jwk: jwk,
         curve: elliptic.getP256(),
         multikeyIndicator: MultiKeyIndicator.p256.indicator,
-      );
-
-    case 'P-384':
-      return _ecJwkToMultiKey(
-        jwk: jwk,
-        curve: elliptic.getP384(),
-        multikeyIndicator: MultiKeyIndicator.p384.indicator,
-      );
-
-    case 'P-521':
-      return _ecJwkToMultiKey(
-        jwk: jwk,
-        curve: elliptic.getP521(),
-        multikeyIndicator: MultiKeyIndicator.p521.indicator,
       );
 
     default:
@@ -241,9 +209,6 @@ Uint8List _ecJwkToMultiKey({
 
 /// Supported multikey indicators.
 enum MultiKeyIndicator {
-  /// Indicator for X25519 keys.
-  x25519(KeyType.x25519, [0xEC, 0x01]),
-
   /// Indicator for Ed25519 keys.
   ed25519(KeyType.ed25519, [0xED, 0x01]),
 
@@ -251,13 +216,7 @@ enum MultiKeyIndicator {
   secp256k1(KeyType.secp256k1, [0xE7, 0x01]),
 
   /// Indicator for P-256 keys.
-  p256(KeyType.p256, [0x80, 0x24]),
-
-  /// Indicator for P-384 keys.
-  p384(KeyType.p384, [0x81, 0x24]),
-
-  /// Indicator for P-521 keys.
-  p521(KeyType.p521, [0x82, 0x24]);
+  p256(KeyType.p256, [0x80, 0x24]);
 
   /// The indicator bytes for the key type.
   final List<int> indicator;
