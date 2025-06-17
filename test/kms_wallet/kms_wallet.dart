@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
 import 'package:ssi/ssi.dart';
 
-import 'kms_key_pair.dart';
+// import 'kms_key_pair.dart'; // KmsKeyPair not implemented
 
 class KmsWallet implements Wallet {
   final kms.KMS kmsClient;
@@ -63,12 +63,13 @@ class KmsWallet implements Wallet {
       throw ArgumentError(
           'AWS KMS creates the key identifiers. keyId should not be provided');
     }
-    final response = await kmsClient.createKey(
+    await kmsClient.createKey(
       keyUsage: kms.KeyUsageType.signVerify,
       customerMasterKeySpec: kms.CustomerMasterKeySpec.rsa_2048,
     );
-    final newKeyId = response.keyMetadata?.keyId ?? '';
-    return KmsKeyPair.generate(kmsClient, newKeyId);
+    // final newKeyId = response.keyMetadata?.keyId ?? '';
+    // return KmsKeyPair.generate(kmsClient, newKeyId);
+    throw UnimplementedError('KmsKeyPair not implemented');
   }
 
   @override
@@ -89,7 +90,8 @@ class KmsWallet implements Wallet {
     throw UnimplementedError();
   }
 
-  Future<KmsKeyPair> getKeyPair(String keyId) async {
-    return KmsKeyPair.generate(kmsClient, keyId);
+  Future<KeyPair> getKeyPair(String keyId) async {
+    // return KmsKeyPair.generate(kmsClient, keyId);
+    throw UnimplementedError('KmsKeyPair not implemented');
   }
 }
