@@ -9,6 +9,7 @@ import '../util/base64_util.dart';
 import '../wallet/persistent_wallet.dart';
 import '../wallet/wallet.dart';
 import 'did_document/did_document.dart';
+import 'did_key_pair.dart';
 import 'did_signer.dart';
 import 'public_key_utils.dart';
 
@@ -232,6 +233,36 @@ abstract class DidController {
     }
 
     return wallet.generateKey(keyId: walletKeyId);
+  }
+
+  /// Retrieves a DID key pair for a verification method.
+  ///
+  /// Creates a DidKeyPair that combines the cryptographic key pair with
+  /// its DID context, including the verification method ID and optional
+  /// DID document.
+  ///
+  /// [verificationMethodId] - The DID verification method identifier to retrieve.
+  ///
+  /// Returns a [DidKeyPair] containing the key pair and DID context.
+  ///
+  /// Throws [SsiException] if the verification method is not found in the mapping.
+  Future<DidKeyPair> getKey(String verificationMethodId) async {
+    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    if (walletKeyId == null) {
+      throw SsiException(
+        message:
+            'Verification method $verificationMethodId not found in mapping',
+        code: SsiExceptionType.keyNotFound.code,
+      );
+    }
+
+    final keyPair = await getKeyPair(walletKeyId);
+
+    return DidKeyPair(
+      keyPair: keyPair,
+      verificationMethodId: verificationMethodId,
+      didDocument: document,
+    );
   }
 
   /// Gets the default signature scheme for a key pair.
