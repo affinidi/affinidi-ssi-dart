@@ -13,10 +13,22 @@ import 'did_signer.dart';
 import 'public_key_utils.dart';
 
 /// A store for managing mappings between DID key identifiers and wallet key identifiers.
+///
+/// This class maintains the relationship between two different identifier systems:
+/// - **DID Key ID (verification method ID)**: The identifier used in DID documents
+///   (e.g., "did:key:z6Mk...#z6Mk..." or "did:peer:2.Ez...#key-1")
+/// - **Wallet Key ID**: The internal identifier used by the wallet/KeyPair
+///   (e.g., "key-1234567890" or a JWT thumbprint)
+///
+/// This mapping is necessary because the same cryptographic key has different
+/// identifiers in different contexts.
 class DiDControllerStore {
   final Map<String, String> _keyMapping = {};
 
   /// Sets a mapping between a DID key identifier and a wallet key identifier.
+  ///
+  /// [didKeyId] - The verification method ID from the DID document
+  /// [walletKeyId] - The internal key ID used by the wallet/KeyPair
   void setMapping(String didKeyId, String walletKeyId) {
     _keyMapping[didKeyId] = walletKeyId;
   }

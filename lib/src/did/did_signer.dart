@@ -19,7 +19,14 @@ class DidSigner {
   /// The DID document containing the key information.
   final DidDocument _didDocument;
 
-  /// The identifier of the key inside the DID document.
+  /// The identifier of the key inside the DID document (verification method ID).
+  ///
+  /// This is the DID URL that identifies a specific verification method
+  /// within the DID document (e.g., "did:key:z6Mk...#z6Mk...").
+  /// It is NOT the same as the wallet key ID used by KeyPair.
+  ///
+  /// The relationship between this ID and the wallet key ID is managed
+  /// by the DidController through its keyMapping store.
   final String didKeyId;
 
   /// Creates a new [DidSigner] instance.
