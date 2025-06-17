@@ -8,20 +8,8 @@ enum KeyType {
   /// Ed25519 key type.
   ed25519,
 
-  /// X25519 key type.
-  x25519,
-
   /// P-256 key type.
   p256,
-
-  /// P-384 key type.
-  p384,
-
-  /// P-521 key type.
-  p521,
-
-  /// RSA key type.
-  rsa,
 }
 
 /// Supported hashing algorithms.
@@ -70,15 +58,6 @@ enum SignatureScheme {
     crv: 'Ed25519',
     w3c: 'Ed25519Signature2020',
     keyType: KeyType.ed25519,
-    hashingAlgorithm: HashingAlgorithm.sha256,
-  ),
-
-  /// RSA with PKCS1 and SHA-256 hashing.
-  rsa_pkcs1_sha256(
-    alg: 'RS256',
-    crv: null,
-    w3c: 'RsaSignature2018',
-    keyType: KeyType.rsa,
     hashingAlgorithm: HashingAlgorithm.sha256,
   );
 

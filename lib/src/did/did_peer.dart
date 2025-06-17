@@ -67,28 +67,14 @@ DidDocument _resolveDidPeer0(String did) {
     'https://www.w3.org/ns/did/v1',
     'https://w3id.org/security/suites/ed25519-2020/v1'
   ];
-  const contextEdX = [
-    'https://www.w3.org/ns/did/v1',
-    'https://w3id.org/security/suites/x25519-2020/v1'
-  ];
 
   var keyPart = did.substring(11);
 
   if (keyPart.startsWith('6Mk')) {
     return _buildEDDoc(contextEdward, did, keyPart);
-  } else if (keyPart.startsWith('6LS')) {
-    return _buildXDoc(contextEdX, did, keyPart);
-    // } else if (keyPart.startsWith('Dn')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'P256Key2021');
-    // } else if (keyPart.startsWith('Q3s')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'Secp256k1Key2021');
-    // } else if (keyPart.startsWith('82')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'P384Key2021');
-    // } else if (keyPart.startsWith('2J9')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
   } else {
     throw SsiException(
-      message: 'Only Ed25519 and X25519 keys are supported now',
+      message: 'Only Ed25519 keys are supported for did:peer:0',
       code: SsiExceptionType.unsupportedSignatureScheme.code,
     );
   }
@@ -168,9 +154,7 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
 
   for (final agreementKey in agreementKeys) {
     i++;
-    final type = agreementKey.startsWith('z6LS')
-        ? 'X25519KeyAgreementKey2020'
-        : 'Ed25519VerificationKey2020';
+    final type = 'Ed25519VerificationKey2020';
 
     var kid = '#key-$i';
     final verification = VerificationMethodMultibase(
@@ -186,9 +170,7 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
 
   for (final authenticationKey in authenticationKeys) {
     i++;
-    final type = authenticationKey.startsWith('z6LS')
-        ? 'X25519KeyAgreementKey2020'
-        : 'Ed25519VerificationKey2020';
+    final type = 'Ed25519VerificationKey2020';
 
     var kid = '#key-$i';
     final verification = VerificationMethodMultibase(
@@ -255,27 +237,6 @@ DidDocument _buildEDDoc(
     authentication: [verificationKeyId],
     capabilityDelegation: [verificationKeyId],
     capabilityInvocation: [verificationKeyId],
-  );
-}
-
-/// Builds a DID Document for X25519 keys.
-DidDocument _buildXDoc(
-  List<String> context,
-  String id,
-  String keyPart,
-) {
-  var verificationKeyId = '$id#z$keyPart';
-  final verification = VerificationMethodMultibase(
-    id: verificationKeyId,
-    controller: id,
-    type: 'X25519KeyAgreementKey2020',
-    publicKeyMultibase: 'z$keyPart',
-  );
-  return DidDocument.create(
-    context: Context.fromJson(context),
-    id: id,
-    verificationMethod: [verification],
-    keyAgreement: [verificationKeyId],
   );
 }
 
@@ -457,11 +418,6 @@ class DidPeer {
       return _resolveDidPeer2(did);
     }
   }
-
-  // static const Map<KeyType, String> _keyTypePrefixes = {
-  //   KeyType.x25519: '6LS',
-  //   KeyType.ed25519: '6Mk',
-  // };
 
   static const Map<DidPeerType, String> _didTypePrefixes = {
     DidPeerType.peer0: 'did:peer:0',

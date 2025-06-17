@@ -178,11 +178,8 @@ class DidKey {
   ///
   /// Supports the following key types:
   /// - Ed25519
-  /// - X25519
   /// - P256
   /// - Secp256k1
-  /// - P384
-  /// - P521
   ///
   /// [did] - The DID string to resolve
   ///
@@ -227,14 +224,10 @@ class DidKey {
       return _buildOtherDoc(_context2, id, keyPart, 'P256Key2021');
     } else if (keyPart.startsWith('Q3s')) {
       return _buildOtherDoc(_context2, id, keyPart, 'Secp256k1Key2021');
-    } else if (keyPart.startsWith('82')) {
-      return _buildOtherDoc(_context2, id, keyPart, 'P384Key2021');
-    } else if (keyPart.startsWith('2J9')) {
-      return _buildOtherDoc(_context2, id, keyPart, 'P521Key2021');
     }
     throw SsiException(
       message:
-          'Unsupported key type. Only Ed25519 and X25519 are fully supported.',
+          'Unsupported key type. Supported key types: Ed25519, P256, Secp256k1.',
       code: SsiExceptionType.invalidDidKey.code,
     );
   }
