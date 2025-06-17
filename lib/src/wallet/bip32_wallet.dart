@@ -99,7 +99,7 @@ class Bip32Wallet implements Wallet {
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = _getKeyPair(keyId);
     final keyData = keyPair.publicKey;
-    return PublicKey(keyData.id, keyData.bytes, keyData.type);
+    return PublicKey(keyId, keyData.bytes, keyData.type);
   }
 
   @override

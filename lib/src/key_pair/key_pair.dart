@@ -14,6 +14,8 @@ abstract interface class KeyPair {
   ///
   /// For DID operations, a mapping between this wallet key ID and the DID
   /// verification method ID is maintained by the DidController.
+  @Deprecated('Use DidKeyPair.walletKeyId for DID operations. '
+      'This field will be removed in a future version.')
   String get id;
 
   /// Returns a list of [SignatureScheme]s supported by this key pair.
