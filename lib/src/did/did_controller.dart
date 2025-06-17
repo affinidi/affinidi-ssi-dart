@@ -13,7 +13,7 @@ import 'did_signer.dart';
 import 'public_key_utils.dart';
 
 /// A store for managing mappings between DID key identifiers and wallet key identifiers.
-class DiDManagerStore {
+class DiDControllerStore {
   final Map<String, String> _keyMapping = {};
 
   /// Sets a mapping between a DID key identifier and a wallet key identifier.
@@ -46,21 +46,21 @@ class DiDManagerStore {
 /// DID documents with multiple verification methods, handling the mapping
 /// between DID key identifiers and wallet key identifiers, and providing
 /// signing and verification capabilities.
-abstract class DidManager {
-  /// The key mapping store for this manager.
-  final DiDManagerStore keyMapping;
+abstract class DidController {
+  /// The key mapping store for this controller.
+  final DiDControllerStore keyMapping;
 
   /// The wallet instance for key operations.
   final Wallet wallet;
 
   DidDocument? _document;
 
-  /// Creates a new DID manager instance.
+  /// Creates a new DID controller instance.
   ///
   /// [keyMapping] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   /// [document] - An optional existing DID document to manage.
-  DidManager({
+  DidController({
     required this.keyMapping,
     required this.wallet,
     DidDocument? document,

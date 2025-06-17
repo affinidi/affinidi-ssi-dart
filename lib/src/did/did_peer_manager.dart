@@ -2,10 +2,10 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
+import 'did_controller.dart';
 import 'did_document/did_document.dart';
 import 'did_document/service_endpoint_value.dart';
 import 'did_document/verification_method.dart';
-import 'did_manager.dart';
 import 'did_peer.dart';
 
 /// Purpose of a verification method in a DID document.
@@ -20,18 +20,18 @@ enum VerificationMethodPurpose {
   both,
 }
 
-/// DID Manager implementation for the did:peer method.
+/// DID Controller implementation for the did:peer method.
 ///
-/// This manager handles DID documents that use the did:peer method,
+/// This controller handles DID documents that use the did:peer method,
 /// which supports multiple keys with separate authentication and
 /// key agreement purposes, as well as service endpoints.
-class DidPeerManager extends DidManager {
+class DidPeerManager extends DidController {
   final List<PublicKey> _authenticationKeys = [];
   final List<PublicKey> _keyAgreementKeys = [];
   ServiceEndpointValue? _serviceEndpoint;
   bool _documentNeedsUpdate = true;
 
-  /// Creates a new DID Peer manager instance.
+  /// Creates a new DID Peer controller instance.
   ///
   /// [keyMapping] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.

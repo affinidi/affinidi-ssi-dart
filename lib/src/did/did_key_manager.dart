@@ -2,18 +2,18 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
+import 'did_controller.dart';
 import 'did_document/did_document.dart';
 import 'did_key.dart';
-import 'did_manager.dart';
 
-/// DID Manager implementation for the did:key method.
+/// DID Controller implementation for the did:key method.
 ///
-/// This manager handles DID documents that use the did:key method,
+/// This controller handles DID documents that use the did:key method,
 /// which supports only a single public key per DID.
-class DidKeyManager extends DidManager {
+class DidKeyManager extends DidController {
   PublicKey? _currentPublicKey;
 
-  /// Creates a new DID Key manager instance.
+  /// Creates a new DID Key controller instance.
   ///
   /// [keyMapping] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
