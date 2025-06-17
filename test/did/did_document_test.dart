@@ -116,7 +116,7 @@ void main() {
 
         test('it retrieves correct service', () {
           expect(didDoc.service[0].id, 'did:web:example.com#service');
-          expect(didDoc.service[0].type, 'DIDCommMessaging');
+          expect(didDoc.service[0].type, 'GenericService');
         });
 
         test('it retrieves correct context', () {
@@ -165,7 +165,7 @@ void main() {
       });
 
       test('it retrieves correct type', () {
-        expect(serviceEndpoint.type, 'DIDCommMessaging');
+        expect(serviceEndpoint.type, 'GenericService');
       });
 
       test('it retrieves correct service endpoint', () {
@@ -178,7 +178,7 @@ void main() {
         // Check first endpoint
         final firstEndpoint = setEndpoint.endpoints[0] as MapEndpoint;
         expect(firstEndpoint.data['uri'], 'https://example.com');
-        expect(firstEndpoint.data['accept'], ['didcomm/v2']);
+        expect(firstEndpoint.data['accept'], ['application/json']);
         expect(firstEndpoint.data['routingKeys'], <String>[]);
 
         // Check second endpoint
@@ -282,13 +282,13 @@ void main() {
     test('throws if id missing', () {
       expect(
           () => ServiceEndpoint.fromJson(
-              {'type': 't', 'serviceEndpoint': <DIDCommServiceEndpoint>[]}),
+              {'type': 't', 'serviceEndpoint': <dynamic>[]}),
           throwsFormatException);
     });
     test('throws if type missing', () {
       expect(
           () => ServiceEndpoint.fromJson(
-              {'id': 'i', 'serviceEndpoint': <DIDCommServiceEndpoint>[]}),
+              {'id': 'i', 'serviceEndpoint': <dynamic>[]}),
           throwsFormatException);
     });
     test('throws if serviceEndpoint missing', () {
@@ -357,44 +357,6 @@ void main() {
       expect(setEndpoint.endpoints.length, 2);
       expect(setEndpoint.endpoints[0], isA<StringEndpoint>());
       expect(setEndpoint.endpoints[1], isA<MapEndpoint>());
-    });
-
-    test('DIDComm helper getter works correctly', () {
-      final se = ServiceEndpoint.fromJson({
-        'id': 'didcomm',
-        'type': 'DIDCommMessaging',
-        'serviceEndpoint': {
-          'uri': 'https://example.com',
-          'accept': ['didcomm/v2'],
-          'routingKeys': ['key1', 'key2'],
-        },
-      });
-
-      final didCommEndpoints = se.didCommEndpoints;
-      expect(didCommEndpoints, isNotNull);
-      expect(didCommEndpoints!.length, 1);
-      expect(didCommEndpoints[0].uri, 'https://example.com');
-      expect(didCommEndpoints[0].accept, ['didcomm/v2']);
-      expect(didCommEndpoints[0].routingKeys, ['key1', 'key2']);
-    });
-
-    test('DIDComm factory constructor works', () {
-      final endpoints = [
-        DIDCommServiceEndpoint(
-          uri: 'https://example.com',
-          accept: ['didcomm/v2'],
-          routingKeys: [],
-        ),
-      ];
-
-      final se = ServiceEndpoint.didComm(
-        id: 'comm1',
-        endpoints: endpoints,
-      );
-
-      expect(se.id, 'comm1');
-      expect(se.type, 'DIDCommMessaging');
-      expect(se.serviceEndpoint, isA<MapEndpoint>());
     });
 
     test('preserves arbitrary service types', () {

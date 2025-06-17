@@ -158,9 +158,6 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
     serviceJson['serviceEndpoint'] = serviceJson['s'];
     serviceJson['accept'] = serviceJson['a'];
     serviceJson['type'] = serviceJson['t'];
-    if (serviceJson['type'] == 'dm') {
-      serviceJson['type'] = 'DIDCommMessaging';
-    }
     service = [ServiceEndpoint.fromJson(serviceJson)];
   }
 
@@ -310,18 +307,18 @@ class DidPeer {
     final Map<String, dynamic> serviceJson;
     switch (serviceValue) {
       case StringEndpoint(:final url):
-        // For string endpoints, maintain DIDComm v2 compatibility
+        // For string endpoints, create a generic service structure
         serviceJson = {
           'id': 'new-id',
-          't': 'dm', // "type": "DIDCommMessaging"
+          't': 'GenericService', // "type": "GenericService"
           's': url, // serviceEndpoint
-          'a': ['didcomm/v2'], // accept
+          'a': ['application/json'], // accept
         };
       case MapEndpoint(:final data):
         // For map data, preserve the structure
         serviceJson = {
           'id': data['id'] ?? 'new-id',
-          't': data['type'] ?? data['t'] ?? 'dm',
+          't': data['type'] ?? data['t'] ?? 'GenericService',
           ...data,
         };
       case SetEndpoint():
@@ -483,9 +480,6 @@ class DidPeer {
         serviceJson['serviceEndpoint'] = serviceJson['s'];
         serviceJson['accept'] = serviceJson['a'];
         serviceJson['type'] = serviceJson['t'];
-        if (serviceJson['type'] == 'dm') {
-          serviceJson['type'] = 'DIDCommMessaging';
-        }
         service = [ServiceEndpoint.fromJson(serviceJson)];
       }
     }

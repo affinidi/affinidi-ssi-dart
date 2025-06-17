@@ -4,41 +4,6 @@ import '../../types.dart';
 import '../../util/json_util.dart';
 import 'service_endpoint_value.dart';
 
-/// Represents a DIDComm service endpoint.
-class DIDCommServiceEndpoint {
-  /// The list of accepted media types.
-  final List<String> accept;
-
-  /// The list of routing keys.
-  final List<String> routingKeys;
-
-  /// The URI of the service endpoint.
-  final String uri;
-
-  /// Creates a [DIDCommServiceEndpoint] instance.
-  DIDCommServiceEndpoint({
-    required this.accept,
-    required this.routingKeys,
-    required this.uri,
-  });
-
-  /// Creates a [DIDCommServiceEndpoint] from JSON input.
-  factory DIDCommServiceEndpoint.fromJson(Map<String, dynamic> json) {
-    return DIDCommServiceEndpoint(
-      accept: (json['accept'] as List?)?.cast<String>() ?? <String>[],
-      routingKeys: (json['routingKeys'] as List?)?.cast<String>() ?? <String>[],
-      uri: json['uri'] as String,
-    );
-  }
-
-  /// Converts this service endpoint to a JSON-serializable map.
-  Map<String, dynamic> toJson() => {
-        'accept': accept,
-        'routingKeys': routingKeys,
-        'uri': uri,
-      };
-}
-
 /// Represents a service endpoint in a DID Document.
 class ServiceEndpoint implements JsonObject {
   /// The identifier of the service endpoint.
@@ -77,48 +42,6 @@ class ServiceEndpoint implements JsonObject {
       throw const FormatException(
           'serviceEndpoint property is needed in serviceEndpoint');
     }
-  }
-
-  /// Helper method to extract DIDComm endpoints if the service is DIDComm-compatible.
-  List<DIDCommServiceEndpoint>? get didCommEndpoints {
-    final value = serviceEndpoint;
-    if (value is MapEndpoint && value.data.containsKey('uri')) {
-      try {
-        return [DIDCommServiceEndpoint.fromJson(value.data)];
-      } catch (_) {
-        return null;
-      }
-    }
-    if (value is SetEndpoint) {
-      final endpoints = <DIDCommServiceEndpoint>[];
-      for (final endpoint in value.endpoints) {
-        if (endpoint is MapEndpoint && endpoint.data.containsKey('uri')) {
-          try {
-            endpoints.add(DIDCommServiceEndpoint.fromJson(endpoint.data));
-          } catch (_) {
-            // Skip non-DIDComm endpoints
-          }
-        }
-      }
-      return endpoints.isEmpty ? null : endpoints;
-    }
-    return null;
-  }
-
-  /// Factory constructor for creating a DIDComm service endpoint.
-  factory ServiceEndpoint.didComm({
-    required String id,
-    required List<DIDCommServiceEndpoint> endpoints,
-  }) {
-    return ServiceEndpoint(
-      id: id,
-      type: 'DIDCommMessaging',
-      serviceEndpoint: endpoints.length == 1
-          ? MapEndpoint(endpoints.first.toJson())
-          : SetEndpoint(
-              endpoints.map((e) => MapEndpoint(e.toJson())).toList(),
-            ),
-    );
   }
 
   /// Converts this service endpoint to a JSON-serializable map.
