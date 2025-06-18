@@ -82,7 +82,7 @@ class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
 /// final credentialStatus = CredentialStatusV1(
 ///   id: Uri.parse('test-credential-status-id'),
 ///   type: 'BitstringStatusListEntry',
-///   revocationFields: {'statusPurpose': 'revocation', 'statusListIndex': '12345'},
+///   revocationFields: {'revocationListIndex': '94567', 'revocationListCredential': 'https://pharma.example.com/credentials/status/3'},
 /// );
 /// ```
 class CredentialStatusV1 extends _CredentialStatusV1Interface {
@@ -137,7 +137,7 @@ class CredentialStatusV1 extends _CredentialStatusV1Interface {
   Map<String, dynamic> toJson() => cleanEmpty({
         'id': id.toString(),
         'type': type,
-        if (_revocationFields != null && _revocationFields!.isNotEmpty)
-          ..._revocationFields!,
+        if (_revocationFields != null && _revocationFields.isNotEmpty)
+          ..._revocationFields,
       });
 }
