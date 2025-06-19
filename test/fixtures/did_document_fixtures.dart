@@ -83,15 +83,15 @@ class DidDocumentFixtures {
 
   static Map<String, dynamic> get serviceEndpointValid => {
         'id': 'did:web:example.com#service',
-        'type': 'DIDCommMessaging',
+        'type': 'GenericService',
         'serviceEndpoint': [
           {
-            'accept': ['didcomm/v2'],
+            'accept': ['application/json'],
             'routingKeys': <String>[],
             'uri': 'https://example.com'
           },
           {
-            'accept': ['didcomm/v2'],
+            'accept': ['application/json'],
             'routingKeys': <String>[],
             'uri': 'wss://example.com/ws'
           }

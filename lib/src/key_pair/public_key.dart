@@ -5,6 +5,14 @@ import '../types.dart';
 /// Represents a base key with its type and public key bytes.
 class PublicKey {
   /// Identifier of the key
+  ///
+  /// This identifier comes from the KeyPair and is NOT the same as a DID
+  /// verification method ID. For DID operations, use DidKeyPair which
+  /// properly manages the relationship between wallet key IDs and DID
+  /// verification method IDs.
+  @Deprecated('This field mirrors KeyPair.id which is deprecated. '
+      'Use DidKeyPair for DID operations. '
+      'This field will be removed in a future version.')
   String id;
 
   /// The type of the key e.g., Ed25519
