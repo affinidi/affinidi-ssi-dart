@@ -137,10 +137,10 @@ void main() {
     });
 
     test('should correctly assign credentialStatus', () {
-      final status = MutableCredentialStatusV2(
-        id: Uri.parse('https://example.edu/status/v2/1'),
-        type: 'CredentialStatusList2021',
-      );
+      final status = MutableCredentialStatusV2({
+        'id': Uri.parse('https://example.edu/status/v2/1'),
+        'type': 'CredentialStatusList2021',
+      });
       final vc = MutableVcDataModelV2(
         context: [dmV2ContextUrl],
         id: Uri.parse('id'),
@@ -280,9 +280,10 @@ void main() {
             schema: 'another',
             type: 'AnotherSchemaValidator'),
       ];
-      final status = MutableCredentialStatusV2(
-          id: Uri.parse('https://example.edu/status/v2/1'),
-          type: 'CredentialStatusList2021');
+      final status = MutableCredentialStatusV2({
+        'id': Uri.parse('https://example.edu/status/v2/1'),
+        'type': 'CredentialStatusList2021'
+      });
       final proofs = [
         EmbeddedProof(
           type: 'DataIntegrityProof',
@@ -362,9 +363,10 @@ void main() {
             schema: 'example',
             type: 'JsonSchemaValidator2018')
       ];
-      final status = MutableCredentialStatusV2(
-          id: Uri.parse('https://example.edu/status/v2/1'),
-          type: 'CredentialStatusList2021');
+      final status = MutableCredentialStatusV2({
+        'id': Uri.parse('https://example.edu/status/v2/1'),
+        'type': 'CredentialStatusList2021'
+      });
       final proof = [
         EmbeddedProof(
           type: 'DataIntegrityProof',
