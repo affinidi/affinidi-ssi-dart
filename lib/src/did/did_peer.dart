@@ -220,17 +220,14 @@ DidDocument _buildEDDoc(
   String id,
   String keyPart,
 ) {
-  final multiCodecXKey =
+  final x25519PubKey =
       ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
-  if (!multiCodecXKey.startsWith('6LS')) {
-    throw SsiException(
-      message: 'Something went wrong during conversion',
-      code: SsiExceptionType.invalidDidPeer.code,
-    );
-  }
+  final x25519PubKeyMultiBase = toMultiBase(
+    toMultikey(x25519PubKey, KeyType.x25519),
+  );
 
-  var verificationKeyId = '$id#$keyPart';
-  var agreementKeyId = '$id#z$multiCodecXKey';
+  final verificationKeyId = '$id#$keyPart';
+  final agreementKeyId = '$id#$x25519PubKeyMultiBase';
 
   final verificationMethod = VerificationMethodMultibase(
     id: verificationKeyId,
@@ -243,7 +240,7 @@ DidDocument _buildEDDoc(
     id: agreementKeyId,
     controller: id,
     type: 'X25519KeyAgreementKey2020',
-    publicKeyMultibase: 'z$multiCodecXKey',
+    publicKeyMultibase: x25519PubKeyMultiBase,
   );
 
   return DidDocument.create(
