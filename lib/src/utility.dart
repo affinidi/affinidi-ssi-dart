@@ -6,7 +6,7 @@ import 'package:x25519/src/curve25519.dart' as x25519;
 
 /// Converts an Ed25519 public key to an X25519 public key.
 ///
-/// Returns a Base58-encoded X25519 public key as a string.
+/// Returns a X25519 public key as a Uint8List.
 /// Ported from https://github.com/oasisprotocol/ed25519/blob/master/extra/x25519/x25519.go
 Uint8List ed25519PublicToX25519Public(List<int> ed25519Public) {
   final Y = x25519.FieldElement();
