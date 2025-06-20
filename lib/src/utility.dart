@@ -1,15 +1,14 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
 // ignore: implementation_imports
 import 'package:x25519/src/curve25519.dart' as x25519;
 
 /// Converts an Ed25519 public key to an X25519 public key.
 ///
-/// Returns a Base58-encoded X25519 public key as a string.
+/// Returns a X25519 public key as a Uint8List.
 /// Ported from https://github.com/oasisprotocol/ed25519/blob/master/extra/x25519/x25519.go
-String ed25519PublicToX25519Public(List<int> ed25519Public) {
+Uint8List ed25519PublicToX25519Public(List<int> ed25519Public) {
   final Y = x25519.FieldElement();
   x25519.feFromBytes(Y, ed25519Public);
   final oneMinusY = x25519.FieldElement();
@@ -26,9 +25,7 @@ String ed25519PublicToX25519Public(List<int> ed25519Public) {
   final dst = List.filled(32, 0);
   x25519.FeToBytes(dst, outX);
 
-  const xMultiCodec = [236, 1];
-
-  return base58Bitcoin.encode(Uint8List.fromList(xMultiCodec + dst));
+  return Uint8List.fromList(dst);
 }
 
 /// Generates a random identifier as a hexadecimal string.
