@@ -29,32 +29,32 @@ abstract interface class _CredentialStatusV2Interface
 /// });
 /// ```
 class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
+  final Map<String, dynamic> _revocationFields;
+
   /// The URL identifier for this status information.
   @override
-  Uri? get id => getUri(_revocationFields, 'id');
+  Uri? id;
 
   /// The type of status mechanism used.
   @override
-  String? get type => getMandatoryString(_revocationFields, 'type');
+  String? type;
 
-  /// Revocation-related fields stored as a generic map
-  final Map<String, dynamic> _revocationFields;
-
-  /// Creates a [MutableCredentialStatusV2]
+  /// Creates a [MutableCredentialStatusV2] instance.
   ///
   /// The [revocationFields] contains status-related fields, including 'id', 'type', and others.
-  MutableCredentialStatusV2(
-    Map<String, dynamic>? revocationFields,
-  ) : _revocationFields = revocationFields ?? {};
+  /// The 'id' is validated and converted to a [Uri] using [getUri], and 'type' is validated
+  /// as a [String] using [getString].
+  MutableCredentialStatusV2(Map<String, dynamic>? revocationFields)
+      : id = getUri(revocationFields ?? {}, 'id'),
+        type = getString(revocationFields ?? {}, 'type'),
+        _revocationFields = UnmodifiableMapView(
+            Map<String, dynamic>.from(revocationFields ?? {})
+              ..remove('id')
+              ..remove('type'));
 
   /// Creates a [MutableCredentialStatusV2] from JSON data.
-  ///
-  /// The [id] is the URL where status information can be found.
-  /// The [type] identifies the status mechanism being used.
-  /// The [revocationFields] contains optional revocation-related fields to be included in JSON.
   factory MutableCredentialStatusV2.fromJson(Map<String, dynamic> json) {
-    final fieldsMap = Map<String, dynamic>.from(json);
-    return MutableCredentialStatusV2(fieldsMap);
+    return MutableCredentialStatusV2(json);
   }
 
   @override
@@ -67,9 +67,12 @@ class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
   @override
   void operator []=(String key, dynamic value) {
     if (key == 'id') {
-      value = Uri.parse(value as String);
+      id = getUri({'id': value}, 'id');
+    } else if (key == 'type') {
+      type = getString({'type': value}, 'type');
+    } else {
+      _revocationFields[key] = value;
     }
-    _revocationFields[key] = value;
   }
 
   @override
@@ -98,35 +101,39 @@ class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
 class CredentialStatusV2 extends _CredentialStatusV2Interface {
   /// The URL of the schema including domain and filename.
   @override
-  Uri? get id => getUri(_revocationFields, 'id');
+  final Uri? id;
 
   /// The schema type of validator used.
   ///
   /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
   @override
-  String get type => getMandatoryString(_revocationFields, 'type');
+  final String type;
 
+  /// Revocation-related fields stored as an unmodifiable map.
   final UnmodifiableMapView<String, dynamic> _revocationFields;
 
-  CredentialStatusV2._(
-    UnmodifiableMapView<String, dynamic>? revocationFields,
-  ) : _revocationFields =
-            revocationFields ?? UnmodifiableMapView<String, dynamic>({});
+  /// Creates a [CredentialStatusV2] instance.
+  ///
+  /// The [revocationFields] contains status-related fields, including 'id', 'type', and others.
+  /// The 'id' is validated as a [Uri] using [getUri], and 'type' is required and validated
+  /// using [getMandatoryString]. Other fields are stored in an unmodifiable map.
+  CredentialStatusV2(Map<String, dynamic> revocationFields)
+      : id = getUri(revocationFields, 'id'),
+        type = getMandatoryString(revocationFields, 'type'),
+        _revocationFields =
+            UnmodifiableMapView(Map<String, dynamic>.from(revocationFields)
+              ..remove('id')
+              ..remove('type'));
 
   /// Creates a [CredentialStatusV2] from JSON data.
   factory CredentialStatusV2.fromJson(Map<String, dynamic> json) {
-    final fieldsMap = UnmodifiableMapView<String, dynamic>(json);
-    return CredentialStatusV2._(fieldsMap);
+    return CredentialStatusV2(json);
   }
 
   @override
   dynamic operator [](Object? key) {
-    if (key == 'id') {
-      return id;
-    }
-    if (key == 'type') {
-      return type;
-    }
+    if (key == 'id') return id;
+    if (key == 'type') return type;
     return _revocationFields[key];
   }
 
