@@ -103,4 +103,12 @@ class DidKeyPair {
   /// Returns a [Future] that completes with the decrypted data.
   Future<Uint8List> decrypt(Uint8List data, {Uint8List? publicKey}) =>
       keyPair.decrypt(data, publicKey: publicKey);
+
+  /// Computes the Elliptic Curve Diffie-Hellman (ECDH) shared secret.
+  ///
+  /// [publicKey] - The public key of the other party.
+  ///
+  /// Returns a [Future] that completes with the shared secret as a [Uint8List].
+  Future<Uint8List> computeEcdhSecret(Uint8List publicKey) =>
+      keyPair.computeEcdhSecret(publicKey);
 }

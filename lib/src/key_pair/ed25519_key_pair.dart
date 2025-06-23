@@ -146,7 +146,8 @@ class Ed25519KeyPair implements KeyPair {
   /// [publicKey] - The public key to use for computing the shared secret.
   ///
   /// Returns a [Future] that completes with the shared secret as a [Uint8List].
-  Future<Uint8List> computeEcdhSecret(List<int> publicKey) async {
+  @override
+  Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
     // Convert Ed25519 private key to X25519 private key
     // Ed25519 uses SHA-512 to derive the scalar and prefix from the seed
     // We need to use the same process to get the correct X25519 private key
@@ -157,9 +158,9 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
-    List<int> publicKeyToUse;
+    Uint8List publicKeyToUse;
     if (publicKey == null) {
-      publicKeyToUse = generateEphemeralPubKey();
+      publicKeyToUse = Uint8List.fromList(generateEphemeralPubKey());
     } else {
       publicKeyToUse = publicKey;
     }

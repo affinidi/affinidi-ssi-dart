@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:base_codecs/base_codecs.dart';
 import 'package:bip32_plus/bip32_plus.dart';
 import 'package:elliptic/elliptic.dart' as ec;
 
@@ -114,5 +115,19 @@ class Secp256k1KeyPair implements KeyPair {
       publicKeyBytes: publicKey,
       curve: _secp256k1,
     );
+  }
+
+  @override
+  Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
+    final privateKeyBytes = _node.privateKey;
+    if (privateKeyBytes == null) {
+      throw ArgumentError('Private key is null');
+    }
+
+    final privateKey = ec.PrivateKey.fromBytes(_secp256k1, privateKeyBytes);
+    final publicKeyObj =
+        _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
+
+    return ecdh_utils.computeEcdhSecret(privateKey, publicKeyObj);
   }
 }
