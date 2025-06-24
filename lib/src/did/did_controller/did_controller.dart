@@ -25,7 +25,7 @@ import 'stores/did_controller_store.dart';
 /// signing and verification capabilities.
 abstract class DidController {
   /// The key mapping store for this controller.
-  final DiDControllerStore store;
+  final DidStore store;
 
   /// All verification methods
   final List<VerificationMethod> _verificationMethod = [];

@@ -5,7 +5,6 @@ library;
 
 export 'src/credentials/credentials.dart';
 export 'src/did/did_controller/did_controller.dart';
-export 'src/did/did_controller/did_controller_store.dart';
 export 'src/did/did_controller/did_key_controller.dart';
 export 'src/did/did_controller/did_peer_controller.dart';
 export 'src/did/did_document/index.dart';
@@ -14,6 +13,8 @@ export 'src/did/did_peer.dart';
 export 'src/did/did_signer.dart';
 export 'src/did/did_verifier.dart';
 export 'src/did/did_web.dart';
+export 'src/did/stores/did_store_interface.dart';
+export 'src/did/stores/in_memory_did_store.dart';
 export 'src/did/universal_did_resolver.dart';
 export 'src/did/verifier.dart';
 export 'src/exceptions/ssi_exception.dart';

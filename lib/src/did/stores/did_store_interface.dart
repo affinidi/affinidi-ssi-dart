@@ -8,7 +8,7 @@
 ///
 /// This mapping is necessary because the same cryptographic key has different
 /// identifiers in different contexts.
-abstract class DiDControllerStore {
+abstract class DidStore {
   /// Sets a mapping between a DID key identifier and a wallet key identifier.
   ///
   /// [verificationMethodId] - The verification method ID from the DID document
@@ -26,36 +26,4 @@ abstract class DiDControllerStore {
 
   /// Gets all DID key identifiers.
   List<String> get verificationMethodIds;
-}
-
-/// Default implementation of [DiDControllerStore] using an in-memory map.
-///
-/// This implementation provides a simple map-based storage for DID key mappings.
-/// For production applications that require persistence, consider implementing
-/// a custom [DiDControllerStore] backed by a database or file system.
-class DefaultDiDControllerStore extends DiDControllerStore {
-  final Map<String, String> _keyMapping = {};
-
-  @override
-  void setMapping(String verificationMethodId, String walletKeyId) {
-    _keyMapping[verificationMethodId] = walletKeyId;
-  }
-
-  @override
-  String? getWalletKeyId(String verificationMethodId) {
-    return _keyMapping[verificationMethodId];
-  }
-
-  @override
-  void removeMapping(String verificationMethodId) {
-    _keyMapping.remove(verificationMethodId);
-  }
-
-  @override
-  void clear() {
-    _keyMapping.clear();
-  }
-
-  @override
-  List<String> get verificationMethodIds => _keyMapping.keys.toList();
 }
