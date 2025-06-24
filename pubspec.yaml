@@ -9,6 +9,7 @@ environment:
 dependencies:
   base_codecs: ^1.0.1
   bip32_plus: ^1.0.0
+  crypto: ^3.0.3
   cryptography: ^2.7.0
   ecdsa: ^0.1.2
   ed25519_edwards: ^0.3.1

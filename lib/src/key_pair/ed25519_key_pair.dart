@@ -1,11 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart' as dart_crypto;
 import 'package:cryptography/cryptography.dart' as crypto;
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:x25519/x25519.dart' as x25519;
-import 'package:crypto/crypto.dart' as dartCrypto;
 
-import '../digest_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
@@ -148,11 +147,12 @@ class Ed25519KeyPair implements KeyPair {
   /// [publicKey] - The public key to use for computing the shared secret.
   ///
   /// Returns a [Future] that completes with the shared secret as a [Uint8List].
+  @override
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
     // Convert Ed25519 private key to X25519 private key using clamping (RFC 7748)
     final seed = ed.seed(_privateKey);
     // Hash the seed with SHA-512
-    final hash = dartCrypto.sha512.convert(seed).bytes;
+    final hash = dart_crypto.sha512.convert(seed).bytes;
     // Clamp the first 32 bytes
     final clamped = Uint8List.fromList(hash.sublist(0, 32));
     clamped[0] &= 248;
