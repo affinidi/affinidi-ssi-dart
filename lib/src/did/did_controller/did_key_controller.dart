@@ -15,10 +15,10 @@ class DidKeyController extends DidController {
 
   /// Creates a new DID Key controller instance.
   ///
-  /// [keyMapping] - The key mapping store to use for managing key relationships.
+  /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   DidKeyController({
-    required super.keyMapping,
+    required super.store,
     required super.wallet,
   });
 
@@ -57,38 +57,33 @@ class DidKeyController extends DidController {
   }
 
   @override
-  void addAuthenticationKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.authentication, () => [])
-        .add(publicKey);
+  void addAuthentication(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding verification methods to did:key method is not supported.');
   }
 
   @override
-  void addKeyAgreementKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.keyAgreement, () => [])
-        .add(publicKey);
+  void addKeyAgreement(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding authentication verification methods to did:key method is not supported.');
   }
 
   @override
-  void addCapabilityInvocationKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.capabilityInvocation, () => [])
-        .add(publicKey);
+  void addCapabilityInvocation(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding authentication verification methods to did:key method is not supported.');
   }
 
   @override
-  void addCapabilityDelegationKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.capabilityDelegation, () => [])
-        .add(publicKey);
+  void addCapabilityDelegation(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding authentication verification methods to did:key method is not supported.');
   }
 
   @override
-  void addAssertionMethodKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.assertionMethod, () => [])
-        .add(publicKey);
+  void addAssertionMethod(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding authentication verification methods to did:key method is not supported.');
   }
 
   @override

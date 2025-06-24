@@ -1,7 +1,7 @@
 /// A store for managing mappings between DID key identifiers and wallet key identifiers.
 ///
 /// This class maintains the relationship between two different identifier systems:
-/// - **DID Key ID (verification method ID)**: The identifier used in DID documents
+/// - **Verification Method ID**: The identifier used in DID documents
 ///   (e.g., "did:key:z6Mk...#z6Mk..." or "did:peer:2.Ez...#key-1")
 /// - **Wallet Key ID**: The internal identifier used by the wallet/KeyPair
 ///   (e.g., "key-1234567890" or a JWT thumbprint)
@@ -11,21 +11,21 @@
 abstract class DiDControllerStore {
   /// Sets a mapping between a DID key identifier and a wallet key identifier.
   ///
-  /// [didKeyId] - The verification method ID from the DID document
+  /// [verificationMethodId] - The verification method ID from the DID document
   /// [walletKeyId] - The internal key ID used by the wallet/KeyPair
-  void setMapping(String didKeyId, String walletKeyId);
+  void setMapping(String verificationMethodId, String walletKeyId);
 
-  /// Gets the wallet key identifier for a given DID key identifier.
-  String? getWalletKeyId(String didKeyId);
+  /// Gets the wallet key identifier for a given verification method identifier.
+  String? getWalletKeyId(String verificationMethodId);
 
-  /// Removes the mapping for a given DID key identifier.
-  void removeMapping(String didKeyId);
+  /// Removes the mapping for a given verification method identifier.
+  void removeMapping(String verificationMethodId);
 
   /// Clears all mappings.
   void clear();
 
   /// Gets all DID key identifiers.
-  List<String> get didKeyIds;
+  List<String> get verificationMethodIds;
 }
 
 /// Default implementation of [DiDControllerStore] using an in-memory map.
@@ -37,18 +37,18 @@ class DefaultDiDControllerStore extends DiDControllerStore {
   final Map<String, String> _keyMapping = {};
 
   @override
-  void setMapping(String didKeyId, String walletKeyId) {
-    _keyMapping[didKeyId] = walletKeyId;
+  void setMapping(String verificationMethodId, String walletKeyId) {
+    _keyMapping[verificationMethodId] = walletKeyId;
   }
 
   @override
-  String? getWalletKeyId(String didKeyId) {
-    return _keyMapping[didKeyId];
+  String? getWalletKeyId(String verificationMethodId) {
+    return _keyMapping[verificationMethodId];
   }
 
   @override
-  void removeMapping(String didKeyId) {
-    _keyMapping.remove(didKeyId);
+  void removeMapping(String verificationMethodId) {
+    _keyMapping.remove(verificationMethodId);
   }
 
   @override
@@ -57,5 +57,5 @@ class DefaultDiDControllerStore extends DiDControllerStore {
   }
 
   @override
-  List<String> get didKeyIds => _keyMapping.keys.toList();
+  List<String> get verificationMethodIds => _keyMapping.keys.toList();
 }

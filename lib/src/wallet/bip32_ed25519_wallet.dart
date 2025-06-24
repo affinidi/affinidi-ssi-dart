@@ -93,7 +93,7 @@ class Bip32Ed25519Wallet implements Wallet {
   Future<PublicKey> getPublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
     final keyData = keyPair.publicKey;
-    return PublicKey(keyId, keyData.bytes, keyData.type);
+    return PublicKey(keyData.id, keyData.bytes, keyData.type);
   }
 
   /// Retrieves the X25519 public key corresponding to the key at the given

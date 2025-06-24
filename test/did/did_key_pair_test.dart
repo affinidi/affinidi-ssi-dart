@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/did/did_controller/index.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -14,7 +13,7 @@ void main() {
       wallet = PersistentWallet(InMemoryKeyStore());
       keyMapping = DefaultDiDControllerStore();
       didKeyController = DidKeyController(
-        keyMapping: keyMapping,
+        store: keyMapping,
         wallet: wallet,
       );
     });

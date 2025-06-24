@@ -11,76 +11,11 @@ import '../../util/base64_util.dart';
 import '../../wallet/persistent_wallet.dart';
 import '../../wallet/wallet.dart';
 import '../did_document/did_document.dart';
-import '../did_key_pair.dart';
+import '../did_document/service_endpoint.dart';
+import '../did_document/verification_method.dart';
 import '../did_signer.dart';
 import '../public_key_utils.dart';
-import 'did_controller_store.dart';
-
-/// Enumeration of verification method purposes as defined by W3C DID specification.
-///
-/// This enum represents the different verification relationships that can be
-/// established in a DID document. Each purpose defines how a verification method
-/// can be used within the DID context.
-enum VerificationMethodPurpose {
-  /// Authentication verification methods are used to authenticate the DID subject.
-  authentication,
-
-  /// Key agreement verification methods are used for key agreement protocols
-  /// such as ECDH (Elliptic Curve Diffie-Hellman).
-  keyAgreement,
-
-  /// Capability invocation verification methods are used to invoke capabilities
-  /// or perform actions on behalf of the DID subject.
-  capabilityInvocation,
-
-  /// Capability delegation verification methods are used to delegate capabilities
-  /// to other entities.
-  capabilityDelegation,
-
-  /// Assertion method verification methods are used for issuing verifiable credentials
-  /// and other assertions.
-  assertionMethod,
-
-  /// Custom verification method purpose for non-standard use cases.
-  /// When using this value, provide the custom purpose string separately.
-  custom;
-
-  /// Converts the enum value to its string representation for use in DID documents.
-  String get value {
-    switch (this) {
-      case VerificationMethodPurpose.authentication:
-        return 'authentication';
-      case VerificationMethodPurpose.keyAgreement:
-        return 'keyAgreement';
-      case VerificationMethodPurpose.capabilityInvocation:
-        return 'capabilityInvocation';
-      case VerificationMethodPurpose.capabilityDelegation:
-        return 'capabilityDelegation';
-      case VerificationMethodPurpose.assertionMethod:
-        return 'assertionMethod';
-      case VerificationMethodPurpose.custom:
-        return 'custom';
-    }
-  }
-
-  /// Creates a VerificationMethodPurpose from its string representation.
-  static VerificationMethodPurpose fromString(String value) {
-    switch (value) {
-      case 'authentication':
-        return VerificationMethodPurpose.authentication;
-      case 'keyAgreement':
-        return VerificationMethodPurpose.keyAgreement;
-      case 'capabilityInvocation':
-        return VerificationMethodPurpose.capabilityInvocation;
-      case 'capabilityDelegation':
-        return VerificationMethodPurpose.capabilityDelegation;
-      case 'assertionMethod':
-        return VerificationMethodPurpose.assertionMethod;
-      default:
-        return VerificationMethodPurpose.custom;
-    }
-  }
-}
+import 'stores/did_controller_store.dart';
 
 /// Base class for managing DID documents and their associated verification methods.
 ///
@@ -90,7 +25,10 @@ enum VerificationMethodPurpose {
 /// signing and verification capabilities.
 abstract class DidController {
   /// The key mapping store for this controller.
-  final DiDControllerStore keyMapping;
+  final DiDControllerStore store;
+
+  /// All verification methods
+  final List<VerificationMethod> _verificationMethod = [];
 
   /// Verification methods for authentication purposes
   final List<String> authentication = [];
@@ -107,15 +45,18 @@ abstract class DidController {
   /// Verification methods for assertion purposes
   final List<String> assertionMethod = [];
 
+  /// Verification methods for assertion purposes
+  final List<ServiceEndpoint> _services = [];
+
   /// The wallet instance for key operations.
   final Wallet wallet;
 
   /// Creates a new DID controller instance.
   ///
-  /// [keyMapping] - The key mapping store to use for managing key relationships.
+  /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   DidController({
-    required this.keyMapping,
+    required this.store,
     required this.wallet,
   });
 
@@ -164,125 +105,17 @@ abstract class DidController {
     );
   }
 
-  /// Creates a new authentication verification method with a new key.
-  Future<String> createAuthenticationVerificationMethod(
-    KeyType keyType, {
-    String? keyId,
-    SignatureScheme? signatureScheme,
-  }) async {
-    final walletKeyId = keyId ?? await generateKeyId(keyType);
-    final keyPair = await wallet.generateKey(
-      keyId: walletKeyId,
-      keyType: keyType,
-    );
-
-    addAuthenticationKey(keyPair.publicKey);
-    final verificationMethodId =
-        await findVerificationMethodId(keyPair.publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    authentication.add(verificationMethodId);
-
-    return verificationMethodId;
+  /// Add a service endpoint for the DID document.
+  void addServiceEndpoint(ServiceEndpoint endpoint) {
+    // TODO
+    // Check that the id doesnt exist already and add the service endpoint
   }
 
-  /// Creates a new key agreement verification method with a new key.
-  Future<String> createKeyAgreementVerificationMethod(
-    KeyType keyType, {
-    String? keyId,
-    SignatureScheme? signatureScheme,
-  }) async {
-    final walletKeyId = keyId ?? await generateKeyId(keyType);
-    final keyPair = await wallet.generateKey(
-      keyId: walletKeyId,
-      keyType: keyType,
-    );
-
-    addKeyAgreementKey(keyPair.publicKey);
-    final verificationMethodId =
-        await findVerificationMethodId(keyPair.publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    keyAgreement.add(verificationMethodId);
-
-    return verificationMethodId;
+  /// Remove a service endpoint from the DID document.
+  void removeServiceEndpoint() {
+    // What can be passed as a parameter to identify the endpoint to remove?
+    // TODO
   }
-
-  /// Creates a new capability invocation verification method with a new key.
-  Future<String> createCapabilityInvocationVerificationMethod(
-    KeyType keyType, {
-    String? keyId,
-    SignatureScheme? signatureScheme,
-  }) async {
-    final walletKeyId = keyId ?? await generateKeyId(keyType);
-    final keyPair = await wallet.generateKey(
-      keyId: walletKeyId,
-      keyType: keyType,
-    );
-
-    addCapabilityInvocationKey(keyPair.publicKey);
-    final verificationMethodId =
-        await findVerificationMethodId(keyPair.publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    capabilityInvocation.add(verificationMethodId);
-
-    return verificationMethodId;
-  }
-
-  /// Creates a new capability delegation verification method with a new key.
-  Future<String> createCapabilityDelegationVerificationMethod(
-    KeyType keyType, {
-    String? keyId,
-    SignatureScheme? signatureScheme,
-  }) async {
-    final walletKeyId = keyId ?? await generateKeyId(keyType);
-    final keyPair = await wallet.generateKey(
-      keyId: walletKeyId,
-      keyType: keyType,
-    );
-
-    addCapabilityDelegationKey(keyPair.publicKey);
-    final verificationMethodId =
-        await findVerificationMethodId(keyPair.publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    capabilityDelegation.add(verificationMethodId);
-
-    return verificationMethodId;
-  }
-
-  /// Creates a new assertion method verification method with a new key.
-  Future<String> createAssertionMethodVerificationMethod(
-    KeyType keyType, {
-    String? keyId,
-    SignatureScheme? signatureScheme,
-  }) async {
-    final walletKeyId = keyId ?? await generateKeyId(keyType);
-    final keyPair = await wallet.generateKey(
-      keyId: walletKeyId,
-      keyType: keyType,
-    );
-
-    addAssertionMethodKey(keyPair.publicKey);
-    final verificationMethodId =
-        await findVerificationMethodId(keyPair.publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    assertionMethod.add(verificationMethodId);
-
-    return verificationMethodId;
-  }
-
-  /// Adds a key for authentication purposes to the DID method-specific storage.
-  void addAuthenticationKey(PublicKey publicKey);
-
-  /// Adds a key for key agreement purposes to the DID method-specific storage.
-  void addKeyAgreementKey(PublicKey publicKey);
-
-  /// Adds a key for capability invocation purposes to the DID method-specific storage.
-  void addCapabilityInvocationKey(PublicKey publicKey);
-
-  /// Adds a key for capability delegation purposes to the DID method-specific storage.
-  void addCapabilityDelegationKey(PublicKey publicKey);
-
-  /// Adds a key for assertion method purposes to the DID method-specific storage.
-  void addAssertionMethodKey(PublicKey publicKey);
 
   /// Creates or updates the DID document based on current state.
   /// Subclasses implement this to handle method-specific document creation.
@@ -292,80 +125,17 @@ abstract class DidController {
   /// Subclasses implement this to handle method-specific ID lookup.
   Future<String> findVerificationMethodId(PublicKey publicKey);
 
-  /// Adds an authentication verification method using an existing key from the wallet.
-  Future<String> addAuthenticationVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
+  /// Adds a verification method using an existing key from the wallet.
+  Future<String> addVerificationMethod(String walletKeyId) async {
     final publicKey = await wallet.getPublicKey(walletKeyId);
-    addAuthenticationKey(publicKey);
     final verificationMethodId = await findVerificationMethodId(publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    authentication.add(verificationMethodId);
-    return verificationMethodId;
-  }
-
-  /// Adds a key agreement verification method using an existing key from the wallet.
-  Future<String> addKeyAgreementVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    final publicKey = await wallet.getPublicKey(walletKeyId);
-    addKeyAgreementKey(publicKey);
-    final verificationMethodId = await findVerificationMethodId(publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    keyAgreement.add(verificationMethodId);
-    return verificationMethodId;
-  }
-
-  /// Adds a capability invocation verification method using an existing key from the wallet.
-  Future<String> addCapabilityInvocationVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    final publicKey = await wallet.getPublicKey(walletKeyId);
-    addCapabilityInvocationKey(publicKey);
-    final verificationMethodId = await findVerificationMethodId(publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    capabilityInvocation.add(verificationMethodId);
-    return verificationMethodId;
-  }
-
-  /// Adds a capability delegation verification method using an existing key from the wallet.
-  Future<String> addCapabilityDelegationVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    final publicKey = await wallet.getPublicKey(walletKeyId);
-    addCapabilityDelegationKey(publicKey);
-    final verificationMethodId = await findVerificationMethodId(publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    capabilityDelegation.add(verificationMethodId);
-    return verificationMethodId;
-  }
-
-  /// Adds an assertion method verification method using an existing key from the wallet.
-  Future<String> addAssertionMethodVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    final publicKey = await wallet.getPublicKey(walletKeyId);
-    addAssertionMethodKey(publicKey);
-    final verificationMethodId = await findVerificationMethodId(publicKey);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    assertionMethod.add(verificationMethodId);
+    store.setMapping(verificationMethodId, walletKeyId);
     return verificationMethodId;
   }
 
   /// Adds an existing verification method reference to authentication.
-  void addAuthenticationVerificationMethodReference(
-      String verificationMethodId) {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+  void addAuthentication(String verificationMethodId) {
+    final walletKeyId = store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -377,8 +147,8 @@ abstract class DidController {
   }
 
   /// Adds an existing verification method reference to key agreement.
-  void addKeyAgreementVerificationMethodReference(String verificationMethodId) {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+  void addKeyAgreement(String verificationMethodId) {
+    final walletKeyId = store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -390,9 +160,8 @@ abstract class DidController {
   }
 
   /// Adds an existing verification method reference to capability invocation.
-  void addCapabilityInvocationVerificationMethodReference(
-      String verificationMethodId) {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+  void addCapabilityInvocation(String verificationMethodId) {
+    final walletKeyId = store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -404,9 +173,8 @@ abstract class DidController {
   }
 
   /// Adds an existing verification method reference to capability delegation.
-  void addCapabilityDelegationVerificationMethodReference(
-      String verificationMethodId) {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+  void addCapabilityDelegation(String verificationMethodId) {
+    final walletKeyId = store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -418,9 +186,8 @@ abstract class DidController {
   }
 
   /// Adds an existing verification method reference to assertion method.
-  void addAssertionMethodVerificationMethodReference(
-      String verificationMethodId) {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+  void addAssertionMethod(String verificationMethodId) {
+    final walletKeyId = store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -432,32 +199,27 @@ abstract class DidController {
   }
 
   /// Removes a verification method reference from authentication.
-  void removeAuthenticationVerificationMethodReference(
-      String verificationMethodId) {
+  void removeAuthentication(String verificationMethodId) {
     authentication.remove(verificationMethodId);
   }
 
   /// Removes a verification method reference from key agreement.
-  void removeKeyAgreementVerificationMethodReference(
-      String verificationMethodId) {
+  void removeKeyAgreement(String verificationMethodId) {
     keyAgreement.remove(verificationMethodId);
   }
 
   /// Removes a verification method reference from capability invocation.
-  void removeCapabilityInvocationVerificationMethodReference(
-      String verificationMethodId) {
+  void removeCapabilityInvocation(String verificationMethodId) {
     capabilityInvocation.remove(verificationMethodId);
   }
 
   /// Removes a verification method reference from capability delegation.
-  void removeCapabilityDelegationVerificationMethodReference(
-      String verificationMethodId) {
+  void removeCapabilityDelegation(String verificationMethodId) {
     capabilityDelegation.remove(verificationMethodId);
   }
 
   /// Removes a verification method reference from assertion method.
-  void removeAssertionMethodVerificationMethodReference(
-      String verificationMethodId) {
+  void removeAssertionMethod(String verificationMethodId) {
     assertionMethod.remove(verificationMethodId);
   }
 
@@ -482,7 +244,7 @@ abstract class DidController {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -512,7 +274,7 @@ abstract class DidController {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -544,7 +306,7 @@ abstract class DidController {
   }) async {
     final didDocument = await getDidDocument();
 
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -577,38 +339,7 @@ abstract class DidController {
     return wallet.generateKey(keyId: walletKeyId);
   }
 
-  /// Retrieves a DID key pair for a verification method.
-  ///
-  /// Creates a DidKeyPair that combines the cryptographic key pair with
-  /// its DID context, including the verification method ID and optional
-  /// DID document.
-  ///
-  /// [verificationMethodId] - The DID verification method identifier to retrieve.
-  ///
-  /// Returns a [DidKeyPair] containing the key pair and DID context.
-  ///
-  /// Throws [SsiException] if the verification method is not found in the mapping.
-  Future<DidKeyPair> getKey(String verificationMethodId) async {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
-    if (walletKeyId == null) {
-      throw SsiException(
-        message:
-            'Verification method $verificationMethodId not found in mapping',
-        code: SsiExceptionType.keyNotFound.code,
-      );
-    }
-
-    final keyPair = await getKeyPair(walletKeyId);
-
-    final didDocument = await getDidDocument();
-
-    return DidKeyPair(
-      keyPair: keyPair,
-      verificationMethodId: verificationMethodId,
-      didDocument: didDocument,
-    );
-  }
-
+  // TODO: this should not be part of the did controller but of the key pairs themselves. Same can be said about the DidSigner
   /// Gets the default signature scheme for a key pair.
   ///
   /// Returns the first supported signature scheme if available,
@@ -632,11 +363,6 @@ abstract class DidController {
           code: SsiExceptionType.unsupportedSignatureScheme.code,
         );
     }
-  }
-
-  /// Generates a key identifier using JWT thumbprint.
-  Future<String> generateKeyId(KeyType keyType) async {
-    return await generateJwtThumbprintKeyId(keyType);
   }
 
   /// Computes a JWT thumbprint for a given public key.
