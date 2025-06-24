@@ -173,7 +173,8 @@ class Ed25519KeyPair implements KeyPair {
       publicKeyToUse = publicKey;
     }
 
-    final sharedSecret = await computeEcdhSecret(Uint8List.fromList(publicKeyToUse));
+    final sharedSecret =
+        await computeEcdhSecret(Uint8List.fromList(publicKeyToUse));
 
     final algorithm = crypto.Hkdf(
       hmac: crypto.Hmac.sha256(),
@@ -245,11 +246,12 @@ class Ed25519KeyPair implements KeyPair {
   Future<Uint8List> ed25519KeyToX25519PublicKey() async {
     // Get the Ed25519 public key
     final ed25519PublicKey = ed.public(_privateKey);
-    
+
     // Convert Ed25519 public key to X25519 public key
     // The conversion function returns the X25519 public key bytes directly
-    final x25519PublicKeyBytes = ed25519PublicToX25519Public(ed25519PublicKey.bytes);
-    
+    final x25519PublicKeyBytes =
+        ed25519PublicToX25519Public(ed25519PublicKey.bytes);
+
     // Return the X25519 public key bytes directly
     return x25519PublicKeyBytes;
   }
