@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:cryptography/cryptography.dart' as crypto;
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 import 'package:x25519/x25519.dart' as x25519;
