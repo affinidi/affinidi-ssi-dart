@@ -4,6 +4,7 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../json_ld/context.dart';
 import '../key_pair/public_key.dart';
+import '../types.dart';
 import '../utility.dart';
 import 'did_document/index.dart';
 import 'public_key_utils.dart';
@@ -25,18 +26,15 @@ DidDocument _buildEDDoc(
   String id,
   String keyPart,
 ) {
-  final multiCodecXKey = ed25519PublicToX25519Public(
+  final x25519PubKey = ed25519PublicToX25519Public(
     base58Bitcoin.decode(keyPart).sublist(2),
   );
-  if (!multiCodecXKey.startsWith('6LS')) {
-    throw SsiException(
-      message:
-          'Something went wrong during conversion from Ed25515 to curve25519 key',
-      code: SsiExceptionType.invalidDidKey.code,
-    );
-  }
-  var verificationKeyId = '$id#z$keyPart';
-  var agreementKeyId = '$id#z$multiCodecXKey';
+  final x25519PubKeyMultiBase = toMultiBase(
+    toMultikey(x25519PubKey, KeyType.x25519),
+  );
+
+  final verificationKeyId = '$id#z$keyPart';
+  final agreementKeyId = '$id#$x25519PubKeyMultiBase';
 
   final verification = VerificationMethodMultibase(
     id: verificationKeyId,
@@ -48,7 +46,7 @@ DidDocument _buildEDDoc(
     id: agreementKeyId,
     controller: id,
     type: 'X25519KeyAgreementKey2020',
-    publicKeyMultibase: 'z$multiCodecXKey',
+    publicKeyMultibase: x25519PubKeyMultiBase,
   );
 
   return DidDocument.create(

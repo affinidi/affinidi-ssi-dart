@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-06-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.2.2`](#ssi---v122)
+
+---
+
+#### `ssi` - `v1.2.2`
+
+ - **FIX**: use uint8list consistently (#119).
+
+## 1.2.2
+
+ - **FIX**: use uint8list consistently (#119).
+
+
 ## 2025-06-16
 
 ### Changes
