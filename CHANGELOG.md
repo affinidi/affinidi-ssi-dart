@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v1.3.0`](#ssi---v130)
+
+---
+
+#### `ssi` - `v1.3.0`
+
+ - **FEAT**: add revocation missing fields (#118).
+
+## 1.3.0
+
+ - **FEAT**: add revocation missing fields (#118).
+
+
+## 2025-06-25
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v1.2.3`](#ssi---v123)
 
 ---
