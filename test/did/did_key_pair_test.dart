@@ -20,10 +20,15 @@ void main() {
     });
 
     test('should create DidKeyPair through DidController.getKey()', () async {
-      // Create a key and add it as an authentication method
+      // Create a key in the wallet first
+      final walletKeyId = 'test-key-auth';
+      await wallet.generateKey(keyId: walletKeyId, keyType: KeyType.ed25519);
+
+      // Add it as an authentication method
       final verificationMethodId =
-          await didKeyController.createAuthenticationVerificationMethod(
+          await didKeyController.addAuthenticationVerificationMethod(
         KeyType.ed25519,
+        walletKeyId,
       );
 
       // Get the DidKeyPair
@@ -44,10 +49,15 @@ void main() {
     });
 
     test('should sign and verify using DidKeyPair', () async {
-      // Create a key and add it as an assertion method
+      // Create a key in the wallet first
+      final walletKeyId = 'test-key-assertion';
+      await wallet.generateKey(keyId: walletKeyId, keyType: KeyType.p256);
+
+      // Add it as an assertion method
       final verificationMethodId =
-          await didKeyController.createAssertionMethodVerificationMethod(
+          await didKeyController.addAssertionMethodVerificationMethod(
         KeyType.p256,
+        walletKeyId,
       );
 
       // Get the DidKeyPair
@@ -84,10 +94,15 @@ void main() {
 
     test('should maintain proper key mapping between DID and wallet IDs',
         () async {
-      // Create a key and add it as a key agreement method
+      // Create a key in the wallet first
+      final walletKeyId = 'test-key-agreement';
+      await wallet.generateKey(keyId: walletKeyId, keyType: KeyType.ed25519);
+
+      // Add it as a key agreement method
       final verificationMethodId =
-          await didKeyController.createKeyAgreementVerificationMethod(
+          await didKeyController.addKeyAgreementVerificationMethod(
         KeyType.ed25519,
+        walletKeyId,
       );
 
       // Get the DidKeyPair
@@ -124,17 +139,30 @@ void main() {
 
     test('should create keys with different verification method purposes',
         () async {
-      // Create keys with different purposes
-      await didKeyController.createAuthenticationVerificationMethod(
+      // Create keys in wallet first
+      final authKeyId = 'test-key-auth-multi';
+      final assertionKeyId = 'test-key-assertion-multi';
+      final keyAgreementKeyId = 'test-key-agreement-multi';
+
+      await wallet.generateKey(keyId: authKeyId, keyType: KeyType.ed25519);
+      await wallet.generateKey(keyId: assertionKeyId, keyType: KeyType.p256);
+      await wallet.generateKey(
+          keyId: keyAgreementKeyId, keyType: KeyType.ed25519);
+
+      // Add keys with different purposes
+      await didKeyController.addAuthenticationVerificationMethod(
         KeyType.ed25519,
+        authKeyId,
       );
 
-      await didKeyController.createAssertionMethodVerificationMethod(
+      await didKeyController.addAssertionMethodVerificationMethod(
         KeyType.p256,
+        assertionKeyId,
       );
 
-      await didKeyController.createKeyAgreementVerificationMethod(
+      await didKeyController.addKeyAgreementVerificationMethod(
         KeyType.ed25519,
+        keyAgreementKeyId,
       );
 
       // Get the DID document

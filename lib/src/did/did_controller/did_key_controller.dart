@@ -1,6 +1,5 @@
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
-import '../../key_pair/public_key.dart';
 import '../did_document/did_document.dart';
 import '../did_key.dart';
 import '../public_key_utils.dart';
@@ -11,8 +10,6 @@ import 'did_controller.dart';
 /// This controller handles DID documents that use the did:key method,
 /// which supports only a single public key per DID.
 class DidKeyController extends DidController {
-  final Map<VerificationMethodPurpose, List<PublicKey>> _keysByPurpose = {};
-
   /// Creates a new DID Key controller instance.
   ///
   /// [keyMapping] - The key mapping store to use for managing key relationships.
@@ -22,104 +19,70 @@ class DidKeyController extends DidController {
     required super.wallet,
   });
 
-  DidDocument _createDidDocumentFromState() {
-    final primaryKey = _getPrimaryKey();
-    if (primaryKey == null) {
+  Future<DidDocument> _createDidDocumentFromState() async {
+    final primaryKeyId = _getPrimaryKeyId();
+    if (primaryKeyId == null) {
       throw SsiException(
-        message: 'DidKeyController requires a public key to create a document. '
+        message: 'DidKeyController requires a key ID to create a document. '
             'Use createDidDocumentFromKey() instead.',
         code: SsiExceptionType.invalidDidDocument.code,
       );
     }
+    final primaryKey = await wallet.getPublicKey(primaryKeyId);
     return DidKey.generateDocument(primaryKey);
   }
 
-  PublicKey? _getPrimaryKey() {
-    for (final keys in _keysByPurpose.values) {
-      if (keys.isNotEmpty) {
-        return keys.first;
+  String? _getPrimaryKeyId() {
+    for (final keyIds in keysByPurpose.values) {
+      if (keyIds.isNotEmpty) {
+        return keyIds.first;
       }
     }
     return null;
   }
 
-  /// Creates a DID document from a single public key.
+  /// Creates a DID document from a single key ID.
   ///
-  /// [publicKey] - The public key to use for the DID document.
+  /// [keyId] - The key ID to use for the DID document.
   /// [purpose] - The verification method purpose for this key.
   ///
   /// Returns the created DID document.
-  DidDocument createDidDocumentFromKey(PublicKey publicKey,
+  Future<DidDocument> createDidDocumentFromKey(String keyId,
       [VerificationMethodPurpose purpose =
-          VerificationMethodPurpose.authentication]) {
-    _keysByPurpose.putIfAbsent(purpose, () => []).add(publicKey);
-    return _createDidDocumentFromState();
+          VerificationMethodPurpose.authentication]) async {
+    keysByPurpose.putIfAbsent(purpose, () => []).add(keyId);
+    return await _createDidDocumentFromState();
   }
 
-  @override
-  void addAuthenticationKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.authentication, () => [])
-        .add(publicKey);
-  }
-
-  @override
-  void addKeyAgreementKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.keyAgreement, () => [])
-        .add(publicKey);
-  }
-
-  @override
-  void addCapabilityInvocationKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.capabilityInvocation, () => [])
-        .add(publicKey);
-  }
-
-  @override
-  void addCapabilityDelegationKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.capabilityDelegation, () => [])
-        .add(publicKey);
-  }
-
-  @override
-  void addAssertionMethodKey(PublicKey publicKey) {
-    _keysByPurpose
-        .putIfAbsent(VerificationMethodPurpose.assertionMethod, () => [])
-        .add(publicKey);
-  }
+  // DidKeyController now uses the base class implementation for addXXX methods
 
   @override
   Future<DidDocument> createOrUpdateDocument() async {
     // For did:key, clear the base controller arrays to avoid duplicates
     // since the DID document generation already includes the verification methods
-    authentication.clear();
-    assertionMethod.clear();
-    keyAgreement.clear();
-    capabilityInvocation.clear();
-    capabilityDelegation.clear();
+    clearAllVerificationMethodReferences();
 
-    return _createDidDocumentFromState();
+    return await _createDidDocumentFromState();
   }
 
   @override
-  Future<String> findVerificationMethodId(PublicKey publicKey) async {
+  Future<String> findVerificationMethodId(String keyId) async {
     // 1. Resolve the controller DID from the *primary* key.
-    final primaryKey = _getPrimaryKey();
-    if (primaryKey == null) {
+    final primaryKeyId = _getPrimaryKeyId();
+    if (primaryKeyId == null) {
       throw SsiException(
-        message: 'No primary key set. cannot derrive DID.',
+        message: 'No primary key set. cannot derive DID.',
         code: SsiExceptionType.invalidDidDocument.code,
       );
     }
 
+    final primaryKey = await wallet.getPublicKey(primaryKeyId);
     final primaryMultikey = toMultikey(primaryKey.bytes, primaryKey.type);
     final primaryMultibase = toMultiBase(primaryMultikey);
     final did = 'did:key:$primaryMultibase';
 
     // 2. Encode the queried key for the fragment.
+    final publicKey = await wallet.getPublicKey(keyId);
     final fragmentMultikey = toMultikey(publicKey.bytes, publicKey.type);
     final fragmentMultibase = toMultiBase(fragmentMultikey);
 
