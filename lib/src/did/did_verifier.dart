@@ -70,9 +70,8 @@ class DidVerifier implements Verifier {
     final jwk = verificationMethod.asJwk();
     final jwkMap = Map<String, dynamic>.from(jwk.toJson());
 
-    final verifier = DidVerifier._(algorithm, kid, jwkMap);
     if (algorithm.alg != null) {
-      if (!verifier.isAllowedAlgorithm(algorithm.alg!)) {
+      if (!_isAlgorithmCompatibleWithJwk(jwkMap, algorithm.alg!)) {
         throw SsiException(
           message:
               'Algorithm ${algorithm.alg} is not compatible with the key type',
@@ -81,24 +80,29 @@ class DidVerifier implements Verifier {
       }
     }
 
-    return verifier;
+    return DidVerifier._(algorithm, kid, jwkMap);
   }
 
   @override
   bool isAllowedAlgorithm(String algorithm) {
-    if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
+    return _isAlgorithmCompatibleWithJwk(_jwk, algorithm);
+  }
+
+  static bool _isAlgorithmCompatibleWithJwk(
+      Map<String, dynamic> jwk, String algorithm) {
+    if (jwk['kty'] == 'OKP' && jwk['crv'] == 'Ed25519') {
       return algorithm == 'EdDSA' || algorithm == 'Ed25519';
     }
 
     try {
-      final jwtKey = JWTKey.fromJWK(_jwk);
+      final jwtKey = JWTKey.fromJWK(jwk);
       return _isKeyCompatibleWithAlgorithm(jwtKey, algorithm);
     } catch (_) {
       return false;
     }
   }
 
-  bool _isKeyCompatibleWithAlgorithm(JWTKey key, String algorithm) {
+  static bool _isKeyCompatibleWithAlgorithm(JWTKey key, String algorithm) {
     if (key is RSAPublicKey) {
       return ['RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512']
           .contains(algorithm);
