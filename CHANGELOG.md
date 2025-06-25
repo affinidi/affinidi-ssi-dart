@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-06-25
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.2.3`](#ssi---v123)
+
+---
+
+#### `ssi` - `v1.2.3`
+
+ - **FIX**: working on update dh related part for the ed25519 (#121).
+
+## 1.2.3
+
+ - **FIX**: working on update dh related part for the ed25519 (#121).
+
+
 ## 2025-06-23
 
 ### Changes
