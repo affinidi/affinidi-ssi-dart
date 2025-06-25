@@ -186,12 +186,11 @@ void main() {
       var edBob = Ed25519KeyPair.fromSeed(edSeedBob);
 
       var bobPubKey = await edBob.ed25519KeyToX25519PublicKey();
-      var encryptedByAlice = await edAlice.encrypt(data,
-          publicKey: Uint8List.fromList(bobPubKey.bytes));
+      var encryptedByAlice = await edAlice.encrypt(data, publicKey: bobPubKey);
 
       var alicePubKey = await edAlice.ed25519KeyToX25519PublicKey();
-      var decryptedByBob = await edBob.decrypt(encryptedByAlice,
-          publicKey: Uint8List.fromList(alicePubKey.bytes));
+      var decryptedByBob =
+          await edBob.decrypt(encryptedByAlice, publicKey: alicePubKey);
 
       expect(decryptedByBob, data);
     });

@@ -100,7 +100,6 @@ class CredentialSubject extends _CredentialSubjectInterface {
   }
 
   @override
-  @override
   dynamic operator [](Object? key) {
     if (key == 'id') {
       return id;

@@ -108,7 +108,7 @@ class Bip32Ed25519Wallet implements Wallet {
   Future<Uint8List> getX25519PublicKey(String keyId) async {
     final keyPair = await _getKeyPair(keyId);
     final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();
-    return Uint8List.fromList(x25519PublicKey.bytes);
+    return x25519PublicKey;
   }
 
   @override
