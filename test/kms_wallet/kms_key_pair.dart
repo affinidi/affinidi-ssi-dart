@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:aws_kms_api/kms-2014-11-01.dart' as kms;
 import 'package:ssi/ssi.dart';
 
-final _signatureSchemeToKmsAlgorithm = {
+const _signatureSchemeToKmsAlgorithm = {
   SignatureScheme.rsa_pkcs1_sha256:
       kms.SigningAlgorithmSpec.rsassaPkcs1V1_5Sha_256,
 };
