@@ -72,20 +72,44 @@ DidDocument _resolveDidPeer0(String did) {
     'https://w3id.org/security/suites/x25519-2020/v1'
   ];
 
+  const contextMultikey = [
+    'https://www.w3.org/ns/did/v1',
+    'https://w3id.org/security/suites/multikey-2021/v1',
+  ];
+
   var keyPart = did.substring(11);
 
   if (keyPart.startsWith('6Mk')) {
     return _buildEDDoc(contextEdward, did, keyPart);
   } else if (keyPart.startsWith('6LS')) {
     return _buildXDoc(contextEdX, did, keyPart);
-    // } else if (keyPart.startsWith('Dn')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'P256Key2021');
-    // } else if (keyPart.startsWith('Q3s')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'Secp256k1Key2021');
-    // } else if (keyPart.startsWith('82')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'P384Key2021');
-    // } else if (keyPart.startsWith('2J9')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
+  } else if (keyPart.startsWith('Dn')) {
+    return _buildP256Doc(
+      contextMultikey,
+      did,
+      keyPart,
+    );
+  } else if (keyPart.startsWith('Q3s')) {
+    return _buildSecp256k1Doc(
+      contextMultikey,
+      did,
+      keyPart,
+      'Secp256k1Key2021',
+    );
+  } else if (keyPart.startsWith('82')) {
+    return _buildP384Doc(
+      contextMultikey,
+      did,
+      keyPart,
+      'P384Key2021',
+    );
+  } else if (keyPart.startsWith('2J9')) {
+    return _buildP521Doc(
+      contextMultikey,
+      did,
+      keyPart,
+      'P521Key2021',
+    );
   } else {
     throw SsiException(
       message: 'Only Ed25519 and X25519 keys are supported now',
@@ -273,6 +297,109 @@ DidDocument _buildXDoc(
     id: id,
     verificationMethod: [verification],
     keyAgreement: [verificationKeyId],
+  );
+}
+
+/// Builds a DID Document for P256 keys.
+DidDocument _buildP256Doc(
+  List<String> context,
+  String id,
+  String keyPart,
+) {
+  final verificationKeyId = '$id#$keyPart';
+  final verificationMethod = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: 'P256Key2021',
+    publicKeyMultibase: 'z$keyPart',
+  );
+
+  return DidDocument.create(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verificationMethod],
+    assertionMethod: [verificationKeyId],
+    authentication: [verificationKeyId],
+    capabilityDelegation: [verificationKeyId],
+    capabilityInvocation: [verificationKeyId],
+  );
+}
+
+/// Builds a DID Document for Secp256k1 keys.
+DidDocument _buildSecp256k1Doc(
+  List<String> context,
+  String id,
+  String keyPart,
+  String keyType,
+) {
+  final verificationKeyId = '$id#$keyPart';
+  final verificationMethod = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: keyType, // 'Secp256k1Key2021'
+    publicKeyMultibase: 'z$keyPart',
+  );
+
+  return DidDocument.create(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verificationMethod],
+    assertionMethod: [verificationKeyId],
+    authentication: [verificationKeyId],
+    capabilityDelegation: [verificationKeyId],
+    capabilityInvocation: [verificationKeyId],
+  );
+}
+
+/// Builds a DID Document for P384 keys.
+DidDocument _buildP384Doc(
+  List<String> context,
+  String id,
+  String keyPart,
+  String keyType,
+) {
+  final verificationKeyId = '$id#$keyPart';
+  final verificationMethod = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: keyType, // 'P384Key2021'
+    publicKeyMultibase: 'z$keyPart',
+  );
+
+  return DidDocument.create(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verificationMethod],
+    assertionMethod: [verificationKeyId],
+    authentication: [verificationKeyId],
+    capabilityDelegation: [verificationKeyId],
+    capabilityInvocation: [verificationKeyId],
+  );
+}
+
+/// Builds a DID Document for P521 keys.
+DidDocument _buildP521Doc(
+  List<String> context,
+  String id,
+  String keyPart,
+  String keyType,
+) {
+  final verificationKeyId = '$id#$keyPart';
+  final verificationMethod = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: keyType, // 'P521Key2021'
+    publicKeyMultibase: 'z$keyPart',
+  );
+
+  return DidDocument.create(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verificationMethod],
+    assertionMethod: [verificationKeyId],
+    authentication: [verificationKeyId],
+    capabilityDelegation: [verificationKeyId],
+    capabilityInvocation: [verificationKeyId],
   );
 }
 
