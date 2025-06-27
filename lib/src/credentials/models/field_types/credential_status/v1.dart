@@ -9,8 +9,11 @@ abstract interface class _CredentialStatusV1Interface
 
   /// Converts this status to a JSON-serializable map.
   Map<String, dynamic> toJson() {
-    return cleanEmpty(Map<String, dynamic>.fromEntries(entries.map((e) =>
-        MapEntry(e.key, e.key == 'id' ? e.value?.toString() : e.value))));
+    return cleanEmpty({
+      'id': id.toString(),
+      'type': type,
+      ...Map<String, dynamic>.fromEntries(entries)
+    });
   }
 }
 
@@ -101,7 +104,7 @@ class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
 ///   'revocationListCredential': 'https://pharma.example.com/credentials/status/3',
 /// });
 /// ```
-class CredentialStatusV1 extends _CredentialStatusV1Interface {
+interface class CredentialStatusV1 extends _CredentialStatusV1Interface {
   /// The URL of unique identifier for the credential status object.
   @override
   final Uri id;

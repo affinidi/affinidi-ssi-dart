@@ -9,8 +9,11 @@ abstract interface class _CredentialStatusV2Interface
 
   /// Converts this status to a JSON-serializable map.
   Map<String, dynamic> toJson() {
-    return cleanEmpty(Map<String, dynamic>.fromEntries(entries.map((e) =>
-        MapEntry(e.key, e.key == 'id' ? e.value?.toString() : e.value))));
+    return cleanEmpty({
+      'id': id.toString(),
+      'type': type,
+      ...Map<String, dynamic>.fromEntries(entries)
+    });
   }
 }
 
@@ -98,7 +101,7 @@ class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
 ///   revocationFields: {'revocationListIndex': '94567', 'revocationListCredential': 'https://pharma.example.com/credentials/status/3'},
 /// );
 /// ```
-class CredentialStatusV2 extends _CredentialStatusV2Interface {
+interface class CredentialStatusV2 extends _CredentialStatusV2Interface {
   /// The URL of the schema including domain and filename.
   @override
   final Uri? id;

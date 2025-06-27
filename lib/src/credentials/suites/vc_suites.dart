@@ -1,12 +1,5 @@
-import '../../exceptions/ssi_exception.dart';
-import '../../exceptions/ssi_exception_type.dart';
-import '../jwt/jwt_dm_v1_suite.dart';
-import '../linked_data/ld_dm_v1_suite.dart';
-import '../linked_data/ld_dm_v2_suite.dart';
-import '../models/parsed_vc.dart';
-import '../sdjwt/enveloped_vc_suite.dart';
-import '../sdjwt/sdjwt_dm_v2_suite.dart';
-import 'vc_suite.dart';
+import '../../../ssi.dart';
+import '../models/revocation_list_2020.dart';
 
 /// Registry of all supported Verifiable Credential suites.
 ///
@@ -46,4 +39,43 @@ class VcSuites {
         ),
     };
   }
+}
+
+RevocationList2020Status? getCredentialStatusFromVc(
+    ParsedVerifiableCredential vc) {
+  // print('[getCredentialStatusFromVc] VC runtimeType: ${vc.runtimeType}');
+
+  List<Map<String, dynamic>> credentialStatus;
+
+  switch (vc) {
+    case LdVcDataModelV1():
+      final status = vc.credentialStatus;
+      credentialStatus = status == null ? [] : [status.toJson()];
+      break;
+    case LdVcDataModelV2():
+      credentialStatus =
+          vc.credentialStatus.map((status) => status.toJson()).toList();
+      break;
+    case JwtVcDataModelV1():
+      final status = vc.credentialStatus;
+      credentialStatus = status == null ? [] : [status.toJson()];
+      break;
+    case SdJwtDataModelV2():
+      credentialStatus =
+          vc.credentialStatus.map((status) => status.toJson()).toList();
+      break;
+    default:
+      // print('[getCredentialStatusFromVc] Unsupported VC type');
+      return null;
+  }
+
+  for (final status in credentialStatus) {
+    final type = status['type'];
+    if (type == 'RevocationList2020Status') {
+      final revocationStatus = RevocationList2020Status.fromJson(status);
+      return revocationStatus;
+      // TODO: verify revocationStatus.
+    }
+  }
+  return null;
 }
