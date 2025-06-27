@@ -170,7 +170,64 @@ class VerificationMethodJwk extends EmbeddedVerificationMethod {
   }
 }
 
-/// Represents a verification method using multibase encoding.
+/// Helper to check if the key type matches the key material.
+void _validateKeyTypeWithMaterial(String type, Uint8List multikey) {
+  // Multikey format: <multicodec prefix><raw key bytes>
+  // See: https://github.com/multiformats/multikey
+  // The first bytes are the multicodec prefix, which identifies the key type.
+  // We'll check the prefix against the expected type.
+  if (multikey.isEmpty) {
+    throw SsiException(
+      message: 'Multikey is empty',
+      code: SsiExceptionType.invalidDidDocument.code,
+    );
+  }
+  // Multicodec prefixes (see https://github.com/multiformats/multicodec/blob/master/table.csv)
+  final single = multikey[0];
+  switch (type) {
+    case 'P256Key2021':
+      // 0x1200 (ECC SECP256R1 public key)
+      if (!(multikey[0] == 0x12 && multikey[1] == 0x00)) {
+        throw SsiException(
+          message: 'Key material does not match P256Key2021',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
+      }
+      break;
+    case 'Secp256k1Key2021':
+      // 0xe7 (ECC SECP256K1 public key)
+      if (single != 0xe7) {
+        throw SsiException(
+          message: 'Key material does not match Secp256k1Key2021',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
+      }
+      break;
+    case 'P384Key2021':
+      // 0x1201 (ECC SECP384R1 public key)
+      if (!(multikey[0] == 0x12 && multikey[1] == 0x01)) {
+        throw SsiException(
+          message: 'Key material does not match P384Key2021',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
+      }
+      break;
+    case 'P521Key2021':
+      // 0x1202 (ECC SECP521R1 public key)
+      if (!(multikey[0] == 0x12 && multikey[1] == 0x02)) {
+        throw SsiException(
+          message: 'Key material does not match P521Key2021',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
+      }
+      break;
+    // Add more cases as needed
+    default:
+      // For other types, skip validation
+      break;
+  }
+}
+
 class VerificationMethodMultibase extends EmbeddedVerificationMethod {
   /// The public key in multikey format.
   late final Uint8List publicKeyMultikey;
@@ -184,7 +241,9 @@ class VerificationMethodMultibase extends EmbeddedVerificationMethod {
     required super.controller,
     required super.type,
     required this.publicKeyMultibase,
-  }) : publicKeyMultikey = multiBaseToUint8List(publicKeyMultibase);
+  }) : publicKeyMultikey = multiBaseToUint8List(publicKeyMultibase) {
+    _validateKeyTypeWithMaterial(type, publicKeyMultikey);
+  }
 
   @override
   Jwk asJwk() {
