@@ -9,8 +9,11 @@ abstract interface class _CredentialStatusV1Interface
 
   /// Converts this status to a JSON-serializable map.
   Map<String, dynamic> toJson() {
-    return cleanEmpty(Map<String, dynamic>.fromEntries(entries.map((e) =>
-        MapEntry(e.key, e.key == 'id' ? e.value?.toString() : e.value))));
+    return cleanEmpty({
+      'id': id.toString(),
+      'type': type,
+      ...Map<String, dynamic>.fromEntries(entries)
+    });
   }
 }
 
