@@ -400,13 +400,25 @@ abstract class DidController {
 
   /// Protected method to clear all verification method references.
   /// This is intended for use by subclasses that need to manage their own verification methods.
-  Future<void> clearAllVerificationMethodReferences() async {
+  Future<void> clearVerificationMethodReferences() async {
     _authentication.clear();
     _keyAgreement.clear();
     _capabilityInvocation.clear();
     _capabilityDelegation.clear();
     _assertionMethod.clear();
     await store.clearVerificationMethodReferences();
+  }
+
+  /// Protected method to clear all verification method references.
+  /// This is intended for use by subclasses that need to manage their own verification methods.
+  Future<void> clearAll() async {
+    _verificationMethodIdToWalletKeyId.clear();
+    _authentication.clear();
+    _keyAgreement.clear();
+    _capabilityInvocation.clear();
+    _capabilityDelegation.clear();
+    _assertionMethod.clear();
+    await store.clear();
   }
 
   /// Signs data using a verification method.

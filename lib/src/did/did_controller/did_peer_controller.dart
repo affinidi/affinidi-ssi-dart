@@ -2,7 +2,6 @@ import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../key_pair/public_key.dart';
 import '../did_document/did_document.dart';
-import '../did_document/service_endpoint_value.dart';
 import '../did_peer.dart';
 import 'did_controller.dart';
 
@@ -21,7 +20,8 @@ class DidPeerController extends DidController {
     required super.wallet,
   });
 
-  Future<DidDocument> _createDidDocumentFromState() async {
+  @override
+  Future<DidDocument> createOrUpdateDocument() async {
     if (authentication.isEmpty && keyAgreement.isEmpty) {
       throw SsiException(
         message:
@@ -33,60 +33,28 @@ class DidPeerController extends DidController {
     // Convert key IDs to PublicKey objects
     final authPublicKeys = <PublicKey>[];
     for (final verificationMethodId in authentication) {
-      authPublicKeys.add(await wallet.getPublicKey(keyId));
+      final walletKeyId = await getWalletKeyId(verificationMethodId);
+      if (walletKeyId != null) {
+        authPublicKeys.add(await wallet.getPublicKey(walletKeyId));
+      }
     }
 
     final keyAgreementPublicKeys = <PublicKey>[];
-    for (final keyId in keyAgreementKeyIds) {
-      keyAgreementPublicKeys.add(await wallet.getPublicKey(keyId));
+    for (final verificationMethodId in keyAgreement) {
+      final walletKeyId = await getWalletKeyId(verificationMethodId);
+      if (walletKeyId != null) {
+        keyAgreementPublicKeys.add(await wallet.getPublicKey(walletKeyId));
+      }
     }
 
     return DidPeer.generateDocument(
       authPublicKeys,
       keyAgreementPublicKeys,
-      serviceEndpoint: _serviceEndpoint,
     );
   }
 
-  /// Creates a DID document with specific key IDs and service endpoint.
-  ///
-  /// [authenticationKeyIds] - Key IDs for authentication purposes.
-  /// [keyAgreementKeyIds] - Key IDs for key agreement purposes.
-  /// [serviceEndpoint] - Optional service endpoint.
-  ///
-  /// Returns the created DID document.
-  Future<DidDocument> createDidDocumentWithKeys(
-    List<String> authenticationKeyIds,
-    List<String> keyAgreementKeyIds, {
-    ServiceEndpointValue? serviceEndpoint,
-  }) async {
-    // Clear all existing keys
-    keysByPurpose.clear();
-
-    // Add authentication keys
-    for (final keyId in authenticationKeyIds) {
-      addAuthenticationKey(keyId);
-    }
-
-    // Add key agreement keys
-    for (final keyId in keyAgreementKeyIds) {
-      addKeyAgreementKey(keyId);
-    }
-
-    _serviceEndpoint = serviceEndpoint;
-
-    return await _createDidDocumentFromState();
-  }
-
-  // DidPeerController now uses the base class implementation for all addXXX methods
-
   @override
-  Future<DidDocument> createOrUpdateDocument() async {
-    return await _createDidDocumentFromState();
-  }
-
-  @override
-  Future<String> buildVerificationMethodId(String keyId) async {
+  Future<String> buildVerificationMethodId(PublicKey publicKey) async {
     // For did:peer, verification method IDs are numbered sequentially
     // based on their order in the verificationMethod array
     final verificationMethods = await store.verificationMethodIds;
