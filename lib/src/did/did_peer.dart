@@ -98,25 +98,76 @@ DidDocument _resolveDidPeer0(String did) {
 
 /// Resolves a numalgo2 peer DID to a DID document.
 DidDocument _resolveDidPeer2(String did) {
-  var keysPart = did.substring(11);
+  final keysPart = did.substring(11);
 
-  var authenticationKeys = <String>[];
-  var agreementKeys = <String>[];
-  var serviceStrings = <String>[];
+  final context = [
+    'https://www.w3.org/ns/did/v1',
+    'https://w3id.org/security/multikey/v1'
+  ];
 
-  final keys = keysPart.split('.');
-  for (final key in keys) {
-    final prefix = key[0];
-    final keyPart = key.substring(1);
+  final verificationMethods = <EmbeddedVerificationMethod>[];
+  final assertionMethod = <String>[];
+  final keyAgreement = <String>[];
+  final authentication = <String>[];
+  final capabilityInvocation = <String>[];
+  final capabilityDelegation = <String>[];
+  List<ServiceEndpoint>? services;
+
+  final elements = keysPart.split('.');
+  var keyIndex = 0;
+  var unnamedServiceIndex = 0;
+
+  for (final element in elements) {
+    if (element.isEmpty) continue;
+
+    final prefix = element[0];
+    final value = element.substring(1);
+
     switch (prefix) {
       case 'S':
-        serviceStrings.add(keyPart);
+        services ??= [];
+        final serviceData = base64UrlNoPadDecode(value);
+        final decodedJson = json.decode(utf8.decode(serviceData));
+        final originalMap = jsonToMap(decodedJson);
+
+        var serviceId = originalMap['id'];
+        if (serviceId == null) {
+          if (unnamedServiceIndex == 0) {
+            serviceId = '#service';
+          } else {
+            serviceId = '#service-$unnamedServiceIndex';
+          }
+          unnamedServiceIndex++;
+        }
+
+        final newMap = {
+          'id': serviceId,
+          'type': originalMap['t'],
+          'serviceEndpoint': originalMap['s']
+        };
+        services.add(ServiceEndpoint.fromJson(newMap));
         break;
       case 'V':
-        authenticationKeys.add(keyPart);
-        break;
       case 'E':
-        agreementKeys.add(keyPart);
+      case 'A':
+      case 'I':
+      case 'D':
+        keyIndex++;
+        final kid = '#key-$keyIndex';
+
+        final verification = VerificationMethodMultibase(
+          id: kid,
+          controller: did,
+          type: 'Multikey',
+          publicKeyMultibase: value,
+        );
+        verificationMethods.add(verification);
+
+        if (prefix == 'V') authentication.add(kid);
+        if (prefix == 'E') keyAgreement.add(kid);
+        if (prefix == 'A') assertionMethod.add(kid);
+        if (prefix == 'I') capabilityInvocation.add(kid);
+        if (prefix == 'D') capabilityDelegation.add(kid);
         break;
       default:
         throw SsiException(
@@ -126,92 +177,16 @@ DidDocument _resolveDidPeer2(String did) {
     }
   }
 
-  return _buildMultiKeysDoc(
-      did, agreementKeys, authenticationKeys, serviceStrings);
-}
-
-/// Builds a DID document for a multi-key peer DID.
-///
-/// [did] - The DID identifier.
-/// [agreementKeys] - The list of agreement keys.
-/// [authenticationKeys] - The list of authentication keys.
-/// [serviceStrs] - The list of encoded service strings.
-///
-/// Returns a [DidDocument].
-DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
-    List<String> authenticationKeys, List<String> serviceStrs) {
-  final context = [
-    'https://www.w3.org/ns/did/v1',
-    'https://ns.did.ai/suites/multikey-2021/v1/'
-  ];
-
-  var verificationMethod = <EmbeddedVerificationMethod>[];
-  var assertionMethod = <String>[];
-  var keyAgreement = <String>[];
-  var authentication = <String>[];
-
-  List<ServiceEndpoint>? service;
-  if (serviceStrs.isNotEmpty) {
-    service = serviceStrs.map((s) {
-      final serviceData = base64UrlNoPadDecode(s);
-      final decodedJson = json.decode(utf8.decode(serviceData));
-      final originalMap = jsonToMap(decodedJson);
-      final newMap = {
-        'id': originalMap['id'],
-        'type': originalMap['t'],
-        'serviceEndpoint': originalMap['s']
-      };
-      return ServiceEndpoint.fromJson(newMap);
-    }).toList();
-  }
-
-  var i = 0;
-
-  for (final agreementKey in agreementKeys) {
-    i++;
-    final type = agreementKey.startsWith('z6LS')
-        ? 'X25519KeyAgreementKey2020'
-        : 'Ed25519VerificationKey2020';
-
-    var kid = '#key-$i';
-    final verification = VerificationMethodMultibase(
-      id: kid,
-      controller: did,
-      type: type, // Multikey ?
-      publicKeyMultibase: agreementKey,
-    );
-
-    verificationMethod.add(verification);
-    keyAgreement.add(kid);
-  }
-
-  for (final authenticationKey in authenticationKeys) {
-    i++;
-    final type = authenticationKey.startsWith('z6LS')
-        ? 'X25519KeyAgreementKey2020'
-        : 'Ed25519VerificationKey2020';
-
-    var kid = '#key-$i';
-    final verification = VerificationMethodMultibase(
-      id: kid,
-      controller: did,
-      type: type, // Multikey ?
-      publicKeyMultibase: authenticationKey,
-    );
-
-    verificationMethod.add(verification);
-    assertionMethod.add(kid);
-    authentication.add(kid);
-  }
-
   return DidDocument.create(
     context: Context.fromJson(context),
     id: did,
-    verificationMethod: verificationMethod,
+    verificationMethod: verificationMethods,
     assertionMethod: assertionMethod,
     keyAgreement: keyAgreement,
     authentication: authentication,
-    service: service,
+    capabilityInvocation: capabilityInvocation,
+    capabilityDelegation: capabilityDelegation,
+    service: services,
   );
 }
 
@@ -356,16 +331,6 @@ class DidPeer {
 
     var isAgreementNotEmpty = agreementKeys != null && agreementKeys.isNotEmpty;
 
-    var agreementKeysStr = isAgreementNotEmpty
-        ? encSep +
-            agreementKeys
-                .map(
-                  (key) => toMultiBase(
-                    toMultikey(key.bytes, key.type),
-                  ),
-                )
-                .join(encSep)
-        : '';
     var authKeysStr = signingKeys.isNotEmpty
         ? authSep +
             signingKeys
@@ -376,9 +341,19 @@ class DidPeer {
                 )
                 .join(authSep)
         : '';
+    var agreementKeysStr = isAgreementNotEmpty
+        ? encSep +
+            agreementKeys
+                .map(
+                  (key) => toMultiBase(
+                    toMultikey(key.bytes, key.type),
+                  ),
+                )
+                .join(encSep)
+        : '';
     var serviceStr = _buildServiceEncoded(serviceEndpoints);
 
-    return '${_didTypePrefixes[DidPeerType.peer2]}$agreementKeysStr$authKeysStr$serviceStr';
+    return '${_didTypePrefixes[DidPeerType.peer2]}$authKeysStr$agreementKeysStr$serviceStr';
   }
 
   /// This method derives the peer DID from the given public keys
@@ -477,27 +452,6 @@ class DidPeer {
 
     var keyIndex = 0;
 
-    for (final key in keyAgreementKeys) {
-      keyIndex++;
-      final keyId = '#key-$keyIndex';
-
-      final keyType = key.type == KeyType.x25519
-          ? 'X25519KeyAgreementKey2020'
-          : 'Ed25519VerificationKey2020';
-
-      final verificationMethod = VerificationMethodMultibase(
-        id: keyId,
-        controller: did,
-        type: keyType,
-        publicKeyMultibase: toMultiBase(
-          toMultikey(key.bytes, key.type),
-        ),
-      );
-
-      verificationMethods.add(verificationMethod);
-      keyAgreementRefs.add(keyId);
-    }
-
     // Add authentication keys (V prefix in the DID)
     for (final key in authenticationKeys) {
       keyIndex++;
@@ -520,15 +474,33 @@ class DidPeer {
       authenticationRefs.add(keyId);
     }
 
+    for (final key in keyAgreementKeys) {
+      keyIndex++;
+      final keyId = '#key-$keyIndex';
+
+      final keyType = key.type == KeyType.x25519
+          ? 'X25519KeyAgreementKey2020'
+          : 'Ed25519VerificationKey2020';
+
+      final verificationMethod = VerificationMethodMultibase(
+        id: keyId,
+        controller: did,
+        type: keyType,
+        publicKeyMultibase: toMultiBase(
+          toMultikey(key.bytes, key.type),
+        ),
+      );
+
+      verificationMethods.add(verificationMethod);
+      keyAgreementRefs.add(keyId);
+    }
+
     return DidDocument.create(
       context: Context.fromJson(context),
       id: did,
       verificationMethod: verificationMethods,
       authentication: authenticationRefs,
-      assertionMethod: authenticationRefs,
       keyAgreement: keyAgreementRefs,
-      capabilityInvocation: authenticationRefs,
-      capabilityDelegation: authenticationRefs,
       service: serviceEndpoints,
     );
   }
