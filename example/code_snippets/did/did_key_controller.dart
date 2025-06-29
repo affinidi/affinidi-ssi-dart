@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:ssi/ssi.dart';
 
 void main() async {
   // Use a pretty print encoder
+  const jsonEncoder = JsonEncoder.withIndent('  ');
 
   print('\n--- DidKeyController Operations ---');
 
@@ -27,7 +29,7 @@ void main() async {
   // 5. Get and print the DID Document
   print('\n--- Generated DID Document ---');
   final didDocument = await didKeyController.getDidDocument();
-  print(didDocument.toJson());
+  print(jsonEncoder.convert(didDocument.toJson()));
   print('DID: ${didDocument.id}');
 
   // 6. Demonstrate did:key limitations
