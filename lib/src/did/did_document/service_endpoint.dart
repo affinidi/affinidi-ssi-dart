@@ -6,6 +6,8 @@ import 'service_endpoint_value.dart';
 
 /// Represents a service endpoint in a DID Document.
 class ServiceEndpoint implements JsonObject {
+  // TODO: This class actually represents a `Service`, not the underlying endpoint. Rename it
+
   /// The identifier of the service endpoint.
   late String id;
   // TODO: In the spec, ID can be optional

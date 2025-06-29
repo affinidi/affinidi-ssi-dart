@@ -50,7 +50,7 @@ class DidPeerController extends DidController {
     return DidPeer.generateDocument(
       authPublicKeys,
       keyAgreementPublicKeys,
-      serviceEndpoints: serviceEndpoints.toList(),
+      serviceEndpoints: service.toList(),
     );
   }
 

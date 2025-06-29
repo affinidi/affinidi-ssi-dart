@@ -24,51 +24,51 @@ abstract class DidController {
   final DidStore store;
 
   /// Cache for verification method ID to wallet key ID mappings
-  final Map<String, String> _verificationMethodIdToWalletKeyId = {};
+  final Map<String, String> _cacheVerificationMethodIdToWalletKeyId = {};
 
   /// Cache for verification methods
-  final List<String> _authentication = [];
-  final List<String> _keyAgreement = [];
-  final List<String> _capabilityInvocation = [];
-  final List<String> _capabilityDelegation = [];
-  final List<String> _assertionMethod = [];
-  final List<ServiceEndpoint> _serviceEndpoints = [];
+  final List<String> _cacheAuthentication = [];
+  final List<String> _cacheKeyAgreement = [];
+  final List<String> _cacheCapabilityInvocation = [];
+  final List<String> _cacheCapabilityDelegation = [];
+  final List<String> _cacheAssertionMethod = [];
+  final List<ServiceEndpoint> _cacheService = [];
 
   /// Verification method references for authentication purposes
-  Iterable<String> get authentication => _authentication;
+  Iterable<String> get authentication => _cacheAuthentication;
 
   /// Verification method references for key agreement purposes
-  Iterable<String> get keyAgreement => _keyAgreement;
+  Iterable<String> get keyAgreement => _cacheKeyAgreement;
 
   /// Verification method references for capability invocation purposes
-  Iterable<String> get capabilityInvocation => _capabilityInvocation;
+  Iterable<String> get capabilityInvocation => _cacheCapabilityInvocation;
 
   /// Verification method references for capability delegation purposes
-  Iterable<String> get capabilityDelegation => _capabilityDelegation;
+  Iterable<String> get capabilityDelegation => _cacheCapabilityDelegation;
 
   /// Verification method references for assertion purposes
-  Iterable<String> get assertionMethod => _assertionMethod;
+  Iterable<String> get assertionMethod => _cacheAssertionMethod;
 
   /// Service endpoints
-  Iterable<ServiceEndpoint> get serviceEndpoints => _serviceEndpoints;
+  Iterable<ServiceEndpoint> get service => _cacheService;
 
   /// Adds a service endpoint to the DID document.
   ///
   /// Throws an [SsiException] if a service endpoint with the same ID already exists.
   Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
-    if (_serviceEndpoints.any((se) => se.id == endpoint.id)) {
+    if (_cacheService.any((se) => se.id == endpoint.id)) {
       throw SsiException(
         message: 'Service endpoint with id ${endpoint.id} already exists',
         code: SsiExceptionType.other.code,
       );
     }
-    _serviceEndpoints.add(endpoint);
+    _cacheService.add(endpoint);
     await store.addServiceEndpoint(endpoint);
   }
 
   /// Removes a service endpoint from the DID document by its ID.
   Future<void> removeServiceEndpoint(String id) async {
-    _serviceEndpoints.removeWhere((se) => se.id == id);
+    _cacheService.removeWhere((se) => se.id == id);
     await store.removeServiceEndpoint(id);
   }
 
@@ -107,25 +107,25 @@ abstract class DidController {
       // Merge base class references with document's existing references
       authentication: [
         ...baseDocument.authentication,
-        ..._authentication,
+        ..._cacheAuthentication,
       ],
       assertionMethod: [
         ...baseDocument.assertionMethod,
-        ..._assertionMethod,
+        ..._cacheAssertionMethod,
       ],
       keyAgreement: [
         ...baseDocument.keyAgreement,
-        ..._keyAgreement,
+        ..._cacheKeyAgreement,
       ],
       capabilityInvocation: [
         ...baseDocument.capabilityInvocation,
-        ..._capabilityInvocation,
+        ..._cacheCapabilityInvocation,
       ],
       capabilityDelegation: [
         ...baseDocument.capabilityDelegation,
-        ..._capabilityDelegation,
+        ..._cacheCapabilityDelegation,
       ],
-      service: [...baseDocument.service, ..._serviceEndpoints],
+      service: [...baseDocument.service, ..._cacheService],
     );
   }
 
@@ -138,12 +138,12 @@ abstract class DidController {
     final publicKey = await wallet.getPublicKey(walletKeyId);
     final verificationMethodId = await buildVerificationMethodId(publicKey);
     await store.setMapping(verificationMethodId, walletKeyId);
-    _verificationMethodIdToWalletKeyId[verificationMethodId] = walletKeyId;
+    _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] = walletKeyId;
     return verificationMethodId;
   }
 
-  // TODO: remove verification method
-  // Needs to be careful as all verification id's may need to be recalculated. In did:peer they are indexed
+  // TODO: Function to remove verification method
+  // Careful as all verification id's may need to be recalculated. In did:peer they are indexed
 
   /// Builds the verification method ID for a given public key.
   /// Subclasses implement this to handle method-specific ID construction.
@@ -151,13 +151,15 @@ abstract class DidController {
 
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {
-    if (_verificationMethodIdToWalletKeyId.containsKey(verificationMethodId)) {
-      return _verificationMethodIdToWalletKeyId[verificationMethodId];
+    if (_cacheVerificationMethodIdToWalletKeyId
+        .containsKey(verificationMethodId)) {
+      return _cacheVerificationMethodIdToWalletKeyId[verificationMethodId];
     }
 
     final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId != null) {
-      _verificationMethodIdToWalletKeyId[verificationMethodId] = walletKeyId;
+      _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
+          walletKeyId;
     }
     return walletKeyId;
   }
@@ -184,8 +186,8 @@ abstract class DidController {
       );
     }
 
-    if (!_authentication.contains(verificationMethodId)) {
-      _authentication.add(verificationMethodId);
+    if (!_cacheAuthentication.contains(verificationMethodId)) {
+      _cacheAuthentication.add(verificationMethodId);
       await store.addAuthentication(verificationMethodId);
     }
   }
@@ -212,8 +214,8 @@ abstract class DidController {
       );
     }
 
-    if (!_keyAgreement.contains(verificationMethodId)) {
-      _keyAgreement.add(verificationMethodId);
+    if (!_cacheKeyAgreement.contains(verificationMethodId)) {
+      _cacheKeyAgreement.add(verificationMethodId);
       await store.addKeyAgreement(verificationMethodId);
     }
   }
@@ -240,8 +242,8 @@ abstract class DidController {
       );
     }
 
-    if (!_capabilityInvocation.contains(verificationMethodId)) {
-      _capabilityInvocation.add(verificationMethodId);
+    if (!_cacheCapabilityInvocation.contains(verificationMethodId)) {
+      _cacheCapabilityInvocation.add(verificationMethodId);
       await store.addCapabilityInvocation(verificationMethodId);
     }
   }
@@ -268,8 +270,8 @@ abstract class DidController {
       );
     }
 
-    if (!_capabilityDelegation.contains(verificationMethodId)) {
-      _capabilityDelegation.add(verificationMethodId);
+    if (!_cacheCapabilityDelegation.contains(verificationMethodId)) {
+      _cacheCapabilityDelegation.add(verificationMethodId);
       await store.addCapabilityDelegation(verificationMethodId);
     }
   }
@@ -296,8 +298,8 @@ abstract class DidController {
       );
     }
 
-    if (!_assertionMethod.contains(verificationMethodId)) {
-      _assertionMethod.add(verificationMethodId);
+    if (!_cacheAssertionMethod.contains(verificationMethodId)) {
+      _cacheAssertionMethod.add(verificationMethodId);
       await store.addAssertionMethod(verificationMethodId);
     }
   }
@@ -313,7 +315,7 @@ abstract class DidController {
         code: SsiExceptionType.other.code,
       );
     }
-    if (_authentication.remove(verificationMethodId)) {
+    if (_cacheAuthentication.remove(verificationMethodId)) {
       await store.removeAuthentication(verificationMethodId);
     }
   }
@@ -329,7 +331,7 @@ abstract class DidController {
         code: SsiExceptionType.other.code,
       );
     }
-    if (_keyAgreement.remove(verificationMethodId)) {
+    if (_cacheKeyAgreement.remove(verificationMethodId)) {
       await store.removeKeyAgreement(verificationMethodId);
     }
   }
@@ -345,7 +347,7 @@ abstract class DidController {
         code: SsiExceptionType.other.code,
       );
     }
-    if (_capabilityInvocation.remove(verificationMethodId)) {
+    if (_cacheCapabilityInvocation.remove(verificationMethodId)) {
       await store.removeCapabilityInvocation(verificationMethodId);
     }
   }
@@ -361,7 +363,7 @@ abstract class DidController {
         code: SsiExceptionType.other.code,
       );
     }
-    if (_capabilityDelegation.remove(verificationMethodId)) {
+    if (_cacheCapabilityDelegation.remove(verificationMethodId)) {
       await store.removeCapabilityDelegation(verificationMethodId);
     }
   }
@@ -377,7 +379,7 @@ abstract class DidController {
         code: SsiExceptionType.other.code,
       );
     }
-    if (_assertionMethod.remove(verificationMethodId)) {
+    if (_cacheAssertionMethod.remove(verificationMethodId)) {
       await store.removeAssertionMethod(verificationMethodId);
     }
   }
@@ -394,19 +396,19 @@ abstract class DidController {
         code: SsiExceptionType.other.code,
       );
     }
-    if (_authentication.remove(verificationMethodId)) {
+    if (_cacheAuthentication.remove(verificationMethodId)) {
       await store.removeAuthentication(verificationMethodId);
     }
-    if (_keyAgreement.remove(verificationMethodId)) {
+    if (_cacheKeyAgreement.remove(verificationMethodId)) {
       await store.removeKeyAgreement(verificationMethodId);
     }
-    if (_capabilityInvocation.remove(verificationMethodId)) {
+    if (_cacheCapabilityInvocation.remove(verificationMethodId)) {
       await store.removeCapabilityInvocation(verificationMethodId);
     }
-    if (_capabilityDelegation.remove(verificationMethodId)) {
+    if (_cacheCapabilityDelegation.remove(verificationMethodId)) {
       await store.removeCapabilityDelegation(verificationMethodId);
     }
-    if (_assertionMethod.remove(verificationMethodId)) {
+    if (_cacheAssertionMethod.remove(verificationMethodId)) {
       await store.removeAssertionMethod(verificationMethodId);
     }
   }
@@ -414,29 +416,29 @@ abstract class DidController {
   /// Protected method to clear all verification method references.
   /// This is intended for use by subclasses that need to manage their own verification methods.
   Future<void> clearVerificationMethodReferences() async {
-    _authentication.clear();
-    _keyAgreement.clear();
-    _capabilityInvocation.clear();
-    _capabilityDelegation.clear();
-    _assertionMethod.clear();
+    _cacheAuthentication.clear();
+    _cacheKeyAgreement.clear();
+    _cacheCapabilityInvocation.clear();
+    _cacheCapabilityDelegation.clear();
+    _cacheAssertionMethod.clear();
     await store.clearVerificationMethodReferences();
   }
 
   /// Protected method to clear all service endpoints.
   Future<void> clearServiceEndpoints() async {
-    _serviceEndpoints.clear();
+    _cacheService.clear();
     await store.clearServiceEndpoints();
   }
 
   /// Clears all controller state and underlying storage.
   Future<void> clearAll() async {
-    _verificationMethodIdToWalletKeyId.clear();
-    _authentication.clear();
-    _keyAgreement.clear();
-    _capabilityInvocation.clear();
-    _capabilityDelegation.clear();
-    _assertionMethod.clear();
-    _serviceEndpoints.clear();
+    _cacheVerificationMethodIdToWalletKeyId.clear();
+    _cacheAuthentication.clear();
+    _cacheKeyAgreement.clear();
+    _cacheCapabilityInvocation.clear();
+    _cacheCapabilityDelegation.clear();
+    _cacheAssertionMethod.clear();
+    _cacheService.clear();
     await store.clear();
     await store.clearVerificationMethodReferences();
     await store.clearServiceEndpoints();
