@@ -38,8 +38,6 @@ class DidKeyController extends DidController {
     return walletKeyId;
   }
 
-  // DidKeyController now uses the base class implementation for addXXX methods
-
   @override
   Future<DidDocument> createOrUpdateDocument() async {
     // For did:key, clear the base controller arrays to avoid duplicates

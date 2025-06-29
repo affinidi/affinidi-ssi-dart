@@ -55,8 +55,7 @@ abstract class DidController {
     // Check that the id doesnt exist already and add the service endpoint
   }
 
-  void removeServiceEndpoint() {
-    // What can be passed as a parameter to identify the endpoint to remove?
+  void removeServiceEndpoint(String id) {
     // TODO
   }
 
