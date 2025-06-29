@@ -39,8 +39,7 @@ void main() async {
     final anotherKey = await wallet.generateKey(keyType: KeyType.ed25519);
     await didKeyController.addVerificationMethod(anotherKey.id);
   } catch (e) {
-    print('As expected, failed to add a second key:');
-    print(e);
+    print('As expected, failed to add a second key.');
   }
 
   // Attempt to add a service endpoint (should fail)
@@ -53,7 +52,6 @@ void main() async {
     );
     await didKeyController.addServiceEndpoint(serviceEndpoint);
   } catch (e) {
-    print('As expected, failed to add a service endpoint:');
-    print(e);
+    print('As expected, failed to add a service endpoint.');
   }
 }

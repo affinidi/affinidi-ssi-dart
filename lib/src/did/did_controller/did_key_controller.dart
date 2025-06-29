@@ -21,6 +21,18 @@ class DidKeyController extends DidController {
     required super.wallet,
   });
 
+  @override
+  Future<String> addVerificationMethod(String walletKeyId) async {
+    final verificationMethods = await store.verificationMethodIds;
+    if (verificationMethods.isNotEmpty) {
+      throw SsiException(
+        message: 'did:key method supports only one key.',
+        code: SsiExceptionType.unsupportedNumberOfKeys.code,
+      );
+    }
+    return super.addVerificationMethod(walletKeyId);
+  }
+
   Future<String> _getKeyId() async {
     final verificationMethods = await store.verificationMethodIds;
     if (verificationMethods.length != 1) {
