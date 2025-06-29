@@ -32,7 +32,8 @@ void main() {
       final agreementKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add verification methods
-      final authVmId = await didPeerController.addVerificationMethod(authKey.id);
+      final authVmId =
+          await didPeerController.addVerificationMethod(authKey.id);
       final agreementVmId =
           await didPeerController.addVerificationMethod(agreementKey.id);
 
@@ -56,10 +57,10 @@ void main() {
 
       // Verify verification methods
       expect(didDocument.verificationMethod, hasLength(2));
-      expect(didDocument.verificationMethod![0].id, '#key-1');
-      expect(didDocument.verificationMethod![0].type, 'Multikey');
-      expect(didDocument.verificationMethod![1].id, '#key-2');
-      expect(didDocument.verificationMethod![1].type, 'Multikey');
+      expect(didDocument.verificationMethod[0].id, '#key-1');
+      expect(didDocument.verificationMethod[0].type, 'Multikey');
+      expect(didDocument.verificationMethod[1].id, '#key-2');
+      expect(didDocument.verificationMethod[1].type, 'Multikey');
 
       // Verify verification relationships
       expect(
@@ -73,10 +74,9 @@ void main() {
 
       // Verify service endpoint
       expect(didDocument.service, hasLength(1));
-      expect(didDocument.service![0].id, '#service-1');
-      expect(didDocument.service![0].type, 'DIDCommMessaging');
-      expect(
-          (didDocument.service![0].serviceEndpoint as StringEndpoint).url,
+      expect(didDocument.service[0].id, '#service-1');
+      expect(didDocument.service[0].type, 'DIDCommMessaging');
+      expect((didDocument.service[0].serviceEndpoint as StringEndpoint).url,
           'https://example.com/endpoint');
 
       // Verify resolution
@@ -89,7 +89,8 @@ void main() {
       final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add verification method
-      final authVmId = await didPeerController.addVerificationMethod(authKey.id);
+      final authVmId =
+          await didPeerController.addVerificationMethod(authKey.id);
 
       // Assign purpose
       await didPeerController.addAuthentication(authVmId);
@@ -102,8 +103,8 @@ void main() {
 
       // Verify verification method
       expect(didDocument.verificationMethod, hasLength(1));
-      expect(didDocument.verificationMethod![0].id, didDocument.id);
-      expect(didDocument.verificationMethod![0].type, 'Multikey');
+      expect(didDocument.verificationMethod[0].id, didDocument.id);
+      expect(didDocument.verificationMethod[0].type, 'Multikey');
 
       // Verify verification relationships from generator
       expect(
@@ -146,7 +147,8 @@ void main() {
       final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add verification method
-      final authVmId = await didPeerController.addVerificationMethod(authKey.id);
+      final authVmId =
+          await didPeerController.addVerificationMethod(authKey.id);
 
       // Assign purpose
       await didPeerController.addAuthentication(authVmId);
