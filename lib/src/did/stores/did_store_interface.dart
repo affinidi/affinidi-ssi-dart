@@ -1,3 +1,5 @@
+import '../did_document/service_endpoint.dart';
+
 /// A store for managing mappings between DID key identifiers and wallet key identifiers.
 ///
 /// This class maintains the relationship between two different identifier systems:
@@ -42,6 +44,9 @@ abstract class DidStore {
   /// Gets all verification method references for assertion method.
   Future<List<String>> get assertionMethod;
 
+  /// Gets all service endpoints.
+  Future<List<ServiceEndpoint>> get serviceEndpoints;
+
   /// Adds a verification method reference to authentication.
   Future<void> addAuthentication(String verificationMethodId);
 
@@ -72,6 +77,15 @@ abstract class DidStore {
   /// Removes a verification method reference from assertion method.
   Future<void> removeAssertionMethod(String verificationMethodId);
 
+  /// Adds a service endpoint.
+  Future<void> addServiceEndpoint(ServiceEndpoint endpoint);
+
+  /// Removes a service endpoint by its ID.
+  Future<void> removeServiceEndpoint(String id);
+
   /// Clears all verification method references.
   Future<void> clearVerificationMethodReferences();
+
+  /// Clears all service endpoints.
+  Future<void> clearServiceEndpoints();
 }

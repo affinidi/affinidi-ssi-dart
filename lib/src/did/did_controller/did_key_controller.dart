@@ -2,6 +2,7 @@ import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../key_pair/public_key.dart';
 import '../did_document/did_document.dart';
+import '../did_document/service_endpoint.dart';
 import '../did_key.dart';
 import '../public_key_utils.dart';
 import 'did_controller.dart';
@@ -88,5 +89,17 @@ class DidKeyController extends DidController {
   Future<void> addAssertionMethod(String verificationMethodId) async {
     throw UnsupportedError(
         'Adding assertion method verification methods to did:key method is not supported.');
+  }
+
+  @override
+  Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
+    throw UnsupportedError(
+        'Adding service endpoints to did:key method is not supported.');
+  }
+
+  @override
+  Future<void> removeServiceEndpoint(String id) async {
+    throw UnsupportedError(
+        'Removing service endpoints from did:key method is not supported.');
   }
 }

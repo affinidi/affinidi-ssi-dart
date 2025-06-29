@@ -32,6 +32,7 @@ abstract class DidController {
   final List<String> _capabilityInvocation = [];
   final List<String> _capabilityDelegation = [];
   final List<String> _assertionMethod = [];
+  final List<ServiceEndpoint> _serviceEndpoints = [];
 
   /// Verification method references for authentication purposes
   Iterable<String> get authentication => _authentication;
@@ -48,15 +49,27 @@ abstract class DidController {
   /// Verification method references for assertion purposes
   Iterable<String> get assertionMethod => _assertionMethod;
 
-  /// TODO: Service endpoints
+  /// Service endpoints
+  Iterable<ServiceEndpoint> get serviceEndpoints => _serviceEndpoints;
 
-  void addServiceEndpoint(ServiceEndpoint endpoint) {
-    // TODO
-    // Check that the id doesnt exist already and add the service endpoint
+  /// Adds a service endpoint to the DID document.
+  ///
+  /// Throws an [SsiException] if a service endpoint with the same ID already exists.
+  Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
+    if (_serviceEndpoints.any((se) => se.id == endpoint.id)) {
+      throw SsiException(
+        message: 'Service endpoint with id ${endpoint.id} already exists',
+        code: SsiExceptionType.other.code,
+      );
+    }
+    _serviceEndpoints.add(endpoint);
+    await store.addServiceEndpoint(endpoint);
   }
 
-  void removeServiceEndpoint(String id) {
-    // TODO
+  /// Removes a service endpoint from the DID document by its ID.
+  Future<void> removeServiceEndpoint(String id) async {
+    _serviceEndpoints.removeWhere((se) => se.id == id);
+    await store.removeServiceEndpoint(id);
   }
 
   /// The wallet instance for key operations.
@@ -112,7 +125,7 @@ abstract class DidController {
         ...baseDocument.capabilityDelegation,
         ..._capabilityDelegation,
       ],
-      service: baseDocument.service,
+      service: [...baseDocument.service, ..._serviceEndpoints],
     );
   }
 
@@ -409,8 +422,13 @@ abstract class DidController {
     await store.clearVerificationMethodReferences();
   }
 
-  /// Protected method to clear all verification method references.
-  /// This is intended for use by subclasses that need to manage their own verification methods.
+  /// Protected method to clear all service endpoints.
+  Future<void> clearServiceEndpoints() async {
+    _serviceEndpoints.clear();
+    await store.clearServiceEndpoints();
+  }
+
+  /// Clears all controller state and underlying storage.
   Future<void> clearAll() async {
     _verificationMethodIdToWalletKeyId.clear();
     _authentication.clear();
@@ -418,7 +436,10 @@ abstract class DidController {
     _capabilityInvocation.clear();
     _capabilityDelegation.clear();
     _assertionMethod.clear();
+    _serviceEndpoints.clear();
     await store.clear();
+    await store.clearVerificationMethodReferences();
+    await store.clearServiceEndpoints();
   }
 
   /// Signs data using a verification method.
