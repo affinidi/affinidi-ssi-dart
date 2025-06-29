@@ -443,7 +443,7 @@ class DidPeer {
     // For did:peer:2, build document with proper key separation
     final context = [
       'https://www.w3.org/ns/did/v1',
-      'https://ns.did.ai/suites/multikey-2021/v1/'
+      'https://w3id.org/security/multikey/v1'
     ];
 
     final verificationMethods = <EmbeddedVerificationMethod>[];
@@ -457,14 +457,10 @@ class DidPeer {
       keyIndex++;
       final keyId = '#key-$keyIndex';
 
-      final keyType = key.type == KeyType.x25519
-          ? 'X25519KeyAgreementKey2020'
-          : 'Ed25519VerificationKey2020';
-
       final verificationMethod = VerificationMethodMultibase(
         id: keyId,
         controller: did,
-        type: keyType,
+        type: 'Multikey',
         publicKeyMultibase: toMultiBase(
           toMultikey(key.bytes, key.type),
         ),
@@ -478,14 +474,10 @@ class DidPeer {
       keyIndex++;
       final keyId = '#key-$keyIndex';
 
-      final keyType = key.type == KeyType.x25519
-          ? 'X25519KeyAgreementKey2020'
-          : 'Ed25519VerificationKey2020';
-
       final verificationMethod = VerificationMethodMultibase(
         id: keyId,
         controller: did,
-        type: keyType,
+        type: 'Multikey',
         publicKeyMultibase: toMultiBase(
           toMultikey(key.bytes, key.type),
         ),
