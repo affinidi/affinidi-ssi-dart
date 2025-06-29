@@ -79,9 +79,9 @@ class DidSigner {
 
     String verificationMethodId;
     if (didDocument.authentication.isNotEmpty) {
-      verificationMethodId = didDocument.authentication.first;
+      verificationMethodId = didDocument.authentication.first.id;
     } else if (didDocument.assertionMethod.isNotEmpty) {
-      verificationMethodId = didDocument.assertionMethod.first;
+      verificationMethodId = didDocument.assertionMethod.first.id;
     } else {
       throw SsiException(
           message:
