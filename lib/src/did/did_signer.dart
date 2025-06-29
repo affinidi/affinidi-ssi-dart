@@ -75,6 +75,7 @@ class DidSigner {
     final effectiveSignatureScheme =
         signatureScheme ?? _getDefaultSignatureScheme(keyPair);
 
+    // TODO: shouldnt this use the first *authentication* verification method?
     final verificationMethodId = didDocument.verificationMethod.isNotEmpty
         ? didDocument.verificationMethod.first.id
         : '$did#$keyId';

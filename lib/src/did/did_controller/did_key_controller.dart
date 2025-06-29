@@ -12,46 +12,26 @@ import 'did_controller.dart';
 class DidKeyController extends DidController {
   /// Creates a new DID Key controller instance.
   ///
-  /// [keyMapping] - The key mapping store to use for managing key relationships.
+  /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   DidKeyController({
-    required super.keyMapping,
+    required super.store,
     required super.wallet,
   });
 
   Future<DidDocument> _createDidDocumentFromState() async {
-    final primaryKeyId = _getPrimaryKeyId();
-    if (primaryKeyId == null) {
+    final keyId = _getKeyId();
+    final key = await wallet.getPublicKey(keyId);
+    return DidKey.generateDocument(key);
+  }
+
+  String _getKeyId() {
+    if (verificationMethodKeys.length != 1) {
       throw SsiException(
-        message: 'DidKeyController requires a key ID to create a document. '
-            'Use createDidDocumentFromKey() instead.',
-        code: SsiExceptionType.invalidDidDocument.code,
-      );
+          message: 'DidKey expects a single key.',
+          code: SsiExceptionType.unsupportedNumberOfKeys.code);
     }
-    final primaryKey = await wallet.getPublicKey(primaryKeyId);
-    return DidKey.generateDocument(primaryKey);
-  }
-
-  String? _getPrimaryKeyId() {
-    for (final keyIds in keysByPurpose.values) {
-      if (keyIds.isNotEmpty) {
-        return keyIds.first;
-      }
-    }
-    return null;
-  }
-
-  /// Creates a DID document from a single key ID.
-  ///
-  /// [keyId] - The key ID to use for the DID document.
-  /// [purpose] - The verification method purpose for this key.
-  ///
-  /// Returns the created DID document.
-  Future<DidDocument> createDidDocumentFromKey(String keyId,
-      [VerificationMethodPurpose purpose =
-          VerificationMethodPurpose.authentication]) async {
-    keysByPurpose.putIfAbsent(purpose, () => []).add(keyId);
-    return await _createDidDocumentFromState();
+    return verificationMethodKeys.first;
   }
 
   // DidKeyController now uses the base class implementation for addXXX methods
@@ -66,27 +46,57 @@ class DidKeyController extends DidController {
   }
 
   @override
-  Future<String> findVerificationMethodId(String keyId) async {
-    // 1. Resolve the controller DID from the *primary* key.
-    final primaryKeyId = _getPrimaryKeyId();
-    if (primaryKeyId == null) {
+  Future<String> buildVerificationMethodId(String keyId) async {
+    // 1. Validate the provided keyId
+    final storedKeyId = _getKeyId();
+    if (storedKeyId != keyId) {
       throw SsiException(
-        message: 'No primary key set. cannot derive DID.',
-        code: SsiExceptionType.invalidDidDocument.code,
-      );
+          message: 'Provided keyId not found',
+          code: SsiExceptionType.keyNotFound.code);
     }
 
-    final primaryKey = await wallet.getPublicKey(primaryKeyId);
-    final primaryMultikey = toMultikey(primaryKey.bytes, primaryKey.type);
-    final primaryMultibase = toMultiBase(primaryMultikey);
-    final did = 'did:key:$primaryMultibase';
+    // 2. Resolve the controller DID from the *single* key.
+    final key = await wallet.getPublicKey(storedKeyId);
+    final multikey = toMultikey(key.bytes, key.type);
+    final multibase = toMultiBase(multikey);
+    final did = 'did:key:$multibase';
 
-    // 2. Encode the queried key for the fragment.
-    final publicKey = await wallet.getPublicKey(keyId);
+    // 3. Encode the queried key for the fragment.
+    final publicKey = await wallet.getPublicKey(storedKeyId);
     final fragmentMultikey = toMultikey(publicKey.bytes, publicKey.type);
     final fragmentMultibase = toMultiBase(fragmentMultikey);
 
-    // 3. Return full verification‑method ID.
+    // 4. Return full verification‑method ID.
     return '$did#$fragmentMultibase';
+  }
+
+  @override
+  void addAuthentication(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding authentication verification methods to did:key method is not supported.');
+  }
+
+  @override
+  void addKeyAgreement(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding key agreement verification methods to did:key method is not supported.');
+  }
+
+  @override
+  void addCapabilityInvocation(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding capability invocation verification methods to did:key method is not supported.');
+  }
+
+  @override
+  void addCapabilityDelegation(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding capability delegation verification methods to did:key method is not supported.');
+  }
+
+  @override
+  void addAssertionMethod(String verificationMethodId) {
+    throw UnsupportedError(
+        'Adding assertion method verification methods to did:key method is not supported.');
   }
 }

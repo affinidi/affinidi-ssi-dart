@@ -1,85 +1,16 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
-import '../../digest_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../key_pair/key_pair.dart';
 import '../../types.dart';
-import '../../util/base64_util.dart';
 import '../../wallet/persistent_wallet.dart';
 import '../../wallet/wallet.dart';
 import '../did_document/did_document.dart';
+import '../did_document/service_endpoint.dart';
 import '../did_key_pair.dart';
 import '../did_signer.dart';
-import '../public_key_utils.dart';
-import 'did_controller_store.dart';
-
-/// Enumeration of verification method purposes as defined by W3C DID specification.
-///
-/// This enum represents the different verification relationships that can be
-/// established in a DID document. Each purpose defines how a verification method
-/// can be used within the DID context.
-enum VerificationMethodPurpose {
-  /// Authentication verification methods are used to authenticate the DID subject.
-  authentication,
-
-  /// Key agreement verification methods are used for key agreement protocols
-  /// such as ECDH (Elliptic Curve Diffie-Hellman).
-  keyAgreement,
-
-  /// Capability invocation verification methods are used to invoke capabilities
-  /// or perform actions on behalf of the DID subject.
-  capabilityInvocation,
-
-  /// Capability delegation verification methods are used to delegate capabilities
-  /// to other entities.
-  capabilityDelegation,
-
-  /// Assertion method verification methods are used for issuing verifiable credentials
-  /// and other assertions.
-  assertionMethod,
-
-  /// Custom verification method purpose for non-standard use cases.
-  /// When using this value, provide the custom purpose string separately.
-  custom;
-
-  /// Converts the enum value to its string representation for use in DID documents.
-  String get value {
-    switch (this) {
-      case VerificationMethodPurpose.authentication:
-        return 'authentication';
-      case VerificationMethodPurpose.keyAgreement:
-        return 'keyAgreement';
-      case VerificationMethodPurpose.capabilityInvocation:
-        return 'capabilityInvocation';
-      case VerificationMethodPurpose.capabilityDelegation:
-        return 'capabilityDelegation';
-      case VerificationMethodPurpose.assertionMethod:
-        return 'assertionMethod';
-      case VerificationMethodPurpose.custom:
-        return 'custom';
-    }
-  }
-
-  /// Creates a VerificationMethodPurpose from its string representation.
-  static VerificationMethodPurpose fromString(String value) {
-    switch (value) {
-      case 'authentication':
-        return VerificationMethodPurpose.authentication;
-      case 'keyAgreement':
-        return VerificationMethodPurpose.keyAgreement;
-      case 'capabilityInvocation':
-        return VerificationMethodPurpose.capabilityInvocation;
-      case 'capabilityDelegation':
-        return VerificationMethodPurpose.capabilityDelegation;
-      case 'assertionMethod':
-        return VerificationMethodPurpose.assertionMethod;
-      default:
-        return VerificationMethodPurpose.custom;
-    }
-  }
-}
+import '../stores/did_store_interface.dart';
 
 /// Base class for managing DID documents and their associated verification methods.
 ///
@@ -89,46 +20,51 @@ enum VerificationMethodPurpose {
 /// signing and verification capabilities.
 abstract class DidController {
   /// The key mapping store for this controller.
-  final DiDControllerStore keyMapping;
+  final DidStore store;
 
-  /// Private backing lists for verification methods
+  /// Cache for verification methods
   final List<String> _authentication = [];
   final List<String> _keyAgreement = [];
   final List<String> _capabilityInvocation = [];
   final List<String> _capabilityDelegation = [];
   final List<String> _assertionMethod = [];
 
-  /// Storage for keys by purpose - used by DID method implementations
-  final Map<VerificationMethodPurpose, List<String>> _keysByPurpose = {};
-
-  /// Verification methods for authentication purposes
+  /// Verification method references for authentication purposes
   Iterable<String> get authentication => _authentication;
 
-  /// Verification methods for key agreement purposes
+  /// Verification method references for key agreement purposes
   Iterable<String> get keyAgreement => _keyAgreement;
 
-  /// Verification methods for capability invocation purposes
+  /// Verification method references for capability invocation purposes
   Iterable<String> get capabilityInvocation => _capabilityInvocation;
 
-  /// Verification methods for capability delegation purposes
+  /// Verification method references for capability delegation purposes
   Iterable<String> get capabilityDelegation => _capabilityDelegation;
 
-  /// Verification methods for assertion purposes
+  /// Verification method references for assertion purposes
   Iterable<String> get assertionMethod => _assertionMethod;
 
-  /// Protected getter for keys by purpose - for use by subclasses
-  Map<VerificationMethodPurpose, List<String>> get keysByPurpose =>
-      _keysByPurpose;
+  /// TODO: Service endpoints
+
+  void addServiceEndpoint(ServiceEndpoint endpoint) {
+    // TODO
+    // Check that the id doesnt exist already and add the service endpoint
+  }
+
+  void removeServiceEndpoint() {
+    // What can be passed as a parameter to identify the endpoint to remove?
+    // TODO
+  }
 
   /// The wallet instance for key operations.
   final Wallet wallet;
 
   /// Creates a new DID controller instance.
   ///
-  /// [keyMapping] - The key mapping store to use for managing key relationships.
+  /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   DidController({
-    required this.keyMapping,
+    required this.store,
     required this.wallet,
   });
 
@@ -177,251 +113,31 @@ abstract class DidController {
     );
   }
 
-  /// Adds a key for authentication purposes to the DID method-specific storage.
-  ///
-  /// Throws [SsiException] if:
-  /// - keyId is null or empty
-  void addAuthenticationKey(String keyId) {
-    if (keyId.isEmpty) {
-      throw SsiException(
-        message: 'Key ID cannot be empty',
-        code: SsiExceptionType.other.code,
-      );
-    }
-
-    final list = _keysByPurpose.putIfAbsent(
-        VerificationMethodPurpose.authentication, () => []);
-    if (!list.contains(keyId)) {
-      list.add(keyId);
-    }
-  }
-
-  /// Adds a key for key agreement purposes to the DID method-specific storage.
-  ///
-  /// Throws [SsiException] if:
-  /// - keyId is null or empty
-  void addKeyAgreementKey(String keyId) {
-    if (keyId.isEmpty) {
-      throw SsiException(
-        message: 'Key ID cannot be empty',
-        code: SsiExceptionType.other.code,
-      );
-    }
-
-    final list = _keysByPurpose.putIfAbsent(
-        VerificationMethodPurpose.keyAgreement, () => []);
-    if (!list.contains(keyId)) {
-      list.add(keyId);
-    }
-  }
-
-  /// Adds a key for capability invocation purposes to the DID method-specific storage.
-  ///
-  /// Throws [SsiException] if:
-  /// - keyId is null or empty
-  void addCapabilityInvocationKey(String keyId) {
-    if (keyId.isEmpty) {
-      throw SsiException(
-        message: 'Key ID cannot be empty',
-        code: SsiExceptionType.other.code,
-      );
-    }
-
-    final list = _keysByPurpose.putIfAbsent(
-        VerificationMethodPurpose.capabilityInvocation, () => []);
-    if (!list.contains(keyId)) {
-      list.add(keyId);
-    }
-  }
-
-  /// Adds a key for capability delegation purposes to the DID method-specific storage.
-  ///
-  /// Throws [SsiException] if:
-  /// - keyId is null or empty
-  void addCapabilityDelegationKey(String keyId) {
-    if (keyId.isEmpty) {
-      throw SsiException(
-        message: 'Key ID cannot be empty',
-        code: SsiExceptionType.other.code,
-      );
-    }
-
-    final list = _keysByPurpose.putIfAbsent(
-        VerificationMethodPurpose.capabilityDelegation, () => []);
-    if (!list.contains(keyId)) {
-      list.add(keyId);
-    }
-  }
-
-  /// Adds a key for assertion method purposes to the DID method-specific storage.
-  ///
-  /// Throws [SsiException] if:
-  /// - keyId is null or empty
-  void addAssertionMethodKey(String keyId) {
-    if (keyId.isEmpty) {
-      throw SsiException(
-        message: 'Key ID cannot be empty',
-        code: SsiExceptionType.other.code,
-      );
-    }
-
-    final list = _keysByPurpose.putIfAbsent(
-        VerificationMethodPurpose.assertionMethod, () => []);
-    if (!list.contains(keyId)) {
-      list.add(keyId);
-    }
-  }
-
   /// Creates or updates the DID document based on current state.
   /// Subclasses implement this to handle method-specific document creation.
   Future<DidDocument> createOrUpdateDocument();
 
-  /// Finds the verification method ID for a given key ID.
-  /// Subclasses implement this to handle method-specific ID lookup.
-  Future<String> findVerificationMethodId(String keyId);
-
-  /// Adds an authentication verification method using an existing key from the wallet.
-  ///
-  /// Throws [SsiException] if:
-  /// - walletKeyId is empty
-  /// - key does not exist in wallet
-  Future<String> addAuthenticationVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    // Validate key exists in wallet before proceeding
-    try {
-      await wallet.getPublicKey(walletKeyId);
-    } catch (e) {
-      throw SsiException(
-        message: 'Key ID "$walletKeyId" not found in wallet',
-        code: SsiExceptionType.keyNotFound.code,
-      );
-    }
-
-    addAuthenticationKey(walletKeyId);
-    final verificationMethodId = await findVerificationMethodId(walletKeyId);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    _authentication.add(verificationMethodId);
+  /// Adds a verification method using an existing key from the wallet.
+  Future<String> addVerificationMethod(String walletKeyId) async {
+    final publicKey = await wallet.getPublicKey(walletKeyId);
+    final verificationMethodId = await buildVerificationMethodId(publicKey);
+    await store.setMapping(verificationMethodId, walletKeyId);
     return verificationMethodId;
   }
 
-  /// Adds a key agreement verification method using an existing key from the wallet.
-  ///
-  /// Throws [SsiException] if:
-  /// - walletKeyId is empty
-  /// - key does not exist in wallet
-  Future<String> addKeyAgreementVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    // Validate key exists in wallet before proceeding
-    try {
-      await wallet.getPublicKey(walletKeyId);
-    } catch (e) {
-      throw SsiException(
-        message: 'Key ID "$walletKeyId" not found in wallet',
-        code: SsiExceptionType.keyNotFound.code,
-      );
-    }
+  // TODO: remove verification method
+  // Needs to be careful as all verification id's may need to be recalculated. In did:peer they are indexed
 
-    addKeyAgreementKey(walletKeyId);
-    final verificationMethodId = await findVerificationMethodId(walletKeyId);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    _keyAgreement.add(verificationMethodId);
-    return verificationMethodId;
-  }
-
-  /// Adds a capability invocation verification method using an existing key from the wallet.
-  ///
-  /// Throws [SsiException] if:
-  /// - walletKeyId is empty
-  /// - key does not exist in wallet
-  Future<String> addCapabilityInvocationVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    // Validate key exists in wallet before proceeding
-    try {
-      await wallet.getPublicKey(walletKeyId);
-    } catch (e) {
-      throw SsiException(
-        message: 'Key ID "$walletKeyId" not found in wallet',
-        code: SsiExceptionType.keyNotFound.code,
-      );
-    }
-
-    addCapabilityInvocationKey(walletKeyId);
-    final verificationMethodId = await findVerificationMethodId(walletKeyId);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    _capabilityInvocation.add(verificationMethodId);
-    return verificationMethodId;
-  }
-
-  /// Adds a capability delegation verification method using an existing key from the wallet.
-  ///
-  /// Throws [SsiException] if:
-  /// - walletKeyId is empty
-  /// - key does not exist in wallet
-  Future<String> addCapabilityDelegationVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    // Validate key exists in wallet before proceeding
-    try {
-      await wallet.getPublicKey(walletKeyId);
-    } catch (e) {
-      throw SsiException(
-        message: 'Key ID "$walletKeyId" not found in wallet',
-        code: SsiExceptionType.keyNotFound.code,
-      );
-    }
-
-    addCapabilityDelegationKey(walletKeyId);
-    final verificationMethodId = await findVerificationMethodId(walletKeyId);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    _capabilityDelegation.add(verificationMethodId);
-    return verificationMethodId;
-  }
-
-  /// Adds an assertion method verification method using an existing key from the wallet.
-  ///
-  /// Throws [SsiException] if:
-  /// - walletKeyId is empty
-  /// - key does not exist in wallet
-  Future<String> addAssertionMethodVerificationMethod(
-    KeyType keyType,
-    String walletKeyId, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    // Validate key exists in wallet before proceeding
-    try {
-      await wallet.getPublicKey(walletKeyId);
-    } catch (e) {
-      throw SsiException(
-        message: 'Key ID "$walletKeyId" not found in wallet',
-        code: SsiExceptionType.keyNotFound.code,
-      );
-    }
-
-    addAssertionMethodKey(walletKeyId);
-    final verificationMethodId = await findVerificationMethodId(walletKeyId);
-    keyMapping.setMapping(verificationMethodId, walletKeyId);
-    _assertionMethod.add(verificationMethodId);
-    return verificationMethodId;
-  }
+  /// Gets the verification method ID for a given key ID.
+  /// Subclasses implement this to handle method-specific ID construction.
+  Future<String> buildVerificationMethodId(String keyId);
 
   /// Adds an existing verification method reference to authentication.
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addAuthenticationVerificationMethodReference(
-      String verificationMethodId) {
+  void addAuthentication(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -429,7 +145,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -448,7 +164,7 @@ abstract class DidController {
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addKeyAgreementVerificationMethodReference(String verificationMethodId) {
+  void addKeyAgreement(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -456,7 +172,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -475,8 +191,7 @@ abstract class DidController {
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addCapabilityInvocationVerificationMethodReference(
-      String verificationMethodId) {
+  void addCapabilityInvocation(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -484,7 +199,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -503,8 +218,7 @@ abstract class DidController {
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addCapabilityDelegationVerificationMethodReference(
-      String verificationMethodId) {
+  void addCapabilityDelegation(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -512,7 +226,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -531,8 +245,7 @@ abstract class DidController {
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addAssertionMethodVerificationMethodReference(
-      String verificationMethodId) {
+  void addAssertionMethod(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -540,7 +253,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -558,8 +271,7 @@ abstract class DidController {
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeAuthenticationVerificationMethodReference(
-      String verificationMethodId) {
+  void removeAuthentication(String verificationMethodId) {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -573,8 +285,7 @@ abstract class DidController {
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeKeyAgreementVerificationMethodReference(
-      String verificationMethodId) {
+  void removeKeyAgreement(String verificationMethodId) {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -588,8 +299,7 @@ abstract class DidController {
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeCapabilityInvocationVerificationMethodReference(
-      String verificationMethodId) {
+  void removeCapabilityInvocation(String verificationMethodId) {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -603,8 +313,7 @@ abstract class DidController {
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeCapabilityDelegationVerificationMethodReference(
-      String verificationMethodId) {
+  void removeCapabilityDelegation(String verificationMethodId) {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -618,8 +327,7 @@ abstract class DidController {
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeAssertionMethodVerificationMethodReference(
-      String verificationMethodId) {
+  void removeAssertionMethod(String verificationMethodId) {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -669,7 +377,7 @@ abstract class DidController {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -699,7 +407,7 @@ abstract class DidController {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -731,7 +439,7 @@ abstract class DidController {
   }) async {
     final didDocument = await getDidDocument();
 
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -776,7 +484,7 @@ abstract class DidController {
   ///
   /// Throws [SsiException] if the verification method is not found in the mapping.
   Future<DidKeyPair> getKey(String verificationMethodId) async {
-    final walletKeyId = keyMapping.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -796,6 +504,7 @@ abstract class DidController {
     );
   }
 
+  // TODO: this should not be part of the did controller but of the key pairs themselves. Same can be said about the DidSigner
   /// Gets the default signature scheme for a key pair.
   ///
   /// Returns the first supported signature scheme if available,
@@ -819,54 +528,5 @@ abstract class DidController {
           code: SsiExceptionType.unsupportedSignatureScheme.code,
         );
     }
-  }
-
-  /// Generates a key identifier using JWT thumbprint.
-  Future<String> generateKeyId(KeyType keyType) async {
-    return await generateJwtThumbprintKeyId(keyType);
-  }
-
-  /// Computes a JWT thumbprint for a given public key.
-  ///
-  /// Creates a JWK thumbprint based on RFC 7638 specification.
-  /// This follows the exact steps defined in the RFC:
-  /// 1. Construct JSON object with only required JWK members
-  /// 2. Order members lexicographically
-  /// 3. Hash UTF-8 octets with SHA-256
-  ///
-  /// [publicKeyBytes] - The public key bytes to compute thumbprint for.
-  /// [keyType] - The key type.
-  ///
-  /// Returns a base64url-encoded JWT thumbprint.
-  String computeJwtThumbprint(Uint8List publicKeyBytes, KeyType keyType) {
-    final multikey = toMultikey(publicKeyBytes, keyType);
-    final publicKeyJwk = multiKeyToJwk(multikey);
-
-    // RFC 7638: Use only required members, ordered lexicographically
-    final sortedKeys = Map.fromEntries(
-        publicKeyJwk.entries.toList()..sort((a, b) => a.key.compareTo(b.key)));
-
-    // RFC 7638: JSON with no whitespace, UTF-8 encode, then hash
-    final canonicalJson = jsonEncode(sortedKeys);
-    final thumbprintBytes = utf8.encode(canonicalJson);
-    final hashedBytes = DigestUtils.getDigest(thumbprintBytes,
-        hashingAlgorithm: HashingAlgorithm.sha256);
-
-    return base64UrlNoPadEncode(hashedBytes);
-  }
-
-  /// Generates a JWT thumbprint-based key identifier.
-  ///
-  /// Creates a key identifier based on the JWT thumbprint specification (RFC 7638).
-  /// This provides a standardized and deterministic way to generate key IDs.
-  ///
-  /// [keyType] - The key type to generate a thumbprint for.
-  ///
-  /// Returns a JWT thumbprint-based key identifier.
-  Future<String> generateJwtThumbprintKeyId(KeyType keyType) async {
-    final tempKeyPair = await wallet.generateKey(keyType: keyType);
-    final thumbprint =
-        computeJwtThumbprint(tempKeyPair.publicKey.bytes, keyType);
-    return 'key-$thumbprint';
   }
 }

@@ -309,7 +309,7 @@ class DidPeer {
       case StringEndpoint(:final url):
         // For string endpoints, create a generic service structure
         serviceJson = {
-          'id': 'new-id',
+          'id': randomId(),
           't': 'GenericService', // "type": "GenericService"
           's': url, // serviceEndpoint
           'a': ['application/json'], // accept
@@ -317,8 +317,8 @@ class DidPeer {
       case MapEndpoint(:final data):
         // For map data, preserve the structure
         serviceJson = {
-          'id': data['id'] ?? 'new-id',
-          't': data['type'] ?? data['t'] ?? 'GenericService',
+          'id': data['id'] ?? randomId(),
+          't': data['t'] ?? data['type'] ?? 'GenericService',
           ...data,
         };
       case SetEndpoint():

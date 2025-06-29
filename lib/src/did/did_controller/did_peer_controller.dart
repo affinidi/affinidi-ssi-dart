@@ -12,47 +12,27 @@ import 'did_controller.dart';
 /// which supports multiple keys with separate authentication and
 /// key agreement purposes, as well as service endpoints.
 class DidPeerController extends DidController {
-  ServiceEndpointValue? _serviceEndpoint;
-
   /// Creates a new DID Peer controller instance.
   ///
-  /// [keyMapping] - The key mapping store to use for managing key relationships.
+  /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   DidPeerController({
-    required super.keyMapping,
+    required super.store,
     required super.wallet,
   });
 
-  /// Sets the service endpoint for the DID document.
-  void setServiceEndpoint(ServiceEndpointValue? endpoint) {
-    _serviceEndpoint = endpoint;
-  }
-
   Future<DidDocument> _createDidDocumentFromState() async {
-    // Get all authentication keys (including capability invocation/delegation/assertion)
-    final authKeyIds = <String>[];
-    authKeyIds
-        .addAll(keysByPurpose[VerificationMethodPurpose.authentication] ?? []);
-    authKeyIds.addAll(
-        keysByPurpose[VerificationMethodPurpose.capabilityInvocation] ?? []);
-    authKeyIds.addAll(
-        keysByPurpose[VerificationMethodPurpose.capabilityDelegation] ?? []);
-    authKeyIds
-        .addAll(keysByPurpose[VerificationMethodPurpose.assertionMethod] ?? []);
-
-    final keyAgreementKeyIds =
-        keysByPurpose[VerificationMethodPurpose.keyAgreement] ?? [];
-
-    if (authKeyIds.isEmpty && keyAgreementKeyIds.isEmpty) {
+    if (authentication.isEmpty && keyAgreement.isEmpty) {
       throw SsiException(
-        message: 'At least one key must be added before creating a document',
+        message:
+            'At least one key must be added before creating did:peer document',
         code: SsiExceptionType.invalidDidDocument.code,
       );
     }
 
     // Convert key IDs to PublicKey objects
     final authPublicKeys = <PublicKey>[];
-    for (final keyId in authKeyIds) {
+    for (final verificationMethodId in authentication) {
       authPublicKeys.add(await wallet.getPublicKey(keyId));
     }
 
@@ -106,42 +86,12 @@ class DidPeerController extends DidController {
   }
 
   @override
-  Future<String> findVerificationMethodId(String keyId) async {
+  Future<String> buildVerificationMethodId(String keyId) async {
     // For did:peer, verification method IDs are numbered sequentially
     // based on their order in the verificationMethod array
-
-    // Build the ordered list of all keys
-    final allKeysInOrder = <String>[];
-
-    // Add in the same order as _createDidDocumentFromState
-    allKeysInOrder
-        .addAll(keysByPurpose[VerificationMethodPurpose.authentication] ?? []);
-    allKeysInOrder.addAll(
-        keysByPurpose[VerificationMethodPurpose.capabilityInvocation] ?? []);
-    allKeysInOrder.addAll(
-        keysByPurpose[VerificationMethodPurpose.capabilityDelegation] ?? []);
-    allKeysInOrder
-        .addAll(keysByPurpose[VerificationMethodPurpose.assertionMethod] ?? []);
-    allKeysInOrder
-        .addAll(keysByPurpose[VerificationMethodPurpose.keyAgreement] ?? []);
-
-    // Remove duplicates while preserving order
-    final uniqueKeys = <String>[];
-    for (final key in allKeysInOrder) {
-      if (!uniqueKeys.contains(key)) {
-        uniqueKeys.add(key);
-      }
-    }
-
-    final index = uniqueKeys.indexOf(keyId);
-    if (index == -1) {
-      throw SsiException(
-        message: 'Verification method not found for key ID: $keyId',
-        code: SsiExceptionType.keyNotFound.code,
-      );
-    }
+    final verificationMethods = await store.verificationMethodIds;
 
     // Verification method IDs are 1-indexed
-    return '#key-${index + 1}';
+    return '#key-${verificationMethods.length + 1}';
   }
 }

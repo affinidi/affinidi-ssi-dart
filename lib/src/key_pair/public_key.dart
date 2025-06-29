@@ -10,9 +10,6 @@ class PublicKey {
   /// verification method ID. For DID operations, use DidKeyPair which
   /// properly manages the relationship between wallet key IDs and DID
   /// verification method IDs.
-  @Deprecated('This field mirrors KeyPair.id which is deprecated. '
-      'Use DidKeyPair for DID operations. '
-      'This field will be removed in a future version.')
   String id;
 
   /// The type of the key e.g., Ed25519

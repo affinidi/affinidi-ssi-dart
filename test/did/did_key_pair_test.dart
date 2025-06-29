@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:ssi/src/did/did_controller/index.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
