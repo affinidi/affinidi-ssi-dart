@@ -91,47 +91,7 @@ abstract class DidController {
   /// method whenever they need access to the current DID document.
   ///
   /// Returns the current DID document.
-  Future<DidDocument> getDidDocument() async {
-    // Get the base document from the child implementation
-    final baseDocument = await createOrUpdateDocument();
-
-    // Merge the base class verification method references with the document
-    // The base class stores verification method IDs as strings,
-    // so we need to use them as references in the document
-    return DidDocument.create(
-      context: baseDocument.context,
-      id: baseDocument.id,
-      controller: baseDocument.controller,
-      alsoKnownAs: baseDocument.alsoKnownAs,
-      verificationMethod: baseDocument.verificationMethod,
-      // Merge base class references with document's existing references
-      authentication: [
-        ...baseDocument.authentication,
-        ..._cacheAuthentication,
-      ],
-      assertionMethod: [
-        ...baseDocument.assertionMethod,
-        ..._cacheAssertionMethod,
-      ],
-      keyAgreement: [
-        ...baseDocument.keyAgreement,
-        ..._cacheKeyAgreement,
-      ],
-      capabilityInvocation: [
-        ...baseDocument.capabilityInvocation,
-        ..._cacheCapabilityInvocation,
-      ],
-      capabilityDelegation: [
-        ...baseDocument.capabilityDelegation,
-        ..._cacheCapabilityDelegation,
-      ],
-      service: [...baseDocument.service, ..._cacheService],
-    );
-  }
-
-  /// Creates or updates the DID document based on current state.
-  /// Subclasses implement this to handle method-specific document creation.
-  Future<DidDocument> createOrUpdateDocument();
+  Future<DidDocument> getDidDocument();
 
   /// Adds a verification method using an existing key from the wallet.
   Future<String> addVerificationMethod(String walletKeyId) async {

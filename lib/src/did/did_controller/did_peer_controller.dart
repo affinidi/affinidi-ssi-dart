@@ -21,7 +21,7 @@ class DidPeerController extends DidController {
   });
 
   @override
-  Future<DidDocument> createOrUpdateDocument() async {
+  Future<DidDocument> getDidDocument() async {
     if (authentication.isEmpty && keyAgreement.isEmpty) {
       throw SsiException(
         message:

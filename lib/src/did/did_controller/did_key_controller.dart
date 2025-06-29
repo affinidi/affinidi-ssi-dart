@@ -52,7 +52,7 @@ class DidKeyController extends DidController {
   }
 
   @override
-  Future<DidDocument> createOrUpdateDocument() async {
+  Future<DidDocument> getDidDocument() async {
     // For did:key, clear the base controller arrays to avoid duplicates
     // since the DID document generation already includes the verification methods
     await clearVerificationMethodReferences();
