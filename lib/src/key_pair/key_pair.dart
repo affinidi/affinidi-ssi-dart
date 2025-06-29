@@ -14,12 +14,13 @@ abstract interface class KeyPair {
   ///
   /// For DID operations, a mapping between this wallet key ID and the DID
   /// verification method ID is maintained by the DidController.
-  @Deprecated('Use DidKeyPair.walletKeyId for DID operations. '
-      'This field will be removed in a future version.')
   String get id;
 
   /// Returns a list of [SignatureScheme]s supported by this key pair.
   List<SignatureScheme> get supportedSignatureSchemes;
+
+  /// Returns the default signature scheme that is used if none is provided.
+  SignatureScheme get defaultSignatureScheme;
 
   /// Returns the public key as as a touple with the type and bytes.
   PublicKey get publicKey;

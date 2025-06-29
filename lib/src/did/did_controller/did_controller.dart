@@ -133,11 +133,12 @@ abstract class DidController {
   // TODO: remove verification method
   // Needs to be careful as all verification id's may need to be recalculated. In did:peer they are indexed
 
-  /// Gets the verification method ID for a given public key.
+  /// Builds the verification method ID for a given public key.
   /// Subclasses implement this to handle method-specific ID construction.
   Future<String> buildVerificationMethodId(PublicKey publicKey);
 
-  Future<String?> _getWalletKeyId(String verificationMethodId) async {
+  /// Gets the stored wallet key ID that corresponds to the provided verification method ID
+  Future<String?> getWalletKeyId(String verificationMethodId) async {
     if (_verificationMethodIdToWalletKeyId.containsKey(verificationMethodId)) {
       return _verificationMethodIdToWalletKeyId[verificationMethodId];
     }
@@ -162,7 +163,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await _getWalletKeyId(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -190,7 +191,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await _getWalletKeyId(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -218,7 +219,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await _getWalletKeyId(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -246,7 +247,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await _getWalletKeyId(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -274,7 +275,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await _getWalletKeyId(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -433,7 +434,7 @@ abstract class DidController {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = await _getWalletKeyId(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -463,7 +464,7 @@ abstract class DidController {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = await _getWalletKeyId(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -495,7 +496,7 @@ abstract class DidController {
   }) async {
     final didDocument = await getDidDocument();
 
-    final walletKeyId = await _getWalletKeyId(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -506,7 +507,7 @@ abstract class DidController {
 
     final keyPair = await getKeyPair(walletKeyId);
     final effectiveSignatureScheme =
-        signatureScheme ?? getDefaultSignatureScheme(keyPair);
+        signatureScheme ?? keyPair.defaultSignatureScheme;
 
     return DidSigner(
       didDocument: didDocument,
@@ -540,7 +541,7 @@ abstract class DidController {
   ///
   /// Throws [SsiException] if the verification method is not found in the mapping.
   Future<DidKeyPair> getKey(String verificationMethodId) async {
-    final walletKeyId = await _getWalletKeyId(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -558,31 +559,5 @@ abstract class DidController {
       verificationMethodId: verificationMethodId,
       didDocument: didDocument,
     );
-  }
-
-  // TODO: this should not be part of the did controller but of the key pairs themselves. Same can be said about the DidSigner
-  /// Gets the default signature scheme for a key pair.
-  ///
-  /// Returns the first supported signature scheme if available,
-  /// otherwise returns a default scheme based on the key type.
-  SignatureScheme getDefaultSignatureScheme(KeyPair keyPair) {
-    final supportedSchemes = keyPair.supportedSignatureSchemes;
-    if (supportedSchemes.isNotEmpty) {
-      return supportedSchemes.first;
-    }
-
-    switch (keyPair.publicKey.type) {
-      case KeyType.secp256k1:
-        return SignatureScheme.ecdsa_secp256k1_sha256;
-      case KeyType.ed25519:
-        return SignatureScheme.eddsa_sha512;
-      case KeyType.p256:
-        return SignatureScheme.ecdsa_p256_sha256;
-      default:
-        throw SsiException(
-          message: 'Unsupported key type: ${keyPair.publicKey.type}',
-          code: SsiExceptionType.unsupportedSignatureScheme.code,
-        );
-    }
   }
 }
