@@ -24,7 +24,7 @@ abstract class DidStore {
   Future<void> removeMapping(String verificationMethodId);
 
   /// Clears all mappings.
-  Future<void> clear();
+  Future<void> clearAll();
 
   /// Gets all DID key identifiers.
   Future<List<String>> get verificationMethodIds;

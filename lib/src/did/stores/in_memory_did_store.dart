@@ -1,3 +1,4 @@
+import '../did_document/service_endpoint.dart';
 import 'did_store_interface.dart';
 
 /// Default implementation of [DidStore] using an in-memory map.
@@ -12,6 +13,7 @@ class InMemoryDidStore extends DidStore {
   final List<String> _capabilityInvocation = [];
   final List<String> _capabilityDelegation = [];
   final List<String> _assertionMethod = [];
+  final List<ServiceEndpoint> _serviceEndpoints = [];
 
   @override
   Future<void> setMapping(
@@ -30,9 +32,10 @@ class InMemoryDidStore extends DidStore {
   }
 
   @override
-  Future<void> clear() async {
+  Future<void> clearAll() async {
     _keyMapping.clear();
     await clearVerificationMethodReferences();
+    await clearServiceEndpoints();
   }
 
   @override
@@ -53,6 +56,9 @@ class InMemoryDidStore extends DidStore {
 
   @override
   Future<List<String>> get assertionMethod async => _assertionMethod;
+
+  @override
+  Future<List<ServiceEndpoint>> get serviceEndpoints async => _serviceEndpoints;
 
   @override
   Future<void> addAuthentication(String verificationMethodId) async {
@@ -115,11 +121,28 @@ class InMemoryDidStore extends DidStore {
   }
 
   @override
+  Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
+    if (!_serviceEndpoints.any((se) => se.id == endpoint.id)) {
+      _serviceEndpoints.add(endpoint);
+    }
+  }
+
+  @override
+  Future<void> removeServiceEndpoint(String id) async {
+    _serviceEndpoints.removeWhere((se) => se.id == id);
+  }
+
+  @override
   Future<void> clearVerificationMethodReferences() async {
     _authentication.clear();
     _keyAgreement.clear();
     _capabilityInvocation.clear();
     _capabilityDelegation.clear();
     _assertionMethod.clear();
+  }
+
+  @override
+  Future<void> clearServiceEndpoints() async {
+    _serviceEndpoints.clear();
   }
 }

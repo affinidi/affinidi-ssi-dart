@@ -439,9 +439,7 @@ abstract class DidController {
     _cacheCapabilityDelegation.clear();
     _cacheAssertionMethod.clear();
     _cacheService.clear();
-    await store.clear();
-    await store.clearVerificationMethodReferences();
-    await store.clearServiceEndpoints();
+    await store.clearAll();
   }
 
   /// Signs data using a verification method.
