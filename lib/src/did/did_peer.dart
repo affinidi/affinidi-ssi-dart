@@ -205,7 +205,7 @@ DidDocument _buildEDDoc(
     );
   }
 
-  var verificationKeyId = '$id#$keyPart';
+  var verificationKeyId = id;
   var agreementKeyId = '$id#z$multiCodecXKey';
 
   final verificationMethod = VerificationMethodMultibase(
@@ -240,7 +240,7 @@ DidDocument _buildXDoc(
   String id,
   String keyPart,
 ) {
-  var verificationKeyId = '$id#z$keyPart';
+  var verificationKeyId = id;
   final verification = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
@@ -430,7 +430,13 @@ class DidPeer {
         ),
       );
 
+      final context = [
+        'https://www.w3.org/ns/did/v1',
+        'https://w3id.org/security/multikey/v1'
+      ];
+
       return DidDocument.create(
+        context: Context.fromJson(context),
         id: did,
         verificationMethod: [verificationMethod],
         authentication: [did],

@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 import 'package:ssi/ssi.dart';
 
-import '../../did/did_signer.dart';
+import '../../../did/did_signer.dart';
 
 void main() async {
   // Deterministic seed for key generation
