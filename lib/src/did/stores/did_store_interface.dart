@@ -26,4 +26,52 @@ abstract class DidStore {
 
   /// Gets all DID key identifiers.
   Future<List<String>> get verificationMethodIds;
+
+  /// Gets all verification method references for authentication.
+  Future<List<String>> get authentication;
+
+  /// Gets all verification method references for key agreement.
+  Future<List<String>> get keyAgreement;
+
+  /// Gets all verification method references for capability invocation.
+  Future<List<String>> get capabilityInvocation;
+
+  /// Gets all verification method references for capability delegation.
+  Future<List<String>> get capabilityDelegation;
+
+  /// Gets all verification method references for assertion method.
+  Future<List<String>> get assertionMethod;
+
+  /// Adds a verification method reference to authentication.
+  Future<void> addAuthentication(String verificationMethodId);
+
+  /// Removes a verification method reference from authentication.
+  Future<void> removeAuthentication(String verificationMethodId);
+
+  /// Adds a verification method reference to key agreement.
+  Future<void> addKeyAgreement(String verificationMethodId);
+
+  /// Removes a verification method reference from key agreement.
+  Future<void> removeKeyAgreement(String verificationMethodId);
+
+  /// Adds a verification method reference to capability invocation.
+  Future<void> addCapabilityInvocation(String verificationMethodId);
+
+  /// Removes a verification method reference from capability invocation.
+  Future<void> removeCapabilityInvocation(String verificationMethodId);
+
+  /// Adds a verification method reference to capability delegation.
+  Future<void> addCapabilityDelegation(String verificationMethodId);
+
+  /// Removes a verification method reference from capability delegation.
+  Future<void> removeCapabilityDelegation(String verificationMethodId);
+
+  /// Adds a verification method reference to assertion method.
+  Future<void> addAssertionMethod(String verificationMethodId);
+
+  /// Removes a verification method reference from assertion method.
+  Future<void> removeAssertionMethod(String verificationMethodId);
+
+  /// Clears all verification method references.
+  Future<void> clearVerificationMethodReferences();
 }

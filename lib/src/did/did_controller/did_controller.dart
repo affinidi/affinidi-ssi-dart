@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../key_pair/key_pair.dart';
+import '../../key_pair/public_key.dart';
 import '../../types.dart';
 import '../../wallet/persistent_wallet.dart';
 import '../../wallet/wallet.dart';
@@ -21,6 +22,9 @@ import '../stores/did_store_interface.dart';
 abstract class DidController {
   /// The key mapping store for this controller.
   final DidStore store;
+
+  /// Cache for verification method ID to wallet key ID mappings
+  final Map<String, String> _verificationMethodIdToWalletKeyId = {};
 
   /// Cache for verification methods
   final List<String> _authentication = [];
@@ -122,22 +126,35 @@ abstract class DidController {
     final publicKey = await wallet.getPublicKey(walletKeyId);
     final verificationMethodId = await buildVerificationMethodId(publicKey);
     await store.setMapping(verificationMethodId, walletKeyId);
+    _verificationMethodIdToWalletKeyId[verificationMethodId] = walletKeyId;
     return verificationMethodId;
   }
 
   // TODO: remove verification method
   // Needs to be careful as all verification id's may need to be recalculated. In did:peer they are indexed
 
-  /// Gets the verification method ID for a given key ID.
+  /// Gets the verification method ID for a given public key.
   /// Subclasses implement this to handle method-specific ID construction.
-  Future<String> buildVerificationMethodId(String keyId);
+  Future<String> buildVerificationMethodId(PublicKey publicKey);
+
+  Future<String?> _getWalletKeyId(String verificationMethodId) async {
+    if (_verificationMethodIdToWalletKeyId.containsKey(verificationMethodId)) {
+      return _verificationMethodIdToWalletKeyId[verificationMethodId];
+    }
+
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    if (walletKeyId != null) {
+      _verificationMethodIdToWalletKeyId[verificationMethodId] = walletKeyId;
+    }
+    return walletKeyId;
+  }
 
   /// Adds an existing verification method reference to authentication.
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addAuthentication(String verificationMethodId) async {
+  Future<void> addAuthentication(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -145,7 +162,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await _getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -156,6 +173,7 @@ abstract class DidController {
 
     if (!_authentication.contains(verificationMethodId)) {
       _authentication.add(verificationMethodId);
+      await store.addAuthentication(verificationMethodId);
     }
   }
 
@@ -164,7 +182,7 @@ abstract class DidController {
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addKeyAgreement(String verificationMethodId) async {
+  Future<void> addKeyAgreement(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -172,7 +190,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await _getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -183,6 +201,7 @@ abstract class DidController {
 
     if (!_keyAgreement.contains(verificationMethodId)) {
       _keyAgreement.add(verificationMethodId);
+      await store.addKeyAgreement(verificationMethodId);
     }
   }
 
@@ -191,7 +210,7 @@ abstract class DidController {
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addCapabilityInvocation(String verificationMethodId) async {
+  Future<void> addCapabilityInvocation(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -199,7 +218,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await _getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -210,6 +229,7 @@ abstract class DidController {
 
     if (!_capabilityInvocation.contains(verificationMethodId)) {
       _capabilityInvocation.add(verificationMethodId);
+      await store.addCapabilityInvocation(verificationMethodId);
     }
   }
 
@@ -218,7 +238,7 @@ abstract class DidController {
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addCapabilityDelegation(String verificationMethodId) async {
+  Future<void> addCapabilityDelegation(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -226,7 +246,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await _getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -237,6 +257,7 @@ abstract class DidController {
 
     if (!_capabilityDelegation.contains(verificationMethodId)) {
       _capabilityDelegation.add(verificationMethodId);
+      await store.addCapabilityDelegation(verificationMethodId);
     }
   }
 
@@ -245,7 +266,7 @@ abstract class DidController {
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   /// - verification method is not found in mapping
-  void addAssertionMethod(String verificationMethodId) async {
+  Future<void> addAssertionMethod(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
@@ -253,7 +274,7 @@ abstract class DidController {
       );
     }
 
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await _getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -264,6 +285,7 @@ abstract class DidController {
 
     if (!_assertionMethod.contains(verificationMethodId)) {
       _assertionMethod.add(verificationMethodId);
+      await store.addAssertionMethod(verificationMethodId);
     }
   }
 
@@ -271,98 +293,120 @@ abstract class DidController {
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeAuthentication(String verificationMethodId) {
+  Future<void> removeAuthentication(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
         code: SsiExceptionType.other.code,
       );
     }
-    _authentication.remove(verificationMethodId);
+    if (_authentication.remove(verificationMethodId)) {
+      await store.removeAuthentication(verificationMethodId);
+    }
   }
 
   /// Removes a verification method reference from key agreement.
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeKeyAgreement(String verificationMethodId) {
+  Future<void> removeKeyAgreement(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
         code: SsiExceptionType.other.code,
       );
     }
-    _keyAgreement.remove(verificationMethodId);
+    if (_keyAgreement.remove(verificationMethodId)) {
+      await store.removeKeyAgreement(verificationMethodId);
+    }
   }
 
   /// Removes a verification method reference from capability invocation.
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeCapabilityInvocation(String verificationMethodId) {
+  Future<void> removeCapabilityInvocation(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
         code: SsiExceptionType.other.code,
       );
     }
-    _capabilityInvocation.remove(verificationMethodId);
+    if (_capabilityInvocation.remove(verificationMethodId)) {
+      await store.removeCapabilityInvocation(verificationMethodId);
+    }
   }
 
   /// Removes a verification method reference from capability delegation.
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeCapabilityDelegation(String verificationMethodId) {
+  Future<void> removeCapabilityDelegation(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
         code: SsiExceptionType.other.code,
       );
     }
-    _capabilityDelegation.remove(verificationMethodId);
+    if (_capabilityDelegation.remove(verificationMethodId)) {
+      await store.removeCapabilityDelegation(verificationMethodId);
+    }
   }
 
   /// Removes a verification method reference from assertion method.
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeAssertionMethod(String verificationMethodId) {
+  Future<void> removeAssertionMethod(String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
         code: SsiExceptionType.other.code,
       );
     }
-    _assertionMethod.remove(verificationMethodId);
+    if (_assertionMethod.remove(verificationMethodId)) {
+      await store.removeAssertionMethod(verificationMethodId);
+    }
   }
 
   /// Removes a verification method reference from all verification relationships.
   ///
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
-  void removeAllVerificationMethodReferences(String verificationMethodId) {
+  Future<void> removeAllVerificationMethodReferences(
+      String verificationMethodId) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',
         code: SsiExceptionType.other.code,
       );
     }
-    _authentication.remove(verificationMethodId);
-    _keyAgreement.remove(verificationMethodId);
-    _capabilityInvocation.remove(verificationMethodId);
-    _capabilityDelegation.remove(verificationMethodId);
-    _assertionMethod.remove(verificationMethodId);
+    if (_authentication.remove(verificationMethodId)) {
+      await store.removeAuthentication(verificationMethodId);
+    }
+    if (_keyAgreement.remove(verificationMethodId)) {
+      await store.removeKeyAgreement(verificationMethodId);
+    }
+    if (_capabilityInvocation.remove(verificationMethodId)) {
+      await store.removeCapabilityInvocation(verificationMethodId);
+    }
+    if (_capabilityDelegation.remove(verificationMethodId)) {
+      await store.removeCapabilityDelegation(verificationMethodId);
+    }
+    if (_assertionMethod.remove(verificationMethodId)) {
+      await store.removeAssertionMethod(verificationMethodId);
+    }
   }
 
   /// Protected method to clear all verification method references.
   /// This is intended for use by subclasses that need to manage their own verification methods.
-  void clearAllVerificationMethodReferences() {
+  Future<void> clearAllVerificationMethodReferences() async {
     _authentication.clear();
     _keyAgreement.clear();
     _capabilityInvocation.clear();
     _capabilityDelegation.clear();
     _assertionMethod.clear();
+    await store.clearVerificationMethodReferences();
   }
 
   /// Signs data using a verification method.
@@ -377,7 +421,7 @@ abstract class DidController {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await _getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -407,7 +451,7 @@ abstract class DidController {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await _getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -439,7 +483,7 @@ abstract class DidController {
   }) async {
     final didDocument = await getDidDocument();
 
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await _getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -484,7 +528,7 @@ abstract class DidController {
   ///
   /// Throws [SsiException] if the verification method is not found in the mapping.
   Future<DidKeyPair> getKey(String verificationMethodId) async {
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await _getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
