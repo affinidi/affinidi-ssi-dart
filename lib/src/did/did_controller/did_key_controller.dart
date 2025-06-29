@@ -1,6 +1,8 @@
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
+import '../../key_pair/public_key.dart';
 import '../did_document/did_document.dart';
+import '../did_document/service_endpoint.dart';
 import '../did_key.dart';
 import '../public_key_utils.dart';
 import 'did_controller.dart';
@@ -12,81 +14,104 @@ import 'did_controller.dart';
 class DidKeyController extends DidController {
   /// Creates a new DID Key controller instance.
   ///
-  /// [keyMapping] - The key mapping store to use for managing key relationships.
+  /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   DidKeyController({
-    required super.keyMapping,
+    required super.store,
     required super.wallet,
   });
 
-  Future<DidDocument> _createDidDocumentFromState() async {
-    final primaryKeyId = _getPrimaryKeyId();
-    if (primaryKeyId == null) {
+  @override
+  Future<String> addVerificationMethod(String walletKeyId) async {
+    final verificationMethods = await store.verificationMethodIds;
+    if (verificationMethods.isNotEmpty) {
       throw SsiException(
-        message: 'DidKeyController requires a key ID to create a document. '
-            'Use createDidDocumentFromKey() instead.',
-        code: SsiExceptionType.invalidDidDocument.code,
+        message: 'did:key method supports only one key.',
+        code: SsiExceptionType.unsupportedNumberOfKeys.code,
       );
     }
-    final primaryKey = await wallet.getPublicKey(primaryKeyId);
-    return DidKey.generateDocument(primaryKey);
+    return super.addVerificationMethod(walletKeyId);
   }
 
-  String? _getPrimaryKeyId() {
-    for (final keyIds in keysByPurpose.values) {
-      if (keyIds.isNotEmpty) {
-        return keyIds.first;
-      }
+  Future<String> _getKeyId() async {
+    final verificationMethods = await store.verificationMethodIds;
+    if (verificationMethods.length != 1) {
+      throw SsiException(
+          message: 'DidKey expects a single key.',
+          code: SsiExceptionType.unsupportedNumberOfKeys.code);
     }
-    return null;
+    final verificationMethodId = verificationMethods.first;
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
+    if (walletKeyId == null) {
+      throw SsiException(
+          message:
+              'Wallet key for verification method $verificationMethodId not found',
+          code: SsiExceptionType.keyNotFound.code);
+    }
+    return walletKeyId;
   }
-
-  /// Creates a DID document from a single key ID.
-  ///
-  /// [keyId] - The key ID to use for the DID document.
-  /// [purpose] - The verification method purpose for this key.
-  ///
-  /// Returns the created DID document.
-  Future<DidDocument> createDidDocumentFromKey(String keyId,
-      [VerificationMethodPurpose purpose =
-          VerificationMethodPurpose.authentication]) async {
-    keysByPurpose.putIfAbsent(purpose, () => []).add(keyId);
-    return await _createDidDocumentFromState();
-  }
-
-  // DidKeyController now uses the base class implementation for addXXX methods
 
   @override
-  Future<DidDocument> createOrUpdateDocument() async {
+  Future<DidDocument> getDidDocument() async {
     // For did:key, clear the base controller arrays to avoid duplicates
     // since the DID document generation already includes the verification methods
-    clearAllVerificationMethodReferences();
+    await clearVerificationMethodReferences();
 
-    return await _createDidDocumentFromState();
+    final keyId = await _getKeyId();
+    final key = await wallet.getPublicKey(keyId);
+    return DidKey.generateDocument(key);
   }
 
   @override
-  Future<String> findVerificationMethodId(String keyId) async {
-    // 1. Resolve the controller DID from the *primary* key.
-    final primaryKeyId = _getPrimaryKeyId();
-    if (primaryKeyId == null) {
-      throw SsiException(
-        message: 'No primary key set. cannot derive DID.',
-        code: SsiExceptionType.invalidDidDocument.code,
-      );
-    }
+  Future<String> buildVerificationMethodId(PublicKey publicKey) async {
+    // For did:key, the DID itself is derived from the public key.
+    final multikey = toMultikey(publicKey.bytes, publicKey.type);
+    final multibase = toMultiBase(multikey);
+    final did = 'did:key:$multibase';
 
-    final primaryKey = await wallet.getPublicKey(primaryKeyId);
-    final primaryMultikey = toMultikey(primaryKey.bytes, primaryKey.type);
-    final primaryMultibase = toMultiBase(primaryMultikey);
-    final did = 'did:key:$primaryMultibase';
+    // The verification method ID fragment is also derived from the same key.
+    return '$did#$multibase';
+  }
 
-    // 2. Encode the queried key for the fragment.
-    final publicKey = await wallet.getPublicKey(keyId);
-    final fragmentMultikey = toMultikey(publicKey.bytes, publicKey.type);
-    final fragmentMultibase = toMultiBase(fragmentMultikey);
+  @override
+  Future<void> addAuthentication(String verificationMethodId) async {
+    throw UnsupportedError(
+        'Adding authentication verification methods to did:key method is not supported.');
+  }
 
-    // 3. Return full verification‑method ID.
-    return '$did#$fragmentMultibase';
+  @override
+  Future<void> addKeyAgreement(String verificationMethodId) async {
+    throw UnsupportedError(
+        'Adding key agreement verification methods to did:key method is not supported.');
+  }
+
+  @override
+  Future<void> addCapabilityInvocation(String verificationMethodId) async {
+    throw UnsupportedError(
+        'Adding capability invocation verification methods to did:key method is not supported.');
+  }
+
+  @override
+  Future<void> addCapabilityDelegation(String verificationMethodId) async {
+    throw UnsupportedError(
+        'Adding capability delegation verification methods to did:key method is not supported.');
+  }
+
+  @override
+  Future<void> addAssertionMethod(String verificationMethodId) async {
+    throw UnsupportedError(
+        'Adding assertion method verification methods to did:key method is not supported.');
+  }
+
+  @override
+  Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
+    throw UnsupportedError(
+        'Adding service endpoints to did:key method is not supported.');
+  }
+
+  @override
+  Future<void> removeServiceEndpoint(String id) async {
+    throw UnsupportedError(
+        'Removing service endpoints from did:key method is not supported.');
   }
 }

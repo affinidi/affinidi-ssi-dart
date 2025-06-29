@@ -8,18 +8,19 @@ import 'public_key.dart';
 abstract interface class KeyPair {
   /// Wallet-internal identifier for this key pair.
   ///
-  /// This is a local identifier used to reference the key within a wallet
-  /// (e.g., "key-1234567890"). It is NOT the same as a DID verification
-  /// method ID which appears in DID documents (e.g., "did:key:z6Mk...#z6Mk...").
+  /// This is a local identifier used to reference the key within a wallet.
+  /// It is NOT the same as a DID verification method ID which appears in DID
+  /// documents (e.g., "did:key:z6Mk...#z6Mk...").
   ///
   /// For DID operations, a mapping between this wallet key ID and the DID
   /// verification method ID is maintained by the DidController.
-  @Deprecated('Use DidKeyPair.walletKeyId for DID operations. '
-      'This field will be removed in a future version.')
   String get id;
 
   /// Returns a list of [SignatureScheme]s supported by this key pair.
   List<SignatureScheme> get supportedSignatureSchemes;
+
+  /// Returns the default signature scheme that is used if none is provided.
+  SignatureScheme get defaultSignatureScheme;
 
   /// Returns the public key as as a touple with the type and bytes.
   PublicKey get publicKey;

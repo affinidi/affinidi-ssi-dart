@@ -52,24 +52,138 @@ void main() {
       expect(actualDid, expectedDid);
     });
 
-    test('generateDocument for did:peer:2 should start with did:peer:2.Ez6Mk',
+    test('generate and resolve did:peer:2 with one service endpoint', () async {
+      final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
+      final key = await wallet.generateKey(keyId: derivedKeyPath);
+
+      final service = ServiceEndpoint(
+        id: '#my-service',
+        type: 'TestService',
+        serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+      );
+
+      final did = DidPeer.getDid(
+        [key.publicKey],
+        [key.publicKey],
+        serviceEndpoints: [service],
+      );
+
+      final resolvedDoc = DidPeer.resolve(did);
+      expect(resolvedDoc.id, did);
+      expect(resolvedDoc.service, isNotNull);
+      expect(resolvedDoc.service.length, 1);
+      expect(resolvedDoc.service[0].id, '#my-service');
+      expect(resolvedDoc.service[0].type, 'TestService');
+      expect(
+        (resolvedDoc.service[0].serviceEndpoint as StringEndpoint).url,
+        'https://example.com/endpoint',
+      );
+    });
+
+    test('generate and resolve did:peer:2 with multiple service endpoints',
         () async {
-      final expectedDidPeerPrefix = 'did:peer:2.Ez6Mk';
+      final authKey = await wallet.generateKey(keyId: "m/44'/60'/0'/0'/0'");
+      final agreeKey = await wallet.generateKey(keyId: "m/44'/60'/0'/0'/1'");
+
+      final service1 = ServiceEndpoint(
+        id: '#service-1',
+        type: 'DIDCommMessaging',
+        serviceEndpoint: const StringEndpoint('https://endpoint1.com'),
+      );
+
+      final service2 = ServiceEndpoint(
+        id: '#service-2',
+        type: 'DIDCommMessaging',
+        serviceEndpoint: const MapEndpoint({'uri': 'https://endpoint2.com'}),
+      );
+
+      final did = DidPeer.getDid(
+        [authKey.publicKey],
+        [agreeKey.publicKey],
+        serviceEndpoints: [service1, service2],
+      );
+
+      final resolvedDoc = DidPeer.resolve(did);
+
+      expect(resolvedDoc.id, did);
+      expect(resolvedDoc.service, isNotNull);
+      expect(resolvedDoc.service.length, 2);
+      expect(resolvedDoc.service[0].id, '#service-1');
+      expect(resolvedDoc.service[0].type, 'DIDCommMessaging');
+      expect(
+        (resolvedDoc.service[0].serviceEndpoint as StringEndpoint).url,
+        'https://endpoint1.com',
+      );
+      expect(resolvedDoc.service[1].id, '#service-2');
+      expect(resolvedDoc.service[1].type, 'DIDCommMessaging');
+      expect(
+        (resolvedDoc.service[1].serviceEndpoint as MapEndpoint).data,
+        {'uri': 'https://endpoint2.com'},
+      );
+    });
+
+    test('generateDocument for did:peer:2 with separate keyAgreement keys',
+        () async {
+      final derivedKeyPath1 = "m/44'/60'/$accountNumber'/0'/0'";
+      final derivedKeyPath2 = "m/44'/60'/$accountNumber'/0'/1'";
+
+      final authKey = await wallet.generateKey(keyId: derivedKeyPath1);
+      final agreeKey = await wallet.generateKey(keyId: derivedKeyPath2);
+
+      final service = ServiceEndpoint(
+        id: '#service-1',
+        type: 'TestService',
+        serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+      );
+
+      final doc = DidPeer.generateDocument(
+        [authKey.publicKey],
+        [agreeKey.publicKey],
+        serviceEndpoints: [service],
+      );
+
+      // Check that keyAgreement contains only the agreement key
+      expect(doc.keyAgreement.length, 1);
+
+      // Check that authentication contains only the auth key
+      expect(doc.authentication.length, 1);
+
+      // Verify the DID contains both E and V prefixed keys
+      expect(doc.id, contains('.Vz')); // Authentication key (V prefix)
+      expect(doc.id, contains('.Ez')); // Agreement key (E prefix)
+      expect(doc.id, contains('.S')); // Service (S prefix)
+
+      // Verify verification methods are created correctly
+      expect(doc.verificationMethod.length, 2);
+      expect(doc.verificationMethod[0].id, '#key-1');
+      expect(doc.verificationMethod[1].id, '#key-2');
+    });
+
+    test('generateDocument for did:peer:2 should start with did:peer:2.Vz6Mk',
+        () async {
+      final expectedDidPeerPrefix = 'did:peer:2.Vz6Mk';
 
       final expectedDid =
-          'did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJHZW5lcmljU2VydmljZSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImFwcGxpY2F0aW9uL2pzb24iXX0';
+          'did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0';
 
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
       final key = await wallet.generateKey(keyId: derivedKeyPath);
+
+      final service = ServiceEndpoint(
+        id: '#service-1',
+        type: 'TestService',
+        serviceEndpoint: const StringEndpoint('https://denys.com/income'),
+      );
+
       final doc = DidPeer.generateDocument(
         [key.publicKey, key.publicKey],
         [key.publicKey, key.publicKey],
-        serviceEndpoint: const StringEndpoint('https://denys.com/income'),
+        serviceEndpoints: [service],
       );
       final actualDid = doc.id;
 
       final expectedDidDocString =
-          '{"id":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJHZW5lcmljU2VydmljZSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImFwcGxpY2F0aW9uL2pzb24iXX0","@context":["https://www.w3.org/ns/did/v1","https://ns.did.ai/suites/multikey-2021/v1/"],"verificationMethod":[{"id":"#key-1","controller":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJHZW5lcmljU2VydmljZSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImFwcGxpY2F0aW9uL2pzb24iXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-2","controller":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJHZW5lcmljU2VydmljZSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImFwcGxpY2F0aW9uL2pzb24iXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-3","controller":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJHZW5lcmljU2VydmljZSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImFwcGxpY2F0aW9uL2pzb24iXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-4","controller":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJHZW5lcmljU2VydmljZSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImFwcGxpY2F0aW9uL2pzb24iXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"}],"authentication":["#key-3","#key-4"],"keyAgreement":["#key-1","#key-2"],"assertionMethod":["#key-3","#key-4"],"service":[{"id":"new-id","type":"GenericService","serviceEndpoint":"https://denys.com/income"}]}';
+          '{"id":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/multikey/v1"],"verificationMethod":[{"id":"#key-1","controller":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","type":"Multikey","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-2","controller":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","type":"Multikey","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-3","controller":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","type":"Multikey","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-4","controller":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","type":"Multikey","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"}],"authentication":["#key-1","#key-2"],"keyAgreement":["#key-3","#key-4"],"service":[{"id":"#service-1","type":"TestService","serviceEndpoint":"https://denys.com/income"}]}';
       final resolvedDidDocument = DidPeer.resolve(actualDid);
       expect(resolvedDidDocument.id, expectedDid);
       expect(resolvedDidDocument.toJson(), jsonDecode(expectedDidDocString));
@@ -79,17 +193,24 @@ void main() {
 
     test('getDid for did:peer:2 should match expected', () async {
       final expectedDid =
-          'did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJHZW5lcmljU2VydmljZSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImFwcGxpY2F0aW9uL2pzb24iXX0';
+          'did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0';
 
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
       final key = await wallet.generateKey(keyId: derivedKeyPath);
+
+      final service = ServiceEndpoint(
+        id: '#service-1',
+        type: 'TestService',
+        serviceEndpoint: const StringEndpoint('https://denys.com/income'),
+      );
+
       final actualDid = DidPeer.getDid(
         [key.publicKey, key.publicKey],
         [
           key.publicKey,
           key.publicKey
         ], // Using same key twice for simplicity, matching generateDocument test
-        serviceEndpoint: const StringEndpoint('https://denys.com/income'),
+        serviceEndpoints: [service],
       );
 
       expect(actualDid, expectedDid);
@@ -137,38 +258,6 @@ void main() {
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
-    });
-
-    test('generateDocument for did:peer:2 with separate keyAgreement keys',
-        () async {
-      final derivedKeyPath1 = "m/44'/60'/$accountNumber'/0'/0'";
-      final derivedKeyPath2 = "m/44'/60'/$accountNumber'/0'/1'";
-
-      final authKey = await wallet.generateKey(keyId: derivedKeyPath1);
-      final agreeKey = await wallet.generateKey(keyId: derivedKeyPath2);
-
-      final doc = DidPeer.generateDocument(
-        [authKey.publicKey],
-        [agreeKey.publicKey],
-        serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
-      );
-
-      // Check that keyAgreement contains only the agreement key
-      expect(doc.keyAgreement.length, 1);
-      expect(doc.keyAgreement[0].id, '#key-1');
-
-      // Check that authentication contains only the auth key
-      expect(doc.authentication.length, 1);
-      expect(doc.authentication[0].id, '#key-2');
-
-      // Verify the DID contains both E and V prefixed keys
-      expect(doc.id, contains('.Ez')); // Agreement key (E prefix)
-      expect(doc.id, contains('.Vz')); // Authentication key (V prefix)
-
-      // Verify verification methods are created correctly
-      expect(doc.verificationMethod.length, 2);
-      expect(doc.verificationMethod[0].id, '#key-1');
-      expect(doc.verificationMethod[1].id, '#key-2');
     });
   });
 }

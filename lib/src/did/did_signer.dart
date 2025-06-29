@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
@@ -73,11 +75,19 @@ class DidSigner {
     }
 
     final effectiveSignatureScheme =
-        signatureScheme ?? _getDefaultSignatureScheme(keyPair);
+        signatureScheme ?? keyPair.defaultSignatureScheme;
 
-    final verificationMethodId = didDocument.verificationMethod.isNotEmpty
-        ? didDocument.verificationMethod.first.id
-        : '$did#$keyId';
+    String verificationMethodId;
+    if (didDocument.authentication.isNotEmpty) {
+      verificationMethodId = didDocument.authentication.first.id;
+    } else if (didDocument.assertionMethod.isNotEmpty) {
+      verificationMethodId = didDocument.assertionMethod.first.id;
+    } else {
+      throw SsiException(
+          message:
+              'No authentication or assertionMethod found in DID document for $did',
+          code: SsiExceptionType.keyNotFound.code);
+    }
 
     return DidSigner(
       didDocument: didDocument,
@@ -85,24 +95,6 @@ class DidSigner {
       keyPair: keyPair,
       signatureScheme: effectiveSignatureScheme,
     );
-  }
-
-  static SignatureScheme _getDefaultSignatureScheme(KeyPair keyPair) {
-    final supportedSchemes = keyPair.supportedSignatureSchemes;
-    if (supportedSchemes.isNotEmpty) {
-      return supportedSchemes.first;
-    }
-
-    switch (keyPair.publicKey.type) {
-      case KeyType.secp256k1:
-        return SignatureScheme.ecdsa_secp256k1_sha256;
-      case KeyType.ed25519:
-        return SignatureScheme.eddsa_sha512;
-      case KeyType.p256:
-        return SignatureScheme.ecdsa_p256_sha256;
-      default:
-        throw ArgumentError('Unsupported key type: ${keyPair.publicKey.type}');
-    }
   }
 
   /// Returns the DID identifier from the DID document.
