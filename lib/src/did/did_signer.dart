@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
@@ -75,10 +77,17 @@ class DidSigner {
     final effectiveSignatureScheme =
         signatureScheme ?? keyPair.defaultSignatureScheme;
 
-    // TODO: shouldnt this use the first *authentication* verification method?
-    final verificationMethodId = didDocument.verificationMethod.isNotEmpty
-        ? didDocument.verificationMethod.first.id
-        : '$did#$keyId';
+    String verificationMethodId;
+    if (didDocument.authentication.isNotEmpty) {
+      verificationMethodId = didDocument.authentication.first;
+    } else if (didDocument.assertionMethod.isNotEmpty) {
+      verificationMethodId = didDocument.assertionMethod.first;
+    } else {
+      throw SsiException(
+          message:
+              'No authentication or assertionMethod found in DID document for $did',
+          code: SsiExceptionType.keyNotFound.code);
+    }
 
     return DidSigner(
       didDocument: didDocument,
