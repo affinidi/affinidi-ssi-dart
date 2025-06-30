@@ -43,8 +43,6 @@ class VcSuites {
 
 RevocationList2020Status? getCredentialStatusFromVc(
     ParsedVerifiableCredential vc) {
-  // print('[getCredentialStatusFromVc] VC runtimeType: ${vc.runtimeType}');
-
   List<Map<String, dynamic>> credentialStatus;
 
   switch (vc) {
@@ -65,7 +63,6 @@ RevocationList2020Status? getCredentialStatusFromVc(
           vc.credentialStatus.map((status) => status.toJson()).toList();
       break;
     default:
-      // print('[getCredentialStatusFromVc] Unsupported VC type');
       return null;
   }
 
@@ -74,7 +71,6 @@ RevocationList2020Status? getCredentialStatusFromVc(
     if (type == 'RevocationList2020Status') {
       final revocationStatus = RevocationList2020Status.fromJson(status);
       return revocationStatus;
-      // TODO: verify revocationStatus.
     }
   }
   return null;

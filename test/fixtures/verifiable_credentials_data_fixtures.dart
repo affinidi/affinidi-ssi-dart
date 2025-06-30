@@ -335,4 +335,80 @@ class VerifiableCredentialDataFixtures {
       }
   }
   ''';
+
+  // V2 credential with non-revoked status
+  static String get credentialWithNonRevokedStatusV2String => r'''
+  {
+      "@context": [
+          "https://www.w3.org/ns/credentials/v2",
+          "https://schema.affinidi.com/UserProfileV1-0.jsonld",
+          "https://w3id.org/vc-revocation-list-2020/v1"
+      ],
+      "id": "uuid:123456abcd",
+      "type": ["VerifiableCredential", "UserProfile"],
+      "issuer": "did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2",
+      "validFrom": "2025-04-22T10:14:50.323952Z",
+      "credentialSubject": {
+          "Fname": "Fname",
+          "Lname": "Lame",
+          "Age": "22",
+          "Address": "Eihhornstr"
+      },
+      "credentialSchema": {
+          "id": "https://schema.affinidi.com/UserProfileV1-0.json",
+          "type": "JsonSchemaValidator2018"
+      },
+      "credentialStatus": {
+          "id": "urn:uuid:revocation-list-0",
+          "type": "RevocationList2020Status",
+          "revocationListIndex": "0",
+          "revocationListCredential": "https://example.org/revocation-list"
+      },
+      "proof": {
+          "type": "EcdsaSecp256k1Signature2019",
+          "proofPurpose": "assertionMethod",
+          "verificationMethod": "did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2",
+          "created": "2025-04-22T10:14:50.325530Z",
+          "jws": "eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..8zzMdjUNQSpoh6hd-IOYtxxuD45MAd0ZNgqyiUJMKWMbkTqYQTxouzNMGTnFfRY8wMxt9VYgV-vBWb-99iDniw"
+      }
+  }
+  ''';
+
+  // V2 credential with revoked status
+  static String get credentialWithRevokedStatusV2String => r'''
+  {
+      "@context": [
+          "https://www.w3.org/ns/credentials/v2",
+          "https://schema.affinidi.com/UserProfileV1-0.jsonld",
+          "https://w3id.org/vc-revocation-list-2020/v1"
+      ],
+      "id": "uuid:123456abcd",
+      "type": ["VerifiableCredential", "UserProfile"],
+      "issuer": "did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2",
+      "validFrom": "2025-04-22T10:14:50.323952Z",
+      "credentialSubject": {
+          "Fname": "Fname",
+          "Lname": "Lame",
+          "Age": "22",
+          "Address": "Eihhornstr"
+      },
+      "credentialSchema": {
+          "id": "https://schema.affinidi.com/UserProfileV1-0.json",
+          "type": "JsonSchemaValidator2018"
+      },
+      "credentialStatus": {
+          "id": "urn:uuid:revocation-list-0",
+          "type": "RevocationList2020Status",
+          "revocationListIndex": "8",
+          "revocationListCredential": "https://example.org/revocation-list"
+      },
+      "proof": {
+          "type": "EcdsaSecp256k1Signature2019",
+          "proofPurpose": "assertionMethod",
+          "verificationMethod": "did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2",
+          "created": "2025-04-22T10:14:50.325530Z",
+          "jws": "eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..8zzMdjUNQSpoh6hd-IOYtxxuD45MAd0ZNgqyiUJMKWMbkTqYQTxouzNMGTnFfRY8wMxt9VYgV-vBWb-99iDniw"
+      }
+  }
+  ''';
 }

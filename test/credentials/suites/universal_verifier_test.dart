@@ -62,4 +62,10 @@ class _TestVerifier implements VcVerifier {
   Future<VerificationResult> verify(ParsedVerifiableCredential vc) {
     return Future.value(result);
   }
+
+  @override
+  Future<List<VerificationResult>> verifyList(
+      List<ParsedVerifiableCredential> vcs) {
+    return Future.value(List.filled(vcs.length, result));
+  }
 }

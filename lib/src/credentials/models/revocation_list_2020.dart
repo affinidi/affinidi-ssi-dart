@@ -1,6 +1,7 @@
 import '../../../ssi.dart';
 import '../../util/json_util.dart';
 
+/// Represents the credentialStatus entry of type RevocationList2020Status.
 class RevocationList2020Status
     implements CredentialStatusV1, CredentialStatusV2 {
   @override
@@ -12,6 +13,7 @@ class RevocationList2020Status
   final String revocationListIndex;
   final String revocationListCredential;
 
+  /// Constructs from a raw JSON-like map.
   RevocationList2020Status(Map<String, dynamic> data)
       : id = getMandatoryUri(data, 'id'),
         type = getMandatoryString(data, 'type'),
@@ -19,10 +21,12 @@ class RevocationList2020Status
         revocationListCredential =
             getMandatoryString(data, 'revocationListCredential');
 
+  /// Constructs from a JSON object.
   factory RevocationList2020Status.fromJson(Map<String, dynamic> json) {
     return RevocationList2020Status(json);
   }
 
+  @override
   Map<String, dynamic> toJson() => {
         'id': id.toString(),
         'type': type,
@@ -31,110 +35,74 @@ class RevocationList2020Status
       };
 
   @override
-  operator [](Object? key) {
-    // TODO: implement []
-    throw UnimplementedError();
-  }
+  dynamic operator [](Object? key) => throw UnimplementedError();
 
   @override
-  void operator []=(String key, value) {
-    // TODO: implement []=
-  }
+  void operator []=(String key, dynamic value) {}
 
   @override
-  void addAll(Map<String, dynamic> other) {
-    // TODO: implement addAll
-  }
+  void addAll(Map<String, dynamic> other) {}
 
   @override
-  void addEntries(Iterable<MapEntry<String, dynamic>> entries) {
-    // TODO: implement addEntries
-  }
+  void addEntries(Iterable<MapEntry<String, dynamic>> entries) {}
 
   @override
-  Map<RK, RV> cast<RK, RV>() {
-    // TODO: implement cast
-    throw UnimplementedError();
-  }
+  Map<RK, RV> cast<RK, RV>() => throw UnimplementedError();
 
   @override
-  void clear() {
-    // TODO: implement clear
-  }
+  void clear() {}
 
   @override
-  bool containsKey(Object? key) {
-    // TODO: implement containsKey
-    throw UnimplementedError();
-  }
+  bool containsKey(Object? key) => throw UnimplementedError();
 
   @override
-  bool containsValue(Object? value) {
-    // TODO: implement containsValue
-    throw UnimplementedError();
-  }
+  bool containsValue(Object? value) => throw UnimplementedError();
 
   @override
-  // TODO: implement entries
   Iterable<MapEntry<String, dynamic>> get entries => throw UnimplementedError();
 
   @override
-  void forEach(void Function(String key, dynamic value) action) {
-    // TODO: implement forEach
-  }
+  void forEach(void Function(String key, dynamic value) action) {}
 
   @override
-  // TODO: implement isEmpty
   bool get isEmpty => throw UnimplementedError();
 
   @override
-  // TODO: implement isNotEmpty
   bool get isNotEmpty => throw UnimplementedError();
 
   @override
-  // TODO: implement keys
   Iterable<String> get keys => throw UnimplementedError();
 
   @override
-  // TODO: implement length
   int get length => throw UnimplementedError();
 
   @override
   Map<K2, V2> map<K2, V2>(
-      MapEntry<K2, V2> Function(String key, dynamic value) transform) {
-    // TODO: implement map
-    throw UnimplementedError();
-  }
+    MapEntry<K2, V2> Function(String key, dynamic value) transform,
+  ) =>
+      throw UnimplementedError();
 
   @override
-  putIfAbsent(String key, Function() ifAbsent) {
-    // TODO: implement putIfAbsent
-    throw UnimplementedError();
-  }
+  dynamic putIfAbsent(String key, dynamic Function() ifAbsent) =>
+      throw UnimplementedError();
 
   @override
-  remove(Object? key) {
-    // TODO: implement remove
-    throw UnimplementedError();
-  }
+  dynamic remove(Object? key) => throw UnimplementedError();
 
   @override
-  void removeWhere(bool Function(String key, dynamic value) test) {
-    // TODO: implement removeWhere
-  }
+  void removeWhere(bool Function(String key, dynamic value) test) {}
 
   @override
-  update(String key, Function(dynamic value) update, {Function()? ifAbsent}) {
-    // TODO: implement update
-    throw UnimplementedError();
-  }
+  dynamic update(
+    String key,
+    dynamic Function(dynamic value) update, {
+    dynamic Function()? ifAbsent,
+  }) =>
+      throw UnimplementedError();
 
   @override
-  void updateAll(Function(String key, dynamic value) update) {
-    // TODO: implement updateAll
-  }
+  void updateAll(dynamic Function(String key, dynamic value) update) {}
 
   @override
-  // TODO: implement values
-  Iterable get values => throw UnimplementedError();
+  Iterable<dynamic> get values => throw UnimplementedError();
 }

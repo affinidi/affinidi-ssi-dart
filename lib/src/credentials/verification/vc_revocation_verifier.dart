@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -71,5 +69,11 @@ class RevocationList2020Verifier implements VcVerifier {
     return isRevoked
         ? VerificationResult.invalid(errors: ['Credential is revoked'])
         : VerificationResult.ok();
+  }
+
+  @override
+  Future<List<VerificationResult>> verifyList(
+      List<ParsedVerifiableCredential> vcs) {
+    return Future.wait(vcs.map(verify));
   }
 }
