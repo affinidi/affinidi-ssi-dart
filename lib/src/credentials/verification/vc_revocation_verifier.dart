@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import '../../../ssi.dart';
-import '../models/revocation_list_2020.dart';
+import '../models/field_types/credential_status/revocation_list_2020.dart';
 
-/// Verifier that checks if a Verifiable Credential is revoked using RevocationList2020Status./// Verifier that checks if a Verifiable Credential is revoked using RevocationList2020Status.
+/// Verifier that checks if a Verifiable Credential is revoked using RevocationList2020Status.
 class RevocationList2020Verifier implements VcVerifier {
   /// A function that fetches the status list credential from the given [Uri].
   ///
@@ -24,9 +24,7 @@ class RevocationList2020Verifier implements VcVerifier {
     final statuses = getCredentialStatusFromVc(vc);
 
     if (statuses.isEmpty) {
-      return VerificationResult.invalid(
-        errors: ['Missing or unsupported credentialStatus'],
-      );
+      return VerificationResult.ok();
     }
 
     final errors = <String>[];
@@ -36,8 +34,8 @@ class RevocationList2020Verifier implements VcVerifier {
       final index = int.tryParse(status.revocationListIndex);
 
       if (listUri == null || index == null) {
-        errors.add(
-            'Invalid revocationListCredential or revocationListIndex for status ${status.id}');
+        errors
+            .add('${SsiExceptionType.invalidVC.code} for status ${status.id}');
         continue;
       }
 
@@ -45,15 +43,15 @@ class RevocationList2020Verifier implements VcVerifier {
       try {
         statusListVc = await fetchStatusListCredential(listUri);
       } catch (e) {
-        errors
-            .add('Failed to fetch revocation list for status ${status.id}: $e');
+        errors.add(
+            '${SsiExceptionType.failedToFetchRevocationList.code} for status ${status.id}: $e');
         continue;
       }
 
       final encodedList = statusListVc['credentialSubject']?['encodedList'];
       if (encodedList == null || encodedList is! String) {
-        errors.add(
-            'Missing or invalid encodedList in status VC for status ${status.id}');
+        errors
+            .add('${SsiExceptionType.invalidVC.code} for status ${status.id}');
         continue;
       }
 
@@ -61,7 +59,8 @@ class RevocationList2020Verifier implements VcVerifier {
       try {
         bitstring = base64Url.decode(encodedList);
       } catch (_) {
-        errors.add('Invalid encodedList in status VC for status ${status.id}');
+        errors.add(
+            '${SsiExceptionType.invalidEncoding.code} for status ${status.id}');
         continue;
       }
 
@@ -70,7 +69,7 @@ class RevocationList2020Verifier implements VcVerifier {
 
       if (byteIndex >= bitstring.length) {
         errors.add(
-            'Revocation index $index out of bounds for status ${status.id}');
+            '${SsiExceptionType.revocationIndexOutOfBounds.code} for status ${status.id}');
         continue;
       }
 
@@ -78,7 +77,8 @@ class RevocationList2020Verifier implements VcVerifier {
       final isRevoked = (byte & (1 << (7 - bitOffset))) != 0;
 
       if (isRevoked) {
-        errors.add('Credential is revoked for status ${status.id}');
+        errors
+            .add('${SsiExceptionType.invalidVC.code} for status ${status.id}');
       }
     }
 

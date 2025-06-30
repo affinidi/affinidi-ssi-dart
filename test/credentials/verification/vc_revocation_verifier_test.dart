@@ -39,11 +39,12 @@ void main() {
       expect(
           result.errors,
           contains(
-              'Credential is revoked for status urn:uuid:revocation-list-0'));
+              '${SsiExceptionType.invalidVC.code} for status urn:uuid:revocation-list-0'));
+
       expect(result.warnings, isEmpty);
     });
 
-    test('Should fail if credentialStatus is missing', () async {
+    test('Should pass if credentialStatus is missing', () async {
       final verifier = RevocationList2020Verifier(
         fetchStatusListCredential: (_) async =>
             VerifiableCredentialDataFixtures.revocationListCredential,
@@ -52,12 +53,13 @@ void main() {
       final map = jsonDecode(VerifiableCredentialDataFixtures
           .credentialWithNonRevokedStatusString);
       map.remove('credentialStatus');
-      final parsed = UniversalParser.parse(jsonEncode(map));
-      final result = await verifier.verify(parsed);
+      ParsedVerifiableCredential? vc;
+      vc = UniversalParser.parse(jsonEncode(map));
 
-      expect(result.isValid, false);
-      expect(
-          result.errors, contains('Missing or unsupported credentialStatus'));
+      final result = await verifier.verify(vc);
+
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
       expect(result.warnings, isEmpty);
     });
 
@@ -79,10 +81,8 @@ void main() {
       expect(result.isValid, false);
       expect(
         result.errors,
-        anyOf(
-          contains('Invalid revocationListCredential or revocationListIndex'),
-          contains(startsWith('Failed to fetch revocation list')),
-        ),
+        contains(
+            '${SsiExceptionType.failedToFetchRevocationList.code} for status urn:uuid:revocation-list-0: Exception: Invalid URL scheme'),
       );
       expect(result.warnings, isEmpty);
     });
@@ -103,7 +103,7 @@ void main() {
       expect(
         result.errors,
         contains(
-            'Invalid revocationListCredential or revocationListIndex for status urn:uuid:revocation-list-0'),
+            '${SsiExceptionType.invalidVC.code} for status urn:uuid:revocation-list-0'),
       );
       expect(result.warnings, isEmpty);
     });
@@ -121,9 +121,10 @@ void main() {
 
       expect(result.isValid, false);
       expect(
-          result.errors,
-          contains(startsWith(
-              'Failed to fetch revocation list for status urn:uuid:revocation-list-0')));
+        result.errors,
+        contains(
+            '${SsiExceptionType.failedToFetchRevocationList.code} for status urn:uuid:revocation-list-0: Exception: Network error'),
+      );
       expect(result.warnings, isEmpty);
     });
 
@@ -144,9 +145,10 @@ void main() {
 
       expect(result.isValid, false);
       expect(
-          result.errors,
-          contains(
-              'Invalid encodedList in status VC for status urn:uuid:revocation-list-0'));
+        result.errors,
+        contains(
+            '${SsiExceptionType.invalidEncoding.code} for status urn:uuid:revocation-list-0'),
+      );
       expect(result.warnings, isEmpty);
     });
 
@@ -164,9 +166,10 @@ void main() {
 
       expect(result.isValid, false);
       expect(
-          result.errors,
-          contains(startsWith(
-              'Revocation index 1000000 out of bounds for status urn:uuid:revocation-list-0')));
+        result.errors,
+        contains(
+            '${SsiExceptionType.revocationIndexOutOfBounds.code} for status urn:uuid:revocation-list-0'),
+      );
       expect(result.warnings, isEmpty);
     });
     test('Should pass for V2 credential with multiple non-revoked statuses',
@@ -206,7 +209,7 @@ void main() {
       expect(
           result.errors,
           contains(
-              'Credential is revoked for status urn:uuid:revocation-list-1'));
+              '${SsiExceptionType.invalidVC.code} for status urn:uuid:revocation-list-1'));
       expect(result.warnings, isEmpty);
     });
   });
