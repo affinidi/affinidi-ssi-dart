@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:convert';
 
 import 'package:ssi/src/credentials/verification/vc_revocation_verifier.dart';
@@ -38,7 +36,10 @@ void main() {
       final result = await verifier.verify(parsed);
 
       expect(result.isValid, false);
-      expect(result.errors, contains('Credential is revoked'));
+      expect(
+          result.errors,
+          contains(
+              'Credential is revoked for status urn:uuid:revocation-list-0'));
       expect(result.warnings, isEmpty);
     });
 
@@ -69,7 +70,6 @@ void main() {
           return VerifiableCredentialDataFixtures.revocationListCredential;
         },
       );
-
       final map = jsonDecode(VerifiableCredentialDataFixtures
           .credentialWithNonRevokedStatusString);
       map['credentialStatus']['revocationListCredential'] = 'invalid-url';
@@ -100,8 +100,11 @@ void main() {
       final result = await verifier.verify(parsed);
 
       expect(result.isValid, false);
-      expect(result.errors,
-          contains('Invalid revocationListCredential or revocationListIndex'));
+      expect(
+        result.errors,
+        contains(
+            'Invalid revocationListCredential or revocationListIndex for status urn:uuid:revocation-list-0'),
+      );
       expect(result.warnings, isEmpty);
     });
 
@@ -117,8 +120,10 @@ void main() {
       final result = await verifier.verify(parsed);
 
       expect(result.isValid, false);
-      expect(result.errors,
-          contains(startsWith('Failed to fetch revocation list')));
+      expect(
+          result.errors,
+          contains(startsWith(
+              'Failed to fetch revocation list for status urn:uuid:revocation-list-0')));
       expect(result.warnings, isEmpty);
     });
 
@@ -138,8 +143,10 @@ void main() {
       final result = await verifier.verify(parsed);
 
       expect(result.isValid, false);
-      expect(result.errors,
-          contains('Missing or invalid encodedList in status VC'));
+      expect(
+          result.errors,
+          contains(
+              'Invalid encodedList in status VC for status urn:uuid:revocation-list-0'));
       expect(result.warnings, isEmpty);
     });
 
@@ -156,89 +163,51 @@ void main() {
       final result = await verifier.verify(parsed);
 
       expect(result.isValid, false);
-      expect(result.errors,
-          contains(startsWith('Revocation index 1000000 out of bounds')));
+      expect(
+          result.errors,
+          contains(startsWith(
+              'Revocation index 1000000 out of bounds for status urn:uuid:revocation-list-0')));
       expect(result.warnings, isEmpty);
     });
-  });
-  test('Should pass for non-revoked V2 credential', () async {
-    final verifier = RevocationList2020Verifier(
-      fetchStatusListCredential: (_) async =>
-          VerifiableCredentialDataFixtures.revocationListCredential,
-    );
+    test('Should pass for V2 credential with multiple non-revoked statuses',
+        () async {
+      final verifier = RevocationList2020Verifier(
+        fetchStatusListCredential: (_) async =>
+            VerifiableCredentialDataFixtures.revocationListCredential,
+      );
 
-    final data =
-        VerifiableCredentialDataFixtures.credentialWithNonRevokedStatusV2String;
-    final parsed = UniversalParser.parse(data);
-    final result = await verifier.verify(parsed);
+      ParsedVerifiableCredential? vc;
+      try {
+        vc = UniversalParser.parse(VerifiableCredentialDataFixtures
+            .credentialWithMultipleNonRevokedStatusV2String);
+      } catch (e) {
+        fail('Failed to parse VC: $e');
+      }
 
-    expect(result.isValid, true);
-    expect(result.errors, isEmpty);
-    expect(result.warnings, isEmpty);
-  });
+      final result = await verifier.verify(vc);
 
-  test('Should fail for revoked V2 credential', () async {
-    final verifier = RevocationList2020Verifier(
-      fetchStatusListCredential: (_) async =>
-          VerifiableCredentialDataFixtures.revocationListCredential,
-    );
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+      expect(result.warnings, isEmpty);
+    });
+    test(
+        'Should fail for V2 credential with mixed revoked/non-revoked statuses',
+        () async {
+      final verifier = RevocationList2020Verifier(
+        fetchStatusListCredential: (_) async =>
+            VerifiableCredentialDataFixtures.revocationListCredential,
+      );
 
-    final data =
-        VerifiableCredentialDataFixtures.credentialWithRevokedStatusV2String;
-    final parsed = UniversalParser.parse(data);
-    final result = await verifier.verify(parsed);
+      final vc = UniversalParser.parse(
+          VerifiableCredentialDataFixtures.credentialWithMixedStatusV2String);
+      final result = await verifier.verify(vc);
 
-    expect(result.isValid, false);
-    expect(result.errors, contains('Credential is revoked'));
-    expect(result.warnings, isEmpty);
-  });
-
-  test('Should pass for list of non-revoked V1 and V2 credentials', () async {
-    final verifier = RevocationList2020Verifier(
-      fetchStatusListCredential: (_) async =>
-          VerifiableCredentialDataFixtures.revocationListCredential,
-    );
-
-    final vcs = [
-      UniversalParser.parse(VerifiableCredentialDataFixtures
-          .credentialWithNonRevokedStatusString),
-      UniversalParser.parse(VerifiableCredentialDataFixtures
-          .credentialWithNonRevokedStatusV2String),
-    ];
-    final results = await verifier.verifyList(vcs);
-
-    expect(results.every((r) => r.isValid), true);
-    expect(results.every((r) => r.errors.isEmpty), true);
-    expect(results.every((r) => r.warnings.isEmpty), true);
-  });
-
-  test('Should fail for list with some revoked V1 and V2 credentials',
-      () async {
-    final verifier = RevocationList2020Verifier(
-      fetchStatusListCredential: (_) async =>
-          VerifiableCredentialDataFixtures.revocationListCredential,
-    );
-
-    final vcs = [
-      UniversalParser.parse(VerifiableCredentialDataFixtures
-          .credentialWithNonRevokedStatusString),
-      UniversalParser.parse(
-          VerifiableCredentialDataFixtures.credentialWithRevokedStatusString),
-      UniversalParser.parse(VerifiableCredentialDataFixtures
-          .credentialWithNonRevokedStatusV2String),
-      UniversalParser.parse(
-          VerifiableCredentialDataFixtures.credentialWithRevokedStatusV2String),
-    ];
-    final results = await verifier.verifyList(vcs);
-
-    expect(results[0].isValid, true);
-    expect(results[0].errors, isEmpty);
-    expect(results[1].isValid, false);
-    expect(results[1].errors, contains('Credential is revoked'));
-    expect(results[2].isValid, true);
-    expect(results[2].errors, isEmpty);
-    expect(results[3].isValid, false);
-    expect(results[3].errors, contains('Credential is revoked'));
-    expect(results.every((r) => r.warnings.isEmpty), true);
+      expect(result.isValid, false);
+      expect(
+          result.errors,
+          contains(
+              'Credential is revoked for status urn:uuid:revocation-list-1'));
+      expect(result.warnings, isEmpty);
+    });
   });
 }

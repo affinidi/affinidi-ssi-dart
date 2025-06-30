@@ -404,6 +404,97 @@ class VerifiableCredentialDataFixtures {
       },
       "proof": {
           "type": "EcdsaSecp256k1Signature2019",
+          "created": "2025-04-11T15:20:35Z",
+          "verificationMethod": "did:key:zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT#zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT",
+          "proofPurpose": "assertionMethod",
+          "jws": "eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..jL90Nk1rSfgBXgZJif44x1KkdD0iYgkRjTfChEb0W0gJ6HDDc5BVE5jb1osse7JEueSSJcYaAMfbh_2QsOdcSA"
+      }
+  }
+  ''';
+
+  // V2 credential with multiple non-revoked and revoked statuses
+  static String get credentialWithMultipleNonRevokedStatusV2String => r'''
+  {
+      "@context": [
+          "https://www.w3.org/ns/credentials/v2",
+          "https://www.w3.org/ns/credentials/examples/v2"
+      ],
+      "id": "uuid:123456abcd",
+      "type": ["VerifiableCredential", "UserProfile"],
+      "credentialSubject": {
+          "Fname": "Fname",
+          "Lname": "Lame",
+          "Age": "22",
+          "Address": "Eihhornstr"
+      },
+      "credentialSchema": {
+          "id": "https://schema.affinidi.com/UserProfileV1-0.json",
+          "type": "JsonSchemaValidator2018"
+      },
+      "issuanceDate": "2023-01-01T09:51:00.272Z",
+      "expirationDate": "3024-01-01T12:00:00Z",
+      "issuer": "did:key:zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT",
+      "credentialStatus": [
+          {
+              "id": "urn:uuid:revocation-list-0",
+              "type": "RevocationList2020Status",
+              "revocationListIndex": "0",
+              "revocationListCredential": "https://example.org/revocation-list"
+          },
+          {
+              "id": "urn:uuid:revocation-list-1",
+              "type": "RevocationList2020Status",
+              "revocationListIndex": "1",
+              "revocationListCredential": "https://example.org/revocation-list"
+          }
+      ],
+      "proof": {
+          "type": "EcdsaSecp256k1Signature2019",
+          "created": "2025-04-11T15:20:35Z",
+          "verificationMethod": "did:key:zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT#zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT",
+          "proofPurpose": "assertionMethod",
+          "jws": "eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..jL90Nk1rSfgBXgZJif44x1KkdD0iYgkRjTfChEb0W0gJ6HDDc5BVE5jb1osse7JEueSSJcYaAMfbh_2QsOdcSA"
+      }
+  }
+  ''';
+
+  // V2 credential with multiple non-revoked and revoked statuses
+  static String get credentialWithMixedStatusV2String => r'''
+  {
+      "@context": [
+          "https://www.w3.org/ns/credentials/v2",
+          "https://www.w3.org/ns/credentials/examples/v2"
+      ],
+      "id": "uuid:123456abcd",
+      "type": ["VerifiableCredential", "UserProfile"],
+      "issuer": "did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2",
+      "validFrom": "2025-04-22T10:14:50.323952Z",
+      "credentialSubject": {
+          "Fname": "Fname",
+          "Lname": "Lame",
+          "Age": "22",
+          "Address": "Eihhornstr"
+      },
+      "credentialSchema": {
+          "id": "https://schema.affinidi.com/UserProfileV1-0.json",
+          "type": "JsonSchemaValidator2018"
+      },
+      "credentialStatus": [
+          {
+              "id": "urn:uuid:revocation-list-0",
+              "type": "RevocationList2020Status",
+              "revocationListIndex": "0",
+              "revocationListCredential": "https://example.org/revocation-list"
+          },
+          {
+              "id": "urn:uuid:revocation-list-1",
+              "type": "RevocationList2020Status",
+              "revocationListIndex": "8",
+              "revocationListCredential": "https://example.org/revocation-list"
+          }
+      ],
+      "proof": {
+          "type": "EcdsaSecp256k1Signature2019",
           "proofPurpose": "assertionMethod",
           "verificationMethod": "did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2",
           "created": "2025-04-22T10:14:50.325530Z",

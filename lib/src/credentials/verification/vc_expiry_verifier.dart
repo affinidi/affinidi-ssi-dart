@@ -46,10 +46,4 @@ class VcExpiryVerifier implements VcVerifier {
       VerificationResult.ok(),
     );
   }
-
-  @override
-  Future<List<VerificationResult>> verifyList(
-      List<ParsedVerifiableCredential> vcs) {
-    return Future.wait(vcs.map(verify));
-  }
 }

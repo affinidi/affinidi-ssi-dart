@@ -1,5 +1,4 @@
 import '../../../ssi.dart';
-import '../models/revocation_list_2020.dart';
 
 /// Registry of all supported Verifiable Credential suites.
 ///
@@ -39,39 +38,4 @@ class VcSuites {
         ),
     };
   }
-}
-
-RevocationList2020Status? getCredentialStatusFromVc(
-    ParsedVerifiableCredential vc) {
-  List<Map<String, dynamic>> credentialStatus;
-
-  switch (vc) {
-    case LdVcDataModelV1():
-      final status = vc.credentialStatus;
-      credentialStatus = status == null ? [] : [status.toJson()];
-      break;
-    case LdVcDataModelV2():
-      credentialStatus =
-          vc.credentialStatus.map((status) => status.toJson()).toList();
-      break;
-    case JwtVcDataModelV1():
-      final status = vc.credentialStatus;
-      credentialStatus = status == null ? [] : [status.toJson()];
-      break;
-    case SdJwtDataModelV2():
-      credentialStatus =
-          vc.credentialStatus.map((status) => status.toJson()).toList();
-      break;
-    default:
-      return null;
-  }
-
-  for (final status in credentialStatus) {
-    final type = status['type'];
-    if (type == 'RevocationList2020Status') {
-      final revocationStatus = RevocationList2020Status.fromJson(status);
-      return revocationStatus;
-    }
-  }
-  return null;
 }
