@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:ssi/ssi.dart';
 
 Future<void> main() async {
   // Create a wallet for key management
-  final wallet = GenericBIP32Wallet.generate();
+  final keyStore = InMemoryKeyStore();
+  final wallet = PersistentWallet(keyStore);
 
   // Create a storage for DID controller mappings
   final store = InMemoryDidStore();
@@ -34,7 +37,7 @@ Future<void> main() async {
   final serviceEndpoint = ServiceEndpoint(
     id: '#service-1',
     type: 'MessagingService',
-    serviceEndpoint: StringEndpoint('https://example.com/messaging'),
+    serviceEndpoint: const StringEndpoint('https://example.com/messaging'),
   );
   await controller.addServiceEndpoint(serviceEndpoint);
 
@@ -44,7 +47,7 @@ Future<void> main() async {
   print('Verification methods: ${didDocument.verificationMethod.length}');
   print('Authentication methods: ${didDocument.authentication.length}');
   print('Key agreement methods: ${didDocument.keyAgreement.length}');
-  print('Service endpoints: ${didDocument.service?.length ?? 0}');
+  print('Service endpoints: ${didDocument.service.length}');
 
   // Example: Add multiple authentication keys
   final authKey2Id = 'auth-key-2';
@@ -54,10 +57,10 @@ Future<void> main() async {
   await controller.addAuthentication(authVerificationMethod2Id);
 
   // Sign data using authentication key
-  final dataToSign = 'Hello, DID Peer!'.toBytes();
+  final dataToSign = Uint8List.fromList('Hello, DID Peer!'.codeUnits);
   final signature = await controller.sign(dataToSign, authVerificationMethodId);
   print('\nSigned data with authentication key');
-  print('Signature: ${signature.toBase64()}');
+  print('Signature: ${base64.encode(signature)}');
 
   // Verify the signature
   final isValid = await controller.verify(

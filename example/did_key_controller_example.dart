@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:ssi/ssi.dart';
 
 Future<void> main() async {
   // Create a wallet for key management
-  final wallet = GenericBIP32Wallet.generate();
+  final keyStore = InMemoryKeyStore();
+  final wallet = PersistentWallet(keyStore);
 
   // Create a storage for DID controller mappings
   final store = InMemoryDidStore();
@@ -15,7 +18,7 @@ Future<void> main() async {
 
   // Generate a new key in the wallet
   final walletKeyId = 'my-signing-key';
-  final keyPair = await wallet.generateKey(keyId: walletKeyId);
+  await wallet.generateKey(keyId: walletKeyId);
   print('Generated key with ID: $walletKeyId');
 
   // Add the key as a verification method to the DID controller
@@ -29,9 +32,9 @@ Future<void> main() async {
   print('Verification methods: ${didDocument.verificationMethod.length}');
 
   // Sign data using the DID controller
-  final dataToSign = 'Hello, DID Key!'.toBytes();
+  final dataToSign = Uint8List.fromList('Hello, DID Key!'.codeUnits);
   final signature = await controller.sign(dataToSign, verificationMethodId);
-  print('Signature: ${signature.toBase64()}');
+  print('Signature: ${base64.encode(signature)}');
 
   // Verify the signature
   final isValid = await controller.verify(
@@ -43,5 +46,5 @@ Future<void> main() async {
 
   // Get a DID signer for credential operations
   final signer = await controller.getSigner(verificationMethodId);
-  print('Signer DID: ${signer.did}');
+  print('Signer DID Key ID: ${signer.didKeyId}');
 }

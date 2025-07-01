@@ -1,14 +1,14 @@
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
 
-/// Custom DiDControllerStore implementation that simulates persistence
-class PersistentDidControllerStore extends DiDControllerStore {
+/// Custom DidStore implementation that simulates persistence
+class PersistentDidControllerStore extends DidStore {
   // In a real implementation, this would be backed by a database
   final Map<String, String> _storage = {};
   final Map<String, Map<String, dynamic>> _metadata = {};
 
   @override
-  void setMapping(String didKeyId, String walletKeyId) {
+  Future<void> setMapping(String didKeyId, String walletKeyId) async {
     _storage[didKeyId] = walletKeyId;
     _metadata[didKeyId] = {
       'createdAt': DateTime.now().toIso8601String(),
@@ -18,7 +18,7 @@ class PersistentDidControllerStore extends DiDControllerStore {
   }
 
   @override
-  String? getWalletKeyId(String didKeyId) {
+  Future<String?> getWalletKeyId(String didKeyId) async {
     final walletKeyId = _storage[didKeyId];
     if (walletKeyId != null) {
       _metadata[didKeyId]?['lastUsed'] = DateTime.now().toIso8601String();
@@ -27,21 +27,82 @@ class PersistentDidControllerStore extends DiDControllerStore {
   }
 
   @override
-  void removeMapping(String didKeyId) {
+  Future<void> removeMapping(String didKeyId) async {
     _storage.remove(didKeyId);
     _metadata.remove(didKeyId);
     print('  ✓ Removed mapping for: $didKeyId');
   }
 
   @override
-  void clear() {
+  Future<void> clearAll() async {
     _storage.clear();
     _metadata.clear();
     print('  ✓ Cleared all mappings');
   }
 
   @override
-  List<String> get didKeyIds => _storage.keys.toList();
+  Future<List<String>> get verificationMethodIds async =>
+      _storage.keys.toList();
+
+  @override
+  Future<List<String>> get authentication async => [];
+
+  @override
+  Future<List<String>> get keyAgreement async => [];
+
+  @override
+  Future<List<String>> get capabilityInvocation async => [];
+
+  @override
+  Future<List<String>> get capabilityDelegation async => [];
+
+  @override
+  Future<List<String>> get assertionMethod async => [];
+
+  @override
+  Future<List<ServiceEndpoint>> get serviceEndpoints async => [];
+
+  @override
+  Future<void> addAuthentication(String verificationMethodId) async {}
+
+  @override
+  Future<void> removeAuthentication(String verificationMethodId) async {}
+
+  @override
+  Future<void> addKeyAgreement(String verificationMethodId) async {}
+
+  @override
+  Future<void> removeKeyAgreement(String verificationMethodId) async {}
+
+  @override
+  Future<void> addCapabilityInvocation(String verificationMethodId) async {}
+
+  @override
+  Future<void> removeCapabilityInvocation(String verificationMethodId) async {}
+
+  @override
+  Future<void> addCapabilityDelegation(String verificationMethodId) async {}
+
+  @override
+  Future<void> removeCapabilityDelegation(String verificationMethodId) async {}
+
+  @override
+  Future<void> addAssertionMethod(String verificationMethodId) async {}
+
+  @override
+  Future<void> removeAssertionMethod(String verificationMethodId) async {}
+
+  @override
+  Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {}
+
+  @override
+  Future<void> removeServiceEndpoint(String id) async {}
+
+  @override
+  Future<void> clearVerificationMethodReferences() async {}
+
+  @override
+  Future<void> clearServiceEndpoints() async {}
 
   // Additional methods for advanced features
   Map<String, dynamic>? getMetadata(String didKeyId) => _metadata[didKeyId];
@@ -75,7 +136,7 @@ void main() async {
       '1. Creating did:peer controller with multiple verification methods...\n');
 
   final peerController = DidPeerController(
-    keyMapping: persistentStore,
+    store: persistentStore,
     wallet: wallet,
   );
 
@@ -103,12 +164,18 @@ void main() async {
   print('  - Key Agreement (P256): ${keyAgreementKey.id}');
   print('  - Assertion (ED25519): ${assertionKey.id}');
 
-  // Add keys with different purposes
-  peerController.addAuthenticationKey(authKey1.id);
-  peerController.addAuthenticationKey(authKey2.id);
-  peerController.addKeyAgreementKey(keyAgreementKey.id);
-  peerController.addAssertionMethodKey(assertionKey.id);
-  peerController.addCapabilityInvocationKey(authKey1.id);
+  // Add keys as verification methods and then add to different purposes
+  final authVmId1 = await peerController.addVerificationMethod(authKey1.id);
+  final authVmId2 = await peerController.addVerificationMethod(authKey2.id);
+  final kaVmId = await peerController.addVerificationMethod(keyAgreementKey.id);
+  final assertVmId =
+      await peerController.addVerificationMethod(assertionKey.id);
+
+  await peerController.addAuthentication(authVmId1);
+  await peerController.addAuthentication(authVmId2);
+  await peerController.addKeyAgreement(kaVmId);
+  await peerController.addAssertionMethod(assertVmId);
+  await peerController.addCapabilityInvocation(authVmId1);
 
   // 2. Service endpoints
   print('\n2. Adding service endpoints...\n');
@@ -119,7 +186,7 @@ void main() async {
     'routingKeys': ['did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH'],
   });
 
-  peerController.setServiceEndpoint(serviceEndpoint);
+  await peerController.addServiceEndpoint(serviceEndpoint);
   print('Added DIDComm service endpoint');
 
   // Create the document
@@ -132,21 +199,9 @@ void main() async {
   // 3. Key purpose management
   print('\n3. Demonstrating key purpose management...\n');
 
-  // Set up mappings for all verification methods
-  for (var i = 0; i < peerDocument.verificationMethod.length; i++) {
-    final vm = peerDocument.verificationMethod[i];
-    final keyId =
-        [authKey1.id, authKey2.id, keyAgreementKey.id, assertionKey.id][i];
-    persistentStore.setMapping(vm.id, keyId);
-  }
+  // Mappings are already set up by addVerificationMethod calls above
 
-  // Find verification method IDs
-  final authVmId1 = await peerController.findVerificationMethodId(authKey1.id);
-  final authVmId2 = await peerController.findVerificationMethodId(authKey2.id);
-  final kaVmId =
-      await peerController.findVerificationMethodId(keyAgreementKey.id);
-  final assertVmId =
-      await peerController.findVerificationMethodId(assertionKey.id);
+  // Verification method IDs are already available from above
 
   print('Verification method IDs:');
   print('  - Primary Auth: $authVmId1');
@@ -186,11 +241,8 @@ void main() async {
     keyType: KeyType.secp256k1,
   );
 
-  final newVmId =
-      await peerController.addCapabilityDelegationVerificationMethod(
-    newKey.publicKey.type,
-    newKey.id,
-  );
+  final newVmId = await peerController.addVerificationMethod(newKey.id);
+  await peerController.addCapabilityDelegation(newVmId);
 
   print('Added new capability delegation key');
   print('New verification method ID: $newVmId');
@@ -234,7 +286,7 @@ void main() async {
   print('\n8. Simulating key rotation...\n');
 
   // Remove old auth key reference
-  peerController.removeAuthenticationVerificationMethodReference(authVmId2);
+  await peerController.removeAuthentication(authVmId2);
   print('Removed backup authentication key from verification relationships');
 
   // Add new rotated key
@@ -243,10 +295,8 @@ void main() async {
     keyType: KeyType.ed25519,
   );
 
-  final rotatedVmId = await peerController.addAuthenticationVerificationMethod(
-    rotatedKey.publicKey.type,
-    rotatedKey.id,
-  );
+  final rotatedVmId = await peerController.addVerificationMethod(rotatedKey.id);
+  await peerController.addAuthentication(rotatedVmId);
 
   print('Added new rotated authentication key: $rotatedVmId');
 

@@ -19,9 +19,9 @@ void main() async {
 
   // Create did:key controller
   print('\n--- did:key Controller ---');
-  final keyMapping = DefaultDiDControllerStore();
+  final keyMapping = InMemoryDidStore();
   final didKeyController = DidKeyController(
-    keyMapping: keyMapping,
+    store: keyMapping,
     wallet: wallet,
   );
 
@@ -30,16 +30,16 @@ void main() async {
   print(
       'Generated key for did:key. Public key: ${keyForDidKey.publicKey.bytes.sublist(1, 9)}...');
 
-  // Create DID document
-  final didKeyDocument =
-      await didKeyController.createDidDocumentFromKey(keyForDidKey.id);
+  // Add verification method and create DID document
+  await didKeyController.addVerificationMethod(keyForDidKey.id);
+  final didKeyDocument = await didKeyController.getDidDocument();
   print('did:key DID: ${didKeyDocument.id}');
   print('Verification methods: ${didKeyDocument.verificationMethod.length}');
 
   // Create did:peer controller
   print('\n--- did:peer Controller ---');
   final didPeerController = DidPeerController(
-    keyMapping: DefaultDiDControllerStore(),
+    store: InMemoryDidStore(),
     wallet: wallet,
   );
 
@@ -51,11 +51,13 @@ void main() async {
   print(
       'Generated key agreement key. Public key: ${keyAgreementKey.publicKey.bytes.sublist(1, 9)}...');
 
-  // Create DID document with multiple keys
-  final didPeerDocument = await didPeerController.createDidDocumentWithKeys(
-    [authKey.id],
-    [keyAgreementKey.id],
-  );
+  // Add verification methods and create DID document
+  final authVmId = await didPeerController.addVerificationMethod(authKey.id);
+  final kaVmId =
+      await didPeerController.addVerificationMethod(keyAgreementKey.id);
+  await didPeerController.addAuthentication(authVmId);
+  await didPeerController.addKeyAgreement(kaVmId);
+  final didPeerDocument = await didPeerController.getDidDocument();
   print('did:peer DID: ${didPeerDocument.id}');
   print('Verification methods: ${didPeerDocument.verificationMethod.length}');
   print('Authentication methods: ${didPeerDocument.authentication.length}');
@@ -69,8 +71,7 @@ void main() async {
   // Sign with did:key
   print('\n--- Signing with did:key ---');
   final didKeyVmId = didKeyDocument.verificationMethod[0].id;
-  // Important: Set up the key mapping for did:key
-  didKeyController.keyMapping.setMapping(didKeyVmId, keyForDidKey.id);
+  // Key mapping is already set up by addVerificationMethod
 
   final didKeySignature = await didKeyController.sign(data, didKeyVmId);
   print('Signature: ${didKeySignature.sublist(0, 8)}...');
@@ -84,10 +85,9 @@ void main() async {
 
   // Sign with did:peer
   print('\n--- Signing with did:peer ---');
-  // Find the verification method ID for the authentication key
-  final didPeerVmId =
-      await didPeerController.findVerificationMethodId(authKey.id);
-  didPeerController.keyMapping.setMapping(didPeerVmId, authKey.id);
+  // Use the verification method ID from above
+  final didPeerVmId = authVmId;
+  // Key mapping is already set up by addVerificationMethod
 
   final didPeerSignature = await didPeerController.sign(data, didPeerVmId);
   print('Signature: ${didPeerSignature.sublist(0, 8)}...');
