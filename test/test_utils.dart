@@ -25,7 +25,7 @@ Future<DidSigner> initEdSigner(Uint8List seed) async {
     didDocument: doc,
     didKeyId: doc.verificationMethod[0].id,
     keyPair: keyPair,
-    signatureScheme: SignatureScheme.eddsa_sha512,
+    signatureScheme: SignatureScheme.ed25519,
   );
   return signer;
 }

@@ -106,7 +106,7 @@ enum SignatureScheme {
 /// Maps W3C-standard cryptosuite identifiers to their corresponding SignatureScheme.
 const cryptosuiteToScheme = <String, SignatureScheme>{
   'ecdsa-rdfc-2019': SignatureScheme.ecdsa_p256_sha256,
-  'eddsa-rdfc-2022': SignatureScheme.eddsa_sha512,
+  'eddsa-rdfc-2022': SignatureScheme.ed25519,
 };
 
 /// Supported DID peer types.
