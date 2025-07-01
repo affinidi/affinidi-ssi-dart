@@ -183,7 +183,7 @@ void main() {
         final endpoint = ServiceEndpoint(
           id: '#service-1',
           type: 'MessagingService',
-          serviceEndpoint: StringEndpoint('https://example.com'),
+          serviceEndpoint: const StringEndpoint('https://example.com'),
         );
 
         // Act & Assert

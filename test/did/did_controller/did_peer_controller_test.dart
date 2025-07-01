@@ -171,7 +171,8 @@ void main() {
         final endpoint = ServiceEndpoint(
           id: '#service-1',
           type: 'MessagingService',
-          serviceEndpoint: StringEndpoint('https://example.com/messaging'),
+          serviceEndpoint:
+              const StringEndpoint('https://example.com/messaging'),
         );
 
         // Act
@@ -179,10 +180,10 @@ void main() {
         final document = await controller.getDidDocument();
 
         // Assert
-        expect(document.service!.length, 1);
-        expect(document.service![0].id, '#service-1');
-        expect(document.service![0].type, 'MessagingService');
-        expect((document.service![0].serviceEndpoint as StringEndpoint).url,
+        expect(document.service.length, 1);
+        expect(document.service[0].id, '#service-1');
+        expect(document.service[0].type, 'MessagingService');
+        expect((document.service[0].serviceEndpoint as StringEndpoint).url,
             'https://example.com/messaging');
       });
 
@@ -195,13 +196,14 @@ void main() {
         final endpoint1 = ServiceEndpoint(
           id: '#service-1',
           type: 'MessagingService',
-          serviceEndpoint: StringEndpoint('https://example.com/messaging'),
+          serviceEndpoint:
+              const StringEndpoint('https://example.com/messaging'),
         );
 
         final endpoint2 = ServiceEndpoint(
           id: '#service-2',
           type: 'CredentialService',
-          serviceEndpoint: MapEndpoint({
+          serviceEndpoint: const MapEndpoint({
             'uri': 'https://example.com/credentials',
             'accept': ['application/json'],
           }),
@@ -213,8 +215,8 @@ void main() {
         final document = await controller.getDidDocument();
 
         // Assert
-        expect(document.service!.length, 2);
-        expect(document.service!.map((s) => s.id).toList(),
+        expect(document.service.length, 2);
+        expect(document.service.map((s) => s.id).toList(),
             containsAll(['#service-1', '#service-2']));
       });
 
@@ -227,7 +229,7 @@ void main() {
         final endpoint = ServiceEndpoint(
           id: '#service-to-remove',
           type: 'TestService',
-          serviceEndpoint: StringEndpoint('https://example.com'),
+          serviceEndpoint: const StringEndpoint('https://example.com'),
         );
 
         // Act
@@ -238,8 +240,8 @@ void main() {
         final docAfter = await controller.getDidDocument();
 
         // Assert
-        expect(docBefore.service!.length, 1);
-        expect(docAfter.service!.length, 0);
+        expect(docBefore.service.length, 1);
+        expect(docAfter.service.length, 0);
       });
 
       test('should throw error when adding duplicate service endpoint',
@@ -252,7 +254,7 @@ void main() {
         final endpoint = ServiceEndpoint(
           id: '#duplicate-service',
           type: 'TestService',
-          serviceEndpoint: StringEndpoint('https://example.com'),
+          serviceEndpoint: const StringEndpoint('https://example.com'),
         );
 
         // Act
@@ -521,7 +523,7 @@ void main() {
         final endpoint = ServiceEndpoint(
           id: '#service',
           type: 'TestService',
-          serviceEndpoint: StringEndpoint('https://example.com'),
+          serviceEndpoint: const StringEndpoint('https://example.com'),
         );
         await controller.addServiceEndpoint(endpoint);
 
