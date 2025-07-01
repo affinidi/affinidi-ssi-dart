@@ -23,7 +23,7 @@ void main() async {
   print('Key generated with ID: ${key.id}');
 
   // 4. Add the key to the controller. This associates the wallet key with the DID.
-  await didKeyController.addVerificationMethod(key.id);
+  await didKeyController.addVerificationMethod(key.publicKey);
   print('Verification method added to the controller.');
 
   // 5. Get and print the DID Document
@@ -39,7 +39,7 @@ void main() async {
   try {
     print('\nAttempting to add a second key...');
     final anotherKey = await wallet.generateKey(keyType: KeyType.ed25519);
-    await didKeyController.addVerificationMethod(anotherKey.id);
+    await didKeyController.addVerificationMethod(anotherKey.publicKey);
   } catch (e) {
     print('As expected, failed to add a second key.');
   }

@@ -19,16 +19,17 @@ void main() async {
 
   // 3. Generate keys for authentication and key agreement
   print('\nGenerating keys...');
-  final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
-  final agreementKey = await wallet.generateKey(keyType: KeyType.ed25519);
-  print('Authentication key generated: ${authKey.id}');
-  print('Key agreement key generated: ${agreementKey.id}');
+  final ed25519Key =
+      (await wallet.generateKey(keyType: KeyType.ed25519)) as Ed25519KeyPair;
+  print('Ed25519 key generated: ${ed25519Key.id}');
+  final x25519PublicKey = await ed25519Key.ed25519KeyToX25519PublicKey();
+  print('X25519 key derived from Ed25519 key');
 
   // 4. Add keys as verification methods to the controller
   final authVerificationMethodId =
-      await didPeerController.addVerificationMethod(authKey.id);
+      await didPeerController.addVerificationMethod(ed25519Key.publicKey);
   final agreementVerificationMethodId =
-      await didPeerController.addVerificationMethod(agreementKey.id);
+      await didPeerController.addVerificationMethod(x25519PublicKey);
   print('Verification methods added:');
   print(' - Auth VM ID: $authVerificationMethodId');
   print(' - Agreement VM ID: $agreementVerificationMethodId');

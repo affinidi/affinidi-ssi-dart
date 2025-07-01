@@ -165,11 +165,14 @@ void main() async {
   print('  - Assertion (ED25519): ${assertionKey.id}');
 
   // Add keys as verification methods and then add to different purposes
-  final authVmId1 = await peerController.addVerificationMethod(authKey1.id);
-  final authVmId2 = await peerController.addVerificationMethod(authKey2.id);
-  final kaVmId = await peerController.addVerificationMethod(keyAgreementKey.id);
+  final authVmId1 =
+      await peerController.addVerificationMethod(authKey1.publicKey);
+  final authVmId2 =
+      await peerController.addVerificationMethod(authKey2.publicKey);
+  final kaVmId =
+      await peerController.addVerificationMethod(keyAgreementKey.publicKey);
   final assertVmId =
-      await peerController.addVerificationMethod(assertionKey.id);
+      await peerController.addVerificationMethod(assertionKey.publicKey);
 
   await peerController.addAuthentication(authVmId1);
   await peerController.addAuthentication(authVmId2);
@@ -241,7 +244,7 @@ void main() async {
     keyType: KeyType.secp256k1,
   );
 
-  final newVmId = await peerController.addVerificationMethod(newKey.id);
+  final newVmId = await peerController.addVerificationMethod(newKey.publicKey);
   await peerController.addCapabilityDelegation(newVmId);
 
   print('Added new capability delegation key');
@@ -270,7 +273,7 @@ void main() async {
 
   final signer = await peerController.getSigner(
     assertVmId,
-    signatureScheme: SignatureScheme.eddsa_sha512,
+    signatureScheme: SignatureScheme.ed25519,
   );
 
   print('Created signer for assertion:');
@@ -295,7 +298,8 @@ void main() async {
     keyType: KeyType.ed25519,
   );
 
-  final rotatedVmId = await peerController.addVerificationMethod(rotatedKey.id);
+  final rotatedVmId =
+      await peerController.addVerificationMethod(rotatedKey.publicKey);
   await peerController.addAuthentication(rotatedVmId);
 
   print('Added new rotated authentication key: $rotatedVmId');

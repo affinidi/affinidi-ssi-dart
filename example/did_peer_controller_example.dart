@@ -20,14 +20,14 @@ Future<void> main() async {
   final authKeyId = 'auth-key-1';
   final agreementKeyId = 'agreement-key-1';
 
-  await wallet.generateKey(keyId: authKeyId);
-  await wallet.generateKey(keyId: agreementKeyId);
+  final authKey = await wallet.generateKey(keyId: authKeyId);
+  final agreementKey = await wallet.generateKey(keyId: agreementKeyId);
 
   // Add verification methods
   final authVerificationMethodId =
-      await controller.addVerificationMethod(authKeyId);
+      await controller.addVerificationMethod(authKey.publicKey);
   final agreementVerificationMethodId =
-      await controller.addVerificationMethod(agreementKeyId);
+      await controller.addVerificationMethod(agreementKey.publicKey);
 
   // Set up verification method purposes
   await controller.addAuthentication(authVerificationMethodId);
@@ -51,9 +51,9 @@ Future<void> main() async {
 
   // Example: Add multiple authentication keys
   final authKey2Id = 'auth-key-2';
-  await wallet.generateKey(keyId: authKey2Id);
+  final authKey2 = await wallet.generateKey(keyId: authKey2Id);
   final authVerificationMethod2Id =
-      await controller.addVerificationMethod(authKey2Id);
+      await controller.addVerificationMethod(authKey2.publicKey);
   await controller.addAuthentication(authVerificationMethod2Id);
 
   // Sign data using authentication key

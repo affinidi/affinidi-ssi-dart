@@ -22,7 +22,7 @@ class DidKeyController extends DidController {
   });
 
   @override
-  Future<String> addVerificationMethod(String walletKeyId) async {
+  Future<String> addVerificationMethod(PublicKey publicKey) async {
     final verificationMethods = await store.verificationMethodIds;
     if (verificationMethods.isNotEmpty) {
       throw SsiException(
@@ -30,7 +30,7 @@ class DidKeyController extends DidController {
         code: SsiExceptionType.unsupportedNumberOfKeys.code,
       );
     }
-    return super.addVerificationMethod(walletKeyId);
+    return super.addVerificationMethod(publicKey);
   }
 
   Future<String> _getKeyId() async {
@@ -53,10 +53,6 @@ class DidKeyController extends DidController {
 
   @override
   Future<DidDocument> getDidDocument() async {
-    // For did:key, clear the base controller arrays to avoid duplicates
-    // since the DID document generation already includes the verification methods
-    await clearVerificationMethodReferences();
-
     final keyId = await _getKeyId();
     final key = await wallet.getPublicKey(keyId);
     return DidKey.generateDocument(key);

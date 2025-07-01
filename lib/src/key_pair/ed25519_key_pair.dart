@@ -244,16 +244,11 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   /// Converts the Ed25519 key to an X25519 public key.
-  Future<Uint8List> ed25519KeyToX25519PublicKey() async {
-    // Get the Ed25519 public key
+  /// Returns a [Future] that completes with the X25519 [PublicKey].
+  Future<PublicKey> ed25519KeyToX25519PublicKey() async {
     final ed25519PublicKey = ed.public(_privateKey);
-
-    // Convert Ed25519 public key to X25519 public key
-    // The conversion function returns the X25519 public key bytes directly
     final x25519PublicKeyBytes =
         ed25519PublicToX25519Public(ed25519PublicKey.bytes);
-
-    // Return the X25519 public key bytes directly
-    return x25519PublicKeyBytes;
+    return PublicKey(id, x25519PublicKeyBytes, KeyType.x25519);
   }
 }

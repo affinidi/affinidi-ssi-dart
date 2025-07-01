@@ -18,12 +18,12 @@ Future<void> main() async {
 
   // Generate a new key in the wallet
   final walletKeyId = 'my-signing-key';
-  await wallet.generateKey(keyId: walletKeyId);
+  final key = await wallet.generateKey(keyId: walletKeyId);
   print('Generated key with ID: $walletKeyId');
 
   // Add the key as a verification method to the DID controller
   final verificationMethodId =
-      await controller.addVerificationMethod(walletKeyId);
+      await controller.addVerificationMethod(key.publicKey);
   print('Verification method ID: $verificationMethodId');
 
   // Get the DID document

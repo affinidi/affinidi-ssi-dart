@@ -94,11 +94,11 @@ abstract class DidController {
   Future<DidDocument> getDidDocument();
 
   /// Adds a verification method using an existing key from the wallet.
-  Future<String> addVerificationMethod(String walletKeyId) async {
-    final publicKey = await wallet.getPublicKey(walletKeyId);
+  Future<String> addVerificationMethod(PublicKey publicKey) async {
     final verificationMethodId = await buildVerificationMethodId(publicKey);
-    await store.setMapping(verificationMethodId, walletKeyId);
-    _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] = walletKeyId;
+    await store.setMapping(verificationMethodId, publicKey.id);
+    _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
+        publicKey.id;
     return verificationMethodId;
   }
 

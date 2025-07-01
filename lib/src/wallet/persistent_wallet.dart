@@ -118,8 +118,8 @@ class PersistentWallet implements Wallet {
   ///
   /// [keyId] - The identifier of the Ed25519 key pair.
   ///
-  /// Returns a [Future] that completes with the X25519 public key as a [Uint8List].
-  Future<Uint8List> getX25519PublicKey(String keyId) async {
+  /// Returns a [Future] that completes with the X25519 public key as a [PublicKey].
+  Future<PublicKey> getX25519PublicKey(String keyId) async {
     final keyPair = await getKeyPair(keyId);
     if (keyPair is Ed25519KeyPair) {
       final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();

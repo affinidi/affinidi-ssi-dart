@@ -28,14 +28,15 @@ void main() {
         'generates a valid did:peer:2 document with auth, agreement, and service',
         () async {
       // Generate keys
-      final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
-      final agreementKey = await wallet.generateKey(keyType: KeyType.ed25519);
+      final authKey = (await wallet.generateKey(keyType: KeyType.ed25519))
+          as Ed25519KeyPair;
+      final agreementKeyPublicKey = await authKey.ed25519KeyToX25519PublicKey();
 
       // Add verification methods
       final authVmId =
-          await didPeerController.addVerificationMethod(authKey.id);
+          await didPeerController.addVerificationMethod(authKey.publicKey);
       final agreementVmId =
-          await didPeerController.addVerificationMethod(agreementKey.id);
+          await didPeerController.addVerificationMethod(agreementKeyPublicKey);
 
       // Assign purposes
       await didPeerController.addAuthentication(authVmId);
@@ -90,7 +91,7 @@ void main() {
 
       // Add verification method
       final authVmId =
-          await didPeerController.addVerificationMethod(authKey.id);
+          await didPeerController.addVerificationMethod(authKey.publicKey);
 
       // Assign purpose
       await didPeerController.addAuthentication(authVmId);
@@ -148,7 +149,7 @@ void main() {
 
       // Add verification method
       final authVmId =
-          await didPeerController.addVerificationMethod(authKey.id);
+          await didPeerController.addVerificationMethod(authKey.publicKey);
 
       // Assign purpose
       await didPeerController.addAuthentication(authVmId);

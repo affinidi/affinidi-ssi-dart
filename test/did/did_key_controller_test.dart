@@ -29,7 +29,7 @@ void main() {
       final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add verification method
-      final vmId = await didKeyController.addVerificationMethod(key.id);
+      final vmId = await didKeyController.addVerificationMethod(key.publicKey);
 
       // Get DID Document
       final didDocument = await didKeyController.getDidDocument();
@@ -80,12 +80,12 @@ void main() {
     test('throws exception when adding a second key', () async {
       // Add first key
       final key1 = await wallet.generateKey(keyType: KeyType.ed25519);
-      await didKeyController.addVerificationMethod(key1.id);
+      await didKeyController.addVerificationMethod(key1.publicKey);
 
       // Attempt to add second key
       final key2 = await wallet.generateKey(keyType: KeyType.ed25519);
       expect(
-        () => didKeyController.addVerificationMethod(key2.id),
+        () => didKeyController.addVerificationMethod(key2.publicKey),
         throwsA(isA<SsiException>().having(
           (e) => e.message,
           'message',
@@ -108,7 +108,7 @@ void main() {
 
     test('throws exception when adding verification relationships', () async {
       final key = await wallet.generateKey(keyType: KeyType.ed25519);
-      final vmId = await didKeyController.addVerificationMethod(key.id);
+      final vmId = await didKeyController.addVerificationMethod(key.publicKey);
 
       expect(() => didKeyController.addAuthentication(vmId),
           throwsUnsupportedError);

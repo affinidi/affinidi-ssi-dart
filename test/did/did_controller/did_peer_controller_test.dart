@@ -27,9 +27,9 @@ void main() {
         final key3 = await wallet.generateKey(keyId: 'key-3');
 
         // Act
-        final vmId1 = await controller.addVerificationMethod(key1.id);
-        final vmId2 = await controller.addVerificationMethod(key2.id);
-        final vmId3 = await controller.addVerificationMethod(key3.id);
+        final vmId1 = await controller.addVerificationMethod(key1.publicKey);
+        final vmId2 = await controller.addVerificationMethod(key2.publicKey);
+        final vmId3 = await controller.addVerificationMethod(key3.publicKey);
 
         // Assert
         expect(vmId1, '#key-1');
@@ -48,7 +48,7 @@ void main() {
         // Act
         final vmIds = <String>[];
         for (final key in keys) {
-          vmIds.add(await controller.addVerificationMethod(key.id));
+          vmIds.add(await controller.addVerificationMethod(key.publicKey));
         }
 
         // Assert
@@ -66,8 +66,9 @@ void main() {
             await wallet.generateKey(keyId: 'ka-key', keyType: KeyType.p256);
 
         // Add verification methods
-        final authVmId = await controller.addVerificationMethod(authKey.id);
-        final kaVmId = await controller.addVerificationMethod(kaKey.id);
+        final authVmId =
+            await controller.addVerificationMethod(authKey.publicKey);
+        final kaVmId = await controller.addVerificationMethod(kaKey.publicKey);
 
         // Set purposes
         await controller.addAuthentication(authVmId);
@@ -107,9 +108,9 @@ void main() {
         final auth3 = await wallet.generateKey(keyId: 'auth-3');
 
         // Add verification methods and set purposes
-        final vmId1 = await controller.addVerificationMethod(auth1.id);
-        final vmId2 = await controller.addVerificationMethod(auth2.id);
-        final vmId3 = await controller.addVerificationMethod(auth3.id);
+        final vmId1 = await controller.addVerificationMethod(auth1.publicKey);
+        final vmId2 = await controller.addVerificationMethod(auth2.publicKey);
+        final vmId3 = await controller.addVerificationMethod(auth3.publicKey);
 
         await controller.addAuthentication(vmId1);
         await controller.addAuthentication(vmId2);
@@ -132,9 +133,9 @@ void main() {
         final key3 = await wallet.generateKey(keyId: 'ka-1');
 
         // Add verification methods
-        final vmId1 = await controller.addVerificationMethod(key1.id);
-        final vmId2 = await controller.addVerificationMethod(key2.id);
-        final vmId3 = await controller.addVerificationMethod(key3.id);
+        final vmId1 = await controller.addVerificationMethod(key1.publicKey);
+        final vmId2 = await controller.addVerificationMethod(key2.publicKey);
+        final vmId3 = await controller.addVerificationMethod(key3.publicKey);
 
         // Set authentication for key1 and key2
         await controller.addAuthentication(vmId1);
@@ -165,7 +166,7 @@ void main() {
       test('should add single service endpoint', () async {
         // Arrange
         final authKey = await wallet.generateKey(keyId: 'service-auth-key');
-        final vmId = await controller.addVerificationMethod(authKey.id);
+        final vmId = await controller.addVerificationMethod(authKey.publicKey);
         await controller.addAuthentication(vmId);
 
         final endpoint = ServiceEndpoint(
@@ -190,7 +191,7 @@ void main() {
       test('should add multiple service endpoints', () async {
         // Arrange
         final authKey = await wallet.generateKey(keyId: 'multi-service-key');
-        final vmId = await controller.addVerificationMethod(authKey.id);
+        final vmId = await controller.addVerificationMethod(authKey.publicKey);
         await controller.addAuthentication(vmId);
 
         final endpoint1 = ServiceEndpoint(
@@ -223,7 +224,7 @@ void main() {
       test('should remove service endpoint', () async {
         // Arrange
         final authKey = await wallet.generateKey(keyId: 'remove-service-key');
-        final vmId = await controller.addVerificationMethod(authKey.id);
+        final vmId = await controller.addVerificationMethod(authKey.publicKey);
         await controller.addAuthentication(vmId);
 
         final endpoint = ServiceEndpoint(
@@ -248,7 +249,7 @@ void main() {
           () async {
         // Arrange
         final authKey = await wallet.generateKey(keyId: 'dup-service-key');
-        final vmId = await controller.addVerificationMethod(authKey.id);
+        final vmId = await controller.addVerificationMethod(authKey.publicKey);
         await controller.addAuthentication(vmId);
 
         final endpoint = ServiceEndpoint(
@@ -278,7 +279,7 @@ void main() {
       test('should sign and verify with authentication key', () async {
         // Arrange
         final authKey = await wallet.generateKey(keyId: 'sign-auth-key');
-        final vmId = await controller.addVerificationMethod(authKey.id);
+        final vmId = await controller.addVerificationMethod(authKey.publicKey);
         await controller.addAuthentication(vmId);
 
         final data = Uint8List.fromList('Hello, DID Peer!'.codeUnits);
@@ -296,8 +297,8 @@ void main() {
         final key1 = await wallet.generateKey(keyId: 'sign-key-1');
         final key2 = await wallet.generateKey(keyId: 'sign-key-2');
 
-        final vmId1 = await controller.addVerificationMethod(key1.id);
-        final vmId2 = await controller.addVerificationMethod(key2.id);
+        final vmId1 = await controller.addVerificationMethod(key1.publicKey);
+        final vmId2 = await controller.addVerificationMethod(key2.publicKey);
 
         await controller.addAuthentication(vmId1);
         await controller.addAssertionMethod(vmId2);
@@ -333,7 +334,7 @@ void main() {
         // Add verification methods
         final vmIds = <String>[];
         for (final key in keys) {
-          vmIds.add(await controller.addVerificationMethod(key.id));
+          vmIds.add(await controller.addVerificationMethod(key.publicKey));
         }
 
         // Set purposes
@@ -368,8 +369,8 @@ void main() {
         // Arrange
         final key1 = await wallet.generateKey(keyId: 'remove-purpose-1');
         final key2 = await wallet.generateKey(keyId: 'remove-purpose-2');
-        final vmId1 = await controller.addVerificationMethod(key1.id);
-        final vmId2 = await controller.addVerificationMethod(key2.id);
+        final vmId1 = await controller.addVerificationMethod(key1.publicKey);
+        final vmId2 = await controller.addVerificationMethod(key2.publicKey);
 
         // Add multiple purposes
         await controller.addAuthentication(vmId1);
@@ -403,7 +404,7 @@ void main() {
       test('should get DID signer', () async {
         // Arrange
         final key = await wallet.generateKey(keyId: 'signer-key');
-        final vmId = await controller.addVerificationMethod(key.id);
+        final vmId = await controller.addVerificationMethod(key.publicKey);
         await controller.addAuthentication(vmId);
 
         // Act
@@ -422,7 +423,7 @@ void main() {
           keyId: 'signer-scheme-key',
           keyType: KeyType.p256,
         );
-        final vmId = await controller.addVerificationMethod(key.id);
+        final vmId = await controller.addVerificationMethod(key.publicKey);
         await controller.addAuthentication(vmId);
 
         // Act
@@ -440,7 +441,7 @@ void main() {
       test('should retrieve DID key pair', () async {
         // Arrange
         final key = await wallet.generateKey(keyId: 'retrieve-key');
-        final vmId = await controller.addVerificationMethod(key.id);
+        final vmId = await controller.addVerificationMethod(key.publicKey);
         await controller.addAuthentication(vmId);
 
         // Act
@@ -460,8 +461,8 @@ void main() {
         final key1 = await wallet.generateKey(keyId: 'context-key-1');
         final key2 = await wallet.generateKey(keyId: 'context-key-2');
 
-        final vmId1 = await controller.addVerificationMethod(key1.id);
-        final vmId2 = await controller.addVerificationMethod(key2.id);
+        final vmId1 = await controller.addVerificationMethod(key1.publicKey);
+        final vmId2 = await controller.addVerificationMethod(key2.publicKey);
 
         await controller.addAuthentication(vmId1);
         await controller.addKeyAgreement(vmId2);
@@ -486,7 +487,7 @@ void main() {
           () async {
         // Arrange
         final key = await wallet.generateKey(keyId: 'peer0-key');
-        final vmId = await controller.addVerificationMethod(key.id);
+        final vmId = await controller.addVerificationMethod(key.publicKey);
         await controller.addAuthentication(vmId);
 
         // Act
@@ -501,8 +502,8 @@ void main() {
         final key1 = await wallet.generateKey(keyId: 'peer2-key-1');
         final key2 = await wallet.generateKey(keyId: 'peer2-key-2');
 
-        final vmId1 = await controller.addVerificationMethod(key1.id);
-        final vmId2 = await controller.addVerificationMethod(key2.id);
+        final vmId1 = await controller.addVerificationMethod(key1.publicKey);
+        final vmId2 = await controller.addVerificationMethod(key2.publicKey);
 
         await controller.addAuthentication(vmId1);
         await controller.addAuthentication(vmId2);
@@ -517,7 +518,7 @@ void main() {
       test('should generate did:peer:2 with service endpoint', () async {
         // Arrange
         final key = await wallet.generateKey(keyId: 'peer2-service-key');
-        final vmId = await controller.addVerificationMethod(key.id);
+        final vmId = await controller.addVerificationMethod(key.publicKey);
         await controller.addAuthentication(vmId);
 
         final endpoint = ServiceEndpoint(
