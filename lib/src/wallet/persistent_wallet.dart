@@ -123,7 +123,7 @@ class PersistentWallet implements Wallet {
     final keyPair = await getKeyPair(keyId);
     if (keyPair is Ed25519KeyPair) {
       final x25519PublicKey = await keyPair.ed25519KeyToX25519PublicKey();
-      return Uint8List.fromList(x25519PublicKey.bytes);
+      return x25519PublicKey;
     } else {
       // P256KeyPair and other potential types do not have a direct X25519 equivalent
       throw SsiException(

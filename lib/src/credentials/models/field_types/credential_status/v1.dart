@@ -1,16 +1,20 @@
+import 'dart:collection';
+
 import '../../../../util/json_util.dart';
 
-abstract interface class _CredentialStatusV1Interface {
+abstract interface class _CredentialStatusV1Interface
+    extends UnmodifiableMapBase<String, dynamic> {
   Uri? get id;
   String? get type;
 
   /// Converts this status to a JSON-serializable map.
-  ///
-  /// Returns a map containing the 'type' field and 'id' field if present.
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-        'type': type,
-      });
+  Map<String, dynamic> toJson() {
+    return cleanEmpty({
+      'id': id.toString(),
+      'type': type,
+      ...Map<String, dynamic>.fromEntries(entries)
+    });
+  }
 }
 
 /// Represents a Mutable Credential Status for verifiable credentials following W3C standards.
@@ -21,12 +25,16 @@ abstract interface class _CredentialStatusV1Interface {
 ///
 /// Example:
 /// ```dart
-/// final credentialStatus = MutableCredentialStatusV1(
-///   id: Uri.parse('test-credential-status-id'),
-///   type: 'BitstringStatusListEntry',
-/// );
+/// final credentialStatus = MutableCredentialStatusV1({
+///   'id': Uri.parse('test-credential-status-id'),
+///   'type': 'BitstringStatusListEntry',
+///   'revocationListIndex': '94567',
+///   'revocationListCredential': 'https://pharma.example.com/credentials/status/3',
+/// });
 /// ```
 class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
+  final Map<String, dynamic> _revocationFields;
+
   /// The URL of optional unique identifier for the credential status object.
   @override
   Uri? id;
@@ -37,22 +45,48 @@ class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
 
   /// Creates a [MutableCredentialStatusV1] instance.
   ///
-  /// The [id] is the URL where status information can be found.
-  /// The [type] identifies the status mechanism being used.
-  MutableCredentialStatusV1({
-    this.id,
-    this.type,
-  });
+  /// The [revocationFields] contains status-related fields, including 'id', 'type', and others.
+  /// The 'id' is validated and converted to a [Uri] using [getUri], and 'type' is validated
+  /// as a [String] using [getString].
+  MutableCredentialStatusV1(Map<String, dynamic>? revocationFields)
+      : id = getUri(revocationFields ?? {}, 'id'),
+        type = getString(revocationFields ?? {}, 'type'),
+        _revocationFields = UnmodifiableMapView(
+            Map<String, dynamic>.from(revocationFields ?? {})
+              ..remove('id')
+              ..remove('type'));
 
   /// Creates a [MutableCredentialStatusV1] from JSON data.
-  ///
-  /// The [json] must contain a 'type' field and may contain an 'id' field.
   factory MutableCredentialStatusV1.fromJson(Map<String, dynamic> json) {
-    final id = getUri(json, 'id');
-    final type = getString(json, 'type');
-
-    return MutableCredentialStatusV1(id: id, type: type);
+    return MutableCredentialStatusV1(json);
   }
+
+  @override
+  dynamic operator [](Object? key) {
+    if (key == 'id') return id;
+    if (key == 'type') return type;
+    return _revocationFields[key];
+  }
+
+  @override
+  void operator []=(String key, dynamic value) {
+    if (key == 'id') {
+      id = getUri({'id': value}, 'id');
+    } else if (key == 'type') {
+      type = getString({'type': value}, 'type');
+    } else {
+      _revocationFields[key] = value;
+    }
+  }
+
+  @override
+  void clear() => _revocationFields.clear();
+
+  @override
+  Iterable<String> get keys => _revocationFields.keys;
+
+  @override
+  dynamic remove(Object? key) => _revocationFields.remove(key);
 }
 
 /// Represents a Credential Status for verifiable credentials following W3C standards.
@@ -63,38 +97,51 @@ class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
 ///
 /// Example:
 /// ```dart
-/// final credentialStatus = CredentialStatusV1(
-///   id: Uri.parse('test-credential-status-id'),
-///   type: 'BitstringStatusListEntry',
-/// );
+/// final credentialStatus = CredentialStatusV1.fromJson({
+///   'id': Uri.parse('test-credential-status-id'),
+///   'type': 'BitstringStatusListEntry',
+///   'revocationListIndex': '94567',
+///   'revocationListCredential': 'https://pharma.example.com/credentials/status/3',
+/// });
 /// ```
 class CredentialStatusV1 extends _CredentialStatusV1Interface {
-  final Uri _id;
-  final String _type;
-
-  /// The URL of optional unique identifier for the credential status object.
+  /// The URL of unique identifier for the credential status object.
   @override
-  Uri get id => _id;
+  final Uri id;
 
   /// The schema type of credential status.
   @override
-  String get type => _type;
+  final String type;
+
+  /// Revocation-related fields stored as an unmodifiable map.
+  final UnmodifiableMapView<String, dynamic> _revocationFields;
 
   /// Creates a [CredentialStatusV1] instance.
   ///
-  /// The [id] is the URL where status information can be found.
-  /// The [type] identifies the status mechanism being used.
-  CredentialStatusV1({required Uri id, required String type})
-      : _id = id,
-        _type = type;
+  /// The [revocationFields] contains status-related fields, including 'id', 'type', and others.
+  /// The 'id' is required and validated as a [Uri] using [getMandatoryUri], and 'type' is
+  /// required and validated using [getMandatoryString]. Other fields are stored in an unmodifiable map.
+  CredentialStatusV1(Map<String, dynamic> revocationFields)
+      : id = getMandatoryUri(revocationFields, 'id'),
+        type = getMandatoryString(revocationFields, 'type'),
+        _revocationFields =
+            UnmodifiableMapView(Map<String, dynamic>.from(revocationFields)
+              ..remove('id')
+              ..remove('type'));
 
   /// Creates a [CredentialStatusV1] from JSON data.
-  ///
-  /// The [json] must contain a 'type' field and may contain an 'id' field.
+  /// Throws an exception if 'id' or 'type' is missing or invalid.
   factory CredentialStatusV1.fromJson(Map<String, dynamic> json) {
-    final id = getMandatoryUri(json, 'id');
-    final type = getMandatoryString(json, 'type');
-
-    return CredentialStatusV1(id: id, type: type);
+    return CredentialStatusV1(json);
   }
+
+  @override
+  dynamic operator [](Object? key) {
+    if (key == 'id') return id;
+    if (key == 'type') return type;
+    return _revocationFields[key];
+  }
+
+  @override
+  Iterable<String> get keys => _revocationFields.keys;
 }
