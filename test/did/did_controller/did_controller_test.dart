@@ -393,11 +393,11 @@ void main() {
         // Act
         final signer = await controller.getSigner(
           vmId,
-          signatureScheme: SignatureScheme.eddsa_sha512,
+          signatureScheme: SignatureScheme.ed25519,
         );
 
         // Assert
-        expect(signer.signatureScheme, SignatureScheme.eddsa_sha512);
+        expect(signer.signatureScheme, SignatureScheme.ed25519);
       });
     });
 
