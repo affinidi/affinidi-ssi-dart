@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-01
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.4.0`](#ssi---v140)
+
+---
+
+#### `ssi` - `v1.4.0`
+
+ - **FEAT**: integrate dart_jsonwebtoken for JWT handling in DidVerifier (#113).
+
+## 1.4.0
+
+ - **FEAT**: integrate dart_jsonwebtoken for JWT handling in DidVerifier (#113).
+
+
 ## 2025-06-27
 
 ### Changes
