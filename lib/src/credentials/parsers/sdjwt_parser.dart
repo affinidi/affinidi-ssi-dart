@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+
 import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
 
 import '../../exceptions/ssi_exception.dart';
@@ -30,22 +31,15 @@ mixin SdJwtParser implements VerifiableDataParser<String, SdJwt> {
   /// that matches the requirements defined in [hasValidPayload].
   @override
   bool canDecode(String input) {
-    // filter out other strings
     if (!input.startsWith('ey')) return false;
 
     try {
       final jwt = SdJwt.parse(input);
-      if (!hasValidPayload(jwt)) return false;
+      return hasValidPayload(jwt);
     } catch (e) {
-      developer.log(
-        'SdJwt decode failed',
-        level: 500, // FINE
-        error: e,
-      );
+      developer.log('Failed to decode SD-JWT: $e');
       return false;
     }
-
-    return true;
   }
 
   /// Decodes the input string into an SD-JWT structure.

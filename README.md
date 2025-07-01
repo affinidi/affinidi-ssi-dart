@@ -24,6 +24,8 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
 
 SSI introduces several key concepts:
 
+- **Decentralised Identifier (DID):** A globally unique identifier that enables secure interactions. The DID is the cornerstone of Self-Sovereign Identity (SSI), a concept that aims to put individuals or entities in control of their digital identities. DID has different methods to prove control of digital identity.
+
 - **Verifiable Credential (VC):** A digital representation of a claim created by the issuer about the subject (e.g., Individual). VC is cryptographically signed and verifiable.
 
 - **Verifiable Presentation (VP):** A collection of one or more Verifiable Credentials (VCs) that an individual shares with the verifier to prove specific claims. VP is cryptographically signed and verifiable.
@@ -72,7 +74,7 @@ Each implementation of the data models enables you to create a Verifiable Creden
 
 - Mutable and Immutable data.
 
-The Suite Data Model is the final form of the VC that encapsulates the signed VC, including additional attributes like the disclosures for SD-JWT VC and the JTW Header for JWT VC. The Suite Service provides the functions for parsing, serialising, and issuing a VC for a specific format.
+The Suite Data Model is the final form of the VC that encapsulates the signed VC, including additional attributes like the disclosures for SD-JWT VC and the JWT Header for JWT VC. The Suite Service provides the functions for parsing, serialising, and issuing a VC for a specific format.
 
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials) to learn how to create and verify credentials using different models.
 
@@ -117,25 +119,24 @@ void main() async {
     'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
   );
 
+  final keyId = "m/44'/60'/0'/0'/0'";
   final wallet = Bip32Wallet.fromSeed(seed);
 
-  // from wallet with root key
   print("Signing and verifying from root key");
-  final rootKeyId = "0-0";
   final data = Uint8List.fromList([1, 2, 3]);
   print('data to sign: ${hexEncode(data)}');
-  final signature = await wallet.sign(data, keyId: rootKeyId);
+  final signature = await wallet.sign(data, keyId: keyId);
   print('signature: ${hexEncode(signature)}');
   final isRootSignatureValid =
-      await wallet.verify(data, signature: signature, keyId: rootKeyId);
+      await wallet.verify(data, signature: signature, keyId: keyId);
   print('check if root signature is valid: $isRootSignatureValid');
 
-  // did
-  final rootKeyPair = await wallet.getKeyPair(rootKeyId);
-  final rootDidKey = await DidKey.create([rootKeyPair]);
-  print('root did: $rootDidKey');
-  final rootPublicKeyFromDid = await rootDidKey.publicKey;
-  print('public key from root did: ${hexEncode(rootPublicKeyFromDid)}');
+  // generate DID document
+  final key = await wallet.generateKey(keyId: keyId);
+  final did = DidKey.getDid(key.publicKey);
+  print('DID from public key: $did');
+  final doc = DidKey.generateDocument(key.publicKey);
+  print('DID document from public key: $doc');
 
 }
 ```

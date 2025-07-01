@@ -3,6 +3,181 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-06-27
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.3.1`](#ssi---v131)
+
+---
+
+#### `ssi` - `v1.3.1`
+
+ - **FIX**: update revocation status toJson (#123).
+
+## 1.3.1
+
+ - **FIX**: update revocation status toJson (#123).
+
+
+## 2025-06-25
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.3.0`](#ssi---v130)
+
+---
+
+#### `ssi` - `v1.3.0`
+
+ - **FEAT**: add revocation missing fields (#118).
+
+## 1.3.0
+
+ - **FEAT**: add revocation missing fields (#118).
+
+
+## 2025-06-25
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.2.3`](#ssi---v123)
+
+---
+
+#### `ssi` - `v1.2.3`
+
+ - **FIX**: working on update dh related part for the ed25519 (#121).
+
+## 1.2.3
+
+ - **FIX**: working on update dh related part for the ed25519 (#121).
+
+
+## 2025-06-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.2.2`](#ssi---v122)
+
+---
+
+#### `ssi` - `v1.2.2`
+
+ - **FIX**: use uint8list consistently (#119).
+
+## 1.2.2
+
+ - **FIX**: use uint8list consistently (#119).
+
+
+## 2025-06-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.2.1`](#ssi---v121)
+
+---
+
+#### `ssi` - `v1.2.1`
+
+ - **FIX**: add dh shared secret to secp256k1 (#109).
+
+## 1.2.1
+
+ - **FIX**: add dh shared secret to secp256k1 (#109).
+
+
+## 2025-06-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.2.0`](#ssi---v120)
+
+---
+
+#### `ssi` - `v1.2.0`
+
+ - **FEAT**: enhance proof verification with new data integrity suites (#112).
+
+## 1.2.0
+
+ - **FEAT**: enhance proof verification with new data integrity suites (#112).
+
+
+## 2025-06-06
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.1.0`](#ssi---v110)
+
+---
+
+#### `ssi` - `v1.1.0`
+
+ - **FEAT**: add tryParse/tryDecode methods (#111).
+
+## 1.1.0
+
+ - **FEAT**: add tryParse/tryDecode methods (#111).
+
+
 ## 2025-05-20
 
 ### Changes

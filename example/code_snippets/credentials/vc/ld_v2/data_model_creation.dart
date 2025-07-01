@@ -22,10 +22,10 @@ void main() {
           type: 'JsonSchemaValidator2018')
     ],
     credentialStatus: [
-      MutableCredentialStatusV2(
-        id: Uri.parse('https://example.edu/status/v2/1'),
-        type: 'CredentialStatusList2021',
-      )
+      MutableCredentialStatusV2({
+        'id': Uri.parse('https://example.edu/status/v2/1'),
+        'type': 'CredentialStatusList2021',
+      })
     ],
     refreshService: [MutableRefreshServiceV2(type: 'ManualRefreshService2021')],
     termsOfUse: [

@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:base_codecs/base_codecs.dart';
 import 'package:bip32_plus/bip32_plus.dart';
+import 'package:elliptic/ecdh.dart';
 import 'package:elliptic/elliptic.dart' as ec;
 
 import '../digest_utils.dart';
@@ -114,5 +116,18 @@ class Secp256k1KeyPair implements KeyPair {
       publicKeyBytes: publicKey,
       curve: _secp256k1,
     );
+  }
+
+  /// Computes the Elliptic Curve Diffie-Hellman (ECDH) shared secret.
+  ///
+  /// [publicKey] - The public key of the other party (in compressed format).
+  ///
+  /// Returns the computed shared secret as a [Uint8List].
+  Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
+    final publicKeyObj =
+        _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
+    final privateKey = ec.PrivateKey.fromBytes(_secp256k1, _node.privateKey!);
+    final secret = computeSecret(privateKey, publicKeyObj);
+    return Future.value(Uint8List.fromList(secret));
   }
 }
