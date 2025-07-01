@@ -134,7 +134,7 @@ class Ed25519KeyPair implements KeyPair {
       const [SignatureScheme.ed25519];
 
   @override
-  SignatureScheme get defaultSignatureScheme => SignatureScheme.eddsa_sha512;
+  SignatureScheme get defaultSignatureScheme => SignatureScheme.ed25519;
 
   /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
