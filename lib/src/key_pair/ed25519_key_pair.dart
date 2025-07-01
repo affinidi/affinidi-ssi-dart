@@ -128,7 +128,6 @@ class Ed25519KeyPair implements KeyPair {
   /// Returns the original seed used to derive the Ed25519 key pair.
   Uint8List getSeed() => ed.seed(_privateKey);
 
-  /// Returns the supported signature schemes for this key pair.
   @override
   List<SignatureScheme> get supportedSignatureSchemes =>
       const [SignatureScheme.ed25519];
