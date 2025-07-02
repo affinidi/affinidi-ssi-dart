@@ -49,11 +49,6 @@ class DidKeyController extends DidController {
 
   Future<String> _getKeyId() async {
     final verificationMethods = await store.verificationMethodIds;
-    if (verificationMethods.length != 1) {
-      throw SsiException(
-          message: 'DidKey expects a single key.',
-          code: SsiExceptionType.unsupportedNumberOfKeys.code);
-    }
     final verificationMethodId = verificationMethods.first;
     final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
@@ -81,36 +76,6 @@ class DidKeyController extends DidController {
 
     // The verification method ID fragment is also derived from the same key.
     return '$did#$multibase';
-  }
-
-  @override
-  Future<void> addAuthentication(String verificationMethodId) async {
-    throw UnsupportedError(
-        'Adding authentication verification methods to did:key method is not supported.');
-  }
-
-  @override
-  Future<void> addKeyAgreement(String verificationMethodId) async {
-    throw UnsupportedError(
-        'Adding key agreement verification methods to did:key method is not supported.');
-  }
-
-  @override
-  Future<void> addCapabilityInvocation(String verificationMethodId) async {
-    throw UnsupportedError(
-        'Adding capability invocation verification methods to did:key method is not supported.');
-  }
-
-  @override
-  Future<void> addCapabilityDelegation(String verificationMethodId) async {
-    throw UnsupportedError(
-        'Adding capability delegation verification methods to did:key method is not supported.');
-  }
-
-  @override
-  Future<void> addAssertionMethod(String verificationMethodId) async {
-    throw UnsupportedError(
-        'Adding assertion method verification methods to did:key method is not supported.');
   }
 
   @override
