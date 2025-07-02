@@ -74,14 +74,17 @@ class DidKeyController extends DidController {
   }
 
   @override
-  Future<String> buildVerificationMethodId(PublicKey publicKey) async {
+  Future<String> buildVerificationMethodId(PublicKey publicKey, {PublicKey? primaryPublicKey}) async {
     // For did:key, the DID itself is derived from the public key.
-    final multikey = toMultikey(publicKey.bytes, publicKey.type);
-    final multibase = toMultiBase(multikey);
-    final did = 'did:key:$multibase';
+    final didKey = primaryPublicKey ?? publicKey;
+    final didMultikey = toMultikey(didKey.bytes, didKey.type);
+    final didMultibase = toMultiBase(didMultikey);
+    final did = 'did:key:$didMultibase';
 
-    // The verification method ID fragment is also derived from the same key.
-    return '$did#$multibase';
+    // The verification method ID fragment is derived from the public key.
+    final fragmentMultikey = toMultikey(publicKey.bytes, publicKey.type);
+    final fragmentMultibase = toMultiBase(fragmentMultikey);
+    return '$did#$fragmentMultibase';
   }
 
   @override

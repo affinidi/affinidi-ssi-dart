@@ -149,8 +149,10 @@ abstract class DidController {
                 ed25519PublicToX25519Public(publicKey.bytes);
             final x25519PublicKey =
                 PublicKey(walletKeyId, x25519PublicKeyBytes, KeyType.x25519);
-            final keyAgreementId =
-                await _addVerificationMethodFromPublicKey(x25519PublicKey);
+            final keyAgreementId = await _addVerificationMethodFromPublicKey(
+              x25519PublicKey,
+              primaryPublicKey: publicKey,
+            );
             await _addRelationship(relationship, keyAgreementId);
             resultMap[relationship] = keyAgreementId;
             // If no primary VM was created, use this one as the primary ID.
@@ -200,8 +202,11 @@ abstract class DidController {
   }
 
   Future<String> _addVerificationMethodFromPublicKey(
-      PublicKey publicKey) async {
-    final verificationMethodId = await buildVerificationMethodId(publicKey);
+    PublicKey publicKey, {
+    PublicKey? primaryPublicKey,
+  }) async {
+    final verificationMethodId =
+        await buildVerificationMethodId(publicKey, primaryPublicKey: primaryPublicKey);
     await store.setMapping(verificationMethodId, publicKey.id);
     _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
         publicKey.id;
@@ -253,7 +258,7 @@ abstract class DidController {
 
   /// Builds the verification method ID for a given public key.
   /// Subclasses implement this to handle method-specific ID construction.
-  Future<String> buildVerificationMethodId(PublicKey publicKey);
+  Future<String> buildVerificationMethodId(PublicKey publicKey, {PublicKey? primaryPublicKey});
 
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {

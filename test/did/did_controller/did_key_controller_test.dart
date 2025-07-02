@@ -105,6 +105,34 @@ void main() {
         expect(document.capabilityDelegation.length, 1);
       });
 
+      test('should create proper verification methods for ED+X key', () async {
+        // Arrange
+        final keyPair = await wallet.generateKey(
+          keyId: 'ed25519-key-for-x',
+          keyType: KeyType.ed25519,
+        );
+        await controller.addVerificationMethod(keyPair.id);
+
+        // Act
+        final document = await controller.getDidDocument();
+
+        // Assert
+        final edVm = document.verificationMethod
+            .firstWhere((vm) => vm.type == 'Ed25519VerificationKey2020');
+        final xVm = document.verificationMethod
+            .firstWhere((vm) => vm.type == 'X25519KeyAgreementKey2020');
+
+        final did = document.id;
+        expect(did, startsWith('did:key:z6Mk'));
+
+        // Ed25519 VM ID should be did#did-fragment
+        expect(edVm.id, '$did#${did.split(':').last}');
+
+        // X25519 VM ID should be did#x25519-fragment
+        expect(xVm.id, startsWith('$did#z6LS'));
+        expect(xVm.id, isNot('$did#${did.split(':').last}'));
+      });
+
       test('should throw error when no key is added', () async {
         // Act & Assert
         expect(

@@ -96,7 +96,8 @@ class DidPeerController extends DidController {
   }
 
   @override
-  Future<String> buildVerificationMethodId(PublicKey publicKey) async {
+  Future<String> buildVerificationMethodId(PublicKey publicKey,
+      {PublicKey? primaryPublicKey}) async {
     // For did:peer, verification method IDs are numbered sequentially
     // based on their order in the verificationMethod array
     final verificationMethods = await store.verificationMethodIds;
