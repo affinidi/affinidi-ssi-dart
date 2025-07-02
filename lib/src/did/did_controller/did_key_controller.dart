@@ -22,7 +22,7 @@ class DidKeyController extends DidController {
   });
 
   @override
-  Future<String> addVerificationMethod(PublicKey publicKey) async {
+  Future<String> addVerificationMethod(String walletKeyId) async {
     final verificationMethods = await store.verificationMethodIds;
     if (verificationMethods.isNotEmpty) {
       throw SsiException(
@@ -30,7 +30,7 @@ class DidKeyController extends DidController {
         code: SsiExceptionType.unsupportedNumberOfKeys.code,
       );
     }
-    return super.addVerificationMethod(publicKey);
+    return super.addVerificationMethod(walletKeyId);
   }
 
   Future<String> _getKeyId() async {

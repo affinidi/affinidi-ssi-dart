@@ -5,6 +5,7 @@ import '../../exceptions/ssi_exception_type.dart';
 import '../../key_pair/key_pair.dart';
 import '../../key_pair/public_key.dart';
 import '../../types.dart';
+import '../../utility.dart';
 import '../../wallet/persistent_wallet.dart';
 import '../../wallet/wallet.dart';
 import '../did_document/did_document.dart';
@@ -12,6 +13,7 @@ import '../did_document/service_endpoint.dart';
 import '../did_key_pair.dart';
 import '../did_signer.dart';
 import '../stores/did_store_interface.dart';
+import 'verification_relationship.dart';
 
 /// Base class for managing DID documents and their associated verification methods.
 ///
@@ -93,13 +95,130 @@ abstract class DidController {
   /// Returns the current DID document.
   Future<DidDocument> getDidDocument();
 
-  /// Adds a verification method using an existing key from the wallet.
-  Future<String> addVerificationMethod(PublicKey publicKey) async {
+  Future<String> _addVerificationMethodFromPublicKey(
+      PublicKey publicKey) async {
     final verificationMethodId = await buildVerificationMethodId(publicKey);
     await store.setMapping(verificationMethodId, publicKey.id);
     _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
         publicKey.id;
     return verificationMethodId;
+  }
+
+  /// Adds a verification method using an existing key from the wallet.
+  /// [walletKeyId] - The wallet's key id to add as verification method
+  Future<String> addVerificationMethod(String walletKeyId) async {
+    final publicKey = await wallet.getPublicKey(walletKeyId);
+    return _addVerificationMethodFromPublicKey(publicKey);
+  }
+
+  /// Adds a key from the wallet to the DID, creating verification methods
+  /// and assigning them to verification relationships.
+  ///
+  /// This is a convenience method that simplifies adding a key and setting its
+  /// purposes.
+  ///
+  /// [walletKeyId] - The ID of the key in the wallet.
+  /// [relationships] - The relationships this key should have.
+  /// If null, a sensible default is chosen based on the key type
+  /// (e.g., Ed25519 -> {authentication, keyAgreement, ...}).
+  /// Provide an empty set `{}` to add a key without any relationships.
+  ///
+  /// Returns a map from the assigned verification relationship to the
+  /// corresponding verification method ID.
+  Future<Map<VerificationRelationship, String>> addKey(
+    String walletKeyId, {
+    Set<VerificationRelationship>? relationships,
+  }) async {
+    final publicKey = await wallet.getPublicKey(walletKeyId);
+    final verificationMethodId =
+        await _addVerificationMethodFromPublicKey(publicKey);
+
+    final effectiveRelationships =
+        relationships ?? _getDefaultRelationships(publicKey.type);
+
+    final resultMap = <VerificationRelationship, String>{};
+
+    for (final relationship in effectiveRelationships) {
+      switch (relationship) {
+        case VerificationRelationship.keyAgreement:
+          if (publicKey.type == KeyType.ed25519) {
+            final x25519PublicKeyBytes =
+                ed25519PublicToX25519Public(publicKey.bytes);
+            final x25519PublicKey =
+                PublicKey(walletKeyId, x25519PublicKeyBytes, KeyType.x25519);
+            final keyAgreementId =
+                await _addVerificationMethodFromPublicKey(x25519PublicKey);
+            await _addRelationship(relationship, keyAgreementId);
+            resultMap[relationship] = keyAgreementId;
+          } else if (publicKey.type == KeyType.x25519) {
+            await _addRelationship(relationship, verificationMethodId);
+            resultMap[relationship] = verificationMethodId;
+          } else {
+            throw ArgumentError(
+              'The key type ${publicKey.type} cannot be used for the '
+              '"keyAgreement" relationship.',
+            );
+          }
+          break;
+
+        case VerificationRelationship.authentication:
+        case VerificationRelationship.assertionMethod:
+        case VerificationRelationship.capabilityInvocation:
+        case VerificationRelationship.capabilityDelegation:
+          if (publicKey.type == KeyType.x25519) {
+            throw ArgumentError(
+              'The key type ${publicKey.type} cannot be used for the '
+              '"$relationship" relationship.',
+            );
+          }
+
+          await _addRelationship(relationship, verificationMethodId);
+          resultMap[relationship] = verificationMethodId;
+          break;
+      }
+    }
+
+    return resultMap;
+  }
+
+  Future<void> _addRelationship(
+    VerificationRelationship relationship,
+    String verificationMethodId,
+  ) async {
+    final addFunction = switch (relationship) {
+      VerificationRelationship.authentication => addAuthentication,
+      VerificationRelationship.assertionMethod => addAssertionMethod,
+      VerificationRelationship.capabilityInvocation => addCapabilityInvocation,
+      VerificationRelationship.capabilityDelegation => addCapabilityDelegation,
+      VerificationRelationship.keyAgreement => addKeyAgreement,
+    };
+    await addFunction(verificationMethodId);
+  }
+
+  Set<VerificationRelationship> _getDefaultRelationships(KeyType keyType) {
+    switch (keyType) {
+      case KeyType.ed25519:
+        return {
+          VerificationRelationship.authentication,
+          VerificationRelationship.assertionMethod,
+          VerificationRelationship.capabilityInvocation,
+          VerificationRelationship.capabilityDelegation,
+          VerificationRelationship.keyAgreement,
+        };
+      case KeyType.x25519:
+        return {VerificationRelationship.keyAgreement};
+      case KeyType.secp256k1:
+      case KeyType.p256:
+      case KeyType.p384:
+      case KeyType.p521:
+      case KeyType.rsa:
+        return {
+          VerificationRelationship.authentication,
+          VerificationRelationship.assertionMethod,
+          VerificationRelationship.capabilityInvocation,
+          VerificationRelationship.capabilityDelegation,
+        };
+    }
   }
 
   // TODO: Function to remove verification method

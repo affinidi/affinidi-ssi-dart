@@ -7,6 +7,7 @@ export 'src/credentials/credentials.dart';
 export 'src/did/did_controller/did_controller.dart';
 export 'src/did/did_controller/did_key_controller.dart';
 export 'src/did/did_controller/did_peer_controller.dart';
+export 'src/did/did_controller/verification_relationship.dart';
 export 'src/did/did_document/index.dart';
 export 'src/did/did_key.dart';
 export 'src/did/did_key_pair.dart';

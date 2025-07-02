@@ -17,30 +17,23 @@ void main() async {
   final didPeerController = DidPeerController(store: didStore, wallet: wallet);
   print('DidPeerController created.');
 
-  // 3. Generate keys for authentication and key agreement
-  print('\nGenerating keys...');
-  final ed25519Key =
-      (await wallet.generateKey(keyType: KeyType.ed25519)) as Ed25519KeyPair;
+  // 3. Generate a key for authentication and key agreement
+  print('\nGenerating key...');
+  final ed25519Key = await wallet.generateKey(keyType: KeyType.ed25519);
   print('Ed25519 key generated: ${ed25519Key.id}');
-  final x25519PublicKey = await ed25519Key.ed25519KeyToX25519PublicKey();
-  print('X25519 key derived from Ed25519 key');
 
-  // 4. Add keys as verification methods to the controller
-  final authVerificationMethodId =
-      await didPeerController.addVerificationMethod(ed25519Key.publicKey);
-  final agreementVerificationMethodId =
-      await didPeerController.addVerificationMethod(x25519PublicKey);
-  print('Verification methods added:');
-  print(' - Auth VM ID: $authVerificationMethodId');
-  print(' - Agreement VM ID: $agreementVerificationMethodId');
+  // 4. Add key to the controller, which will set up verification methods
+  // for default relationships (authentication, key agreement, etc.)
+  print('\nAdding key to controller...');
+  final relationshipMap = await didPeerController.addKey(ed25519Key.id);
 
-  // 5. Assign verification methods to their purposes
-  print('\nAssigning verification purposes...');
-  await didPeerController.addAuthentication(authVerificationMethodId);
-  await didPeerController.addKeyAgreement(agreementVerificationMethodId);
-  print('Purposes assigned.');
+  print('Verification methods added and purposes assigned:');
+  print(
+      ' - Auth VM ID: ${relationshipMap[VerificationRelationship.authentication]}');
+  print(
+      ' - Agreement VM ID: ${relationshipMap[VerificationRelationship.keyAgreement]}');
 
-  // 6. Add a service endpoint
+  // 5. Add a service endpoint
   print('\nAdding a service endpoint...');
   final serviceEndpoint = ServiceEndpoint(
     id: '#service-1', // ID is a fragment relative to the DID
