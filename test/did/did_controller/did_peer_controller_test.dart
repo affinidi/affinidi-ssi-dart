@@ -363,7 +363,6 @@ void main() {
           resCd.verificationMethodId,
           resAm.verificationMethodId
         ];
-        print(vmIds);
 
         // Assert - Controller tracks all purposes
         expect(controller.authentication, contains(vmIds[0]));
@@ -374,7 +373,6 @@ void main() {
 
         // Act - Get document
         final document = await controller.getDidDocument();
-        print(document);
 
         // Assert
         expect(
