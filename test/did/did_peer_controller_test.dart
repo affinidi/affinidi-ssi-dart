@@ -31,11 +31,10 @@ void main() {
       final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add verification method for both auth and key agreement
-      await didPeerController.addVerificationMethod(key.id,
-          relationships: {
-            VerificationRelationship.authentication,
-            VerificationRelationship.keyAgreement
-          });
+      await didPeerController.addVerificationMethod(key.id, relationships: {
+        VerificationRelationship.authentication,
+        VerificationRelationship.keyAgreement
+      });
 
       // Add service endpoint
       final serviceEndpoint = ServiceEndpoint(
