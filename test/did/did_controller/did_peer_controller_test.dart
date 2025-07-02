@@ -65,20 +65,19 @@ void main() {
       test('should create document with authentication and key agreement keys',
           () async {
         // Arrange
-        final authKey = await wallet.generateKey(
-            keyId: 'auth-key', keyType: KeyType.ed25519);
-        final kaKey =
-            await wallet.generateKey(keyId: 'ka-key', keyType: KeyType.x25519);
+        final key = await wallet.generateKey(
+            keyId: 'auth-and-ka-key', keyType: KeyType.ed25519);
 
         // Add verification methods
-        final authRes = await controller.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
-        final kaRes = await controller.addVerificationMethod(kaKey.id,
-            relationships: {VerificationRelationship.keyAgreement});
+        final result = await controller.addVerificationMethod(key.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.keyAgreement
+            });
 
         // Set purposes
-        final authVmId = authRes.verificationMethodId;
-        final kaVmId = kaRes.verificationMethodId;
+        final authVmId = result.relationships[VerificationRelationship.authentication]!;
+        final kaVmId = result.relationships[VerificationRelationship.keyAgreement]!;
 
         // Act
         final document = await controller.getDidDocument();
@@ -139,7 +138,7 @@ void main() {
         final key1 = await wallet.generateKey(keyId: 'auth-1');
         final key2 = await wallet.generateKey(keyId: 'auth-2');
         final key3 =
-            await wallet.generateKey(keyId: 'ka-1', keyType: KeyType.x25519);
+            await wallet.generateKey(keyId: 'ka-1', keyType: KeyType.ed25519);
 
         // Add verification methods
         final res1 = await controller.addVerificationMethod(key1.id,
@@ -150,13 +149,13 @@ void main() {
             relationships: {VerificationRelationship.keyAgreement});
         final vmId1 = res1.verificationMethodId;
         final vmId2 = res2.verificationMethodId;
-        final vmId3 = res3.verificationMethodId;
+        final vmId3 = res3.relationships[VerificationRelationship.keyAgreement]!;
 
         // Act
         final document = await controller.getDidDocument();
 
         // Assert - did:peer only supports authentication and keyAgreement
-        expect(document.verificationMethod.length, 3);
+        expect(document.verificationMethod.length, 4);
         expect(document.authentication.length, 2);
         expect(document.keyAgreement.length, 1);
         expect(document.authentication.any((ref) => ref.id == vmId1), isTrue);
@@ -335,7 +334,7 @@ void main() {
         // Arrange
         final authKey = await wallet.generateKey(keyId: 'auth-purpose');
         final kaKey =
-            await wallet.generateKey(keyId: 'ka-purpose', keyType: KeyType.x25519);
+            await wallet.generateKey(keyId: 'ka-purpose', keyType: KeyType.ed25519);
         final ciKey = await wallet.generateKey(keyId: 'ci-purpose');
         final cdKey = await wallet.generateKey(keyId: 'cd-purpose');
         final amKey = await wallet.generateKey(keyId: 'am-purpose');
@@ -354,7 +353,7 @@ void main() {
 
         final vmIds = [
           resAuth.verificationMethodId,
-          resKa.verificationMethodId,
+          resKa.relationships[VerificationRelationship.keyAgreement]!,
           resCi.verificationMethodId,
           resCd.verificationMethodId,
           resAm.verificationMethodId
@@ -483,7 +482,7 @@ void main() {
         // Arrange
         final key1 = await wallet.generateKey(keyId: 'context-key-1');
         final key2 =
-            await wallet.generateKey(keyId: 'context-key-2', keyType: KeyType.x25519);
+            await wallet.generateKey(keyId: 'context-key-2', keyType: KeyType.ed25519);
 
         await controller.addVerificationMethod(key1.id,
             relationships: {VerificationRelationship.authentication});

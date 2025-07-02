@@ -49,6 +49,12 @@ class DidKeyController extends DidController {
 
   Future<String> _getKeyId() async {
     final verificationMethods = await store.verificationMethodIds;
+    if (verificationMethods.isEmpty) {
+      throw SsiException(
+        message: 'DidKey expects a single key.',
+        code: SsiExceptionType.unsupportedNumberOfKeys.code,
+      );
+    }
     final verificationMethodId = verificationMethods.first;
     final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {

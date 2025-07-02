@@ -27,20 +27,15 @@ void main() {
     test(
         'generates a valid did:peer:2 document with auth, agreement, and service',
         () async {
-      // Generate keys
-      final authKey = (await wallet.generateKey(keyType: KeyType.ed25519))
-          as Ed25519KeyPair;
-      final agreementKeyPublicKey = await authKey.ed25519KeyToX25519PublicKey();
+      // Generate key
+      final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
-      // Add verification methods
-      final authVmId =
-          await didPeerController.addVerificationMethod(authKey.publicKey);
-      final agreementVmId =
-          await didPeerController.addVerificationMethod(agreementKeyPublicKey);
-
-      // Assign purposes
-      await didPeerController.addAuthentication(authVmId);
-      await didPeerController.addKeyAgreement(agreementVmId);
+      // Add verification method for both auth and key agreement
+      await didPeerController.addVerificationMethod(key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.keyAgreement
+          });
 
       // Add service endpoint
       final serviceEndpoint = ServiceEndpoint(
@@ -89,12 +84,9 @@ void main() {
       // Generate key
       final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
-      // Add verification method
-      final authVmId =
-          await didPeerController.addVerificationMethod(authKey.publicKey);
-
-      // Assign purpose
-      await didPeerController.addAuthentication(authVmId);
+      // Add verification method and assign purpose
+      await didPeerController.addVerificationMethod(authKey.id,
+          relationships: {VerificationRelationship.authentication});
 
       // Get DID Document
       final didDocument = await didPeerController.getDidDocument();
@@ -147,12 +139,9 @@ void main() {
       // Generate key
       final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
-      // Add verification method
-      final authVmId =
-          await didPeerController.addVerificationMethod(authKey.publicKey);
-
-      // Assign purpose
-      await didPeerController.addAuthentication(authVmId);
+      // Add verification method and assign purpose
+      await didPeerController.addVerificationMethod(authKey.id,
+          relationships: {VerificationRelationship.authentication});
 
       // Add service endpoint
       final serviceEndpoint = ServiceEndpoint(

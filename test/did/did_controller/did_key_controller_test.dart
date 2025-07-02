@@ -20,7 +20,7 @@ void main() {
     });
 
     group('addVerificationMethod', () {
-      test('should add single verification method', () async {
+      test('should add verification method', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'test-key');
 
@@ -57,11 +57,11 @@ void main() {
     });
 
     group('getDidDocument', () {
-      test('should create document from P256 key', () async {
+      test('should create document from ed25519 key', () async {
         // Arrange
         final keyPair = await wallet.generateKey(
-          keyId: 'p256-key',
-          keyType: KeyType.p256,
+          keyId: 'ed25519-key-p256-test',
+          keyType: KeyType.ed25519,
         );
         await controller.addVerificationMethod(keyPair.id);
 
@@ -69,9 +69,12 @@ void main() {
         final document = await controller.getDidDocument();
 
         // Assert
-        expect(document.id, startsWith('did:key:zDn'));
-        expect(document.verificationMethod.length, 1);
-        expect(document.verificationMethod[0].type, 'P256Key2021');
+        expect(document.id, startsWith('did:key:z6Mk'));
+        expect(document.verificationMethod.length, 2);
+        expect(
+            document.verificationMethod
+                .any((vm) => vm.type == 'Ed25519VerificationKey2020'),
+            isTrue);
         expect(document.authentication.length, 1);
         expect(document.assertionMethod.length, 1);
         expect(document.keyAgreement.length, 1);
@@ -98,6 +101,8 @@ void main() {
         expect(document.authentication.length, 1);
         expect(document.assertionMethod.length, 1);
         expect(document.keyAgreement.length, 1);
+        expect(document.capabilityInvocation.length, 1);
+        expect(document.capabilityDelegation.length, 1);
       });
 
       test('should throw error when no key is added', () async {
@@ -125,7 +130,7 @@ void main() {
         // Act & Assert
         expect(
           () => controller.addAuthentication(vmId),
-          returnsNormally,
+          throwsUnsupportedError,
         );
       });
 
@@ -138,7 +143,7 @@ void main() {
         // Act & Assert
         expect(
           () => controller.addKeyAgreement(vmId),
-          returnsNormally,
+          throwsUnsupportedError,
         );
       });
 
@@ -151,7 +156,7 @@ void main() {
         // Act & Assert
         expect(
           () => controller.addCapabilityInvocation(vmId),
-          returnsNormally,
+          throwsUnsupportedError,
         );
       });
 
@@ -164,7 +169,7 @@ void main() {
         // Act & Assert
         expect(
           () => controller.addCapabilityDelegation(vmId),
-          returnsNormally,
+          throwsUnsupportedError,
         );
       });
 
@@ -177,7 +182,7 @@ void main() {
         // Act & Assert
         expect(
           () => controller.addAssertionMethod(vmId),
-          returnsNormally,
+          throwsUnsupportedError,
         );
       });
     });

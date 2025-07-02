@@ -29,7 +29,8 @@ void main() {
       final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add verification method
-      final vmId = await didKeyController.addVerificationMethod(key.publicKey);
+      final result = await didKeyController.addVerificationMethod(key.id);
+      final vmId = result.verificationMethodId;
 
       // Get DID Document
       final didDocument = await didKeyController.getDidDocument();
@@ -80,12 +81,12 @@ void main() {
     test('throws exception when adding a second key', () async {
       // Add first key
       final key1 = await wallet.generateKey(keyType: KeyType.ed25519);
-      await didKeyController.addVerificationMethod(key1.publicKey);
+      await didKeyController.addVerificationMethod(key1.id);
 
       // Attempt to add second key
       final key2 = await wallet.generateKey(keyType: KeyType.ed25519);
       expect(
-        () => didKeyController.addVerificationMethod(key2.publicKey),
+        () => didKeyController.addVerificationMethod(key2.id),
         throwsA(isA<SsiException>().having(
           (e) => e.message,
           'message',
@@ -104,22 +105,6 @@ void main() {
         () => didKeyController.addServiceEndpoint(serviceEndpoint),
         throwsUnsupportedError,
       );
-    });
-
-    test('throws exception when adding verification relationships', () async {
-      final key = await wallet.generateKey(keyType: KeyType.ed25519);
-      final vmId = await didKeyController.addVerificationMethod(key.publicKey);
-
-      expect(() => didKeyController.addAuthentication(vmId),
-          throwsUnsupportedError);
-      expect(
-          () => didKeyController.addKeyAgreement(vmId), throwsUnsupportedError);
-      expect(() => didKeyController.addCapabilityInvocation(vmId),
-          throwsUnsupportedError);
-      expect(() => didKeyController.addCapabilityDelegation(vmId),
-          throwsUnsupportedError);
-      expect(() => didKeyController.addAssertionMethod(vmId),
-          throwsUnsupportedError);
     });
   });
 }

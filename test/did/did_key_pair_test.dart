@@ -24,7 +24,7 @@ void main() {
 
       // Add it as a verification method
       final verificationMethodId =
-          await didKeyController.addVerificationMethod(key.publicKey);
+          await didKeyController.addVerificationMethod(key.id);
 
       // Get the DidKeyPair
       final didKeyPair = await didKeyController.getKey(verificationMethodId);
@@ -49,7 +49,7 @@ void main() {
 
       // Add it as a verification method
       final verificationMethodId =
-          await didKeyController.addVerificationMethod(key.publicKey);
+          await didKeyController.addVerificationMethod(key.id);
 
       // Get the DidKeyPair
       final didKeyPair = await didKeyController.getKey(verificationMethodId);
@@ -90,7 +90,7 @@ void main() {
 
       // Add it as a verification method
       final verificationMethodId =
-          await didKeyController.addVerificationMethod(key.publicKey);
+          await didKeyController.addVerificationMethod(key.id);
 
       // Get the DidKeyPair
       final didKeyPair = await didKeyController.getKey(verificationMethodId);
