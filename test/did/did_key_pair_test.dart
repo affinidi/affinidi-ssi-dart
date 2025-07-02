@@ -23,8 +23,7 @@ void main() {
       final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add it as a verification method
-      final result =
-          await didKeyController.addVerificationMethod(key.id);
+      final result = await didKeyController.addVerificationMethod(key.id);
       final verificationMethodId = result.verificationMethodId;
 
       // Get the DidKeyPair
@@ -49,8 +48,7 @@ void main() {
       final key = await wallet.generateKey(keyType: KeyType.p256);
 
       // Add it as a verification method
-      final result =
-          await didKeyController.addVerificationMethod(key.id);
+      final result = await didKeyController.addVerificationMethod(key.id);
       final verificationMethodId = result.verificationMethodId;
 
       // Get the DidKeyPair
@@ -91,8 +89,7 @@ void main() {
       final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add it as a verification method
-      final result =
-          await didKeyController.addVerificationMethod(key.id);
+      final result = await didKeyController.addVerificationMethod(key.id);
       final verificationMethodId = result.verificationMethodId;
 
       // Get the DidKeyPair
