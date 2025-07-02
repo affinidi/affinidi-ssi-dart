@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import '../key_pair/key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
-import 'did_document/index.dart';
 
 /// A signer that uses a key pair associated with a DID document to sign data.
 class DidSigner {
@@ -14,10 +13,10 @@ class DidSigner {
   final SignatureScheme signatureScheme;
 
   /// The DID document containing the key information.
-  final DidDocument _didDocument;
+  final String _did;
 
   /// The identifier of the key inside the DID document.
-  final String didKeyId;
+  final String _didKeyId;
 
   /// Creates a new [DidSigner] instance.
   ///
@@ -27,21 +26,22 @@ class DidSigner {
   /// [signatureScheme] - The signature scheme to use for signing.
   // TODO(FTL-20741) validations, eg. keyId in doc, signature scheme supported, etc.
   DidSigner({
-    required DidDocument didDocument,
-    required this.didKeyId,
+    required String did,
+    required String didKeyId,
     required KeyPair keyPair,
     required this.signatureScheme,
-  })  : _keyPair = keyPair,
-        _didDocument = didDocument;
+  })  : _didKeyId = didKeyId,
+        _keyPair = keyPair,
+        _did = did;
 
   /// Returns the DID identifier from the DID document.
-  String get did => _didDocument.id;
+  String get did => _did;
 
   /// Returns the public key from the key pair.
   PublicKey get publicKey => _keyPair.publicKey;
 
   /// The identifier of the key inside the DID document
-  String get keyId => didKeyId;
+  String get keyId => _didKeyId;
 
   /// Signs the provided data using the key pair and signature scheme.
   Future<Uint8List> sign(Uint8List data) => _keyPair.sign(

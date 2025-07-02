@@ -9,7 +9,7 @@ Future<DidSigner> initSigner(Uint8List seed) async {
   final doc = DidKey.generateDocument(key.publicKey);
 
   final signer = DidSigner(
-    didDocument: doc,
+    did: doc.id,
     didKeyId: doc.verificationMethod[0].id,
     keyPair: key,
     signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,

@@ -9,7 +9,7 @@ Future<DidSigner> initSigner(Uint8List seed) async {
   final doc = DidKey.generateDocument(key.publicKey);
 
   final signer = DidSigner(
-    didDocument: doc,
+    did: doc.id,
     didKeyId: doc.verificationMethod[0].id,
     keyPair: key,
     signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
@@ -22,7 +22,7 @@ Future<DidSigner> initEdSigner(Uint8List seed) async {
   final doc = DidKey.generateDocument(keyPair.publicKey);
 
   final signer = DidSigner(
-    didDocument: doc,
+    did: doc.id,
     didKeyId: doc.verificationMethod[0].id,
     keyPair: keyPair,
     signatureScheme: SignatureScheme.ed25519,
@@ -35,7 +35,7 @@ Future<DidSigner> initP256Signer(Uint8List seed) async {
   final doc = DidKey.generateDocument(keyPair.publicKey);
 
   final signer = DidSigner(
-    didDocument: doc,
+    did: doc.id,
     didKeyId: doc.verificationMethod[0].id,
     keyPair: keyPair,
     signatureScheme: SignatureScheme.ecdsa_p256_sha256,
