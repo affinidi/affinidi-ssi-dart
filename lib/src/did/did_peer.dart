@@ -393,9 +393,9 @@ class DidPeer {
     return '${_didTypePrefixes[DidPeerType.peer2]}'
         '$authKeysStr'
         '$agreementKeysStr'
-        '$assertionKeysStr'
         '$capabilityInvocationKeysStr'
         '$capabilityDelegationKeysStr'
+        '$assertionKeysStr'
         '$serviceStr';
   }
 

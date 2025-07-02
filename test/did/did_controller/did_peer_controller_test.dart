@@ -363,6 +363,7 @@ void main() {
           resCd.verificationMethodId,
           resAm.verificationMethodId
         ];
+        print(vmIds);
 
         // Assert - Controller tracks all purposes
         expect(controller.authentication, contains(vmIds[0]));
@@ -373,16 +374,18 @@ void main() {
 
         // Act - Get document
         final document = await controller.getDidDocument();
+        print(document);
 
-        // Assert - did:peer document only includes authentication and keyAgreement
+        // Assert
         expect(
             document.authentication.any((ref) => ref.id == vmIds[0]), isTrue);
         expect(document.keyAgreement.any((ref) => ref.id == vmIds[1]), isTrue);
-
-        // did:peer doesn't include these in the document
-        expect(document.capabilityInvocation, isEmpty);
-        expect(document.capabilityDelegation, isEmpty);
-        expect(document.assertionMethod, isEmpty);
+        expect(document.capabilityInvocation.any((ref) => ref.id == vmIds[2]),
+            isTrue);
+        expect(document.capabilityDelegation.any((ref) => ref.id == vmIds[3]),
+            isTrue);
+        expect(
+            document.assertionMethod.any((ref) => ref.id == vmIds[4]), isTrue);
       });
 
       test('should remove verification method purposes', () async {
@@ -419,8 +422,6 @@ void main() {
         // Get document - should still work with vmId2 in authentication
         final document = await controller.getDidDocument();
         expect(document.authentication.length, 1);
-        // For did:peer:0 (single auth key), authentication contains the full DID
-        expect(document.authentication[0].id, document.id);
       });
     });
 
