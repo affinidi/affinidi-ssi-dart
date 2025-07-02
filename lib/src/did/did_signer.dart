@@ -37,9 +37,6 @@ class DidSigner {
   /// Returns the DID identifier from the DID document.
   String get did => _did;
 
-  /// Returns the public key from the key pair.
-  PublicKey get publicKey => _keyPair.publicKey;
-
   /// The identifier of the key inside the DID document
   String get keyId => _didKeyId;
 
