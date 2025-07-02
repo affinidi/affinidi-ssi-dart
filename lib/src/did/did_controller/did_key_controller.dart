@@ -5,7 +5,9 @@ import '../did_document/did_document.dart';
 import '../did_document/service_endpoint.dart';
 import '../did_key.dart';
 import '../public_key_utils.dart';
+import 'add_verification_method_result.dart';
 import 'did_controller.dart';
+import 'verification_relationship.dart';
 
 /// DID Controller implementation for the did:key method.
 ///
@@ -22,7 +24,10 @@ class DidKeyController extends DidController {
   });
 
   @override
-  Future<String> addVerificationMethod(String walletKeyId) async {
+  Future<AddVerificationMethodResult> addVerificationMethod(
+    String walletKeyId, {
+    Set<VerificationRelationship>? relationships,
+  }) async {
     final verificationMethods = await store.verificationMethodIds;
     if (verificationMethods.isNotEmpty) {
       throw SsiException(
@@ -30,6 +35,15 @@ class DidKeyController extends DidController {
         code: SsiExceptionType.unsupportedNumberOfKeys.code,
       );
     }
+
+    if (relationships != null) {
+      throw SsiException(
+        message: 'For did:key, relationships are automatically assigned and '
+            'cannot be specified manually.',
+        code: SsiExceptionType.invalidDidKey.code,
+      );
+    }
+
     return super.addVerificationMethod(walletKeyId);
   }
 

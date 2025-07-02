@@ -4,6 +4,7 @@
 library;
 
 export 'src/credentials/credentials.dart';
+export 'src/did/did_controller/add_verification_method_result.dart';
 export 'src/did/did_controller/did_controller.dart';
 export 'src/did/did_controller/did_key_controller.dart';
 export 'src/did/did_controller/did_peer_controller.dart';

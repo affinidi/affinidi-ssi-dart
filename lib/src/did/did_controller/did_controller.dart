@@ -13,6 +13,7 @@ import '../did_document/service_endpoint.dart';
 import '../did_key_pair.dart';
 import '../did_signer.dart';
 import '../stores/did_store_interface.dart';
+import 'add_verification_method_result.dart';
 import 'verification_relationship.dart';
 
 /// Base class for managing DID documents and their associated verification methods.
@@ -95,22 +96,6 @@ abstract class DidController {
   /// Returns the current DID document.
   Future<DidDocument> getDidDocument();
 
-  Future<String> _addVerificationMethodFromPublicKey(
-      PublicKey publicKey) async {
-    final verificationMethodId = await buildVerificationMethodId(publicKey);
-    await store.setMapping(verificationMethodId, publicKey.id);
-    _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
-        publicKey.id;
-    return verificationMethodId;
-  }
-
-  /// Adds a verification method using an existing key from the wallet.
-  /// [walletKeyId] - The wallet's key id to add as verification method
-  Future<String> addVerificationMethod(String walletKeyId) async {
-    final publicKey = await wallet.getPublicKey(walletKeyId);
-    return _addVerificationMethodFromPublicKey(publicKey);
-  }
-
   /// Adds a key from the wallet to the DID, creating verification methods
   /// and assigning them to verification relationships.
   ///
@@ -119,13 +104,22 @@ abstract class DidController {
   ///
   /// [walletKeyId] - The ID of the key in the wallet.
   /// [relationships] - The relationships this key should have.
-  /// If null, a sensible default is chosen based on the key type
-  /// (e.g., Ed25519 -> {authentication, keyAgreement, ...}).
-  /// Provide an empty set `{}` to add a key without any relationships.
   ///
-  /// Returns a map from the assigned verification relationship to the
-  /// corresponding verification method ID.
-  Future<Map<VerificationRelationship, String>> addKey(
+  /// - If `null` (default), a sensible set of relationships is chosen based
+  ///   on the key type (e.g., an Ed25519 key will be set up for signing and
+  ///   key agreement, while an X25519 key will only be set up for key
+  ///   agreement).
+  /// - If an empty set (`{}`) is provided, the key is added to the DID
+  ///   document's `verificationMethod` list but not assigned to any
+  ///   relationship.
+  /// - If a custom set is provided, the key will be assigned to the specified
+  ///   relationships. An [ArgumentError] will be thrown if the key type is
+  ///   unsuitable for a requested relationship (e.g., using an X25519 key
+  ///   for `authentication`).
+  ///
+  /// Returns an [AddVerificationMethodResult] containing the primary
+  /// verification method ID and a map of assigned relationships.
+  Future<AddVerificationMethodResult> addVerificationMethod(
     String walletKeyId, {
     Set<VerificationRelationship>? relationships,
   }) async {
@@ -178,7 +172,19 @@ abstract class DidController {
       }
     }
 
-    return resultMap;
+    return AddVerificationMethodResult(
+      verificationMethodId: verificationMethodId,
+      relationships: resultMap,
+    );
+  }
+
+  Future<String> _addVerificationMethodFromPublicKey(
+      PublicKey publicKey) async {
+    final verificationMethodId = await buildVerificationMethodId(publicKey);
+    await store.setMapping(verificationMethodId, publicKey.id);
+    _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
+        publicKey.id;
+    return verificationMethodId;
   }
 
   Future<void> _addRelationship(
