@@ -74,7 +74,8 @@ class DidKeyController extends DidController {
   }
 
   @override
-  Future<String> buildVerificationMethodId(PublicKey publicKey, {PublicKey? primaryPublicKey}) async {
+  Future<String> buildVerificationMethodId(PublicKey publicKey,
+      {PublicKey? primaryPublicKey}) async {
     // For did:key, the DID itself is derived from the public key.
     final didKey = primaryPublicKey ?? publicKey;
     final didMultikey = toMultikey(didKey.bytes, didKey.type);
