@@ -144,7 +144,11 @@ abstract class DidController {
                 await _addVerificationMethodFromPublicKey(x25519PublicKey);
             await _addRelationship(relationship, keyAgreementId);
             resultMap[relationship] = keyAgreementId;
-          } else if (publicKey.type == KeyType.x25519) {
+          } else if (publicKey.type == KeyType.x25519 ||
+              publicKey.type == KeyType.p256 ||
+              publicKey.type == KeyType.p384 ||
+              publicKey.type == KeyType.p521 ||
+              publicKey.type == KeyType.rsa) {
             await _addRelationship(relationship, verificationMethodId);
             resultMap[relationship] = verificationMethodId;
           } else {
@@ -203,22 +207,22 @@ abstract class DidController {
 
   Set<VerificationRelationship> _getDefaultRelationships(KeyType keyType) {
     switch (keyType) {
-      case KeyType.ed25519:
+      case KeyType.x25519:
+        return {VerificationRelationship.keyAgreement};
+      case KeyType.secp256k1:
         return {
           VerificationRelationship.authentication,
           VerificationRelationship.assertionMethod,
           VerificationRelationship.capabilityInvocation,
           VerificationRelationship.capabilityDelegation,
-          VerificationRelationship.keyAgreement,
         };
-      case KeyType.x25519:
-        return {VerificationRelationship.keyAgreement};
-      case KeyType.secp256k1:
+      case KeyType.ed25519:
       case KeyType.p256:
       case KeyType.p384:
       case KeyType.p521:
       case KeyType.rsa:
         return {
+          VerificationRelationship.keyAgreement,
           VerificationRelationship.authentication,
           VerificationRelationship.assertionMethod,
           VerificationRelationship.capabilityInvocation,

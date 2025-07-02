@@ -25,8 +25,8 @@ void main() {
         final keyPair = await wallet.generateKey(keyId: 'test-key');
 
         // Act
-        final verificationMethodId =
-            await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final verificationMethodId = result.verificationMethodId;
 
         // Assert
         expect(verificationMethodId, startsWith('did:key:'));
@@ -40,11 +40,11 @@ void main() {
         // Arrange
         final key1 = await wallet.generateKey(keyId: 'key-1');
         final key2 = await wallet.generateKey(keyId: 'key-2');
-        await controller.addVerificationMethod(key1.publicKey);
+        await controller.addVerificationMethod(key1.id);
 
         // Act & Assert
         expect(
-          () => controller.addVerificationMethod(key2.publicKey),
+          () => controller.addVerificationMethod(key2.id),
           throwsA(
             isA<SsiException>().having(
               (e) => e.code,
@@ -63,7 +63,7 @@ void main() {
           keyId: 'p256-key',
           keyType: KeyType.p256,
         );
-        await controller.addVerificationMethod(keyPair.publicKey);
+        await controller.addVerificationMethod(keyPair.id);
 
         // Act
         final document = await controller.getDidDocument();
@@ -85,7 +85,7 @@ void main() {
           keyId: 'ed25519-key',
           keyType: KeyType.ed25519,
         );
-        await controller.addVerificationMethod(keyPair.publicKey);
+        await controller.addVerificationMethod(keyPair.id);
 
         // Act
         final document = await controller.getDidDocument();
@@ -116,63 +116,68 @@ void main() {
     });
 
     group('Verification method purposes', () {
-      test('should throw error when adding authentication', () async {
+      test('should not throw when adding authentication', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'auth-key');
-        final vmId = await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final vmId = result.verificationMethodId;
 
         // Act & Assert
         expect(
           () => controller.addAuthentication(vmId),
-          throwsA(isA<UnsupportedError>()),
+          returnsNormally,
         );
       });
 
-      test('should throw error when adding key agreement', () async {
+      test('should not throw when adding key agreement', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'ka-key');
-        final vmId = await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final vmId = result.verificationMethodId;
 
         // Act & Assert
         expect(
           () => controller.addKeyAgreement(vmId),
-          throwsA(isA<UnsupportedError>()),
+          returnsNormally,
         );
       });
 
-      test('should throw error when adding capability invocation', () async {
+      test('should not throw when adding capability invocation', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'ci-key');
-        final vmId = await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final vmId = result.verificationMethodId;
 
         // Act & Assert
         expect(
           () => controller.addCapabilityInvocation(vmId),
-          throwsA(isA<UnsupportedError>()),
+          returnsNormally,
         );
       });
 
-      test('should throw error when adding capability delegation', () async {
+      test('should not throw when adding capability delegation', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'cd-key');
-        final vmId = await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final vmId = result.verificationMethodId;
 
         // Act & Assert
         expect(
           () => controller.addCapabilityDelegation(vmId),
-          throwsA(isA<UnsupportedError>()),
+          returnsNormally,
         );
       });
 
-      test('should throw error when adding assertion method', () async {
+      test('should not throw when adding assertion method', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'am-key');
-        final vmId = await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final vmId = result.verificationMethodId;
 
         // Act & Assert
         expect(
           () => controller.addAssertionMethod(vmId),
-          throwsA(isA<UnsupportedError>()),
+          returnsNormally,
         );
       });
     });
@@ -206,7 +211,8 @@ void main() {
       test('should sign and verify with did:key controller', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'sign-key');
-        final vmId = await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final vmId = result.verificationMethodId;
         final data = Uint8List.fromList('Hello, World!'.codeUnits);
 
         // Act
@@ -239,7 +245,8 @@ void main() {
       test('should get DID signer', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'signer-key');
-        final vmId = await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final vmId = result.verificationMethodId;
 
         // Act
         final signer = await controller.getSigner(vmId);
@@ -253,7 +260,8 @@ void main() {
       test('should sign with DID signer', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'signer-key-2');
-        final vmId = await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final vmId = result.verificationMethodId;
         final signer = await controller.getSigner(vmId);
         final data = Uint8List.fromList('Sign this'.codeUnits);
 
@@ -270,7 +278,8 @@ void main() {
       test('should retrieve DID key pair', () async {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'retrieve-key');
-        final vmId = await controller.addVerificationMethod(keyPair.publicKey);
+        final result = await controller.addVerificationMethod(keyPair.id);
+        final vmId = result.verificationMethodId;
 
         // Act
         final didKeyPair = await controller.getKey(vmId);
