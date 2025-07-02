@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import '../key_pair/key_pair.dart';
-import '../key_pair/public_key.dart';
 import '../types.dart';
 
 /// A signer that uses a key pair associated with a DID document to sign data.
@@ -20,11 +19,11 @@ class DidSigner {
 
   /// Creates a new [DidSigner] instance.
   ///
-  /// [didDocument] - The DID document containing the key information.
+  /// [did] - The DID for which this keyPair is being used.
   /// [didKeyId] - The identifier of the key inside the DID document.
   /// [keyPair] - The key pair to use for signing.
   /// [signatureScheme] - The signature scheme to use for signing.
-  // TODO(FTL-20741) validations, eg. keyId in doc, signature scheme supported, etc.
+  // TODO(FTL-20741) validations, eg. keyId & keyPair belongs to did, signature scheme supported, etc.
   DidSigner({
     required String did,
     required String didKeyId,
