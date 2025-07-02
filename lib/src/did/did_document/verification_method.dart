@@ -170,7 +170,6 @@ class VerificationMethodJwk extends EmbeddedVerificationMethod {
   }
 }
 
-/// Represents a verification method using multibase encoding.
 class VerificationMethodMultibase extends EmbeddedVerificationMethod {
   /// The public key in multikey format.
   late final Uint8List publicKeyMultikey;

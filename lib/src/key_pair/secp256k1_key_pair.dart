@@ -123,6 +123,7 @@ class Secp256k1KeyPair implements KeyPair {
   /// [publicKey] - The public key of the other party (in compressed format).
   ///
   /// Returns the computed shared secret as a [Uint8List].
+  @override
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
     final publicKeyObj =
         _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
