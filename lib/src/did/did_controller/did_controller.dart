@@ -124,13 +124,22 @@ abstract class DidController {
     Set<VerificationRelationship>? relationships,
   }) async {
     final publicKey = await wallet.getPublicKey(walletKeyId);
-    final verificationMethodId =
-        await _addVerificationMethodFromPublicKey(publicKey);
-
     final effectiveRelationships =
         relationships ?? _getDefaultRelationships(publicKey.type);
 
     final resultMap = <VerificationRelationship, String>{};
+    String? verificationMethodId;
+
+    // If we only need key agreement for an ed25519 key, we don't create a
+    // primary VM for the ed25519 key itself, only for the derived x25519 key.
+    final onlyKeyAgreementForEd25519 = effectiveRelationships.length == 1 &&
+        effectiveRelationships.first == VerificationRelationship.keyAgreement &&
+        publicKey.type == KeyType.ed25519;
+
+    if (!onlyKeyAgreementForEd25519) {
+      verificationMethodId =
+          await _addVerificationMethodFromPublicKey(publicKey);
+    }
 
     for (final relationship in effectiveRelationships) {
       switch (relationship) {
@@ -144,12 +153,14 @@ abstract class DidController {
                 await _addVerificationMethodFromPublicKey(x25519PublicKey);
             await _addRelationship(relationship, keyAgreementId);
             resultMap[relationship] = keyAgreementId;
+            // If no primary VM was created, use this one as the primary ID.
+            verificationMethodId ??= keyAgreementId;
           } else if (publicKey.type == KeyType.x25519 ||
               publicKey.type == KeyType.p256 ||
               publicKey.type == KeyType.p384 ||
               publicKey.type == KeyType.p521 ||
               publicKey.type == KeyType.rsa) {
-            await _addRelationship(relationship, verificationMethodId);
+            await _addRelationship(relationship, verificationMethodId!);
             resultMap[relationship] = verificationMethodId;
           } else {
             throw ArgumentError(
@@ -170,11 +181,17 @@ abstract class DidController {
             );
           }
 
-          await _addRelationship(relationship, verificationMethodId);
+          await _addRelationship(relationship, verificationMethodId!);
           resultMap[relationship] = verificationMethodId;
           break;
       }
     }
+
+    // If relationships was an empty set, a VM should have been created.
+    // This should not be reachable if effectiveRelationships is not empty.
+    // But as a safeguard for empty relationships:
+    verificationMethodId ??=
+        await _addVerificationMethodFromPublicKey(publicKey);
 
     return AddVerificationMethodResult(
       verificationMethodId: verificationMethodId,

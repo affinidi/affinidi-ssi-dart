@@ -85,6 +85,51 @@ class DidKeyController extends DidController {
   }
 
   @override
+  Future<void> addAuthentication(String verificationMethodId) async {
+    if (authentication.isNotEmpty) {
+      throw UnsupportedError(
+          'did:key does not support manually modifying verification relationships.');
+    }
+    return super.addAuthentication(verificationMethodId);
+  }
+
+  @override
+  Future<void> addKeyAgreement(String verificationMethodId) async {
+    if (keyAgreement.isNotEmpty) {
+      throw UnsupportedError(
+          'did:key does not support manually modifying verification relationships.');
+    }
+    return super.addKeyAgreement(verificationMethodId);
+  }
+
+  @override
+  Future<void> addCapabilityInvocation(String verificationMethodId) async {
+    if (capabilityInvocation.isNotEmpty) {
+      throw UnsupportedError(
+          'did:key does not support manually modifying verification relationships.');
+    }
+    return super.addCapabilityInvocation(verificationMethodId);
+  }
+
+  @override
+  Future<void> addCapabilityDelegation(String verificationMethodId) async {
+    if (capabilityDelegation.isNotEmpty) {
+      throw UnsupportedError(
+          'did:key does not support manually modifying verification relationships.');
+    }
+    return super.addCapabilityDelegation(verificationMethodId);
+  }
+
+  @override
+  Future<void> addAssertionMethod(String verificationMethodId) async {
+    if (assertionMethod.isNotEmpty) {
+      throw UnsupportedError(
+          'did:key does not support manually modifying verification relationships.');
+    }
+    return super.addAssertionMethod(verificationMethodId);
+  }
+
+  @override
   Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
     throw UnsupportedError(
         'Adding service endpoints to did:key method is not supported.');

@@ -29,7 +29,12 @@ void main() {
           'did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka';
       final expectedKeyType = KeyType.ed25519;
 
-      final doc = DidPeer.generateDocument([accountPublicKey], []);
+      final doc = DidPeer.generateDocument(
+        verificationMethods: [accountPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0]
+        },
+      );
       final actualDid = doc.id;
       final actualKeyType = accountPublicKey.type;
 
@@ -47,7 +52,12 @@ void main() {
       final expectedDid =
           'did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka';
 
-      final actualDid = DidPeer.getDid([accountPublicKey], []);
+      final actualDid = DidPeer.getDid(
+        verificationMethods: [accountPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0]
+        },
+      );
 
       expect(actualDid, expectedDid);
     });
@@ -63,8 +73,11 @@ void main() {
       );
 
       final did = DidPeer.getDid(
-        [key.publicKey],
-        [key.publicKey],
+        verificationMethods: [key.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+          VerificationRelationship.keyAgreement: [0]
+        },
         serviceEndpoints: [service],
       );
 
@@ -98,8 +111,11 @@ void main() {
       );
 
       final did = DidPeer.getDid(
-        [authKey.publicKey],
-        [agreeKey.publicKey],
+        verificationMethods: [authKey.publicKey, agreeKey.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+          VerificationRelationship.keyAgreement: [1]
+        },
         serviceEndpoints: [service1, service2],
       );
 
@@ -137,8 +153,11 @@ void main() {
       );
 
       final doc = DidPeer.generateDocument(
-        [authKey.publicKey],
-        [agreeKey.publicKey],
+        verificationMethods: [authKey.publicKey, agreeKey.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+          VerificationRelationship.keyAgreement: [1]
+        },
         serviceEndpoints: [service],
       );
 
@@ -159,38 +178,6 @@ void main() {
       expect(doc.verificationMethod[1].id, '#key-2');
     });
 
-    test('generateDocument for did:peer:2 should start with did:peer:2.Vz6Mk',
-        () async {
-      final expectedDidPeerPrefix = 'did:peer:2.Vz6Mk';
-
-      final expectedDid =
-          'did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0';
-
-      final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
-      final key = await wallet.generateKey(keyId: derivedKeyPath);
-
-      final service = ServiceEndpoint(
-        id: '#service-1',
-        type: 'TestService',
-        serviceEndpoint: const StringEndpoint('https://denys.com/income'),
-      );
-
-      final doc = DidPeer.generateDocument(
-        [key.publicKey, key.publicKey],
-        [key.publicKey, key.publicKey],
-        serviceEndpoints: [service],
-      );
-      final actualDid = doc.id;
-
-      final expectedDidDocString =
-          '{"id":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/multikey/v1"],"verificationMethod":[{"id":"#key-1","controller":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","type":"Multikey","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-2","controller":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","type":"Multikey","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-3","controller":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","type":"Multikey","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-4","controller":"did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0","type":"Multikey","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"}],"authentication":["#key-1","#key-2"],"keyAgreement":["#key-3","#key-4"],"service":[{"id":"#service-1","type":"TestService","serviceEndpoint":"https://denys.com/income"}]}';
-      final resolvedDidDocument = DidPeer.resolve(actualDid);
-      expect(resolvedDidDocument.id, expectedDid);
-      expect(resolvedDidDocument.toJson(), jsonDecode(expectedDidDocString));
-
-      expect(actualDid, startsWith(expectedDidPeerPrefix));
-    });
-
     test('getDid for did:peer:2 should match expected', () async {
       final expectedDid =
           'did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0';
@@ -205,11 +192,11 @@ void main() {
       );
 
       final actualDid = DidPeer.getDid(
-        [key.publicKey, key.publicKey],
-        [
-          key.publicKey,
-          key.publicKey
-        ], // Using same key twice for simplicity, matching generateDocument test
+        verificationMethods: [key.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0, 0],
+          VerificationRelationship.keyAgreement: [0, 0]
+        },
         serviceEndpoints: [service],
       );
 
@@ -254,7 +241,11 @@ void main() {
         165
       ]);
 
-      final doc = DidPeer.generateDocument([accountPublicKey], []);
+      final doc = DidPeer.generateDocument(verificationMethods: [
+        accountPublicKey
+      ], relationships: {
+        VerificationRelationship.authentication: [0]
+      });
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);

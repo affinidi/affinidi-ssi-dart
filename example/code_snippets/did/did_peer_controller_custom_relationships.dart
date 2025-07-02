@@ -21,21 +21,36 @@ void main() async {
 
   // 3. Add key with a custom set of relationships
   print('\nAdding key with only authentication and key agreement...');
-  final addKeyResult = await didPeerController.addVerificationMethod(
+  final addKeyResult1 = await didPeerController.addVerificationMethod(
     ed25519Key.id,
     relationships: {
       VerificationRelationship.authentication,
+    },
+  );
+
+  print('Verification methods added and purposes assigned:');
+  print(' - Primary VM ID: ${addKeyResult1.verificationMethodId}');
+  print(
+      ' - Authentication VM ID: ${addKeyResult1.relationships[VerificationRelationship.authentication]}');
+  print(
+      ' - Key Agreement VM ID: ${addKeyResult1.relationships[VerificationRelationship.keyAgreement]}');
+  print(' - All assigned relationships: ${addKeyResult1.relationships.keys}');
+
+  final ed25519Key2 = await wallet.generateKey(keyType: KeyType.ed25519);
+  final addKeyResult2 = await didPeerController.addVerificationMethod(
+    ed25519Key2.id,
+    relationships: {
       VerificationRelationship.keyAgreement,
     },
   );
 
   print('Verification methods added and purposes assigned:');
-  print(' - Primary VM ID: ${addKeyResult.verificationMethodId}');
+  print(' - Primary VM ID: ${addKeyResult2.verificationMethodId}');
   print(
-      ' - Authentication VM ID: ${addKeyResult.relationships[VerificationRelationship.authentication]}');
+      ' - Authentication VM ID: ${addKeyResult2.relationships[VerificationRelationship.authentication]}');
   print(
-      ' - Key Agreement VM ID: ${addKeyResult.relationships[VerificationRelationship.keyAgreement]}');
-  print(' - All assigned relationships: ${addKeyResult.relationships.keys}');
+      ' - Key Agreement VM ID: ${addKeyResult2.relationships[VerificationRelationship.keyAgreement]}');
+  print(' - All assigned relationships: ${addKeyResult2.relationships.keys}');
 
   // 4. Get and print the DID Document
   print('\n--- Generated DID Document (Custom Relationships) ---');
