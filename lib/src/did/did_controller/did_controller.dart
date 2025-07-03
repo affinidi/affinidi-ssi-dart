@@ -96,6 +96,32 @@ abstract class DidController {
   /// Returns the current DID document.
   Future<DidDocument> getDidDocument();
 
+  Set<VerificationRelationship> _getDefaultRelationships(KeyType keyType) {
+    switch (keyType) {
+      case KeyType.x25519:
+        return {VerificationRelationship.keyAgreement};
+      case KeyType.secp256k1:
+        return {
+          VerificationRelationship.authentication,
+          VerificationRelationship.assertionMethod,
+          VerificationRelationship.capabilityInvocation,
+          VerificationRelationship.capabilityDelegation,
+        };
+      case KeyType.ed25519:
+      case KeyType.p256:
+      case KeyType.p384:
+      case KeyType.p521:
+      case KeyType.rsa:
+        return {
+          VerificationRelationship.keyAgreement,
+          VerificationRelationship.authentication,
+          VerificationRelationship.assertionMethod,
+          VerificationRelationship.capabilityInvocation,
+          VerificationRelationship.capabilityDelegation,
+        };
+    }
+  }
+
   /// Adds a key from the wallet to the DID, creating verification methods
   /// and assigning them to verification relationships.
   ///
@@ -106,9 +132,10 @@ abstract class DidController {
   /// [relationships] - The relationships this key should have.
   ///
   /// - If `null` (default), a sensible set of relationships is chosen based
-  ///   on the key type (e.g., an Ed25519 key will be set up for signing and
-  ///   key agreement, while an X25519 key will only be set up for key
-  ///   agreement).
+  ///   on the key type:
+  ///   - **x25519**: `keyAgreement`
+  ///   - **secp256k1**: `authentication`, `assertionMethod`, `capabilityInvocation`, `capabilityDelegation`
+  ///   - **ed25519, p256, p384, p521, rsa**: `keyAgreement`, `authentication`, `assertionMethod`, `capabilityInvocation`, `capabilityDelegation`
   /// - If an empty set (`{}`) is provided, the key is added to the DID
   ///   document's `verificationMethod` list but not assigned to any
   ///   relationship.
@@ -116,6 +143,10 @@ abstract class DidController {
   ///   relationships. An [ArgumentError] will be thrown if the key type is
   ///   unsuitable for a requested relationship (e.g., using an X25519 key
   ///   for `authentication`).
+  ///
+  ///   Note: When an `ed25519` key is used for `keyAgreement`, it is
+  ///   automatically converted to an `x25519` key, resulting in a separate
+  ///   verification method.
   ///
   /// Returns an [AddVerificationMethodResult] containing the primary
   /// verification method ID and a map of assigned relationships.
@@ -216,32 +247,6 @@ abstract class DidController {
       VerificationRelationship.keyAgreement => addKeyAgreement,
     };
     await addFunction(verificationMethodId);
-  }
-
-  Set<VerificationRelationship> _getDefaultRelationships(KeyType keyType) {
-    switch (keyType) {
-      case KeyType.x25519:
-        return {VerificationRelationship.keyAgreement};
-      case KeyType.secp256k1:
-        return {
-          VerificationRelationship.authentication,
-          VerificationRelationship.assertionMethod,
-          VerificationRelationship.capabilityInvocation,
-          VerificationRelationship.capabilityDelegation,
-        };
-      case KeyType.ed25519:
-      case KeyType.p256:
-      case KeyType.p384:
-      case KeyType.p521:
-      case KeyType.rsa:
-        return {
-          VerificationRelationship.keyAgreement,
-          VerificationRelationship.authentication,
-          VerificationRelationship.assertionMethod,
-          VerificationRelationship.capabilityInvocation,
-          VerificationRelationship.capabilityDelegation,
-        };
-    }
   }
 
   // TODO: Function to remove verification method
