@@ -51,8 +51,10 @@ class Ed25519KeyPair implements KeyPair {
   ///
   /// [privateKeyBytes] - The private key as a [Uint8List].
   /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
-  factory Ed25519KeyPair.fromPrivateKey(Uint8List privateKeyBytes,
-      {String? id}) {
+  factory Ed25519KeyPair.fromPrivateKey(
+    Uint8List privateKeyBytes, {
+    String? id,
+  }) {
     final effectiveId = id ?? randomId();
     return Ed25519KeyPair._(ed.PrivateKey(privateKeyBytes), effectiveId);
   }
@@ -63,9 +65,7 @@ class Ed25519KeyPair implements KeyPair {
   @override
   PublicKey get publicKey => PublicKey(
         id,
-        Uint8List.fromList(
-          ed.public(_privateKey).bytes,
-        ),
+        Uint8List.fromList(ed.public(_privateKey).bytes),
         KeyType.ed25519,
       );
 
@@ -83,14 +83,7 @@ class Ed25519KeyPair implements KeyPair {
     Uint8List data, {
     SignatureScheme? signatureScheme,
   }) async {
-    signatureScheme ??= SignatureScheme.ed25519;
-    if (signatureScheme != SignatureScheme.ed25519) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only ed25519_sha256 and eddsa_sha512 are supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
+    _validateSignatureScheme(signatureScheme: signatureScheme);
 
     // For Ed25519, the library handles hashing internally
     return ed.sign(_privateKey, data);
@@ -112,14 +105,7 @@ class Ed25519KeyPair implements KeyPair {
     Uint8List signature, {
     SignatureScheme? signatureScheme,
   }) async {
-    signatureScheme ??= SignatureScheme.ed25519;
-    if (signatureScheme != SignatureScheme.ed25519) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only ed25519_sha256 and eddsa_sha512 are supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
+    _validateSignatureScheme(signatureScheme: signatureScheme);
 
     // For Ed25519, the library handles hashing internally
     return ed.verify(ed.public(_privateKey), data, signature);
@@ -129,11 +115,11 @@ class Ed25519KeyPair implements KeyPair {
   Uint8List getSeed() => ed.seed(_privateKey);
 
   @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      const [SignatureScheme.ed25519];
+  SignatureScheme get defaultSignatureScheme => SignatureScheme.ed25519;
 
   @override
-  SignatureScheme get defaultSignatureScheme => SignatureScheme.ed25519;
+  List<SignatureScheme> get supportedSignatureSchemes =>
+      [defaultSignatureScheme];
 
   /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
@@ -174,13 +160,11 @@ class Ed25519KeyPair implements KeyPair {
       publicKeyToUse = publicKey;
     }
 
-    final sharedSecret =
-        await computeEcdhSecret(Uint8List.fromList(publicKeyToUse));
-
-    final algorithm = crypto.Hkdf(
-      hmac: crypto.Hmac.sha256(),
-      outputLength: 32,
+    final sharedSecret = await computeEcdhSecret(
+      Uint8List.fromList(publicKeyToUse),
     );
+
+    final algorithm = crypto.Hkdf(hmac: crypto.Hmac.sha256(), outputLength: 32);
 
     final secretKey = crypto.SecretKey(sharedSecret);
 
@@ -199,13 +183,18 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   @override
-  Future<Uint8List> decrypt(Uint8List ivAndBytes,
-      {Uint8List? publicKey}) async {
+  Future<Uint8List> decrypt(
+    Uint8List ivAndBytes, {
+    Uint8List? publicKey,
+  }) async {
     // Extract the ephemeral public key and the encrypted data
-    final ephemeralPublicKeyBytes =
-        ivAndBytes.sublist(0, compressedPublidKeyLength);
-    final encryptedData = ivAndBytes
-        .sublist(compressedPublidKeyLength); // The rest is the encrypted data
+    final ephemeralPublicKeyBytes = ivAndBytes.sublist(
+      0,
+      compressedPublidKeyLength,
+    );
+    final encryptedData = ivAndBytes.sublist(
+      compressedPublidKeyLength,
+    ); // The rest is the encrypted data
 
     Uint8List pubKeyToUse;
     if (publicKey == null) {
@@ -216,10 +205,7 @@ class Ed25519KeyPair implements KeyPair {
 
     final sharedSecret = await computeEcdhSecret(pubKeyToUse);
 
-    final algorithm = crypto.Hkdf(
-      hmac: crypto.Hmac.sha256(),
-      outputLength: 32,
-    );
+    final algorithm = crypto.Hkdf(hmac: crypto.Hmac.sha256(), outputLength: 32);
     final secretKey = crypto.SecretKey(sharedSecret);
     final derivedKey = await algorithm.deriveKey(
       secretKey: secretKey,
@@ -230,8 +216,10 @@ class Ed25519KeyPair implements KeyPair {
 
     var symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
-    final decryptedData =
-        _encryptionUtils.decryptFromBytes(symmetricKey, encryptedData);
+    final decryptedData = _encryptionUtils.decryptFromBytes(
+      symmetricKey,
+      encryptedData,
+    );
 
     if (decryptedData == null) {
       throw SsiException(
@@ -250,5 +238,16 @@ class Ed25519KeyPair implements KeyPair {
     final x25519PublicKeyBytes =
         ed25519PublicToX25519Public(ed25519PublicKey.bytes);
     return PublicKey(id, x25519PublicKeyBytes, KeyType.x25519);
+  }
+
+  void _validateSignatureScheme({SignatureScheme? signatureScheme}) {
+    signatureScheme ??= defaultSignatureScheme;
+    if (!supportedSignatureSchemes.contains(signatureScheme)) {
+      throw SsiException(
+        message:
+            'Unsupported signature scheme. Supported schemes: [${supportedSignatureSchemes.join(',')}].',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
+    }
   }
 }
