@@ -157,18 +157,9 @@ abstract class DidController {
             resultMap[relationship] = keyAgreementId;
             // If no primary VM was created, use this one as the primary ID.
             verificationMethodId ??= keyAgreementId;
-          } else if (publicKey.type == KeyType.x25519 ||
-              publicKey.type == KeyType.p256 ||
-              publicKey.type == KeyType.p384 ||
-              publicKey.type == KeyType.p521 ||
-              publicKey.type == KeyType.rsa) {
+          } else {
             await _addRelationship(relationship, verificationMethodId!);
             resultMap[relationship] = verificationMethodId;
-          } else {
-            throw ArgumentError(
-              'The key type ${publicKey.type} cannot be used for the '
-              '"keyAgreement" relationship.',
-            );
           }
           break;
 
