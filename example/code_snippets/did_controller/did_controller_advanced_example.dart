@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
 
@@ -165,29 +166,32 @@ void main() async {
   print('  - Assertion (ED25519): ${assertionKey.id}');
 
   // Add keys as verification methods and then add to different purposes
-  final authVmId1 =
-      await peerController.addVerificationMethod(authKey1.publicKey);
-  final authVmId2 =
-      await peerController.addVerificationMethod(authKey2.publicKey);
-  final kaVmId =
-      await peerController.addVerificationMethod(keyAgreementKey.publicKey);
+  final authVmId1 = await peerController.addVerificationMethod(authKey1.id);
+  final authVmId2 = await peerController.addVerificationMethod(authKey2.id);
+  final kaVmId = await peerController.addVerificationMethod(keyAgreementKey.id);
   final assertVmId =
-      await peerController.addVerificationMethod(assertionKey.publicKey);
+      await peerController.addVerificationMethod(assertionKey.id);
 
-  await peerController.addAuthentication(authVmId1);
-  await peerController.addAuthentication(authVmId2);
-  await peerController.addKeyAgreement(kaVmId);
-  await peerController.addAssertionMethod(assertVmId);
-  await peerController.addCapabilityInvocation(authVmId1);
+  await peerController.addAuthentication(authVmId1.verificationMethodId);
+  await peerController.addAuthentication(authVmId2.verificationMethodId);
+  await peerController.addKeyAgreement(kaVmId.verificationMethodId);
+  await peerController.addAssertionMethod(assertVmId.verificationMethodId);
+  await peerController.addCapabilityInvocation(authVmId1.verificationMethodId);
 
   // 2. Service endpoints
   print('\n2. Adding service endpoints...\n');
 
-  final serviceEndpoint = const MapEndpoint({
-    'uri': 'https://example.com/didcomm',
-    'accept': ['didcomm/v2', 'application/json'],
-    'routingKeys': ['did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH'],
-  });
+  final serviceEndpoint = ServiceEndpoint(
+    id: '#didcomm-service',
+    type: 'DIDCommMessaging',
+    serviceEndpoint: const MapEndpoint({
+      'uri': 'https://example.com/didcomm',
+      'accept': ['didcomm/v2', 'application/json'],
+      'routingKeys': [
+        'did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH'
+      ],
+    }),
+  );
 
   await peerController.addServiceEndpoint(serviceEndpoint);
   print('Added DIDComm service endpoint');
@@ -207,31 +211,33 @@ void main() async {
   // Verification method IDs are already available from above
 
   print('Verification method IDs:');
-  print('  - Primary Auth: $authVmId1');
-  print('  - Backup Auth: $authVmId2');
-  print('  - Key Agreement: $kaVmId');
-  print('  - Assertion: $assertVmId');
+  print('  - Primary Auth: ${authVmId1.verificationMethodId}');
+  print('  - Backup Auth: ${authVmId2.verificationMethodId}');
+  print('  - Key Agreement: ${kaVmId.verificationMethodId}');
+  print('  - Assertion: ${assertVmId.verificationMethodId}');
 
   // 4. Sign with different keys
   print('\n4. Signing with different keys...\n');
 
-  final message = 'Important document'.codeUnits;
+  final message = Uint8List.fromList('Important document'.codeUnits);
 
   // Sign with primary auth key
-  final primarySignature = await peerController.sign(message, authVmId1);
+  final primarySignature =
+      await peerController.sign(message, authVmId1.verificationMethodId);
   print(
       'Primary auth signature: ${hexEncode(primarySignature.sublist(0, 8))}...');
 
   // Sign with backup auth key
-  final backupSignature = await peerController.sign(message, authVmId2);
+  final backupSignature =
+      await peerController.sign(message, authVmId2.verificationMethodId);
   print(
       'Backup auth signature: ${hexEncode(backupSignature.sublist(0, 8))}...');
 
   // Verify both signatures
-  final primaryValid =
-      await peerController.verify(message, primarySignature, authVmId1);
-  final backupValid =
-      await peerController.verify(message, backupSignature, authVmId2);
+  final primaryValid = await peerController.verify(
+      message, primarySignature, authVmId1.verificationMethodId);
+  final backupValid = await peerController.verify(
+      message, backupSignature, authVmId2.verificationMethodId);
   print('\nPrimary signature valid: $primaryValid');
   print('Backup signature valid: $backupValid');
 
@@ -241,14 +247,14 @@ void main() async {
   // Add a new key dynamically
   final newKey = await wallet.generateKey(
     keyId: 'new-capability-key',
-    keyType: KeyType.secp256k1,
+    keyType: KeyType.ed25519,
   );
 
-  final newVmId = await peerController.addVerificationMethod(newKey.publicKey);
-  await peerController.addCapabilityDelegation(newVmId);
+  final newVmId = await peerController.addVerificationMethod(newKey.id);
+  await peerController.addCapabilityDelegation(newVmId.verificationMethodId);
 
   print('Added new capability delegation key');
-  print('New verification method ID: $newVmId');
+  print('New verification method ID: ${newVmId.verificationMethodId}');
 
   // Update document to reflect changes
   final updatedDocument = await peerController.getDidDocument();
@@ -263,7 +269,7 @@ void main() async {
   persistentStore.printStorageInfo();
 
   // Get metadata for a specific mapping
-  final metadata = persistentStore.getMetadata(authVmId1);
+  final metadata = persistentStore.getMetadata(authVmId1.verificationMethodId);
   print('\nMetadata for primary auth key:');
   print('  Created: ${metadata?['createdAt']}');
   print('  Last used: ${metadata?['lastUsed']}');
@@ -272,7 +278,7 @@ void main() async {
   print('\n7. Creating DID Signer for credentials...\n');
 
   final signer = await peerController.getSigner(
-    assertVmId,
+    assertVmId.verificationMethodId,
     signatureScheme: SignatureScheme.ed25519,
   );
 
@@ -289,7 +295,7 @@ void main() async {
   print('\n8. Simulating key rotation...\n');
 
   // Remove old auth key reference
-  await peerController.removeAuthentication(authVmId2);
+  await peerController.removeAuthentication(authVmId2.verificationMethodId);
   print('Removed backup authentication key from verification relationships');
 
   // Add new rotated key
@@ -298,11 +304,11 @@ void main() async {
     keyType: KeyType.ed25519,
   );
 
-  final rotatedVmId =
-      await peerController.addVerificationMethod(rotatedKey.publicKey);
-  await peerController.addAuthentication(rotatedVmId);
+  final rotatedVmId = await peerController.addVerificationMethod(rotatedKey.id);
+  await peerController.addAuthentication(rotatedVmId.verificationMethodId);
 
-  print('Added new rotated authentication key: $rotatedVmId');
+  print(
+      'Added new rotated authentication key: ${rotatedVmId.verificationMethodId}');
 
   final finalDocument = await peerController.getDidDocument();
   print(

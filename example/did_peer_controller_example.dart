@@ -25,13 +25,15 @@ Future<void> main() async {
 
   // Add verification methods
   final authVerificationMethodId =
-      await controller.addVerificationMethod(authKey.publicKey);
+      await controller.addVerificationMethod(authKey.id);
   final agreementVerificationMethodId =
-      await controller.addVerificationMethod(agreementKey.publicKey);
+      await controller.addVerificationMethod(agreementKey.id);
 
   // Set up verification method purposes
-  await controller.addAuthentication(authVerificationMethodId);
-  await controller.addKeyAgreement(agreementVerificationMethodId);
+  await controller
+      .addAuthentication(authVerificationMethodId.verificationMethodId);
+  await controller
+      .addKeyAgreement(agreementVerificationMethodId.verificationMethodId);
 
   // Add service endpoints
   final serviceEndpoint = ServiceEndpoint(
@@ -53,12 +55,14 @@ Future<void> main() async {
   final authKey2Id = 'auth-key-2';
   final authKey2 = await wallet.generateKey(keyId: authKey2Id);
   final authVerificationMethod2Id =
-      await controller.addVerificationMethod(authKey2.publicKey);
-  await controller.addAuthentication(authVerificationMethod2Id);
+      await controller.addVerificationMethod(authKey2.id);
+  await controller
+      .addAuthentication(authVerificationMethod2Id.verificationMethodId);
 
   // Sign data using authentication key
   final dataToSign = Uint8List.fromList('Hello, DID Peer!'.codeUnits);
-  final signature = await controller.sign(dataToSign, authVerificationMethodId);
+  final signature = await controller.sign(
+      dataToSign, authVerificationMethodId.verificationMethodId);
   print('\nSigned data with authentication key');
   print('Signature: ${base64.encode(signature)}');
 
@@ -66,7 +70,7 @@ Future<void> main() async {
   final isValid = await controller.verify(
     dataToSign,
     signature,
-    authVerificationMethodId,
+    authVerificationMethodId.verificationMethodId,
   );
   print('Signature valid: $isValid');
 

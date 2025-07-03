@@ -1,12 +1,6 @@
 import 'dart:typed_data';
 
-import '../exceptions/ssi_exception.dart';
-import '../key_pair/ed25519_key_pair.dart';
-import '../key_pair/key_pair.dart';
-import '../key_pair/p256_key_pair.dart';
-import '../key_pair/public_key.dart';
-import '../key_pair/secp256k1_key_pair.dart';
-import '../types.dart';
+import '../../ssi.dart';
 
 /// Interface for a wallet
 abstract interface class Wallet {

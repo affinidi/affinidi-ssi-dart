@@ -82,7 +82,7 @@ void main() {
         expect(document.capabilityDelegation.length, 1);
       });
 
-      test('should create document from ED25519 key', () async {
+      test('should create document from Ed25519 key', () async {
         // Arrange
         final keyPair = await wallet.generateKey(
           keyId: 'ed25519-key',
@@ -95,7 +95,7 @@ void main() {
 
         // Assert
         expect(document.id, startsWith('did:key:z6Mk'));
-        expect(document.verificationMethod.length, 2); // ED25519 + X25519
+        expect(document.verificationMethod.length, 2); // Ed25519 + X25519
         expect(
             document.verificationMethod[0].type, 'Ed25519VerificationKey2020');
         expect(document.authentication.length, 1);
@@ -105,7 +105,8 @@ void main() {
         expect(document.capabilityDelegation.length, 1);
       });
 
-      test('should create proper verification methods for ED+X key', () async {
+      test('should create proper verification methods for Ed25519+X25519 key',
+          () async {
         // Arrange
         final keyPair = await wallet.generateKey(
           keyId: 'ed25519-key-for-x',
@@ -355,7 +356,7 @@ void main() {
             matches(RegExp(r'^did:key:zDn[a-zA-Z0-9]+#zDn[a-zA-Z0-9]+$')));
       });
 
-      test('should build proper ID for ED25519 key', () async {
+      test('should build proper ID for Ed25519 key', () async {
         // Arrange
         final keyPair = await wallet.generateKey(
           keyId: 'ed25519-id-test',

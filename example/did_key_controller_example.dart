@@ -22,9 +22,8 @@ Future<void> main() async {
   print('Generated key with ID: $walletKeyId');
 
   // Add the key as a verification method to the DID controller
-  final verificationMethodId =
-      await controller.addVerificationMethod(key.publicKey);
-  print('Verification method ID: $verificationMethodId');
+  final verificationMethodId = await controller.addVerificationMethod(key.id);
+  print('Verification method ID: ${verificationMethodId.verificationMethodId}');
 
   // Get the DID document
   final didDocument = await controller.getDidDocument();
@@ -33,18 +32,20 @@ Future<void> main() async {
 
   // Sign data using the DID controller
   final dataToSign = Uint8List.fromList('Hello, DID Key!'.codeUnits);
-  final signature = await controller.sign(dataToSign, verificationMethodId);
+  final signature = await controller.sign(
+      dataToSign, verificationMethodId.verificationMethodId);
   print('Signature: ${base64.encode(signature)}');
 
   // Verify the signature
   final isValid = await controller.verify(
     dataToSign,
     signature,
-    verificationMethodId,
+    verificationMethodId.verificationMethodId,
   );
   print('Signature valid: $isValid');
 
   // Get a DID signer for credential operations
-  final signer = await controller.getSigner(verificationMethodId);
+  final signer =
+      await controller.getSigner(verificationMethodId.verificationMethodId);
   print('Signer DID Key ID: ${signer.didKeyId}');
 }
