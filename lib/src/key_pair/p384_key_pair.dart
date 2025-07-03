@@ -20,7 +20,11 @@ import 'public_key.dart';
 /// for cryptographic operations.
 class P384KeyPair implements KeyPair {
   static final ec.Curve _p384 = ec.getP384();
+
+  /// The expected length of the private key in bytes. For P-384, it is 48 bytes.
   static final expectedLength = 48;
+
+  /// The maximum number of attempts to generate a valid private key.
   static final maxAttempts = 10;
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;

@@ -20,7 +20,11 @@ import 'public_key.dart';
 /// for cryptographic operations.
 class P521KeyPair implements KeyPair {
   static final ec.Curve _p521 = ec.getP521();
+
+  /// The expected length of the private key in bytes. For P-521, it is 66 bytes.
   static final expectedLength = 66;
+
+  /// The maximum number of attempts to generate a valid private key.
   static final maxAttempts = 10;
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
@@ -31,7 +35,6 @@ class P521KeyPair implements KeyPair {
 
   /// Generates a new P521 key pair.
   static (P521KeyPair, Uint8List) generate({String? id}) {
-    final privateKeyEcdsa = ecdsa.;
     final privateKey = generateValidPrivateKey(_p521.generatePrivateKey,
         maxAttempts: maxAttempts, expectedLength: expectedLength);
     final effectiveId = id ?? randomId();
