@@ -1,17 +1,7 @@
 import 'dart:typed_data';
 
 import '../../ssi.dart';
-import '../exceptions/ssi_exception.dart';
-import '../exceptions/ssi_exception_type.dart';
-import '../key_pair/ed25519_key_pair.dart';
-import '../key_pair/key_pair.dart';
-import '../key_pair/p256_key_pair.dart';
-import '../key_pair/public_key.dart';
-import '../types.dart';
 import '../utility.dart';
-import 'stores/key_store_interface.dart';
-import 'stores/stored_key.dart';
-import 'wallet.dart';
 
 /// A non-hierarchical wallet implementation that supports multiple key types.
 ///
