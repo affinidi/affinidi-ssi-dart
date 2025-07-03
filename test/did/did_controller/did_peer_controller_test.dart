@@ -65,35 +65,54 @@ void main() {
     });
 
     group('getDidDocument', () {
-      test('should create document with authentication and key agreement keys',
+      test(
+          'generates a valid did:peer:2 document with auth, agreement, and service',
           () async {
-        // Arrange
-        final key = await wallet.generateKey(
-            keyId: 'auth-and-ka-key', keyType: KeyType.ed25519);
+        // Generate key
+        final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
-        // Add verification methods
-        final result = await controller.addVerificationMethod(key.id,
-            relationships: {
-              VerificationRelationship.authentication,
-              VerificationRelationship.keyAgreement
-            });
+        // Add verification method for both auth and key agreement
+        await controller.addVerificationMethod(key.id, relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.keyAgreement
+        });
 
-        // Set purposes
-        final authVmId =
-            result.relationships[VerificationRelationship.authentication]!;
-        final kaVmId =
-            result.relationships[VerificationRelationship.keyAgreement]!;
+        // Add service endpoint
+        final serviceEndpoint = ServiceEndpoint(
+          id: '#service-1',
+          type: 'DIDCommMessaging',
+          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+        );
+        await controller.addServiceEndpoint(serviceEndpoint);
 
-        // Act
-        final document = await controller.getDidDocument();
+        // Get DID Document
+        final didDocument = await controller.getDidDocument();
+        expect(isPeerDID(didDocument.id), isTrue);
 
-        // Assert
-        expect(document.id, startsWith('did:peer:2'));
-        expect(document.verificationMethod.length, 2);
-        expect(document.authentication.length, 1);
-        expect(document.keyAgreement.length, 1);
-        expect(document.authentication[0].id, authVmId);
-        expect(document.keyAgreement[0].id, kaVmId);
+        // Verify DID
+        expect(didDocument.id, startsWith('did:peer:2'));
+
+        // Verify verification methods
+        expect(didDocument.verificationMethod, hasLength(2));
+        expect(didDocument.verificationMethod[0].id, '#key-1');
+        expect(didDocument.verificationMethod[0].type, 'Multikey');
+        expect(didDocument.verificationMethod[1].id, '#key-2');
+        expect(didDocument.verificationMethod[1].type, 'Multikey');
+
+        // Verify verification relationships
+        expect(didDocument.authentication.map((e) => e.id), ['#key-1']);
+        expect(didDocument.keyAgreement.map((e) => e.id), ['#key-2']);
+
+        // Verify service endpoint
+        expect(didDocument.service, hasLength(1));
+        expect(didDocument.service[0].id, '#service-1');
+        expect(didDocument.service[0].type, 'DIDCommMessaging');
+        expect((didDocument.service[0].serviceEndpoint as StringEndpoint).url,
+            'https://example.com/endpoint');
+
+        // Verify resolution
+        final resolvedDoc = DidPeer.resolve(didDocument.id);
+        expect(resolvedDoc.toJson(), didDocument.toJson());
       });
 
       test('should throw error when no keys are added', () async {
@@ -101,11 +120,17 @@ void main() {
         expect(
           () => controller.getDidDocument(),
           throwsA(
-            isA<SsiException>().having(
-              (e) => e.code,
-              'code',
-              SsiExceptionType.invalidDidDocument.code,
-            ),
+            isA<SsiException>()
+                .having(
+                  (e) => e.message,
+                  'message',
+                  'At least one key must be added before creating did:peer document',
+                )
+                .having(
+                  (e) => e.code,
+                  'code',
+                  SsiExceptionType.invalidDidDocument.code,
+                ),
           ),
         );
       });
@@ -133,80 +158,18 @@ void main() {
 
         // Act
         final document = await controller.getDidDocument();
+        expect(isPeerDID(document.id), isTrue);
 
         // Assert
+        expect(document.id, startsWith('did:peer:2'));
         expect(document.verificationMethod.length, 3);
         expect(document.authentication.length, 3);
         expect(document.authentication.map((ref) => ref.id).toList(),
             containsAll([vmId1, vmId2, vmId3]));
       });
-
-      test('should handle authentication and key agreement purposes', () async {
-        // Arrange
-        final key1 =
-            await wallet.generateKey(keyId: 'auth-1', keyType: KeyType.ed25519);
-        final key2 =
-            await wallet.generateKey(keyId: 'auth-2', keyType: KeyType.ed25519);
-        final key3 =
-            await wallet.generateKey(keyId: 'ka-1', keyType: KeyType.ed25519);
-
-        // Add verification methods
-        final res1 = await controller.addVerificationMethod(key1.id,
-            relationships: {VerificationRelationship.authentication});
-        final res2 = await controller.addVerificationMethod(key2.id,
-            relationships: {VerificationRelationship.authentication});
-        final res3 = await controller.addVerificationMethod(key3.id,
-            relationships: {VerificationRelationship.keyAgreement});
-        final vmId1 = res1.verificationMethodId;
-        final vmId2 = res2.verificationMethodId;
-        final vmId3 =
-            res3.relationships[VerificationRelationship.keyAgreement]!;
-
-        // Act
-        final document = await controller.getDidDocument();
-
-        // Assert
-        expect(document.verificationMethod.length, 3);
-        expect(document.authentication.length, 2);
-        expect(document.keyAgreement.length, 1);
-        expect(document.authentication.any((ref) => ref.id == vmId1), isTrue);
-        expect(document.authentication.any((ref) => ref.id == vmId2), isTrue);
-        expect(document.keyAgreement.any((ref) => ref.id == vmId3), isTrue);
-
-        // did:peer:2 doesn't populate other verification method purposes
-        expect(document.assertionMethod, isEmpty);
-        expect(document.capabilityInvocation, isEmpty);
-        expect(document.capabilityDelegation, isEmpty);
-      });
     });
 
     group('Service endpoints', () {
-      test('should add single service endpoint', () async {
-        // Arrange
-        final authKey = await wallet.generateKey(
-            keyId: 'service-auth-key', keyType: KeyType.p256);
-        await controller.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
-
-        final endpoint = ServiceEndpoint(
-          id: '#service-1',
-          type: 'MessagingService',
-          serviceEndpoint:
-              const StringEndpoint('https://example.com/messaging'),
-        );
-
-        // Act
-        await controller.addServiceEndpoint(endpoint);
-        final document = await controller.getDidDocument();
-
-        // Assert
-        expect(document.service.length, 1);
-        expect(document.service[0].id, '#service-1');
-        expect(document.service[0].type, 'MessagingService');
-        expect((document.service[0].serviceEndpoint as StringEndpoint).url,
-            'https://example.com/messaging');
-      });
-
       test('should add multiple service endpoints', () async {
         // Arrange
         final authKey = await wallet.generateKey(
@@ -234,8 +197,10 @@ void main() {
         await controller.addServiceEndpoint(endpoint1);
         await controller.addServiceEndpoint(endpoint2);
         final document = await controller.getDidDocument();
+        expect(isPeerDID(document.id), isTrue);
 
         // Assert
+        expect(document.id, startsWith('did:peer:2'));
         expect(document.service.length, 2);
         expect(document.service.map((s) => s.id).toList(),
             containsAll(['#service-1', '#service-2']));
@@ -257,12 +222,16 @@ void main() {
         // Act
         await controller.addServiceEndpoint(endpoint);
         final docBefore = await controller.getDidDocument();
+        expect(isPeerDID(docBefore.id), isTrue);
 
         await controller.removeServiceEndpoint('#service-to-remove');
         final docAfter = await controller.getDidDocument();
+        expect(isPeerDID(docAfter.id), isTrue);
 
         // Assert
+        expect(docBefore.id, startsWith('did:peer:2'));
         expect(docBefore.service.length, 1);
+        expect(docAfter.id, startsWith('did:peer:0'));
         expect(docAfter.service.length, 0);
       });
 
@@ -318,10 +287,10 @@ void main() {
 
       test('should sign and verify with different keys', () async {
         // Arrange
-        final key1 =
-            await wallet.generateKey(keyId: 'sign-key-1', keyType: KeyType.p256);
-        final key2 =
-            await wallet.generateKey(keyId: 'sign-key-2', keyType: KeyType.p256);
+        final key1 = await wallet.generateKey(
+            keyId: 'sign-key-1', keyType: KeyType.p256);
+        final key2 = await wallet.generateKey(
+            keyId: 'sign-key-2', keyType: KeyType.p256);
 
         final res1 = await controller.addVerificationMethod(key1.id,
             relationships: {VerificationRelationship.authentication});
@@ -390,8 +359,10 @@ void main() {
 
         // Act - Get document
         final document = await controller.getDidDocument();
+        expect(isPeerDID(document.id), isTrue);
 
         // Assert
+        expect(document.id, startsWith('did:peer:2'));
         expect(
             document.authentication.any((ref) => ref.id == vmIds[0]), isTrue);
         expect(document.keyAgreement.any((ref) => ref.id == vmIds[1]), isTrue);
@@ -438,6 +409,8 @@ void main() {
 
         // Get document - should still work with vmId2 in authentication
         final document = await controller.getDidDocument();
+        expect(isPeerDID(document.id), isTrue);
+        expect(document.id, startsWith('did:peer:2'));
         expect(document.authentication.length, 1);
       });
     });
@@ -445,8 +418,8 @@ void main() {
     group('DID signer integration', () {
       test('should get DID signer', () async {
         // Arrange
-        final key =
-            await wallet.generateKey(keyId: 'signer-key', keyType: KeyType.p256);
+        final key = await wallet.generateKey(
+            keyId: 'signer-key', keyType: KeyType.p256);
         final result = await controller.addVerificationMethod(key.id,
             relationships: {VerificationRelationship.authentication});
         final vmId = result.verificationMethodId;
@@ -531,19 +504,45 @@ void main() {
     });
 
     group('DID generation', () {
-      test('should generate did:peer:0 for single auth key without service',
-          () async {
-        // Arrange
-        final key =
-            await wallet.generateKey(keyId: 'peer0-key', keyType: KeyType.p256);
-        await controller.addVerificationMethod(key.id,
+      test('generates a valid did:peer:0 document', () async {
+        // Generate key
+        final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
+
+        // Add verification method and assign purpose
+        await controller.addVerificationMethod(authKey.id,
             relationships: {VerificationRelationship.authentication});
 
-        // Act
-        final document = await controller.getDidDocument();
+        // Get DID Document
+        final didDocument = await controller.getDidDocument();
+        expect(isPeerDID(didDocument.id), isTrue);
 
-        // Assert
-        expect(document.id, startsWith('did:peer:0'));
+        // Verify DID
+        expect(didDocument.id, startsWith('did:peer:0'));
+
+        // Verify verification method
+        expect(didDocument.verificationMethod, hasLength(1));
+        expect(didDocument.verificationMethod[0].id, didDocument.id);
+        expect(didDocument.verificationMethod[0].type, 'Multikey');
+
+        // Verify verification relationships from generator
+        expect(didDocument.authentication.map((e) => e.id), [didDocument.id]);
+        expect(didDocument.assertionMethod.map((e) => e.id), [didDocument.id]);
+        expect(didDocument.capabilityInvocation.map((e) => e.id),
+            [didDocument.id]);
+        expect(didDocument.capabilityDelegation.map((e) => e.id),
+            [didDocument.id]);
+        expect(didDocument.keyAgreement, isEmpty);
+
+        // Verify resolution
+        final resolvedDoc = DidPeer.resolve(didDocument.id);
+
+        // The resolved document for did:peer:0 will have an additional keyAgreement
+        // derived from the authentication key.
+        expect(resolvedDoc.id, didDocument.id);
+        expect(resolvedDoc.authentication.map((e) => e.id), [didDocument.id]);
+        expect(resolvedDoc.keyAgreement, isNotNull);
+        expect(resolvedDoc.keyAgreement, hasLength(1));
+        expect(resolvedDoc.verificationMethod, hasLength(2));
       });
 
       test('should generate did:peer:2 for multiple keys', () async {
@@ -560,31 +559,41 @@ void main() {
 
         // Act
         final document = await controller.getDidDocument();
+        expect(isPeerDID(document.id), isTrue);
 
         // Assert
         expect(document.id, startsWith('did:peer:2'));
       });
 
-      test('should generate did:peer:2 with service endpoint', () async {
-        // Arrange
-        final key = await wallet.generateKey(
-            keyId: 'peer2-service-key', keyType: KeyType.p256);
-        await controller.addVerificationMethod(key.id,
+      test(
+          'generates a did:peer:2 document when a service is added, even with one auth key',
+          () async {
+        // Generate key
+        final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
+
+        // Add verification method and assign purpose
+        await controller.addVerificationMethod(authKey.id,
             relationships: {VerificationRelationship.authentication});
 
-        final endpoint = ServiceEndpoint(
-          id: '#service',
-          type: 'TestService',
-          serviceEndpoint: const StringEndpoint('https://example.com'),
+        // Add service endpoint
+        final serviceEndpoint = ServiceEndpoint(
+          id: '#service-1',
+          type: 'DIDCommMessaging',
+          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
         );
-        await controller.addServiceEndpoint(endpoint);
+        await controller.addServiceEndpoint(serviceEndpoint);
 
-        // Act
-        final document = await controller.getDidDocument();
+        // Get DID Document
+        final didDocument = await controller.getDidDocument();
+        expect(isPeerDID(didDocument.id), isTrue);
 
-        // Assert
-        expect(document.id, startsWith('did:peer:2'));
-        expect(document.id, contains('.S')); // Service encoding in DID
+        // Verify DID is did:peer:2 because a service was added
+        expect(didDocument.id, startsWith('did:peer:2'));
+        expect(didDocument.id, contains('.S')); // Service encoding in DID
+
+        // Verify resolution
+        final resolvedDoc = DidPeer.resolve(didDocument.id);
+        expect(resolvedDoc.toJson(), didDocument.toJson());
       });
     });
   });
