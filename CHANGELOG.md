@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-02
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v1.5.0`](#ssi---v150)
+
+---
+
+#### `ssi` - `v1.5.0`
+
+ - **FEAT**: add multikeys secp256k1 p256 p384 p521 (#124).
+
+## 1.5.0
+
+ - **FEAT**: add multikeys secp256k1 p256 p384 p521 (#124).
+
+
 ## 2025-07-01
 
 ### Changes

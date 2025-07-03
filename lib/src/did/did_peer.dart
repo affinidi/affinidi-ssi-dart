@@ -84,20 +84,45 @@ DidDocument _resolveDidPeer0(String did) {
     'https://w3id.org/security/suites/x25519-2020/v1'
   ];
 
+  const contextMultikey = [
+    'https://www.w3.org/ns/did/v1',
+    'https://w3id.org/security/suites/multikey-2021/v1',
+  ];
+
   var keyPart = did.substring(11);
 
   if (keyPart.startsWith('6Mk')) {
     return _buildEDDoc(contextEdward, did, keyPart);
   } else if (keyPart.startsWith('6LS')) {
     return _buildXDoc(contextEdX, did, keyPart);
-    // } else if (keyPart.startsWith('Dn')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'P256Key2021');
-    // } else if (keyPart.startsWith('Q3s')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'Secp256k1Key2021');
-    // } else if (keyPart.startsWith('82')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'P384Key2021');
-    // } else if (keyPart.startsWith('2J9')) {
-    //   return _buildOtherDoc(context2, id, keyPart, 'P521Key2021');
+  } else if (keyPart.startsWith('Dn')) {
+    return _buildMultikeyDoc(
+      contextMultikey,
+      did,
+      keyPart,
+      'P256Key2021',
+    );
+  } else if (keyPart.startsWith('Q3s')) {
+    return _buildMultikeyDoc(
+      contextMultikey,
+      did,
+      keyPart,
+      'Secp256k1Key2021',
+    );
+  } else if (keyPart.startsWith('82')) {
+    return _buildMultikeyDoc(
+      contextMultikey,
+      did,
+      keyPart,
+      'P384Key2021',
+    );
+  } else if (keyPart.startsWith('2J9')) {
+    return _buildMultikeyDoc(
+      contextMultikey,
+      did,
+      keyPart,
+      'P521Key2021',
+    );
   } else {
     throw SsiException(
       message: 'Only Ed25519 and X25519 keys are supported now',
@@ -204,6 +229,95 @@ DidDocument _resolveDidPeer2(String did) {
     capabilityDelegation: capabilityDelegation,
     service: services,
   );
+
+  // return _buildMultiKeysDoc(
+  //     did, agreementKeys, authenticationKeys, serviceString);
+}
+
+/// Builds a DID document for a multi-key peer DID.
+///
+/// [did] - The DID identifier.
+/// [agreementKeys] - The list of agreement keys.
+/// [authenticationKeys] - The list of authentication keys.
+/// [serviceStr] - The service string.
+///
+/// Returns a [DidDocument].
+DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
+    List<String> authenticationKeys, String? serviceStr) {
+  final context = [
+    'https://www.w3.org/ns/did/v1',
+    'https://ns.did.ai/suites/multikey-2021/v1/'
+  ];
+
+  var verificationMethod = <EmbeddedVerificationMethod>[];
+  var assertionMethod = <String>[];
+  var keyAgreement = <String>[];
+  var authentication = <String>[];
+
+  List<ServiceEndpoint>? service;
+  if (serviceStr != null) {
+    var paddingNeeded = (4 - serviceStr.length % 4) % 4;
+    var padded = serviceStr + ('=' * paddingNeeded);
+
+    var serviceList = base64Decode(padded);
+    final serviceJson = json.decode(utf8.decode(serviceList));
+    serviceJson['serviceEndpoint'] = serviceJson['s'];
+    serviceJson['accept'] = serviceJson['a'];
+    serviceJson['type'] = serviceJson['t'];
+    if (serviceJson['type'] == 'dm') {
+      serviceJson['type'] = 'DIDCommMessaging';
+    }
+    service = [ServiceEndpoint.fromJson(serviceJson)];
+  }
+
+  var i = 0;
+
+  for (final agreementKey in agreementKeys) {
+    i++;
+    final type = agreementKey.startsWith('z6LS')
+        ? 'X25519KeyAgreementKey2020'
+        : 'Ed25519VerificationKey2020';
+
+    var kid = '#key-$i';
+    final verification = VerificationMethodMultibase(
+      id: kid,
+      controller: did,
+      type: type, // Multikey ?
+      publicKeyMultibase: agreementKey,
+    );
+
+    verificationMethod.add(verification);
+    keyAgreement.add(kid);
+  }
+
+  for (final authenticationKey in authenticationKeys) {
+    i++;
+    final type = authenticationKey.startsWith('z6LS')
+        ? 'X25519KeyAgreementKey2020'
+        : 'Ed25519VerificationKey2020';
+
+    var kid = '#key-$i';
+    final verification = VerificationMethodMultibase(
+      id: kid,
+      controller: did,
+      type: type, // Multikey ?
+      publicKeyMultibase: authenticationKey,
+    );
+
+    verificationMethod.add(verification);
+    assertionMethod.add(kid);
+    authentication.add(kid);
+  }
+
+  return DidDocument.create(
+    context: Context.fromJson(context),
+    id: did,
+    verificationMethod: verificationMethod,
+    assertionMethod: assertionMethod,
+    keyAgreement: keyAgreement,
+    authentication: authentication,
+    service: service,
+  );
 }
 
 /// Builds a DID Document for ED25519 keys.
@@ -265,6 +379,32 @@ DidDocument _buildXDoc(
     id: id,
     verificationMethod: [verification],
     keyAgreement: [verificationKeyId],
+  );
+}
+
+/// Builds a DID Document for a Multikey-based key (P256, Secp256k1, P384, P521, etc.).
+DidDocument _buildMultikeyDoc(
+  List<String> context,
+  String id,
+  String keyPart,
+  String keyType,
+) {
+  final verificationKeyId = '$id#$keyPart';
+  final verificationMethod = VerificationMethodMultibase(
+    id: verificationKeyId,
+    controller: id,
+    type: keyType,
+    publicKeyMultibase: 'z$keyPart',
+  );
+
+  return DidDocument.create(
+    context: Context.fromJson(context),
+    id: id,
+    verificationMethod: [verificationMethod],
+    assertionMethod: [verificationKeyId],
+    authentication: [verificationKeyId],
+    capabilityDelegation: [verificationKeyId],
+    capabilityInvocation: [verificationKeyId],
   );
 }
 

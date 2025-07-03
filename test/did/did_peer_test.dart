@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:bip32_plus/bip32_plus.dart';
+import 'package:ssi/src/utility.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -249,6 +251,160 @@ void main() {
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
+    });
+
+    test(
+        'generateDocument for did:peer:2 should have correct verification relationships and context',
+        () async {
+      final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
+      final key = await wallet.generateKey(keyId: derivedKeyPath);
+
+      final service = ServiceEndpoint(
+        id: '#service-1',
+        type: 'TestService',
+        serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+      );
+
+      final doc = DidPeer.generateDocument(verificationMethods: [
+        key.publicKey,
+        PublicKey(key.id, ed25519PublicToX25519Public(key.publicKey.bytes),
+            KeyType.x25519)
+      ], relationships: {
+        VerificationRelationship.authentication: [0],
+        VerificationRelationship.keyAgreement: [1]
+      }, serviceEndpoints: [
+        service
+      ]);
+
+      final actualDid = doc.id;
+      final resolvedDidDocument = DidPeer.resolve(actualDid);
+
+      // Assert context
+      final context = resolvedDidDocument.context.toJson();
+      expect(context, contains('https://www.w3.org/ns/did/v1'));
+      expect(
+          context,
+          anyOf(
+            contains('https://www.w3.org/ns/did/v1'),
+            contains('https://w3id.org/security/suites/multikey-2021/v1'),
+          ));
+
+      // Assert verificationMethod
+      final verificationMethods = resolvedDidDocument.verificationMethod;
+      expect(verificationMethods.length, 2); // 1 agreement, 1 authentication
+      for (final vm in verificationMethods) {
+        expect(vm.type, 'Multikey');
+        expect(vm.controller, actualDid);
+        expect(vm.id, startsWith('#key-'));
+      }
+
+      // Assert authentication, assertionMethod, keyAgreement
+      final authenticationIds =
+          resolvedDidDocument.authentication.map((vm) => vm.id).toList();
+      final keyAgreementIds =
+          resolvedDidDocument.keyAgreement.map((vm) => vm.id).toList();
+      // By construction, last two keys are authentication/assertion, first two are keyAgreement
+      expect(authenticationIds, ['#key-1']);
+      expect(keyAgreementIds, ['#key-2']);
+
+      // Assert capabilityDelegation and capabilityInvocation are empty
+      expect(resolvedDidDocument.assertionMethod, isEmpty);
+      expect(resolvedDidDocument.capabilityDelegation, isEmpty);
+      expect(resolvedDidDocument.capabilityInvocation, isEmpty);
+
+      // Assert service endpoint
+      expect(resolvedDidDocument.service.length, 1);
+    });
+
+    test('generateDocument for did:peer:0 with P256 key', () async {
+      // Generate a P256 key pair from a fixed seed for reproducibility
+      final seed = Uint8List.fromList(List.generate(32, (i) => i));
+      final p256KeyPair = P256KeyPair.fromSeed(seed);
+
+      final doc = DidPeer.generateDocument(verificationMethods: [
+        p256KeyPair.publicKey
+      ], relationships: {
+        VerificationRelationship.authentication: [0],
+      });
+
+      final actualDid = doc.id;
+      final resolvedDidDocument = DidPeer.resolve(actualDid);
+
+      // Assert context
+      final context = resolvedDidDocument.context.toJson();
+      expect(context, contains('https://www.w3.org/ns/did/v1'));
+      expect(
+          context,
+          anyOf(
+            contains('https://www.w3.org/ns/did/v1'),
+            contains('https://w3id.org/security/suites/multikey-2021/v1'),
+          ));
+
+      // Assert verificationMethod
+      final verificationMethods = resolvedDidDocument.verificationMethod;
+      expect(verificationMethods.length, 1);
+      expect(verificationMethods[0].type, 'P256Key2021');
+      expect(verificationMethods[0].controller, actualDid);
+
+      // Assert relationships
+      expect(resolvedDidDocument.authentication.length, 1);
+      expect(resolvedDidDocument.assertionMethod.length, 1);
+      expect(resolvedDidDocument.capabilityDelegation.length, 1);
+      expect(resolvedDidDocument.capabilityInvocation.length, 1);
+      expect(
+          resolvedDidDocument.authentication[0].id, verificationMethods[0].id);
+      expect(
+          resolvedDidDocument.assertionMethod[0].id, verificationMethods[0].id);
+      expect(resolvedDidDocument.capabilityDelegation[0].id,
+          verificationMethods[0].id);
+      expect(resolvedDidDocument.capabilityInvocation[0].id,
+          verificationMethods[0].id);
+    });
+
+    test('generateDocument for did:peer:0 with Secp256k1 key', () async {
+      // Generate a Secp256k1 key pair from a fixed seed for reproducibility
+      final seed = Uint8List.fromList(List.generate(32, (i) => 100 + i));
+      final node = BIP32.fromSeed(seed);
+      final secp256k1KeyPair = Secp256k1KeyPair(node: node);
+      final doc = DidPeer.generateDocument(verificationMethods: [
+        secp256k1KeyPair.publicKey
+      ], relationships: {
+        VerificationRelationship.authentication: [0],
+      });
+      final actualDid = doc.id;
+      final resolvedDidDocument = DidPeer.resolve(actualDid);
+
+      // Assert context
+      final context = resolvedDidDocument.context.toJson();
+      expect(context, contains('https://www.w3.org/ns/did/v1'));
+      expect(
+          context,
+          anyOf(
+            contains(
+              'https://www.w3.org/ns/did/v1',
+            ),
+            contains('https://w3id.org/security/suites/multikey-2021/v1'),
+          ));
+
+      // Assert verificationMethod
+      final verificationMethods = resolvedDidDocument.verificationMethod;
+      expect(verificationMethods.length, 1);
+      expect(verificationMethods[0].type, 'Secp256k1Key2021');
+      expect(verificationMethods[0].controller, actualDid);
+
+      // Assert relationships
+      expect(resolvedDidDocument.authentication.length, 1);
+      expect(resolvedDidDocument.assertionMethod.length, 1);
+      expect(resolvedDidDocument.capabilityDelegation.length, 1);
+      expect(resolvedDidDocument.capabilityInvocation.length, 1);
+      expect(
+          resolvedDidDocument.authentication[0].id, verificationMethods[0].id);
+      expect(
+          resolvedDidDocument.assertionMethod[0].id, verificationMethods[0].id);
+      expect(resolvedDidDocument.capabilityDelegation[0].id,
+          verificationMethods[0].id);
+      expect(resolvedDidDocument.capabilityInvocation[0].id,
+          verificationMethods[0].id);
     });
   });
 }
