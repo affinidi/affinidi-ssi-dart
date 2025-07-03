@@ -9,6 +9,7 @@ class DigestUtils {
   /// The map of hashing algorithms to digest instances.
   static final Map<HashingAlgorithm, Digest> _digests = {
     HashingAlgorithm.sha256: Digest('SHA-256'),
+    HashingAlgorithm.sha384: Digest('SHA-384'),
     HashingAlgorithm.sha512: Digest('SHA-512'),
   };
 
