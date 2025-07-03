@@ -14,8 +14,6 @@ import '_ecdh_utils.dart';
 import 'key_pair.dart';
 import 'public_key.dart';
 
-const _defaultSignatureScheme = SignatureScheme.eddsa_sha512;
-
 /// A [KeyPair] implementation using the Ed25519 signature scheme.
 ///
 /// This key pair supports signing and verifying data using Ed25519.
@@ -117,11 +115,11 @@ class Ed25519KeyPair implements KeyPair {
   Uint8List getSeed() => ed.seed(_privateKey);
 
   @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      const [SignatureScheme.ed25519];
+  SignatureScheme get defaultSignatureScheme => SignatureScheme.ed25519;
 
   @override
-  SignatureScheme get defaultSignatureScheme => SignatureScheme.ed25519;
+  List<SignatureScheme> get supportedSignatureSchemes =>
+      [defaultSignatureScheme];
 
   /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
@@ -243,11 +241,11 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   void _validateSignatureScheme({SignatureScheme? signatureScheme}) {
-    signatureScheme ??= _defaultSignatureScheme;
+    signatureScheme ??= defaultSignatureScheme;
     if (!supportedSignatureSchemes.contains(signatureScheme)) {
       throw SsiException(
         message:
-            'Unsupported signature scheme. Only [${supportedSignatureSchemes.join(',')}] are supported.',
+            'Unsupported signature scheme. Supported schemes: [${supportedSignatureSchemes.join(',')}].',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
