@@ -642,7 +642,7 @@ abstract class DidController {
         signatureScheme ?? keyPair.defaultSignatureScheme;
 
     return DidSigner(
-      didDocument: didDocument,
+      did: didDocument.id,
       didKeyId: verificationMethodId,
       keyPair: keyPair,
       signatureScheme: effectiveSignatureScheme,

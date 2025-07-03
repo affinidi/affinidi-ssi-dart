@@ -435,7 +435,7 @@ void main() {
         final signer = await controller.getSigner(vmId);
 
         // Assert
-        expect(signer.didKeyId, equals(vmId));
+        expect(signer.keyId, equals(vmId));
         expect(signer.signatureScheme, isNotNull);
         expect(signer.did,
             startsWith('did:peer:0')); // Single auth key generates peer:0

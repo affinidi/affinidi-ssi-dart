@@ -17,7 +17,7 @@ abstract interface class Wallet {
   /// [keyId] - The identifier of the key to use for signing.
   /// [signatureScheme] - The signature scheme to use. If null defaults to:
   /// - [SignatureScheme.ecdsa_secp256k1_sha256] for [Secp256k1KeyPair]
-  /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
+  /// - [SignatureScheme.ed25519] for [Ed25519KeyPair]
   /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
   /// [keyId] - The identifier of the key to use for signing. For deterministic
@@ -39,7 +39,7 @@ abstract interface class Wallet {
   ///           wallets (e.g., BIP32), this is the derivation path.
   /// [signatureScheme] - The signature scheme to use. If null defaults to:
   /// - [SignatureScheme.ecdsa_secp256k1_sha256] for [Secp256k1KeyPair]
-  /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
+  /// - [SignatureScheme.ed25519] for [Ed25519KeyPair]
   /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
   /// [keyId] - The identifier of the key to use for verification. For deterministic

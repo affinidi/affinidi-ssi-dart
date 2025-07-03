@@ -47,5 +47,5 @@ Future<void> main() async {
   // Get a DID signer for credential operations
   final signer =
       await controller.getSigner(verificationMethodId.verificationMethodId);
-  print('Signer DID Key ID: ${signer.didKeyId}');
+  print('Signer DID Key ID: ${signer.keyId}');
 }

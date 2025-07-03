@@ -42,7 +42,7 @@ void main() {
     });
 
     test('algorithm mismatch throws error', () async {
-      Future<void> act() async {
+      void act() async {
         await DidVerifier.create(
           algorithm: SignatureScheme.ecdsa_p256_sha256,
           kid: kid,

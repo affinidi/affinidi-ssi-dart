@@ -284,7 +284,7 @@ void main() async {
 
   print('Created signer for assertion:');
   // DID is available in the didDocument passed to create the signer
-  print('  - Verification Method: ${signer.didKeyId}');
+  print('  - Verification Method: ${signer.keyId}');
   print('  - Signature Scheme: ${signer.signatureScheme}');
 
   // Example: Sign a credential (simplified)

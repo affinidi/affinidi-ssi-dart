@@ -104,13 +104,13 @@ void main() async {
   final didKeySigner = await didKeyController.getSigner(didKeyVmId);
   print('did:key signer created:');
   // DID is available in the didDocument passed to create the signer
-  print('  - Key ID: ${didKeySigner.didKeyId}');
+  print('  - Key ID: ${didKeySigner.keyId}');
   print('  - Signature scheme: ${didKeySigner.signatureScheme}');
 
   final didPeerSigner = await didPeerController.getSigner(didPeerVmId);
   print('\ndid:peer signer created:');
   // DID is available in the didDocument passed to create the signer
-  print('  - Key ID: ${didPeerSigner.didKeyId}');
+  print('  - Key ID: ${didPeerSigner.keyId}');
   print('  - Signature scheme: ${didPeerSigner.signatureScheme}');
 
   print('\n=== Example Complete ===');
