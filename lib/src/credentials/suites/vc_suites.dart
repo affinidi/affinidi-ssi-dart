@@ -1,12 +1,4 @@
-import '../../exceptions/ssi_exception.dart';
-import '../../exceptions/ssi_exception_type.dart';
-import '../jwt/jwt_dm_v1_suite.dart';
-import '../linked_data/ld_dm_v1_suite.dart';
-import '../linked_data/ld_dm_v2_suite.dart';
-import '../models/parsed_vc.dart';
-import '../sdjwt/enveloped_vc_suite.dart';
-import '../sdjwt/sdjwt_dm_v2_suite.dart';
-import 'vc_suite.dart';
+import '../../../ssi.dart';
 
 /// Registry of all supported Verifiable Credential suites.
 ///
