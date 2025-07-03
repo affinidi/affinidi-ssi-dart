@@ -63,6 +63,16 @@ enum SignatureScheme {
     hashingAlgorithm: HashingAlgorithm.sha512,
   ),
 
+  /// EdDSA with Ed25519 curve and alg EdDSA.
+  @Deprecated(
+      'Use ed25519 instead. This entry is maintained for backward compatibility with systems using EdDSA algorithm identifier.')
+  eddsa_ed25519(
+    alg: 'EdDSA',
+    crv: 'Ed25519',
+    keyType: KeyType.ed25519,
+    hashingAlgorithm: HashingAlgorithm.sha512,
+  ),
+
   /// RSA with PKCS1 and SHA-256 hashing.
   rsa_pkcs1_sha256(
     alg: 'RS256',
