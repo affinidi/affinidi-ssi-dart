@@ -19,7 +19,9 @@ import 'public_key.dart';
 /// A key pair implementation that uses the P-521 elliptic curve
 /// for cryptographic operations.
 class P521KeyPair implements KeyPair {
-  static final ec.EllipticCurve _p521 = ec.getP521();
+  static final ec.Curve _p521 = ec.getP521();
+  static final expectedLength = 66;
+  static final maxAttempts = 10;
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
   @override
@@ -29,7 +31,9 @@ class P521KeyPair implements KeyPair {
 
   /// Generates a new P521 key pair.
   static (P521KeyPair, Uint8List) generate({String? id}) {
-    final privateKey = generateValidPrivateKey(_p521.generatePrivateKey);
+    final privateKeyEcdsa = ecdsa.;
+    final privateKey = generateValidPrivateKey(_p521.generatePrivateKey,
+        maxAttempts: maxAttempts, expectedLength: expectedLength);
     final effectiveId = id ?? randomId();
     final instance = P521KeyPair._(privateKey, effectiveId);
     final privateKeyBytes = Uint8List.fromList(privateKey.bytes);
@@ -63,11 +67,11 @@ class P521KeyPair implements KeyPair {
     Uint8List data, {
     SignatureScheme? signatureScheme,
   }) async {
-    signatureScheme ??= SignatureScheme.ecdsa_p256_sha256;
-    if (signatureScheme != SignatureScheme.ecdsa_p256_sha256) {
+    signatureScheme ??= SignatureScheme.ecdsa_p521_sha512;
+    if (signatureScheme != SignatureScheme.ecdsa_p521_sha512) {
       throw SsiException(
         message:
-            'Unsupported signature scheme. Currently only ecdsa_p256_sha256 is supported with p256',
+            'Unsupported signature scheme. Currently only ecdsa_p521_sha512 is supported with p521',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }

@@ -19,7 +19,9 @@ import 'public_key.dart';
 /// A key pair implementation that uses the P-384 elliptic curve
 /// for cryptographic operations.
 class P384KeyPair implements KeyPair {
-  static final ec.EllipticCurve _p384 = ec.getP384();
+  static final ec.Curve _p384 = ec.getP384();
+  static final expectedLength = 48;
+  static final maxAttempts = 10;
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
   @override
@@ -29,7 +31,8 @@ class P384KeyPair implements KeyPair {
 
   /// Generates a new P384 key pair.
   static (P384KeyPair, Uint8List) generate({String? id}) {
-    final privateKey = generateValidPrivateKey(_p384.generatePrivateKey);
+    final privateKey = generateValidPrivateKey(_p384.generatePrivateKey,
+        maxAttempts: maxAttempts, expectedLength: expectedLength);
     final effectiveId = id ?? randomId();
     final instance = P384KeyPair._(privateKey, effectiveId);
     final privateKeyBytes = Uint8List.fromList(privateKey.bytes);
