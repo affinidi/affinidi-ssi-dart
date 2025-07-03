@@ -119,6 +119,10 @@ class P256KeyPair implements KeyPair {
       [SignatureScheme.ecdsa_p256_sha256];
 
   @override
+  SignatureScheme get defaultSignatureScheme =>
+      SignatureScheme.ecdsa_p256_sha256;
+
+  @override
   Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
 

@@ -1,12 +1,6 @@
 import 'dart:typed_data';
 
-import '../exceptions/ssi_exception.dart';
-import '../key_pair/ed25519_key_pair.dart';
-import '../key_pair/key_pair.dart';
-import '../key_pair/p256_key_pair.dart';
-import '../key_pair/public_key.dart';
-import '../key_pair/secp256k1_key_pair.dart';
-import '../types.dart';
+import '../../ssi.dart';
 
 /// Interface for a wallet
 abstract interface class Wallet {
@@ -23,7 +17,7 @@ abstract interface class Wallet {
   /// [keyId] - The identifier of the key to use for signing.
   /// [signatureScheme] - The signature scheme to use. If null defaults to:
   /// - [SignatureScheme.ecdsa_secp256k1_sha256] for [Secp256k1KeyPair]
-  /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
+  /// - [SignatureScheme.ed25519] for [Ed25519KeyPair]
   /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
   /// [keyId] - The identifier of the key to use for signing. For deterministic
@@ -45,7 +39,7 @@ abstract interface class Wallet {
   ///           wallets (e.g., BIP32), this is the derivation path.
   /// [signatureScheme] - The signature scheme to use. If null defaults to:
   /// - [SignatureScheme.ecdsa_secp256k1_sha256] for [Secp256k1KeyPair]
-  /// - [SignatureScheme.eddsa_sha512] for [Ed25519KeyPair]
+  /// - [SignatureScheme.ed25519] for [Ed25519KeyPair]
   /// - [SignatureScheme.ecdsa_p256_sha256] for [P256KeyPair]
   ///
   /// [keyId] - The identifier of the key to use for verification. For deterministic

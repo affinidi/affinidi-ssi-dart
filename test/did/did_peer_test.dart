@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:bip32_plus/bip32_plus.dart';
+import 'package:ssi/src/utility.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -30,7 +31,12 @@ void main() {
           'did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka';
       final expectedKeyType = KeyType.ed25519;
 
-      final doc = DidPeer.generateDocument([accountPublicKey]);
+      final doc = DidPeer.generateDocument(
+        verificationMethods: [accountPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0]
+        },
+      );
       final actualDid = doc.id;
       final actualKeyType = accountPublicKey.type;
 
@@ -48,47 +54,152 @@ void main() {
       final expectedDid =
           'did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka';
 
-      final actualDid = DidPeer.getDid([accountPublicKey]);
+      final actualDid = DidPeer.getDid(
+        verificationMethods: [accountPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0]
+        },
+      );
 
       expect(actualDid, expectedDid);
     });
 
-    test('generateDocument for did:peer:2 should start with did:peer:2.Ez6Mk',
-        () async {
-      final expectedDidPeerPrefix = 'did:peer:2.Ez6Mk';
-
-      final expectedDid =
-          'did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0';
-
+    test('generate and resolve did:peer:2 with one service endpoint', () async {
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
       final key = await wallet.generateKey(keyId: derivedKeyPath);
-      final doc = DidPeer.generateDocument(
-        [key.publicKey, key.publicKey],
-        serviceEndpoint: 'https://denys.com/income',
+
+      final service = ServiceEndpoint(
+        id: '#my-service',
+        type: 'TestService',
+        serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       );
-      final actualDid = doc.id;
 
-      final expectedDidDocString =
-          '{"id":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","@context":["https://www.w3.org/ns/did/v1","https://ns.did.ai/suites/multikey-2021/v1/"],"verificationMethod":[{"id":"#key-1","controller":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-2","controller":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-3","controller":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"},{"id":"#key-4","controller":"did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8"}],"authentication":["#key-3","#key-4"],"keyAgreement":["#key-1","#key-2"],"assertionMethod":["#key-3","#key-4"],"service":[{"id":"new-id","type":"DIDCommMessaging","serviceEndpoint":"https://denys.com/income"}]}';
-      final resolvedDidDocument = DidPeer.resolve(actualDid);
-      expect(resolvedDidDocument.id, expectedDid);
-      expect(resolvedDidDocument.toJson(), jsonDecode(expectedDidDocString));
+      final did = DidPeer.getDid(
+        verificationMethods: [key.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+          VerificationRelationship.keyAgreement: [0]
+        },
+        serviceEndpoints: [service],
+      );
 
-      expect(actualDid, startsWith(expectedDidPeerPrefix));
+      final resolvedDoc = DidPeer.resolve(did);
+      expect(resolvedDoc.id, did);
+      expect(resolvedDoc.service, isNotNull);
+      expect(resolvedDoc.service.length, 1);
+      expect(resolvedDoc.service[0].id, '#my-service');
+      expect(resolvedDoc.service[0].type, 'TestService');
+      expect(
+        (resolvedDoc.service[0].serviceEndpoint as StringEndpoint).url,
+        'https://example.com/endpoint',
+      );
+    });
+
+    test('generate and resolve did:peer:2 with multiple service endpoints',
+        () async {
+      final authKey = await wallet.generateKey(keyId: "m/44'/60'/0'/0'/0'");
+      final agreeKey = await wallet.generateKey(keyId: "m/44'/60'/0'/0'/1'");
+
+      final service1 = ServiceEndpoint(
+        id: '#service-1',
+        type: 'DIDCommMessaging',
+        serviceEndpoint: const StringEndpoint('https://endpoint1.com'),
+      );
+
+      final service2 = ServiceEndpoint(
+        id: '#service-2',
+        type: 'DIDCommMessaging',
+        serviceEndpoint: const MapEndpoint({'uri': 'https://endpoint2.com'}),
+      );
+
+      final did = DidPeer.getDid(
+        verificationMethods: [authKey.publicKey, agreeKey.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+          VerificationRelationship.keyAgreement: [1]
+        },
+        serviceEndpoints: [service1, service2],
+      );
+
+      final resolvedDoc = DidPeer.resolve(did);
+
+      expect(resolvedDoc.id, did);
+      expect(resolvedDoc.service, isNotNull);
+      expect(resolvedDoc.service.length, 2);
+      expect(resolvedDoc.service[0].id, '#service-1');
+      expect(resolvedDoc.service[0].type, 'DIDCommMessaging');
+      expect(
+        (resolvedDoc.service[0].serviceEndpoint as StringEndpoint).url,
+        'https://endpoint1.com',
+      );
+      expect(resolvedDoc.service[1].id, '#service-2');
+      expect(resolvedDoc.service[1].type, 'DIDCommMessaging');
+      expect(
+        (resolvedDoc.service[1].serviceEndpoint as MapEndpoint).data,
+        {'uri': 'https://endpoint2.com'},
+      );
+    });
+
+    test('generateDocument for did:peer:2 with separate keyAgreement keys',
+        () async {
+      final derivedKeyPath1 = "m/44'/60'/$accountNumber'/0'/0'";
+      final derivedKeyPath2 = "m/44'/60'/$accountNumber'/0'/1'";
+
+      final authKey = await wallet.generateKey(keyId: derivedKeyPath1);
+      final agreeKey = await wallet.generateKey(keyId: derivedKeyPath2);
+
+      final service = ServiceEndpoint(
+        id: '#service-1',
+        type: 'TestService',
+        serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+      );
+
+      final doc = DidPeer.generateDocument(
+        verificationMethods: [authKey.publicKey, agreeKey.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+          VerificationRelationship.keyAgreement: [1]
+        },
+        serviceEndpoints: [service],
+      );
+
+      // Check that keyAgreement contains only the agreement key
+      expect(doc.keyAgreement.length, 1);
+
+      // Check that authentication contains only the auth key
+      expect(doc.authentication.length, 1);
+
+      // Verify the DID contains both E and V prefixed keys
+      expect(doc.id, contains('.Vz')); // Authentication key (V prefix)
+      expect(doc.id, contains('.Ez')); // Agreement key (E prefix)
+      expect(doc.id, contains('.S')); // Service (S prefix)
+
+      // Verify verification methods are created correctly
+      expect(doc.verificationMethod.length, 2);
+      expect(doc.verificationMethod[0].id, '#key-1');
+      expect(doc.verificationMethod[1].id, '#key-2');
     });
 
     test('getDid for did:peer:2 should match expected', () async {
       final expectedDid =
-          'did:peer:2.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6Im5ldy1pZCIsInQiOiJkbSIsInMiOiJodHRwczovL2RlbnlzLmNvbS9pbmNvbWUiLCJhIjpbImRpZGNvbW0vdjIiXX0';
+          'did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0';
 
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
       final key = await wallet.generateKey(keyId: derivedKeyPath);
+
+      final service = ServiceEndpoint(
+        id: '#service-1',
+        type: 'TestService',
+        serviceEndpoint: const StringEndpoint('https://denys.com/income'),
+      );
+
       final actualDid = DidPeer.getDid(
-        [
-          key.publicKey,
-          key.publicKey
-        ], // Using same key twice for simplicity, matching generateDocument test
-        serviceEndpoint: 'https://denys.com/income',
+        verificationMethods: [key.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0, 0],
+          VerificationRelationship.keyAgreement: [0, 0]
+        },
+        serviceEndpoints: [service],
       );
 
       expect(actualDid, expectedDid);
@@ -132,7 +243,11 @@ void main() {
         165
       ]);
 
-      final doc = DidPeer.generateDocument([accountPublicKey]);
+      final doc = DidPeer.generateDocument(verificationMethods: [
+        accountPublicKey
+      ], relationships: {
+        VerificationRelationship.authentication: [0]
+      });
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
@@ -143,10 +258,24 @@ void main() {
         () async {
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
       final key = await wallet.generateKey(keyId: derivedKeyPath);
-      final doc = DidPeer.generateDocument(
-        [key.publicKey, key.publicKey],
-        serviceEndpoint: 'https://denys.com/income',
+
+      final service = ServiceEndpoint(
+        id: '#service-1',
+        type: 'TestService',
+        serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       );
+
+      final doc = DidPeer.generateDocument(verificationMethods: [
+        key.publicKey,
+        PublicKey(key.id, ed25519PublicToX25519Public(key.publicKey.bytes),
+            KeyType.x25519)
+      ], relationships: {
+        VerificationRelationship.authentication: [0],
+        VerificationRelationship.keyAgreement: [1]
+      }, serviceEndpoints: [
+        service
+      ]);
+
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
 
@@ -162,10 +291,9 @@ void main() {
 
       // Assert verificationMethod
       final verificationMethods = resolvedDidDocument.verificationMethod;
-      expect(verificationMethods.length, 4); // 2 agreement, 2 authentication
+      expect(verificationMethods.length, 2); // 1 agreement, 1 authentication
       for (final vm in verificationMethods) {
-        expect(vm.type,
-            anyOf('Ed25519VerificationKey2020', 'X25519KeyAgreementKey2020'));
+        expect(vm.type, 'Multikey');
         expect(vm.controller, actualDid);
         expect(vm.id, startsWith('#key-'));
       }
@@ -173,16 +301,14 @@ void main() {
       // Assert authentication, assertionMethod, keyAgreement
       final authenticationIds =
           resolvedDidDocument.authentication.map((vm) => vm.id).toList();
-      final assertionIds =
-          resolvedDidDocument.assertionMethod.map((vm) => vm.id).toList();
       final keyAgreementIds =
           resolvedDidDocument.keyAgreement.map((vm) => vm.id).toList();
       // By construction, last two keys are authentication/assertion, first two are keyAgreement
-      expect(authenticationIds, ['#key-3', '#key-4']);
-      expect(assertionIds, ['#key-3', '#key-4']);
-      expect(keyAgreementIds, ['#key-1', '#key-2']);
+      expect(authenticationIds, ['#key-1']);
+      expect(keyAgreementIds, ['#key-2']);
 
       // Assert capabilityDelegation and capabilityInvocation are empty
+      expect(resolvedDidDocument.assertionMethod, isEmpty);
       expect(resolvedDidDocument.capabilityDelegation, isEmpty);
       expect(resolvedDidDocument.capabilityInvocation, isEmpty);
 
@@ -194,7 +320,13 @@ void main() {
       // Generate a P256 key pair from a fixed seed for reproducibility
       final seed = Uint8List.fromList(List.generate(32, (i) => i));
       final p256KeyPair = P256KeyPair.fromSeed(seed);
-      final doc = DidPeer.generateDocument([p256KeyPair.publicKey]);
+
+      final doc = DidPeer.generateDocument(verificationMethods: [
+        p256KeyPair.publicKey
+      ], relationships: {
+        VerificationRelationship.authentication: [0],
+      });
+
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
 
@@ -234,7 +366,11 @@ void main() {
       final seed = Uint8List.fromList(List.generate(32, (i) => 100 + i));
       final node = BIP32.fromSeed(seed);
       final secp256k1KeyPair = Secp256k1KeyPair(node: node);
-      final doc = DidPeer.generateDocument([secp256k1KeyPair.publicKey]);
+      final doc = DidPeer.generateDocument(verificationMethods: [
+        secp256k1KeyPair.publicKey
+      ], relationships: {
+        VerificationRelationship.authentication: [0],
+      });
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
 

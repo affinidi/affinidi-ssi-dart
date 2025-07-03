@@ -83,15 +83,15 @@ class DidDocumentFixtures {
 
   static Map<String, dynamic> get serviceEndpointValid => {
         'id': 'did:web:example.com#service',
-        'type': 'DIDCommMessaging',
+        'type': 'GenericService',
         'serviceEndpoint': [
           {
-            'accept': ['didcomm/v2'],
+            'accept': ['application/json'],
             'routingKeys': <String>[],
             'uri': 'https://example.com'
           },
           {
-            'accept': ['didcomm/v2'],
+            'accept': ['application/json'],
             'routingKeys': <String>[],
             'uri': 'wss://example.com/ws'
           }
@@ -102,5 +102,5 @@ class DidDocumentFixtures {
       '{"@context":["https://www.w3.org/ns/did/v1","https://ns.did.ai/suites/multikey-2021/v1/"],"id":"did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R","verificationMethod":[{"id":"did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R","controller":"did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R","type":"Secp256k1Key2021","publicKeyMultibase":"zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"}],"authentication":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"capabilityDelegation":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"capabilityInvocation":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"keyAgreement":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"assertionMethod":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"]}';
 
   static String get didDocumentWithControllerPeer =>
-      '{"id":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/ed25519-2020/v1"],"verificationMethod":[{"id":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","controller":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"},{"id":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#z6LSt6UM88iki6ZgQ6ahzhHkZBWshULHpHSNZ6DDXnatm7eu","controller":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","type":"X25519KeyAgreementKey2020","publicKeyMultibase":"z6LSt6UM88iki6ZgQ6ahzhHkZBWshULHpHSNZ6DDXnatm7eu"}],"authentication":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"],"capabilityDelegation":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"],"capabilityInvocation":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"],"keyAgreement":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#z6LSt6UM88iki6ZgQ6ahzhHkZBWshULHpHSNZ6DDXnatm7eu"],"assertionMethod":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"]}';
+      '{"id":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/ed25519-2020/v1"],"verificationMethod":[{"id":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","controller":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","type":"Ed25519VerificationKey2020","publicKeyMultibase":"z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"},{"id":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#z6LSt6UM88iki6ZgQ6ahzhHkZBWshULHpHSNZ6DDXnatm7eu","controller":"did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka","type":"X25519KeyAgreementKey2020","publicKeyMultibase":"z6LSt6UM88iki6ZgQ6ahzhHkZBWshULHpHSNZ6DDXnatm7eu"}],"authentication":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"],"capabilityDelegation":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"],"capabilityInvocation":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"],"keyAgreement":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka#z6LSt6UM88iki6ZgQ6ahzhHkZBWshULHpHSNZ6DDXnatm7eu"],"assertionMethod":["did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka"]}';
 }
