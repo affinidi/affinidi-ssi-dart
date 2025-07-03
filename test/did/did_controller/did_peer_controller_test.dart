@@ -22,9 +22,12 @@ void main() {
     group('addVerificationMethod', () {
       test('should add multiple verification methods', () async {
         // Arrange
-        final key1 = await wallet.generateKey(keyId: 'key-1');
-        final key2 = await wallet.generateKey(keyId: 'key-2');
-        final key3 = await wallet.generateKey(keyId: 'key-3');
+        final key1 =
+            await wallet.generateKey(keyId: 'key-1', keyType: KeyType.p256);
+        final key2 =
+            await wallet.generateKey(keyId: 'key-2', keyType: KeyType.p256);
+        final key3 =
+            await wallet.generateKey(keyId: 'key-3', keyType: KeyType.p256);
 
         // Act
         final res1 =
@@ -43,9 +46,9 @@ void main() {
       test('should maintain 1-based indexing', () async {
         // Arrange
         final keys = await Future.wait([
-          wallet.generateKey(keyId: 'idx-key-1'),
-          wallet.generateKey(keyId: 'idx-key-2'),
-          wallet.generateKey(keyId: 'idx-key-3'),
+          wallet.generateKey(keyId: 'idx-key-1', keyType: KeyType.p256),
+          wallet.generateKey(keyId: 'idx-key-2', keyType: KeyType.p256),
+          wallet.generateKey(keyId: 'idx-key-3', keyType: KeyType.p256),
         ]);
 
         // Act
@@ -110,9 +113,12 @@ void main() {
       test('should create document with multiple authentication keys',
           () async {
         // Arrange
-        final auth1 = await wallet.generateKey(keyId: 'auth-1');
-        final auth2 = await wallet.generateKey(keyId: 'auth-2');
-        final auth3 = await wallet.generateKey(keyId: 'auth-3');
+        final auth1 =
+            await wallet.generateKey(keyId: 'auth-1', keyType: KeyType.p256);
+        final auth2 =
+            await wallet.generateKey(keyId: 'auth-2', keyType: KeyType.p256);
+        final auth3 =
+            await wallet.generateKey(keyId: 'auth-3', keyType: KeyType.p256);
 
         // Add verification methods and set purposes
         final res1 = await controller.addVerificationMethod(auth1.id,
@@ -177,7 +183,8 @@ void main() {
     group('Service endpoints', () {
       test('should add single service endpoint', () async {
         // Arrange
-        final authKey = await wallet.generateKey(keyId: 'service-auth-key');
+        final authKey = await wallet.generateKey(
+            keyId: 'service-auth-key', keyType: KeyType.p256);
         await controller.addVerificationMethod(authKey.id,
             relationships: {VerificationRelationship.authentication});
 
@@ -202,7 +209,8 @@ void main() {
 
       test('should add multiple service endpoints', () async {
         // Arrange
-        final authKey = await wallet.generateKey(keyId: 'multi-service-key');
+        final authKey = await wallet.generateKey(
+            keyId: 'multi-service-key', keyType: KeyType.p256);
         await controller.addVerificationMethod(authKey.id,
             relationships: {VerificationRelationship.authentication});
 
@@ -235,7 +243,8 @@ void main() {
 
       test('should remove service endpoint', () async {
         // Arrange
-        final authKey = await wallet.generateKey(keyId: 'remove-service-key');
+        final authKey = await wallet.generateKey(
+            keyId: 'remove-service-key', keyType: KeyType.p256);
         await controller.addVerificationMethod(authKey.id,
             relationships: {VerificationRelationship.authentication});
 
@@ -260,7 +269,8 @@ void main() {
       test('should throw error when adding duplicate service endpoint',
           () async {
         // Arrange
-        final authKey = await wallet.generateKey(keyId: 'dup-service-key');
+        final authKey = await wallet.generateKey(
+            keyId: 'dup-service-key', keyType: KeyType.p256);
         await controller.addVerificationMethod(authKey.id,
             relationships: {VerificationRelationship.authentication});
 
@@ -290,7 +300,8 @@ void main() {
     group('Signing and verification', () {
       test('should sign and verify with authentication key', () async {
         // Arrange
-        final authKey = await wallet.generateKey(keyId: 'sign-auth-key');
+        final authKey = await wallet.generateKey(
+            keyId: 'sign-auth-key', keyType: KeyType.p256);
         final result = await controller.addVerificationMethod(authKey.id,
             relationships: {VerificationRelationship.authentication});
         final vmId = result.verificationMethodId;
@@ -307,8 +318,10 @@ void main() {
 
       test('should sign and verify with different keys', () async {
         // Arrange
-        final key1 = await wallet.generateKey(keyId: 'sign-key-1');
-        final key2 = await wallet.generateKey(keyId: 'sign-key-2');
+        final key1 =
+            await wallet.generateKey(keyId: 'sign-key-1', keyType: KeyType.p256);
+        final key2 =
+            await wallet.generateKey(keyId: 'sign-key-2', keyType: KeyType.p256);
 
         final res1 = await controller.addVerificationMethod(key1.id,
             relationships: {VerificationRelationship.authentication});
@@ -337,12 +350,16 @@ void main() {
       test('should track all verification method purposes in controller',
           () async {
         // Arrange
-        final authKey = await wallet.generateKey(keyId: 'auth-purpose');
+        final authKey = await wallet.generateKey(
+            keyId: 'auth-purpose', keyType: KeyType.p256);
         final kaKey = await wallet.generateKey(
             keyId: 'ka-purpose', keyType: KeyType.ed25519);
-        final ciKey = await wallet.generateKey(keyId: 'ci-purpose');
-        final cdKey = await wallet.generateKey(keyId: 'cd-purpose');
-        final amKey = await wallet.generateKey(keyId: 'am-purpose');
+        final ciKey = await wallet.generateKey(
+            keyId: 'ci-purpose', keyType: KeyType.p256);
+        final cdKey = await wallet.generateKey(
+            keyId: 'cd-purpose', keyType: KeyType.p256);
+        final amKey = await wallet.generateKey(
+            keyId: 'am-purpose', keyType: KeyType.p256);
 
         // Add verification methods and set purposes
         final resAuth = await controller.addVerificationMethod(authKey.id,
@@ -388,8 +405,10 @@ void main() {
 
       test('should remove verification method purposes', () async {
         // Arrange
-        final key1 = await wallet.generateKey(keyId: 'remove-purpose-1');
-        final key2 = await wallet.generateKey(keyId: 'remove-purpose-2');
+        final key1 = await wallet.generateKey(
+            keyId: 'remove-purpose-1', keyType: KeyType.p256);
+        final key2 = await wallet.generateKey(
+            keyId: 'remove-purpose-2', keyType: KeyType.p256);
         final res1 =
             await controller.addVerificationMethod(key1.id, relationships: {});
         final res2 =
@@ -426,7 +445,8 @@ void main() {
     group('DID signer integration', () {
       test('should get DID signer', () async {
         // Arrange
-        final key = await wallet.generateKey(keyId: 'signer-key');
+        final key =
+            await wallet.generateKey(keyId: 'signer-key', keyType: KeyType.p256);
         final result = await controller.addVerificationMethod(key.id,
             relationships: {VerificationRelationship.authentication});
         final vmId = result.verificationMethodId;
@@ -465,7 +485,8 @@ void main() {
     group('Key retrieval', () {
       test('should retrieve DID key pair', () async {
         // Arrange
-        final key = await wallet.generateKey(keyId: 'retrieve-key');
+        final key = await wallet.generateKey(
+            keyId: 'retrieve-key', keyType: KeyType.p256);
         final result = await controller.addVerificationMethod(key.id,
             relationships: {VerificationRelationship.authentication});
         final vmId = result.verificationMethodId;
@@ -484,7 +505,8 @@ void main() {
     group('Context verification', () {
       test('should use multikey context for did:peer:2', () async {
         // Arrange
-        final key1 = await wallet.generateKey(keyId: 'context-key-1');
+        final key1 = await wallet.generateKey(
+            keyId: 'context-key-1', keyType: KeyType.p256);
         final key2 = await wallet.generateKey(
             keyId: 'context-key-2', keyType: KeyType.ed25519);
 
@@ -512,7 +534,8 @@ void main() {
       test('should generate did:peer:0 for single auth key without service',
           () async {
         // Arrange
-        final key = await wallet.generateKey(keyId: 'peer0-key');
+        final key =
+            await wallet.generateKey(keyId: 'peer0-key', keyType: KeyType.p256);
         await controller.addVerificationMethod(key.id,
             relationships: {VerificationRelationship.authentication});
 
@@ -525,8 +548,10 @@ void main() {
 
       test('should generate did:peer:2 for multiple keys', () async {
         // Arrange
-        final key1 = await wallet.generateKey(keyId: 'peer2-key-1');
-        final key2 = await wallet.generateKey(keyId: 'peer2-key-2');
+        final key1 = await wallet.generateKey(
+            keyId: 'peer2-key-1', keyType: KeyType.p256);
+        final key2 = await wallet.generateKey(
+            keyId: 'peer2-key-2', keyType: KeyType.p256);
 
         await controller.addVerificationMethod(key1.id,
             relationships: {VerificationRelationship.authentication});
@@ -542,7 +567,8 @@ void main() {
 
       test('should generate did:peer:2 with service endpoint', () async {
         // Arrange
-        final key = await wallet.generateKey(keyId: 'peer2-service-key');
+        final key = await wallet.generateKey(
+            keyId: 'peer2-service-key', keyType: KeyType.p256);
         await controller.addVerificationMethod(key.id,
             relationships: {VerificationRelationship.authentication});
 
