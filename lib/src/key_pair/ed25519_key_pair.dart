@@ -85,13 +85,7 @@ class Ed25519KeyPair implements KeyPair {
     Uint8List data, {
     SignatureScheme signatureScheme = defaultSignatureScheme,
   }) async {
-    if (!supportedSignatureSchemes.contains(signatureScheme)) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only [${supportedSignatureSchemes.join(',')}] are supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
+    validateSignatureScheme(signatureScheme);
 
     // For Ed25519, the library handles hashing internally
     return ed.sign(_privateKey, data);
@@ -113,13 +107,7 @@ class Ed25519KeyPair implements KeyPair {
     Uint8List signature, {
     SignatureScheme signatureScheme = defaultSignatureScheme,
   }) async {
-    if (!supportedSignatureSchemes.contains(signatureScheme)) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only [${supportedSignatureSchemes.join(',')}] are supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
+    validateSignatureScheme(signatureScheme);
 
     // For Ed25519, the library handles hashing internally
     return ed.verify(ed.public(_privateKey), data, signature);
@@ -256,5 +244,15 @@ class Ed25519KeyPair implements KeyPair {
 
     // Return the X25519 public key bytes directly
     return x25519PublicKeyBytes;
+  }
+
+  void validateSignatureScheme(SignatureScheme signatureScheme) {
+    if (!supportedSignatureSchemes.contains(signatureScheme)) {
+      throw SsiException(
+        message:
+            'Unsupported signature scheme. Only [${supportedSignatureSchemes.join(',')}] are supported.',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
+    }
   }
 }
