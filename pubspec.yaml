@@ -18,6 +18,7 @@ dependencies:
   elliptic: ^0.3.11
   http: ^1.4.0
   json_ld_processor: ^1.0.4
+  meta: ^1.17.0
   pointycastle: ^4.0.0
   selective_disclosure_jwt: ^1.0.3
   x25519: ^0.1.1

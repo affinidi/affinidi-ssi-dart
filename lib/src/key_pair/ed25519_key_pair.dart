@@ -18,7 +18,7 @@ import 'public_key.dart';
 ///
 /// This key pair supports signing and verifying data using Ed25519.
 /// It does not support any other signature schemes.
-class Ed25519KeyPair implements KeyPair {
+class Ed25519KeyPair extends KeyPair {
   final ed.PrivateKey _privateKey;
   final _encryptionUtils = EncryptionUtils();
   @override
@@ -69,22 +69,9 @@ class Ed25519KeyPair implements KeyPair {
         KeyType.ed25519,
       );
 
-  /// Signs the provided data using Ed25519.
-  ///
-  /// [data] - The data to be signed.
-  /// [signatureScheme] - The signature scheme to use.
-  ///
-  /// Returns a [Future] that completes with the signature as a [Uint8List].
-  ///
-  /// Throws [SsiException] if an unsupported [signatureScheme] is passed or
-  /// if the signing operation fails.
   @override
-  Future<Uint8List> sign(
-    Uint8List data, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    _validateSignatureScheme(signatureScheme: signatureScheme);
-
+  Future<Uint8List> internalSign(
+      Uint8List data, SignatureScheme signatureScheme) async {
     // For Ed25519, the library handles hashing internally
     return ed.sign(_privateKey, data);
   }
@@ -100,13 +87,8 @@ class Ed25519KeyPair implements KeyPair {
   ///
   /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   @override
-  Future<bool> verify(
-    Uint8List data,
-    Uint8List signature, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    _validateSignatureScheme(signatureScheme: signatureScheme);
-
+  Future<bool> internalVerify(Uint8List data, Uint8List signature,
+      SignatureScheme signatureScheme) async {
     // For Ed25519, the library handles hashing internally
     return ed.verify(ed.public(_privateKey), data, signature);
   }
@@ -116,10 +98,6 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   SignatureScheme get defaultSignatureScheme => SignatureScheme.ed25519;
-
-  @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      [defaultSignatureScheme];
 
   /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
@@ -238,16 +216,5 @@ class Ed25519KeyPair implements KeyPair {
     final x25519PublicKeyBytes =
         ed25519PublicToX25519Public(ed25519PublicKey.bytes);
     return PublicKey(id, x25519PublicKeyBytes, KeyType.x25519);
-  }
-
-  void _validateSignatureScheme({SignatureScheme? signatureScheme}) {
-    signatureScheme ??= defaultSignatureScheme;
-    if (!supportedSignatureSchemes.contains(signatureScheme)) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Supported schemes: [${supportedSignatureSchemes.join(',')}].',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
   }
 }
