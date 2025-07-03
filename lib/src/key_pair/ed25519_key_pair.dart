@@ -247,7 +247,7 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   void _validateSignatureScheme(
-      {SignatureScheme signatureScheme = _defaultSignatureScheme}) {
+      {SignatureScheme? signatureScheme = _defaultSignatureScheme}) {
     if (!supportedSignatureSchemes.contains(signatureScheme)) {
       throw SsiException(
         message:
