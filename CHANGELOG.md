@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v1.7.0`](#ssi---v170)
+
+---
+
+#### `ssi` - `v1.7.0`
+
+ - **FEAT**: configure AWS KMS wallet tests as integration tests (#131).
+
+## 1.7.0
+
+ - **FEAT**: configure AWS KMS wallet tests as integration tests (#131).
+
+
+## 2025-07-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v1.6.0`](#ssi---v160)
 
 ---

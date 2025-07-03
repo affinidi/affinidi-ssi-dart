@@ -42,5 +42,5 @@ void main() {
 
       expect(isValid, isFalse);
     });
-  });
+  }, tags: 'integration');
 }
