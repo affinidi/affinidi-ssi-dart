@@ -329,12 +329,12 @@ void main() {
         final edKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
         // Get the X25519 public key
-        final x25519KeyBytes = await wallet.getX25519PublicKey(edKey.id);
+        final x25519Key = await wallet.getX25519PublicKey(edKey.id);
 
         // Verify the result
-        expect(x25519KeyBytes, isA<Uint8List>());
-        expect(x25519KeyBytes, isNotEmpty);
-        expect(x25519KeyBytes.length, 32); // X25519 public key size
+        expect(x25519Key.bytes, isA<Uint8List>());
+        expect(x25519Key.bytes, isNotEmpty);
+        expect(x25519Key.bytes.length, 32); // X25519 public key size
       });
 
       test('should throw SsiException for non-existent keyId', () async {
@@ -477,23 +477,22 @@ void main() {
     });
 
     test('Two-party encrypt/decrypt should succeed', () async {
-      final aliceX25519PublicKeyBytes =
+      final aliceX25519PublicKey =
           await aliceWallet.getX25519PublicKey(aliceKey.id);
-      final bobX25519PublicKeyBytes =
-          await bobWallet.getX25519PublicKey(bobKey.id);
+      final bobX25519PublicKey = await bobWallet.getX25519PublicKey(bobKey.id);
 
       // Alice encrypts for Bob using her wallet and Bob's X25519 public key
       final encryptedData = await aliceWallet.encrypt(
         plainText,
         keyId: aliceKey.id,
-        publicKey: bobX25519PublicKeyBytes,
+        publicKey: bobX25519PublicKey.bytes,
       );
 
       // Bob decrypts using Alice's X25519 public key and his wallet
       final decryptedData = await bobWallet.decrypt(
         encryptedData,
         keyId: bobKey.id,
-        publicKey: aliceX25519PublicKeyBytes,
+        publicKey: aliceX25519PublicKey.bytes,
       );
 
       expect(decryptedData, equals(plainText));
@@ -518,16 +517,14 @@ void main() {
 
     test('Decrypt should fail if wrong public key is provided (two-party)',
         () async {
-      final bobX25519PublicKeyBytes =
-          await bobWallet.getX25519PublicKey(bobKey.id);
-      final eveX25519PublicKeyBytes =
-          await eveWallet.getX25519PublicKey(eveKey.id);
+      final bobX25519PublicKey = await bobWallet.getX25519PublicKey(bobKey.id);
+      final eveX25519PublicKey = await eveWallet.getX25519PublicKey(eveKey.id);
 
       // Alice encrypts for Bob using her wallet and Bob's X25519 public key
       final encryptedData = await aliceWallet.encrypt(
         plainText,
         keyId: aliceKey.id,
-        publicKey: bobX25519PublicKeyBytes,
+        publicKey: bobX25519PublicKey.bytes,
       );
 
       // Bob tries to decrypt using Eve's X25519 public key instead of Alice's, using his wallet
@@ -535,7 +532,7 @@ void main() {
         () async => await bobWallet.decrypt(
           encryptedData,
           keyId: bobKey.id,
-          publicKey: eveX25519PublicKeyBytes,
+          publicKey: eveX25519PublicKey.bytes,
         ),
         throwsA(isA<SsiException>().having((error) => error.code, 'code',
             SsiExceptionType.unableToDecrypt.code)),

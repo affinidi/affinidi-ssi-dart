@@ -128,10 +128,12 @@ class Ed25519KeyPair implements KeyPair {
   /// Returns the original seed used to derive the Ed25519 key pair.
   Uint8List getSeed() => ed.seed(_privateKey);
 
-  /// Returns the supported signature schemes for this key pair.
   @override
   List<SignatureScheme> get supportedSignatureSchemes =>
       const [SignatureScheme.ed25519];
+
+  @override
+  SignatureScheme get defaultSignatureScheme => SignatureScheme.ed25519;
 
   /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
@@ -147,7 +149,9 @@ class Ed25519KeyPair implements KeyPair {
   /// Returns a [Future] that completes with the shared secret as a [Uint8List].
   @override
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
-    // Convert Ed25519 private key to X25519 private key using clamping (RFC 7748)
+    // Convert Ed25519 private key to X25519 private key
+    // Ed25519 uses SHA-512 to derive the scalar and prefix from the seed
+    // We need to use the same process to get the correct X25519 private key
     final seed = ed.seed(_privateKey);
     // Hash the seed with SHA-512
     final hash = dart_crypto.sha512.convert(seed).bytes;
@@ -163,9 +167,9 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
-    List<int> publicKeyToUse;
+    Uint8List publicKeyToUse;
     if (publicKey == null) {
-      publicKeyToUse = generateEphemeralPubKey();
+      publicKeyToUse = Uint8List.fromList(generateEphemeralPubKey());
     } else {
       publicKeyToUse = publicKey;
     }
@@ -240,16 +244,11 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   /// Converts the Ed25519 key to an X25519 public key.
-  Future<Uint8List> ed25519KeyToX25519PublicKey() async {
-    // Get the Ed25519 public key
+  /// Returns a [Future] that completes with the X25519 [PublicKey].
+  Future<PublicKey> ed25519KeyToX25519PublicKey() async {
     final ed25519PublicKey = ed.public(_privateKey);
-
-    // Convert Ed25519 public key to X25519 public key
-    // The conversion function returns the X25519 public key bytes directly
     final x25519PublicKeyBytes =
         ed25519PublicToX25519Public(ed25519PublicKey.bytes);
-
-    // Return the X25519 public key bytes directly
-    return x25519PublicKeyBytes;
+    return PublicKey(id, x25519PublicKeyBytes, KeyType.x25519);
   }
 }
