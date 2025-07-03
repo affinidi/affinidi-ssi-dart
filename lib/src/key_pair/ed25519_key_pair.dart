@@ -14,7 +14,7 @@ import '_ecdh_utils.dart';
 import 'key_pair.dart';
 import 'public_key.dart';
 
-const defaultSignatureScheme = SignatureScheme.eddsa_sha512;
+const _defaultSignatureScheme = SignatureScheme.eddsa_sha512;
 
 /// A [KeyPair] implementation using the Ed25519 signature scheme.
 ///
@@ -83,9 +83,9 @@ class Ed25519KeyPair implements KeyPair {
   @override
   Future<Uint8List> sign(
     Uint8List data, {
-    SignatureScheme signatureScheme = defaultSignatureScheme,
+    SignatureScheme? signatureScheme,
   }) async {
-    validateSignatureScheme(signatureScheme);
+    _validateSignatureScheme(signatureScheme: signatureScheme);
 
     // For Ed25519, the library handles hashing internally
     return ed.sign(_privateKey, data);
@@ -105,9 +105,9 @@ class Ed25519KeyPair implements KeyPair {
   Future<bool> verify(
     Uint8List data,
     Uint8List signature, {
-    SignatureScheme signatureScheme = defaultSignatureScheme,
+    SignatureScheme? signatureScheme,
   }) async {
-    validateSignatureScheme(signatureScheme);
+    _validateSignatureScheme(signatureScheme: signatureScheme);
 
     // For Ed25519, the library handles hashing internally
     return ed.verify(ed.public(_privateKey), data, signature);
@@ -120,7 +120,7 @@ class Ed25519KeyPair implements KeyPair {
   @override
   List<SignatureScheme> get supportedSignatureSchemes => const [
         SignatureScheme.ed25519_sha256,
-        defaultSignatureScheme,
+        _defaultSignatureScheme,
       ];
 
   /// Generates a new ephemeral X25519 public key.
@@ -246,7 +246,8 @@ class Ed25519KeyPair implements KeyPair {
     return x25519PublicKeyBytes;
   }
 
-  void validateSignatureScheme(SignatureScheme signatureScheme) {
+  void _validateSignatureScheme(
+      {SignatureScheme signatureScheme = _defaultSignatureScheme}) {
     if (!supportedSignatureSchemes.contains(signatureScheme)) {
       throw SsiException(
         message:
