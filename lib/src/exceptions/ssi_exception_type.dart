@@ -60,6 +60,12 @@ enum SsiExceptionType {
   /// Seed not found in wallet or keystore
   seedNotFound(code: 'seed_not_found'),
 
+  /// Failed to fetch revocation list
+  failedToFetchRevocationList(code: 'failed_to_fetch_revocation_list'),
+
+  /// Revocation index out of bounds
+  revocationIndexOutOfBounds(code: 'revocation_index_out_of_bounds'),
+
   /// An unknown error has occurred.
   other(code: 'other'),
   ;
