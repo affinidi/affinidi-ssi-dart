@@ -8,6 +8,7 @@ final encryptionUtils = EncryptionUtils();
 T generateValidPrivateKey<T>(
   T Function() generate, {
   int maxAttempts = 3,
+  int? expectedLength,
 }) {
   for (var attempt = 0; attempt < maxAttempts; attempt++) {
     final privateKey = generate();
@@ -16,7 +17,8 @@ T generateValidPrivateKey<T>(
     final keXBytes = _bigIntToBytes(publicKey.X as BigInt);
     final keYBytes = _bigIntToBytes(publicKey.Y as BigInt);
 
-    if (keXBytes.length == 32 && keYBytes.length == 32) {
+    final len = expectedLength ?? keXBytes.length;
+    if (keXBytes.length == len && keYBytes.length == len) {
       return privateKey;
     }
   }
