@@ -2,7 +2,7 @@ name: release
 on:
   push:
     branches:
-      - main
+      - test/dart-security-canner
 jobs:
   dart-pipeline:
     uses: affinidi/pipeline-dart/.github/workflows/release.yaml@SEC-3022-Dart-Scanner
