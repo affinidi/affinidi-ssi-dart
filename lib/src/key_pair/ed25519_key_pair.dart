@@ -66,10 +66,10 @@ class Ed25519KeyPair implements KeyPair {
   /// Returns the key as [Uint8List].
   @override
   PublicKey get publicKey => PublicKey(
-    id,
-    Uint8List.fromList(ed.public(_privateKey).bytes),
-    KeyType.ed25519,
-  );
+        id,
+        Uint8List.fromList(ed.public(_privateKey).bytes),
+        KeyType.ed25519,
+      );
 
   /// Signs the provided data using Ed25519.
   ///
@@ -119,9 +119,9 @@ class Ed25519KeyPair implements KeyPair {
   /// Returns the supported signature schemes for this key pair.
   @override
   List<SignatureScheme> get supportedSignatureSchemes => const [
-    SignatureScheme.ed25519_sha256,
-    defaultSignatureScheme,
-  ];
+        SignatureScheme.ed25519_sha256,
+        defaultSignatureScheme,
+      ];
 
   /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
