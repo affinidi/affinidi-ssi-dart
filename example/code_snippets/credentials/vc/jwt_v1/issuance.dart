@@ -8,7 +8,7 @@ import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
 import 'package:ssi/src/credentials/models/field_types/issuer.dart';
 import 'package:ssi/src/credentials/models/v1/vc_data_model_v1.dart';
 
-import '../../did/did_signer.dart';
+import '../../../did/did_signer.dart';
 
 void main() async {
   // Example seed for deterministic key generation

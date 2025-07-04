@@ -200,9 +200,8 @@ void main() {
         () async {
       final key = await wallet.generateKey(keyId: derivationPath1);
       final derivedSchemes = await wallet.getSupportedSignatureSchemes(key.id);
-      expect(derivedSchemes, contains(SignatureScheme.ed25519_sha256));
-      expect(derivedSchemes, contains(SignatureScheme.eddsa_sha512));
-      expect(derivedSchemes.length, 2);
+      expect(derivedSchemes, contains(SignatureScheme.ed25519));
+      expect(derivedSchemes.length, 1);
     });
 
     test(
@@ -238,23 +237,22 @@ void main() {
 
     test('Two-party encrypt/decrypt should succeed', () async {
       // Get X25519 keys for ECDH
-      final aliceX25519PublicKeyBytes =
+      final aliceX25519PublicKey =
           await aliceWallet.getX25519PublicKey(aliceKey.id);
-      final bobX25519PublicKeyBytes =
-          await bobWallet.getX25519PublicKey(bobKey.id);
+      final bobX25519PublicKey = await bobWallet.getX25519PublicKey(bobKey.id);
 
       // Alice encrypts for Bob using Bob's X25519 public key
       final encryptedData = await aliceWallet.encrypt(
         plainText,
         keyId: aliceKey.id,
-        publicKey: bobX25519PublicKeyBytes, // Use Bob's X25519 key
+        publicKey: bobX25519PublicKey.bytes, // Use Bob's X25519 key
       );
 
       // Bob decrypts using Alice's X25519 public key
       final decryptedData = await bobWallet.decrypt(
         encryptedData,
         keyId: bobKey.id,
-        publicKey: aliceX25519PublicKeyBytes, // Use Alice's X25519 key
+        publicKey: aliceX25519PublicKey.bytes, // Use Alice's X25519 key
       );
 
       expect(decryptedData, equals(plainText));
@@ -281,8 +279,7 @@ void main() {
 
     test('Decrypt should fail if wrong public key is provided (two-party)',
         () async {
-      final bobX25519PublicKeyBytes =
-          await bobWallet.getX25519PublicKey(bobKey.id);
+      final bobX25519PublicKey = await bobWallet.getX25519PublicKey(bobKey.id);
 
       // Generate a third party key
       final eveWallet = Bip32Ed25519Wallet.fromSeed(
@@ -290,14 +287,13 @@ void main() {
       const evePath = "m/44'/1'/2'/0'/0'";
       // Generate Eve's key
       final eveKey = await eveWallet.generateKey(keyId: evePath);
-      final eveX25519PublicKeyBytes =
-          await eveWallet.getX25519PublicKey(eveKey.id);
+      final eveX25519PublicKey = await eveWallet.getX25519PublicKey(eveKey.id);
 
       // Alice encrypts for Bob using Bob's X25519 public key
       final encryptedData = await aliceWallet.encrypt(
         plainText,
         keyId: aliceKey.id,
-        publicKey: bobX25519PublicKeyBytes, // Bob's X25519 key
+        publicKey: bobX25519PublicKey.bytes, // Bob's X25519 key
       );
 
       // Bob tries to decrypt using Eve's X25519 public key instead of Alice's
@@ -305,8 +301,8 @@ void main() {
         () async => await bobWallet.decrypt(
           encryptedData,
           keyId: bobKey.id,
-          publicKey:
-              eveX25519PublicKeyBytes, // Wrong sender X25519 public key (Eve's)
+          publicKey: eveX25519PublicKey
+              .bytes, // Wrong sender X25519 public key (Eve's)
         ),
         throwsA(isA<SsiException>().having((error) => error.code, 'code',
             SsiExceptionType.unableToDecrypt.code)),

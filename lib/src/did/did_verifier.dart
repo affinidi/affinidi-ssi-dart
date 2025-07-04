@@ -87,7 +87,9 @@ class DidVerifier implements Verifier {
   }
 
   static bool _isAlgorithmCompatibleWithJwk(
-      Map<String, dynamic> jwk, String algorithm) {
+    Map<String, dynamic> jwk,
+    String algorithm,
+  ) {
     if (jwk['kty'] == 'OKP' && jwk['crv'] == 'Ed25519') {
       return algorithm == 'EdDSA' || algorithm == 'Ed25519';
     }
@@ -124,11 +126,8 @@ class DidVerifier implements Verifier {
         _jwk['kid'] = _kId;
       }
 
-      if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
-        if (_algorithm.alg != 'EdDSA') {
-          return false;
-        }
-
+      if ((_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') ||
+          (_jwk['alg'] == 'Ed25519')) {
         final publicKeyBytes = base64UrlNoPadDecode(_jwk['x']);
         return ed.verify(ed.PublicKey(publicKeyBytes), data, signature);
       }

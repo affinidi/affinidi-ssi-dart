@@ -21,25 +21,12 @@ void main() {
       expect(actual, isTrue);
     });
 
-    test(
-        'Ed25519 key pair should sign data and verify signature (ed25519_sha256)',
-        () async {
+    test('Ed25519 key pair should sign data and verify signature', () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final signature = await edKey.sign(dataToSign,
-          signatureScheme: SignatureScheme.ed25519_sha256);
+          signatureScheme: SignatureScheme.ed25519);
       final actual = await edKey.verify(dataToSign, signature,
-          signatureScheme: SignatureScheme.ed25519_sha256);
-      expect(actual, isTrue);
-    });
-
-    test(
-        'Ed25519 key pair should sign data and verify signature (eddsa_sha512)',
-        () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
-      final signature = await edKey.sign(dataToSign,
-          signatureScheme: SignatureScheme.eddsa_sha512);
-      final actual = await edKey.verify(dataToSign, signature,
-          signatureScheme: SignatureScheme.eddsa_sha512);
+          signatureScheme: SignatureScheme.ed25519);
       expect(actual, isTrue);
     });
 
@@ -69,18 +56,12 @@ void main() {
 
     test('Verification works across different supported schemes', () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
-      final sigSha256 = await edKey.sign(dataToSign,
-          signatureScheme: SignatureScheme.ed25519_sha256);
-      final sigSha512 = await edKey.sign(dataToSign,
-          signatureScheme: SignatureScheme.eddsa_sha512);
+      final sigSha = await edKey.sign(dataToSign,
+          signatureScheme: SignatureScheme.ed25519);
 
       expect(
-          await edKey.verify(dataToSign, sigSha256,
-              signatureScheme: SignatureScheme.eddsa_sha512),
-          isTrue);
-      expect(
-          await edKey.verify(dataToSign, sigSha512,
-              signatureScheme: SignatureScheme.ed25519_sha256),
+          await edKey.verify(dataToSign, sigSha,
+              signatureScheme: SignatureScheme.ed25519),
           isTrue);
     });
 
@@ -104,9 +85,8 @@ void main() {
     test('supportedSignatureSchemes should return correct schemes', () {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final schemes = edKey.supportedSignatureSchemes;
-      expect(schemes, hasLength(2));
-      expect(schemes, contains(SignatureScheme.ed25519_sha256));
-      expect(schemes, contains(SignatureScheme.eddsa_sha512));
+      expect(schemes, hasLength(1));
+      expect(schemes, contains(SignatureScheme.ed25519));
     });
   });
 }
