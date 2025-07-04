@@ -46,6 +46,10 @@ class P384KeyPair implements KeyPair {
 
   /// Creates a [P384KeyPair] instance from a private key.
   factory P384KeyPair.fromPrivateKey(Uint8List privateKeyBytes, {String? id}) {
+    if (privateKeyBytes.length != expectedLength) {
+      throw ArgumentError(
+          'P-384 private key must be $expectedLength bytes, got \\${privateKeyBytes.length}');
+    }
     final effectiveId = id ?? randomId();
     return P384KeyPair._(
         ec.PrivateKey.fromBytes(_p384, privateKeyBytes), effectiveId);
@@ -172,4 +176,7 @@ class P384KeyPair implements KeyPair {
     final secret = computeSecret(_privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
   }
+
+  /// The expected length of the private key in bytes. For P-384, it is 48 bytes.
+  static const int expectedLength = 48;
 }

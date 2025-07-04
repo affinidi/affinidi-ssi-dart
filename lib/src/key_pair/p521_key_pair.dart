@@ -46,6 +46,10 @@ class P521KeyPair implements KeyPair {
 
   /// Creates a [P521KeyPair] instance from a private key.
   factory P521KeyPair.fromPrivateKey(Uint8List privateKeyBytes, {String? id}) {
+    if (privateKeyBytes.length != 66) {
+      throw ArgumentError(
+          'P-521 private key must be 66 bytes, got \\${privateKeyBytes.length}');
+    }
     final effectiveId = id ?? randomId();
     return P521KeyPair._(
         ec.PrivateKey.fromBytes(_p521, privateKeyBytes), effectiveId);
