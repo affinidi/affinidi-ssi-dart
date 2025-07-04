@@ -595,6 +595,49 @@ void main() {
         final resolvedDoc = DidPeer.resolve(didDocument.id);
         expect(resolvedDoc.toJson(), didDocument.toJson());
       });
+
+      test('generates a valid did:peer:0 document with secp256k1 key',
+          () async {
+        // Arrange
+        // Use Bip32Wallet for secp256k1 keys
+        final seed = Uint8List(32); // A dummy seed for testing
+        final bip32Wallet = Bip32Wallet.fromSeed(seed);
+        final store = InMemoryDidStore();
+        final controller = DidPeerController(
+          store: store,
+          wallet: bip32Wallet,
+        );
+        const derivationPath = "m/44'/0'/0'/0/0";
+        final authKey = await bip32Wallet.generateKey(keyId: derivationPath);
+
+        // Add verification method and assign purpose
+        await controller.addVerificationMethod(authKey.id,
+            relationships: {VerificationRelationship.authentication});
+
+        // Act
+        final didDocument = await controller.getDidDocument();
+        expect(isPeerDID(didDocument.id), isTrue);
+        print(didDocument);
+
+        // Assert on generated document
+        expect(didDocument.id, startsWith('did:peer:0'));
+        expect(didDocument.verificationMethod, hasLength(1));
+        expect(didDocument.verificationMethod[0].id, didDocument.id);
+        expect(didDocument.verificationMethod[0].type, 'Multikey');
+        expect(didDocument.authentication.map((e) => e.id), [didDocument.id]);
+
+        // Verify resolution and content
+        final resolvedDoc = DidPeer.resolve(didDocument.id);
+        print(resolvedDoc);
+        expect(resolvedDoc.id, didDocument.id);
+        expect(resolvedDoc.verificationMethod, hasLength(1));
+        expect(resolvedDoc.verificationMethod[0].type, 'Secp256k1Key2021');
+        final keyPart = didDocument.id.substring(11);
+        final expectedVmId = '${didDocument.id}#$keyPart';
+        expect(resolvedDoc.verificationMethod[0].id, expectedVmId);
+        expect(resolvedDoc.authentication.map((e) => e.id).first, expectedVmId);
+        expect(resolvedDoc.keyAgreement, isEmpty);
+      });
     });
   });
 }
