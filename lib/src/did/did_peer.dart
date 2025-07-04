@@ -384,7 +384,8 @@ class DidPeer {
 
     Numalgo2Prefix getPrefixForRelationship(VerificationRelationship rel) {
       return switch (rel) {
-        VerificationRelationship.authentication => Numalgo2Prefix.authentication,
+        VerificationRelationship.authentication =>
+          Numalgo2Prefix.authentication,
         VerificationRelationship.keyAgreement => Numalgo2Prefix.keyAgreement,
         VerificationRelationship.assertionMethod => Numalgo2Prefix.assertion,
         VerificationRelationship.capabilityInvocation =>
@@ -488,7 +489,6 @@ class DidPeer {
       service: serviceEndpoints,
     );
   }
-
 
   /// Resolves a peer DID to a DID document.
   ///

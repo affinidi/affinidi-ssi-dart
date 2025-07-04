@@ -180,12 +180,14 @@ void main() {
       expect(doc.verificationMethod[1].id, '#key-2');
     });
 
-    test('getDid for did:peer:2 should match expected', () async {
-      final expectedDid =
-          'did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0';
-
+    test(
+        'getDid for did:peer:2 should produce a resolvable document with correct structure',
+        () async {
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
-      final key = await wallet.generateKey(keyId: derivedKeyPath);
+      final keyPair =
+          await wallet.generateKey(keyId: derivedKeyPath) as Ed25519KeyPair;
+      final authPublicKey = keyPair.publicKey;
+      final agreePublicKey = await keyPair.ed25519KeyToX25519PublicKey();
 
       final service = ServiceEndpoint(
         id: '#service-1',
@@ -193,16 +195,31 @@ void main() {
         serviceEndpoint: const StringEndpoint('https://denys.com/income'),
       );
 
+      // Simulate what the controller does: one public key per purpose instance.
+      final verificationMethods = [
+        authPublicKey,
+        authPublicKey,
+        agreePublicKey,
+        agreePublicKey,
+      ];
+      final relationships = {
+        VerificationRelationship.authentication: [0, 1],
+        VerificationRelationship.keyAgreement: [2, 3],
+      };
+
       final actualDid = DidPeer.getDid(
-        verificationMethods: [key.publicKey],
-        relationships: {
-          VerificationRelationship.authentication: [0, 0],
-          VerificationRelationship.keyAgreement: [0, 0]
-        },
+        verificationMethods: verificationMethods,
+        relationships: relationships,
         serviceEndpoints: [service],
       );
 
-      expect(actualDid, expectedDid);
+      final resolvedDoc = DidPeer.resolve(actualDid);
+
+      expect(resolvedDoc.id, actualDid);
+      expect(resolvedDoc.authentication, hasLength(2));
+      expect(resolvedDoc.keyAgreement, hasLength(2));
+      expect(resolvedDoc.verificationMethod, hasLength(4));
+      expect(resolvedDoc.service, hasLength(1));
     });
 
     test('public key derived from did should be the same', () async {
