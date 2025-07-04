@@ -293,8 +293,8 @@ void main() {
     group('DID signer integration', () {
       test('should get DID signer', () async {
         // Arrange
-        final keyPair =
-            await wallet.generateKey(keyId: 'signer-key', keyType: KeyType.p256);
+        final keyPair = await wallet.generateKey(
+            keyId: 'signer-key', keyType: KeyType.p256);
         final result = await controller.addVerificationMethod(keyPair.id);
         final vmId = result.verificationMethodId;
 
