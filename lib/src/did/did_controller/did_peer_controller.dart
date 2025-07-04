@@ -185,7 +185,7 @@ class DidPeerController extends DidController {
           capabilityDelegation.toList(),
     };
 
-    return DidPeer.buildDocumentFromState(
+    return DidPeer.generateDocument(
       did: did,
       verificationMethodIds: uniqueVmIds,
       publicKeys: verificationMethodsPubKeys,

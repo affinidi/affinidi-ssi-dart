@@ -31,12 +31,13 @@ void main() {
           'did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka';
       final expectedKeyType = KeyType.ed25519;
 
-      final doc = DidPeer.generateDocument(
+      final did = DidPeer.getDid(
         verificationMethods: [accountPublicKey],
         relationships: {
           VerificationRelationship.authentication: [0]
         },
       );
+      final doc = DidPeer.resolve(did);
       final actualDid = doc.id;
       final actualKeyType = accountPublicKey.type;
 
@@ -154,7 +155,7 @@ void main() {
         serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       );
 
-      final doc = DidPeer.generateDocument(
+      final did = DidPeer.getDid(
         verificationMethods: [authKey.publicKey, agreeKey.publicKey],
         relationships: {
           VerificationRelationship.authentication: [0],
@@ -162,6 +163,7 @@ void main() {
         },
         serviceEndpoints: [service],
       );
+      final doc = DidPeer.resolve(did);
 
       // Check that keyAgreement contains only the agreement key
       expect(doc.keyAgreement.length, 1);
@@ -260,11 +262,12 @@ void main() {
         165
       ]);
 
-      final doc = DidPeer.generateDocument(verificationMethods: [
+      final did = DidPeer.getDid(verificationMethods: [
         accountPublicKey
       ], relationships: {
         VerificationRelationship.authentication: [0]
       });
+      final doc = DidPeer.resolve(did);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
@@ -282,7 +285,7 @@ void main() {
         serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       );
 
-      final doc = DidPeer.generateDocument(verificationMethods: [
+      final did = DidPeer.getDid(verificationMethods: [
         key.publicKey,
         PublicKey(key.id, ed25519PublicToX25519Public(key.publicKey.bytes),
             KeyType.x25519)
@@ -292,6 +295,7 @@ void main() {
       }, serviceEndpoints: [
         service
       ]);
+      final doc = DidPeer.resolve(did);
 
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
@@ -338,11 +342,12 @@ void main() {
       final seed = Uint8List.fromList(List.generate(32, (i) => i));
       final p256KeyPair = P256KeyPair.fromSeed(seed);
 
-      final doc = DidPeer.generateDocument(verificationMethods: [
+      final did = DidPeer.getDid(verificationMethods: [
         p256KeyPair.publicKey
       ], relationships: {
         VerificationRelationship.authentication: [0],
       });
+      final doc = DidPeer.resolve(did);
 
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
@@ -381,11 +386,12 @@ void main() {
       final seed = Uint8List.fromList(List.generate(32, (i) => 100 + i));
       final node = BIP32.fromSeed(seed);
       final secp256k1KeyPair = Secp256k1KeyPair(node: node);
-      final doc = DidPeer.generateDocument(verificationMethods: [
+      final did = DidPeer.getDid(verificationMethods: [
         secp256k1KeyPair.publicKey
       ], relationships: {
         VerificationRelationship.authentication: [0],
       });
+      final doc = DidPeer.resolve(did);
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
 

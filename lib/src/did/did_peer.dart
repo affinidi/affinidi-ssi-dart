@@ -411,45 +411,12 @@ class DidPeer {
     return '${_didTypePrefixes[DidPeerType.peer2]}$keyStr$serviceStr';
   }
 
-  /// Creates a DID Document from a list of public keys and their purposes.
-  ///
-  /// This method generates a DID and then resolves it to a DID document.
-  ///
-  /// [verificationMethods] The list of all public keys in the document.
-  /// [relationships] A map defining which keys are used for which purpose.
-  /// [serviceEndpoints] - Optional list of service endpoints.
-  ///
-  /// Returns a [DidDocument].
-  ///
-  /// Throws an [SsiException] if no keys are provided.
-  static DidDocument generateDocument({
-    required List<PublicKey> verificationMethods,
-    Map<VerificationRelationship, List<int>>? relationships,
-    List<ServiceEndpoint>? serviceEndpoints,
-  }) {
-    if (verificationMethods.isEmpty) {
-      throw SsiException(
-        message: 'At least one key must be provided',
-        code: SsiExceptionType.invalidDidDocument.code,
-      );
-    }
-
-    // Generate the DID
-    final did = getDid(
-      verificationMethods: verificationMethods,
-      relationships: relationships,
-      serviceEndpoints: serviceEndpoints,
-    );
-
-    return resolve(did);
-  }
-
-  /// Builds a DID Document from a pre-defined state.
+  /// Generates a DID Document from a pre-defined state.
   ///
   /// This method is used when the verification method IDs are already known
   /// and should be preserved, which is the case for `did:peer:2` documents
   /// managed by a controller.
-  static DidDocument buildDocumentFromState({
+  static DidDocument generateDocument({
     required String did,
     required List<String> verificationMethodIds,
     required List<PublicKey> publicKeys,
