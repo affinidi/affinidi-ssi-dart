@@ -88,28 +88,24 @@ DidDocument _resolveDidPeer0(String did) {
       contextMultikey,
       did,
       keyPart,
-      'P256Key2021',
     );
   } else if (keyPart.startsWith('Q3s')) {
     return _buildMultikeyDoc(
       contextMultikey,
       did,
       keyPart,
-      'Secp256k1Key2021',
     );
   } else if (keyPart.startsWith('82')) {
     return _buildMultikeyDoc(
       contextMultikey,
       did,
       keyPart,
-      'P384Key2021',
     );
   } else if (keyPart.startsWith('2J9')) {
     return _buildMultikeyDoc(
       contextMultikey,
       did,
       keyPart,
-      'P521Key2021',
     );
   } else {
     throw SsiException(
@@ -193,24 +189,12 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
 
   for (final agreementKey in agreementKeys) {
     i++;
-    String type;
-    if (agreementKey.startsWith('z6LS')) {
-      type = 'X25519KeyAgreementKey2020';
-    } else if (agreementKey.startsWith('zDn')) {
-      type = 'P256Key2021';
-    } else if (agreementKey.startsWith('z82')) {
-      type = 'P384Key2021';
-    } else if (agreementKey.startsWith('z2J9')) {
-      type = 'P521Key2021';
-    } else {
-      type = 'Ed25519VerificationKey2020';
-    }
 
     var kid = '#key-$i';
     final verification = VerificationMethodMultibase(
       id: kid,
       controller: did,
-      type: type,
+      type: 'Multikey',
       publicKeyMultibase: agreementKey,
     );
 
@@ -220,26 +204,12 @@ DidDocument _buildMultiKeysDoc(String did, List<String> agreementKeys,
 
   for (final authenticationKey in authenticationKeys) {
     i++;
-    String type;
-    if (authenticationKey.startsWith('z6Mk')) {
-      type = 'Ed25519VerificationKey2020';
-    } else if (authenticationKey.startsWith('zQ3s')) {
-      type = 'Secp256k1Key2021';
-    } else if (authenticationKey.startsWith('zDn')) {
-      type = 'P256Key2021';
-    } else if (authenticationKey.startsWith('z82')) {
-      type = 'P384Key2021';
-    } else if (authenticationKey.startsWith('z2J9')) {
-      type = 'P521Key2021';
-    } else {
-      type = 'Ed25519VerificationKey2020';
-    }
 
     var kid = '#key-$i';
     final verification = VerificationMethodMultibase(
       id: kid,
       controller: did,
-      type: type,
+      type: 'Multikey',
       publicKeyMultibase: authenticationKey,
     );
 
@@ -326,13 +296,12 @@ DidDocument _buildMultikeyDoc(
   List<String> context,
   String id,
   String keyPart,
-  String keyType,
 ) {
-  final verificationKeyId = '$id#$keyPart';
+  final verificationKeyId = '$id#z$keyPart';
   final verificationMethod = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
-    type: keyType,
+    type: 'Multikey',
     publicKeyMultibase: 'z$keyPart',
   );
 
