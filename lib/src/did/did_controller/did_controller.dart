@@ -159,7 +159,6 @@ abstract class DidController {
   ///
   /// Returns an [AddVerificationMethodResult] containing the primary
   /// verification method ID and a map of assigned relationships.
-  @nonVirtual
   Future<AddVerificationMethodResult> addVerificationMethod(
     String walletKeyId, {
     Set<VerificationRelationship>? relationships,
