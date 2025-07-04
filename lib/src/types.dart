@@ -63,16 +63,6 @@ enum SignatureScheme {
     hashingAlgorithm: HashingAlgorithm.sha512,
   ),
 
-  /// EdDSA with Ed25519 curve and alg EdDSA.
-  @Deprecated(
-      'Use ed25519 instead. This entry is maintained for backward compatibility with systems using EdDSA algorithm identifier.')
-  eddsa_ed25519(
-    alg: 'EdDSA',
-    crv: 'Ed25519',
-    keyType: KeyType.ed25519,
-    hashingAlgorithm: HashingAlgorithm.sha512,
-  ),
-
   /// RSA with PKCS1 and SHA-256 hashing.
   rsa_pkcs1_sha256(
     alg: 'RS256',
@@ -103,14 +93,16 @@ enum SignatureScheme {
 
   /// Creates a [SignatureScheme] from a string value.
   ///
-  /// [value] The string value representing the signature scheme.
-  factory SignatureScheme.fromString(String value) =>
-      SignatureScheme.values.firstWhere(
-        (sigSch) =>
-            sigSch.name.toLowerCase() == value.toLowerCase() ||
-            sigSch.alg?.toLowerCase() == value.toLowerCase(),
-        orElse: () => throw ArgumentError('Invalid algorithm: $value'),
-      );
+  /// [alg] The string value representing the signature scheme.
+  factory SignatureScheme.fromAlg(String alg) {
+    if (alg == 'Ed25519' || alg == 'EdDSA') {
+      return SignatureScheme.ed25519;
+    }
+    return SignatureScheme.values.firstWhere(
+      (sigSch) => sigSch.alg?.toLowerCase() == alg.toLowerCase(),
+      orElse: () => throw ArgumentError('Invalid algorithm: $alg'),
+    );
+  }
 }
 
 /// Maps W3C-standard cryptosuite identifiers to their corresponding SignatureScheme.
