@@ -62,7 +62,6 @@ enum SignatureScheme {
   ecdsa_p384_sha384(
     alg: 'ES384',
     crv: 'P-384',
-    w3c: 'EcdsaSecp384r1Signature2019',
     keyType: KeyType.p384,
     hashingAlgorithm: HashingAlgorithm.sha384,
   ),
@@ -71,7 +70,6 @@ enum SignatureScheme {
   ecdsa_p521_sha512(
     alg: 'ES512',
     crv: 'P-521',
-    w3c: 'EcdsaSecp521r1Signature2019',
     keyType: KeyType.p521,
     hashingAlgorithm: HashingAlgorithm.sha512,
   ),

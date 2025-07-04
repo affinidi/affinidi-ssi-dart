@@ -17,7 +17,7 @@ import 'public_key.dart';
 
 /// A key pair implementation that uses the P-521 elliptic curve
 /// for cryptographic operations.
-class P521KeyPair implements KeyPair {
+class P521KeyPair extends KeyPair {
   static final ec.Curve _p521 = ec.getP521();
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
@@ -62,18 +62,8 @@ class P521KeyPair implements KeyPair {
   }
 
   @override
-  Future<Uint8List> sign(
-    Uint8List data, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.ecdsa_p521_sha512;
-    if (signatureScheme != SignatureScheme.ecdsa_p521_sha512) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Currently only ecdsa_p521_sha512 is supported with p521',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
+  Future<Uint8List> internalSign(
+      Uint8List data, SignatureScheme signatureScheme) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -83,19 +73,8 @@ class P521KeyPair implements KeyPair {
   }
 
   @override
-  Future<bool> verify(
-    Uint8List data,
-    Uint8List signature, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.ecdsa_p521_sha512;
-    if (signatureScheme != SignatureScheme.ecdsa_p521_sha512) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Currently only ecdsa_p521_sha512 is supported with p521',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
+  Future<bool> internalVerify(Uint8List data, Uint8List signature,
+      SignatureScheme signatureScheme) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -107,6 +86,10 @@ class P521KeyPair implements KeyPair {
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [];
+
+  @override
+  SignatureScheme get defaultSignatureScheme =>
+      SignatureScheme.ecdsa_p521_sha512;
 
   @override
   Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {

@@ -7,8 +7,6 @@ import 'package:elliptic/elliptic.dart' as ec;
 import 'package:pointycastle/api.dart' as pc;
 
 import '../digest_utils.dart';
-import '../exceptions/ssi_exception.dart';
-import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../utility.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
@@ -17,7 +15,9 @@ import 'public_key.dart';
 
 /// A key pair implementation that uses the P-384 elliptic curve
 /// for cryptographic operations.
-class P384KeyPair implements KeyPair {
+class P384KeyPair extends KeyPair {
+  /// The expected length of the private key in bytes. For P-384, it is 48 bytes.
+  static const int expectedLength = 48;
   static final ec.Curve _p384 = ec.getP384();
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
@@ -62,18 +62,8 @@ class P384KeyPair implements KeyPair {
   }
 
   @override
-  Future<Uint8List> sign(
-    Uint8List data, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.ecdsa_p384_sha384;
-    if (signatureScheme != SignatureScheme.ecdsa_p384_sha384) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Currently only ecdsa_p384_sha384 is supported with p384',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
+  Future<Uint8List> internalSign(
+      Uint8List data, SignatureScheme signatureScheme) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -83,19 +73,8 @@ class P384KeyPair implements KeyPair {
   }
 
   @override
-  Future<bool> verify(
-    Uint8List data,
-    Uint8List signature, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.ecdsa_p384_sha384;
-    if (signatureScheme != SignatureScheme.ecdsa_p384_sha384) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Currently only ecdsa_p384_sha384 is supported with p384',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
+  Future<bool> internalVerify(Uint8List data, Uint8List signature,
+      SignatureScheme signatureScheme) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -148,6 +127,10 @@ class P384KeyPair implements KeyPair {
   List<SignatureScheme> get supportedSignatureSchemes => [];
 
   @override
+  SignatureScheme get defaultSignatureScheme =>
+      SignatureScheme.ecdsa_p384_sha384;
+
+  @override
   Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
     return ecdh_utils.encryptData(
@@ -176,7 +159,4 @@ class P384KeyPair implements KeyPair {
     final secret = computeSecret(_privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
   }
-
-  /// The expected length of the private key in bytes. For P-384, it is 48 bytes.
-  static const int expectedLength = 48;
 }
