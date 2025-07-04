@@ -6,8 +6,6 @@ import 'package:elliptic/ecdh.dart';
 import 'package:elliptic/elliptic.dart' as ec;
 
 import '../digest_utils.dart';
-import '../exceptions/ssi_exception.dart';
-import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../utility.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
@@ -18,7 +16,7 @@ import 'public_key.dart';
 ///
 /// This key pair supports signing and verifying data using secp256k1.
 /// It does not support any other signature schemes.
-class Secp256k1KeyPair implements KeyPair {
+class Secp256k1KeyPair extends KeyPair {
   /// The BIP32 node containing the key material.
   final BIP32 _node;
   final ec.Curve _secp256k1 = ec.getSecp256k1();
@@ -39,19 +37,8 @@ class Secp256k1KeyPair implements KeyPair {
   PublicKey get publicKey => PublicKey(id, _node.publicKey, KeyType.secp256k1);
 
   @override
-  Future<Uint8List> sign(
-    Uint8List data, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.ecdsa_secp256k1_sha256;
-    if (signatureScheme != SignatureScheme.ecdsa_secp256k1_sha256) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only ecdsa_secp256k1_sha256 is supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
-
+  Future<Uint8List> internalSign(
+      Uint8List data, SignatureScheme signatureScheme) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -60,30 +47,14 @@ class Secp256k1KeyPair implements KeyPair {
   }
 
   @override
-  Future<bool> verify(
-    Uint8List data,
-    Uint8List signature, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.ecdsa_secp256k1_sha256;
-    if (signatureScheme != SignatureScheme.ecdsa_secp256k1_sha256) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only ecdsa_secp256k1_sha256 is supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
-
+  Future<bool> internalVerify(Uint8List data, Uint8List signature,
+      SignatureScheme signatureScheme) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
     return _node.verify(digest, signature);
   }
-
-  @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      [SignatureScheme.ecdsa_secp256k1_sha256];
 
   @override
   SignatureScheme get defaultSignatureScheme =>
