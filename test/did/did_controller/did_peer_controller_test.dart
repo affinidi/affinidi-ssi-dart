@@ -17,6 +17,7 @@ void main() {
         store: store,
         wallet: wallet,
       );
+      await controller.init();
     });
 
     group('addVerificationMethod', () {
@@ -413,6 +414,99 @@ void main() {
         expect(document.id, startsWith('did:peer:2'));
         expect(document.authentication.length, 1);
       });
+
+      test('should create separate verification methods for each purpose',
+          () async {
+        // Arrange
+        final key = await wallet.generateKey(
+            keyId: 'multi-purpose-key', keyType: KeyType.p256);
+
+        // Act
+        final result =
+            await controller.addVerificationMethod(key.id, relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.assertionMethod,
+        });
+
+        // Assert
+        final authVmId =
+            result.relationships[VerificationRelationship.authentication];
+        final assertVmId =
+            result.relationships[VerificationRelationship.assertionMethod];
+
+        expect(authVmId, isNotNull);
+        expect(assertVmId, isNotNull);
+        expect(authVmId, isNot(equals(assertVmId)),
+            reason: 'Each purpose should have a unique verification method ID');
+
+        final storeAuth = await store.authentication;
+        final storeAssert = await store.assertionMethod;
+
+        expect(storeAuth, [authVmId]);
+        expect(storeAssert, [assertVmId]);
+
+        final allVmIds = await store.verificationMethodIds;
+        expect(allVmIds, hasLength(2));
+        expect(allVmIds, containsAll([authVmId, assertVmId]));
+
+        final doc = await controller.getDidDocument();
+        expect(doc.authentication.first.id, authVmId);
+        expect(doc.assertionMethod.first.id, assertVmId);
+        expect(doc.verificationMethod, hasLength(2));
+      });
+
+      test(
+          'should maintain verification method order across controller instances',
+          () async {
+        // Arrange: First controller instance
+        final key1 = await wallet.generateKey(
+            keyId: 'order-key-1', keyType: KeyType.ed25519);
+        final key2 = await wallet.generateKey(
+            keyId: 'order-key-2', keyType: KeyType.p256);
+
+        // Act: Add keys in a specific order
+        final res1 =
+            await controller.addVerificationMethod(key1.id, relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.keyAgreement,
+        });
+        final res2 = await controller.addVerificationMethod(key2.id,
+            relationships: {VerificationRelationship.authentication});
+
+        final authVmId1 =
+            res1.relationships[VerificationRelationship.authentication]!;
+        final kaVmId1 =
+            res1.relationships[VerificationRelationship.keyAgreement]!;
+        final authVmId2 =
+            res2.relationships[VerificationRelationship.authentication]!;
+
+        // Assert: Check the state of the first controller
+        final doc1 = await controller.getDidDocument();
+        expect(doc1.id, startsWith('did:peer:2'));
+        expect(doc1.verificationMethod, hasLength(3));
+        expect(doc1.verificationMethod.map((vm) => vm.id).toList(),
+            [authVmId1, kaVmId1, authVmId2]);
+        expect(doc1.authentication.map((ref) => ref.id).toList(),
+            [authVmId1, authVmId2]);
+        expect(doc1.keyAgreement.map((ref) => ref.id).toList(), [kaVmId1]);
+
+        // Compare resolved doc with originally created doc
+        final resolvedDoc1 = DidPeer.resolve(doc1.id);
+        expect(resolvedDoc1.toJson(), doc1.toJson());
+
+        // Arrange: Second controller instance with the same store
+        final controller2 = DidPeerController(store: store, wallet: wallet);
+        await controller2.init();
+
+        // Act: Get document from the second controller
+        final doc2 = await controller2.getDidDocument();
+
+        // Assert: Ensure the second controller produces the identical document
+        expect(doc2.id, doc1.id,
+            reason: 'DIDs from both controllers should match');
+        expect(doc2.toJson(), doc1.toJson(),
+            reason: 'DID documents from both controllers should match');
+      });
     });
 
     group('DID signer integration', () {
@@ -520,30 +614,20 @@ void main() {
         expect(didDocument.id, startsWith('did:peer:0'));
 
         // Verify verification method
-        expect(didDocument.verificationMethod, hasLength(1));
-        expect(didDocument.verificationMethod[0].id, didDocument.id);
-        expect(didDocument.verificationMethod[0].type, 'Multikey');
+        expect(didDocument.verificationMethod, hasLength(2));
+        final authVmId = didDocument.authentication.first.id;
+        expect(authVmId, '${didDocument.id}#${didDocument.id.substring(10)}');
 
         // Verify verification relationships from generator
-        expect(didDocument.authentication.map((e) => e.id), [didDocument.id]);
-        expect(didDocument.assertionMethod.map((e) => e.id), [didDocument.id]);
-        expect(didDocument.capabilityInvocation.map((e) => e.id),
-            [didDocument.id]);
-        expect(didDocument.capabilityDelegation.map((e) => e.id),
-            [didDocument.id]);
-        expect(didDocument.keyAgreement, isEmpty);
+        expect(didDocument.authentication, hasLength(1));
+        expect(didDocument.assertionMethod, hasLength(1));
+        expect(didDocument.capabilityInvocation, hasLength(1));
+        expect(didDocument.capabilityDelegation, hasLength(1));
+        expect(didDocument.keyAgreement, hasLength(1));
 
         // Verify resolution
         final resolvedDoc = DidPeer.resolve(didDocument.id);
-
-        // The resolved document for did:peer:0 will have an additional keyAgreement
-        // derived from the authentication key.
-        expect(resolvedDoc.id, didDocument.id);
-        final authVmId = resolvedDoc.authentication.first.id;
-        expect(authVmId, '${didDocument.id}#${didDocument.id.substring(10)}');
-        expect(resolvedDoc.keyAgreement, isNotNull);
-        expect(resolvedDoc.keyAgreement, hasLength(1));
-        expect(resolvedDoc.verificationMethod, hasLength(2));
+        expect(resolvedDoc.toJson(), didDocument.toJson());
       });
 
       test('should generate did:peer:2 for multiple keys', () async {
@@ -622,20 +706,16 @@ void main() {
         // Assert on generated document
         expect(didDocument.id, startsWith('did:peer:0'));
         expect(didDocument.verificationMethod, hasLength(1));
-        expect(didDocument.verificationMethod[0].id, didDocument.id);
         expect(didDocument.verificationMethod[0].type, 'Multikey');
-        expect(didDocument.authentication.map((e) => e.id), [didDocument.id]);
+        final keyPart = didDocument.id.substring(11);
+        final expectedVmId = '${didDocument.id}#z$keyPart';
+        expect(didDocument.verificationMethod[0].id, expectedVmId);
+        expect(didDocument.authentication.map((e) => e.id).first, expectedVmId);
+        expect(didDocument.keyAgreement, isEmpty);
 
         // Verify resolution and content
         final resolvedDoc = DidPeer.resolve(didDocument.id);
-        expect(resolvedDoc.id, didDocument.id);
-        expect(resolvedDoc.verificationMethod, hasLength(1));
-        expect(resolvedDoc.verificationMethod[0].type, 'Multikey');
-        final keyPart = didDocument.id.substring(11);
-        final expectedVmId = '${didDocument.id}#z$keyPart';
-        expect(resolvedDoc.verificationMethod[0].id, expectedVmId);
-        expect(resolvedDoc.authentication.map((e) => e.id).first, expectedVmId);
-        expect(resolvedDoc.keyAgreement, isEmpty);
+        expect(resolvedDoc.toJson(), didDocument.toJson());
       });
     });
   });

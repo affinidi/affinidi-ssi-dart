@@ -375,109 +375,86 @@ class DidPeer {
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
 
-    String buildKeyString(List<int> keyIndexes, Numalgo2Prefix prefix) {
-      if (keyIndexes.isEmpty) return '';
-      final separator = '.${prefix.value}';
-      return separator +
-          keyIndexes
-              .map((i) => toMultiBase(toMultikey(
-                  verificationMethods[i].bytes, verificationMethods[i].type)))
-              .join(separator);
+    final indexToPurpose = <int, VerificationRelationship>{};
+    for (final entry in rels.entries) {
+      for (final index in entry.value) {
+        indexToPurpose[index] = entry.key;
+      }
     }
 
-    final authKeysStr = buildKeyString(authIdx, Numalgo2Prefix.authentication);
-    final agreementKeysStr = buildKeyString(kaIdx, Numalgo2Prefix.keyAgreement);
-    final assertionKeysStr = buildKeyString(amIdx, Numalgo2Prefix.assertion);
-    final capabilityInvocationKeysStr =
-        buildKeyString(ciIdx, Numalgo2Prefix.capabilityInvocation);
-    final capabilityDelegationKeysStr =
-        buildKeyString(cdIdx, Numalgo2Prefix.capabilityDelegation);
+    Numalgo2Prefix getPrefixForRelationship(VerificationRelationship rel) {
+      return switch (rel) {
+        VerificationRelationship.authentication =>
+          Numalgo2Prefix.authentication,
+        VerificationRelationship.keyAgreement => Numalgo2Prefix.keyAgreement,
+        VerificationRelationship.assertionMethod => Numalgo2Prefix.assertion,
+        VerificationRelationship.capabilityInvocation =>
+          Numalgo2Prefix.capabilityInvocation,
+        VerificationRelationship.capabilityDelegation =>
+          Numalgo2Prefix.capabilityDelegation,
+      };
+    }
+
+    var keyStr = '';
+    for (var i = 0; i < verificationMethods.length; i++) {
+      final purpose = indexToPurpose[i];
+      if (purpose != null) {
+        final prefix = getPrefixForRelationship(purpose);
+        final keyMultibase = toMultiBase(toMultikey(
+            verificationMethods[i].bytes, verificationMethods[i].type));
+        keyStr += '.${prefix.value}$keyMultibase';
+      }
+    }
 
     final serviceStr = _buildServiceEncoded(serviceEndpoints);
 
-    return '${_didTypePrefixes[DidPeerType.peer2]}'
-        '$authKeysStr'
-        '$agreementKeysStr'
-        '$capabilityInvocationKeysStr'
-        '$capabilityDelegationKeysStr'
-        '$assertionKeysStr'
-        '$serviceStr';
+    return '${_didTypePrefixes[DidPeerType.peer2]}$keyStr$serviceStr';
   }
 
-  /// Creates a DID Document from a list of public keys and their purposes.
+  /// Generates a DID Document from a pre-defined state.
   ///
-  /// [verificationMethods] The list of all public keys in the document.
-  /// [relationships] A map defining which keys are used for which purpose.
-  /// [serviceEndpoints] - Optional list of service endpoints.
-  ///
-  /// Returns a [DidDocument].
-  ///
-  /// Throws an [SsiException] if no keys are provided.
+  /// This method is used when the verification method IDs are already known
+  /// and should be preserved, which is the case for `did:peer:2` documents
+  /// managed by a controller.
   static DidDocument generateDocument({
-    required List<PublicKey> verificationMethods,
-    Map<VerificationRelationship, List<int>>? relationships,
-    List<ServiceEndpoint>? serviceEndpoints,
+    required String did,
+    required List<String> verificationMethodIds,
+    required List<PublicKey> publicKeys,
+    required Map<VerificationRelationship, List<String>> relationships,
+    required List<ServiceEndpoint> serviceEndpoints,
   }) {
-    if (verificationMethods.isEmpty) {
-      throw SsiException(
-        message: 'At least one key must be provided',
-        code: SsiExceptionType.invalidDidDocument.code,
-      );
-    }
+    final context = [
+      'https://www.w3.org/ns/did/v1',
+      'https://w3id.org/security/multikey/v1'
+    ];
 
-    // Generate the DID
-    final did = getDid(
-      verificationMethods: verificationMethods,
-      relationships: relationships,
-      serviceEndpoints: serviceEndpoints,
-    );
-
-    final rels = relationships ?? {};
-    final authIdx = rels[VerificationRelationship.authentication] ?? [];
-    final kaIdx = rels[VerificationRelationship.keyAgreement] ?? [];
-    final amIdx = rels[VerificationRelationship.assertionMethod] ?? [];
-    final ciIdx = rels[VerificationRelationship.capabilityInvocation] ?? [];
-    final cdIdx = rels[VerificationRelationship.capabilityDelegation] ?? [];
-
-    // did:peer:0 is for a single key used only for authentication
-    final isDid0 = verificationMethods.length == 1 &&
-        authIdx.length == 1 &&
-        authIdx.first == 0 &&
-        kaIdx.isEmpty &&
-        amIdx.isEmpty &&
-        ciIdx.isEmpty &&
-        cdIdx.isEmpty &&
-        (serviceEndpoints == null || serviceEndpoints.isEmpty);
-
-    if (isDid0) {
-      final key = verificationMethods[0];
-      final verificationMethod = VerificationMethodMultibase(
-        id: did,
+    final vms = <EmbeddedVerificationMethod>[];
+    for (var i = 0; i < verificationMethodIds.length; i++) {
+      final vmId = verificationMethodIds[i];
+      final pubKey = publicKeys[i];
+      vms.add(VerificationMethodMultibase(
+        id: vmId,
         controller: did,
         type: 'Multikey',
-        publicKeyMultibase: toMultiBase(
-          toMultikey(key.bytes, key.type),
-        ),
-      );
-
-      final context = [
-        'https://www.w3.org/ns/did/v1',
-        'https://w3id.org/security/multikey/v1'
-      ];
-
-      return DidDocument.create(
-        context: Context.fromJson(context),
-        id: did,
-        verificationMethod: [verificationMethod],
-        authentication: [did],
-        assertionMethod: [did],
-        capabilityInvocation: [did],
-        capabilityDelegation: [did],
-      );
+        publicKeyMultibase: toMultiBase(toMultikey(pubKey.bytes, pubKey.type)),
+      ));
     }
 
-    // For did:peer:2, build document with proper key separation
-    return _resolveDidPeer2(did);
+    return DidDocument.create(
+      context: Context.fromJson(context),
+      id: did,
+      verificationMethod: vms,
+      authentication:
+          relationships[VerificationRelationship.authentication] ?? [],
+      keyAgreement: relationships[VerificationRelationship.keyAgreement] ?? [],
+      assertionMethod:
+          relationships[VerificationRelationship.assertionMethod] ?? [],
+      capabilityInvocation:
+          relationships[VerificationRelationship.capabilityInvocation] ?? [],
+      capabilityDelegation:
+          relationships[VerificationRelationship.capabilityDelegation] ?? [],
+      service: serviceEndpoints,
+    );
   }
 
   /// Resolves a peer DID to a DID document.

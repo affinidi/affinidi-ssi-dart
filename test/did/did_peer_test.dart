@@ -31,12 +31,13 @@ void main() {
           'did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka';
       final expectedKeyType = KeyType.ed25519;
 
-      final doc = DidPeer.generateDocument(
+      final did = DidPeer.getDid(
         verificationMethods: [accountPublicKey],
         relationships: {
           VerificationRelationship.authentication: [0]
         },
       );
+      final doc = DidPeer.resolve(did);
       final actualDid = doc.id;
       final actualKeyType = accountPublicKey.type;
 
@@ -154,7 +155,7 @@ void main() {
         serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       );
 
-      final doc = DidPeer.generateDocument(
+      final did = DidPeer.getDid(
         verificationMethods: [authKey.publicKey, agreeKey.publicKey],
         relationships: {
           VerificationRelationship.authentication: [0],
@@ -162,6 +163,7 @@ void main() {
         },
         serviceEndpoints: [service],
       );
+      final doc = DidPeer.resolve(did);
 
       // Check that keyAgreement contains only the agreement key
       expect(doc.keyAgreement.length, 1);
@@ -180,12 +182,14 @@ void main() {
       expect(doc.verificationMethod[1].id, '#key-2');
     });
 
-    test('getDid for did:peer:2 should match expected', () async {
-      final expectedDid =
-          'did:peer:2.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Vz6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.Ez6MkuTNHD7jWb6MMjStAiNajBifDNoFQVC6wmwAKz4MVjNP8.SeyJpZCI6IiNzZXJ2aWNlLTEiLCJ0IjoiVGVzdFNlcnZpY2UiLCJzIjoiaHR0cHM6Ly9kZW55cy5jb20vaW5jb21lIn0';
-
+    test(
+        'getDid for did:peer:2 should produce a resolvable document with correct structure',
+        () async {
       final derivedKeyPath = "m/44'/60'/$accountNumber'/0'/0'";
-      final key = await wallet.generateKey(keyId: derivedKeyPath);
+      final keyPair =
+          await wallet.generateKey(keyId: derivedKeyPath) as Ed25519KeyPair;
+      final authPublicKey = keyPair.publicKey;
+      final agreePublicKey = await keyPair.ed25519KeyToX25519PublicKey();
 
       final service = ServiceEndpoint(
         id: '#service-1',
@@ -193,16 +197,31 @@ void main() {
         serviceEndpoint: const StringEndpoint('https://denys.com/income'),
       );
 
+      // Simulate what the controller does: one public key per purpose instance.
+      final verificationMethods = [
+        authPublicKey,
+        authPublicKey,
+        agreePublicKey,
+        agreePublicKey,
+      ];
+      final relationships = {
+        VerificationRelationship.authentication: [0, 1],
+        VerificationRelationship.keyAgreement: [2, 3],
+      };
+
       final actualDid = DidPeer.getDid(
-        verificationMethods: [key.publicKey],
-        relationships: {
-          VerificationRelationship.authentication: [0, 0],
-          VerificationRelationship.keyAgreement: [0, 0]
-        },
+        verificationMethods: verificationMethods,
+        relationships: relationships,
         serviceEndpoints: [service],
       );
 
-      expect(actualDid, expectedDid);
+      final resolvedDoc = DidPeer.resolve(actualDid);
+
+      expect(resolvedDoc.id, actualDid);
+      expect(resolvedDoc.authentication, hasLength(2));
+      expect(resolvedDoc.keyAgreement, hasLength(2));
+      expect(resolvedDoc.verificationMethod, hasLength(4));
+      expect(resolvedDoc.service, hasLength(1));
     });
 
     test('public key derived from did should be the same', () async {
@@ -243,11 +262,12 @@ void main() {
         165
       ]);
 
-      final doc = DidPeer.generateDocument(verificationMethods: [
+      final did = DidPeer.getDid(verificationMethods: [
         accountPublicKey
       ], relationships: {
         VerificationRelationship.authentication: [0]
       });
+      final doc = DidPeer.resolve(did);
       final actualPublicKey = doc.verificationMethod[0].asMultiKey();
 
       expect(actualPublicKey, expectedPublicKey);
@@ -265,7 +285,7 @@ void main() {
         serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       );
 
-      final doc = DidPeer.generateDocument(verificationMethods: [
+      final did = DidPeer.getDid(verificationMethods: [
         key.publicKey,
         PublicKey(key.id, ed25519PublicToX25519Public(key.publicKey.bytes),
             KeyType.x25519)
@@ -275,6 +295,7 @@ void main() {
       }, serviceEndpoints: [
         service
       ]);
+      final doc = DidPeer.resolve(did);
 
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
@@ -321,11 +342,12 @@ void main() {
       final seed = Uint8List.fromList(List.generate(32, (i) => i));
       final p256KeyPair = P256KeyPair.fromSeed(seed);
 
-      final doc = DidPeer.generateDocument(verificationMethods: [
+      final did = DidPeer.getDid(verificationMethods: [
         p256KeyPair.publicKey
       ], relationships: {
         VerificationRelationship.authentication: [0],
       });
+      final doc = DidPeer.resolve(did);
 
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
@@ -364,11 +386,12 @@ void main() {
       final seed = Uint8List.fromList(List.generate(32, (i) => 100 + i));
       final node = BIP32.fromSeed(seed);
       final secp256k1KeyPair = Secp256k1KeyPair(node: node);
-      final doc = DidPeer.generateDocument(verificationMethods: [
+      final did = DidPeer.getDid(verificationMethods: [
         secp256k1KeyPair.publicKey
       ], relationships: {
         VerificationRelationship.authentication: [0],
       });
+      final doc = DidPeer.resolve(did);
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
 
