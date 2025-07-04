@@ -12,7 +12,6 @@ import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../utility.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
-import './_key_pair_utils.dart';
 import 'key_pair.dart';
 import 'public_key.dart';
 
@@ -20,12 +19,6 @@ import 'public_key.dart';
 /// for cryptographic operations.
 class P521KeyPair implements KeyPair {
   static final ec.Curve _p521 = ec.getP521();
-
-  /// The expected length of the private key in bytes. For P-521, it is 66 bytes.
-  static final expectedLength = 66;
-
-  /// The maximum number of attempts to generate a valid private key.
-  static final maxAttempts = 10;
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
   @override
@@ -35,8 +28,7 @@ class P521KeyPair implements KeyPair {
 
   /// Generates a new P521 key pair.
   static (P521KeyPair, Uint8List) generate({String? id}) {
-    final privateKey = generateValidPrivateKey(_p521.generatePrivateKey,
-        maxAttempts: maxAttempts, expectedLength: expectedLength);
+    final privateKey = _p521.generatePrivateKey();
     final effectiveId = id ?? randomId();
     final instance = P521KeyPair._(privateKey, effectiveId);
     final privateKeyBytes = Uint8List.fromList(privateKey.bytes);
@@ -83,7 +75,7 @@ class P521KeyPair implements KeyPair {
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
     final digestSignature = ecdsa.signature(_privateKey, digest);
-    return Uint8List.fromList(digestSignature.toCompact());
+    return Uint8List.fromList(_toCompact521(digestSignature));
   }
 
   @override
@@ -104,7 +96,7 @@ class P521KeyPair implements KeyPair {
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
-    final signatureObj = ecdsa.Signature.fromCompact(signature);
+    final signatureObj = _fromCompact521(signature);
     var result = ecdsa.verify(_privateKey.publicKey, digest, signatureObj);
     return Future.value(result);
   }
@@ -140,5 +132,44 @@ class P521KeyPair implements KeyPair {
     final publicKeyObj = _p521.compressedHexToPublicKey(hex.encode(publicKey));
     final secret = computeSecret(_privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
+  }
+
+  List<int> _toCompact521(ecdsa.Signature signature) {
+    final rHex = signature.R
+        .toRadixString(16)
+        .padLeft(132, '0'); // 66 bytes = 132 hex chars
+    final sHex = signature.S
+        .toRadixString(16)
+        .padLeft(132, '0'); // 66 bytes = 132 hex chars
+
+    final result = <int>[];
+    for (int i = 0; i < rHex.length; i += 2) {
+      result.add(int.parse(rHex.substring(i, i + 2), radix: 16));
+    }
+    for (int i = 0; i < sHex.length; i += 2) {
+      result.add(int.parse(sHex.substring(i, i + 2), radix: 16));
+    }
+    return result;
+  }
+
+  /// Custom compact deserialization for P-521 signatures
+  /// P-521 requires 66 bytes for r and 66 bytes for s (total 132 bytes)
+  ecdsa.Signature _fromCompact521(Uint8List compactBytes) {
+    if (compactBytes.length != 132) {
+      throw ArgumentError(
+          'P-521 compact signature must be 132 bytes, got ${compactBytes.length}');
+    }
+
+    // Extract r (first 66 bytes)
+    final rBytes = compactBytes.sublist(0, 66);
+    final rHex = rBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    final r = BigInt.parse(rHex, radix: 16);
+
+    // Extract s (last 66 bytes)
+    final sBytes = compactBytes.sublist(66, 132);
+    final sHex = sBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    final s = BigInt.parse(sHex, radix: 16);
+
+    return ecdsa.Signature.fromRS(r, s);
   }
 }

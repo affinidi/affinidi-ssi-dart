@@ -12,7 +12,6 @@ import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../utility.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
-import './_key_pair_utils.dart';
 import 'key_pair.dart';
 import 'public_key.dart';
 
@@ -20,12 +19,6 @@ import 'public_key.dart';
 /// for cryptographic operations.
 class P384KeyPair implements KeyPair {
   static final ec.Curve _p384 = ec.getP384();
-
-  /// The expected length of the private key in bytes. For P-384, it is 48 bytes.
-  static final expectedLength = 48;
-
-  /// The maximum number of attempts to generate a valid private key.
-  static final maxAttempts = 10;
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
   @override
@@ -35,8 +28,7 @@ class P384KeyPair implements KeyPair {
 
   /// Generates a new P384 key pair.
   static (P384KeyPair, Uint8List) generate({String? id}) {
-    final privateKey = generateValidPrivateKey(_p384.generatePrivateKey,
-        maxAttempts: maxAttempts, expectedLength: expectedLength);
+    final privateKey = _p384.generatePrivateKey();
     final effectiveId = id ?? randomId();
     final instance = P384KeyPair._(privateKey, effectiveId);
     final privateKeyBytes = Uint8List.fromList(privateKey.bytes);
@@ -83,7 +75,7 @@ class P384KeyPair implements KeyPair {
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
     final digestSignature = ecdsa.signature(_privateKey, digest);
-    return Uint8List.fromList(digestSignature.toCompact());
+    return Uint8List.fromList(_toCompact384(digestSignature));
   }
 
   @override
@@ -104,9 +96,48 @@ class P384KeyPair implements KeyPair {
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
-    final signatureObj = ecdsa.Signature.fromCompact(signature);
+    final signatureObj = _fromCompact384(signature);
     var result = ecdsa.verify(_privateKey.publicKey, digest, signatureObj);
     return Future.value(result);
+  }
+
+  List<int> _toCompact384(ecdsa.Signature signature) {
+    final rHex = signature.R
+        .toRadixString(16)
+        .padLeft(96, '0'); // 48 bytes = 96 hex chars
+    final sHex = signature.S
+        .toRadixString(16)
+        .padLeft(96, '0'); // 48 bytes = 96 hex chars
+
+    final result = <int>[];
+    for (int i = 0; i < rHex.length; i += 2) {
+      result.add(int.parse(rHex.substring(i, i + 2), radix: 16));
+    }
+    for (int i = 0; i < sHex.length; i += 2) {
+      result.add(int.parse(sHex.substring(i, i + 2), radix: 16));
+    }
+    return result;
+  }
+
+  /// Custom compact deserialization for P-384 signatures
+  /// P-384 requires 48 bytes for r and 48 bytes for s (total 96 bytes)
+  ecdsa.Signature _fromCompact384(Uint8List compactBytes) {
+    if (compactBytes.length != 96) {
+      throw ArgumentError(
+          'P-384 compact signature must be 96 bytes, got \\${compactBytes.length}');
+    }
+
+    // Extract r (first 48 bytes)
+    final rBytes = compactBytes.sublist(0, 48);
+    final rHex = rBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    final r = BigInt.parse(rHex, radix: 16);
+
+    // Extract s (last 48 bytes)
+    final sBytes = compactBytes.sublist(48, 96);
+    final sHex = sBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    final s = BigInt.parse(sHex, radix: 16);
+
+    return ecdsa.Signature.fromRS(r, s);
   }
 
   @override
