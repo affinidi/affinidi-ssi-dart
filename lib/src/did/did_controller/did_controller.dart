@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
+
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../key_pair/key_pair.dart';
@@ -87,6 +89,16 @@ abstract class DidController {
     required this.wallet,
   });
 
+  /// Initializes the controller by loading data from the store.
+  Future<void> init() async {
+    _cacheAuthentication.addAll(await store.authentication);
+    _cacheKeyAgreement.addAll(await store.keyAgreement);
+    _cacheCapabilityInvocation.addAll(await store.capabilityInvocation);
+    _cacheCapabilityDelegation.addAll(await store.capabilityDelegation);
+    _cacheAssertionMethod.addAll(await store.assertionMethod);
+    _cacheService.addAll(await store.serviceEndpoints);
+  }
+
   /// Gets the current DID document by creating or updating it from the current state.
   ///
   /// This method ensures that the returned document reflects the latest state
@@ -147,6 +159,7 @@ abstract class DidController {
   ///
   /// Returns an [AddVerificationMethodResult] containing the primary
   /// verification method ID and a map of assigned relationships.
+  @nonVirtual
   Future<AddVerificationMethodResult> addVerificationMethod(
     String walletKeyId, {
     Set<VerificationRelationship>? relationships,
@@ -155,21 +168,47 @@ abstract class DidController {
     final effectiveRelationships =
         relationships ?? _getDefaultRelationships(publicKey.type);
 
+    return internalAddVerificationMethod(
+      walletKeyId,
+      publicKey: publicKey,
+      relationships: effectiveRelationships,
+    );
+  }
+
+  /// Adds a key from the wallet to the DID, creating verification methods
+  /// and assigning them to verification relationships.
+  ///
+  /// This is the internal method that subclasses should override to implement
+  /// method-specific logic. The public [addVerificationMethod] handles
+  /// default relationship logic and then calls this method.
+  ///
+  /// [walletKeyId] - The ID of the key in the wallet.
+  /// [publicKey] - The public key object.
+  /// [relationships] - The relationships this key should have. This set is
+  /// guaranteed to be non-null.
+  ///
+  /// Returns an [AddVerificationMethodResult].
+  @protected
+  Future<AddVerificationMethodResult> internalAddVerificationMethod(
+    String walletKeyId, {
+    required PublicKey publicKey,
+    required Set<VerificationRelationship> relationships,
+  }) async {
     final resultMap = <VerificationRelationship, String>{};
     String? verificationMethodId;
 
     // If we only need key agreement for an ed25519 key, we don't create a
     // primary VM for the ed25519 key itself, only for the derived x25519 key.
-    final onlyKeyAgreementForEd25519 = effectiveRelationships.length == 1 &&
-        effectiveRelationships.first == VerificationRelationship.keyAgreement &&
+    final onlyKeyAgreementForEd25519 = relationships.length == 1 &&
+        relationships.first == VerificationRelationship.keyAgreement &&
         publicKey.type == KeyType.ed25519;
 
     if (!onlyKeyAgreementForEd25519) {
       verificationMethodId =
-          await _addVerificationMethodFromPublicKey(publicKey);
+          await addVerificationMethodFromPublicKey(publicKey);
     }
 
-    for (final relationship in effectiveRelationships) {
+    for (final relationship in relationships) {
       switch (relationship) {
         case VerificationRelationship.keyAgreement:
           if (publicKey.type == KeyType.ed25519) {
@@ -177,7 +216,7 @@ abstract class DidController {
                 ed25519PublicToX25519Public(publicKey.bytes);
             final x25519PublicKey =
                 PublicKey(walletKeyId, x25519PublicKeyBytes, KeyType.x25519);
-            final keyAgreementId = await _addVerificationMethodFromPublicKey(
+            final keyAgreementId = await addVerificationMethodFromPublicKey(
               x25519PublicKey,
               primaryPublicKey: publicKey,
             );
@@ -209,27 +248,30 @@ abstract class DidController {
     }
 
     // If relationships was an empty set, a VM should have been created.
-    // This should not be reachable if effectiveRelationships is not empty.
-    // But as a safeguard for empty relationships:
-    verificationMethodId ??=
-        await _addVerificationMethodFromPublicKey(publicKey);
+    if (relationships.isEmpty) {
+      verificationMethodId ??=
+          await addVerificationMethodFromPublicKey(publicKey);
+    }
 
     return AddVerificationMethodResult(
-      verificationMethodId: verificationMethodId,
+      verificationMethodId: verificationMethodId!,
       relationships: resultMap,
     );
   }
 
-  Future<String> _addVerificationMethodFromPublicKey(
+  /// Adds a verification method to the store and cache.
+  @protected
+  Future<String> addVerificationMethodFromPublicKey(
     PublicKey publicKey, {
     PublicKey? primaryPublicKey,
+    String? verificationMethodId,
   }) async {
-    final verificationMethodId = await buildVerificationMethodId(publicKey,
-        primaryPublicKey: primaryPublicKey);
-    await store.setMapping(verificationMethodId, publicKey.id);
-    _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
-        publicKey.id;
-    return verificationMethodId;
+    final vmId = verificationMethodId ??
+        await buildVerificationMethodId(publicKey,
+            primaryPublicKey: primaryPublicKey);
+    await store.setMapping(vmId, publicKey.id);
+    _cacheVerificationMethodIdToWalletKeyId[vmId] = publicKey.id;
+    return vmId;
   }
 
   Future<void> _addRelationship(
