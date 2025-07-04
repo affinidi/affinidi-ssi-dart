@@ -423,5 +423,64 @@ void main() {
       expect(resolvedDidDocument.capabilityInvocation[0].id,
           verificationMethods[0].id);
     });
+
+    test('did:peer:2 with abbreviated service endpoint can be resolved',
+        () async {
+      const did =
+          'did:peer:2.Vz6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka.SeyJpZCI6IiNkaWRjb21tLTEiLCJ0IjoiZG0iLCJzIjp7InVyaSI6Imh0dHA6Ly9leGFtcGxlLmNvbS9kaWRjb21tIiwiYSI6WyJkaWRjb21tL3YyIl0sInIiOlsiZGlkOmV4YW1wbGU6MTIzNDU2Nzg5YWJjZGVmZ2hpI2tleS0xIl19fQ';
+
+      final resolvedDoc = DidPeer.resolve(did);
+      expect(resolvedDoc.service.length, 1);
+      final resolvedService = resolvedDoc.service.first;
+
+      final serviceEndpointData = {
+        'uri': 'http://example.com/didcomm',
+        'accept': ['didcomm/v2'],
+        'routingKeys': ['did:example:123456789abcdefghi#key-1'],
+      };
+
+      expect(resolvedService.id, '#didcomm-1');
+      expect(resolvedService.type, 'DIDCommMessaging');
+      expect(
+        (resolvedService.serviceEndpoint as MapEndpoint).data,
+        equals(serviceEndpointData),
+      );
+    });
+
+    test('did:peer:2 service without abbreviations is handled correctly',
+        () async {
+      final authKey = await wallet.generateKey(keyId: "m/44'/60'/0'/0'/0'");
+
+      final serviceEndpointData = {
+        'uri': 'https://example.com/endpoint',
+        'other_prop': 'value',
+      };
+
+      final service = ServiceEndpoint(
+        id: '#other-service',
+        type: 'AnotherServiceType',
+        serviceEndpoint: MapEndpoint(serviceEndpointData),
+      );
+
+      final did = DidPeer.getDid(
+        verificationMethods: [authKey.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+        },
+        serviceEndpoints: [service],
+      );
+
+      // Resolve and check
+      final resolvedDoc = DidPeer.resolve(did);
+      expect(resolvedDoc.service.length, 1);
+      final resolvedService = resolvedDoc.service.first;
+
+      expect(resolvedService.id, '#other-service');
+      expect(resolvedService.type, 'AnotherServiceType');
+      expect(
+        (resolvedService.serviceEndpoint as MapEndpoint).data,
+        equals(serviceEndpointData),
+      );
+    });
   });
 }
