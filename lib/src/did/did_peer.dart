@@ -151,7 +151,6 @@ DidDocument _resolveDidPeer2(String did) {
   final elements = keysPart.split('.');
   var keyIndex = 0;
   var unnamedServiceIndex = 0;
-  final seenKeys = <String, String>{}; // multibase -> kid
 
   for (final element in elements) {
     if (element.isEmpty) continue;
@@ -188,21 +187,15 @@ DidDocument _resolveDidPeer2(String did) {
       case 'A':
       case 'I':
       case 'D':
-        final String kid;
-        if (seenKeys.containsKey(value)) {
-          kid = seenKeys[value]!;
-        } else {
-          keyIndex++;
-          kid = '#key-$keyIndex';
-          seenKeys[value] = kid;
-          final verification = VerificationMethodMultibase(
-            id: kid,
-            controller: did,
-            type: 'Multikey',
-            publicKeyMultibase: value,
-          );
-          verificationMethods.add(verification);
-        }
+        keyIndex++;
+        final kid = '#key-$keyIndex';
+        final verification = VerificationMethodMultibase(
+          id: kid,
+          controller: did,
+          type: 'Multikey',
+          publicKeyMultibase: value,
+        );
+        verificationMethods.add(verification);
 
         if (prefix == 'V') authentication.add(kid);
         if (prefix == 'E') keyAgreement.add(kid);

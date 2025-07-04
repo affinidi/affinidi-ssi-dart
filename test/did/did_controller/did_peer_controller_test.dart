@@ -617,7 +617,6 @@ void main() {
         // Act
         final didDocument = await controller.getDidDocument();
         expect(isPeerDID(didDocument.id), isTrue);
-        print(didDocument);
 
         // Assert on generated document
         expect(didDocument.id, startsWith('did:peer:0'));
@@ -628,7 +627,6 @@ void main() {
 
         // Verify resolution and content
         final resolvedDoc = DidPeer.resolve(didDocument.id);
-        print(resolvedDoc);
         expect(resolvedDoc.id, didDocument.id);
         expect(resolvedDoc.verificationMethod, hasLength(1));
         expect(resolvedDoc.verificationMethod[0].type, 'Secp256k1Key2021');
