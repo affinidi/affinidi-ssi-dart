@@ -75,60 +75,40 @@ DidDocument _resolveDidPeer0(String did) {
     );
   }
 
-  final contextEdward = [
+  const multikeyContext = [
     'https://www.w3.org/ns/did/v1',
-    'https://w3id.org/security/suites/ed25519-2020/v1'
-  ];
-  const contextEdX = [
-    'https://www.w3.org/ns/did/v1',
-    'https://w3id.org/security/suites/x25519-2020/v1'
-  ];
-
-  const contextMultikey = [
-    'https://www.w3.org/ns/did/v1',
-    'https://w3id.org/security/suites/multikey-2021/v1',
+    'https://w3id.org/security/multikey/v1'
   ];
 
   var keyPart = did.substring(11);
 
+  // ed25519
   if (keyPart.startsWith('6Mk')) {
-    return _buildEDDoc(contextEdward, did, keyPart);
-  } else if (keyPart.startsWith('6LS')) {
-    return _buildXDoc(contextEdX, did, keyPart);
-  } else if (keyPart.startsWith('Dn')) {
-    return _buildMultikeyDoc(
-      contextMultikey,
+    return _buildEDDoc(multikeyContext, did, keyPart);
+  }
+
+  final forSigning = keyPart.startsWith('Dn') || // p256
+      keyPart.startsWith('Q3s') || // secp256k1
+      keyPart.startsWith('82') || // p384
+      keyPart.startsWith('2J9'); // p521
+
+  // x25519
+  final forKeyAgreement = keyPart.startsWith('6LS');
+
+  if (forSigning || forKeyAgreement) {
+    return _buildSimpleDoc(
+      multikeyContext,
       did,
       keyPart,
-      'P256Key2021',
-    );
-  } else if (keyPart.startsWith('Q3s')) {
-    return _buildMultikeyDoc(
-      contextMultikey,
-      did,
-      keyPart,
-      'Secp256k1Key2021',
-    );
-  } else if (keyPart.startsWith('82')) {
-    return _buildMultikeyDoc(
-      contextMultikey,
-      did,
-      keyPart,
-      'P384Key2021',
-    );
-  } else if (keyPart.startsWith('2J9')) {
-    return _buildMultikeyDoc(
-      contextMultikey,
-      did,
-      keyPart,
-      'P521Key2021',
-    );
-  } else {
-    throw SsiException(
-      message: 'Only Ed25519 and X25519 keys are supported now',
-      code: SsiExceptionType.unsupportedSignatureScheme.code,
+      forSigning: forSigning,
+      forKeyAgreement: forKeyAgreement,
     );
   }
+
+  throw SsiException(
+    message: 'Unsupported key type',
+    code: SsiExceptionType.invalidKeyType.code,
+  );
 }
 
 /// Resolves a numalgo2 peer DID to a DID document.
@@ -236,20 +216,20 @@ DidDocument _buildEDDoc(
     toMultikey(x25519PubKey, KeyType.x25519),
   );
 
-  var verificationKeyId = id;
+  var verificationKeyId = '$id#z$keyPart';
   var agreementKeyId = '$id#$x25519PubKeyMultiBase';
 
   final verificationMethod = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
-    type: 'Ed25519VerificationKey2020',
+    type: 'Multikey',
     publicKeyMultibase: 'z$keyPart',
   );
 
   final keyAgreementMethod = VerificationMethodMultibase(
     id: agreementKeyId,
     controller: id,
-    type: 'X25519KeyAgreementKey2020',
+    type: 'Multikey',
     publicKeyMultibase: x25519PubKeyMultiBase,
   );
 
@@ -265,39 +245,19 @@ DidDocument _buildEDDoc(
   );
 }
 
-/// Builds a DID Document for X25519 keys.
-DidDocument _buildXDoc(
+/// Builds a simple DID Document for a single key.
+DidDocument _buildSimpleDoc(
   List<String> context,
   String id,
-  String keyPart,
-) {
-  var verificationKeyId = id;
-  final verification = VerificationMethodMultibase(
-    id: verificationKeyId,
-    controller: id,
-    type: 'X25519KeyAgreementKey2020',
-    publicKeyMultibase: 'z$keyPart',
-  );
-  return DidDocument.create(
-    context: Context.fromJson(context),
-    id: id,
-    verificationMethod: [verification],
-    keyAgreement: [verificationKeyId],
-  );
-}
-
-/// Builds a DID Document for a Multikey-based key (P256, Secp256k1, P384, P521, etc.).
-DidDocument _buildMultikeyDoc(
-  List<String> context,
-  String id,
-  String keyPart,
-  String keyType,
-) {
-  final verificationKeyId = '$id#$keyPart';
+  String keyPart, {
+  bool forSigning = false,
+  bool forKeyAgreement = false,
+}) {
+  final verificationKeyId = '$id#z$keyPart';
   final verificationMethod = VerificationMethodMultibase(
     id: verificationKeyId,
     controller: id,
-    type: keyType,
+    type: 'Multikey',
     publicKeyMultibase: 'z$keyPart',
   );
 
@@ -305,10 +265,11 @@ DidDocument _buildMultikeyDoc(
     context: Context.fromJson(context),
     id: id,
     verificationMethod: [verificationMethod],
-    assertionMethod: [verificationKeyId],
-    authentication: [verificationKeyId],
-    capabilityDelegation: [verificationKeyId],
-    capabilityInvocation: [verificationKeyId],
+    assertionMethod: forSigning ? [verificationKeyId] : null,
+    authentication: forSigning ? [verificationKeyId] : null,
+    capabilityDelegation: forSigning ? [verificationKeyId] : null,
+    capabilityInvocation: forSigning ? [verificationKeyId] : null,
+    keyAgreement: forKeyAgreement ? [verificationKeyId] : null,
   );
 }
 

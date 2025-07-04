@@ -539,7 +539,8 @@ void main() {
         // The resolved document for did:peer:0 will have an additional keyAgreement
         // derived from the authentication key.
         expect(resolvedDoc.id, didDocument.id);
-        expect(resolvedDoc.authentication.map((e) => e.id), [didDocument.id]);
+        final authVmId = resolvedDoc.authentication.first.id;
+        expect(authVmId, '${didDocument.id}#${didDocument.id.substring(10)}');
         expect(resolvedDoc.keyAgreement, isNotNull);
         expect(resolvedDoc.keyAgreement, hasLength(1));
         expect(resolvedDoc.verificationMethod, hasLength(2));
@@ -629,9 +630,9 @@ void main() {
         final resolvedDoc = DidPeer.resolve(didDocument.id);
         expect(resolvedDoc.id, didDocument.id);
         expect(resolvedDoc.verificationMethod, hasLength(1));
-        expect(resolvedDoc.verificationMethod[0].type, 'Secp256k1Key2021');
+        expect(resolvedDoc.verificationMethod[0].type, 'Multikey');
         final keyPart = didDocument.id.substring(11);
-        final expectedVmId = '${didDocument.id}#$keyPart';
+        final expectedVmId = '${didDocument.id}#z$keyPart';
         expect(resolvedDoc.verificationMethod[0].id, expectedVmId);
         expect(resolvedDoc.authentication.map((e) => e.id).first, expectedVmId);
         expect(resolvedDoc.keyAgreement, isEmpty);

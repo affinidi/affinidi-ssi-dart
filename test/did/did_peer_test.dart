@@ -333,17 +333,15 @@ void main() {
       // Assert context
       final context = resolvedDidDocument.context.toJson();
       expect(context, contains('https://www.w3.org/ns/did/v1'));
-      expect(
-          context,
-          anyOf(
-            contains('https://www.w3.org/ns/did/v1'),
-            contains('https://w3id.org/security/suites/multikey-2021/v1'),
-          ));
+      expect(context, contains('https://w3id.org/security/multikey/v1'));
+
+      // Assert key type
+      expect(resolvedDidDocument.id, startsWith('did:peer:0zDn'));
 
       // Assert verificationMethod
       final verificationMethods = resolvedDidDocument.verificationMethod;
       expect(verificationMethods.length, 1);
-      expect(verificationMethods[0].type, 'P256Key2021');
+      expect(verificationMethods[0].type, 'Multikey');
       expect(verificationMethods[0].controller, actualDid);
 
       // Assert relationships
@@ -377,19 +375,15 @@ void main() {
       // Assert context
       final context = resolvedDidDocument.context.toJson();
       expect(context, contains('https://www.w3.org/ns/did/v1'));
-      expect(
-          context,
-          anyOf(
-            contains(
-              'https://www.w3.org/ns/did/v1',
-            ),
-            contains('https://w3id.org/security/suites/multikey-2021/v1'),
-          ));
+      expect(context, contains('https://w3id.org/security/multikey/v1'));
+
+      // Assert key type
+      expect(resolvedDidDocument.id, startsWith('did:peer:0zQ3s'));
 
       // Assert verificationMethod
       final verificationMethods = resolvedDidDocument.verificationMethod;
       expect(verificationMethods.length, 1);
-      expect(verificationMethods[0].type, 'Secp256k1Key2021');
+      expect(verificationMethods[0].type, 'Multikey');
       expect(verificationMethods[0].controller, actualDid);
 
       // Assert relationships
