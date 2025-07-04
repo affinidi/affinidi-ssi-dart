@@ -125,9 +125,6 @@ abstract class DidController {
   /// Adds a key from the wallet to the DID, creating verification methods
   /// and assigning them to verification relationships.
   ///
-  /// This is a convenience method that simplifies adding a key and setting its
-  /// purposes.
-  ///
   /// [walletKeyId] - The ID of the key in the wallet.
   /// [relationships] - The relationships this key should have.
   ///
