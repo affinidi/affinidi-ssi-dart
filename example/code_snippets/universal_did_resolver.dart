@@ -10,6 +10,10 @@ void main() async {
     'did:peer:0z6Mkp92myXtWkQYxhFmDxqkTwURYZAEjUm9iAuZxyjYzmfSy',
   );
   print('Resolved did:peer document: $didPeerDocument');
+  final didPeerDocumentMultiKey = await UniversalDIDResolver.resolve(
+    'did:peer:0zQ3shknyP1yiXG3hr1rFr9MPNRmNJWuq47ibJpUqTh5qycmBL',
+  );
+  print('Resolved did:peer document: $didPeerDocumentMultiKey');
 
   final didWebDocument = await UniversalDIDResolver.resolve(
     'did:web:demo.spruceid.com',
