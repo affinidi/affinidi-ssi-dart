@@ -7,8 +7,6 @@ import 'package:elliptic/elliptic.dart' as ec;
 import 'package:pointycastle/api.dart' as pc;
 
 import '../digest_utils.dart';
-import '../exceptions/ssi_exception.dart';
-import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../utility.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
