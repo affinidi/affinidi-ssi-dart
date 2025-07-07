@@ -14,6 +14,76 @@ import 'did_controller/verification_relationship.dart';
 import 'did_document/index.dart';
 import 'public_key_utils.dart';
 
+const _serviceKeyAbbreviations = {
+  'type': 't',
+  'serviceEndpoint': 's',
+  'routingKeys': 'r',
+  'accept': 'a',
+};
+
+const _serviceTypeAbbreviations = {
+  'DIDCommMessaging': 'dm',
+};
+
+final _serviceKeyDeabbreviations =
+    _serviceKeyAbbreviations.map((k, v) => MapEntry(v, k));
+final _serviceTypeDeabbreviations =
+    _serviceTypeAbbreviations.map((k, v) => MapEntry(v, k));
+
+dynamic _abbreviateService(dynamic json) {
+  if (json is Map<String, dynamic>) {
+    final newMap = <String, dynamic>{};
+    for (final entry in json.entries) {
+      var key = entry.key;
+      var value = entry.value;
+
+      final dynamic abbreviatedValue;
+      if (key == 'type' &&
+          value is String &&
+          _serviceTypeAbbreviations.containsKey(value)) {
+        abbreviatedValue = _serviceTypeAbbreviations[value]!;
+      } else {
+        abbreviatedValue = _abbreviateService(value);
+      }
+
+      final abbreviatedKey = _serviceKeyAbbreviations[key] ?? key;
+
+      newMap[abbreviatedKey] = abbreviatedValue;
+    }
+    return newMap;
+  } else if (json is List) {
+    return json.map(_abbreviateService).toList();
+  }
+  return json;
+}
+
+dynamic _deabbreviateService(dynamic json) {
+  if (json is Map<String, dynamic>) {
+    final newMap = <String, dynamic>{};
+    for (final entry in json.entries) {
+      var key = entry.key;
+      var value = entry.value;
+
+      final deabbreviatedKey = _serviceKeyDeabbreviations[key] ?? key;
+
+      final dynamic deabbreviatedValue;
+      if (deabbreviatedKey == 'type' &&
+          value is String &&
+          _serviceTypeDeabbreviations.containsKey(value)) {
+        deabbreviatedValue = _serviceTypeDeabbreviations[value]!;
+      } else {
+        deabbreviatedValue = _deabbreviateService(value);
+      }
+
+      newMap[deabbreviatedKey] = deabbreviatedValue;
+    }
+    return newMap;
+  } else if (json is List) {
+    return json.map(_deabbreviateService).toList();
+  }
+  return json;
+}
+
 /// Enum representing the prefixes used in encoding for peer DIDs.
 ///
 /// These prefixes are used to identify different components in a peer DID:
@@ -143,7 +213,8 @@ DidDocument _resolveDidPeer2(String did) {
         services ??= [];
         final serviceData = base64UrlNoPadDecode(value);
         final decodedJson = json.decode(utf8.decode(serviceData));
-        final originalMap = jsonToMap(decodedJson);
+        final deabbreviatedJson = _deabbreviateService(decodedJson);
+        final originalMap = jsonToMap(deabbreviatedJson);
 
         var serviceId = originalMap['id'];
         if (serviceId == null) {
@@ -153,14 +224,10 @@ DidDocument _resolveDidPeer2(String did) {
             serviceId = '#service-$unnamedServiceIndex';
           }
           unnamedServiceIndex++;
+          originalMap['id'] = serviceId;
         }
 
-        final newMap = {
-          'id': serviceId,
-          'type': originalMap['t'],
-          'serviceEndpoint': originalMap['s']
-        };
-        services.add(ServiceEndpoint.fromJson(newMap));
+        services.add(ServiceEndpoint.fromJson(originalMap));
         break;
       case 'V':
       case 'E':
@@ -302,28 +369,10 @@ class DidPeer {
     }
 
     return services.map((service) {
-      final dynamic endpointValue;
-      final serviceValue = service.serviceEndpoint;
-      switch (serviceValue) {
-        case StringEndpoint(:final url):
-          endpointValue = url;
-        case MapEndpoint(:final data):
-          endpointValue = data;
-        case SetEndpoint():
-          throw SsiException(
-            message:
-                'did:peer does not support set-based service endpoints in the DID URL',
-            code: SsiExceptionType.invalidDidDocument.code,
-          );
-      }
+      final serviceJson = service.toJson();
+      final abbreviatedJson = _abbreviateService(serviceJson);
 
-      final serviceJson = {
-        'id': service.id,
-        't': service.type,
-        's': endpointValue,
-      };
-
-      final jsonToEncode = json.encode(serviceJson);
+      final jsonToEncode = json.encode(abbreviatedJson);
       final encodedService = base64UrlNoPadEncode(utf8.encode(jsonToEncode));
       return '.${Numalgo2Prefix.service.value}$encodedService';
     }).join('');
