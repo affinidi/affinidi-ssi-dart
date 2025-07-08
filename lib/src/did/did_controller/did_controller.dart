@@ -24,6 +24,24 @@ import 'verification_relationship.dart';
 /// DID documents with multiple verification methods, handling the mapping
 /// between DID key identifiers and wallet key identifiers, and providing
 /// signing and verification capabilities.
+///
+/// ## Usage
+///
+/// To create a properly initialized controller, use the [create] static method:
+///
+/// ```dart
+/// final controller = await DidController.create(() => MyDidController(
+///   store: store,
+///   wallet: wallet,
+/// ));
+/// ```
+///
+/// Alternatively, if using the constructor directly, you must call [init] after construction:
+///
+/// ```dart
+/// final controller = MyDidController(store: store, wallet: wallet);
+/// await controller.init();
+/// ```
 abstract class DidController {
   /// The key mapping store for this controller.
   final DidStore store;
@@ -88,6 +106,22 @@ abstract class DidController {
     required this.store,
     required this.wallet,
   });
+
+  /// Creates and initializes a new DID controller instance.
+  ///
+  /// This factory method ensures that the controller is properly initialized
+  /// by calling [init] after construction.
+  ///
+  /// [factory] - A function that creates the controller instance.
+  ///
+  /// Returns a fully initialized controller instance.
+  static Future<T> create<T extends DidController>(
+    T Function() factory,
+  ) async {
+    final controller = factory();
+    await controller.init();
+    return controller;
+  }
 
   /// Initializes the controller by loading data from the store.
   Future<void> init() async {
@@ -583,6 +617,7 @@ abstract class DidController {
 
   /// Clears all controller state and underlying storage.
   Future<void> clearAll() async {
+    await store.clearAll();
     _cacheVerificationMethodIdToWalletKeyId.clear();
     _cacheAuthentication.clear();
     _cacheKeyAgreement.clear();
@@ -590,7 +625,6 @@ abstract class DidController {
     _cacheCapabilityDelegation.clear();
     _cacheAssertionMethod.clear();
     _cacheService.clear();
-    await store.clearAll();
   }
 
   /// Signs data using a verification method.
