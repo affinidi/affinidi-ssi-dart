@@ -17,7 +17,7 @@ import 'public_key.dart';
 /// for cryptographic operations.
 class P384KeyPair extends KeyPair {
   /// The expected length of the private key in bytes. For P-384, it is 48 bytes.
-  static const int expectedLength = 48;
+  static const int expectedPrivateKeyLen = 48;
   static final ec.Curve _p384 = ec.getP384();
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
@@ -46,9 +46,9 @@ class P384KeyPair extends KeyPair {
 
   /// Creates a [P384KeyPair] instance from a private key.
   factory P384KeyPair.fromPrivateKey(Uint8List privateKeyBytes, {String? id}) {
-    if (privateKeyBytes.length != expectedLength) {
+    if (privateKeyBytes.length != expectedPrivateKeyLen) {
       throw ArgumentError(
-          'P-384 private key must be $expectedLength bytes, got \\${privateKeyBytes.length}');
+          'P-384 private key must be $expectedPrivateKeyLen bytes, got \\${privateKeyBytes.length}');
     }
     final effectiveId = id ?? randomId();
     return P384KeyPair._(

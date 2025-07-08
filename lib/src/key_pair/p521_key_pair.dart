@@ -16,6 +16,8 @@ import 'public_key.dart';
 /// A key pair implementation that uses the P-521 elliptic curve
 /// for cryptographic operations.
 class P521KeyPair extends KeyPair {
+  /// The expected length of the private key in bytes. For P-521, it is 66 bytes.
+  static const int expectedPrivateKeyLen = 66;
   static final ec.Curve _p521 = ec.getP521();
   final ec.PrivateKey _privateKey;
   Uint8List? _publicKeyBytes;
@@ -44,9 +46,9 @@ class P521KeyPair extends KeyPair {
 
   /// Creates a [P521KeyPair] instance from a private key.
   factory P521KeyPair.fromPrivateKey(Uint8List privateKeyBytes, {String? id}) {
-    if (privateKeyBytes.length != 66) {
+    if (privateKeyBytes.length != expectedPrivateKeyLen) {
       throw ArgumentError(
-          'P-521 private key must be 66 bytes, got \\${privateKeyBytes.length}');
+          'P-521 private key must be $expectedPrivateKeyLen bytes, got \\${privateKeyBytes.length}');
     }
     final effectiveId = id ?? randomId();
     return P521KeyPair._(
