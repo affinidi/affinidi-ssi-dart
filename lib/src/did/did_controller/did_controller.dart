@@ -30,10 +30,10 @@ import 'verification_relationship.dart';
 /// To create a properly initialized controller, use the [create] static method:
 ///
 /// ```dart
-/// final controller = await DidController.create(() => MyDidController(
+/// final controller = await DidPeerController.create(
 ///   store: store,
 ///   wallet: wallet,
-/// ));
+/// );
 /// ```
 ///
 /// Alternatively, if using the constructor directly, you must call [init] after construction:
