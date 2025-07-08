@@ -320,8 +320,8 @@ abstract class DidController {
     await addFunction(verificationMethodId);
   }
 
-  // TODO: Function to remove verification method
-  // Careful as all verification id's may need to be recalculated. In did:peer they are indexed
+  // TODO: Add function to remove verification method
+  // Note: All verification IDs may need recalculation in did:peer (they are indexed)
 
   /// Builds the verification method ID for a given public key.
   /// Subclasses implement this to handle method-specific ID construction.
