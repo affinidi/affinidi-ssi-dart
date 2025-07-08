@@ -94,7 +94,8 @@ class _TestDidController extends DidController {
   }
 
   @override
-  Future<String> buildVerificationMethodId(PublicKey publicKey) async {
+  Future<String> buildVerificationMethodId(PublicKey publicKey,
+      {PublicKey? didSourceKey}) async {
     return 'test-vm-${publicKey.id}';
   }
 }
