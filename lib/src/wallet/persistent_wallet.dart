@@ -1,16 +1,7 @@
 import 'dart:typed_data';
 
-import '../exceptions/ssi_exception.dart';
-import '../exceptions/ssi_exception_type.dart';
-import '../key_pair/ed25519_key_pair.dart';
-import '../key_pair/key_pair.dart';
-import '../key_pair/p256_key_pair.dart';
-import '../key_pair/public_key.dart';
-import '../types.dart';
+import '../../ssi.dart';
 import '../utility.dart';
-import 'stores/key_store_interface.dart';
-import 'stores/stored_key.dart';
-import 'wallet.dart';
 
 /// A non-hierarchical wallet implementation that supports multiple key types.
 ///
@@ -87,13 +78,21 @@ class PersistentWallet implements Wallet {
       final (instance, pKeyBytes) = P256KeyPair.generate(id: effectiveKeyId);
       keyPairInstance = instance;
       privateKeyBytes = pKeyBytes;
+    } else if (effectiveKeyType == KeyType.p384) {
+      final (instance, pKeyBytes) = P384KeyPair.generate(id: effectiveKeyId);
+      keyPairInstance = instance;
+      privateKeyBytes = pKeyBytes;
+    } else if (effectiveKeyType == KeyType.p521) {
+      final (instance, pKeyBytes) = P521KeyPair.generate(id: effectiveKeyId);
+      keyPairInstance = instance;
+      privateKeyBytes = pKeyBytes;
     } else if (effectiveKeyType == KeyType.ed25519) {
       final (instance, pKeyBytes) = Ed25519KeyPair.generate(id: effectiveKeyId);
       keyPairInstance = instance;
       privateKeyBytes = pKeyBytes;
     } else {
       throw ArgumentError(
-          'Unsupported key type for PersistentWallet: $effectiveKeyType. Only p256 and ed25519 are supported.');
+          'Unsupported key type for PersistentWallet: $effectiveKeyType. Only p256, p384, p521, and ed25519 are supported.');
     }
 
     final storedKey =
@@ -176,6 +175,10 @@ class PersistentWallet implements Wallet {
     KeyPair keyPair;
     if (keyType == KeyType.p256) {
       keyPair = P256KeyPair.fromPrivateKey(privateKeyBytes);
+    } else if (keyType == KeyType.p384) {
+      keyPair = P384KeyPair.fromPrivateKey(privateKeyBytes);
+    } else if (keyType == KeyType.p521) {
+      keyPair = P521KeyPair.fromPrivateKey(privateKeyBytes);
     } else if (keyType == KeyType.ed25519) {
       keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
     } else {

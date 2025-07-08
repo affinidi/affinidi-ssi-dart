@@ -29,6 +29,9 @@ enum HashingAlgorithm {
   /// SHA-256 hashing algorithm.
   sha256,
 
+  /// SHA-384 hashing algorithm.
+  sha384,
+
   /// SHA-512 hashing algorithm.
   sha512,
 }
@@ -53,6 +56,22 @@ enum SignatureScheme {
     crv: 'P-256',
     keyType: KeyType.p256,
     hashingAlgorithm: HashingAlgorithm.sha256,
+  ),
+
+  /// ECDSA with P-384 curve and SHA-384 hashing.
+  ecdsa_p384_sha384(
+    alg: 'ES384',
+    crv: 'P-384',
+    keyType: KeyType.p384,
+    hashingAlgorithm: HashingAlgorithm.sha384,
+  ),
+
+  /// ECDSA with P-521 curve and SHA-512 hashing.
+  ecdsa_p521_sha512(
+    alg: 'ES512',
+    crv: 'P-521',
+    keyType: KeyType.p521,
+    hashingAlgorithm: HashingAlgorithm.sha512,
   ),
 
   /// EdDSA with Ed25519 curve and SHA-512 hashing.
