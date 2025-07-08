@@ -52,7 +52,7 @@ enum SsiExceptionType {
   unsupportedEnvelopeVCOperation(code: 'unsupported_enveloped_vc_operation'),
 
   /// The did:key is invalid
-  unsupportedNumberOfKeys(code: 'unsuported_number_of_keys'),
+  unsupportedNumberOfKeys(code: 'unsupported_number_of_keys'),
 
   /// Invalid key type
   invalidKeyType(code: 'invalid_key_type'),

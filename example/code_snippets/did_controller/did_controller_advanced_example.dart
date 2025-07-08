@@ -201,7 +201,7 @@ void main() async {
   print('\nCreated did:peer DID: ${peerDocument.id}');
   print(
       'Total verification methods: ${peerDocument.verificationMethod.length}');
-  print('Service endpoints: ${peerDocument.service.length}');
+  print('Services: ${peerDocument.service.length}');
 
   // 3. Key purpose management
   print('\n3. Demonstrating key purpose management...\n');

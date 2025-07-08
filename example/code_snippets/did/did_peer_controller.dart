@@ -65,10 +65,10 @@ void main() async {
   final resolvedDidDoc = DidPeer.resolve(didDocument.id);
   print('DID resolved successfully.');
 
-  print(jsonEncoder.convert(resolvedDidDoc.toJson()));
+  print(jsonEncoder.convert(resolvedDidDoc));
 
-  final resolvedJson = jsonEncoder.convert(resolvedDidDoc.toJson());
-  final originalJson = jsonEncoder.convert(didDocument.toJson());
+  final resolvedJson = jsonEncoder.convert(resolvedDidDoc);
+  final originalJson = jsonEncoder.convert(didDocument);
 
   // Note: The resolved document's DID will be the short-form version,
   // so we compare the rest of the content.

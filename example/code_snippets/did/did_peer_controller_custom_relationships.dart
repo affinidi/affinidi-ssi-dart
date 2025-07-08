@@ -29,11 +29,12 @@ void main() async {
   );
 
   print('Verification methods added and purposes assigned:');
-  print(' - Primary VM ID: ${addKeyResult1.verificationMethodId}');
   print(
-      ' - Authentication VM ID: ${addKeyResult1.relationships[VerificationRelationship.authentication]}');
+      ' - Primary Verification Method ID: ${addKeyResult1.verificationMethodId}');
   print(
-      ' - Key Agreement VM ID: ${addKeyResult1.relationships[VerificationRelationship.keyAgreement]}');
+      ' - Authentication Verification Method ID: ${addKeyResult1.relationships[VerificationRelationship.authentication]}');
+  print(
+      ' - Key Agreement Verification Method ID: ${addKeyResult1.relationships[VerificationRelationship.keyAgreement]}');
   print(' - All assigned relationships: ${addKeyResult1.relationships.keys}');
 
   final ed25519Key2 = await wallet.generateKey(keyType: KeyType.ed25519);
