@@ -10,7 +10,6 @@ import '../digest_utils.dart';
 import '../types.dart';
 import '../utility.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
-import './_key_pair_utils.dart';
 import 'key_pair.dart';
 import 'public_key.dart';
 
