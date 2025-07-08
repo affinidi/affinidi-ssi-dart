@@ -251,7 +251,6 @@ abstract class DidController {
                 PublicKey(walletKeyId, x25519PublicKeyBytes, KeyType.x25519);
             final keyAgreementId = await addVerificationMethodFromPublicKey(
               x25519PublicKey,
-              didSourceKey: publicKey,
             );
             await _addRelationship(relationship, keyAgreementId);
             resultMap[relationship] = keyAgreementId;
@@ -296,11 +295,10 @@ abstract class DidController {
   @protected
   Future<String> addVerificationMethodFromPublicKey(
     PublicKey publicKey, {
-    PublicKey? didSourceKey,
     String? verificationMethodId,
   }) async {
-    final vmId = verificationMethodId ??
-        await buildVerificationMethodId(publicKey, didSourceKey: didSourceKey);
+    final vmId =
+        verificationMethodId ?? await buildVerificationMethodId(publicKey);
     await store.setMapping(vmId, publicKey.id);
     _cacheVerificationMethodIdToWalletKeyId[vmId] = publicKey.id;
     return vmId;
@@ -327,12 +325,7 @@ abstract class DidController {
   /// Subclasses implement this to handle method-specific ID construction.
   ///
   /// [publicKey] - The public key to create a verification method ID for.
-  /// [didSourceKey] - When provided, represents the key used to derive the DID
-  /// identifier itself. Used when [publicKey] is a derived key (e.g., x25519
-  /// derived from ed25519 for key agreement). This allows the DID to be derived
-  /// from the original key while the verification method uses the derived key.
-  Future<String> buildVerificationMethodId(PublicKey publicKey,
-      {PublicKey? didSourceKey});
+  Future<String> buildVerificationMethodId(PublicKey publicKey);
 
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {
