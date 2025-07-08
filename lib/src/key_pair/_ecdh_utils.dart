@@ -8,7 +8,6 @@ import 'package:elliptic/elliptic.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import './_encryption_utils.dart';
-import './_key_pair_utils.dart';
 
 /// The length of a full public key.
 const fullPublicKeyLength = 64;
@@ -24,7 +23,7 @@ final encryptionUtils = EncryptionUtils();
 
 /// Generates an ephemeral public key for the given curve.
 PublicKey generateEphemeralPubKey(Curve curve) {
-  final privateKey = generateValidPrivateKey(() => curve.generatePrivateKey());
+  final privateKey = curve.generatePrivateKey();
 
   return curve.privateToPublicKey(privateKey);
 }
