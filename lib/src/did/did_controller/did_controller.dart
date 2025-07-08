@@ -30,16 +30,15 @@ import 'verification_relationship.dart';
 /// To create a properly initialized controller, use the [create] static method:
 ///
 /// ```dart
-/// final controller = await DidPeerController.create(
-///   store: store,
-///   wallet: wallet,
+/// final controller = await DidController.create(
+///   () => DidPeerController(store: store, wallet: wallet),
 /// );
 /// ```
 ///
 /// Alternatively, if using the constructor directly, you must call [init] after construction:
 ///
 /// ```dart
-/// final controller = MyDidController(store: store, wallet: wallet);
+/// final controller = DidPeerController(store: store, wallet: wallet);
 /// await controller.init();
 /// ```
 abstract class DidController {
