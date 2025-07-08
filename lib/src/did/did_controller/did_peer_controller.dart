@@ -69,7 +69,7 @@ class DidPeerController extends DidController {
         final keyAgreementPublicKey =
             PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
         vmId = await buildVerificationMethodId(keyAgreementPublicKey,
-            primaryPublicKey: publicKey);
+            didSourceKey: publicKey);
       } else {
         vmId = await buildVerificationMethodId(publicKey);
       }
@@ -196,7 +196,7 @@ class DidPeerController extends DidController {
 
   @override
   Future<String> buildVerificationMethodId(PublicKey publicKey,
-      {PublicKey? primaryPublicKey}) async {
+      {PublicKey? didSourceKey}) async {
     // For did:peer, verification method IDs are numbered sequentially
     // based on their order in the verificationMethod array
     final verificationMethods = await store.verificationMethodIds;
