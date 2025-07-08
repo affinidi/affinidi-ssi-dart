@@ -289,7 +289,15 @@ abstract class DidController {
 
   /// Builds the verification method ID for a given public key.
   /// Subclasses implement this to handle method-specific ID construction.
-  Future<String> buildVerificationMethodId(PublicKey publicKey);
+  ///
+  /// [publicKey] - The public key to create a verification method ID for.
+  /// [primaryPublicKey] - When provided, represents the original key from which
+  /// [publicKey] was derived. Used when [publicKey] is a derived key (e.g.,
+  /// x25519 derived from ed25519 for key agreement). This allows the DID to be
+  /// derived from the original key while the verification method uses the
+  /// derived key.
+  Future<String> buildVerificationMethodId(PublicKey publicKey,
+      {PublicKey? primaryPublicKey});
 
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {
