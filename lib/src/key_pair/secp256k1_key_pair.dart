@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
@@ -105,5 +106,24 @@ class Secp256k1KeyPair extends KeyPair {
     final privateKey = ec.PrivateKey.fromBytes(_secp256k1, _node.privateKey!);
     final secret = computeSecret(privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
+  }
+
+  /// Generates a new secp256k1 key pair.
+  factory Secp256k1KeyPair.fromPrivateKey(Uint8List privateKeyBytes,
+      {String? id}) {
+    final node = BIP32.fromPrivateKey(privateKeyBytes, Uint8List(0));
+    return Secp256k1KeyPair(node: node, id: id);
+  }
+
+  /// Generates a new secp256k1 key pair.
+  /// /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
+  static (Secp256k1KeyPair, Uint8List) generate({String? id}) {
+    // Generate 32 random bytes for secp256k1 private key
+    final random = Random.secure();
+    final privateKeyBytes =
+        Uint8List.fromList(List.generate(32, (_) => random.nextInt(256)));
+    final node = BIP32.fromPrivateKey(privateKeyBytes, Uint8List(0));
+    final keyPair = Secp256k1KeyPair(node: node, id: id);
+    return (keyPair, privateKeyBytes);
   }
 }
