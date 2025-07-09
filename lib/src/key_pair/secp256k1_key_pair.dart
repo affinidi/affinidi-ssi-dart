@@ -122,7 +122,10 @@ class Secp256k1KeyPair extends KeyPair {
     final random = Random.secure();
     final privateKeyBytes =
         Uint8List.fromList(List.generate(32, (_) => random.nextInt(256)));
-    final node = BIP32.fromPrivateKey(privateKeyBytes, Uint8List(0));
+    final secureChainCode =
+        Uint8List.fromList(List.generate(32, (_) => random.nextInt(256)));
+
+    final node = BIP32.fromPrivateKey(privateKeyBytes, secureChainCode);
     final keyPair = Secp256k1KeyPair(node: node, id: id);
     return (keyPair, privateKeyBytes);
   }
