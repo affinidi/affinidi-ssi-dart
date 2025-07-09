@@ -61,20 +61,15 @@ class DidKeyManager extends DidManager {
   Future<void> _mapX25519KeyAgreementMethod(String walletKeyId) async {
     final didDocument = await getDidDocument();
 
-    // Get the Ed25519 verification method ID (the one that's already mapped)
-    final verificationMethods = await store.verificationMethodIds;
-    if (verificationMethods.isEmpty) {
+    // For did:key, there's always exactly one key agreement method
+    if (didDocument.keyAgreement.isEmpty) {
       throw SsiException(
-        message: 'No verification methods found',
+        message: 'No key agreement methods found in did:key document',
         code: SsiExceptionType.keyNotFound.code,
       );
     }
 
-    final ed25519VerificationMethodId = verificationMethods.first;
-
-    // Find the X25519 key agreement method (it should be different from the Ed25519 verification method)
-    final x25519KeyAgreementMethod = didDocument.keyAgreement
-        .firstWhere((ka) => ka.id != ed25519VerificationMethodId);
+    final x25519KeyAgreementMethod = didDocument.keyAgreement.first;
 
     // Store the mapping for the X25519 key agreement method
     await store.setMapping(x25519KeyAgreementMethod.id, walletKeyId);
