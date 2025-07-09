@@ -1,6 +1,6 @@
 import 'verification_relationship.dart';
 
-/// The result of adding a key to a DID controller.
+/// The result of adding a key to a DID manager.
 class AddVerificationMethodResult {
   /// The primary verification method ID created for the key.
   final String verificationMethodId;

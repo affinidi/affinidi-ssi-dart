@@ -6,19 +6,19 @@ import '../did_document/service_endpoint.dart';
 import '../did_key.dart';
 import '../public_key_utils.dart';
 import 'add_verification_method_result.dart';
-import 'did_controller.dart';
+import 'did_manager.dart';
 import 'verification_relationship.dart';
 
-/// DID Controller implementation for the did:key method.
+/// DID Manager implementation for the did:key method.
 ///
-/// This controller handles DID documents that use the did:key method,
+/// This manager handles DID documents that use the did:key method,
 /// which supports only a single public key per DID.
-class DidKeyController extends DidController {
-  /// Creates a new DID Key controller instance.
+class DidKeyManager extends DidManager {
+  /// Creates a new DID Key manager instance.
   ///
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
-  DidKeyController({
+  DidKeyManager({
     required super.store,
     required super.wallet,
   });

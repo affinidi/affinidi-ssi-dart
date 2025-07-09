@@ -4,14 +4,14 @@
 library;
 
 export 'src/credentials/credentials.dart';
-export 'src/did/did_controller/add_verification_method_result.dart';
-export 'src/did/did_controller/did_controller.dart';
-export 'src/did/did_controller/did_key_controller.dart';
-export 'src/did/did_controller/did_peer_controller.dart';
-export 'src/did/did_controller/verification_relationship.dart';
 export 'src/did/did_document/index.dart';
 export 'src/did/did_key.dart';
 export 'src/did/did_key_pair.dart';
+export 'src/did/did_manager/add_verification_method_result.dart';
+export 'src/did/did_manager/did_key_manager.dart';
+export 'src/did/did_manager/did_manager.dart';
+export 'src/did/did_manager/did_peer_manager.dart';
+export 'src/did/did_manager/verification_relationship.dart';
 export 'src/did/did_peer.dart';
 export 'src/did/did_signer.dart';
 export 'src/did/did_verifier.dart';

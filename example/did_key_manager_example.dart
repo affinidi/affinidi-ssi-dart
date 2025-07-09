@@ -7,11 +7,11 @@ Future<void> main() async {
   final keyStore = InMemoryKeyStore();
   final wallet = PersistentWallet(keyStore);
 
-  // Create a storage for DID controller mappings
+  // Create a storage for DID manager mappings
   final store = InMemoryDidStore();
 
-  // Create a DID Key controller
-  final controller = DidKeyController(
+  // Create a DID Key manager
+  final manager = DidKeyManager(
     store: store,
     wallet: wallet,
   );
@@ -21,23 +21,23 @@ Future<void> main() async {
   final key = await wallet.generateKey(keyId: walletKeyId);
   print('Generated key with ID: $walletKeyId');
 
-  // Add the key as a verification method to the DID controller
-  final verificationMethodId = await controller.addVerificationMethod(key.id);
+  // Add the key as a verification method to the DID manager
+  final verificationMethodId = await manager.addVerificationMethod(key.id);
   print('Verification method ID: ${verificationMethodId.verificationMethodId}');
 
   // Get the DID document
-  final didDocument = await controller.getDidDocument();
+  final didDocument = await manager.getDidDocument();
   print('DID: ${didDocument.id}');
   print('Verification methods: ${didDocument.verificationMethod.length}');
 
-  // Sign data using the DID controller
+  // Sign data using the DID manager
   final dataToSign = Uint8List.fromList('Hello, DID Key!'.codeUnits);
-  final signature = await controller.sign(
-      dataToSign, verificationMethodId.verificationMethodId);
+  final signature =
+      await manager.sign(dataToSign, verificationMethodId.verificationMethodId);
   print('Signature: ${base64.encode(signature)}');
 
   // Verify the signature
-  final isValid = await controller.verify(
+  final isValid = await manager.verify(
     dataToSign,
     signature,
     verificationMethodId.verificationMethodId,
@@ -46,6 +46,6 @@ Future<void> main() async {
 
   // Get a DID signer for credential operations
   final signer =
-      await controller.getSigner(verificationMethodId.verificationMethodId);
+      await manager.getSigner(verificationMethodId.verificationMethodId);
   print('Signer DID Key ID: ${signer.keyId}');
 }

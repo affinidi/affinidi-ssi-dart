@@ -2,16 +2,16 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('DidController Base Functionality', () {
+  group('DidManager Base Functionality', () {
     late Wallet wallet;
     late DidStore store;
-    late _TestDidController controller;
+    late _TestDidManager manager;
 
     setUp(() async {
       final keyStore = InMemoryKeyStore();
       wallet = PersistentWallet(keyStore);
       store = InMemoryDidStore();
-      controller = _TestDidController(
+      manager = _TestDidManager(
         store: store,
         wallet: wallet,
       );
@@ -25,34 +25,34 @@ void main() {
         await store.setMapping(vmId, keyPair.id);
 
         // Add to multiple relationships
-        await controller.addAuthentication(vmId);
-        await controller.addKeyAgreement(vmId);
-        await controller.addCapabilityInvocation(vmId);
-        await controller.addCapabilityDelegation(vmId);
-        await controller.addAssertionMethod(vmId);
+        await manager.addAuthentication(vmId);
+        await manager.addKeyAgreement(vmId);
+        await manager.addCapabilityInvocation(vmId);
+        await manager.addCapabilityDelegation(vmId);
+        await manager.addAssertionMethod(vmId);
 
         // Verify initial state
-        expect(controller.authentication, contains(vmId));
-        expect(controller.keyAgreement, contains(vmId));
-        expect(controller.capabilityInvocation, contains(vmId));
-        expect(controller.capabilityDelegation, contains(vmId));
-        expect(controller.assertionMethod, contains(vmId));
+        expect(manager.authentication, contains(vmId));
+        expect(manager.keyAgreement, contains(vmId));
+        expect(manager.capabilityInvocation, contains(vmId));
+        expect(manager.capabilityDelegation, contains(vmId));
+        expect(manager.assertionMethod, contains(vmId));
 
         // Act
-        await controller.removeAllVerificationMethodReferences(vmId);
+        await manager.removeAllVerificationMethodReferences(vmId);
 
         // Assert
-        expect(controller.authentication, isNot(contains(vmId)));
-        expect(controller.keyAgreement, isNot(contains(vmId)));
-        expect(controller.capabilityInvocation, isNot(contains(vmId)));
-        expect(controller.capabilityDelegation, isNot(contains(vmId)));
-        expect(controller.assertionMethod, isNot(contains(vmId)));
+        expect(manager.authentication, isNot(contains(vmId)));
+        expect(manager.keyAgreement, isNot(contains(vmId)));
+        expect(manager.capabilityInvocation, isNot(contains(vmId)));
+        expect(manager.capabilityDelegation, isNot(contains(vmId)));
+        expect(manager.assertionMethod, isNot(contains(vmId)));
       });
 
       test('should throw error with empty verification method ID', () async {
         // Act & Assert
         expect(
-          () => controller.removeAllVerificationMethodReferences(''),
+          () => manager.removeAllVerificationMethodReferences(''),
           throwsA(
             isA<SsiException>().having(
               (e) => e.message,
@@ -66,9 +66,9 @@ void main() {
   });
 }
 
-/// Test implementation of DidController for testing base functionality
-class _TestDidController extends DidController {
-  _TestDidController({
+/// Test implementation of DidManager for testing base functionality
+class _TestDidManager extends DidManager {
+  _TestDidManager({
     required super.store,
     required super.wallet,
   });
@@ -76,8 +76,8 @@ class _TestDidController extends DidController {
   @override
   Future<DidDocument> getDidDocument() async {
     // For testing base functionality, we don't need a real document
-    // We'll use a peer controller to generate a basic document
-    final peerController = DidPeerController(store: store, wallet: wallet);
+    // We'll use a peer manager to generate a basic document
+    final peerManager = DidPeerManager(store: store, wallet: wallet);
 
     // Add a basic key if none exists
     if (authentication.isEmpty &&
@@ -86,11 +86,11 @@ class _TestDidController extends DidController {
         capabilityInvocation.isEmpty &&
         capabilityDelegation.isEmpty) {
       final key = await wallet.generateKey(keyId: 'temp-test-key');
-      await peerController.addVerificationMethod(key.id,
+      await peerManager.addVerificationMethod(key.id,
           relationships: {VerificationRelationship.authentication});
     }
 
-    return peerController.getDidDocument();
+    return peerManager.getDidDocument();
   }
 
   @override

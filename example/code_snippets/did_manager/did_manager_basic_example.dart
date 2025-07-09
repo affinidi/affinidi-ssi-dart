@@ -4,7 +4,7 @@ import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
 
 void main() async {
-  print('=== DID Controller Basic Example ===\n');
+  print('=== DID Manager Basic Example ===\n');
 
   // Step 1: Create wallet
   print('1. Creating wallet...');
@@ -14,13 +14,13 @@ void main() async {
   final wallet = Bip32Wallet.fromSeed(seed);
   print('Wallet created from seed.');
 
-  // Step 2: Create DID Controller
-  print('\n2. Creating DID Controllers...');
+  // Step 2: Create DID Manager
+  print('\n2. Creating DID Managers...');
 
-  // Create did:key controller
-  print('\n--- did:key Controller ---');
+  // Create did:key manager
+  print('\n--- did:key Manager ---');
   final keyMapping = InMemoryDidStore();
-  final didKeyController = DidKeyController(
+  final didKeyManager = DidKeyManager(
     store: keyMapping,
     wallet: wallet,
   );
@@ -31,14 +31,14 @@ void main() async {
       'Generated key for did:key. Public key: ${keyForDidKey.publicKey.bytes.sublist(1, 9)}...');
 
   // Add verification method and create DID document
-  await didKeyController.addVerificationMethod(keyForDidKey.id);
-  final didKeyDocument = await didKeyController.getDidDocument();
+  await didKeyManager.addVerificationMethod(keyForDidKey.id);
+  final didKeyDocument = await didKeyManager.getDidDocument();
   print('did:key DID: ${didKeyDocument.id}');
   print('Verification methods: ${didKeyDocument.verificationMethod.length}');
 
-  // Create did:peer controller
-  print('\n--- did:peer Controller ---');
-  final didPeerController = DidPeerController(
+  // Create did:peer manager
+  print('\n--- did:peer Manager ---');
+  final didPeerManager = DidPeerManager(
     store: InMemoryDidStore(),
     wallet: wallet,
   );
@@ -52,12 +52,11 @@ void main() async {
       'Generated key agreement key. Public key: ${keyAgreementKey.publicKey.bytes.sublist(1, 9)}...');
 
   // Add verification methods and create DID document
-  final authVmId = await didPeerController.addVerificationMethod(authKey.id);
-  final kaVmId =
-      await didPeerController.addVerificationMethod(keyAgreementKey.id);
-  await didPeerController.addAuthentication(authVmId.verificationMethodId);
-  await didPeerController.addKeyAgreement(kaVmId.verificationMethodId);
-  final didPeerDocument = await didPeerController.getDidDocument();
+  final authVmId = await didPeerManager.addVerificationMethod(authKey.id);
+  final kaVmId = await didPeerManager.addVerificationMethod(keyAgreementKey.id);
+  await didPeerManager.addAuthentication(authVmId.verificationMethodId);
+  await didPeerManager.addKeyAgreement(kaVmId.verificationMethodId);
+  final didPeerDocument = await didPeerManager.getDidDocument();
   print('did:peer DID: ${didPeerDocument.id}');
   print('Verification methods: ${didPeerDocument.verificationMethod.length}');
   print('Authentication methods: ${didPeerDocument.authentication.length}');
@@ -73,10 +72,10 @@ void main() async {
   final didKeyVmId = didKeyDocument.verificationMethod[0].id;
   // Key mapping is already set up by addVerificationMethod
 
-  final didKeySignature = await didKeyController.sign(data, didKeyVmId);
+  final didKeySignature = await didKeyManager.sign(data, didKeyVmId);
   print('Signature: ${didKeySignature.sublist(0, 8)}...');
 
-  final didKeyVerified = await didKeyController.verify(
+  final didKeyVerified = await didKeyManager.verify(
     data,
     didKeySignature,
     didKeyVmId,
@@ -89,10 +88,10 @@ void main() async {
   final didPeerVmId = authVmId.verificationMethodId;
   // Key mapping is already set up by addVerificationMethod
 
-  final didPeerSignature = await didPeerController.sign(data, didPeerVmId);
+  final didPeerSignature = await didPeerManager.sign(data, didPeerVmId);
   print('Signature: ${didPeerSignature.sublist(0, 8)}...');
 
-  final didPeerVerified = await didPeerController.verify(
+  final didPeerVerified = await didPeerManager.verify(
     data,
     didPeerSignature,
     didPeerVmId,
@@ -101,13 +100,13 @@ void main() async {
 
   // Step 4: Get DID Signer for use with credentials
   print('\n4. Getting DID Signer for credential operations...');
-  final didKeySigner = await didKeyController.getSigner(didKeyVmId);
+  final didKeySigner = await didKeyManager.getSigner(didKeyVmId);
   print('did:key signer created:');
   // DID is available in the didDocument passed to create the signer
   print('  - Key ID: ${didKeySigner.keyId}');
   print('  - Signature scheme: ${didKeySigner.signatureScheme}');
 
-  final didPeerSigner = await didPeerController.getSigner(didPeerVmId);
+  final didPeerSigner = await didPeerManager.getSigner(didPeerVmId);
   print('\ndid:peer signer created:');
   // DID is available in the didDocument passed to create the signer
   print('  - Key ID: ${didPeerSigner.keyId}');
