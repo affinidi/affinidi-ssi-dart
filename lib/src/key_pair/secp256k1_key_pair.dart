@@ -108,10 +108,16 @@ class Secp256k1KeyPair extends KeyPair {
     return Future.value(Uint8List.fromList(secret));
   }
 
-  /// Generates a new secp256k1 key pair.
+  /// Generates a new secp256k1 key pair from a private key.
   factory Secp256k1KeyPair.fromPrivateKey(Uint8List privateKeyBytes,
       {String? id}) {
-    final node = BIP32.fromPrivateKey(privateKeyBytes, Uint8List(0));
+    if (privateKeyBytes.length != 32) {
+      throw ArgumentError(
+          'secp256k1 private key must be 32 bytes, got \\${privateKeyBytes.length}');
+    }
+    final secureChainCode = Uint8List.fromList(
+        List.generate(32, (_) => Random.secure().nextInt(256)));
+    final node = BIP32.fromPrivateKey(privateKeyBytes, secureChainCode);
     return Secp256k1KeyPair(node: node, id: id);
   }
 

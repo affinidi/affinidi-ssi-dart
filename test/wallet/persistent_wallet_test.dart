@@ -171,7 +171,7 @@ void main() {
       const unsupportedKeyId = 'unsupported-stored-key';
       // Manually insert data with unsupported type
       final unsupportedStoredKey = StoredKey(
-          keyType: KeyType.secp256k1,
+          keyType: KeyType.x25519,
           privateKeyBytes: Uint8List.fromList([1, 2, 3]));
       await keyStore.set(unsupportedKeyId, unsupportedStoredKey);
 
