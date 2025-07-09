@@ -20,6 +20,9 @@ import 'public_key.dart';
 class Secp256k1KeyPair extends KeyPair {
   /// The BIP32 node containing the key material.
   final BIP32 _node;
+
+  /// The chain code used for key derivation.
+  static final Uint8List _chainCode = Uint8List(32);
   final ec.Curve _secp256k1 = ec.getSecp256k1();
   @override
   final String id;
@@ -115,9 +118,7 @@ class Secp256k1KeyPair extends KeyPair {
       throw ArgumentError(
           'secp256k1 private key must be 32 bytes, got \\${privateKeyBytes.length}');
     }
-    final secureChainCode = Uint8List.fromList(
-        List.generate(32, (_) => Random.secure().nextInt(256)));
-    final node = BIP32.fromPrivateKey(privateKeyBytes, secureChainCode);
+    final node = BIP32.fromPrivateKey(privateKeyBytes, _chainCode);
     return Secp256k1KeyPair(node: node, id: id);
   }
 
@@ -128,10 +129,8 @@ class Secp256k1KeyPair extends KeyPair {
     final random = Random.secure();
     final privateKeyBytes =
         Uint8List.fromList(List.generate(32, (_) => random.nextInt(256)));
-    final secureChainCode =
-        Uint8List.fromList(List.generate(32, (_) => random.nextInt(256)));
 
-    final node = BIP32.fromPrivateKey(privateKeyBytes, secureChainCode);
+    final node = BIP32.fromPrivateKey(privateKeyBytes, _chainCode);
     final keyPair = Secp256k1KeyPair(node: node, id: id);
     return (keyPair, privateKeyBytes);
   }
