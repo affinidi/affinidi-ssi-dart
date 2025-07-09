@@ -15,7 +15,7 @@ abstract class KeyPair {
   /// documents (e.g., "did:key:z6Mk...#z6Mk...").
   ///
   /// For DID operations, a mapping between this wallet key ID and the DID
-  /// verification method ID is maintained by the DidController.
+  /// verification method ID is maintained by the DidManager.
   String get id;
 
   /// Returns a list of [SignatureScheme]s supported by this key pair.

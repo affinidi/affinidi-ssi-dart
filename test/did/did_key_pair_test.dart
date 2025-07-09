@@ -6,28 +6,28 @@ import 'package:test/test.dart';
 void main() {
   group('DidKeyPair Tests', () {
     late Wallet wallet;
-    late DidKeyController didKeyController;
+    late DidKeyManager didKeyManager;
     late DidStore didStore;
 
     setUp(() async {
       wallet = PersistentWallet(InMemoryKeyStore());
       didStore = InMemoryDidStore();
-      didKeyController = DidKeyController(
+      didKeyManager = DidKeyManager(
         store: didStore,
         wallet: wallet,
       );
     });
 
-    test('should create DidKeyPair through DidController.getKey()', () async {
+    test('should create DidKeyPair through DidManager.getKey()', () async {
       // Create a key in the wallet first
       final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add it as a verification method
-      final result = await didKeyController.addVerificationMethod(key.id);
+      final result = await didKeyManager.addVerificationMethod(key.id);
       final verificationMethodId = result.verificationMethodId;
 
       // Get the DidKeyPair
-      final didKeyPair = await didKeyController.getKey(verificationMethodId);
+      final didKeyPair = await didKeyManager.getKey(verificationMethodId);
 
       // Verify the DidKeyPair properties
       expect(didKeyPair.verificationMethodId, equals(verificationMethodId));
@@ -48,11 +48,11 @@ void main() {
       final key = await wallet.generateKey(keyType: KeyType.p256);
 
       // Add it as a verification method
-      final result = await didKeyController.addVerificationMethod(key.id);
+      final result = await didKeyManager.addVerificationMethod(key.id);
       final verificationMethodId = result.verificationMethodId;
 
       // Get the DidKeyPair
-      final didKeyPair = await didKeyController.getKey(verificationMethodId);
+      final didKeyPair = await didKeyManager.getKey(verificationMethodId);
 
       // Test data
       final data = Uint8List.fromList('Hello, World!'.codeUnits);
@@ -74,7 +74,7 @@ void main() {
     test('should throw error when getting non-existent key', () async {
       // Try to get a key that doesn't exist
       expect(
-        () => didKeyController.getKey('non-existent-key-id'),
+        () => didKeyManager.getKey('non-existent-key-id'),
         throwsA(isA<SsiException>().having(
           (e) => e.code,
           'code',
@@ -89,15 +89,15 @@ void main() {
       final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
       // Add it as a verification method
-      final result = await didKeyController.addVerificationMethod(key.id);
+      final result = await didKeyManager.addVerificationMethod(key.id);
       final verificationMethodId = result.verificationMethodId;
 
       // Get the DidKeyPair
-      final didKeyPair = await didKeyController.getKey(verificationMethodId);
+      final didKeyPair = await didKeyManager.getKey(verificationMethodId);
 
       // Verify the mapping
       final mappedWalletKeyId =
-          await didKeyController.getWalletKeyId(verificationMethodId);
+          await didKeyManager.getWalletKeyId(verificationMethodId);
       expect(mappedWalletKeyId, equals(didKeyPair.walletKeyId));
       expect(mappedWalletKeyId, equals(didKeyPair.keyPair.id));
     });

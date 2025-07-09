@@ -5,7 +5,7 @@ void main() async {
   // Use a pretty print encoder
   const jsonEncoder = JsonEncoder.withIndent('  ');
 
-  print('\n--- DidKeyController Operations ---');
+  print('\n--- DidKeyManager Operations ---');
 
   // 1. Create dependencies: Wallet and DID Store
   // WARNING: InMemoryKeyStore is not secure for production use.
@@ -13,22 +13,22 @@ void main() async {
   final wallet = PersistentWallet(keyStore);
   final didStore = InMemoryDidStore();
 
-  // 2. Create the DidKeyController
-  final didKeyController = DidKeyController(store: didStore, wallet: wallet);
-  print('DidKeyController created.');
+  // 2. Create the DidKeyManager
+  final didKeyManager = DidKeyManager(store: didStore, wallet: wallet);
+  print('DidKeyManager created.');
 
   // 3. Generate a key in the wallet to be used for the DID
   print('\nGenerating a new Ed25519 key for the did:key...');
   final key = await wallet.generateKey(keyType: KeyType.ed25519);
   print('Key generated with ID: ${key.id}');
 
-  // 4. Add the key to the controller. This associates the wallet key with the DID.
-  await didKeyController.addVerificationMethod(key.id);
-  print('Verification method added to the controller.');
+  // 4. Add the key to the manager. This associates the wallet key with the DID.
+  await didKeyManager.addVerificationMethod(key.id);
+  print('Verification method added to the manager.');
 
   // 5. Get and print the DID Document
   print('\n--- Generated DID Document ---');
-  final didDocument = await didKeyController.getDidDocument();
+  final didDocument = await didKeyManager.getDidDocument();
   print(jsonEncoder.convert(didDocument.toJson()));
   print('DID: ${didDocument.id}');
 
@@ -39,7 +39,7 @@ void main() async {
   try {
     print('\nAttempting to add a second key...');
     final anotherKey = await wallet.generateKey(keyType: KeyType.ed25519);
-    await didKeyController.addVerificationMethod(anotherKey.id);
+    await didKeyManager.addVerificationMethod(anotherKey.id);
   } catch (e) {
     print('As expected, failed to add a second key.');
   }
@@ -52,7 +52,7 @@ void main() async {
       type: 'TestService',
       serviceEndpoint: const StringEndpoint('https://example.com/test'),
     );
-    await didKeyController.addServiceEndpoint(serviceEndpoint);
+    await didKeyManager.addServiceEndpoint(serviceEndpoint);
   } catch (e) {
     print('As expected, failed to add a service endpoint.');
   }

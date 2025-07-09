@@ -140,7 +140,7 @@ void main() async {
   final encryptedForCharlie = await wallet.encrypt(
     plainText,
     keyId: ed25519key.id,
-    publicKey: charlieX25519PublicKey,
+    publicKey: charlieX25519PublicKey.bytes,
   );
   print(
       'Encrypted data (for Charlie): ${encryptedForCharlie.sublist(1, 9)}...');
@@ -152,7 +152,7 @@ void main() async {
   final decryptedByCharlie = await charlieWallet.decrypt(
     encryptedForCharlie,
     keyId: charlieEd25519key.id,
-    publicKey: aliceX25519PublicKey,
+    publicKey: aliceX25519PublicKey.bytes,
   );
   print('Decrypted data (by Charlie): $decryptedByCharlie');
 }

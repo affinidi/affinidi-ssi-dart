@@ -12,7 +12,7 @@ void main() async {
   var keyStore = InMemoryKeyStore();
   var wallet = PersistentWallet(keyStore);
   var didStore = InMemoryDidStore();
-  var didPeerController = DidPeerController(store: didStore, wallet: wallet);
+  var didPeerManager = DidPeerManager(store: didStore, wallet: wallet);
 
   // 2. Generate a key
   print('\nGenerating key...');
@@ -21,7 +21,7 @@ void main() async {
 
   // 3. Add key with a custom set of relationships
   print('\nAdding key with only authentication and key agreement...');
-  final addKeyResult1 = await didPeerController.addVerificationMethod(
+  final addKeyResult1 = await didPeerManager.addVerificationMethod(
     ed25519Key.id,
     relationships: {
       VerificationRelationship.authentication,
@@ -37,7 +37,7 @@ void main() async {
   print(' - All assigned relationships: ${addKeyResult1.relationships.keys}');
 
   final ed25519Key2 = await wallet.generateKey(keyType: KeyType.ed25519);
-  final addKeyResult2 = await didPeerController.addVerificationMethod(
+  final addKeyResult2 = await didPeerManager.addVerificationMethod(
     ed25519Key2.id,
     relationships: {
       VerificationRelationship.keyAgreement,
@@ -54,7 +54,7 @@ void main() async {
 
   // 4. Get and print the DID Document
   print('\n--- Generated DID Document (Custom Relationships) ---');
-  final didDocument = await didPeerController.getDidDocument();
+  final didDocument = await didPeerManager.getDidDocument();
   print(jsonEncoder.convert(didDocument.toJson()));
   print('\nDID: ${didDocument.id}');
 

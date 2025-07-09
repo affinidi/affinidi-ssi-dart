@@ -16,7 +16,7 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
   - [Requirements](#requirements)
   - [Installation](#installation)
   - [Usage](#usage)
-  - [DID Controller](#did-controller)
+  - [DID Manager](#did-manager)
   - [Ed25519/X25519 Key Derivation](#ed25519x25519-key-derivation)
   - [Support & feedback](#support--feedback)
   - [Contributing](#contributing)
@@ -144,15 +144,13 @@ void main() async {
 
 For more sample usage, go to the [example folder](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example).
 
-## DID Controller
+## DID Manager
 
-DID Controller
+The DID Manager manages the relationship between DID methods and key pairs from the Wallet. It assigns wallet-generated key pairs to specific purposes (e.g. authentication, assertion, key agreement) and generates the DID Document accordingly.
 
-The DID Controller manages the relationship between DID methods and key pairs from the Wallet. It assigns wallet-generated key pairs to specific purposes (e.g. authentication, assertion, key agreement) and generates the DID Document accordingly.
+The introduction of the DID Manager simplifies DID management by shifting DID-related operations from the Wallet to the DID Manager, including signing and verifying data using the keys mapped in the DID document.
 
-The introduction of the DID Controller simplifies DID management by shifting DID-related operations from the Wallet to the DID Controller, including signing and verifying data using the keys mapped in the DID document.
-
-Each DID method extends the base class [`DidController`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_controller/did_controller.dart) to inherit the functionality to manage the supported DIDs.
+Each DID method extends the base class [`DidManager`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_manager/did_manager.dart) to inherit the functionality to manage the supported DIDs.
 
 
 ## Ed25519/X25519 Key Derivation

@@ -27,22 +27,22 @@ import 'verification_relationship.dart';
 ///
 /// ## Usage
 ///
-/// To create a properly initialized controller, use the [create] static method:
+/// To create a properly initialized manager, use the [create] static method:
 ///
 /// ```dart
-/// final controller = await DidController.create(
-///   () => DidPeerController(store: store, wallet: wallet),
+/// final manager = await DidManager.create(
+///   () => DidPeerManager(store: store, wallet: wallet),
 /// );
 /// ```
 ///
 /// Alternatively, if using the constructor directly, you must call [init] after construction:
 ///
 /// ```dart
-/// final controller = DidPeerController(store: store, wallet: wallet);
-/// await controller.init();
+/// final manager = DidPeerManager(store: store, wallet: wallet);
+/// await manager.init();
 /// ```
-abstract class DidController {
-  /// The key mapping store for this controller.
+abstract class DidManager {
+  /// The key mapping store for this manager.
   final DidStore store;
 
   /// Cache for verification method ID to wallet key ID mappings
@@ -97,32 +97,32 @@ abstract class DidController {
   /// The wallet instance for key operations.
   final Wallet wallet;
 
-  /// Creates a new DID controller instance.
+  /// Creates a new DID manager instance.
   ///
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
-  DidController({
+  DidManager({
     required this.store,
     required this.wallet,
   });
 
-  /// Creates and initializes a new DID controller instance.
+  /// Creates and initializes a new DID manager instance.
   ///
-  /// This factory method ensures that the controller is properly initialized
+  /// This factory method ensures that the manager is properly initialized
   /// by calling [init] after construction.
   ///
-  /// [factory] - A function that creates the controller instance.
+  /// [factory] - A function that creates the manager instance.
   ///
-  /// Returns a fully initialized controller instance.
-  static Future<T> create<T extends DidController>(
+  /// Returns a fully initialized manager instance.
+  static Future<T> create<T extends DidManager>(
     T Function() factory,
   ) async {
-    final controller = factory();
-    await controller.init();
-    return controller;
+    final manager = factory();
+    await manager.init();
+    return manager;
   }
 
-  /// Initializes the controller by loading data from the store.
+  /// Initializes the manager by loading data from the store.
   Future<void> init() async {
     _cacheAuthentication.addAll(await store.authentication);
     _cacheKeyAgreement.addAll(await store.keyAgreement);
@@ -607,7 +607,7 @@ abstract class DidController {
     await store.clearServiceEndpoints();
   }
 
-  /// Clears all controller state and underlying storage.
+  /// Clears all manager state and underlying storage.
   Future<void> clearAll() async {
     await store.clearAll();
     _cacheVerificationMethodIdToWalletKeyId.clear();

@@ -10,8 +10,8 @@ import '../types.dart';
 import '../util/base64_util.dart';
 import '../util/json_util.dart';
 import '../utility.dart';
-import 'did_controller/verification_relationship.dart';
 import 'did_document/index.dart';
+import 'did_manager/verification_relationship.dart';
 import 'public_key_utils.dart';
 
 const _serviceKeyAbbreviations = {

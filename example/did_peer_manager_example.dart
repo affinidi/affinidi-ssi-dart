@@ -7,11 +7,11 @@ Future<void> main() async {
   final keyStore = InMemoryKeyStore();
   final wallet = PersistentWallet(keyStore);
 
-  // Create a storage for DID controller mappings
+  // Create a storage for DID manager mappings
   final store = InMemoryDidStore();
 
-  // Create a DID Peer controller
-  final controller = DidPeerController(
+  // Create a DID Peer manager
+  final manager = DidPeerManager(
     store: store,
     wallet: wallet,
   );
@@ -25,14 +25,14 @@ Future<void> main() async {
 
   // Add verification methods
   final authVerificationMethodId =
-      await controller.addVerificationMethod(authKey.id);
+      await manager.addVerificationMethod(authKey.id);
   final agreementVerificationMethodId =
-      await controller.addVerificationMethod(agreementKey.id);
+      await manager.addVerificationMethod(agreementKey.id);
 
   // Set up verification method purposes
-  await controller
+  await manager
       .addAuthentication(authVerificationMethodId.verificationMethodId);
-  await controller
+  await manager
       .addKeyAgreement(agreementVerificationMethodId.verificationMethodId);
 
   // Add service endpoints
@@ -41,10 +41,10 @@ Future<void> main() async {
     type: 'MessagingService',
     serviceEndpoint: const StringEndpoint('https://example.com/messaging'),
   );
-  await controller.addServiceEndpoint(serviceEndpoint);
+  await manager.addServiceEndpoint(serviceEndpoint);
 
   // Get the DID document
-  final didDocument = await controller.getDidDocument();
+  final didDocument = await manager.getDidDocument();
   print('DID: ${didDocument.id}');
   print('Verification methods: ${didDocument.verificationMethod.length}');
   print('Authentication methods: ${didDocument.authentication.length}');
@@ -55,19 +55,19 @@ Future<void> main() async {
   final authKey2Id = 'auth-key-2';
   final authKey2 = await wallet.generateKey(keyId: authKey2Id);
   final authVerificationMethod2Id =
-      await controller.addVerificationMethod(authKey2.id);
-  await controller
+      await manager.addVerificationMethod(authKey2.id);
+  await manager
       .addAuthentication(authVerificationMethod2Id.verificationMethodId);
 
   // Sign data using authentication key
   final dataToSign = Uint8List.fromList('Hello, DID Peer!'.codeUnits);
-  final signature = await controller.sign(
+  final signature = await manager.sign(
       dataToSign, authVerificationMethodId.verificationMethodId);
   print('\nSigned data with authentication key');
   print('Signature: ${base64.encode(signature)}');
 
   // Verify the signature
-  final isValid = await controller.verify(
+  final isValid = await manager.verify(
     dataToSign,
     signature,
     authVerificationMethodId.verificationMethodId,
@@ -75,7 +75,7 @@ Future<void> main() async {
   print('Signature valid: $isValid');
 
   // Get updated DID document with multiple keys
-  final updatedDocument = await controller.getDidDocument();
+  final updatedDocument = await manager.getDidDocument();
   print('\nUpdated DID document:');
   print(
       'Total verification methods: ${updatedDocument.verificationMethod.length}');

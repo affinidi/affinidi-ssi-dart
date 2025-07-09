@@ -8,20 +8,20 @@ import '../../utility.dart';
 import '../did_document/did_document.dart';
 import '../did_peer.dart';
 import 'add_verification_method_result.dart';
-import 'did_controller.dart';
+import 'did_manager.dart';
 import 'verification_relationship.dart';
 
-/// DID Controller implementation for the did:peer method.
+/// DID Manager implementation for the did:peer method.
 ///
-/// This controller handles DID documents that use the did:peer method,
+/// This manager handles DID documents that use the did:peer method,
 /// which supports multiple keys with separate authentication and
 /// key agreement purposes, as well as service endpoints.
-class DidPeerController extends DidController {
-  /// Creates a new DID Peer controller instance.
+class DidPeerManager extends DidManager {
+  /// Creates a new DID Peer manager instance.
   ///
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
-  DidPeerController({
+  DidPeerManager({
     required super.store,
     required super.wallet,
   });
