@@ -1,6 +1,7 @@
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../key_pair/public_key.dart';
+import '../../types.dart';
 import '../did_document/did_document.dart';
 import '../did_document/service_endpoint.dart';
 import '../did_key.dart';
@@ -44,7 +45,39 @@ class DidKeyManager extends DidManager {
       );
     }
 
-    return super.addVerificationMethod(walletKeyId);
+    final result = await super.addVerificationMethod(walletKeyId);
+
+    // For Ed25519 keys, we need to store the mapping for the derived X25519 key agreement method
+    // that is created by DidKey.generateDocument()
+    final publicKey = await wallet.getPublicKey(walletKeyId);
+    if (publicKey.type == KeyType.ed25519) {
+      await _mapX25519KeyAgreementMethod(walletKeyId);
+    }
+
+    return result;
+  }
+
+  /// Maps the X25519 key agreement method to the wallet key ID for Ed25519 keys
+  Future<void> _mapX25519KeyAgreementMethod(String walletKeyId) async {
+    final didDocument = await getDidDocument();
+
+    // Get the Ed25519 verification method ID (the one that's already mapped)
+    final verificationMethods = await store.verificationMethodIds;
+    if (verificationMethods.isEmpty) {
+      throw SsiException(
+        message: 'No verification methods found',
+        code: SsiExceptionType.keyNotFound.code,
+      );
+    }
+
+    final ed25519VerificationMethodId = verificationMethods.first;
+
+    // Find the X25519 key agreement method (it should be different from the Ed25519 verification method)
+    final x25519KeyAgreementMethod = didDocument.keyAgreement
+        .firstWhere((ka) => ka.id != ed25519VerificationMethodId);
+
+    // Store the mapping for the X25519 key agreement method
+    await store.setMapping(x25519KeyAgreementMethod.id, walletKeyId);
   }
 
   Future<String> _getKeyId() async {
