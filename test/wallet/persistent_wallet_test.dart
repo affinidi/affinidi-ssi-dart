@@ -58,6 +58,21 @@ void main() {
           hasLength(64)); // Ed25519 private key is 64 bytes (seed + pub)
     });
 
+    test('createKeyPair should create a secp256k1 key pair', () async {
+      final newKey = await wallet.generateKey(keyType: KeyType.secp256k1);
+      expect(newKey.id, isNotNull);
+      expect(newKey.id, isNotEmpty);
+      expect(await wallet.hasKey(newKey.id), isTrue);
+      expect(newKey.publicKey.type, KeyType.secp256k1);
+
+      final storedData = await keyStore.get(newKey.id);
+      expect(storedData, isNotNull);
+      expect(storedData!.keyType, KeyType.secp256k1);
+      expect(storedData.privateKeyBytes, isA<Uint8List>());
+      expect(storedData.privateKeyBytes.length,
+          32); // secp256k1 private key is 32 bytes
+    });
+
     test('createKeyPair should generate a random keyId if none is provided',
         () async {
       final newKey1 = await wallet.generateKey(keyType: KeyType.p256);
@@ -106,10 +121,6 @@ void main() {
 
     test('createKeyPair should throw for unsupported key type', () async {
       expect(
-        () async => await wallet.generateKey(keyType: KeyType.secp256k1),
-        throwsArgumentError,
-      );
-      expect(
         () async => await wallet.generateKey(keyType: KeyType.rsa),
         throwsArgumentError,
       );
@@ -131,6 +142,16 @@ void main() {
       expect(retrievedEdKeyPair.id, createdEdKey.id);
       expect(retrievedEdKeyPair.publicKey.type, KeyType.ed25519);
       expect(retrievedEdKeyPair.publicKey.bytes, createdEdKey.publicKey.bytes);
+
+      // secp256k1
+      final createdSecpKey =
+          await wallet.generateKey(keyType: KeyType.secp256k1);
+      final retrievedSecpKeyPair = await wallet.getKeyPair(createdSecpKey.id);
+      expect(retrievedSecpKeyPair, isNotNull);
+      expect(retrievedSecpKeyPair.id, createdSecpKey.id);
+      expect(retrievedSecpKeyPair.publicKey.type, KeyType.secp256k1);
+      expect(
+          retrievedSecpKeyPair.publicKey.bytes, createdSecpKey.publicKey.bytes);
     });
 
     test('getKeyPair should throw for non-existent keyId', () async {
@@ -150,7 +171,7 @@ void main() {
       const unsupportedKeyId = 'unsupported-stored-key';
       // Manually insert data with unsupported type
       final unsupportedStoredKey = StoredKey(
-          keyType: KeyType.secp256k1,
+          keyType: KeyType.x25519,
           privateKeyBytes: Uint8List.fromList([1, 2, 3]));
       await keyStore.set(unsupportedKeyId, unsupportedStoredKey);
 
