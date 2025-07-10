@@ -36,3 +36,9 @@ topics:
   - ssi
   - cryptography
   - did
+
+command:
+  version:
+    changelogCommitBodies:
+      include: true
+      onlyBreaking: false
