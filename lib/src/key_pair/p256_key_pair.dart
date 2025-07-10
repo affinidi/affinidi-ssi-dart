@@ -10,7 +10,6 @@ import '../digest_utils.dart';
 import '../types.dart';
 import '../utility.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
-import './_key_pair_utils.dart';
 import 'key_pair.dart';
 import 'public_key.dart';
 
@@ -33,7 +32,7 @@ class P256KeyPair extends KeyPair {
   /// Returns the KeyPair instance and its private key bytes.
   /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
   static (P256KeyPair, Uint8List) generate({String? id}) {
-    final privateKey = generateValidPrivateKey(_p256.generatePrivateKey);
+    final privateKey = _p256.generatePrivateKey();
     final effectiveId = id ?? randomId();
     final instance = P256KeyPair._(privateKey, effectiveId);
     final privateKeyBytes = Uint8List.fromList(privateKey.bytes);
