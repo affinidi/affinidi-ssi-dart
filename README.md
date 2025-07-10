@@ -16,9 +16,10 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
   - [Requirements](#requirements)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [DID Manager](#did-manager)
+  - [Ed25519/X25519 Key Derivation](#ed25519x25519-key-derivation)
   - [Support & feedback](#support--feedback)
   - [Contributing](#contributing)
-
 
 ## Core Concepts
 
@@ -142,6 +143,27 @@ void main() async {
 ```
 
 For more sample usage, go to the [example folder](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example).
+
+## DID Manager
+
+The DID Manager manages the relationship between DID methods and key pairs from the Wallet. It assigns wallet-generated key pairs to specific purposes (e.g. authentication, assertion, key agreement) and generates the DID Document accordingly.
+
+The introduction of the DID Manager simplifies DID management by shifting DID-related operations from the Wallet to the DID Manager, including signing and verifying data using the keys mapped in the DID document.
+
+Each DID method extends the base class [`DidManager`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_manager/did_manager.dart) to inherit the functionality to manage the supported DIDs.
+
+
+## Ed25519/X25519 Key Derivation
+
+If you select an Ed25519 key (Edwards curve) for your DID or wallet, the Dart SSI package will use this curve for digital signatures. However, for key agreement purposes, the package automatically derives an X25519 key from the Ed25519 key.
+
+When generating a DID Document with the Dart SSI package using an Ed25519 key, the resulting document will include both:
+
+- **Ed25519** for signing (digital signatures).
+- **X25519** for encryption/ECDH (key agreement) derived from Ed25519 as needed.
+
+The Dart SSI package handles both the key derivation and DID Document construction automatically, so you don't need to convert keys or add verification methods manually. Be aware that it uses the same key material in different forms for signing and encryption operations.
+
 
 ## Support & feedback
 

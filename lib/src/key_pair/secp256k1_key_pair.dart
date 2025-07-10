@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
@@ -6,8 +7,6 @@ import 'package:elliptic/ecdh.dart';
 import 'package:elliptic/elliptic.dart' as ec;
 
 import '../digest_utils.dart';
-import '../exceptions/ssi_exception.dart';
-import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../utility.dart';
 import './_ecdh_utils.dart' as ecdh_utils;
@@ -18,9 +17,12 @@ import 'public_key.dart';
 ///
 /// This key pair supports signing and verifying data using secp256k1.
 /// It does not support any other signature schemes.
-class Secp256k1KeyPair implements KeyPair {
+class Secp256k1KeyPair extends KeyPair {
   /// The BIP32 node containing the key material.
   final BIP32 _node;
+
+  /// The chain code used for key derivation.
+  static final Uint8List _chainCode = Uint8List(32);
   final ec.Curve _secp256k1 = ec.getSecp256k1();
   @override
   final String id;
@@ -39,19 +41,8 @@ class Secp256k1KeyPair implements KeyPair {
   PublicKey get publicKey => PublicKey(id, _node.publicKey, KeyType.secp256k1);
 
   @override
-  Future<Uint8List> sign(
-    Uint8List data, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.ecdsa_secp256k1_sha256;
-    if (signatureScheme != SignatureScheme.ecdsa_secp256k1_sha256) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only ecdsa_secp256k1_sha256 is supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
-
+  Future<Uint8List> internalSign(
+      Uint8List data, SignatureScheme signatureScheme) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -60,20 +51,8 @@ class Secp256k1KeyPair implements KeyPair {
   }
 
   @override
-  Future<bool> verify(
-    Uint8List data,
-    Uint8List signature, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.ecdsa_secp256k1_sha256;
-    if (signatureScheme != SignatureScheme.ecdsa_secp256k1_sha256) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only ecdsa_secp256k1_sha256 is supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
-
+  Future<bool> internalVerify(Uint8List data, Uint8List signature,
+      SignatureScheme signatureScheme) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -82,8 +61,8 @@ class Secp256k1KeyPair implements KeyPair {
   }
 
   @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      [SignatureScheme.ecdsa_secp256k1_sha256];
+  SignatureScheme get defaultSignatureScheme =>
+      SignatureScheme.ecdsa_secp256k1_sha256;
 
   @override
   Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
@@ -130,5 +109,29 @@ class Secp256k1KeyPair implements KeyPair {
     final privateKey = ec.PrivateKey.fromBytes(_secp256k1, _node.privateKey!);
     final secret = computeSecret(privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
+  }
+
+  /// Generates a new secp256k1 key pair from a private key.
+  factory Secp256k1KeyPair.fromPrivateKey(Uint8List privateKeyBytes,
+      {String? id}) {
+    if (privateKeyBytes.length != 32) {
+      throw ArgumentError(
+          'secp256k1 private key must be 32 bytes, got \\${privateKeyBytes.length}');
+    }
+    final node = BIP32.fromPrivateKey(privateKeyBytes, _chainCode);
+    return Secp256k1KeyPair(node: node, id: id);
+  }
+
+  /// Generates a new secp256k1 key pair.
+  /// /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
+  static (Secp256k1KeyPair, Uint8List) generate({String? id}) {
+    // Generate 32 random bytes for secp256k1 private key
+    final random = Random.secure();
+    final privateKeyBytes =
+        Uint8List.fromList(List.generate(32, (_) => random.nextInt(256)));
+
+    final node = BIP32.fromPrivateKey(privateKeyBytes, _chainCode);
+    final keyPair = Secp256k1KeyPair(node: node, id: id);
+    return (keyPair, privateKeyBytes);
   }
 }

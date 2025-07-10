@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:ssi/src/types.dart';
-
 class VerifiableCredentialDataFixtures {
   static Map<String, dynamic> get credentialWithProofDataModelV11 => {
         '@context': [
@@ -22,7 +20,7 @@ class VerifiableCredentialDataFixtures {
         'expirationDate': '2024-07-18T20:16:05.648',
         'issuer': 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa',
         'proof': {
-          'type': SignatureScheme.ecdsa_secp256k1_sha256.w3c,
+          'type': 'Ed25519Signature2020',
           'created': '2024-07-16T18:16:05Z',
           'proofPurpose': 'assertionMethod',
           'verificationMethod':
