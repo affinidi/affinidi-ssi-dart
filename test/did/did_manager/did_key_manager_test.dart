@@ -356,6 +356,32 @@ void main() {
       });
     });
 
+    group('Ed25519 key agreement mapping', () {
+      test('should retrieve key pair by X25519 key agreement ID', () async {
+        // Arrange - Create DID Manager with Ed25519 key
+        final keyPair = await wallet.generateKey(
+          keyId: 'ed25519-key-agreement-test',
+          keyType: KeyType.ed25519,
+        );
+        await manager.addVerificationMethod(keyPair.id);
+
+        // Act - Create DID Document
+        final didDocument = await manager.getDidDocument();
+
+        // Assert - Find key pair with didDocument.keyAgreement.first.id
+        expect(didDocument.keyAgreement, hasLength(1));
+        final keyAgreementId = didDocument.keyAgreement.first.id;
+
+        // Should be able to retrieve the wallet key ID using the X25519 key agreement ID
+        final walletKeyId = await manager.getWalletKeyId(keyAgreementId);
+        expect(walletKeyId, equals(keyPair.id));
+
+        // Should be able to retrieve the key pair using the wallet key ID
+        final retrievedKeyPair = await manager.getKeyPair(walletKeyId!);
+        expect(retrievedKeyPair.id, equals(keyPair.id));
+      });
+    });
+
     group('buildVerificationMethodId', () {
       test('should build proper ID for P256 key', () async {
         // Arrange
