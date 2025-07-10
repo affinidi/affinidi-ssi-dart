@@ -52,6 +52,29 @@ Packages with other changes:
 
  - **FEAT**: v2 release with major improvements.
 
+ - Replace JWT dependency from `jose_plus` to `dart_jsonwebtoken`.
+ - Introduce unified DID Manager for simplified DID management:
+   - Single interface for all DID methods with automatic document generation.
+   - Seamless wallet integration with built-in key mapping and relationship management.
+   - Smart key handling: automatic Ed25519 → X25519 conversion for key agreement.
+   - Direct signing operations via `manager.getSigner()` without manual key lookups.
+   - Flexible verification relationships with sensible defaults per key type.
+   - Persistent key storage support through pluggable `DidStore` interface.
+ - Align all signature schemes with JOSE standards; cryptosuite mappings updated (e.g., `eddsa-rdfc-2022` → `ed25519`).
+ - Improve Ed25519 to X25519 conversion with RFC 7748 clamping and proper SHA-512 hashing.
+ - Add `ed25519PublicToX25519Public()` utility for direct Ed25519 to X25519 key conversion.
+ - Standardize `computeEcdhSecret()` interface across all key pair types using `@override` annotations.
+ - Extend `did:peer` support with multibase key type detection, new relationship prefixes (`A`, `I`, `D`), and automatic X25519 derivation.
+ - Improve service endpoint handling with `ServiceEndpointValue` and automatic service ID generation.
+ ### Breaking Changes
+ - Remove `w3c` field from `SignatureScheme` enum.
+ - Simplify `SignatureScheme`: merge `eddsa_sha512` and `ed25519_sha256` into single `ed25519`.
+ - Change Ed25519 algorithm identifier from `'EdDSA'` to `'Ed25519'`.
+ - `DidSigner` now accepts a `String did` instead of a `DidDocument`.
+ - Remove the `publicKey` getter from `DidSigner`.
+ - `ed25519KeyToX25519PublicKey()` return type changed from `Future<SimplePublicKey>` to `Future<PublicKey>`.
+ - `ed25519PublicToX25519Public()` return type changed from `String` to `Uint8List`.
+
 
 ## 2025-07-03
 
@@ -1093,4 +1116,3 @@ Packages with other changes:
 - ci: add simple ci check
 - chore: migrate
 - Initial commit
-
