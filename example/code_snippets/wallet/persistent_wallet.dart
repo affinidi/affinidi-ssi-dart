@@ -128,9 +128,10 @@ void main() async {
   final aliceX25519PublicKey = await wallet.getX25519PublicKey(ed25519key.id);
   final charlieX25519PublicKey =
       await charlieWallet.getX25519PublicKey(charlieEd25519key.id);
-  print('Alice X25519 Public Key: ${aliceX25519PublicKey.sublist(1, 9)}...');
   print(
-      'Charlie X25519 Public Key: ${charlieX25519PublicKey.sublist(1, 9)}...');
+      'Alice X25519 Public Key: ${aliceX25519PublicKey.bytes.sublist(1, 9)}...');
+  print(
+      'Charlie X25519 Public Key: ${charlieX25519PublicKey.bytes.sublist(1, 9)}...');
 
   // Alice encrypts data for Charlie using her Ed25519 private key
   // and Charlie's X25519 public key.
@@ -139,7 +140,7 @@ void main() async {
   final encryptedForCharlie = await wallet.encrypt(
     plainText,
     keyId: ed25519key.id,
-    publicKey: charlieX25519PublicKey,
+    publicKey: charlieX25519PublicKey.bytes,
   );
   print(
       'Encrypted data (for Charlie): ${encryptedForCharlie.sublist(1, 9)}...');
@@ -151,7 +152,7 @@ void main() async {
   final decryptedByCharlie = await charlieWallet.decrypt(
     encryptedForCharlie,
     keyId: charlieEd25519key.id,
-    publicKey: aliceX25519PublicKey,
+    publicKey: aliceX25519PublicKey.bytes,
   );
   print('Decrypted data (by Charlie): $decryptedByCharlie');
 }
