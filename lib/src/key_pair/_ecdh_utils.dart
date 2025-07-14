@@ -8,13 +8,9 @@ import 'package:elliptic/elliptic.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import './_encryption_utils.dart';
-import './_key_pair_utils.dart';
-
-/// The length of a full public key.
-const fullPublicKeyLength = 64;
 
 /// The length of a compressed public key.
-const compressedPublidKeyLength = 32;
+const compressedPublicKeyLength = 32;
 
 /// A static nonce used for HKDF key derivation.
 final staticHkdNonce = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
@@ -22,10 +18,27 @@ final staticHkdNonce = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
 /// The encryption utils instance.
 final encryptionUtils = EncryptionUtils();
 
+// Gets the length of the compressed public key for the given elliptic curve.
+/// For NIST/secp curves, this includes the 1-byte prefix (0x02 or 0x03).
+/// For Ed25519/X25519, there is no prefix; the key is always 32 bytes.
+int getPublicKeyLength(Curve curve) {
+  final name = curve.name.toLowerCase();
+
+  // NIST and secp curves (compressed: 1-byte prefix + X coordinate)
+  if (name == 'secp256r1' || name == 'p-256') return 33; // 1 + 32
+  if (name == 'secp256k1' || name == 'p-256k1') return 33; // 1 + 32
+  if (name == 'secp384r1' || name == 'p-384') return 49; // 1 + 48
+  if (name == 'secp521r1' || name == 'p-521') return 67; // 1 + 66
+
+  // Ed25519 and X25519 (no prefix, always 32 bytes)
+  if (name == 'ed25519' || name == 'x25519') return 32;
+
+  throw ArgumentError('Unsupported curve: ${curve.name}');
+}
+
 /// Generates an ephemeral public key for the given curve.
 PublicKey generateEphemeralPubKey(Curve curve) {
-  final privateKey = generateValidPrivateKey(() => curve.generatePrivateKey());
-
+  final privateKey = curve.generatePrivateKey();
   return curve.privateToPublicKey(privateKey);
 }
 
@@ -75,8 +88,8 @@ Future<Uint8List> encryptData({
   final symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
   final encryptedData = encryptionUtils.encryptToBytes(symmetricKey, data);
-
   final publicKeyToUseBytes = hex.decode(publicKeyToUse.toHex());
+
   return Uint8List.fromList(publicKeyToUseBytes + encryptedData);
 }
 
@@ -88,10 +101,9 @@ Future<Uint8List> decryptData({
   Uint8List? publicKeyBytes,
 }) async {
   final privateKey = PrivateKey.fromBytes(curve, privateKeyBytes);
-
-  final ephemeralPublicKeyBytes =
-      encryptedPackage.sublist(0, fullPublicKeyLength + 1);
-  final encryptedData = encryptedPackage.sublist(fullPublicKeyLength + 1);
+  final publicKeyLen = getPublicKeyLength(curve);
+  final ephemeralPublicKeyBytes = encryptedPackage.sublist(0, publicKeyLen);
+  final encryptedData = encryptedPackage.sublist(publicKeyLen);
 
   final pubKeyToUse = publicKeyBytes == null
       ? curve.hexToPublicKey(hex.encode(ephemeralPublicKeyBytes))

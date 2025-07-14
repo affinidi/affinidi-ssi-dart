@@ -226,5 +226,56 @@ void main() {
 
       expect(decryptedByBob, data);
     });
+
+    test('P384 without pub key', () async {
+      var (p384Key, privateKeyBytes) = P384KeyPair.generate();
+      // Encrypt with ephemeral key
+      var encrypted = await p384Key.encrypt(data);
+      // Decrypt the message
+      var decrypted = await p384Key.decrypt(encrypted);
+
+      expect(decrypted, data);
+    });
+
+    test('P384 with pub key parameter', () async {
+      var (p384KeyAlice, privateKeyBytesAlice) = P384KeyPair.generate();
+      var (p384KeyBob, privateKeyBytesBob) = P384KeyPair.generate();
+
+      var bobPubKey = p384KeyBob.publicKey;
+
+      var encryptedByAlice =
+          await p384KeyAlice.encrypt(data, publicKey: bobPubKey.bytes);
+
+      var alicePubKey = p384KeyAlice.publicKey;
+      var decryptedByBob = await p384KeyBob.decrypt(encryptedByAlice,
+          publicKey: alicePubKey.bytes);
+
+      expect(decryptedByBob, data);
+    });
+
+    test('P521 without pub key', () async {
+      var (p521Key, privateKeyBytes) = P521KeyPair.generate();
+      // Encrypt with ephemeral key
+      var encrypted = await p521Key.encrypt(data);
+      // Decrypt the message
+      var decrypted = await p521Key.decrypt(encrypted);
+
+      expect(decrypted, data);
+    });
+
+    test('P521 with pub key parameter', () async {
+      var (p521KeyAlice, privateKeyBytesAlice) = P521KeyPair.generate();
+      var (p521KeyBob, privateKeyBytesBob) = P521KeyPair.generate();
+
+      var bobPubKey = p521KeyBob.publicKey;
+      var encryptedByAlice =
+          await p521KeyAlice.encrypt(data, publicKey: bobPubKey.bytes);
+
+      var alicePubKey = p521KeyAlice.publicKey;
+      var decryptedByBob = await p521KeyBob.decrypt(encryptedByAlice,
+          publicKey: alicePubKey.bytes);
+
+      expect(decryptedByBob, data);
+    });
   });
 }
