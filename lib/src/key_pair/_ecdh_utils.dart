@@ -8,6 +8,7 @@ import 'package:elliptic/elliptic.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import './_encryption_utils.dart';
+import '_curve_names.dart';
 
 /// The length of a compressed public key.
 const compressedPublicKeyLength = 32;
@@ -24,16 +25,13 @@ final encryptionUtils = EncryptionUtils();
 int getNonCompressedPublicKeyLength(Curve curve) {
   final name = curve.name.toLowerCase();
 
-  // NIST and secp curves (uncompressed: 1-byte prefix + X + Y coordinates)
-  if (name == 'secp256r1' || name == 'p-256') return 65; // 1 + 32 + 32
-  if (name == 'secp256k1' || name == 'p-256k1') return 65; // 1 + 32 + 32
-  if (name == 'secp384r1' || name == 'p-384') return 97; // 1 + 48 + 48
-  if (name == 'secp521r1' || name == 'p-521') return 133; // 1 + 66 + 66
+  final curveName = CurveName.values.byName(name);
+  final uncompressedSize = uncompressedPublicKeySizesWithLeadingByte[curveName];
+  if (uncompressedSize == null) {
+    throw ArgumentError('Unsupported curve: ${curve.name}');
+  }
 
-  // Ed25519 and X25519 (no uncompressed format, always 32 bytes)
-  if (name == 'ed25519' || name == 'x25519') return 32;
-
-  throw ArgumentError('Unsupported curve: ${curve.name}');
+  return uncompressedSize;
 }
 
 /// Generates an ephemeral public key for the given curve.
