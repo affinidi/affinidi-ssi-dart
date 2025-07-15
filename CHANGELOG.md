@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.3.0`](#ssi---v230)
+
+---
+
+#### `ssi` - `v2.3.0`
+
+ - **FEAT**: Add custom document loader support for verifiable credential verification (#141).
+
+## 2.3.0
+
+ - **FEAT**: Add custom document loader support for verifiable credential verification (#141).
+
+
+## 2025-07-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.2.1`](#ssi---v221)
 
 ---
