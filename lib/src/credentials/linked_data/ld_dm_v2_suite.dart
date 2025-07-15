@@ -11,8 +11,12 @@ final class LdVcDm2Suite extends LdBaseSuite<VcDataModelV2, LdVcDataModelV2>
     implements
         VerifiableCredentialSuite<String, VcDataModelV2, LdVcDataModelV2> {
   /// Constructs a [LdVcDm2Suite] using the predefined [dmV2ContextUrl].
-  LdVcDm2Suite()
-      : super(
+  ///
+  /// Optionally accepts a [customDocumentLoader] to use when loading external resources
+  /// during verification.
+  LdVcDm2Suite({
+    super.customDocumentLoader,
+  }) : super(
           contextUrl: dmV2ContextUrl,
         );
 
