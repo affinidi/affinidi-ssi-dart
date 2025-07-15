@@ -5,7 +5,7 @@ import '../../../util/json_util.dart';
 
 part './mutable_vc_data_model_v2.dart';
 
-/// Represents a Verifiable Credential (VC) according to the W3C VC Data Model v1.2.
+/// Represents a Verifiable Credential (VC) according to the [W3C VC Data Model v2](https://www.w3.org/TR/vc-data-model-2.0/).
 ///
 ///  A Verifiable Credential (VC) is a digitally signed statement, issued by issuer
 ///
@@ -14,7 +14,7 @@ part './mutable_vc_data_model_v2.dart';
 /// ```dart
 /// VcDataModelV2(
 ///  context: [
-///    'https://www.w3.org/2018/credentials/v1',
+///    'https://www.w3.org/ns/credentials/v2',
 ///    'https://schema.affinidi.com/UserProfileV1-0.jsonld'
 ///  ],
 ///  id: Uri.parse('uuid:123456abcd'),
@@ -27,11 +27,11 @@ part './mutable_vc_data_model_v2.dart';
 ///      'Address': 'Eihhornstr'
 ///    })
 ///   ],
-///  holder: Holder.uri('did:example:1'),
 ///  credentialSchema: [
 ///    CredentialSchema(
 ///        id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
-///        type: 'JsonSchemaValidator2018')
+///        type: 'JsonSchemaValidator2018',
+///    )
 ///  ],
 ///  issuanceDate: DateTime.now(),
 ///  issuer: Issuer.uri(signer.did),

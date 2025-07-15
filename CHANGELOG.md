@@ -3,6 +3,56 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.3.0`](#ssi---v230)
+
+---
+
+#### `ssi` - `v2.3.0`
+
+ - **FEAT**: Add custom document loader support for verifiable credential verification (#141).
+
+## 2.3.0
+
+ - **FEAT**: Add custom document loader support for verifiable credential verification (#141).
+
+
+## 2025-07-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.2.1`](#ssi---v221)
+
+---
+
+#### `ssi` - `v2.2.1`
+
+ - **DOCS**: fix the VCDM 2 description (#151).
+
+## 2.2.1
+
+ - **DOCS**: fix the VCDM 2 description (#151).
+
+
 ## 2025-07-10
 
 ### Changes
