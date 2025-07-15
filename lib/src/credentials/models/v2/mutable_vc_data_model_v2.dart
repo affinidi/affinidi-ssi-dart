@@ -1,6 +1,6 @@
 part of 'vc_data_model_v2.dart';
 
-/// Default VC Data Model v1.2 context url
+/// Default VC Data Model v2 context url
 const String dmV2ContextUrl = 'https://www.w3.org/ns/credentials/v2';
 
 /// Represents a Verifiable Credential (VC) according to the W3C VC Data Model v1.1.
@@ -38,7 +38,7 @@ const String dmV2ContextUrl = 'https://www.w3.org/ns/credentials/v2';
 class MutableVcDataModelV2 {
   /// The JSON-LD context for this presentation.
   ///
-  /// Typically includes 'https://www.w3.org/2018/credentials/v2'.
+  /// First item must be 'https://www.w3.org/ns/credentials/v2'.
   List<String> context;
 
   /// The optional identifier for the Verifiable Credential.
