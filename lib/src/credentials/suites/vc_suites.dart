@@ -27,9 +27,28 @@ class VcSuites {
   ///
   /// Throws [SsiException] if no suite is available for the credential type.
   static VerifiableCredentialSuite getVcSuite(ParsedVerifiableCredential vc) {
+    return getVcSuiteWithDocumentLoader(vc, null);
+  }
+
+  /// Returns the appropriate suite for the given credential with a custom document loader.
+  ///
+  /// [vc] - The parsed verifiable credential to find a suite for.
+  /// [customDocumentLoader] - Optional custom document loader for loading external resources.
+  ///
+  /// Returns the matching VerifiableCredentialSuite for the credential type.
+  ///
+  /// Throws [SsiException] if no suite is available for the credential type.
+  static VerifiableCredentialSuite getVcSuiteWithDocumentLoader(
+    ParsedVerifiableCredential vc,
+    DocumentLoader? customDocumentLoader,
+  ) {
     return switch (vc) {
-      LdVcDataModelV1() => LdVcDm1Suite() as VerifiableCredentialSuite,
-      LdVcDataModelV2() => LdVcDm2Suite() as VerifiableCredentialSuite,
+      LdVcDataModelV1() => LdVcDm1Suite(
+          customDocumentLoader: customDocumentLoader,
+        ) as VerifiableCredentialSuite,
+      LdVcDataModelV2() => LdVcDm2Suite(
+          customDocumentLoader: customDocumentLoader,
+        ) as VerifiableCredentialSuite,
       JwtVcDataModelV1() => JwtDm1Suite() as VerifiableCredentialSuite,
       SdJwtDataModelV2() => SdJwtDm2Suite() as VerifiableCredentialSuite,
       _ => throw SsiException(
