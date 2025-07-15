@@ -9,7 +9,13 @@ import '../parsers/ld_parser.dart';
 import '../proof/data_integrity_ecdsa_suite.dart';
 import '../proof/data_integrity_eddsa_suite.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
-import '../proof/embedded_proof_suite.dart';
+import '../proof/embedded_proof_suite.dart'
+    show DocumentLoader, EmbeddedProofGenerator, EmbeddedProofVerifier;
+
+/// A no-operation document loader that always returns null.
+Future<Map<String, dynamic>?> _noOpLoader(Uri url) async {
+  return Future.value(null);
+}
 
 /// Class to parse and convert a json representation of a [VerifiableCredential]
 abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
@@ -26,14 +32,23 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   /// The JSON key used for the issuer field (default: 'issuer').
   final String issuerKey;
 
+  /// Custom document loader for loading external resources during verification.
+  ///
+  /// This loader is used to load external resources like JSON-LD contexts and
+  /// DID documents during verification.
+  ///
+  /// If not provided, a default no-op loader is used, which always returns null.
+  final DocumentLoader? customDocumentLoader;
+
   /// Constructs a new [LdBaseSuite] with the required context URL.
   ///
-  /// Optional [proofKey], [contextKey], and [issuerKey] parameters
+  /// Optional [proofKey], [contextKey], [issuerKey], and [customDocumentLoader] parameters
   LdBaseSuite({
     required this.contextUrl,
     this.proofKey = 'proof',
     this.contextKey = '@context',
     this.issuerKey = 'issuer',
+    this.customDocumentLoader,
   });
 
   @override
@@ -138,20 +153,29 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     }
 
     final issuerDid = Issuer.uri(document[issuerKey]).id.toString();
-
+    final loader = customDocumentLoader ?? _noOpLoader;
     switch (proofType) {
       case 'DataIntegrityProof':
         final cryptosuite = proof['cryptosuite'] as String?;
         switch (cryptosuite) {
           case 'ecdsa-rdfc-2019':
-            return DataIntegrityEcdsaVerifier(issuerDid: issuerDid);
+            return DataIntegrityEcdsaVerifier(
+              issuerDid: issuerDid,
+              customDocumentLoader: loader,
+            );
           case 'eddsa-rdfc-2022':
-            return DataIntegrityEddsaVerifier(issuerDid: issuerDid);
+            return DataIntegrityEddsaVerifier(
+              issuerDid: issuerDid,
+              customDocumentLoader: loader,
+            );
           default:
             return null;
         }
       case 'EcdsaSecp256k1Signature2019':
-        return Secp256k1Signature2019Verifier(issuerDid: issuerDid);
+        return Secp256k1Signature2019Verifier(
+          issuerDid: issuerDid,
+          customDocumentLoader: loader,
+        );
       default:
         return null;
     }
