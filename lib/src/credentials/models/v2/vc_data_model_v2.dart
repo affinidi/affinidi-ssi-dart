@@ -40,7 +40,7 @@ part './mutable_vc_data_model_v2.dart';
 class VcDataModelV2 implements VerifiableCredential {
   /// The JSON-LD context for this presentation.
   ///
-  /// Typically includes 'https://www.w3.org/2018/credentials/v2'.
+  /// First item must be 'https://www.w3.org/ns/credentials/v2'.
   @override
   final UnmodifiableListView<String> context;
 
