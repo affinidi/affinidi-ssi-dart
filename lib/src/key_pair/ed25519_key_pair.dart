@@ -168,10 +168,10 @@ class Ed25519KeyPair extends KeyPair {
     // Extract the ephemeral public key and the encrypted data
     final ephemeralPublicKeyBytes = ivAndBytes.sublist(
       0,
-      compressedPublidKeyLength,
+      compressedPublicKeyLength,
     );
     final encryptedData = ivAndBytes.sublist(
-      compressedPublidKeyLength,
+      compressedPublicKeyLength,
     ); // The rest is the encrypted data
 
     Uint8List pubKeyToUse;

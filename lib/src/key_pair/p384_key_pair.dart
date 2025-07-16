@@ -124,7 +124,9 @@ class P384KeyPair extends KeyPair {
   }
 
   @override
-  List<SignatureScheme> get supportedSignatureSchemes => [];
+  List<SignatureScheme> get supportedSignatureSchemes => [
+        SignatureScheme.ecdsa_p384_sha384,
+      ];
 
   @override
   SignatureScheme get defaultSignatureScheme =>
