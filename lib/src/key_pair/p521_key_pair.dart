@@ -85,7 +85,9 @@ class P521KeyPair extends KeyPair {
   }
 
   @override
-  List<SignatureScheme> get supportedSignatureSchemes => [];
+  List<SignatureScheme> get supportedSignatureSchemes => [
+        SignatureScheme.ecdsa_p521_sha512,
+      ];
 
   @override
   SignatureScheme get defaultSignatureScheme =>

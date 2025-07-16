@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.4.0`](#ssi---v240)
+
+---
+
+#### `ssi` - `v2.4.0`
+
+ - **FEAT**: update secp keys decryption (#150).
+
+## 2.4.0
+
+ - **FEAT**: update secp keys decryption (#150).
+
+
+## 2025-07-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.3.2`](#ssi---v232)
 
 ---
