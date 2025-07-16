@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.3.2`](#ssi---v232)
+
+---
+
+#### `ssi` - `v2.3.2`
+
+ - **FIX**: specify 'meta' dependency version (#154).
+ - **FIX**: change meta dependency to 'any' and update version to '2.3.1' (#153).
+ - **DOCS**: fix the VCDM 2 context in description (#152).
+
+## 2.3.2
+
+ - **FIX**: specify 'meta' dependency version (#154).
+ - **FIX**: change meta dependency to 'any' and update version to '2.3.1' (#153).
+ - **DOCS**: fix the VCDM 2 context in description (#152).
+
+
 ## 2025-07-15
 
 ### Changes
