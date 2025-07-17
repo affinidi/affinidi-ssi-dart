@@ -1,22 +1,21 @@
-import 'dart:convert';
 import 'package:ssi/ssi.dart';
 
 import '../../utility.dart';
 
 void main() async {
-  // Use a pretty print encoder
-  const jsonEncoder = JsonEncoder.withIndent('  ');
-
   print('\n--- DidPeerManager Operations ---');
 
   // 1. Create dependencies: Wallet and DID Store
   // WARNING: InMemoryKeyStore is not secure for production use.
   final keyStore = InMemoryKeyStore();
   final wallet = PersistentWallet(keyStore);
-  final didStore = InMemoryDidStore();
 
   // 2. Create the DidPeerManager
-  final didPeerManager = DidPeerManager(store: didStore, wallet: wallet);
+  final didPeerManager = DidPeerManager(
+    keyMappingStore: InMemoryDidKeyMappingStore(),
+    documentReferenceStore: InMemoryDidDocumentReferenceStore(),
+    wallet: wallet,
+  );
   print('DidPeerManager created.');
 
   // 3. Generate a key for authentication and key agreement

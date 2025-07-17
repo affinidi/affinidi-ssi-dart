@@ -9,10 +9,13 @@ void main() async {
   // WARNING: InMemoryKeyStore is not secure for production use.
   final keyStore = InMemoryKeyStore();
   final wallet = PersistentWallet(keyStore);
-  final didStore = InMemoryDidStore();
 
   // 2. Create the DidKeyManager
-  final didKeyManager = DidKeyManager(store: didStore, wallet: wallet);
+  final didKeyManager = DidKeyManager(
+    keyMappingStore: InMemoryDidKeyMappingStore(),
+    documentReferenceStore: InMemoryDidDocumentReferenceStore(),
+    wallet: wallet,
+  );
   print('DidKeyManager created.');
 
   // 3. Generate a key in the wallet to be used for the DID

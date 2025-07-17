@@ -1,20 +1,24 @@
 import 'dart:typed_data';
 
 import 'package:ssi/ssi.dart';
+import 'package:ssi/src/did/stores/in_memory_did_store.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('DidPeerManager', () {
     late Wallet wallet;
-    late DidStore store;
+    late InMemoryDidKeyMappingStore keyMappingStore;
+    late InMemoryDidDocumentReferenceStore documentReferenceStore;
     late DidPeerManager manager;
 
     setUp(() async {
       final keyStore = InMemoryKeyStore();
       wallet = PersistentWallet(keyStore);
-      store = InMemoryDidStore();
+      keyMappingStore = InMemoryDidKeyMappingStore();
+      documentReferenceStore = InMemoryDidDocumentReferenceStore();
       manager = DidPeerManager(
-        store: store,
+        keyMappingStore: keyMappingStore,
+        documentReferenceStore: documentReferenceStore,
         wallet: wallet,
       );
       await manager.init();
@@ -439,13 +443,13 @@ void main() {
         expect(authVmId, isNot(equals(assertVmId)),
             reason: 'Each purpose should have a unique verification method ID');
 
-        final storeAuth = await store.authentication;
-        final storeAssert = await store.assertionMethod;
+        final storeAuth = await documentReferenceStore.authentication;
+        final storeAssert = await documentReferenceStore.assertionMethod;
 
         expect(storeAuth, [authVmId]);
         expect(storeAssert, [assertVmId]);
 
-        final allVmIds = await store.verificationMethodIds;
+        final allVmIds = await keyMappingStore.verificationMethodIds;
         expect(allVmIds, hasLength(2));
         expect(allVmIds, containsAll([authVmId, assertVmId]));
 
@@ -494,7 +498,11 @@ void main() {
         expect(resolvedDoc1.toJson(), doc1.toJson());
 
         // Arrange: Second manager instance with the same store
-        final manager2 = DidPeerManager(store: store, wallet: wallet);
+        final manager2 = DidPeerManager(
+          keyMappingStore: keyMappingStore,
+          documentReferenceStore: documentReferenceStore,
+          wallet: wallet,
+        );
         await manager2.init();
 
         // Act: Get document from the second manager
@@ -686,11 +694,6 @@ void main() {
         // Use Bip32Wallet for secp256k1 keys
         final seed = Uint8List(32); // A dummy seed for testing
         final bip32Wallet = Bip32Wallet.fromSeed(seed);
-        final store = InMemoryDidStore();
-        final manager = DidPeerManager(
-          store: store,
-          wallet: bip32Wallet,
-        );
         const derivationPath = "m/44'/0'/0'/0/0";
         final authKey = await bip32Wallet.generateKey(keyId: derivationPath);
 

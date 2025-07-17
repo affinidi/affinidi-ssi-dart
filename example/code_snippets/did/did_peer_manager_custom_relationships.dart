@@ -10,8 +10,11 @@ void main() async {
   // 1. Create dependencies
   var keyStore = InMemoryKeyStore();
   var wallet = PersistentWallet(keyStore);
-  var didStore = InMemoryDidStore();
-  var didPeerManager = DidPeerManager(store: didStore, wallet: wallet);
+  var didPeerManager = DidPeerManager(
+    keyMappingStore: InMemoryDidKeyMappingStore(),
+    documentReferenceStore: InMemoryDidDocumentReferenceStore(),
+    wallet: wallet,
+  );
 
   // 2. Generate a key
   print('\nGenerating key...');

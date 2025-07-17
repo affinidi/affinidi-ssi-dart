@@ -1,19 +1,14 @@
 import '../did_document/service_endpoint.dart';
-import 'did_store_interface.dart';
+import 'did_key_mapping_store.dart';
+import 'did_document_reference_store.dart';
 
-/// Default implementation of [DidStore] using an in-memory map.
+/// Default implementation of [DidKeyMappingStore] and [DidDocumentReferenceStore] using in-memory maps.
 ///
-/// This implementation provides a simple map-based storage for DID key mappings.
+/// This implementation provides a simple map-based storage for DID key mappings and document references.
 /// For production applications that require persistence, consider implementing
-/// a custom [DidStore] backed by a database or file system.
-class InMemoryDidStore extends DidStore {
+/// custom stores backed by a database or file system.
+class InMemoryDidKeyMappingStore implements DidKeyMappingStore {
   final Map<String, String> _keyMapping = {};
-  final List<String> _authentication = [];
-  final List<String> _keyAgreement = [];
-  final List<String> _capabilityInvocation = [];
-  final List<String> _capabilityDelegation = [];
-  final List<String> _assertionMethod = [];
-  final List<ServiceEndpoint> _serviceEndpoints = [];
 
   @override
   Future<void> setMapping(
@@ -34,13 +29,20 @@ class InMemoryDidStore extends DidStore {
   @override
   Future<void> clearAll() async {
     _keyMapping.clear();
-    await clearVerificationMethodReferences();
-    await clearServiceEndpoints();
   }
 
   @override
   Future<List<String>> get verificationMethodIds async =>
       _keyMapping.keys.toList();
+}
+
+class InMemoryDidDocumentReferenceStore implements DidDocumentReferenceStore {
+  final List<String> _authentication = [];
+  final List<String> _keyAgreement = [];
+  final List<String> _capabilityInvocation = [];
+  final List<String> _capabilityDelegation = [];
+  final List<String> _assertionMethod = [];
+  final List<ServiceEndpoint> _serviceEndpoints = [];
 
   @override
   Future<List<String>> get authentication async => _authentication;

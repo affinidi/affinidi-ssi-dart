@@ -20,7 +20,8 @@ class DidKeyManager extends DidManager {
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   DidKeyManager({
-    required super.store,
+    required super.keyMappingStore,
+    required super.documentReferenceStore,
     required super.wallet,
   });
 
@@ -29,7 +30,7 @@ class DidKeyManager extends DidManager {
     String walletKeyId, {
     Set<VerificationRelationship>? relationships,
   }) async {
-    final verificationMethods = await store.verificationMethodIds;
+    final verificationMethods = await keyMappingStore.verificationMethodIds;
     if (verificationMethods.isNotEmpty) {
       throw SsiException(
         message: 'did:key method supports only one key.',
@@ -72,11 +73,11 @@ class DidKeyManager extends DidManager {
     final x25519KeyAgreementMethod = didDocument.keyAgreement.first;
 
     // Store the mapping for the X25519 key agreement method
-    await store.setMapping(x25519KeyAgreementMethod.id, walletKeyId);
+    await keyMappingStore.setMapping(x25519KeyAgreementMethod.id, walletKeyId);
   }
 
   Future<String> _getKeyId() async {
-    final verificationMethods = await store.verificationMethodIds;
+    final verificationMethods = await keyMappingStore.verificationMethodIds;
     if (verificationMethods.isEmpty) {
       throw SsiException(
         message: 'DidKey expects a single key.',

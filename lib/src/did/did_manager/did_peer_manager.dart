@@ -7,6 +7,8 @@ import '../../types.dart';
 import '../../utility.dart';
 import '../did_document/did_document.dart';
 import '../did_peer.dart';
+import '../stores/did_key_mapping_store.dart';
+import '../stores/did_document_reference_store.dart';
 import 'add_verification_method_result.dart';
 import 'did_manager.dart';
 import 'verification_relationship.dart';
@@ -19,10 +21,12 @@ import 'verification_relationship.dart';
 class DidPeerManager extends DidManager {
   /// Creates a new DID Peer manager instance.
   ///
-  /// [store] - The key mapping store to use for managing key relationships.
+  /// [keyMappingStore] - The key mapping store to use for managing key relationships.
+  /// [documentReferenceStore] - The document reference store for verification method references and service endpoints.
   /// [wallet] - The wallet to use for key operations.
   DidPeerManager({
-    required super.store,
+    required super.keyMappingStore,
+    required super.documentReferenceStore,
     required super.wallet,
   });
 
@@ -39,7 +43,7 @@ class DidPeerManager extends DidManager {
     // If no relationships are specified, create one VM not attached to any purpose.
     if (relationships.isEmpty) {
       final vmId = await buildVerificationMethodId(publicKey);
-      await store.setMapping(vmId, walletKeyId);
+      await keyMappingStore.setMapping(vmId, walletKeyId);
       return AddVerificationMethodResult(
         verificationMethodId: vmId,
         relationships: const {},
@@ -120,7 +124,7 @@ class DidPeerManager extends DidManager {
     }
 
     // Get all verification method IDs in their creation order.
-    final uniqueVmIds = await store.verificationMethodIds;
+    final uniqueVmIds = await keyMappingStore.verificationMethodIds;
 
     // Create a list of public keys for each unique verification method.
     final verificationMethodsPubKeys = <PublicKey>[];
@@ -197,7 +201,7 @@ class DidPeerManager extends DidManager {
   Future<String> buildVerificationMethodId(PublicKey publicKey) async {
     // For did:peer, verification method IDs are numbered sequentially
     // based on their order in the verificationMethod array
-    final verificationMethods = await store.verificationMethodIds;
+    final verificationMethods = await keyMappingStore.verificationMethodIds;
 
     // Verification method IDs are 1-indexed
     return '#key-${verificationMethods.length + 1}';
