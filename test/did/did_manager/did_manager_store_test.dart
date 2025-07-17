@@ -3,10 +3,12 @@ import 'package:test/test.dart';
 
 void main() {
   group('InMemoryDidStore', () {
-    late InMemoryDidStore store;
+    late InMemoryDidKeyMappingStore keyMappingStore;
+    late InMemoryDidDocumentReferenceStore documentReferenceStore;
 
     setUp(() {
-      store = InMemoryDidStore();
+      keyMappingStore = InMemoryDidKeyMappingStore();
+      documentReferenceStore = InMemoryDidDocumentReferenceStore();
     });
 
     group('Map/get/remove operations', () {
@@ -17,8 +19,8 @@ void main() {
         const walletKeyId = 'wallet-key-123';
 
         // Act
-        await store.setMapping(didKeyId, walletKeyId);
-        final retrieved = await store.getWalletKeyId(didKeyId);
+        await keyMappingStore.setMapping(didKeyId, walletKeyId);
+        final retrieved = await keyMappingStore.getWalletKeyId(didKeyId);
 
         // Assert
         expect(retrieved, walletKeyId);
@@ -26,7 +28,8 @@ void main() {
 
       test('should return null for non-existent mapping', () async {
         // Act
-        final retrieved = await store.getWalletKeyId('did:key:unknown#key');
+        final retrieved =
+            await keyMappingStore.getWalletKeyId('did:key:unknown#key');
 
         // Assert
         expect(retrieved, isNull);
@@ -36,11 +39,11 @@ void main() {
         // Arrange
         const didKeyId = 'did:peer:2.Ez...#key-1';
         const walletKeyId = 'wallet-key-456';
-        await store.setMapping(didKeyId, walletKeyId);
+        await keyMappingStore.setMapping(didKeyId, walletKeyId);
 
         // Act
-        await store.removeMapping(didKeyId);
-        final retrieved = await store.getWalletKeyId(didKeyId);
+        await keyMappingStore.removeMapping(didKeyId);
+        final retrieved = await keyMappingStore.getWalletKeyId(didKeyId);
 
         // Assert
         expect(retrieved, isNull);
@@ -53,9 +56,9 @@ void main() {
         const walletKeyId2 = 'wallet-key-2';
 
         // Act
-        await store.setMapping(didKeyId, walletKeyId1);
-        await store.setMapping(didKeyId, walletKeyId2);
-        final retrieved = await store.getWalletKeyId(didKeyId);
+        await keyMappingStore.setMapping(didKeyId, walletKeyId1);
+        await keyMappingStore.setMapping(didKeyId, walletKeyId2);
+        final retrieved = await keyMappingStore.getWalletKeyId(didKeyId);
 
         // Assert
         expect(retrieved, walletKeyId2);
@@ -63,7 +66,7 @@ void main() {
 
       test('should handle removing non-existent mapping', () async {
         // Act & Assert - Should not throw
-        expect(() async => await store.removeMapping('non-existent'),
+        expect(() async => await keyMappingStore.removeMapping('non-existent'),
             returnsNormally);
       });
     });
@@ -76,53 +79,55 @@ void main() {
         const mapping3 = ('did:peer:ghi#key3', 'wallet-3');
 
         // Act
-        await store.setMapping(mapping1.$1, mapping1.$2);
-        await store.setMapping(mapping2.$1, mapping2.$2);
-        await store.setMapping(mapping3.$1, mapping3.$2);
+        await keyMappingStore.setMapping(mapping1.$1, mapping1.$2);
+        await keyMappingStore.setMapping(mapping2.$1, mapping2.$2);
+        await keyMappingStore.setMapping(mapping3.$1, mapping3.$2);
 
         // Assert
-        expect(await store.getWalletKeyId(mapping1.$1), mapping1.$2);
-        expect(await store.getWalletKeyId(mapping2.$1), mapping2.$2);
-        expect(await store.getWalletKeyId(mapping3.$1), mapping3.$2);
+        expect(await keyMappingStore.getWalletKeyId(mapping1.$1), mapping1.$2);
+        expect(await keyMappingStore.getWalletKeyId(mapping2.$1), mapping2.$2);
+        expect(await keyMappingStore.getWalletKeyId(mapping3.$1), mapping3.$2);
       });
 
       test('should maintain mappings after removal', () async {
         // Arrange
-        await store.setMapping('did:key:1#key', 'wallet-1');
-        await store.setMapping('did:key:2#key', 'wallet-2');
-        await store.setMapping('did:key:3#key', 'wallet-3');
+        await keyMappingStore.setMapping('did:key:1#key', 'wallet-1');
+        await keyMappingStore.setMapping('did:key:2#key', 'wallet-2');
+        await keyMappingStore.setMapping('did:key:3#key', 'wallet-3');
 
         // Act
-        await store.removeMapping('did:key:2#key');
+        await keyMappingStore.removeMapping('did:key:2#key');
 
         // Assert
-        expect(await store.getWalletKeyId('did:key:1#key'), 'wallet-1');
-        expect(await store.getWalletKeyId('did:key:2#key'), isNull);
-        expect(await store.getWalletKeyId('did:key:3#key'), 'wallet-3');
+        expect(
+            await keyMappingStore.getWalletKeyId('did:key:1#key'), 'wallet-1');
+        expect(await keyMappingStore.getWalletKeyId('did:key:2#key'), isNull);
+        expect(
+            await keyMappingStore.getWalletKeyId('did:key:3#key'), 'wallet-3');
       });
 
       test('should clear all mappings', () async {
         // Arrange
-        await store.setMapping('did:key:1#key', 'wallet-1');
-        await store.setMapping('did:key:2#key', 'wallet-2');
-        await store.setMapping('did:key:3#key', 'wallet-3');
+        await keyMappingStore.setMapping('did:key:1#key', 'wallet-1');
+        await keyMappingStore.setMapping('did:key:2#key', 'wallet-2');
+        await keyMappingStore.setMapping('did:key:3#key', 'wallet-3');
 
         // Act
-        await store.clearAll();
+        await keyMappingStore.clearAll();
 
         // Assert
-        expect(await store.getWalletKeyId('did:key:1#key'), isNull);
-        expect(await store.getWalletKeyId('did:key:2#key'), isNull);
-        expect(await store.getWalletKeyId('did:key:3#key'), isNull);
-        expect(await store.verificationMethodIds, isEmpty);
+        expect(await keyMappingStore.getWalletKeyId('did:key:1#key'), isNull);
+        expect(await keyMappingStore.getWalletKeyId('did:key:2#key'), isNull);
+        expect(await keyMappingStore.getWalletKeyId('did:key:3#key'), isNull);
+        expect(await keyMappingStore.verificationMethodIds, isEmpty);
       });
     });
 
     group('Non-existent keys', () {
       test('should handle empty string key', () async {
         // Act
-        await store.setMapping('', 'wallet-empty');
-        final retrieved = await store.getWalletKeyId('');
+        await keyMappingStore.setMapping('', 'wallet-empty');
+        final retrieved = await keyMappingStore.getWalletKeyId('');
 
         // Assert
         expect(retrieved, 'wallet-empty');
@@ -130,7 +135,7 @@ void main() {
 
       test('should handle null values gracefully', () async {
         // Act
-        final retrieved = await store.getWalletKeyId('never-set');
+        final retrieved = await keyMappingStore.getWalletKeyId('never-set');
 
         // Assert
         expect(retrieved, isNull);
@@ -142,8 +147,8 @@ void main() {
         const walletKeyId = 'wallet-special';
 
         // Act
-        await store.setMapping(complexDidKeyId, walletKeyId);
-        final retrieved = await store.getWalletKeyId(complexDidKeyId);
+        await keyMappingStore.setMapping(complexDidKeyId, walletKeyId);
+        final retrieved = await keyMappingStore.getWalletKeyId(complexDidKeyId);
 
         // Assert
         expect(retrieved, walletKeyId);
@@ -153,17 +158,17 @@ void main() {
     group('verificationMethodIds getter', () {
       test('should return empty list when no mappings', () async {
         // Assert
-        expect(await store.verificationMethodIds, isEmpty);
+        expect(await keyMappingStore.verificationMethodIds, isEmpty);
       });
 
       test('should return all DID key IDs', () async {
         // Arrange
-        await store.setMapping('did:key:1#key', 'wallet-1');
-        await store.setMapping('did:key:2#key', 'wallet-2');
-        await store.setMapping('did:key:3#key', 'wallet-3');
+        await keyMappingStore.setMapping('did:key:1#key', 'wallet-1');
+        await keyMappingStore.setMapping('did:key:2#key', 'wallet-2');
+        await keyMappingStore.setMapping('did:key:3#key', 'wallet-3');
 
         // Act
-        final keys = await store.verificationMethodIds;
+        final keys = await keyMappingStore.verificationMethodIds;
 
         // Assert
         expect(keys.length, 3);
@@ -173,12 +178,12 @@ void main() {
 
       test('should update after removal', () async {
         // Arrange
-        await store.setMapping('did:key:1#key', 'wallet-1');
-        await store.setMapping('did:key:2#key', 'wallet-2');
+        await keyMappingStore.setMapping('did:key:1#key', 'wallet-1');
+        await keyMappingStore.setMapping('did:key:2#key', 'wallet-2');
 
         // Act
-        await store.removeMapping('did:key:1#key');
-        final keys = await store.verificationMethodIds;
+        await keyMappingStore.removeMapping('did:key:1#key');
+        final keys = await keyMappingStore.verificationMethodIds;
 
         // Assert
         expect(keys.length, 1);
@@ -188,14 +193,14 @@ void main() {
 
       test('should be empty after clear', () async {
         // Arrange
-        await store.setMapping('did:key:1#key', 'wallet-1');
-        await store.setMapping('did:key:2#key', 'wallet-2');
+        await keyMappingStore.setMapping('did:key:1#key', 'wallet-1');
+        await keyMappingStore.setMapping('did:key:2#key', 'wallet-2');
 
         // Act
-        await store.clearAll();
+        await keyMappingStore.clearAll();
 
         // Assert
-        expect(await store.verificationMethodIds, isEmpty);
+        expect(await keyMappingStore.verificationMethodIds, isEmpty);
       });
     });
 
@@ -206,14 +211,17 @@ void main() {
         const walletKeyId = 'shared-wallet-key';
 
         // Act
-        await store.setMapping('did:key:1#key', walletKeyId);
-        await store.setMapping('did:key:2#key', walletKeyId);
-        await store.setMapping('did:peer:3#key', walletKeyId);
+        await keyMappingStore.setMapping('did:key:1#key', walletKeyId);
+        await keyMappingStore.setMapping('did:key:2#key', walletKeyId);
+        await keyMappingStore.setMapping('did:peer:3#key', walletKeyId);
 
         // Assert
-        expect(await store.getWalletKeyId('did:key:1#key'), walletKeyId);
-        expect(await store.getWalletKeyId('did:key:2#key'), walletKeyId);
-        expect(await store.getWalletKeyId('did:peer:3#key'), walletKeyId);
+        expect(
+            await keyMappingStore.getWalletKeyId('did:key:1#key'), walletKeyId);
+        expect(
+            await keyMappingStore.getWalletKeyId('did:key:2#key'), walletKeyId);
+        expect(await keyMappingStore.getWalletKeyId('did:peer:3#key'),
+            walletKeyId);
       });
 
       test('should handle very long key identifiers', () async {
@@ -222,8 +230,8 @@ void main() {
         final longWalletKeyId = 'wallet-${'x' * 200}';
 
         // Act
-        await store.setMapping(longDidKeyId, longWalletKeyId);
-        final retrieved = await store.getWalletKeyId(longDidKeyId);
+        await keyMappingStore.setMapping(longDidKeyId, longWalletKeyId);
+        final retrieved = await keyMappingStore.getWalletKeyId(longDidKeyId);
 
         // Assert
         expect(retrieved, longWalletKeyId);
@@ -235,11 +243,12 @@ void main() {
 
         // Act
         for (final key in keys) {
-          await store.setMapping(key, 'wallet-${key.substring(8, 9)}');
+          await keyMappingStore.setMapping(
+              key, 'wallet-${key.substring(8, 9)}');
         }
 
         // Assert - Keys should be in insertion order, not alphabetical
-        final retrievedKeys = await store.verificationMethodIds;
+        final retrievedKeys = await keyMappingStore.verificationMethodIds;
         expect(retrievedKeys[0], 'did:key:c#key');
         expect(retrievedKeys[1], 'did:key:a#key');
         expect(retrievedKeys[2], 'did:key:b#key');
