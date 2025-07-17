@@ -1,18 +1,20 @@
 import 'dart:convert';
 import 'package:ssi/ssi.dart';
 
-void main() async {
-  // Use a pretty print encoder
-  const jsonEncoder = JsonEncoder.withIndent('  ');
+import '../../utility.dart';
 
+void main() async {
   // --- DID with only authentication and key agreement ---
   print('\n\n--- DID with only auth and key agreement ---');
 
   // 1. Create dependencies
   var keyStore = InMemoryKeyStore();
   var wallet = PersistentWallet(keyStore);
-  var didStore = InMemoryDidStore();
-  var didPeerManager = DidPeerManager(store: didStore, wallet: wallet);
+  var didPeerManager = DidPeerManager(
+    keyMappingStore: InMemoryDidKeyMappingStore(),
+    documentReferenceStore: InMemoryDidDocumentReferenceStore(),
+    wallet: wallet,
+  );
 
   // 2. Generate a key
   print('\nGenerating key...');
@@ -55,17 +57,17 @@ void main() async {
   // 4. Get and print the DID Document
   print('\n--- Generated DID Document (Custom Relationships) ---');
   final didDocument = await didPeerManager.getDidDocument();
-  print(jsonEncoder.convert(didDocument.toJson()));
+  printJsonFrom(didDocument);
   print('\nDID: ${didDocument.id}');
 
   // 5. Resolve and compare
   final resolvedDidDoc = DidPeer.resolve(didDocument.id);
   print('DID resolved successfully.');
 
-  print(jsonEncoder.convert(resolvedDidDoc.toJson()));
+  printJsonFrom(resolvedDidDoc);
 
-  final resolvedJson = jsonEncoder.convert(resolvedDidDoc.toJson());
-  final originalJson = jsonEncoder.convert(didDocument.toJson());
+  final resolvedJson = resolvedDidDoc.toJson();
+  final originalJson = didDocument.toJson();
 
   print(
       'Resolved DID Document content matches generated document: ${resolvedJson == originalJson}');

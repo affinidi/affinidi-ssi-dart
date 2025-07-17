@@ -19,9 +19,9 @@ void main() async {
 
   // Create did:key manager
   print('\n--- did:key Manager ---');
-  final keyMapping = InMemoryDidStore();
   final didKeyManager = DidKeyManager(
-    store: keyMapping,
+    keyMappingStore: InMemoryDidKeyMappingStore(),
+    documentReferenceStore: InMemoryDidDocumentReferenceStore(),
     wallet: wallet,
   );
 
@@ -39,7 +39,8 @@ void main() async {
   // Create did:peer manager
   print('\n--- did:peer Manager ---');
   final didPeerManager = DidPeerManager(
-    store: InMemoryDidStore(),
+    keyMappingStore: InMemoryDidKeyMappingStore(),
+    documentReferenceStore: InMemoryDidDocumentReferenceStore(),
     wallet: wallet,
   );
 
