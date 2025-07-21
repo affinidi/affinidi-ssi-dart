@@ -11,7 +11,7 @@ import 'did_resolver.dart';
 import 'did_web.dart';
 
 /// A class for resolving multiple DID methods.
-class UniversalDIDResolver {
+class UniversalDIDResolver implements DidResolver {
   /// The resolver address for external DID methods (optional).
   final String? resolverAddress;
 
@@ -24,24 +24,22 @@ class UniversalDIDResolver {
   static final UniversalDIDResolver defaultInstance = UniversalDIDResolver();
 
   /// Default DidResolver instance that implements the interface.
-  static final DidResolver defaultResolver = _DefaultDidResolver();
+  static final DidResolver defaultResolver = UniversalDIDResolver();
 
-  /// Static method for resolving DIDs using the default instance.
-  /// Maintains backward compatibility with existing code.
-  ///
-  /// [did] must be a valid DID string.
-  /// [resolverAddress] is the URL of a universal resolver service (optional).
-  ///
-  /// Returns a [DidDocument] containing the resolved DID document.
-  ///
-  /// Throws [SsiException] if:
-  /// - The DID is invalid
-  /// - The resolution fails
-  static Future<DidDocument> resolve(
+  @override
+  Future<DidDocument> resolve(
     String did, {
     String? resolverAddress,
   }) async {
-    return defaultInstance._resolve(did, resolverAddress: resolverAddress);
+    if (did.startsWith('did:key')) {
+      return DidKey.resolve(did);
+    } else if (did.startsWith('did:peer')) {
+      return DidPeer.resolve(did);
+    } else if (did.startsWith('did:web')) {
+      return DidWeb.resolve(did);
+    } else {
+      return resolveWithAddress(did, resolverAddress: resolverAddress);
+    }
   }
 
   /// Resolves a DID Document for DIDs that require external resolution.
@@ -81,37 +79,5 @@ class UniversalDIDResolver {
         code: SsiExceptionType.unableToResolveDid.code,
       );
     }
-  }
-
-  /// Internal method that contains the actual resolution logic.
-  /// Used by both static and instance methods.
-  Future<DidDocument> _resolve(
-    String did, {
-    String? resolverAddress,
-  }) async {
-    if (did.startsWith('did:key')) {
-      return DidKey.resolve(did);
-    } else if (did.startsWith('did:peer')) {
-      return DidPeer.resolve(did);
-    } else if (did.startsWith('did:web')) {
-      return DidWeb.resolve(did);
-    } else {
-      return resolveWithAddress(did, resolverAddress: resolverAddress);
-    }
-  }
-}
-
-/// Simple DidResolver implementation that delegates to the default instance.
-/// This is much simpler than the original adapter.
-class _DefaultDidResolver implements DidResolver {
-  @override
-  Future<DidDocument> resolve(
-    String did, {
-    String? resolverAddress,
-  }) {
-    return UniversalDIDResolver.defaultInstance._resolve(
-      did,
-      resolverAddress: resolverAddress,
-    );
   }
 }

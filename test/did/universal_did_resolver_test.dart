@@ -17,7 +17,8 @@ void main() {
         final expectedDidDoc =
             jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
 
-        final resolvedDidDocument = await UniversalDIDResolver.resolve(did);
+        final resolvedDidDocument =
+            await UniversalDIDResolver.defaultInstance.resolve(did);
         expect(resolvedDidDocument.toJson(), expectedDidDoc);
       });
     });
@@ -30,7 +31,8 @@ void main() {
         final expectedDidDoc =
             jsonDecode(DidDocumentFixtures.didDocumentWithControllerPeer);
 
-        final resolvedDidDoc = await UniversalDIDResolver.resolve(did);
+        final resolvedDidDoc =
+            await UniversalDIDResolver.defaultInstance.resolve(did);
 
         expect(resolvedDidDoc.toJson(), expectedDidDoc);
       });
@@ -41,7 +43,7 @@ void main() {
         final did = 'did:web:example.com';
 
         expectLater(
-          UniversalDIDResolver.resolve(did),
+          UniversalDIDResolver.defaultInstance.resolve(did),
           throwsA(isA<SsiException>().having(
               (e) => e.code, 'code', SsiExceptionType.invalidDidWeb.code)),
         );
@@ -53,7 +55,7 @@ void main() {
         final did = 'did:test';
 
         expectLater(
-          UniversalDIDResolver.resolve(did),
+          UniversalDIDResolver.defaultInstance.resolve(did),
           throwsA(isA<SsiException>().having(
               (e) => e.code, 'code', SsiExceptionType.unableToResolveDid.code)),
         );
@@ -64,7 +66,8 @@ void main() {
         final resolverAddress = 'https://example.com';
 
         expectLater(
-          UniversalDIDResolver.resolve(did, resolverAddress: resolverAddress),
+          UniversalDIDResolver.defaultInstance
+              .resolve(did, resolverAddress: resolverAddress),
           throwsA(isA<SsiException>().having(
               (e) => e.code, 'code', SsiExceptionType.unableToResolveDid.code)),
         );
@@ -104,7 +107,8 @@ void main() {
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
 
-      final resolvedDidDocument = await UniversalDIDResolver.resolve(did);
+      final resolvedDidDocument =
+          await UniversalDIDResolver.defaultInstance.resolve(did);
       expect(resolvedDidDocument.toJson(), expectedDidDoc);
     });
 
@@ -113,7 +117,8 @@ void main() {
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
 
-      final resolvedDidDocument = await UniversalDIDResolver.resolve(did);
+      final resolvedDidDocument =
+          await UniversalDIDResolver.defaultInstance.resolve(did);
       expect(resolvedDidDocument.toJson(), expectedDidDoc);
     });
   });
