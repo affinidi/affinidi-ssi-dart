@@ -113,8 +113,7 @@ void main() {
       final expectedDidDoc =
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
 
-      final resolvedDidDocument =
-          await UniversalDIDResolver.defaultInstance.resolveInternal(did);
+      final resolvedDidDocument = await UniversalDIDResolver.resolve(did);
       expect(resolvedDidDocument.toJson(), expectedDidDoc);
     });
   });
