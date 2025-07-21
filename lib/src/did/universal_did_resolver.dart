@@ -1,6 +1,5 @@
-// lib/src/did/did_resolver.dart
-
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
 import '../exceptions/ssi_exception.dart';
