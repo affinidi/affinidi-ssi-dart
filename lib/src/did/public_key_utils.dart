@@ -5,6 +5,7 @@ import 'package:elliptic/elliptic.dart' as elliptic;
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
 
@@ -113,6 +114,12 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
     );
   }
   return jwk;
+}
+
+/// Converts a public key to a JWK map.
+Map<String, dynamic> keyToJwk(PublicKey publicKey) {
+  final multikey = toMultikey(publicKey.bytes, publicKey.type);
+  return multiKeyToJwk(multikey);
 }
 
 /// Converts a JWK map to a multikey.
