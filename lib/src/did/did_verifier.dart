@@ -8,6 +8,7 @@ import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
 import 'did_document/index.dart';
+import 'did_resolver.dart';
 import 'universal_did_resolver.dart';
 import 'verifier.dart';
 
@@ -34,6 +35,7 @@ class DidVerifier implements Verifier {
   /// [kid] - The key ID to use for verification.
   /// [issuerDid] - The DID of the issuer.
   /// [resolverAddress] - Optional address of the DID resolver.
+  /// [didResolver] - Optional DID resolver instance. If not provided, uses the default UniversalDIDResolver.
   ///
   /// Returns a new [DidVerifier] instance.
   ///
@@ -43,8 +45,10 @@ class DidVerifier implements Verifier {
     String? kid,
     required String issuerDid,
     String? resolverAddress,
+    DidResolver? didResolver,
   }) async {
-    final didDocument = await UniversalDIDResolver.resolve(
+    final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
+    final didDocument = await resolver.resolve(
       issuerDid,
       resolverAddress: resolverAddress,
     );

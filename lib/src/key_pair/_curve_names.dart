@@ -21,6 +21,7 @@ enum CurveName {
   /// - x25519: [RFC 7748: Elliptic Curves for Security](https://datatracker.ietf.org/doc/html/rfc7748)
   x25519('x25519');
 
+  /// The string representation of the curve name.
   final String name;
 
   const CurveName(this.name);

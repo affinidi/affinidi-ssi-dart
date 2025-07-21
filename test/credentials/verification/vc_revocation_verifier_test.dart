@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:ssi/src/credentials/verification/vc_revocation_verifier.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 

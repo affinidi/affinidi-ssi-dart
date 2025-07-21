@@ -8,28 +8,40 @@ import '../exceptions/ssi_exception_type.dart';
 import 'did_document/index.dart';
 import 'did_key.dart';
 import 'did_peer.dart';
+import 'did_resolver.dart';
 import 'did_web.dart';
 
 /// A class for resolving multiple DID methods.
 class UniversalDIDResolver {
-  /// Resolves a DID Document for the given [did].
-  ///
-  /// For `did:key` resolution is performed internally.
-  /// For other DID methods, ab URL [resolverAddress] o an instance of a universal resolver is needed.
+  /// Default instance for backward compatibility.
+  static final UniversalDIDResolver defaultInstance = UniversalDIDResolver();
+
+  /// Default DidResolver instance that wraps the UniversalDIDResolver.
+  static final DidResolver defaultResolver =
+      _UniversalDidResolverAdapter(defaultInstance);
+
+  /// Static method for resolving DIDs using the default instance.
+  /// Maintains backward compatibility with existing code.
   ///
   /// [did] must be a valid DID string.
-  /// [resolverAddress] is the URL of a universal resolver service
+  /// [resolverAddress] is the URL of a universal resolver service (optional).
   ///
   /// Returns a [DidDocument] containing the resolved DID document.
   ///
   /// Throws [SsiException] if:
   /// - The DID is invalid
   /// - The resolution fails
-  /// FIXME(FTL-20741) should use an URI as input or dedicated Did model
   static Future<DidDocument> resolve(
-    /// The DID to resolve.
     String did, {
-    /// The URL of a universal resolver service.
+    String? resolverAddress,
+  }) async {
+    return defaultInstance.resolveInternal(did,
+        resolverAddress: resolverAddress);
+  }
+
+  /// Internal resolve method used by both static and instance calls.
+  Future<DidDocument> resolveInternal(
+    String did, {
     String? resolverAddress,
   }) async {
     if (did.startsWith('did:key')) {
@@ -61,5 +73,20 @@ class UniversalDIDResolver {
         );
       }
     }
+  }
+}
+
+/// Adapter class that wraps UniversalDIDResolver to implement the DidResolver interface.
+class _UniversalDidResolverAdapter implements DidResolver {
+  final UniversalDIDResolver _resolver;
+
+  _UniversalDidResolverAdapter(this._resolver);
+
+  @override
+  Future<DidDocument> resolve(
+    String did, {
+    String? resolverAddress,
+  }) {
+    return _resolver.resolveInternal(did, resolverAddress: resolverAddress);
   }
 }
