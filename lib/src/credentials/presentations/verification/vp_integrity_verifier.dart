@@ -1,8 +1,5 @@
 import '../../../../ssi.dart';
 
-/// Global instance of [VcIntegrityVerifier] for credential-level integrity checks.
-final vcIntegrityVerifier = VcIntegrityVerifier();
-
 /// Verifier that ensures the integrity of both the Verifiable Presentation (VP)
 /// and its embedded Verifiable Credentials (VCs).
 ///
@@ -15,9 +12,16 @@ final vcIntegrityVerifier = VcIntegrityVerifier();
 /// }
 /// ```
 class VpIntegrityVerifier implements VpVerifier {
+  /// The document loader to use when verifying proofs.
+  final DocumentLoader? customDocumentLoader;
+
+  /// Creates a [VpIntegrityVerifier].
+  VpIntegrityVerifier([this.customDocumentLoader]);
+
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {
-    final vpSuite = VpSuites.getVpSuite(data);
+    final vpSuite =
+        VpSuites.getVpSuite(data, customDocumentLoader: customDocumentLoader);
 
     var integrityValid = false;
 
@@ -34,6 +38,9 @@ class VpIntegrityVerifier implements VpVerifier {
         ),
       );
     }
+    // Create instance of [VcIntegrityVerifier] for credential-level integrity checks.
+    final vcIntegrityVerifier =
+        VcIntegrityVerifier(customDocumentLoader: customDocumentLoader);
 
     for (final credential in data.verifiableCredential) {
       var vcIntegrity = await vcIntegrityVerifier.verify(credential);
