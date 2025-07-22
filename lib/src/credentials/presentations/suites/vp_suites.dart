@@ -1,5 +1,6 @@
 import '../../../exceptions/ssi_exception.dart';
 import '../../../exceptions/ssi_exception_type.dart';
+import '../../proof/embedded_proof_suite.dart';
 import '../linked_data/ld_vp_dm_v1_suite.dart';
 import '../linked_data/ld_vp_dm_v2_suite.dart';
 import '../models/parsed_vp.dart';
@@ -21,11 +22,15 @@ class VpSuites {
   ];
 
   /// Return the suite that matches [vp]
-  static VerifiablePresentationSuite getVpSuite(
-      ParsedVerifiablePresentation vp) {
+  static VerifiablePresentationSuite getVpSuite(ParsedVerifiablePresentation vp,
+      {DocumentLoader? customDocumentLoader}) {
     return switch (vp) {
-      LdVpDataModelV1() => LdVpDm1Suite() as VerifiablePresentationSuite,
-      LdVpDataModelV2() => LdVpDm2Suite() as VerifiablePresentationSuite,
+      LdVpDataModelV1() =>
+        LdVpDm1Suite(customDocumentLoader: customDocumentLoader)
+            as VerifiablePresentationSuite,
+      LdVpDataModelV2() =>
+        LdVpDm2Suite(customDocumentLoader: customDocumentLoader)
+            as VerifiablePresentationSuite,
       _ => throw SsiException(
           message: 'Suite for "${vp.runtimeType}" is not supported',
           code: SsiExceptionType.other.code,
