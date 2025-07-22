@@ -1,4 +1,5 @@
 import '../../../types.dart';
+import '../../proof/embedded_proof_suite.dart';
 import '../models/parsed_vp.dart';
 import '../verification/delegation_vc_verifier.dart';
 import '../verification/vp_expiry_verifier.dart';
@@ -22,22 +23,24 @@ final class UniversalPresentationVerifier {
   /// The list of verifiers
   final List<VpVerifier> customVerifiers;
 
+  /// Custom document loader for loading external resources during verification.
+  final DocumentLoader? customDocumentLoader;
+
   /// The default set of verifiers applied to every presentation.
-  ///
-  /// Includes expiry, integrity and delegation checks.
-  static final List<VpVerifier> defaultVerifiers = List.unmodifiable(
-    <VpVerifier>[
-      VpExpiryVerifier(),
-      VpIntegrityVerifier(),
-      DelegationVcVerifier(),
-    ],
-  );
+  List<VpVerifier> get defaultVerifiers => List.unmodifiable(
+        <VpVerifier>[
+          VpExpiryVerifier(),
+          VpIntegrityVerifier(customDocumentLoader),
+          DelegationVcVerifier(),
+        ],
+      );
 
   /// Creates a new [UniversalPresentationVerifier].
   ///
   /// Optionally accepts [customVerifiers] to extend validation logic.
   UniversalPresentationVerifier({
     List<VpVerifier>? customVerifiers,
+    this.customDocumentLoader,
   }) : customVerifiers = customVerifiers ?? [];
 
   /// Verifies the given [ParsedVerifiablePresentation] using all registered verifiers.
