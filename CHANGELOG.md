@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.8.0`](#ssi---v280)
+
+---
+
+#### `ssi` - `v2.8.0`
+
+ - **FEAT**: extend vp universal verifier (#162).
+
+## 2.8.0
+
+ - **FEAT**: extend vp universal verifier (#162).
+
+
+## 2025-07-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.7.0`](#ssi---v270)
 
 ---
