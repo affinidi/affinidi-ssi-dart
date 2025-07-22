@@ -22,7 +22,7 @@ class VpSuites {
   ];
 
   /// Return the suite that matches [vp]
-  /// 
+  ///
   /// [vp] - The parsed verifiable presentation to find a suite for.
   ///
   /// Returns the matching VerifiablePresentationSuite for the presentation type.
