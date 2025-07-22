@@ -22,8 +22,27 @@ class VpSuites {
   ];
 
   /// Return the suite that matches [vp]
-  static VerifiablePresentationSuite getVpSuite(ParsedVerifiablePresentation vp,
-      {DocumentLoader? customDocumentLoader}) {
+  /// 
+  /// [vp] - The parsed verifiable presentation to find a suite for.
+  ///
+  /// Returns the matching VerifiablePresentationSuite for the presentation type.
+  ///
+  /// Throws [SsiException] if no suite is available for the presentation type.
+  static VerifiablePresentationSuite getVpSuite(
+      ParsedVerifiablePresentation vp) {
+    return VpSuites.getVpSuiteWithDocumentLoader(vp, null);
+  }
+
+  /// Return the suite that matches [vp] with a custom document loader.
+  ///
+  /// [vp] - The parsed verifiable presentation to find a suite for.
+  /// [customDocumentLoader] - Optional custom document loader for loading external resources.
+  ///
+  /// Returns the matching VerifiablePresentationSuite for the presentation type.
+  ///
+  /// Throws [SsiException] if no suite is available for the presentation type.
+  static VerifiablePresentationSuite getVpSuiteWithDocumentLoader(
+      ParsedVerifiablePresentation vp, DocumentLoader? customDocumentLoader) {
     return switch (vp) {
       LdVpDataModelV1() =>
         LdVpDm1Suite(customDocumentLoader: customDocumentLoader)

@@ -21,7 +21,7 @@ class VpIntegrityVerifier implements VpVerifier {
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {
     final vpSuite =
-        VpSuites.getVpSuite(data, customDocumentLoader: customDocumentLoader);
+        VpSuites.getVpSuiteWithDocumentLoader(data, customDocumentLoader);
 
     var integrityValid = false;
 
