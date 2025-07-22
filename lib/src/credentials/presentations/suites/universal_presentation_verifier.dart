@@ -1,5 +1,6 @@
 import '../../../types.dart';
 import '../models/parsed_vp.dart';
+import '../verification/delegation_vc_verifier.dart';
 import '../verification/vp_expiry_verifier.dart';
 import '../verification/vp_integrity_verifier.dart';
 import '../verification/vp_verifier.dart';
@@ -23,9 +24,13 @@ final class UniversalPresentationVerifier {
 
   /// The default set of verifiers applied to every presentation.
   ///
-  /// Includes expiry and integrity checks.
+  /// Includes expiry, integrity and delegation checks.
   static final List<VpVerifier> defaultVerifiers = List.unmodifiable(
-    <VpVerifier>[VpExpiryVerifier(), VpIntegrityVerifier()],
+    <VpVerifier>[
+      VpExpiryVerifier(),
+      VpIntegrityVerifier(),
+      DelegationVcVerifier(),
+    ],
   );
 
   /// Creates a new [UniversalPresentationVerifier].
