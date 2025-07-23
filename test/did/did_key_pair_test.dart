@@ -7,16 +7,14 @@ void main() {
   group('DidKeyPair Tests', () {
     late Wallet wallet;
     late DidKeyManager didKeyManager;
-    late InMemoryDidKeyMappingStore keyMappingStore;
-    late InMemoryDidDocumentReferenceStore documentReferenceStore;
+    late InMemoryDidStore store;
+
     setUp(() async {
       wallet = PersistentWallet(InMemoryKeyStore());
-      keyMappingStore = InMemoryDidKeyMappingStore();
-      documentReferenceStore = InMemoryDidDocumentReferenceStore();
+      store = InMemoryDidStore();
       didKeyManager = DidKeyManager(
         wallet: wallet,
-        keyMappingStore: keyMappingStore,
-        documentReferenceStore: documentReferenceStore,
+        store: store,
       );
     });
 

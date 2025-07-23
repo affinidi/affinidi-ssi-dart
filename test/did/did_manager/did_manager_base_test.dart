@@ -4,19 +4,16 @@ import 'package:test/test.dart';
 void main() {
   group('DidManager Base Functionality', () {
     late Wallet wallet;
-    late InMemoryDidDocumentReferenceStore documentReferenceStore;
-    late InMemoryDidKeyMappingStore keyMappingStore;
     late _TestDidManager manager;
+    late InMemoryDidStore store;
 
     setUp(() async {
       final keyStore = InMemoryKeyStore();
-      keyMappingStore = InMemoryDidKeyMappingStore();
-      documentReferenceStore = InMemoryDidDocumentReferenceStore();
       wallet = PersistentWallet(keyStore);
+      store = InMemoryDidStore();
       manager = _TestDidManager(
-        keyMappingStore: keyMappingStore,
-        documentReferenceStore: documentReferenceStore,
         wallet: wallet,
+        store: store,
       );
     });
 
@@ -25,7 +22,7 @@ void main() {
         // Arrange
         final keyPair = await wallet.generateKey(keyId: 'remove-all-test');
         const vmId = 'test-vm-remove-all';
-        await keyMappingStore.setMapping(vmId, keyPair.id);
+        await store.setMapping(vmId, keyPair.id);
 
         // Add to multiple relationships
         await manager.addAuthentication(vmId);
@@ -72,19 +69,15 @@ void main() {
 /// Test implementation of DidManager for testing base functionality
 class _TestDidManager extends DidManager {
   _TestDidManager({
+    required super.store,
     required super.wallet,
-    required super.keyMappingStore,
-    required super.documentReferenceStore,
   });
 
   @override
   Future<DidDocument> getDidDocument() async {
     // For testing base functionality, we don't need a real document
     // We'll use a peer manager to generate a basic document
-    final peerManager = DidPeerManager(
-        keyMappingStore: keyMappingStore,
-        documentReferenceStore: documentReferenceStore,
-        wallet: wallet);
+    final peerManager = DidPeerManager(store: store, wallet: wallet);
 
     // Add a basic key if none exists
     if (authentication.isEmpty &&
