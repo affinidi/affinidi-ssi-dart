@@ -6,21 +6,16 @@ import 'package:test/test.dart';
 void main() {
   group('DidKeyManager', () {
     late Wallet wallet;
-    late InMemoryKeyStore keyStore;
+    late DidStore store;
     late DidKeyManager manager;
-    late InMemoryDidKeyMappingStore keyMappingStore;
-    late InMemoryDidDocumentReferenceStore documentReferenceStore;
 
     setUp(() async {
-      keyStore = InMemoryKeyStore();
-      keyMappingStore = InMemoryDidKeyMappingStore();
-      documentReferenceStore = InMemoryDidDocumentReferenceStore();
+      final keyStore = InMemoryKeyStore();
       wallet = PersistentWallet(keyStore);
-
+      store = InMemoryDidStore();
       manager = DidKeyManager(
+        store: store,
         wallet: wallet,
-        keyMappingStore: keyMappingStore,
-        documentReferenceStore: documentReferenceStore,
       );
     });
 

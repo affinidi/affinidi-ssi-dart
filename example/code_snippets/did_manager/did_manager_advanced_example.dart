@@ -136,8 +136,7 @@ void main() async {
   print('1. Creating did:peer manager with multiple verification methods...\n');
 
   final peerManager = DidPeerManager(
-    keyMappingStore: InMemoryDidKeyMappingStore(),
-    documentReferenceStore: InMemoryDidDocumentReferenceStore(),
+    store: persistentStore,
     wallet: wallet,
   );
 

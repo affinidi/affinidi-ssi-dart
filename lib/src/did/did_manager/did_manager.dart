@@ -14,8 +14,7 @@ import '../did_document/did_document.dart';
 import '../did_document/service_endpoint.dart';
 import '../did_key_pair.dart';
 import '../did_signer.dart';
-import '../stores/did_key_mapping_store.dart';
-import '../stores/did_document_reference_store.dart';
+import '../stores/did_store_interface.dart';
 import 'add_verification_method_result.dart';
 import 'verification_relationship.dart';
 
@@ -44,10 +43,7 @@ import 'verification_relationship.dart';
 /// ```
 abstract class DidManager {
   /// The key mapping store for this manager.
-  final DidKeyMappingStore keyMappingStore;
-
-  /// The document reference store for this manager.
-  final DidDocumentReferenceStore documentReferenceStore;
+  final DidStore store;
 
   /// Cache for verification method ID to wallet key ID mappings
   final Map<String, String> _cacheVerificationMethodIdToWalletKeyId = {};
@@ -89,13 +85,13 @@ abstract class DidManager {
       );
     }
     _cacheService.add(endpoint);
-    await documentReferenceStore.addServiceEndpoint(endpoint);
+    await store.addServiceEndpoint(endpoint);
   }
 
   /// Removes a service endpoint from the DID document by its ID.
   Future<void> removeServiceEndpoint(String id) async {
     _cacheService.removeWhere((se) => se.id == id);
-    await documentReferenceStore.removeServiceEndpoint(id);
+    await store.removeServiceEndpoint(id);
   }
 
   /// The wallet instance for key operations.
@@ -106,8 +102,7 @@ abstract class DidManager {
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
   DidManager({
-    required this.keyMappingStore,
-    required this.documentReferenceStore,
+    required this.store,
     required this.wallet,
   });
 
@@ -129,14 +124,12 @@ abstract class DidManager {
 
   /// Initializes the manager by loading data from the store.
   Future<void> init() async {
-    _cacheAuthentication.addAll(await documentReferenceStore.authentication);
-    _cacheKeyAgreement.addAll(await documentReferenceStore.keyAgreement);
-    _cacheCapabilityInvocation
-        .addAll(await documentReferenceStore.capabilityInvocation);
-    _cacheCapabilityDelegation
-        .addAll(await documentReferenceStore.capabilityDelegation);
-    _cacheAssertionMethod.addAll(await documentReferenceStore.assertionMethod);
-    _cacheService.addAll(await documentReferenceStore.serviceEndpoints);
+    _cacheAuthentication.addAll(await store.authentication);
+    _cacheKeyAgreement.addAll(await store.keyAgreement);
+    _cacheCapabilityInvocation.addAll(await store.capabilityInvocation);
+    _cacheCapabilityDelegation.addAll(await store.capabilityDelegation);
+    _cacheAssertionMethod.addAll(await store.assertionMethod);
+    _cacheService.addAll(await store.serviceEndpoints);
   }
 
   /// Gets the current DID document by creating or updating it from the current state.
@@ -305,7 +298,7 @@ abstract class DidManager {
   }) async {
     final vmId =
         verificationMethodId ?? await buildVerificationMethodId(publicKey);
-    await keyMappingStore.setMapping(vmId, publicKey.id);
+    await store.setMapping(vmId, publicKey.id);
     _cacheVerificationMethodIdToWalletKeyId[vmId] = publicKey.id;
     return vmId;
   }
@@ -340,8 +333,7 @@ abstract class DidManager {
       return _cacheVerificationMethodIdToWalletKeyId[verificationMethodId];
     }
 
-    final walletKeyId =
-        await keyMappingStore.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
     if (walletKeyId != null) {
       _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
           walletKeyId;
@@ -373,7 +365,7 @@ abstract class DidManager {
 
     if (!_cacheAuthentication.contains(verificationMethodId)) {
       _cacheAuthentication.add(verificationMethodId);
-      await documentReferenceStore.addAuthentication(verificationMethodId);
+      await store.addAuthentication(verificationMethodId);
     }
   }
 
@@ -401,7 +393,7 @@ abstract class DidManager {
 
     if (!_cacheKeyAgreement.contains(verificationMethodId)) {
       _cacheKeyAgreement.add(verificationMethodId);
-      await documentReferenceStore.addKeyAgreement(verificationMethodId);
+      await store.addKeyAgreement(verificationMethodId);
     }
   }
 
@@ -429,8 +421,7 @@ abstract class DidManager {
 
     if (!_cacheCapabilityInvocation.contains(verificationMethodId)) {
       _cacheCapabilityInvocation.add(verificationMethodId);
-      await documentReferenceStore
-          .addCapabilityInvocation(verificationMethodId);
+      await store.addCapabilityInvocation(verificationMethodId);
     }
   }
 
@@ -458,8 +449,7 @@ abstract class DidManager {
 
     if (!_cacheCapabilityDelegation.contains(verificationMethodId)) {
       _cacheCapabilityDelegation.add(verificationMethodId);
-      await documentReferenceStore
-          .addCapabilityDelegation(verificationMethodId);
+      await store.addCapabilityDelegation(verificationMethodId);
     }
   }
 
@@ -487,7 +477,7 @@ abstract class DidManager {
 
     if (!_cacheAssertionMethod.contains(verificationMethodId)) {
       _cacheAssertionMethod.add(verificationMethodId);
-      await documentReferenceStore.addAssertionMethod(verificationMethodId);
+      await store.addAssertionMethod(verificationMethodId);
     }
   }
 
@@ -503,7 +493,7 @@ abstract class DidManager {
       );
     }
     if (_cacheAuthentication.remove(verificationMethodId)) {
-      await documentReferenceStore.removeAuthentication(verificationMethodId);
+      await store.removeAuthentication(verificationMethodId);
     }
   }
 
@@ -519,7 +509,7 @@ abstract class DidManager {
       );
     }
     if (_cacheKeyAgreement.remove(verificationMethodId)) {
-      await documentReferenceStore.removeKeyAgreement(verificationMethodId);
+      await store.removeKeyAgreement(verificationMethodId);
     }
   }
 
@@ -535,8 +525,7 @@ abstract class DidManager {
       );
     }
     if (_cacheCapabilityInvocation.remove(verificationMethodId)) {
-      await documentReferenceStore
-          .removeCapabilityInvocation(verificationMethodId);
+      await store.removeCapabilityInvocation(verificationMethodId);
     }
   }
 
@@ -552,8 +541,7 @@ abstract class DidManager {
       );
     }
     if (_cacheCapabilityDelegation.remove(verificationMethodId)) {
-      await documentReferenceStore
-          .removeCapabilityDelegation(verificationMethodId);
+      await store.removeCapabilityDelegation(verificationMethodId);
     }
   }
 
@@ -569,7 +557,7 @@ abstract class DidManager {
       );
     }
     if (_cacheAssertionMethod.remove(verificationMethodId)) {
-      await documentReferenceStore.removeAssertionMethod(verificationMethodId);
+      await store.removeAssertionMethod(verificationMethodId);
     }
   }
 
@@ -586,21 +574,19 @@ abstract class DidManager {
       );
     }
     if (_cacheAuthentication.remove(verificationMethodId)) {
-      await documentReferenceStore.removeAuthentication(verificationMethodId);
+      await store.removeAuthentication(verificationMethodId);
     }
     if (_cacheKeyAgreement.remove(verificationMethodId)) {
-      await documentReferenceStore.removeKeyAgreement(verificationMethodId);
+      await store.removeKeyAgreement(verificationMethodId);
     }
     if (_cacheCapabilityInvocation.remove(verificationMethodId)) {
-      await documentReferenceStore
-          .removeCapabilityInvocation(verificationMethodId);
+      await store.removeCapabilityInvocation(verificationMethodId);
     }
     if (_cacheCapabilityDelegation.remove(verificationMethodId)) {
-      await documentReferenceStore
-          .removeCapabilityDelegation(verificationMethodId);
+      await store.removeCapabilityDelegation(verificationMethodId);
     }
     if (_cacheAssertionMethod.remove(verificationMethodId)) {
-      await documentReferenceStore.removeAssertionMethod(verificationMethodId);
+      await store.removeAssertionMethod(verificationMethodId);
     }
   }
 
@@ -612,19 +598,18 @@ abstract class DidManager {
     _cacheCapabilityInvocation.clear();
     _cacheCapabilityDelegation.clear();
     _cacheAssertionMethod.clear();
-    await documentReferenceStore.clearVerificationMethodReferences();
+    await store.clearVerificationMethodReferences();
   }
 
   /// Protected method to clear all service endpoints.
   Future<void> clearServiceEndpoints() async {
     _cacheService.clear();
-    await documentReferenceStore.clearServiceEndpoints();
+    await store.clearServiceEndpoints();
   }
 
   /// Clears all manager state and underlying storage.
   Future<void> clearAll() async {
-    await clearVerificationMethodReferences();
-    await clearServiceEndpoints();
+    await store.clearAll();
     _cacheVerificationMethodIdToWalletKeyId.clear();
     _cacheAuthentication.clear();
     _cacheKeyAgreement.clear();

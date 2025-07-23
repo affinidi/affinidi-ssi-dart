@@ -1,14 +1,19 @@
 import '../did_document/service_endpoint.dart';
-import 'did_key_mapping_store.dart';
-import 'did_document_reference_store.dart';
+import 'did_store_interface.dart';
 
-/// Default implementation of [DidKeyMappingStore] and [DidDocumentReferenceStore] using in-memory maps.
+/// Default implementation of [DidStore] using an in-memory map.
 ///
-/// This implementation provides a simple map-based storage for DID key mappings and document references.
+/// This implementation provides a simple map-based storage for DID key mappings.
 /// For production applications that require persistence, consider implementing
-/// custom stores backed by a database or file system.
-class InMemoryDidKeyMappingStore implements DidKeyMappingStore {
+/// a custom [DidStore] backed by a database or file system.
+class InMemoryDidStore extends DidStore {
   final Map<String, String> _keyMapping = {};
+  final List<String> _authentication = [];
+  final List<String> _keyAgreement = [];
+  final List<String> _capabilityInvocation = [];
+  final List<String> _capabilityDelegation = [];
+  final List<String> _assertionMethod = [];
+  final List<ServiceEndpoint> _serviceEndpoints = [];
 
   @override
   Future<void> setMapping(
@@ -29,20 +34,13 @@ class InMemoryDidKeyMappingStore implements DidKeyMappingStore {
   @override
   Future<void> clearAll() async {
     _keyMapping.clear();
+    await clearVerificationMethodReferences();
+    await clearServiceEndpoints();
   }
 
   @override
   Future<List<String>> get verificationMethodIds async =>
       _keyMapping.keys.toList();
-}
-
-class InMemoryDidDocumentReferenceStore implements DidDocumentReferenceStore {
-  final List<String> _authentication = [];
-  final List<String> _keyAgreement = [];
-  final List<String> _capabilityInvocation = [];
-  final List<String> _capabilityDelegation = [];
-  final List<String> _assertionMethod = [];
-  final List<ServiceEndpoint> _serviceEndpoints = [];
 
   @override
   Future<List<String>> get authentication async => _authentication;
