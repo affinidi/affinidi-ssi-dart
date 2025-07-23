@@ -83,7 +83,8 @@ class RevocationList2020Verifier implements VcVerifier {
 
       Uint8List bitstring;
       try {
-        final compressed = base64Url.decode(encodedList);
+        final normalizedList = base64Url.normalize(encodedList);
+        final compressed = base64Url.decode(normalizedList);
         bitstring = Uint8List.fromList(gzip.decode(compressed));
       } catch (_) {
         errors.add(
