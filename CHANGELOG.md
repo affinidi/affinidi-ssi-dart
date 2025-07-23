@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.8.1`](#ssi---v281)
+
+---
+
+#### `ssi` - `v2.8.1`
+
+ - **FIX**: fix revocation verifier (#164).
+
+## 2.8.1
+
+ - **FIX**: fix revocation verifier (#164).
+
+
 ## 2025-07-22
 
 ### Changes
