@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:ssi/ssi.dart';
 
 import '../../utility.dart';

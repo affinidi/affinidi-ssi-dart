@@ -1,12 +1,8 @@
-import 'dart:convert';
 import 'package:ssi/ssi.dart';
 
 import '../../utility.dart';
 
 void main() async {
-  // Use a pretty print encoder
-  const jsonEncoder = JsonEncoder.withIndent('  ');
-
   print('\n--- DidPeerManager Operations ---');
 
   // 1. Create dependencies: Wallet and DID Store
