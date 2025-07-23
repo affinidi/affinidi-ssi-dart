@@ -3,6 +3,7 @@ import '../models/parsed_vc.dart';
 import '../proof/embedded_proof_suite.dart' show DocumentLoader;
 import '../verification/vc_expiry_verifier.dart';
 import '../verification/vc_integrity_verifier.dart';
+import '../verification/vc_revocation_verifier.dart';
 import '../verification/vc_verifier.dart';
 
 /// Allows verification of any supported Verifiable Credential (VC) encodings.
@@ -73,6 +74,7 @@ final class UniversalVerifier {
     final defaultVerifiers = <VcVerifier>[
       VcExpiryVerifier(),
       VcIntegrityVerifier(customDocumentLoader: customDocumentLoader),
+      RevocationList2020Verifier(),
     ];
 
     return UniversalVerifier._(
