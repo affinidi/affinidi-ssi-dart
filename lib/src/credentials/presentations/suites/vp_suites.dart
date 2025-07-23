@@ -1,5 +1,6 @@
 import '../../../exceptions/ssi_exception.dart';
 import '../../../exceptions/ssi_exception_type.dart';
+import '../../proof/embedded_proof_suite.dart';
 import '../linked_data/ld_vp_dm_v1_suite.dart';
 import '../linked_data/ld_vp_dm_v2_suite.dart';
 import '../models/parsed_vp.dart';
@@ -21,11 +22,34 @@ class VpSuites {
   ];
 
   /// Return the suite that matches [vp]
+  ///
+  /// [vp] - The parsed verifiable presentation to find a suite for.
+  ///
+  /// Returns the matching VerifiablePresentationSuite for the presentation type.
+  ///
+  /// Throws [SsiException] if no suite is available for the presentation type.
   static VerifiablePresentationSuite getVpSuite(
       ParsedVerifiablePresentation vp) {
+    return VpSuites.getVpSuiteWithDocumentLoader(vp, null);
+  }
+
+  /// Return the suite that matches [vp] with a custom document loader.
+  ///
+  /// [vp] - The parsed verifiable presentation to find a suite for.
+  /// [customDocumentLoader] - Optional custom document loader for loading external resources.
+  ///
+  /// Returns the matching VerifiablePresentationSuite for the presentation type.
+  ///
+  /// Throws [SsiException] if no suite is available for the presentation type.
+  static VerifiablePresentationSuite getVpSuiteWithDocumentLoader(
+      ParsedVerifiablePresentation vp, DocumentLoader? customDocumentLoader) {
     return switch (vp) {
-      LdVpDataModelV1() => LdVpDm1Suite() as VerifiablePresentationSuite,
-      LdVpDataModelV2() => LdVpDm2Suite() as VerifiablePresentationSuite,
+      LdVpDataModelV1() =>
+        LdVpDm1Suite(customDocumentLoader: customDocumentLoader)
+            as VerifiablePresentationSuite,
+      LdVpDataModelV2() =>
+        LdVpDm2Suite(customDocumentLoader: customDocumentLoader)
+            as VerifiablePresentationSuite,
       _ => throw SsiException(
           message: 'Suite for "${vp.runtimeType}" is not supported',
           code: SsiExceptionType.other.code,
