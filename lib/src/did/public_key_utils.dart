@@ -62,7 +62,7 @@ String toMultiBase(
 bool isUri(String uri) => Uri.tryParse(uri) != null;
 
 /// Converts a multikey to a JWK map.
-Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
+Map<String, String> multiKeyToJwk(Uint8List multikey) {
   final indicator = multikey.sublist(0, 2);
   final key = multikey.sublist(2);
 
@@ -70,7 +70,7 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
 
   // see https://www.w3.org/TR/cid-1.0/#Multikey for indicators
   // FIXME add validations for length
-  var jwk = <String, dynamic>{};
+  var jwk = <String, String>{};
   if (indicatorHex == 'ED01') {
     jwk['kty'] = 'OKP';
     jwk['crv'] = 'Ed25519';
@@ -117,7 +117,7 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
 }
 
 /// Converts a public key to a JWK map.
-Map<String, dynamic> keyToJwk(PublicKey publicKey) {
+Map<String, String> keyToJwk(PublicKey publicKey) {
   final multikey = toMultikey(publicKey.bytes, publicKey.type);
   return multiKeyToJwk(multikey);
 }
