@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import '../../../ssi.dart';
@@ -82,7 +83,8 @@ class RevocationList2020Verifier implements VcVerifier {
 
       Uint8List bitstring;
       try {
-        bitstring = base64Url.decode(encodedList);
+        final compressed = base64Url.decode(encodedList);
+        bitstring = Uint8List.fromList(gzip.decode(compressed));
       } catch (_) {
         errors.add(
             '${SsiExceptionType.invalidEncoding.code} for status ${status.id}');
@@ -99,7 +101,7 @@ class RevocationList2020Verifier implements VcVerifier {
       }
 
       final byte = bitstring[byteIndex];
-      final isRevoked = (byte & (1 << (7 - bitOffset))) != 0;
+      final isRevoked = (byte & (1 << bitOffset)) != 0;
 
       if (isRevoked) {
         errors
