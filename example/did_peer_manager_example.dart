@@ -1,18 +1,23 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:ssi/ssi.dart';
+import 'package:ssi/src/did/stores/in_memory_did_store.dart';
+
+import 'utility.dart';
 
 Future<void> main() async {
   // Create a wallet for key management
   final keyStore = InMemoryKeyStore();
   final wallet = PersistentWallet(keyStore);
 
-  // Create a storage for DID manager mappings
-  final store = InMemoryDidStore();
+  // Create separate stores for key mapping and document references
+  final keyMappingStore = InMemoryDidKeyMappingStore();
+  final documentReferenceStore = InMemoryDidDocumentReferenceStore();
 
   // Create a DID Peer manager
   final manager = DidPeerManager(
-    store: store,
+    keyMappingStore: keyMappingStore,
+    documentReferenceStore: documentReferenceStore,
     wallet: wallet,
   );
 
@@ -46,10 +51,25 @@ Future<void> main() async {
   // Get the DID document
   final didDocument = await manager.getDidDocument();
   print('DID: ${didDocument.id}');
-  print('Verification methods: ${didDocument.verificationMethod.length}');
-  print('Authentication methods: ${didDocument.authentication.length}');
-  print('Key agreement methods: ${didDocument.keyAgreement.length}');
-  print('Service endpoints: ${didDocument.service.length}');
+  print(
+      'Verification methods amount: ${didDocument.verificationMethod.length}');
+  for (var vm in didDocument.verificationMethod) {
+    printJsonFrom(vm);
+  }
+  print('Authentication methods amount: ${didDocument.authentication.length}');
+  for (var auth in didDocument.authentication) {
+    printJsonFrom(auth);
+  }
+  print('Key agreement methods amount: ${didDocument.keyAgreement.length}');
+
+  for (var ka in didDocument.keyAgreement) {
+    printJsonFrom(ka);
+  }
+  print('Service endpoints amount: ${didDocument.service.length}');
+
+  for (var service in didDocument.service) {
+    printJsonFrom(service);
+  }
 
   // Example: Add multiple authentication keys
   final authKey2Id = 'auth-key-2';

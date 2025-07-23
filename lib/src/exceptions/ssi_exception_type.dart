@@ -51,8 +51,11 @@ enum SsiExceptionType {
   /// Unsupported signature scheme
   unsupportedEnvelopeVCOperation(code: 'unsupported_enveloped_vc_operation'),
 
-  /// The did:key is invalid
-  unsupportedNumberOfKeys(code: 'unsuported_number_of_keys'),
+  /// Verification method not found
+  verificationMethodNotFound(code: 'verification_method_not_found'),
+
+  /// Too many verification methods
+  tooManyVerificationMethods(code: 'too_many_verification_methods'),
 
   /// Invalid key type
   invalidKeyType(code: 'invalid_key_type'),

@@ -7,12 +7,10 @@ Future<void> main() async {
   final keyStore = InMemoryKeyStore();
   final wallet = PersistentWallet(keyStore);
 
-  // Create a storage for DID manager mappings
-  final store = InMemoryDidStore();
-
   // Create a DID Key manager
   final manager = DidKeyManager(
-    store: store,
+    keyMappingStore: InMemoryDidKeyMappingStore(),
+    documentReferenceStore: InMemoryDidDocumentReferenceStore(),
     wallet: wallet,
   );
 
