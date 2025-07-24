@@ -336,7 +336,7 @@ class Jwk {
     final map = jsonToMap(input);
 
     try {
-      doc = map.map((key, value) => MapEntry(key, value as String));
+      doc = Map<String, String>.from(map);
     } catch (error, stackTrace) {
       Error.throwWithStackTrace(
         SsiException(
