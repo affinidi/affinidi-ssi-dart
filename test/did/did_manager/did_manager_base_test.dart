@@ -4,16 +4,16 @@ import 'package:test/test.dart';
 void main() {
   group('DidManager Base Functionality', () {
     late Wallet wallet;
-    late DidStore store;
     late _TestDidManager manager;
+    late InMemoryDidStore store;
 
     setUp(() async {
       final keyStore = InMemoryKeyStore();
       wallet = PersistentWallet(keyStore);
       store = InMemoryDidStore();
       manager = _TestDidManager(
-        store: store,
         wallet: wallet,
+        store: store,
       );
     });
 

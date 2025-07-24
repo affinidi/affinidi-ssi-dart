@@ -65,6 +65,39 @@ void main() {
       });
     });
 
+    group('DID document/controller cross-checks', () {
+      test('keyAgreement id in DID document matches keypair in controller',
+          () async {
+        // Generate key
+        final key = await wallet.generateKey(keyType: KeyType.ed25519);
+
+        // Add verification method for both auth and key agreement
+        await manager.addVerificationMethod(key.id, relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.keyAgreement
+        });
+
+        // Add service endpoint
+        final serviceEndpoint = ServiceEndpoint(
+          id: '#service-1',
+          type: 'DIDCommMessaging',
+          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+        );
+        await manager.addServiceEndpoint(serviceEndpoint);
+
+        // Get DID Document
+        final didDocument = await manager.getDidDocument();
+        expect(isPeerDID(didDocument.id), isTrue);
+        expect(didDocument.id, startsWith('did:peer:2'));
+
+        // Cross-check: get key agreement id from doc and retrieve keypair from manager
+        final keyAgreementId = didDocument.keyAgreement.first.id;
+        final didKeyPair = await manager.getKey(keyAgreementId);
+        expect(didKeyPair.keyPair.id, equals(key.id));
+        expect(didKeyPair.verificationMethodId, equals(keyAgreementId));
+      });
+    });
+
     group('getDidDocument', () {
       test(
           'generates a valid did:peer:2 document with auth, agreement, and service',
@@ -103,6 +136,12 @@ void main() {
         // Verify verification relationships
         expect(didDocument.authentication.map((e) => e.id), ['#key-1']);
         expect(didDocument.keyAgreement.map((e) => e.id), ['#key-2']);
+
+        // Cross-check: get key agreement id from doc and retrieve keypair from manager
+        final keyAgreementId = didDocument.keyAgreement.first.id;
+        final didKeyPair = await manager.getKey(keyAgreementId);
+        expect(didKeyPair.keyPair.id, equals(key.id));
+        expect(didKeyPair.verificationMethodId, equals(keyAgreementId));
 
         // Verify service endpoint
         expect(didDocument.service, hasLength(1));
