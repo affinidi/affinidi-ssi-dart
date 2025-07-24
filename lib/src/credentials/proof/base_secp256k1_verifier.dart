@@ -45,51 +45,59 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
   String get proofValueField;
 
   @override
-  Future<VerificationResult> verify(Map<String, dynamic> document,
-      {DateTime Function() getNow = DateTime.now}) async {
-    final copy = Map.of(document);
-    final proof = copy.remove('proof');
-
-    final validationResult = _validateProofStructure(proof);
-    if (!validationResult.isValid) {
-      return validationResult;
-    }
-
-    final expiryResult = _validateExpiry(proof, getNow());
-    if (!expiryResult.isValid) {
-      return expiryResult;
-    }
-
-    final Uri verificationMethod;
+  Future<VerificationResult> verify(
+    Map<String, dynamic> document, {
+    DateTime Function() getNow = DateTime.now,
+  }) async {
     try {
-      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
+      final copy = Map.of(document);
+      final proof = copy.remove('proof');
+
+      final validationResult = _validateProofStructure(proof);
+      if (!validationResult.isValid) {
+        return validationResult;
+      }
+
+      final expiryResult = _validateExpiry(proof, getNow());
+      if (!expiryResult.isValid) {
+        return expiryResult;
+      }
+
+      final Uri verificationMethod;
+      try {
+        verificationMethod = Uri.parse(proof['verificationMethod'] as String);
+      } catch (e) {
+        return VerificationResult.invalid(
+          errors: ['invalid or missing proof.verificationMethod'],
+        );
+      }
+
+      final originalProofValue = proof.remove(proofValueField);
+      if (originalProofValue == null) {
+        return VerificationResult.invalid(
+          errors: ['missing $proofValueField'],
+        );
+      }
+
+      proof['@context'] = contextUrl;
+
+      final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
+      final hash = await computeSignatureHash(proof, copy, cacheLoadDocument);
+      final isValid = await verifySignature(
+          originalProofValue as String, issuerDid, verificationMethod, hash);
+
+      if (!isValid) {
+        return VerificationResult.invalid(
+          errors: ['signature invalid'],
+        );
+      }
+
+      return VerificationResult.ok();
     } catch (e) {
       return VerificationResult.invalid(
-        errors: ['invalid or missing proof.verificationMethod'],
+        errors: ['Unexpected exception: ${e.toString()}'],
       );
     }
-
-    final originalProofValue = proof.remove(proofValueField);
-    if (originalProofValue == null) {
-      return VerificationResult.invalid(
-        errors: ['missing $proofValueField'],
-      );
-    }
-
-    proof['@context'] = contextUrl;
-
-    final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-    final hash = await computeSignatureHash(proof, copy, cacheLoadDocument);
-    final isValid = await verifySignature(
-        originalProofValue as String, issuerDid, verificationMethod, hash);
-
-    if (!isValid) {
-      return VerificationResult.invalid(
-        errors: ['signature invalid'],
-      );
-    }
-
-    return VerificationResult.ok();
   }
 
   /// Computes the signature hash from proof and document.
@@ -140,31 +148,41 @@ Future<Uint8List> computeVcHash(
   Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
       documentLoader,
 ) async {
-  final normalizedProof = await JsonLdProcessor.normalize(
-    proof,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
-  );
-  final proofDigest = Digest('SHA-256').process(
-    utf8.encode(normalizedProof),
-  );
+  try {
+    final normalizedProof = await JsonLdProcessor.normalize(
+      proof,
+      options: JsonLdOptions(
+        safeMode: true,
+        documentLoader: documentLoader,
+      ),
+    );
+    final proofDigest = Digest('SHA-256').process(
+      utf8.encode(normalizedProof),
+    );
 
-  final normalizedContent = await JsonLdProcessor.normalize(
-    unsignedCredential,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
-  );
+    final normalizedContent = await JsonLdProcessor.normalize(
+      unsignedCredential,
+      options: JsonLdOptions(
+        safeMode: true,
+        documentLoader: documentLoader,
+      ),
+    );
 
-  final contentDigest = Digest('SHA-256').process(
-    utf8.encode(normalizedContent),
-  );
+    final contentDigest = Digest('SHA-256').process(
+      utf8.encode(normalizedContent),
+    );
 
-  final payloadToSign = Uint8List.fromList(proofDigest + contentDigest);
-  return payloadToSign;
+    return Uint8List.fromList(proofDigest + contentDigest);
+  } on JsonLdError catch (e, stacktrace) {
+    Error.throwWithStackTrace(
+      SsiException(
+        message: 'Canonicalization failed: ${e.toString()}',
+        code: SsiExceptionType.invalidVC.code,
+        originalMessage: e.toString(),
+      ),
+      stacktrace,
+    );
+  }
 }
 
 /// Verifies a JWS signature.

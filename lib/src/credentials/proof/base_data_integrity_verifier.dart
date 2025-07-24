@@ -169,29 +169,39 @@ Future<Uint8List> computeDataIntegrityHash(
   Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
       documentLoader,
 ) async {
-  final normalizedProof = await JsonLdProcessor.normalize(
-    proof,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
-  );
-  final proofConfigHash = Digest('SHA-256').process(
-    utf8.encode(normalizedProof),
-  );
+  try {
+    final normalizedProof = await JsonLdProcessor.normalize(
+      proof,
+      options: JsonLdOptions(
+        safeMode: true,
+        documentLoader: documentLoader,
+      ),
+    );
+    final proofConfigHash = Digest('SHA-256').process(
+      utf8.encode(normalizedProof),
+    );
 
-  final normalizedContent = await JsonLdProcessor.normalize(
-    unsignedCredential,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
-  );
-  final transformedDocumentHash = Digest('SHA-256').process(
-    utf8.encode(normalizedContent),
-  );
-
-  return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
+    final normalizedContent = await JsonLdProcessor.normalize(
+      unsignedCredential,
+      options: JsonLdOptions(
+        safeMode: true,
+        documentLoader: documentLoader,
+      ),
+    );
+    final transformedDocumentHash = Digest('SHA-256').process(
+      utf8.encode(normalizedContent),
+    );
+    return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
+  } on JsonLdError catch (e, stacktrace) {
+    Error.throwWithStackTrace(
+      SsiException(
+        message: 'Canonicalization failed: ${e.toString()}',
+        code: SsiExceptionType.invalidVC.code,
+        originalMessage: e.toString(),
+      ),
+      stacktrace,
+    );
+  }
 }
 
 /// Verifies a Data Integrity signature.

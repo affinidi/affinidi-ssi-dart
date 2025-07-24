@@ -63,5 +63,57 @@ void main() {
 
       expect(validationResult, true);
     });
+
+    test('Fails to issue when field is unknown', () async {
+      final signer = await initSigner(seed);
+
+      final unsignedCredential = MutableVcDataModelV2(
+        context: [
+          dmV2ContextUrl,
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+        ],
+        id: Uri.parse('uuid:123456abcd'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        credentialSubject: [
+          MutableCredentialSubject({
+            'Fname': 'Fname',
+            'Lname': 'Lame',
+            'Age': '22',
+            'Address': 'Eihhornstr',
+            'Error': 'boom!'
+          })
+        ],
+        credentialSchema: [
+          MutableCredentialSchema(
+              id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+              type: 'JsonSchemaValidator2018')
+        ],
+        validFrom: DateTime.now(),
+        validUntil: DateTime.now().add(const Duration(days: 365)),
+        issuer: Issuer.uri(signer.did),
+      );
+
+      final proofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+      );
+
+      Future<LdVcDataModelV2> issueCredential() async {
+        return LdVcDm2Suite().issue(
+          unsignedData: VcDataModelV2.fromMutable(unsignedCredential),
+          proofGenerator: proofGenerator,
+        );
+      }
+
+      await expectLater(
+        issueCredential,
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            startsWith('Canonicalization failed'),
+          ),
+        ),
+      );
+    });
   });
 }
