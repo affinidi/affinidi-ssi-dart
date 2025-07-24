@@ -327,7 +327,7 @@ class DidDocument implements JsonObject {
 /// Represents a JSON Web Key (JWK) used in DID documents.
 class Jwk {
   /// The JWK document as a map.
-  late final Map<String, dynamic> doc;
+  late final Map<String, String> doc;
 
   /// Creates a [Jwk] from JSON data.
   ///
@@ -336,7 +336,7 @@ class Jwk {
     final map = jsonToMap(input);
 
     try {
-      doc = Map<String, dynamic>.from(map);
+      doc = Map<String, String>.from(map);
     } catch (error, stackTrace) {
       Error.throwWithStackTrace(
         SsiException(
@@ -350,7 +350,7 @@ class Jwk {
   }
 
   /// Converts the JWK to JSON.
-  Map<String, dynamic> toJson() {
+  Map<String, String> toJson() {
     return doc;
   }
 }
