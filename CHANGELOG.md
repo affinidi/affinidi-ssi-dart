@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.9.0`](#ssi---v290)
+
+---
+
+#### `ssi` - `v2.9.0`
+
+ - **FEAT**: expose X and Y coordinates on PublicKey JWK conversion (#157).
+
+## 2.9.0
+
+ - **FEAT**: expose X and Y coordinates on PublicKey JWK conversion (#157).
+
+
+## 2025-07-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.8.2`](#ssi---v282)
 
 ---
