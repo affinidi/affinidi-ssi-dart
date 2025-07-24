@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.8.2`](#ssi---v282)
+
+---
+
+#### `ssi` - `v2.8.2`
+
+ - **FIX**: remove invalid TODOs and add DidSigner validation (#158).
+
+## 2.8.2
+
+ - **FIX**: remove invalid TODOs and add DidSigner validation (#158).
+
+
 ## 2025-07-23
 
 ### Changes

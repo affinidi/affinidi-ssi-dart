@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
 import '../types.dart';
 
@@ -23,7 +25,8 @@ class DidSigner {
   /// [didKeyId] - The identifier of the key inside the DID document.
   /// [keyPair] - The key pair to use for signing.
   /// [signatureScheme] - The signature scheme to use for signing.
-  // TODO(FTL-20741) validations, eg. keyId & keyPair belongs to did, signature scheme supported, etc.
+  ///
+  /// Throws [SsiException] if parameters are invalid or incompatible.
   DidSigner({
     required String did,
     required String didKeyId,
@@ -31,7 +34,9 @@ class DidSigner {
     required this.signatureScheme,
   })  : _didKeyId = didKeyId,
         _keyPair = keyPair,
-        _did = did;
+        _did = did {
+    _validateParameters(did, didKeyId, keyPair, signatureScheme);
+  }
 
   /// Returns the DID identifier from the DID document.
   String get did => _did;
@@ -44,4 +49,42 @@ class DidSigner {
         data,
         signatureScheme: signatureScheme,
       );
+
+  /// Validates constructor parameters to ensure consistency and security.
+  static void _validateParameters(
+    String did,
+    String didKeyId,
+    KeyPair keyPair,
+    SignatureScheme signatureScheme,
+  ) {
+    if (did.isEmpty) {
+      throw SsiException(
+        message: 'DID cannot be empty',
+        code: SsiExceptionType.other.code,
+      );
+    }
+
+    if (!did.startsWith('did:')) {
+      throw SsiException(
+        message: 'Invalid DID format: must start with "did:"',
+        code: SsiExceptionType.other.code,
+      );
+    }
+
+    if (didKeyId.isEmpty) {
+      throw SsiException(
+        message: 'DID key ID cannot be empty',
+        code: SsiExceptionType.other.code,
+      );
+    }
+
+    if (!keyPair.supportedSignatureSchemes.contains(signatureScheme)) {
+      throw SsiException(
+        message:
+            'Signature scheme ${signatureScheme.name} is not supported by this key pair. '
+            'Supported schemes: [${keyPair.supportedSignatureSchemes.map((s) => s.name).join(', ')}]',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
+    }
+  }
 }

@@ -168,7 +168,6 @@ class DidKey {
     final multiKey = toMultikey(publicKey.bytes, publicKey.type);
     final multibase = toMultiBase(multiKey);
     final did = '$_commonDidKeyPrefix$multibase';
-    // FIXME(FTL-20741) double check the doc
     return _buildDoc(multibase, did);
   }
 
