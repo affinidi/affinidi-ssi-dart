@@ -14,5 +14,5 @@ abstract interface class DidResolver {
   /// Throws [SsiException] if:
   /// - The DID is invalid
   /// - The resolution fails
-  Future<DidDocument> resolve(String did);
+  Future<DidDocument> resolveDid(String did);
 }

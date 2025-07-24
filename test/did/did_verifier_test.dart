@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ssi/src/did/did_resolver.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -15,7 +14,7 @@ class MockDidResolver implements DidResolver {
   MockDidResolver(this.mockDocument);
 
   @override
-  Future<DidDocument> resolve(String did) async {
+  Future<DidDocument> resolveDid(String did) async {
     resolveCalled = true;
     lastDid = did;
     return mockDocument;
@@ -24,7 +23,7 @@ class MockDidResolver implements DidResolver {
 
 class _FailingDidResolver implements DidResolver {
   @override
-  Future<DidDocument> resolve(String did) async {
+  Future<DidDocument> resolveDid(String did) async {
     throw SsiException(
       message: 'Test resolver failure',
       code: SsiExceptionType.unableToResolveDid.code,

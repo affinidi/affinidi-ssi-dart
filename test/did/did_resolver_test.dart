@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:ssi/src/did/did_resolver.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -14,7 +13,7 @@ class TestDidResolver implements DidResolver {
   }
 
   @override
-  Future<DidDocument> resolve(String did) async {
+  Future<DidDocument> resolveDid(String did) async {
     final documentJson = _mockDocuments[did];
     if (documentJson == null) {
       throw SsiException(
@@ -37,7 +36,7 @@ void main() {
 
       testResolver.addMockDocument(testDid, mockDocument);
 
-      final resolvedDocument = await testResolver.resolve(testDid);
+      final resolvedDocument = await testResolver.resolveDid(testDid);
       expect(resolvedDocument.toJson(), equals(mockDocument));
     });
 
@@ -46,7 +45,7 @@ void main() {
       const nonExistentDid = 'did:test:nonexistent';
 
       expect(
-        () => testResolver.resolve(nonExistentDid),
+        () => testResolver.resolveDid(nonExistentDid),
         throwsA(
           isA<SsiException>().having(
             (e) => e.code,
@@ -67,7 +66,7 @@ void main() {
 
       testResolver.addMockDocument(testDid, mockDocument);
 
-      final resolvedDocument = await testResolver.resolve(testDid);
+      final resolvedDocument = await testResolver.resolveDid(testDid);
       expect(resolvedDocument.toJson(), equals(mockDocument));
     });
 

@@ -46,7 +46,7 @@ class DidVerifier implements Verifier {
     DidResolver? didResolver,
   }) async {
     final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
-    final didDocument = await resolver.resolve(issuerDid);
+    final didDocument = await resolver.resolveDid(issuerDid);
 
     kid ??= didDocument.assertionMethod[0] as String;
 

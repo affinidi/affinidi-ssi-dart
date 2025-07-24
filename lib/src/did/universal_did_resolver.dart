@@ -23,8 +23,48 @@ class UniversalDIDResolver implements DidResolver {
   /// Default DidResolver instance that implements the interface.
   static final DidResolver defaultResolver = UniversalDIDResolver();
 
+  /// Resolves a DID Document for the given [did].
+  ///
+  /// For `did:key` resolution is performed internally.
+  /// For other DID methods, a URL [resolverAddress] or an instance of a universal resolver is needed.
+  ///
+  /// [did] must be a valid DID string.
+  /// [resolverAddress] is the URL of a universal resolver service.
+  ///
+  /// Returns a [DidDocument] containing the resolved DID document.
+  ///
+  /// Throws [SsiException] if:
+  /// - The DID is invalid
+  /// - The resolution fails
+  /// FIXME(FTL-20741) should use an URI as input or dedicated Did model
+  @Deprecated(
+      'Use UniversalDIDResolver instance with resolveDid() method or defaultResolver instead')
+  static Future<DidDocument> resolve(
+    /// The DID to resolve.
+    String did, {
+    /// The URL of a universal resolver service.
+    String? resolverAddress,
+  }) async {
+    final resolver = UniversalDIDResolver(resolverAddress: resolverAddress);
+    return resolver.resolveDid(did);
+  }
+
+  /// Resolves a DID Document for the given [did] using the DidResolver interface.
+  ///
+  /// For `did:key`, `did:peer`, and `did:web` resolution is performed internally.
+  /// For other DID methods, this instance must be created with a [resolverAddress]
+  /// pointing to a universal resolver service.
+  ///
+  /// [did] must be a valid DID string.
+  ///
+  /// Returns a [DidDocument] containing the resolved DID document.
+  ///
+  /// Throws [SsiException] if:
+  /// - The DID is invalid
+  /// - The resolution fails
+  /// - External resolution is required but no resolverAddress was provided
   @override
-  Future<DidDocument> resolve(String did) async {
+  Future<DidDocument> resolveDid(String did) async {
     if (did.startsWith('did:key')) {
       return DidKey.resolve(did);
     } else if (did.startsWith('did:peer')) {
