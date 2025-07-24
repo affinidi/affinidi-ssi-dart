@@ -20,17 +20,11 @@ class UniversalDIDResolver implements DidResolver {
   /// [resolverAddress] is used for DID methods that require external resolution.
   UniversalDIDResolver({this.resolverAddress});
 
-  /// Default instance for backward compatibility.
-  static final UniversalDIDResolver defaultInstance = UniversalDIDResolver();
-
   /// Default DidResolver instance that implements the interface.
   static final DidResolver defaultResolver = UniversalDIDResolver();
 
   @override
-  Future<DidDocument> resolve(
-    String did, {
-    String? resolverAddress,
-  }) async {
+  Future<DidDocument> resolve(String did) async {
     if (did.startsWith('did:key')) {
       return DidKey.resolve(did);
     } else if (did.startsWith('did:peer')) {
@@ -38,46 +32,27 @@ class UniversalDIDResolver implements DidResolver {
     } else if (did.startsWith('did:web')) {
       return DidWeb.resolve(did);
     } else {
-      return resolveWithAddress(did, resolverAddress: resolverAddress);
-    }
-  }
+      if (resolverAddress == null) {
+        throw SsiException(
+          message:
+              'This DID can only be resolved using a universal resolver. Please provide a resolver address.',
+          code: SsiExceptionType.unableToResolveDid.code,
+        );
+      }
 
-  /// Resolves a DID Document for DIDs that require external resolution.
-  ///
-  /// [did] must be a valid DID string.
-  /// [resolverAddress] overrides the instance's resolver address if provided.
-  ///
-  /// Returns a [DidDocument] containing the resolved DID document.
-  ///
-  /// Throws [SsiException] if:
-  /// - The DID is invalid
-  /// - The resolution fails
-  /// - No resolver address is available for external DIDs
-  Future<DidDocument> resolveWithAddress(
-    String did, {
-    String? resolverAddress,
-  }) async {
-    final address = resolverAddress ?? this.resolverAddress;
-    if (address == null) {
-      throw SsiException(
-        message:
-            'This DID can only be resolved using a universal resolver. Please provide a resolver address.',
-        code: SsiExceptionType.unableToResolveDid.code,
-      );
-    }
+      final res = await http
+          .get(Uri.parse('$resolverAddress/1.0/identifiers/$did'))
+          .timeout(const Duration(seconds: 30));
 
-    final res = await http
-        .get(Uri.parse('$address/1.0/identifiers/$did'))
-        .timeout(const Duration(seconds: 30));
-
-    if (res.statusCode == 200) {
-      final didResolution = jsonDecode(res.body);
-      return DidDocument.fromJson(didResolution['didDocument']);
-    } else {
-      throw SsiException(
-        message: 'Bad status code ${res.statusCode}',
-        code: SsiExceptionType.unableToResolveDid.code,
-      );
+      if (res.statusCode == 200) {
+        final didResolution = jsonDecode(res.body);
+        return DidDocument.fromJson(didResolution['didDocument']);
+      } else {
+        throw SsiException(
+          message: 'Bad status code ${res.statusCode}',
+          code: SsiExceptionType.unableToResolveDid.code,
+        );
+      }
     }
   }
 }

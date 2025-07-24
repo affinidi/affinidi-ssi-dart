@@ -11,28 +11,20 @@ class MockDidResolver implements DidResolver {
   final DidDocument mockDocument;
   bool resolveCalled = false;
   String? lastDid;
-  String? lastResolverAddress;
 
   MockDidResolver(this.mockDocument);
 
   @override
-  Future<DidDocument> resolve(
-    String did, {
-    String? resolverAddress,
-  }) async {
+  Future<DidDocument> resolve(String did) async {
     resolveCalled = true;
     lastDid = did;
-    lastResolverAddress = resolverAddress;
     return mockDocument;
   }
 }
 
 class _FailingDidResolver implements DidResolver {
   @override
-  Future<DidDocument> resolve(
-    String did, {
-    String? resolverAddress,
-  }) async {
+  Future<DidDocument> resolve(String did) async {
     throw SsiException(
       message: 'Test resolver failure',
       code: SsiExceptionType.unableToResolveDid.code,
@@ -119,8 +111,7 @@ void main() {
         expect(verifier.isAllowedAlgorithm('ES256K'), isTrue);
       });
 
-      test('should pass resolverAddress to custom resolver', () async {
-        const customResolverAddress = 'https://example.com/resolver';
+      test('should use custom resolver when provided', () async {
         final didDocument = DidDocument.fromJson(
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey)
               as Map<String, dynamic>,
@@ -132,13 +123,24 @@ void main() {
           algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
           kid: 'zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R',
           issuerDid: didKey,
-          resolverAddress: customResolverAddress,
           didResolver: mockResolver,
         );
 
         expect(mockResolver.resolveCalled, isTrue);
         expect(mockResolver.lastDid, equals(didKey));
-        expect(mockResolver.lastResolverAddress, equals(customResolverAddress));
+      });
+
+      test('should use custom resolver with resolver address (Ivan way)',
+          () async {
+        // IVAN's way: When you need a custom resolver address:
+        // 1. Create a UniversalDIDResolver with the address in constructor
+        const customResolverAddress = 'https://example.com/resolver';
+        final resolver =
+            UniversalDIDResolver(resolverAddress: customResolverAddress);
+
+        // 2. Pass that resolver instance to DidVerifier
+        // This demonstrates IVAN's approach - resolver address set once in constructor
+        expect(resolver.resolverAddress, equals(customResolverAddress));
       });
 
       test('should work without didResolver parameter (default behavior)',

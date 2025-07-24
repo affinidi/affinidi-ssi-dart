@@ -34,7 +34,6 @@ class DidVerifier implements Verifier {
   /// [algorithm] - The signature scheme to use for verification.
   /// [kid] - The key ID to use for verification.
   /// [issuerDid] - The DID of the issuer.
-  /// [resolverAddress] - Optional address of the DID resolver.
   /// [didResolver] - Optional DID resolver instance. If not provided, uses the default UniversalDIDResolver.
   ///
   /// Returns a new [DidVerifier] instance.
@@ -44,14 +43,10 @@ class DidVerifier implements Verifier {
     required SignatureScheme algorithm,
     String? kid,
     required String issuerDid,
-    String? resolverAddress,
     DidResolver? didResolver,
   }) async {
     final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
-    final didDocument = await resolver.resolve(
-      issuerDid,
-      resolverAddress: resolverAddress,
-    );
+    final didDocument = await resolver.resolve(issuerDid);
 
     kid ??= didDocument.assertionMethod[0] as String;
 

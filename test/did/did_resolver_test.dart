@@ -14,10 +14,7 @@ class TestDidResolver implements DidResolver {
   }
 
   @override
-  Future<DidDocument> resolve(
-    String did, {
-    String? resolverAddress,
-  }) async {
+  Future<DidDocument> resolve(String did) async {
     final documentJson = _mockDocuments[did];
     if (documentJson == null) {
       throw SsiException(
@@ -60,7 +57,7 @@ void main() {
       );
     });
 
-    test('custom implementation should accept resolverAddress parameter',
+    test('custom implementation should resolve without resolver address',
         () async {
       final testResolver = TestDidResolver();
       final testDid = 'did:test:456';
@@ -70,10 +67,7 @@ void main() {
 
       testResolver.addMockDocument(testDid, mockDocument);
 
-      final resolvedDocument = await testResolver.resolve(
-        testDid,
-        resolverAddress: 'https://example.com/resolver',
-      );
+      final resolvedDocument = await testResolver.resolve(testDid);
       expect(resolvedDocument.toJson(), equals(mockDocument));
     });
 
