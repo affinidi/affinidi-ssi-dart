@@ -14,7 +14,7 @@ final class LdVpDm1Suite extends LdBaseSuite<VpDataModelV1, LdVpDataModelV1>
     implements
         VerifiablePresentationSuite<String, VpDataModelV1, LdVpDataModelV1> {
   /// Creates a new [LdVpDm1Suite] with the v1.1 context URL.
-  LdVpDm1Suite()
+  LdVpDm1Suite({super.customDocumentLoader})
       : super(
             contextUrl: dmV1ContextUrl, issuerKey: VpDataModelV1Key.holder.key);
 
