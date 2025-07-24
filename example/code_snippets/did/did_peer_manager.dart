@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:ssi/ssi.dart';
 
-void main() async {
-  // Use a pretty print encoder
-  const jsonEncoder = JsonEncoder.withIndent('  ');
+import '../../utility.dart';
 
+void main() async {
   print('\n--- DidPeerManager Operations ---');
 
   // 1. Create dependencies: Wallet and DID Store
@@ -55,7 +53,7 @@ void main() async {
   // 7. Get and print the DID Document
   print('\n--- Generated DID Document (did:peer) ---');
   final didDocument = await didPeerManager.getDidDocument();
-  print(jsonEncoder.convert(didDocument.toJson()));
+  printJsonFrom(didDocument);
   print('\nDID: ${didDocument.id}');
 
   // 8. Verify the DID can be resolved from the document
@@ -65,10 +63,10 @@ void main() async {
   final resolvedDidDoc = DidPeer.resolve(didDocument.id);
   print('DID resolved successfully.');
 
-  print(jsonEncoder.convert(resolvedDidDoc.toJson()));
+  printJsonFrom(resolvedDidDoc);
 
-  final resolvedJson = jsonEncoder.convert(resolvedDidDoc.toJson());
-  final originalJson = jsonEncoder.convert(didDocument.toJson());
+  final resolvedJson = resolvedDidDoc.toJson();
+  final originalJson = didDocument.toJson();
 
   // Note: The resolved document's DID will be the short-form version,
   // so we compare the rest of the content.
