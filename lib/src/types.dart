@@ -125,10 +125,38 @@ enum SignatureScheme {
 }
 
 /// Maps W3C-standard cryptosuite identifiers to their corresponding SignatureScheme.
+/// Note: ecdsa-jcs-2019 is not included as it supports multiple curves (P-256, P-384)
+/// and must be determined dynamically from the verification method.
 const cryptosuiteToScheme = <String, SignatureScheme>{
   'ecdsa-rdfc-2019': SignatureScheme.ecdsa_p256_sha256,
   'eddsa-rdfc-2022': SignatureScheme.ed25519,
+  'eddsa-jcs-2022': SignatureScheme.ed25519,
 };
+
+/// Determines the SignatureScheme for ecdsa-jcs-2019 cryptosuite from a JWK.
+///
+/// The ecdsa-jcs-2019 cryptosuite supports both P-256/SHA-256 and P-384/SHA-384.
+/// This function examines the JWK to determine which curve is being used.
+///
+/// [jwkMap] The JWK as a Map containing curve information.
+///
+/// Returns the appropriate SignatureScheme.
+///
+/// Throws [ArgumentError] if the curve is not supported for ecdsa-jcs-2019.
+SignatureScheme getEcdsaJcsSignatureScheme(Map<String, dynamic> jwkMap) {
+  final curve = jwkMap['crv'] as String?;
+
+  switch (curve) {
+    case 'P-256':
+      return SignatureScheme.ecdsa_p256_sha256;
+    case 'P-384':
+      return SignatureScheme.ecdsa_p384_sha384;
+    default:
+      throw ArgumentError(
+        'Unsupported curve for ecdsa-jcs-2019: $curve. Only P-256 and P-384 are supported.',
+      );
+  }
+}
 
 /// Supported DID peer types.
 enum DidPeerType {
