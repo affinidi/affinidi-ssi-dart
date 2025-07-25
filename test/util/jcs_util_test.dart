@@ -1,3 +1,4 @@
+import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/util/jcs_util.dart';
 import 'package:test/test.dart';
 
@@ -38,12 +39,39 @@ void main() {
         expect(JcsUtil.canonicalize(3.140), equals('3.14'));
       });
 
-      test('invalid numbers throw errors', () {
-        expect(() => JcsUtil.canonicalize(double.nan), throwsArgumentError);
+      test('scientific notation', () {
+        // Small numbers keep scientific notation
+        expect(JcsUtil.canonicalize(1e-10), equals('1e-10'));
+        expect(JcsUtil.canonicalize(2.5e-20), equals('2.5e-20'));
+
+        // Large numbers may be converted to decimal representation
+        // This behavior matches the RFC 8785 ECMAScript compatibility
+        // Dart's toString() handles large numbers differently than JavaScript
+        expect(JcsUtil.canonicalize(1e20), equals('100000000000000000000'));
+
+        // Very large numbers keep scientific notation when necessary
+        expect(JcsUtil.canonicalize(3.5e25), equals('3.5e+25'));
+      });
+
+      test('very large numbers near MAX_SAFE_INTEGER', () {
+        // JavaScript MAX_SAFE_INTEGER is 9007199254740991
         expect(
-            () => JcsUtil.canonicalize(double.infinity), throwsArgumentError);
+            JcsUtil.canonicalize(9007199254740991), equals('9007199254740991'));
+        expect(JcsUtil.canonicalize(9007199254740992.0),
+            equals('9007199254740992'));
+
+        // Very large double values should keep decimal representation
+        expect(JcsUtil.canonicalize(1000000000000000.0),
+            equals('1000000000000000'));
+      });
+
+      test('invalid numbers throw errors', () {
+        expect(() => JcsUtil.canonicalize(double.nan),
+            throwsA(isA<SsiException>()));
+        expect(() => JcsUtil.canonicalize(double.infinity),
+            throwsA(isA<SsiException>()));
         expect(() => JcsUtil.canonicalize(double.negativeInfinity),
-            throwsArgumentError);
+            throwsA(isA<SsiException>()));
       });
 
       test('string escaping', () {
@@ -246,8 +274,10 @@ void main() {
       });
 
       test('unsupported types throw errors', () {
-        expect(() => JcsUtil.canonicalize(DateTime.now()), throwsArgumentError);
-        expect(() => JcsUtil.canonicalize(RegExp('')), throwsArgumentError);
+        expect(() => JcsUtil.canonicalize(DateTime.now()),
+            throwsA(isA<SsiException>()));
+        expect(() => JcsUtil.canonicalize(RegExp('')),
+            throwsA(isA<SsiException>()));
       });
     });
 

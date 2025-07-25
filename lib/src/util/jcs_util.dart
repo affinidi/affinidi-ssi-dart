@@ -1,3 +1,6 @@
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
+
 /// JSON Canonicalization Scheme (JCS) implementation according to RFC 8785.
 ///
 /// This utility provides canonicalization of JSON data structures according to
@@ -10,7 +13,7 @@ class JcsUtil {
   ///
   /// Returns the canonicalized JSON string representation.
   ///
-  /// Throws [ArgumentError] if the value contains unsupported types.
+  /// Throws [SsiException] if the value contains unsupported types.
   static String canonicalize(dynamic value) {
     return _canonicalizeValue(value);
   }
@@ -30,7 +33,10 @@ class JcsUtil {
     } else if (value is Map) {
       return _canonicalizeObject(value);
     } else {
-      throw ArgumentError('Unsupported type: ${value.runtimeType}');
+      throw SsiException(
+        message: 'Unsupported type: ${value.runtimeType}',
+        code: SsiExceptionType.invalidJson.code,
+      );
     }
   }
 
@@ -40,10 +46,16 @@ class JcsUtil {
   /// rules which ensure a deterministic and interoperable representation.
   static String _canonicalizeNumber(num value) {
     if (value.isNaN) {
-      throw ArgumentError('NaN is not allowed in JSON');
+      throw SsiException(
+        message: 'NaN is not allowed in JSON',
+        code: SsiExceptionType.invalidJson.code,
+      );
     }
     if (value.isInfinite) {
-      throw ArgumentError('Infinity is not allowed in JSON');
+      throw SsiException(
+        message: 'Infinity is not allowed in JSON',
+        code: SsiExceptionType.invalidJson.code,
+      );
     }
 
     // Handle integers - simple decimal representation
