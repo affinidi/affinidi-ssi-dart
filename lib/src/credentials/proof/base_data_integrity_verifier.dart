@@ -174,12 +174,10 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
     return VerificationResult.ok();
   }
 
-  /// Validates context for JCS cryptosuites according to specs.
+  /// Validates context for JCS cryptosuites.
   ///
-  /// Per JCS specs step 4 of Verify Proof:
-  /// "If proofOptions.@context exists: Check that the securedDocument.@context
-  /// starts with all values contained in the proofOptions.@context in the same order.
-  /// Otherwise, set verified to false and skip to the last step."
+  /// Ensures that the document context starts with all values from the proof context
+  /// in the same order, as required by the JCS specification.
   VerificationResult _validateJcsContext(
       Map<String, dynamic> document, Map<String, dynamic> proof) {
     final proofContext = proof['@context'];
@@ -208,16 +206,14 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
     final proofCopy = Map<String, dynamic>.from(proof);
 
     if (_isJcsCryptosuite(expectedCryptosuite)) {
-      // For JCS cryptosuites, use document @context in proof during verification
-      // per spec step 5: "Set unsecuredDocument.@context equal to proofOptions.@context"
+      // Use document context in proof for JCS cryptosuites during verification
       final documentContext = document['@context'];
       if (documentContext != null) {
         proofCopy['@context'] = documentContext;
       }
 
-      // For JCS cryptosuites, ensure proof structure matches what was used during signing.
-      // The generators include expires, challenge, and domain fields even if null,
-      // but EmbeddedProof.toJson() omits null fields, creating a mismatch.
+      // Ensure proof structure consistency for JCS cryptosuites by including
+      // optional fields that may be omitted during serialization
       if (!proofCopy.containsKey('expires')) {
         proofCopy['expires'] = null;
       }
@@ -270,7 +266,7 @@ Future<Uint8List> computeDataIntegrityHash(
 
 /// Computes Data Integrity hash using JCS canonicalization for ecdsa-jcs-2019.
 ///
-/// Uses SHA-256 for P-256 curves and SHA-384 for P-384 curves.
+/// The hash algorithm is determined by the signature scheme (SHA-256 for P-256, SHA-384 for P-384).
 Future<Uint8List> computeDataIntegrityJcsEcdsaHash(
   Map<String, dynamic> proof,
   Map<String, dynamic> unsignedCredential,
@@ -293,7 +289,7 @@ Future<Uint8List> computeDataIntegrityJcsEcdsaHash(
 
 /// Computes Data Integrity hash using JCS canonicalization for eddsa-jcs-2022.
 ///
-/// Uses SHA-256 hashing algorithm as specified in the standard.
+/// Uses SHA-256 hash algorithm as specified by the eddsa-jcs-2022 standard.
 Future<Uint8List> computeDataIntegrityJcsEddsaHash(
   Map<String, dynamic> proof,
   Map<String, dynamic> unsignedCredential,
@@ -384,8 +380,8 @@ LibDocumentLoader createCacheDocumentLoader(
 ) =>
     _cacheLoadDocument(customLoader);
 
-/// Checks if documentContext starts with all values from proofContext in the same order.
-/// Used for JCS cryptosuite context validation.
+/// Checks if document context starts with proof context values in order.
+/// Required for JCS cryptosuite context validation.
 bool contextStartsWith(dynamic documentContext, dynamic proofContext) {
   // Convert both contexts to lists for comparison
   final List<dynamic> docList = _contextToList(documentContext);
@@ -401,8 +397,7 @@ bool contextStartsWith(dynamic documentContext, dynamic proofContext) {
   return true;
 }
 
-/// Converts a context value to a normalized list format.
-/// Used for JCS cryptosuite context validation.
+/// Converts a context value to normalized list format for comparison.
 List<dynamic> _contextToList(dynamic context) {
   if (context is List) {
     return context;

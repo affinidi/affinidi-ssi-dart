@@ -203,13 +203,13 @@ class DataIntegrityEddsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
       'domain': domain,
     };
 
-    // Step 2: If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context
+    // Set proof context to document context if present
     final documentContext = document['@context'];
     if (documentContext != null) {
       proof['@context'] = documentContext;
     }
 
-    // Proof Configuration validation per spec section 3.3.5
+    // Validate proof configuration structure
     _validateProofConfiguration(proof);
 
     document.remove('proof');
@@ -233,9 +233,9 @@ class DataIntegrityEddsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
     );
   }
 
-  /// Validates proof configuration according to spec section 3.3.5.
+  /// Validates proof configuration structure and required fields.
   static void _validateProofConfiguration(Map<String, dynamic> proofConfig) {
-    // Validate type and cryptosuite
+    // Ensure required type and cryptosuite values
     if (proofConfig['type'] != _dataIntegrityType ||
         proofConfig['cryptosuite'] != _eddsaJcsCryptosuite) {
       throw SsiException(
@@ -245,7 +245,7 @@ class DataIntegrityEddsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
       );
     }
 
-    // Validate created datetime if present
+    // Validate created field format if present
     final created = proofConfig['created'];
     if (created != null && created is String) {
       try {
@@ -259,7 +259,7 @@ class DataIntegrityEddsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
       }
     }
 
-    // Validate expires datetime if present
+    // Validate expires field format if present
     final expires = proofConfig['expires'];
     if (expires != null && expires is String) {
       try {
@@ -331,7 +331,7 @@ class DataIntegrityEddsaJcsVerifier extends BaseDataIntegrityVerifier {
     Uri verificationMethod,
     Uint8List hash,
   ) async {
-    // Custom implementation for eddsa-jcs-2022 to handle base58-btc decoding
+    // Handle base58-btc multibase decoding for JCS cryptosuite
     final Uint8List signature;
     if (!proofValue.startsWith('z')) {
       throw SsiException(

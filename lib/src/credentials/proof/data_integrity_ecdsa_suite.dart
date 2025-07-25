@@ -204,13 +204,13 @@ class DataIntegrityEcdsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
       'domain': domain,
     };
 
-    // Step 2: If unsecuredDocument.@context is present, set proof.@context to unsecuredDocument.@context
+    // Set proof context to document context if present
     final documentContext = document['@context'];
     if (documentContext != null) {
       proof['@context'] = documentContext;
     }
 
-    // Proof Configuration validation per spec section 3.3.5
+    // Validate proof configuration structure
     _validateProofConfiguration(proof);
 
     document.remove('proof');
@@ -239,9 +239,9 @@ class DataIntegrityEcdsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
     );
   }
 
-  /// Validates proof configuration according to spec section 3.3.5.
+  /// Validates proof configuration structure and required fields.
   static void _validateProofConfiguration(Map<String, dynamic> proofConfig) {
-    // Validate type and cryptosuite
+    // Ensure required type and cryptosuite values
     if (proofConfig['type'] != _dataIntegrityType ||
         proofConfig['cryptosuite'] != _ecdsaJcsCryptosuite) {
       throw SsiException(
@@ -251,7 +251,7 @@ class DataIntegrityEcdsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
       );
     }
 
-    // Validate created datetime if present
+    // Validate created field format if present
     final created = proofConfig['created'];
     if (created != null && created is String) {
       try {
@@ -265,7 +265,7 @@ class DataIntegrityEcdsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
       }
     }
 
-    // Validate expires datetime if present
+    // Validate expires field format if present
     final expires = proofConfig['expires'];
     if (expires != null && expires is String) {
       try {
@@ -366,7 +366,7 @@ class DataIntegrityEcdsaJcsVerifier extends BaseDataIntegrityVerifier {
     return verifier.verify(hash, signature);
   }
 
-  /// Gets the signature scheme by examining the verification method in the DID document.
+  /// Determines the signature scheme from the verification method.
   Future<SignatureScheme> _getSignatureSchemeFromVerificationMethod(
       Map<String, dynamic> proof) async {
     final verificationMethodUri = proof['verificationMethod'] as String?;
@@ -380,7 +380,7 @@ class DataIntegrityEcdsaJcsVerifier extends BaseDataIntegrityVerifier {
     return _getSignatureSchemeFromDid(Uri.parse(verificationMethodUri));
   }
 
-  /// Gets the signature scheme by examining the verification method in the DID document.
+  /// Determines the signature scheme from the verification method.
   Future<SignatureScheme> _getSignatureSchemeFromDid(
       Uri verificationMethod) async {
     // Resolve the DID to get the verification method
