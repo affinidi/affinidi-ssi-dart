@@ -3,17 +3,17 @@ import 'dart:typed_data';
 import 'package:json_ld_processor/json_ld_processor.dart';
 
 import '../../did/did_signer.dart';
+import '../../did/public_key_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
-import '../../util/base64_util.dart';
 import 'base_data_integrity_verifier.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 
 const _dataIntegrityType = 'DataIntegrityProof';
 const _ecdsaCryptosuite = 'ecdsa-rdfc-2019';
-const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v1';
+const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v2';
 
 /// Generates Data Integrity Proofs using the ecdsa-rdfc-2019 cryptosuite.
 ///
@@ -68,10 +68,10 @@ class DataIntegrityEcdsaGenerator extends EmbeddedProofSuiteCreateOptions
     final cacheLoadDocument = createCacheDocumentLoader(customDocumentLoader);
     final hash =
         await computeDataIntegrityHash(proof, document, cacheLoadDocument);
-    final signature = await _computeSignature(hash, signer);
+    final proofValue = await _computeProofValue(hash, signer);
 
     proof.remove('@context');
-    proof['proofValue'] = signature;
+    proof['proofValue'] = proofValue;
 
     return EmbeddedProof(
       type: _dataIntegrityType,
@@ -79,19 +79,22 @@ class DataIntegrityEcdsaGenerator extends EmbeddedProofSuiteCreateOptions
       created: created,
       verificationMethod: signer.keyId,
       proofPurpose: proofPurpose?.value,
-      proofValue: signature,
+      proofValue: proofValue,
       expires: expires,
       challenge: challenge,
       domain: domain,
     );
   }
 
-  static Future<String> _computeSignature(
+  Future<String> _computeProofValue(
     Uint8List hash,
     DidSigner signer,
   ) async {
     final signature = await signer.sign(hash);
-    return base64UrlNoPadEncode(signature);
+    return toMultiBase(
+      signature,
+      base: proofValueMultiBase,
+    );
   }
 }
 
