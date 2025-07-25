@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:ssi/ssi.dart';
 
-void main() async {
-  // Use a pretty print encoder
-  const jsonEncoder = JsonEncoder.withIndent('  ');
+import '../../utility.dart';
 
+void main() async {
   print('\n--- DidKeyManager Operations ---');
 
   // 1. Create dependencies: Wallet and DID Store
@@ -29,7 +27,7 @@ void main() async {
   // 5. Get and print the DID Document
   print('\n--- Generated DID Document ---');
   final didDocument = await didKeyManager.getDidDocument();
-  print(jsonEncoder.convert(didDocument.toJson()));
+  printJsonFrom(didDocument);
   print('DID: ${didDocument.id}');
 
   // 6. Demonstrate did:key limitations

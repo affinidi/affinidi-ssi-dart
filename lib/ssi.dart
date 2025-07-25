@@ -13,6 +13,7 @@ export 'src/did/did_manager/did_manager.dart';
 export 'src/did/did_manager/did_peer_manager.dart';
 export 'src/did/did_manager/verification_relationship.dart';
 export 'src/did/did_peer.dart';
+export 'src/did/did_resolver.dart';
 export 'src/did/did_signer.dart';
 export 'src/did/did_verifier.dart';
 export 'src/did/did_web.dart';
