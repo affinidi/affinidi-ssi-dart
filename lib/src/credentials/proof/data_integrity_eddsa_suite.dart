@@ -36,6 +36,7 @@ class DataIntegrityEddsaGenerator extends EmbeddedProofSuiteCreateOptions
     super.expires,
     super.challenge,
     super.domain,
+    super.proofValueMultiBase,
   }) {
     final expectedScheme = cryptosuiteToScheme[_eddsaCryptosuite];
     if (signer.signatureScheme != expectedScheme) {
