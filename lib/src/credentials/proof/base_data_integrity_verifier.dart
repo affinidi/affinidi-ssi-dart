@@ -10,7 +10,6 @@ import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
-import '../../util/jcs_util.dart';
 import 'embedded_proof_suite.dart';
 
 /// Base class for Data Integrity proof verifiers.
@@ -250,51 +249,6 @@ Future<Uint8List> computeDataIntegrityHash(
   );
   final transformedDocumentHash = DigestUtils.getDigest(
     utf8.encode(normalizedContent),
-    hashingAlgorithm: HashingAlgorithm.sha256,
-  );
-
-  return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
-}
-
-/// Computes Data Integrity hash using JCS canonicalization for ecdsa-jcs-2019.
-///
-/// The hash algorithm is determined by the signature scheme (SHA-256 for P-256, SHA-384 for P-384).
-Future<Uint8List> computeDataIntegrityJcsEcdsaHash(
-  Map<String, dynamic> proof,
-  Map<String, dynamic> unsignedCredential,
-  SignatureScheme signatureScheme,
-) async {
-  final canonicalProof = JcsUtil.canonicalize(proof);
-  final proofConfigHash = DigestUtils.getDigest(
-    utf8.encode(canonicalProof),
-    hashingAlgorithm: signatureScheme.hashingAlgorithm,
-  );
-
-  final canonicalDocument = JcsUtil.canonicalize(unsignedCredential);
-  final transformedDocumentHash = DigestUtils.getDigest(
-    utf8.encode(canonicalDocument),
-    hashingAlgorithm: signatureScheme.hashingAlgorithm,
-  );
-
-  return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
-}
-
-/// Computes Data Integrity hash using JCS canonicalization for eddsa-jcs-2022.
-///
-/// Uses SHA-256 hash algorithm as specified by the eddsa-jcs-2022 standard.
-Future<Uint8List> computeDataIntegrityJcsEddsaHash(
-  Map<String, dynamic> proof,
-  Map<String, dynamic> unsignedCredential,
-) async {
-  final canonicalProof = JcsUtil.canonicalize(proof);
-  final proofConfigHash = DigestUtils.getDigest(
-    utf8.encode(canonicalProof),
-    hashingAlgorithm: HashingAlgorithm.sha256,
-  );
-
-  final canonicalDocument = JcsUtil.canonicalize(unsignedCredential);
-  final transformedDocumentHash = DigestUtils.getDigest(
-    utf8.encode(canonicalDocument),
     hashingAlgorithm: HashingAlgorithm.sha256,
   );
 

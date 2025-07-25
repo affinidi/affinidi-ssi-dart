@@ -1,15 +1,15 @@
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:json_ld_processor/json_ld_processor.dart';
 
 import '../../did/did_signer.dart';
-import '../../did/did_verifier.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'base_data_integrity_verifier.dart';
+import 'base_jcs_generator.dart';
+import 'base_jcs_verifier.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 
@@ -160,24 +160,29 @@ class DataIntegrityEddsaVerifier extends BaseDataIntegrityVerifier {
 ///
 /// Signs Verifiable Credentials by canonicalizing the credential and the proof using JCS,
 /// hashing them, and then signing the combined hash using a [DidSigner].
-class DataIntegrityEddsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
-    implements EmbeddedProofGenerator {
-  /// The DID signer used to produce the proof signature.
-  final DidSigner signer;
-
+class DataIntegrityEddsaJcsGenerator extends BaseJcsGenerator {
   /// Constructs a new [DataIntegrityEddsaJcsGenerator].
   ///
   /// [signer]: The DID signer responsible for creating the proof signature.
   /// Optional parameters like [proofPurpose], [customDocumentLoader], [expires],
   /// [challenge], and [domain] configure the proof metadata.
   DataIntegrityEddsaJcsGenerator({
-    required this.signer,
+    required super.signer,
     super.proofPurpose,
     super.customDocumentLoader,
     super.expires,
     super.challenge,
     super.domain,
-  }) {
+  });
+
+  @override
+  String get cryptosuite => _eddsaJcsCryptosuite;
+
+  @override
+  HashingAlgorithm get hashingAlgorithm => HashingAlgorithm.sha256;
+
+  @override
+  void validateSignerCompatibility(DidSigner signer) {
     final expectedScheme = cryptosuiteToScheme[_eddsaJcsCryptosuite];
     if (signer.signatureScheme != expectedScheme) {
       throw SsiException(
@@ -187,115 +192,13 @@ class DataIntegrityEddsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
       );
     }
   }
-
-  /// Generates an [EmbeddedProof] for the given [document].
-  @override
-  Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
-    final created = DateTime.now();
-    final proof = <String, dynamic>{
-      'type': _dataIntegrityType,
-      'cryptosuite': _eddsaJcsCryptosuite,
-      'created': created.toIso8601String(),
-      'verificationMethod': signer.keyId,
-      'proofPurpose': proofPurpose?.value,
-    };
-
-    // Only add optional fields if they have values
-    if (expires != null) {
-      proof['expires'] = expires!.toIso8601String();
-    }
-    if (challenge != null) {
-      proof['challenge'] = challenge;
-    }
-    if (domain != null) {
-      proof['domain'] = domain;
-    }
-
-    // Set proof context to document context if present
-    final documentContext = document['@context'];
-    if (documentContext != null) {
-      proof['@context'] = documentContext;
-    }
-
-    // Validate proof configuration structure
-    _validateProofConfiguration(proof);
-
-    document.remove('proof');
-
-    final hash = await computeDataIntegrityJcsEddsaHash(proof, document);
-    final signature = await _computeSignature(hash, signer);
-
-    proof.remove('@context');
-    proof['proofValue'] = signature;
-
-    return EmbeddedProof(
-      type: _dataIntegrityType,
-      cryptosuite: _eddsaJcsCryptosuite,
-      created: created,
-      verificationMethod: signer.keyId,
-      proofPurpose: proofPurpose?.value,
-      proofValue: signature,
-      expires: expires,
-      challenge: challenge,
-      domain: domain,
-    );
-  }
-
-  /// Validates proof configuration structure and required fields.
-  static void _validateProofConfiguration(Map<String, dynamic> proofConfig) {
-    // Ensure required type and cryptosuite values
-    if (proofConfig['type'] != _dataIntegrityType ||
-        proofConfig['cryptosuite'] != _eddsaJcsCryptosuite) {
-      throw SsiException(
-        message:
-            'Invalid proof configuration: type must be "$_dataIntegrityType" and cryptosuite must be "$_eddsaJcsCryptosuite"',
-        code: SsiExceptionType.unableToParseVerifiableCredential.code,
-      );
-    }
-
-    // Validate created field format if present
-    final created = proofConfig['created'];
-    if (created != null && created is String) {
-      try {
-        DateTime.parse(created);
-      } catch (e) {
-        throw SsiException(
-          message:
-              'Invalid created datetime: must be a valid XMLSCHEMA11-2 datetime',
-          code: SsiExceptionType.unableToParseVerifiableCredential.code,
-        );
-      }
-    }
-
-    // Validate expires field format if present
-    final expires = proofConfig['expires'];
-    if (expires != null && expires is String) {
-      try {
-        DateTime.parse(expires);
-      } catch (e) {
-        throw SsiException(
-          message:
-              'Invalid expires datetime: must be a valid XMLSCHEMA11-2 datetime',
-          code: SsiExceptionType.unableToParseVerifiableCredential.code,
-        );
-      }
-    }
-  }
-
-  static Future<String> _computeSignature(
-    Uint8List hash,
-    DidSigner signer,
-  ) async {
-    final signature = await signer.sign(hash);
-    return 'z${base58BitcoinEncode(signature)}';
-  }
 }
 
 /// Verifies Data Integrity Proofs signed with the eddsa-jcs-2022 cryptosuite.
 ///
 /// Canonicalizes using JCS and hashes the credential and proof separately, then verifies
 /// the combined hash against the provided proof signature using the issuer's DID key.
-class DataIntegrityEddsaJcsVerifier extends BaseDataIntegrityVerifier {
+class DataIntegrityEddsaJcsVerifier extends BaseJcsVerifier {
   /// Constructs a new [DataIntegrityEddsaJcsVerifier].
   ///
   /// [issuerDid]: The expected issuer DID.
@@ -311,59 +214,8 @@ class DataIntegrityEddsaJcsVerifier extends BaseDataIntegrityVerifier {
   });
 
   @override
-  String get expectedProofType => _dataIntegrityType;
+  String get expectedJcsCryptosuite => _eddsaJcsCryptosuite;
 
   @override
-  String get expectedCryptosuite => _eddsaJcsCryptosuite;
-
-  @override
-  String get contextUrl => _dataIntegrityContext;
-
-  @override
-  String get proofValueField => 'proofValue';
-
-  @override
-  Future<Uint8List> computeSignatureHash(
-    Map<String, dynamic> proof,
-    Map<String, dynamic> unsignedCredential,
-    Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
-  ) async {
-    return computeDataIntegrityJcsEddsaHash(proof, unsignedCredential);
-  }
-
-  @override
-  Future<bool> verifySignature(
-    String proofValue,
-    String issuerDid,
-    Uri verificationMethod,
-    Uint8List hash,
-  ) async {
-    // Handle base58-btc multibase decoding for JCS cryptosuite
-    final Uint8List signature;
-    if (!proofValue.startsWith('z')) {
-      throw SsiException(
-        message:
-            'JCS cryptosuite $_eddsaJcsCryptosuite requires base58-btc multibase encoding (z prefix)',
-        code: SsiExceptionType.invalidEncoding.code,
-      );
-    }
-    signature = base58BitcoinDecode(proofValue.substring(1));
-
-    final expectedScheme = cryptosuiteToScheme[_eddsaJcsCryptosuite];
-    if (expectedScheme == null) {
-      throw SsiException(
-        message:
-            'Unknown cryptosuite: $_eddsaJcsCryptosuite, cannot determine signature scheme.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
-
-    final verifier = await DidVerifier.create(
-      algorithm: expectedScheme,
-      kid: verificationMethod.toString(),
-      issuerDid: issuerDid,
-    );
-    return verifier.verify(hash, signature);
-  }
+  HashingAlgorithm get hashingAlgorithm => HashingAlgorithm.sha256;
 }
