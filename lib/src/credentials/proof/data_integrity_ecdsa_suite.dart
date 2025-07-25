@@ -193,16 +193,24 @@ class DataIntegrityEcdsaJcsGenerator extends EmbeddedProofSuiteCreateOptions
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
-    final proof = {
+    final proof = <String, dynamic>{
       'type': _dataIntegrityType,
       'cryptosuite': _ecdsaJcsCryptosuite,
       'created': created.toIso8601String(),
       'verificationMethod': signer.keyId,
       'proofPurpose': proofPurpose?.value,
-      'expires': expires?.toIso8601String(),
-      'challenge': challenge,
-      'domain': domain,
     };
+
+    // Only add optional fields if they have values
+    if (expires != null) {
+      proof['expires'] = expires!.toIso8601String();
+    }
+    if (challenge != null) {
+      proof['challenge'] = challenge;
+    }
+    if (domain != null) {
+      proof['domain'] = domain;
+    }
 
     // Set proof context to document context if present
     final documentContext = document['@context'];
@@ -384,7 +392,8 @@ class DataIntegrityEcdsaJcsVerifier extends BaseDataIntegrityVerifier {
   Future<SignatureScheme> _getSignatureSchemeFromDid(
       Uri verificationMethod) async {
     // Resolve the DID to get the verification method
-    final didDocument = await UniversalDIDResolver.resolve(issuerDid);
+    final didDocument =
+        await UniversalDIDResolver.defaultResolver.resolveDid(issuerDid);
 
     // Find the verification method in the DID document
     final vm = didDocument.verificationMethod

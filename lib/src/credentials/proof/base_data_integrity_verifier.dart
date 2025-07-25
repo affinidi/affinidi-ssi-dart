@@ -211,17 +211,8 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
         proofCopy['@context'] = documentContext;
       }
 
-      // Ensure proof structure consistency for JCS cryptosuites by including
-      // optional fields that may be omitted during serialization
-      if (!proofCopy.containsKey('expires')) {
-        proofCopy['expires'] = null;
-      }
-      if (!proofCopy.containsKey('challenge')) {
-        proofCopy['challenge'] = null;
-      }
-      if (!proofCopy.containsKey('domain')) {
-        proofCopy['domain'] = null;
-      }
+      // For JCS cryptosuites, we do NOT add null fields during verification
+      // The proof should be verified exactly as it was signed
     } else {
       // For RDFC cryptosuites, use standard data integrity context
       proofCopy['@context'] = contextUrl;

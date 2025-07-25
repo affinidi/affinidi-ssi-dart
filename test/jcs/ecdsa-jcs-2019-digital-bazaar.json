@@ -1,0 +1,31 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://www.w3.org/ns/credentials/examples/v2"
+  ],
+  "id": "urn:uuid:58172aac-d8ba-11ed-83dd-0b3aef56cc33",
+  "type": [
+    "VerifiableCredential",
+    "AlumniCredential"
+  ],
+  "name": "Alumni Credential",
+  "description": "A minimum viable example of an Alumni Credential.",
+  "issuer": "did:key:zDnaeoWd5aKSeZ8QAimcVrLGEU2SnWCrY4wQneAAk5NhQyn8U",
+  "validFrom": "2023-01-01T00:00:00Z",
+  "credentialSubject": {
+    "id": "did:example:abcdefgh",
+    "alumniOf": "The School of Examples"
+  },
+  "proof": {
+    "type": "DataIntegrityProof",
+    "created": "2023-02-24T23:36:38Z",
+    "verificationMethod": "did:key:zDnaeoWd5aKSeZ8QAimcVrLGEU2SnWCrY4wQneAAk5NhQyn8U#zDnaeoWd5aKSeZ8QAimcVrLGEU2SnWCrY4wQneAAk5NhQyn8U",
+    "cryptosuite": "ecdsa-jcs-2019",
+    "proofPurpose": "assertionMethod",
+    "@context": [
+      "https://www.w3.org/ns/credentials/v2",
+      "https://www.w3.org/ns/credentials/examples/v2"
+    ],
+    "proofValue": "z42wCWvyMAGP77wYLTyciWjhCbuFrRzS93iMDEg3GWUaDUTnc27uQYHg7p6JwA2Pg36JS2Ng1RuDgbLwNhGMDHaMc"
+  }
+}
