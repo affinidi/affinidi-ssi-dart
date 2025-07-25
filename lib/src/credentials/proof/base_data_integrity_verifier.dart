@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:json_ld_processor/json_ld_processor.dart';
-import 'package:pointycastle/api.dart';
 
 import '../../did/did_verifier.dart';
 import '../../digest_utils.dart';
@@ -246,8 +245,9 @@ Future<Uint8List> computeDataIntegrityHash(
       documentLoader: documentLoader,
     ),
   );
-  final proofConfigHash = Digest('SHA-256').process(
+  final proofConfigHash = DigestUtils.getDigest(
     utf8.encode(normalizedProof),
+    hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   final normalizedContent = await JsonLdProcessor.normalize(
@@ -257,8 +257,9 @@ Future<Uint8List> computeDataIntegrityHash(
       documentLoader: documentLoader,
     ),
   );
-  final transformedDocumentHash = Digest('SHA-256').process(
+  final transformedDocumentHash = DigestUtils.getDigest(
     utf8.encode(normalizedContent),
+    hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
