@@ -66,6 +66,14 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       return expiryResult;
     }
 
+    // JCS cryptosuites require context validation per specs
+    if (_isJcsCryptosuite(expectedCryptosuite)) {
+      final contextValidationResult = _validateJcsContext(document, proof);
+      if (!contextValidationResult.isValid) {
+        return contextValidationResult;
+      }
+    }
+
     final Uri verificationMethod;
     try {
       verificationMethod = Uri.parse(proof['verificationMethod'] as String);
@@ -82,10 +90,12 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    proof['@context'] = contextUrl;
+    // Prepare proof for verification
+    final proofForVerification = _prepareProofForVerification(proof, document);
 
     final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-    final hash = await computeSignatureHash(proof, copy, cacheLoadDocument);
+    final hash = await computeSignatureHash(
+        proofForVerification, copy, cacheLoadDocument);
     final isValid = await verifySignature(
         originalProofValue as String, issuerDid, verificationMethod, hash);
 
@@ -162,6 +172,67 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       }
     }
     return VerificationResult.ok();
+  }
+
+  /// Validates context for JCS cryptosuites according to specs.
+  ///
+  /// Per JCS specs step 4 of Verify Proof:
+  /// "If proofOptions.@context exists: Check that the securedDocument.@context
+  /// starts with all values contained in the proofOptions.@context in the same order.
+  /// Otherwise, set verified to false and skip to the last step."
+  VerificationResult _validateJcsContext(
+      Map<String, dynamic> document, Map<String, dynamic> proof) {
+    final proofContext = proof['@context'];
+    if (proofContext != null) {
+      final documentContext = document['@context'];
+      if (!contextStartsWith(documentContext, proofContext)) {
+        return VerificationResult.invalid(
+          errors: [
+            'document @context does not start with proof @context values in the same order'
+          ],
+        );
+      }
+    }
+    return VerificationResult.ok();
+  }
+
+  /// Checks if the cryptosuite uses JCS canonicalization.
+  bool _isJcsCryptosuite(String cryptosuite) {
+    return cryptosuite.endsWith('-jcs-2019') ||
+        cryptosuite.endsWith('-jcs-2022');
+  }
+
+  /// Prepares proof structure for verification according to cryptosuite requirements.
+  Map<String, dynamic> _prepareProofForVerification(
+      Map<String, dynamic> proof, Map<String, dynamic> document) {
+    final proofCopy = Map<String, dynamic>.from(proof);
+
+    if (_isJcsCryptosuite(expectedCryptosuite)) {
+      // For JCS cryptosuites, use document @context in proof during verification
+      // per spec step 5: "Set unsecuredDocument.@context equal to proofOptions.@context"
+      final documentContext = document['@context'];
+      if (documentContext != null) {
+        proofCopy['@context'] = documentContext;
+      }
+
+      // For JCS cryptosuites, ensure proof structure matches what was used during signing.
+      // The generators include expires, challenge, and domain fields even if null,
+      // but EmbeddedProof.toJson() omits null fields, creating a mismatch.
+      if (!proofCopy.containsKey('expires')) {
+        proofCopy['expires'] = null;
+      }
+      if (!proofCopy.containsKey('challenge')) {
+        proofCopy['challenge'] = null;
+      }
+      if (!proofCopy.containsKey('domain')) {
+        proofCopy['domain'] = null;
+      }
+    } else {
+      // For RDFC cryptosuites, use standard data integrity context
+      proofCopy['@context'] = contextUrl;
+    }
+
+    return proofCopy;
   }
 }
 

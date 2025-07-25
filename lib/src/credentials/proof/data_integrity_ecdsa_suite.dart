@@ -309,142 +309,6 @@ class DataIntegrityEcdsaJcsVerifier extends BaseDataIntegrityVerifier {
   });
 
   @override
-  Future<VerificationResult> verify(Map<String, dynamic> document,
-      {DateTime Function() getNow = DateTime.now}) async {
-    final copy = Map.of(document);
-    final documentContext = document['@context'];
-
-    // Call the parent verify method but intercept the hash computation
-    return await _verifyWithCorrectContext(copy, documentContext, getNow);
-  }
-
-  /// Custom verification that ensures JCS uses document @context during hash computation
-  Future<VerificationResult> _verifyWithCorrectContext(
-    Map<String, dynamic> document,
-    dynamic documentContext,
-    DateTime Function() getNow,
-  ) async {
-    final copy = Map.of(document);
-    final proof = copy.remove('proof');
-
-    // Basic validation (duplicated from base class as these are private)
-    if (proof == null || proof is! Map<String, dynamic>) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof'],
-      );
-    }
-
-    if (proof['type'] != expectedProofType) {
-      return VerificationResult.invalid(
-        errors: ['invalid proof type, expected $expectedProofType'],
-      );
-    }
-
-    // Expiry validation
-    final expires = proof['expires'];
-    if (expires != null) {
-      DateTime expiryDate;
-      if (expires is String) {
-        try {
-          expiryDate = DateTime.parse(expires);
-        } catch (e) {
-          return VerificationResult.invalid(
-            errors: ['invalid expires format'],
-          );
-        }
-      } else {
-        return VerificationResult.invalid(
-          errors: ['expires must be a string'],
-        );
-      }
-
-      if (getNow().isAfter(expiryDate)) {
-        return VerificationResult.invalid(
-          errors: ['proof has expired'],
-        );
-      }
-    }
-
-    final Uri verificationMethod;
-    try {
-      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
-    } catch (e) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof.verificationMethod'],
-      );
-    }
-
-    final originalProofValue = proof.remove(proofValueField);
-    if (originalProofValue == null) {
-      return VerificationResult.invalid(
-        errors: ['missing $proofValueField'],
-      );
-    }
-
-    // For JCS, set proof @context to document @context (not standard DI context)
-    proof['@context'] = documentContext;
-
-    // Ensure proof structure matches what was used during signing
-    // The generator includes these fields even if null, so we need them for consistent hashing
-    if (!proof.containsKey('expires')) {
-      proof['expires'] = null;
-    }
-    if (!proof.containsKey('challenge')) {
-      proof['challenge'] = null;
-    }
-    if (!proof.containsKey('domain')) {
-      proof['domain'] = null;
-    }
-
-    // For ecdsa-jcs-2019, we need to dynamically determine the signature scheme
-    // by examining the verification method since it supports both P-256 and P-384
-    final verificationMethodUri = proof['verificationMethod'] as String?;
-    if (verificationMethodUri == null) {
-      throw SsiException(
-        message: 'Missing verificationMethod in proof',
-        code: SsiExceptionType.unableToParseVerifiableCredential.code,
-      );
-    }
-
-    // Resolve the DID to get the verification method
-    final didDocument = await UniversalDIDResolver.resolve(issuerDid);
-
-    // Find the verification method in the DID document
-    final vm = didDocument.verificationMethod
-        .where((vm) =>
-            vm.id == verificationMethodUri ||
-            vm.id.endsWith('#${verificationMethodUri.split('#').last}'))
-        .firstOrNull;
-
-    if (vm == null) {
-      throw SsiException(
-        message:
-            'Verification method $verificationMethodUri not found in DID document',
-        code: SsiExceptionType.invalidDidDocument.code,
-      );
-    }
-
-    // Get the JWK and determine the signature scheme
-    final jwk = vm.asJwk();
-    final jwkMap = jwk.toJson();
-    final signatureScheme = getEcdsaJcsSignatureScheme(jwkMap);
-
-    final hash =
-        await computeDataIntegrityJcsEcdsaHash(proof, copy, signatureScheme);
-
-    final isValid = await verifySignature(
-        originalProofValue as String, issuerDid, verificationMethod, hash);
-
-    if (!isValid) {
-      return VerificationResult.invalid(
-        errors: ['signature invalid'],
-      );
-    }
-
-    return VerificationResult.ok();
-  }
-
-  @override
   String get expectedProofType => _dataIntegrityType;
 
   @override
@@ -465,37 +329,8 @@ class DataIntegrityEcdsaJcsVerifier extends BaseDataIntegrityVerifier {
   ) async {
     // For ecdsa-jcs-2019, we need to dynamically determine the signature scheme
     // by examining the verification method since it supports both P-256 and P-384
-    final verificationMethodUri = proof['verificationMethod'] as String?;
-    if (verificationMethodUri == null) {
-      throw SsiException(
-        message: 'Missing verificationMethod in proof',
-        code: SsiExceptionType.unableToParseVerifiableCredential.code,
-      );
-    }
-
-    // Resolve the DID to get the verification method
-    final didDocument = await UniversalDIDResolver.resolve(issuerDid);
-
-    // Find the verification method in the DID document
-    final verificationMethod = didDocument.verificationMethod
-        .where((vm) =>
-            vm.id == verificationMethodUri ||
-            vm.id.endsWith('#${verificationMethodUri.split('#').last}'))
-        .firstOrNull;
-
-    if (verificationMethod == null) {
-      throw SsiException(
-        message:
-            'Verification method $verificationMethodUri not found in DID document',
-        code: SsiExceptionType.invalidDidDocument.code,
-      );
-    }
-
-    // Get the JWK and determine the signature scheme
-    final jwk = verificationMethod.asJwk();
-    final jwkMap = jwk.toJson();
-    final signatureScheme = getEcdsaJcsSignatureScheme(jwkMap);
-
+    final signatureScheme =
+        await _getSignatureSchemeFromVerificationMethod(proof);
     return computeDataIntegrityJcsEcdsaHash(
         proof, unsignedCredential, signatureScheme);
   }
@@ -520,6 +355,34 @@ class DataIntegrityEcdsaJcsVerifier extends BaseDataIntegrityVerifier {
     }
     signature = base58BitcoinDecode(proofValue.substring(1));
 
+    final signatureScheme =
+        await _getSignatureSchemeFromDid(verificationMethod);
+
+    final verifier = await DidVerifier.create(
+      algorithm: signatureScheme,
+      kid: verificationMethod.toString(),
+      issuerDid: issuerDid,
+    );
+    return verifier.verify(hash, signature);
+  }
+
+  /// Gets the signature scheme by examining the verification method in the DID document.
+  Future<SignatureScheme> _getSignatureSchemeFromVerificationMethod(
+      Map<String, dynamic> proof) async {
+    final verificationMethodUri = proof['verificationMethod'] as String?;
+    if (verificationMethodUri == null) {
+      throw SsiException(
+        message: 'Missing verificationMethod in proof',
+        code: SsiExceptionType.unableToParseVerifiableCredential.code,
+      );
+    }
+
+    return _getSignatureSchemeFromDid(Uri.parse(verificationMethodUri));
+  }
+
+  /// Gets the signature scheme by examining the verification method in the DID document.
+  Future<SignatureScheme> _getSignatureSchemeFromDid(
+      Uri verificationMethod) async {
     // Resolve the DID to get the verification method
     final didDocument = await UniversalDIDResolver.resolve(issuerDid);
 
@@ -541,13 +404,6 @@ class DataIntegrityEcdsaJcsVerifier extends BaseDataIntegrityVerifier {
     // Get the JWK and determine the signature scheme
     final jwk = vm.asJwk();
     final jwkMap = jwk.toJson();
-    final signatureScheme = getEcdsaJcsSignatureScheme(jwkMap);
-
-    final verifier = await DidVerifier.create(
-      algorithm: signatureScheme,
-      kid: verificationMethod.toString(),
-      issuerDid: issuerDid,
-    );
-    return verifier.verify(hash, signature);
+    return getEcdsaJcsSignatureScheme(jwkMap);
   }
 }
