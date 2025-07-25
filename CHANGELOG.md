@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.10.0`](#ssi---v2100)
+
+---
+
+#### `ssi` - `v2.10.0`
+
+ - **FEAT**: improve didverifier (#156).
+
+## 2.10.0
+
+ - **FEAT**: improve didverifier (#156).
+
+
+## 2025-07-25
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.9.1`](#ssi---v291)
 
 ---
