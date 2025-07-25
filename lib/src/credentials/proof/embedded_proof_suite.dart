@@ -1,3 +1,4 @@
+import '../../did/public_key_utils.dart';
 import '../../types.dart';
 import '../proof/proof_purpose.dart';
 import 'embedded_proof.dart';
@@ -28,6 +29,10 @@ class EmbeddedProofSuiteCreateOptions {
   /// The purpose of embedded proof.
   final ProofPurpose? proofPurpose;
 
+  /// Which multibase encoding to use for the proofValue.
+  /// Defaults to [MultiBase.base58bitcoin].
+  final MultiBase proofValueMultiBase;
+
   /// Creates a new [EmbeddedProofSuiteCreateOptions] instance.
   ///
   /// Uses [_noOpLoader] as the default document loader if none is provided.
@@ -40,6 +45,7 @@ class EmbeddedProofSuiteCreateOptions {
     this.expires,
     this.domain,
     this.challenge,
+    this.proofValueMultiBase = MultiBase.base58bitcoin,
   });
 }
 
