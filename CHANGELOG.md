@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-25
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.9.1`](#ssi---v291)
+
+---
+
+#### `ssi` - `v2.9.1`
+
+ - **FIX**: package publishing.
+
+## 2.9.1
+
+ - **FIX**: package publishing.
+
+
 ## 2025-07-24
 
 ### Changes
