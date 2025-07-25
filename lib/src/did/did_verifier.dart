@@ -48,11 +48,58 @@ class DidVerifier implements Verifier {
     final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
     final didDocument = await resolver.resolveDid(issuerDid);
 
-    kid ??= didDocument.assertionMethod[0] as String;
+    // Fix: Handle omitted kid and type casting
+    if (kid == null) {
+      // Try to get the first assertionMethod as a string or VerificationMethod
+      final assertionMethodEntry = didDocument.assertionMethod.isNotEmpty
+          ? didDocument.assertionMethod[0]
+          : null;
+      if (assertionMethodEntry is String) {
+        kid = assertionMethodEntry;
+      } else if (assertionMethodEntry is VerificationMethod) {
+        kid = assertionMethodEntry.id;
+      } else {
+        throw SsiException(
+          message:
+              'No valid assertionMethod found in DID Document for $issuerDid',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
+      }
+    }
 
+    // Fix: Find verification method by correct relationship and handle fully qualified kid
     VerificationMethod? verificationMethod;
-    for (final method in didDocument.verificationMethod) {
-      if (method.id == kid || method.id.endsWith('#$kid')) {
+    // Collect all verification relationships to check
+    final relationships = [
+      didDocument.authentication,
+      didDocument.assertionMethod,
+      didDocument.capabilityInvocation,
+      didDocument.capabilityDelegation,
+      didDocument.keyAgreement,
+    ];
+    // Flatten and normalize to VerificationMethod objects
+    final relatedMethods = relationships
+        .expand((list) => list)
+        .map((entry) {
+          // Remove unnecessary type check
+          return entry;
+        })
+        .whereType<VerificationMethod>()
+        .toList();
+
+    // Prefer related methods, but fallback to all verificationMethod
+    final allMethods = [...relatedMethods, ...didDocument.verificationMethod];
+    for (final method in allMethods) {
+      // Fix: Handle fully qualified kid and did:peer
+      if (method.id == kid ||
+          method.id.endsWith('#$kid') ||
+          kid == method.id.split('#').last) {
+        verificationMethod = method;
+        break;
+      }
+      // For did:peer, check if kid matches fragment or full id
+      if (issuerDid.startsWith('did:peer') &&
+          (method.id == kid || method.id.endsWith('#$kid'))) {
         verificationMethod = method;
         break;
       }
@@ -72,7 +119,7 @@ class DidVerifier implements Verifier {
     if (!_isAlgorithmCompatibleWithJwk(jwkMap, algorithm.alg ?? '')) {
       throw SsiException(
         message:
-            'Algorithm ${algorithm.alg} is not compatible with the key type in the verification method',
+            'Algorithm ${algorithm.alg} is not compatible with the key type in the verification method',
         code: SsiExceptionType.invalidDidDocument.code,
       );
     }
