@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:base_codecs/base_codecs.dart';
 import 'package:json_ld_processor/json_ld_processor.dart';
-import 'package:pointycastle/api.dart';
 
 import '../../did/did_verifier.dart';
+import '../../digest_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
@@ -63,6 +64,14 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       return expiryResult;
     }
 
+    // JCS cryptosuites require context validation per specs
+    if (_isJcsCryptosuite(expectedCryptosuite)) {
+      final contextValidationResult = _validateJcsContext(document, proof);
+      if (!contextValidationResult.isValid) {
+        return contextValidationResult;
+      }
+    }
+
     final Uri verificationMethod;
     try {
       verificationMethod = Uri.parse(proof['verificationMethod'] as String);
@@ -79,10 +88,12 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    proof['@context'] = contextUrl;
+    // Prepare proof for verification
+    final proofForVerification = _prepareProofForVerification(proof, document);
 
     final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-    final hash = await computeSignatureHash(proof, copy, cacheLoadDocument);
+    final hash = await computeSignatureHash(
+        proofForVerification, copy, cacheLoadDocument);
     final isValid = await verifySignature(
         originalProofValue as String, issuerDid, verificationMethod, hash);
 
@@ -160,6 +171,54 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
     }
     return VerificationResult.ok();
   }
+
+  /// Validates context for JCS cryptosuites.
+  ///
+  /// Ensures that the document context starts with all values from the proof context
+  /// in the same order, as required by the JCS specification.
+  VerificationResult _validateJcsContext(
+      Map<String, dynamic> document, Map<String, dynamic> proof) {
+    final proofContext = proof['@context'];
+    if (proofContext != null) {
+      final documentContext = document['@context'];
+      if (!contextStartsWith(documentContext, proofContext)) {
+        return VerificationResult.invalid(
+          errors: [
+            'document @context does not start with proof @context values in the same order'
+          ],
+        );
+      }
+    }
+    return VerificationResult.ok();
+  }
+
+  /// Checks if the cryptosuite uses JCS canonicalization.
+  bool _isJcsCryptosuite(String cryptosuite) {
+    return cryptosuite.endsWith('-jcs-2019') ||
+        cryptosuite.endsWith('-jcs-2022');
+  }
+
+  /// Prepares proof structure for verification according to cryptosuite requirements.
+  Map<String, dynamic> _prepareProofForVerification(
+      Map<String, dynamic> proof, Map<String, dynamic> document) {
+    final proofCopy = Map<String, dynamic>.from(proof);
+
+    if (_isJcsCryptosuite(expectedCryptosuite)) {
+      // Use document context in proof for JCS cryptosuites during verification
+      final documentContext = document['@context'];
+      if (documentContext != null) {
+        proofCopy['@context'] = documentContext;
+      }
+
+      // For JCS cryptosuites, we do NOT add null fields during verification
+      // The proof should be verified exactly as it was signed
+    } else {
+      // For RDFC cryptosuites, use standard data integrity context
+      proofCopy['@context'] = contextUrl;
+    }
+
+    return proofCopy;
+  }
 }
 
 /// Computes Data Integrity hash from proof and document.
@@ -176,8 +235,9 @@ Future<Uint8List> computeDataIntegrityHash(
       documentLoader: documentLoader,
     ),
   );
-  final proofConfigHash = Digest('SHA-256').process(
+  final proofConfigHash = DigestUtils.getDigest(
     utf8.encode(normalizedProof),
+    hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   final normalizedContent = await JsonLdProcessor.normalize(
@@ -187,8 +247,9 @@ Future<Uint8List> computeDataIntegrityHash(
       documentLoader: documentLoader,
     ),
   );
-  final transformedDocumentHash = Digest('SHA-256').process(
+  final transformedDocumentHash = DigestUtils.getDigest(
     utf8.encode(normalizedContent),
+    hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
@@ -202,7 +263,22 @@ Future<bool> verifyDataIntegritySignature(
   Uint8List hash,
   String cryptosuite,
 ) async {
-  final signature = base64UrlNoPadDecode(proofValue);
+  final Uint8List signature;
+
+  // JCS cryptosuites use base58-btc multibase encoding (z prefix)
+  // RDFC cryptosuites use base64url encoding
+  if (cryptosuite.endsWith('-jcs-2019') || cryptosuite.endsWith('-jcs-2022')) {
+    if (!proofValue.startsWith('z')) {
+      throw SsiException(
+        message:
+            'JCS cryptosuite $cryptosuite requires base58-btc multibase encoding (z prefix)',
+        code: SsiExceptionType.invalidEncoding.code,
+      );
+    }
+    signature = base58BitcoinDecode(proofValue.substring(1));
+  } else {
+    signature = base64UrlNoPadDecode(proofValue);
+  }
 
   final expectedScheme = cryptosuiteToScheme[cryptosuite];
   if (expectedScheme == null) {
@@ -249,6 +325,36 @@ LibDocumentLoader createCacheDocumentLoader(
   DocumentLoader customLoader,
 ) =>
     _cacheLoadDocument(customLoader);
+
+/// Checks if document context starts with proof context values in order.
+/// Required for JCS cryptosuite context validation.
+bool contextStartsWith(dynamic documentContext, dynamic proofContext) {
+  // Convert both contexts to lists for comparison
+  final List<dynamic> docList = _contextToList(documentContext);
+  final List<dynamic> proofList = _contextToList(proofContext);
+
+  // Check if document context starts with proof context values
+  if (proofList.length > docList.length) return false;
+
+  for (int i = 0; i < proofList.length; i++) {
+    if (docList[i] != proofList[i]) return false;
+  }
+
+  return true;
+}
+
+/// Converts a context value to normalized list format for comparison.
+List<dynamic> _contextToList(dynamic context) {
+  if (context is List) {
+    return context;
+  } else if (context is String) {
+    return [context];
+  } else if (context is Map) {
+    return [context];
+  } else {
+    return [];
+  }
+}
 
 final _documentCache = <Uri, RemoteDocument>{
   Uri.parse('https://w3id.org/security/data-integrity/v1'): RemoteDocument(

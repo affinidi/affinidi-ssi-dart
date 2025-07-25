@@ -163,8 +163,18 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
               issuerDid: issuerDid,
               customDocumentLoader: loader,
             );
+          case 'ecdsa-jcs-2019':
+            return DataIntegrityEcdsaJcsVerifier(
+              issuerDid: issuerDid,
+              customDocumentLoader: loader,
+            );
           case 'eddsa-rdfc-2022':
             return DataIntegrityEddsaVerifier(
+              issuerDid: issuerDid,
+              customDocumentLoader: loader,
+            );
+          case 'eddsa-jcs-2022':
+            return DataIntegrityEddsaJcsVerifier(
               issuerDid: issuerDid,
               customDocumentLoader: loader,
             );

@@ -8,11 +8,14 @@ import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'base_data_integrity_verifier.dart';
+import 'base_jcs_generator.dart';
+import 'base_jcs_verifier.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 
 const _dataIntegrityType = 'DataIntegrityProof';
 const _eddsaCryptosuite = 'eddsa-rdfc-2022';
+const _eddsaJcsCryptosuite = 'eddsa-jcs-2022';
 const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v1';
 
 /// Generates Data Integrity Proofs using the eddsa-rdfc-2022 cryptosuite.
@@ -151,4 +154,68 @@ class DataIntegrityEddsaVerifier extends BaseDataIntegrityVerifier {
       _eddsaCryptosuite,
     );
   }
+}
+
+/// Generates Data Integrity Proofs using the eddsa-jcs-2022 cryptosuite.
+///
+/// Signs Verifiable Credentials by canonicalizing the credential and the proof using JCS,
+/// hashing them, and then signing the combined hash using a [DidSigner].
+class DataIntegrityEddsaJcsGenerator extends BaseJcsGenerator {
+  /// Constructs a new [DataIntegrityEddsaJcsGenerator].
+  ///
+  /// [signer]: The DID signer responsible for creating the proof signature.
+  /// Optional parameters like [proofPurpose], [customDocumentLoader], [expires],
+  /// [challenge], and [domain] configure the proof metadata.
+  DataIntegrityEddsaJcsGenerator({
+    required super.signer,
+    super.proofPurpose,
+    super.customDocumentLoader,
+    super.expires,
+    super.challenge,
+    super.domain,
+  });
+
+  @override
+  String get cryptosuite => _eddsaJcsCryptosuite;
+
+  @override
+  HashingAlgorithm get hashingAlgorithm => HashingAlgorithm.sha256;
+
+  @override
+  void validateSignerCompatibility(DidSigner signer) {
+    final expectedScheme = cryptosuiteToScheme[_eddsaJcsCryptosuite];
+    if (signer.signatureScheme != expectedScheme) {
+      throw SsiException(
+        message:
+            'Signer algorithm ${signer.signatureScheme} is not compatible with $_eddsaJcsCryptosuite. Expected $expectedScheme.',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
+    }
+  }
+}
+
+/// Verifies Data Integrity Proofs signed with the eddsa-jcs-2022 cryptosuite.
+///
+/// Canonicalizes using JCS and hashes the credential and proof separately, then verifies
+/// the combined hash against the provided proof signature using the issuer's DID key.
+class DataIntegrityEddsaJcsVerifier extends BaseJcsVerifier {
+  /// Constructs a new [DataIntegrityEddsaJcsVerifier].
+  ///
+  /// [issuerDid]: The expected issuer DID.
+  /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
+  /// [domain]: Optional expected domain(s).
+  /// [challenge]: Optional expected challenge string.
+  DataIntegrityEddsaJcsVerifier({
+    required super.issuerDid,
+    super.getNow,
+    super.domain,
+    super.challenge,
+    super.customDocumentLoader,
+  });
+
+  @override
+  String get expectedJcsCryptosuite => _eddsaJcsCryptosuite;
+
+  @override
+  HashingAlgorithm get hashingAlgorithm => HashingAlgorithm.sha256;
 }

@@ -3,16 +3,21 @@ import 'dart:typed_data';
 import 'package:json_ld_processor/json_ld_processor.dart';
 
 import '../../did/did_signer.dart';
+import '../../did/universal_did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'base_data_integrity_verifier.dart';
+import 'base_jcs_generator.dart';
+import 'base_jcs_verifier.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
+import 'jcs_utils.dart';
 
 const _dataIntegrityType = 'DataIntegrityProof';
 const _ecdsaCryptosuite = 'ecdsa-rdfc-2019';
+const _ecdsaJcsCryptosuite = 'ecdsa-jcs-2019';
 const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v1';
 
 /// Generates Data Integrity Proofs using the ecdsa-rdfc-2019 cryptosuite.
@@ -150,5 +155,138 @@ class DataIntegrityEcdsaVerifier extends BaseDataIntegrityVerifier {
       hash,
       _ecdsaCryptosuite,
     );
+  }
+}
+
+/// Generates Data Integrity Proofs using the ecdsa-jcs-2019 cryptosuite.
+///
+/// Signs Verifiable Credentials by canonicalizing the credential and the proof using JCS,
+/// hashing them, and then signing the combined hash using a [DidSigner].
+class DataIntegrityEcdsaJcsGenerator extends BaseJcsGenerator {
+  /// Constructs a new [DataIntegrityEcdsaJcsGenerator].
+  ///
+  /// [signer]: The DID signer responsible for creating the proof signature.
+  /// Optional parameters like [proofPurpose], [customDocumentLoader], [expires],
+  /// [challenge], and [domain] configure the proof metadata.
+  DataIntegrityEcdsaJcsGenerator({
+    required super.signer,
+    super.proofPurpose,
+    super.customDocumentLoader,
+    super.expires,
+    super.challenge,
+    super.domain,
+  });
+
+  @override
+  String get cryptosuite => _ecdsaJcsCryptosuite;
+
+  @override
+  HashingAlgorithm get hashingAlgorithm =>
+      signer.signatureScheme.hashingAlgorithm;
+
+  @override
+  void validateSignerCompatibility(DidSigner signer) {
+    if (signer.signatureScheme != SignatureScheme.ecdsa_p256_sha256 &&
+        signer.signatureScheme != SignatureScheme.ecdsa_p384_sha384) {
+      throw SsiException(
+        message:
+            'Signer algorithm ${signer.signatureScheme} is not compatible with $_ecdsaJcsCryptosuite. Expected P-256 (SHA-256) or P-384 (SHA-384).',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
+    }
+  }
+}
+
+/// Verifies Data Integrity Proofs signed with the ecdsa-jcs-2019 cryptosuite.
+///
+/// Canonicalizes using JCS and hashes the credential and proof separately, then verifies
+/// the combined hash against the provided proof signature using the issuer's DID key.
+class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
+  /// Constructs a new [DataIntegrityEcdsaJcsVerifier].
+  ///
+  /// [issuerDid]: The expected issuer DID.
+  /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
+  /// [domain]: Optional expected domain(s).
+  /// [challenge]: Optional expected challenge string.
+  DataIntegrityEcdsaJcsVerifier({
+    required super.issuerDid,
+    super.getNow,
+    super.domain,
+    super.challenge,
+    super.customDocumentLoader,
+  });
+
+  @override
+  String get expectedJcsCryptosuite => _ecdsaJcsCryptosuite;
+
+  @override
+  HashingAlgorithm get hashingAlgorithm {
+    // For ECDSA JCS, we can't determine the hash algorithm statically
+    // since it supports both P-256 (SHA-256) and P-384 (SHA-384).
+    // The actual algorithm is determined dynamically in computeSignatureHash.
+    throw UnsupportedError(
+        'ECDSA JCS requires dynamic hash algorithm determination');
+  }
+
+  @override
+  Future<Uint8List> computeSignatureHash(
+    Map<String, dynamic> proof,
+    Map<String, dynamic> unsignedCredential,
+    Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
+        documentLoader,
+  ) async {
+    // For ecdsa-jcs-2019, we need to dynamically determine the signature scheme
+    // by examining the verification method since it supports both P-256 and P-384
+    final signatureScheme =
+        await _getSignatureSchemeFromVerificationMethod(proof);
+    return JcsUtils.computeDataIntegrityJcsHash(
+        proof, unsignedCredential, signatureScheme.hashingAlgorithm);
+  }
+
+  @override
+  Future<SignatureScheme> getSignatureScheme(Uri verificationMethod) async {
+    return _getSignatureSchemeFromDid(verificationMethod);
+  }
+
+  /// Determines the signature scheme from the verification method.
+  Future<SignatureScheme> _getSignatureSchemeFromVerificationMethod(
+      Map<String, dynamic> proof) async {
+    final verificationMethodUri = proof['verificationMethod'] as String?;
+    if (verificationMethodUri == null) {
+      throw SsiException(
+        message: 'Missing verificationMethod in proof',
+        code: SsiExceptionType.unableToParseVerifiableCredential.code,
+      );
+    }
+
+    return _getSignatureSchemeFromDid(Uri.parse(verificationMethodUri));
+  }
+
+  /// Determines the signature scheme from the verification method.
+  Future<SignatureScheme> _getSignatureSchemeFromDid(
+      Uri verificationMethod) async {
+    // Resolve the DID to get the verification method
+    final didDocument =
+        await UniversalDIDResolver.defaultResolver.resolveDid(issuerDid);
+
+    // Find the verification method in the DID document
+    final vm = didDocument.verificationMethod
+        .where((vm) =>
+            vm.id == verificationMethod.toString() ||
+            vm.id.endsWith('#${verificationMethod.toString().split('#').last}'))
+        .firstOrNull;
+
+    if (vm == null) {
+      throw SsiException(
+        message:
+            'Verification method $verificationMethod not found in DID document',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
+    }
+
+    // Get the JWK and determine the signature scheme
+    final jwk = vm.asJwk();
+    final jwkMap = jwk.toJson();
+    return getEcdsaJcsSignatureScheme(jwkMap);
   }
 }
