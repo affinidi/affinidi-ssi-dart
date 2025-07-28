@@ -7,6 +7,7 @@ import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import 'base_data_integrity_verifier.dart';
+import 'embedded_proof_suite.dart';
 import 'jcs_utils.dart';
 
 /// Base class for Data Integrity proof verifiers using JCS canonicalization.
@@ -22,17 +23,21 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
 
   /// Constructs a new [BaseJcsVerifier].
   ///
-  /// [issuerDid]: The expected issuer DID.
+  /// [verifierDid]: The DID of the issuer whose credential this verifier will validate.
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
   BaseJcsVerifier({
-    required super.issuerDid,
-    super.getNow,
+    required String verifierDid,
+    DateTime Function()? getNow,
     super.domain,
     super.challenge,
-    super.customDocumentLoader,
-  });
+    DocumentLoader? customDocumentLoader,
+  }) : super(
+          issuerDid: verifierDid,
+          getNow: getNow ?? DateTime.now,
+          customDocumentLoader: customDocumentLoader ?? (uri) async => null,
+        );
 
   @override
   String get expectedProofType => JcsUtils.dataIntegrityType;
@@ -41,7 +46,7 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
   String get expectedCryptosuite => expectedJcsCryptosuite;
 
   @override
-  String get contextUrl => 'https://w3id.org/security/data-integrity/v1';
+  String get contextUrl => 'https://w3id.org/security/data-integrity/v2';
 
   @override
   String get proofValueField => 'proofValue';

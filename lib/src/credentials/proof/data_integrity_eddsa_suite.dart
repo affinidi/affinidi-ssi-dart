@@ -106,14 +106,14 @@ class DataIntegrityEddsaGenerator extends EmbeddedProofSuiteCreateOptions
 ///
 /// Normalizes and hashes the credential and proof separately, then verifies
 /// the combined hash against the provided proof signature using the issuer's DID key.
-class DataIntegrityEddsaVerifier extends BaseDataIntegrityVerifier {
-  /// Constructs a new [DataIntegrityEddsaVerifier].
+class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
+  /// Constructs a new [DataIntegrityRdfcEddsaVerifier].
   ///
   /// [issuerDid]: The expected issuer DID.
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
-  DataIntegrityEddsaVerifier({
+  DataIntegrityRdfcEddsaVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
@@ -206,12 +206,12 @@ class DataIntegrityEddsaJcsGenerator extends BaseJcsGenerator {
 class DataIntegrityEddsaJcsVerifier extends BaseJcsVerifier {
   /// Constructs a new [DataIntegrityEddsaJcsVerifier].
   ///
-  /// [issuerDid]: The expected issuer DID.
+  /// [verifierDid]: The DID of the issuer whose credential this verifier will validate.
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
   DataIntegrityEddsaJcsVerifier({
-    required super.issuerDid,
+    required super.verifierDid,
     super.getNow,
     super.domain,
     super.challenge,

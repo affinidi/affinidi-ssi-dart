@@ -183,7 +183,7 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       if (!contextStartsWith(documentContext, proofContext)) {
         return VerificationResult.invalid(
           errors: [
-            'document @context does not start with proof @context values in the same order'
+            'Document @context must include all proof @context entries at the beginning in the same order'
           ],
         );
       }
@@ -193,8 +193,8 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
 
   /// Checks if the cryptosuite uses JCS canonicalization.
   bool _isJcsCryptosuite(String cryptosuite) {
-    return cryptosuite.endsWith('-jcs-2019') ||
-        cryptosuite.endsWith('-jcs-2022');
+    return cryptosuite.endsWith(JCS_2019_SUFFIX) ||
+        cryptosuite.endsWith(JCS_2022_SUFFIX);
   }
 
   /// Prepares proof structure for verification according to cryptosuite requirements.

@@ -24,8 +24,9 @@ class JcsUtils {
   /// Ensures the proof has the correct type and cryptosuite values,
   /// and validates datetime field formats if present.
   ///
+  /// Returns `true` if validation passes.
   /// Throws [SsiException] if validation fails.
-  static void validateProofConfiguration(
+  static bool validateProofConfiguration(
     Map<String, dynamic> proofConfig,
     String expectedCryptosuite,
   ) {
@@ -66,6 +67,7 @@ class JcsUtils {
         );
       }
     }
+    return true;
   }
 
   /// Computes Data Integrity hash using JCS canonicalization.
@@ -106,7 +108,7 @@ class JcsUtils {
   /// [base] The multibase encoding to use (defaults to base58bitcoin)
   ///
   /// Returns the encoded signature string with appropriate multibase prefix.
-  static String encodeJcsSignature(
+  static String encodeJcsSignatureMultibase(
     Uint8List signature, {
     MultiBase base = MultiBase.base58bitcoin,
   }) {
@@ -209,8 +211,8 @@ class JcsUtils {
   ///
   /// Returns true if the cryptosuite uses JCS canonicalization.
   static bool isJcsCryptosuite(String cryptosuite) {
-    return cryptosuite.endsWith('-jcs-2019') ||
-        cryptosuite.endsWith('-jcs-2022');
+    return cryptosuite.endsWith(JCS_2019_SUFFIX) ||
+        cryptosuite.endsWith(JCS_2022_SUFFIX);
   }
 
   /// Gets the appropriate hashing algorithm for a signature scheme.

@@ -209,12 +209,12 @@ class DataIntegrityEcdsaJcsGenerator extends BaseJcsGenerator {
 class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
   /// Constructs a new [DataIntegrityEcdsaJcsVerifier].
   ///
-  /// [issuerDid]: The expected issuer DID.
+  /// [verifierDid]: The DID of the issuer whose credential this verifier will validate.
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
   DataIntegrityEcdsaJcsVerifier({
-    required super.issuerDid,
+    required super.verifierDid,
     super.getNow,
     super.domain,
     super.challenge,

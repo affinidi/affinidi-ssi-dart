@@ -167,7 +167,7 @@ void main() async {
       );
 
       final proofVerifier =
-          DataIntegrityEcdsaJcsVerifier(issuerDid: signer.did);
+          DataIntegrityEcdsaJcsVerifier(verifierDid: signer.did);
 
       final verificationResult =
           await proofVerifier.verify(issuedCredential.toJson());
@@ -219,7 +219,7 @@ void main() async {
         proofGenerator: proofGenerator,
       );
 
-      final proofVerifier = DataIntegrityEcdsaJcsVerifier(issuerDid: p384Signer.did);
+      final proofVerifier = DataIntegrityEcdsaJcsVerifier(verifierDid: p384Signer.did);
 
       final verificationResult =
           await proofVerifier.verify(issuedCredential.toJson());
@@ -267,7 +267,7 @@ void main() async {
       expect(proof.containsKey('@context'), false);
 
       final proofVerifier =
-          DataIntegrityEcdsaJcsVerifier(issuerDid: signer.did);
+          DataIntegrityEcdsaJcsVerifier(verifierDid: signer.did);
       final verificationResult = await proofVerifier.verify(credentialJson);
 
       expect(verificationResult.isValid, true);

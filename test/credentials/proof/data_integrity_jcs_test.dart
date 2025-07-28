@@ -89,7 +89,7 @@ void main() {
       final issuerDid = json['issuer'] as String;
 
       // Create verifier
-      final verifier = DataIntegrityEcdsaJcsVerifier(issuerDid: issuerDid);
+      final verifier = DataIntegrityEcdsaJcsVerifier(verifierDid: issuerDid);
 
       // Verify the credential
       final result = await verifier.verify(json);
@@ -117,7 +117,7 @@ void main() {
       final issuerDid = json['issuer'] as String;
 
       // Create verifier
-      final verifier = DataIntegrityEddsaJcsVerifier(issuerDid: issuerDid);
+      final verifier = DataIntegrityEddsaJcsVerifier(verifierDid: issuerDid);
 
       // Verify the credential
       final result = await verifier.verify(json);
@@ -134,7 +134,7 @@ void main() {
       json['proof']['proofValue'] = 'f${originalProofValue.substring(1)}';
 
       final issuerDid = json['issuer'] as String;
-      final verifier = DataIntegrityEcdsaJcsVerifier(issuerDid: issuerDid);
+      final verifier = DataIntegrityEcdsaJcsVerifier(verifierDid: issuerDid);
 
       // Should throw SsiException for invalid encoding
       expect(() => verifier.verify(json), throwsA(isA<SsiException>()));
@@ -181,7 +181,7 @@ void main() {
 
       // Verify the credential
       final verifier = DataIntegrityEddsaJcsVerifier(
-        issuerDid: doc.id,
+        verifierDid: doc.id,
       );
       final result = await verifier.verify(credentialWithProof);
 
@@ -235,7 +235,7 @@ void main() {
 
       // Create verifier (same for both)
       final verifier = DataIntegrityEddsaJcsVerifier(
-        issuerDid: doc.id,
+        verifierDid: doc.id,
       );
 
       // Verify base58 encoded credential
