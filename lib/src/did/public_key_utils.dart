@@ -124,7 +124,10 @@ Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
       return Uint8List.fromList(
         MultiKeyIndicator.ed25519.indicator + base64UrlNoPadDecode(jwk['x']),
       );
-
+    case 'X25519':
+      return Uint8List.fromList(
+        MultiKeyIndicator.x25519.indicator + base64UrlNoPadDecode(jwk['x']),
+      );
     case 'secp256k1':
     case 'P-256K':
       return _ecJwkToMultiKey(

@@ -29,6 +29,9 @@ enum HashingAlgorithm {
   /// SHA-256 hashing algorithm.
   sha256,
 
+  /// SHA-384 hashing algorithm.
+  sha384,
+
   /// SHA-512 hashing algorithm.
   sha512,
 }
@@ -36,12 +39,13 @@ enum HashingAlgorithm {
 /// Supported signature schemes.
 // Prefer snake_case for `SignatureScheme` to make it more readable
 
+/// Set of supported signature schemes, all schemes must be fully specified
+/// including hashing algorithm, curve and key material requirements.
 enum SignatureScheme {
   /// ECDSA with secp256k1 curve and SHA-256 hashing.
   ecdsa_secp256k1_sha256(
     alg: 'ES256K',
     crv: 'secp256k1',
-    w3c: 'EcdsaSecp256k1Signature2019',
     keyType: KeyType.secp256k1,
     hashingAlgorithm: HashingAlgorithm.sha256,
   ),
@@ -50,43 +54,44 @@ enum SignatureScheme {
   ecdsa_p256_sha256(
     alg: 'ES256',
     crv: 'P-256',
-    w3c: 'EcdsaSecp256r1Signature2019',
     keyType: KeyType.p256,
     hashingAlgorithm: HashingAlgorithm.sha256,
   ),
 
-  /// EdDSA with Ed25519 curve and SHA-512 hashing.
-  eddsa_sha512(
-    alg: 'EdDSA',
-    crv: 'Ed25519',
-    w3c: null,
-    keyType: KeyType.ed25519,
+  /// ECDSA with P-384 curve and SHA-384 hashing.
+  ecdsa_p384_sha384(
+    alg: 'ES384',
+    crv: 'P-384',
+    keyType: KeyType.p384,
+    hashingAlgorithm: HashingAlgorithm.sha384,
+  ),
+
+  /// ECDSA with P-521 curve and SHA-512 hashing.
+  ecdsa_p521_sha512(
+    alg: 'ES512',
+    crv: 'P-521',
+    keyType: KeyType.p521,
     hashingAlgorithm: HashingAlgorithm.sha512,
   ),
 
-  /// Ed25519 with SHA-256 hashing.
-  ed25519_sha256(
-    alg: null,
+  /// EdDSA with Ed25519 curve and SHA-512 hashing.
+  ed25519(
+    alg: 'Ed25519',
     crv: 'Ed25519',
-    w3c: 'Ed25519Signature2020',
     keyType: KeyType.ed25519,
-    hashingAlgorithm: HashingAlgorithm.sha256,
+    hashingAlgorithm: HashingAlgorithm.sha512,
   ),
 
   /// RSA with PKCS1 and SHA-256 hashing.
   rsa_pkcs1_sha256(
     alg: 'RS256',
     crv: null,
-    w3c: 'RsaSignature2018',
     keyType: KeyType.rsa,
     hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   /// The algorithm identifier.
   final String? alg;
-
-  /// The W3C identifier.
-  final String? w3c;
 
   /// The curve identifier.
   final String? crv;
@@ -100,7 +105,6 @@ enum SignatureScheme {
   /// Creates a [SignatureScheme] with the given parameters.
   const SignatureScheme({
     required this.alg,
-    required this.w3c,
     required this.crv,
     required this.keyType,
     required this.hashingAlgorithm,
@@ -108,21 +112,22 @@ enum SignatureScheme {
 
   /// Creates a [SignatureScheme] from a string value.
   ///
-  /// [value] The string value representing the signature scheme.
-  factory SignatureScheme.fromString(String value) =>
-      SignatureScheme.values.firstWhere(
-        (sigSch) =>
-            sigSch.name.toLowerCase() == value.toLowerCase() ||
-            sigSch.alg?.toLowerCase() == value.toLowerCase() ||
-            sigSch.w3c?.toLowerCase() == value.toLowerCase(),
-        orElse: () => throw ArgumentError('Invalid algorithm: $value'),
-      );
+  /// [alg] The string value representing the signature scheme.
+  factory SignatureScheme.fromAlg(String alg) {
+    if (alg == 'Ed25519' || alg == 'EdDSA') {
+      return SignatureScheme.ed25519;
+    }
+    return SignatureScheme.values.firstWhere(
+      (sigSch) => sigSch.alg?.toLowerCase() == alg.toLowerCase(),
+      orElse: () => throw ArgumentError('Invalid algorithm: $alg'),
+    );
+  }
 }
 
 /// Maps W3C-standard cryptosuite identifiers to their corresponding SignatureScheme.
 const cryptosuiteToScheme = <String, SignatureScheme>{
   'ecdsa-rdfc-2019': SignatureScheme.ecdsa_p256_sha256,
-  'eddsa-rdfc-2022': SignatureScheme.eddsa_sha512,
+  'eddsa-rdfc-2022': SignatureScheme.ed25519,
 };
 
 /// Supported DID peer types.

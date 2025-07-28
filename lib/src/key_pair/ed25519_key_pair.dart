@@ -18,7 +18,7 @@ import 'public_key.dart';
 ///
 /// This key pair supports signing and verifying data using Ed25519.
 /// It does not support any other signature schemes.
-class Ed25519KeyPair implements KeyPair {
+class Ed25519KeyPair extends KeyPair {
   final ed.PrivateKey _privateKey;
   final _encryptionUtils = EncryptionUtils();
   @override
@@ -51,8 +51,10 @@ class Ed25519KeyPair implements KeyPair {
   ///
   /// [privateKeyBytes] - The private key as a [Uint8List].
   /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
-  factory Ed25519KeyPair.fromPrivateKey(Uint8List privateKeyBytes,
-      {String? id}) {
+  factory Ed25519KeyPair.fromPrivateKey(
+    Uint8List privateKeyBytes, {
+    String? id,
+  }) {
     final effectiveId = id ?? randomId();
     return Ed25519KeyPair._(ed.PrivateKey(privateKeyBytes), effectiveId);
   }
@@ -63,36 +65,13 @@ class Ed25519KeyPair implements KeyPair {
   @override
   PublicKey get publicKey => PublicKey(
         id,
-        Uint8List.fromList(
-          ed.public(_privateKey).bytes,
-        ),
+        Uint8List.fromList(ed.public(_privateKey).bytes),
         KeyType.ed25519,
       );
 
-  /// Signs the provided data using Ed25519.
-  ///
-  /// [data] - The data to be signed.
-  /// [signatureScheme] - The signature scheme to use.
-  ///
-  /// Returns a [Future] that completes with the signature as a [Uint8List].
-  ///
-  /// Throws [SsiException] if an unsupported [signatureScheme] is passed or
-  /// if the signing operation fails.
   @override
-  Future<Uint8List> sign(
-    Uint8List data, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.eddsa_sha512;
-    if (signatureScheme != SignatureScheme.ed25519_sha256 &&
-        signatureScheme != SignatureScheme.eddsa_sha512) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only ed25519_sha256 and eddsa_sha512 are supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
-
+  Future<Uint8List> internalSign(
+      Uint8List data, SignatureScheme signatureScheme) async {
     // For Ed25519, the library handles hashing internally
     return ed.sign(_privateKey, data);
   }
@@ -108,21 +87,8 @@ class Ed25519KeyPair implements KeyPair {
   ///
   /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   @override
-  Future<bool> verify(
-    Uint8List data,
-    Uint8List signature, {
-    SignatureScheme? signatureScheme,
-  }) async {
-    signatureScheme ??= SignatureScheme.eddsa_sha512;
-    if (signatureScheme != SignatureScheme.ed25519_sha256 &&
-        signatureScheme != SignatureScheme.eddsa_sha512) {
-      throw SsiException(
-        message:
-            'Unsupported signature scheme. Only ed25519_sha256 and eddsa_sha512 are supported.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
-
+  Future<bool> internalVerify(Uint8List data, Uint8List signature,
+      SignatureScheme signatureScheme) async {
     // For Ed25519, the library handles hashing internally
     return ed.verify(ed.public(_privateKey), data, signature);
   }
@@ -130,10 +96,8 @@ class Ed25519KeyPair implements KeyPair {
   /// Returns the original seed used to derive the Ed25519 key pair.
   Uint8List getSeed() => ed.seed(_privateKey);
 
-  /// Returns the supported signature schemes for this key pair.
   @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      const [SignatureScheme.ed25519_sha256, SignatureScheme.eddsa_sha512];
+  SignatureScheme get defaultSignatureScheme => SignatureScheme.ed25519;
 
   /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
@@ -149,7 +113,9 @@ class Ed25519KeyPair implements KeyPair {
   /// Returns a [Future] that completes with the shared secret as a [Uint8List].
   @override
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
-    // Convert Ed25519 private key to X25519 private key using clamping (RFC 7748)
+    // Convert Ed25519 private key to X25519 private key
+    // Ed25519 uses SHA-512 to derive the scalar and prefix from the seed
+    // We need to use the same process to get the correct X25519 private key
     final seed = ed.seed(_privateKey);
     // Hash the seed with SHA-512
     final hash = dart_crypto.sha512.convert(seed).bytes;
@@ -165,20 +131,18 @@ class Ed25519KeyPair implements KeyPair {
 
   @override
   Future<Uint8List> encrypt(Uint8List data, {Uint8List? publicKey}) async {
-    List<int> publicKeyToUse;
+    Uint8List publicKeyToUse;
     if (publicKey == null) {
-      publicKeyToUse = generateEphemeralPubKey();
+      publicKeyToUse = Uint8List.fromList(generateEphemeralPubKey());
     } else {
       publicKeyToUse = publicKey;
     }
 
-    final sharedSecret =
-        await computeEcdhSecret(Uint8List.fromList(publicKeyToUse));
-
-    final algorithm = crypto.Hkdf(
-      hmac: crypto.Hmac.sha256(),
-      outputLength: 32,
+    final sharedSecret = await computeEcdhSecret(
+      Uint8List.fromList(publicKeyToUse),
     );
+
+    final algorithm = crypto.Hkdf(hmac: crypto.Hmac.sha256(), outputLength: 32);
 
     final secretKey = crypto.SecretKey(sharedSecret);
 
@@ -197,13 +161,18 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   @override
-  Future<Uint8List> decrypt(Uint8List ivAndBytes,
-      {Uint8List? publicKey}) async {
+  Future<Uint8List> decrypt(
+    Uint8List ivAndBytes, {
+    Uint8List? publicKey,
+  }) async {
     // Extract the ephemeral public key and the encrypted data
-    final ephemeralPublicKeyBytes =
-        ivAndBytes.sublist(0, compressedPublidKeyLength);
-    final encryptedData = ivAndBytes
-        .sublist(compressedPublidKeyLength); // The rest is the encrypted data
+    final ephemeralPublicKeyBytes = ivAndBytes.sublist(
+      0,
+      compressedPublidKeyLength,
+    );
+    final encryptedData = ivAndBytes.sublist(
+      compressedPublidKeyLength,
+    ); // The rest is the encrypted data
 
     Uint8List pubKeyToUse;
     if (publicKey == null) {
@@ -214,10 +183,7 @@ class Ed25519KeyPair implements KeyPair {
 
     final sharedSecret = await computeEcdhSecret(pubKeyToUse);
 
-    final algorithm = crypto.Hkdf(
-      hmac: crypto.Hmac.sha256(),
-      outputLength: 32,
-    );
+    final algorithm = crypto.Hkdf(hmac: crypto.Hmac.sha256(), outputLength: 32);
     final secretKey = crypto.SecretKey(sharedSecret);
     final derivedKey = await algorithm.deriveKey(
       secretKey: secretKey,
@@ -228,8 +194,10 @@ class Ed25519KeyPair implements KeyPair {
 
     var symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
-    final decryptedData =
-        _encryptionUtils.decryptFromBytes(symmetricKey, encryptedData);
+    final decryptedData = _encryptionUtils.decryptFromBytes(
+      symmetricKey,
+      encryptedData,
+    );
 
     if (decryptedData == null) {
       throw SsiException(
@@ -242,16 +210,11 @@ class Ed25519KeyPair implements KeyPair {
   }
 
   /// Converts the Ed25519 key to an X25519 public key.
-  Future<Uint8List> ed25519KeyToX25519PublicKey() async {
-    // Get the Ed25519 public key
+  /// Returns a [Future] that completes with the X25519 [PublicKey].
+  Future<PublicKey> ed25519KeyToX25519PublicKey() async {
     final ed25519PublicKey = ed.public(_privateKey);
-
-    // Convert Ed25519 public key to X25519 public key
-    // The conversion function returns the X25519 public key bytes directly
     final x25519PublicKeyBytes =
         ed25519PublicToX25519Public(ed25519PublicKey.bytes);
-
-    // Return the X25519 public key bytes directly
-    return x25519PublicKeyBytes;
+    return PublicKey(id, x25519PublicKeyBytes, KeyType.x25519);
   }
 }
