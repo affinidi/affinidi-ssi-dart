@@ -5,10 +5,10 @@ import 'package:json_ld_processor/json_ld_processor.dart';
 import 'package:pointycastle/api.dart';
 
 import '../../did/did_verifier.dart';
+import '../../did/public_key_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
-import '../../util/base64_util.dart';
 import 'embedded_proof_suite.dart';
 
 /// Base class for Data Integrity proof verifiers.
@@ -202,7 +202,7 @@ Future<bool> verifyDataIntegritySignature(
   Uint8List hash,
   String cryptosuite,
 ) async {
-  final signature = base64UrlNoPadDecode(proofValue);
+  final signature = multiBaseToUint8List(proofValue);
 
   final expectedScheme = cryptosuiteToScheme[cryptosuite];
   if (expectedScheme == null) {
