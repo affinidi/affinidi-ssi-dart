@@ -15,96 +15,118 @@ void main() async {
   final edSigner = await initEdSigner(seed);
 
   group('Test Data Integrity ECDSA VC issuance', () {
-    test('Create and verify Data Integrity ECDSA proof', () async {
-      final unsignedCredential = MutableVcDataModelV1(
-        context: [
-          'https://www.w3.org/2018/credentials/v1',
-          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
-        id: Uri.parse('uuid:123456abcd'),
-        type: {'VerifiableCredential', 'UserProfile'},
-        credentialSubject: [
-          MutableCredentialSubject({
-            'Fname': 'Fname',
-            'Lname': 'Lame',
-            'Age': '22',
-            'Address': 'Eihhornstr'
-          })
-        ],
-        holder: MutableHolder.uri('did:example:1'),
-        credentialSchema: [
-          MutableCredentialSchema(
-              id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
-              type: 'JsonSchemaValidator2018')
-        ],
-        issuanceDate: DateTime.now(),
-        issuer: Issuer.uri(signer.did),
-      );
+    final multiBaseList = [MultiBase.base58bitcoin, MultiBase.base64UrlNoPad];
 
-      final proofGenerator = DataIntegrityEcdsaGenerator(
-        signer: signer,
-      );
+    for (final proofValueMultiBase in multiBaseList) {
+      group(proofValueMultiBase.name, () {
+        test('Create and verify Data Integrity ECDSA proof', () async {
+          final unsignedCredential = MutableVcDataModelV1(
+            context: [
+              'https://www.w3.org/2018/credentials/v1',
+              'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+            ],
+            id: Uri.parse('uuid:123456abcd'),
+            type: {'VerifiableCredential', 'UserProfile'},
+            credentialSubject: [
+              MutableCredentialSubject({
+                'Fname': 'Fname',
+                'Lname': 'Lame',
+                'Age': '22',
+                'Address': 'Eihhornstr'
+              })
+            ],
+            holder: MutableHolder.uri('did:example:1'),
+            credentialSchema: [
+              MutableCredentialSchema(
+                  id: Uri.parse(
+                      'https://schema.affinidi.com/UserProfileV1-0.json'),
+                  type: 'JsonSchemaValidator2018')
+            ],
+            issuanceDate: DateTime.now(),
+            issuer: Issuer.uri(signer.did),
+          );
 
-      final issuedCredential = await LdVcDm1Suite().issue(
-        unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
-        proofGenerator: proofGenerator,
-      );
+          final proofGenerator = DataIntegrityEcdsaGenerator(
+            signer: signer,
+            proofValueMultiBase: proofValueMultiBase,
+          );
 
-      final proofVerifier = DataIntegrityEcdsaVerifier(issuerDid: signer.did);
+          final issuedCredential = await LdVcDm1Suite().issue(
+            unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+            proofGenerator: proofGenerator,
+          );
 
-      final verificationResult =
-          await proofVerifier.verify(issuedCredential.toJson());
+          final proofVerifier =
+              DataIntegrityEcdsaVerifier(issuerDid: signer.did);
 
-      expect(verificationResult.isValid, true);
-      expect(verificationResult.errors, isEmpty);
-      expect(verificationResult.warnings, isEmpty);
+          final verificationResult =
+              await proofVerifier.verify(issuedCredential.toJson());
 
-      final proof = issuedCredential.toJson()['proof'] as Map<String, dynamic>;
-      expect(proof['type'], 'DataIntegrityProof');
-      expect(proof['cryptosuite'], 'ecdsa-rdfc-2019');
-      expect(proof['proofValue'], isNotNull);
-    });
+          expect(verificationResult.isValid, true);
+          expect(verificationResult.errors, isEmpty);
+          expect(verificationResult.warnings, isEmpty);
 
-    test('Verify Data Integrity ECDSA proof through LdBaseSuite', () async {
-      final unsignedCredential = MutableVcDataModelV1(
-        context: [
-          'https://www.w3.org/2018/credentials/v1',
-          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
-        id: Uri.parse('uuid:123456abcd'),
-        type: {'VerifiableCredential', 'UserProfile'},
-        credentialSubject: [
-          MutableCredentialSubject({
-            'Fname': 'Fname',
-            'Lname': 'Lame',
-            'Age': '22',
-            'Address': 'Eihhornstr'
-          })
-        ],
-        holder: MutableHolder.uri('did:example:1'),
-        credentialSchema: [
-          MutableCredentialSchema(
-              id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
-              type: 'JsonSchemaValidator2018')
-        ],
-        issuanceDate: DateTime.now(),
-        issuer: Issuer.uri(signer.did),
-      );
+          final proof =
+              issuedCredential.toJson()['proof'] as Map<String, dynamic>;
+          expect(proof['type'], 'DataIntegrityProof');
+          expect(proof['cryptosuite'], 'ecdsa-rdfc-2019');
+          expect(proof['proofValue'], isNotNull);
 
-      final proofGenerator = DataIntegrityEcdsaGenerator(
-        signer: signer,
-      );
+          final proofValueHeader = proof['proofValue'][0];
+          expect(proofValueHeader,
+              proofValueMultiBase == MultiBase.base58bitcoin ? 'z' : 'u');
+        });
 
-      final issuedCredential = await LdVcDm1Suite().issue(
-        unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
-        proofGenerator: proofGenerator,
-      );
+        test('Verify Data Integrity ECDSA proof through LdBaseSuite', () async {
+          final unsignedCredential = MutableVcDataModelV1(
+            context: [
+              'https://www.w3.org/2018/credentials/v1',
+              'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+            ],
+            id: Uri.parse('uuid:123456abcd'),
+            type: {'VerifiableCredential', 'UserProfile'},
+            credentialSubject: [
+              MutableCredentialSubject({
+                'Fname': 'Fname',
+                'Lname': 'Lame',
+                'Age': '22',
+                'Address': 'Eihhornstr'
+              })
+            ],
+            holder: MutableHolder.uri('did:example:1'),
+            credentialSchema: [
+              MutableCredentialSchema(
+                  id: Uri.parse(
+                      'https://schema.affinidi.com/UserProfileV1-0.json'),
+                  type: 'JsonSchemaValidator2018')
+            ],
+            issuanceDate: DateTime.now(),
+            issuer: Issuer.uri(signer.did),
+          );
 
-      final validationResult =
-          await LdVcDm1Suite().verifyIntegrity(issuedCredential);
+          final proofGenerator = DataIntegrityEcdsaGenerator(
+            signer: signer,
+            proofValueMultiBase: proofValueMultiBase,
+          );
 
-      expect(validationResult, true);
-    });
+          final issuedCredential = await LdVcDm1Suite().issue(
+            unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+            proofGenerator: proofGenerator,
+          );
+
+          final validationResult =
+              await LdVcDm1Suite().verifyIntegrity(issuedCredential);
+
+          final proof =
+              issuedCredential.toJson()['proof'] as Map<String, dynamic>;
+          final proofValueHeader = proof['proofValue'][0];
+
+          expect(validationResult, true);
+          expect(proofValueHeader,
+              proofValueMultiBase == MultiBase.base58bitcoin ? 'z' : 'u');
+        });
+      });
+    }
   });
 
   group('Test Data Integrity ECDSA-JCS VC issuance', () {

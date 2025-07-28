@@ -506,4 +506,100 @@ class VerifiableCredentialDataFixtures {
       }
   }
   ''';
+
+  static String get credentialWithEcdsaRdfc2019ByDigitalBazaar => r'''
+  {
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1",
+      "https://schema.affinidi.io/TEmailV1R0.jsonld"
+    ],
+    "issuer": {
+      "id": "did:key:zDnaexVEhCGacGuuZ3QDkc68BsiAZKbc9XJBXkTeYDsKNvp9V"
+    },
+    "type": [
+      "VerifiableCredential",
+      "Email"
+    ],
+    "id": "claimid:ee3882a6b3058195",
+    "credentialSchema": {
+      "id": "https://schema.affinidi.io/TEmailV1R0.json",
+      "type": "JsonSchemaValidator2018"
+    },
+    "issuanceDate": "2025-07-25T07:31:47.035901Z",
+    "credentialSubject": {
+      "email": "ivan.b@affinidi.com"
+    },
+    "proof": {
+      "type": "DataIntegrityProof",
+      "created": "2025-07-25T09:31:47.036239",
+      "verificationMethod": "did:key:zDnaexVEhCGacGuuZ3QDkc68BsiAZKbc9XJBXkTeYDsKNvp9V#zDnaexVEhCGacGuuZ3QDkc68BsiAZKbc9XJBXkTeYDsKNvp9V",
+      "proofPurpose": "assertionMethod",
+      "cryptosuite": "ecdsa-rdfc-2019",
+      "proofValue": "z4PRpVJGoS4bQsCUM7xm7TGySx2Q2vEk71tSrkWdUq4bxnR3qUT61rMptg21FvuifVcaNvxQhauY9Jmd66XnL7fSw"
+    }
+  }
+  ''';
+
+  static String get credentialWithEddsaRdfc2022ByDigitalBazaar => r'''
+  {
+    "@context": [
+      "https://www.w3.org/ns/credentials/v2",
+      "https://www.w3.org/ns/credentials/examples/v2"
+    ],
+    "id": "urn:uuid:58172aac-d8ba-11ed-83dd-0b3aef56cc33",
+    "type": [
+      "VerifiableCredential",
+      "AlumniCredential"
+    ],
+    "name": "Alumni Credential",
+    "description": "A minimum viable example of an Alumni Credential.",
+    "issuer": "did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2",
+    "validFrom": "2023-01-01T00:00:00Z",
+    "credentialSubject": {
+      "id": "did:example:abcdefgh",
+      "alumniOf": "The School of Examples"
+    },
+    "proof": {
+      "type": "DataIntegrityProof",
+      "created": "2023-02-24T23:36:38Z",
+      "verificationMethod": "did:key:z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2#z6MkrJVnaZkeFzdQyMZu1cgjg7k1pZZ6pvBQ7XJPt4swbTQ2",
+      "cryptosuite": "eddsa-rdfc-2022",
+      "proofPurpose": "assertionMethod",
+      "proofValue": "z3ZNYxHhm9bjNcFXnWFkadUAUvFpQK5k3bDaUgL7HQ7BSSpMgBYLRegRzNNv4DQ8Gv8oQeUQT74Fqe4n3C5gchZYv"
+    }
+  }
+  ''';
+
+  static String get credentialWithEcdsaSecp256k1Signature2019ByVault => r'''
+  {
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1",
+      "https://schema.affinidi.io/TEmailV1R0.jsonld"
+    ],
+    "credentialSchema": {
+      "id": "https://schema.affinidi.io/TEmailV1R0.json",
+      "type": "JsonSchemaValidator2018"
+    },
+    "credentialSubject": {
+      "email": "ivan.b@affinidi.com"
+    },
+    "holder": {
+      "id": "did:key:zQ3shnHRFYxDpASTxaTFBMcqtFASxyzctDx8xYj2USw7QUaLb"
+    },
+    "id": "claimId:ee3882a6b3058195",
+    "issuanceDate": "2025-01-23T21:01:23.162Z",
+    "issuer": "did:key:zQ3shXLA2cHanJgCUsDfXxBi2BGnMLArHVz5NWoC9axr8pEy6",
+    "proof": {
+      "type": "EcdsaSecp256k1Signature2019",
+      "created": "2025-01-23T21:01:31Z",
+      "verificationMethod": "did:key:zQ3shXLA2cHanJgCUsDfXxBi2BGnMLArHVz5NWoC9axr8pEy6#zQ3shXLA2cHanJgCUsDfXxBi2BGnMLArHVz5NWoC9axr8pEy6",
+      "proofPurpose": "assertionMethod",
+      "jws": "eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..ZwNL-5Gva80Xc0FR6v1R6wCVPPMAYzriWu6_szFD48YGPNQJPV66XsDHNjTGyQOyuRy7a3srX3diI5_1527Ttg"
+    },
+    "type": [
+      "VerifiableCredential",
+      "Email"
+    ]
+  }
+  ''';
 }

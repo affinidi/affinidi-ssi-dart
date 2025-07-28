@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.10.3`](#ssi---v2103)
+
+---
+
+#### `ssi` - `v2.10.3`
+
+ - **FIX**: vc signature (#169).
+
+## 2.10.3
+
+ - **FIX**: vc signature (#169).
+
+
+## 2025-07-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.10.2`](#ssi---v2102)
 
 ---

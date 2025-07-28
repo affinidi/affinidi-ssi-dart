@@ -30,6 +30,7 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     super.expires,
     super.challenge,
     super.domain,
+    super.proofValueMultiBase,
   }) {
     validateSignerCompatibility(signer);
   }
@@ -98,9 +99,9 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
 
   /// Computes the signature for the given hash.
   ///
-  /// Signs the hash using the signer and encodes it appropriately for JCS.
+  /// Signs the hash using the signer and encodes it with multibase for JCS.
   Future<String> computeSignature(Uint8List hash, DidSigner signer) async {
     final signature = await signer.sign(hash);
-    return JcsUtils.encodeJcsSignature(signature);
+    return JcsUtils.encodeJcsSignature(signature, base: proofValueMultiBase);
   }
 }

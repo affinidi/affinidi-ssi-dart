@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
-
+import '../../did/public_key_utils.dart';
 import '../../digest_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -99,21 +98,24 @@ class JcsUtils {
     return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
   }
 
-  /// Encodes a signature using the appropriate encoding for JCS cryptosuites.
+  /// Encodes a signature using multibase encoding for JCS cryptosuites.
   ///
-  /// JCS cryptosuites use base58-btc multibase encoding (z prefix).
+  /// JCS cryptosuites support both base58-btc (z prefix) and base64url (u prefix).
   ///
   /// [signature] The raw signature bytes
+  /// [base] The multibase encoding to use (defaults to base58bitcoin)
   ///
-  /// Returns the encoded signature string with 'z' prefix.
-  static String encodeJcsSignature(Uint8List signature) {
-    return 'z${base58BitcoinEncode(signature)}';
+  /// Returns the encoded signature string with appropriate multibase prefix.
+  static String encodeJcsSignature(
+    Uint8List signature, {
+    MultiBase base = MultiBase.base58bitcoin,
+  }) {
+    return toMultiBase(signature, base: base);
   }
 
-  /// Decodes a signature from JCS cryptosuite encoding.
+  /// Decodes a signature from JCS cryptosuite multibase encoding.
   ///
-  /// Validates that the signature uses base58-btc multibase encoding
-  /// and decodes it to raw bytes.
+  /// Supports both base58-btc (z prefix) and base64url (u prefix) multibase encodings.
   ///
   /// [proofValue] The encoded signature value
   /// [cryptosuite] The cryptosuite name for error messages
@@ -122,14 +124,15 @@ class JcsUtils {
   ///
   /// Throws [SsiException] if encoding is invalid.
   static Uint8List decodeJcsSignature(String proofValue, String cryptosuite) {
-    if (!proofValue.startsWith('z')) {
+    try {
+      return multiBaseToUint8List(proofValue);
+    } catch (e) {
       throw SsiException(
         message:
-            'JCS cryptosuite $cryptosuite requires base58-btc multibase encoding (z prefix)',
+            'JCS cryptosuite $cryptosuite requires valid multibase encoding (z or u prefix). Error: $e',
         code: SsiExceptionType.invalidEncoding.code,
       );
     }
-    return base58BitcoinDecode(proofValue.substring(1));
   }
 
   /// Creates a base proof configuration structure for JCS cryptosuites.

@@ -1,15 +1,14 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:base_codecs/base_codecs.dart';
 import 'package:json_ld_processor/json_ld_processor.dart';
 
 import '../../did/did_verifier.dart';
+import '../../did/public_key_utils.dart';
 import '../../digest_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
-import '../../util/base64_util.dart';
 import 'embedded_proof_suite.dart';
 
 /// Base class for Data Integrity proof verifiers.
@@ -263,22 +262,7 @@ Future<bool> verifyDataIntegritySignature(
   Uint8List hash,
   String cryptosuite,
 ) async {
-  final Uint8List signature;
-
-  // JCS cryptosuites use base58-btc multibase encoding (z prefix)
-  // RDFC cryptosuites use base64url encoding
-  if (cryptosuite.endsWith('-jcs-2019') || cryptosuite.endsWith('-jcs-2022')) {
-    if (!proofValue.startsWith('z')) {
-      throw SsiException(
-        message:
-            'JCS cryptosuite $cryptosuite requires base58-btc multibase encoding (z prefix)',
-        code: SsiExceptionType.invalidEncoding.code,
-      );
-    }
-    signature = base58BitcoinDecode(proofValue.substring(1));
-  } else {
-    signature = base64UrlNoPadDecode(proofValue);
-  }
+  final signature = multiBaseToUint8List(proofValue);
 
   final expectedScheme = cryptosuiteToScheme[cryptosuite];
   if (expectedScheme == null) {

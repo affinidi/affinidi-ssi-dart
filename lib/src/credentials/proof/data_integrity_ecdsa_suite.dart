@@ -3,11 +3,11 @@ import 'dart:typed_data';
 import 'package:json_ld_processor/json_ld_processor.dart';
 
 import '../../did/did_signer.dart';
+import '../../did/public_key_utils.dart';
 import '../../did/universal_did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
-import '../../util/base64_util.dart';
 import 'base_data_integrity_verifier.dart';
 import 'base_jcs_generator.dart';
 import 'base_jcs_verifier.dart';
@@ -18,7 +18,7 @@ import 'jcs_utils.dart';
 const _dataIntegrityType = 'DataIntegrityProof';
 const _ecdsaCryptosuite = 'ecdsa-rdfc-2019';
 const _ecdsaJcsCryptosuite = 'ecdsa-jcs-2019';
-const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v1';
+const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v2';
 
 /// Generates Data Integrity Proofs using the ecdsa-rdfc-2019 cryptosuite.
 ///
@@ -41,6 +41,7 @@ class DataIntegrityEcdsaGenerator extends EmbeddedProofSuiteCreateOptions
     super.expires,
     super.challenge,
     super.domain,
+    super.proofValueMultiBase,
   }) {
     final expectedScheme = cryptosuiteToScheme[_ecdsaCryptosuite];
     if (signer.signatureScheme != expectedScheme) {
@@ -73,10 +74,10 @@ class DataIntegrityEcdsaGenerator extends EmbeddedProofSuiteCreateOptions
     final cacheLoadDocument = createCacheDocumentLoader(customDocumentLoader);
     final hash =
         await computeDataIntegrityHash(proof, document, cacheLoadDocument);
-    final signature = await _computeSignature(hash, signer);
+    final proofValue = await _computeProofValue(hash, signer);
 
     proof.remove('@context');
-    proof['proofValue'] = signature;
+    proof['proofValue'] = proofValue;
 
     return EmbeddedProof(
       type: _dataIntegrityType,
@@ -84,19 +85,22 @@ class DataIntegrityEcdsaGenerator extends EmbeddedProofSuiteCreateOptions
       created: created,
       verificationMethod: signer.keyId,
       proofPurpose: proofPurpose?.value,
-      proofValue: signature,
+      proofValue: proofValue,
       expires: expires,
       challenge: challenge,
       domain: domain,
     );
   }
 
-  static Future<String> _computeSignature(
+  Future<String> _computeProofValue(
     Uint8List hash,
     DidSigner signer,
   ) async {
     final signature = await signer.sign(hash);
-    return base64UrlNoPadEncode(signature);
+    return toMultiBase(
+      signature,
+      base: proofValueMultiBase,
+    );
   }
 }
 
@@ -167,7 +171,7 @@ class DataIntegrityEcdsaJcsGenerator extends BaseJcsGenerator {
   ///
   /// [signer]: The DID signer responsible for creating the proof signature.
   /// Optional parameters like [proofPurpose], [customDocumentLoader], [expires],
-  /// [challenge], and [domain] configure the proof metadata.
+  /// [challenge], [domain], and [proofValueMultiBase] configure the proof metadata.
   DataIntegrityEcdsaJcsGenerator({
     required super.signer,
     super.proofPurpose,
@@ -175,6 +179,7 @@ class DataIntegrityEcdsaJcsGenerator extends BaseJcsGenerator {
     super.expires,
     super.challenge,
     super.domain,
+    super.proofValueMultiBase,
   });
 
   @override

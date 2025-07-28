@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
@@ -137,6 +138,117 @@ void main() {
 
       // Should throw SsiException for invalid encoding
       expect(() => verifier.verify(json), throwsA(isA<SsiException>()));
+    });
+
+    test('Support base64url multibase encoding (u prefix)', () async {
+      // Create a test wallet and generate key
+      final seed = Uint8List.fromList(List.generate(32, (index) => index + 1));
+      final wallet = Bip32Ed25519Wallet.fromSeed(seed);
+      final keyPair = await wallet.generateKey(keyId: "m/0'/0'");
+      final doc = DidKey.generateDocument(keyPair.publicKey);
+
+      final credential = MutableVcDataModelV2(
+        context: [
+          'https://www.w3.org/ns/credentials/v2',
+        ],
+        type: {'VerifiableCredential'},
+        credentialSubject: [
+          MutableCredentialSubject({'id': 'did:example:subject'})
+        ],
+        issuer: Issuer.uri(doc.id),
+      );
+
+      // Create signer with Ed25519 key
+      final signer = DidSigner(
+        did: doc.id,
+        didKeyId: doc.verificationMethod[0].id,
+        keyPair: keyPair,
+        signatureScheme: SignatureScheme.ed25519,
+      );
+
+      // Generate proof with base64url encoding
+      final generator = DataIntegrityEddsaJcsGenerator(
+        signer: signer,
+        proofValueMultiBase: MultiBase.base64UrlNoPad,
+      );
+
+      final proof = await generator.generate(credential.toJson());
+      final credentialWithProof = credential.toJson();
+      credentialWithProof['proof'] = proof.toJson();
+
+      // Verify the proofValue uses 'u' prefix
+      expect(proof.proofValue, startsWith('u'));
+
+      // Verify the credential
+      final verifier = DataIntegrityEddsaJcsVerifier(
+        issuerDid: doc.id,
+      );
+      final result = await verifier.verify(credentialWithProof);
+
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('Support both base58 and base64url in same verification flow',
+        () async {
+      // Create test wallet and generate key
+      final seed = Uint8List.fromList(List.generate(32, (index) => index + 5));
+      final wallet = Bip32Ed25519Wallet.fromSeed(seed);
+      final keyPair = await wallet.generateKey(keyId: "m/0'/0'");
+      final doc = DidKey.generateDocument(keyPair.publicKey);
+
+      final credential = MutableVcDataModelV2(
+        context: [
+          'https://www.w3.org/ns/credentials/v2',
+        ],
+        type: {'VerifiableCredential'},
+        credentialSubject: [
+          MutableCredentialSubject({'id': 'did:example:subject'})
+        ],
+        issuer: Issuer.uri(doc.id),
+      );
+
+      final signer = DidSigner(
+        did: doc.id,
+        didKeyId: doc.verificationMethod[0].id,
+        keyPair: keyPair,
+        signatureScheme: SignatureScheme.ed25519,
+      );
+
+      // Generate with base58 (z prefix)
+      final generatorBase58 = DataIntegrityEddsaJcsGenerator(
+        signer: signer,
+        proofValueMultiBase: MultiBase.base58bitcoin,
+      );
+      final proofBase58 = await generatorBase58.generate(credential.toJson());
+
+      // Generate with base64url (u prefix)
+      final generatorBase64 = DataIntegrityEddsaJcsGenerator(
+        signer: signer,
+        proofValueMultiBase: MultiBase.base64UrlNoPad,
+      );
+      final proofBase64 = await generatorBase64.generate(credential.toJson());
+
+      // Verify both encodings work
+      expect(proofBase58.proofValue, startsWith('z'));
+      expect(proofBase64.proofValue, startsWith('u'));
+
+      // Create verifier (same for both)
+      final verifier = DataIntegrityEddsaJcsVerifier(
+        issuerDid: doc.id,
+      );
+
+      // Verify base58 encoded credential
+      final credentialWithProofBase58 = credential.toJson();
+      credentialWithProofBase58['proof'] = proofBase58.toJson();
+      final resultBase58 = await verifier.verify(credentialWithProofBase58);
+      expect(resultBase58.isValid, true);
+
+      // Verify base64url encoded credential
+      final credentialWithProofBase64 = credential.toJson();
+      credentialWithProofBase64['proof'] = proofBase64.toJson();
+      final resultBase64 = await verifier.verify(credentialWithProofBase64);
+      expect(resultBase64.isValid, true);
     });
   });
 }
