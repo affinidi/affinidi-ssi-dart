@@ -8,6 +8,7 @@ import 'package:elliptic/elliptic.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import './_encryption_utils.dart';
+
 import '_curve_names.dart';
 
 /// The length of a compressed public key.

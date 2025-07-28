@@ -3,6 +3,56 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.10.2`](#ssi---v2102)
+
+---
+
+#### `ssi` - `v2.10.2`
+
+ - **REFACTOR**: remove live key (#166).
+
+## 2.10.2
+
+ - **REFACTOR**: remove live key (#166).
+
+
+## 2025-07-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.10.1`](#ssi---v2101)
+
+---
+
+#### `ssi` - `v2.10.1`
+
+ - **FIX**: remove obsolete workaround for key generation (#143).
+
+## 2.10.1
+
+ - **FIX**: remove obsolete workaround for key generation (#143).
+
+
 ## 2025-07-25
 
 ### Changes
