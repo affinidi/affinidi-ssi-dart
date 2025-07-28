@@ -5,6 +5,7 @@ import 'package:elliptic/elliptic.dart' as elliptic;
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
 
@@ -61,7 +62,7 @@ String toMultiBase(
 bool isUri(String uri) => Uri.tryParse(uri) != null;
 
 /// Converts a multikey to a JWK map.
-Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
+Map<String, String> multiKeyToJwk(Uint8List multikey) {
   final indicator = multikey.sublist(0, 2);
   final key = multikey.sublist(2);
 
@@ -69,7 +70,7 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
 
   // see https://www.w3.org/TR/cid-1.0/#Multikey for indicators
   // FIXME add validations for length
-  var jwk = <String, dynamic>{};
+  var jwk = <String, String>{};
   if (indicatorHex == 'ED01') {
     jwk['kty'] = 'OKP';
     jwk['crv'] = 'Ed25519';
@@ -115,6 +116,12 @@ Map<String, dynamic> multiKeyToJwk(Uint8List multikey) {
   return jwk;
 }
 
+/// Converts a public key to a JWK map.
+Map<String, String> keyToJwk(PublicKey publicKey) {
+  final multikey = toMultikey(publicKey.bytes, publicKey.type);
+  return multiKeyToJwk(multikey);
+}
+
 /// Converts a JWK map to a multikey.
 Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
   final crv = jwk['crv'];
@@ -124,7 +131,10 @@ Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
       return Uint8List.fromList(
         MultiKeyIndicator.ed25519.indicator + base64UrlNoPadDecode(jwk['x']),
       );
-
+    case 'X25519':
+      return Uint8List.fromList(
+        MultiKeyIndicator.x25519.indicator + base64UrlNoPadDecode(jwk['x']),
+      );
     case 'secp256k1':
     case 'P-256K':
       return _ecJwkToMultiKey(

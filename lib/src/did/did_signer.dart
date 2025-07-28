@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
+import '../exceptions/ssi_exception.dart';
+import '../exceptions/ssi_exception_type.dart';
 import '../key_pair/key_pair.dart';
-import '../key_pair/public_key.dart';
 import '../types.dart';
-import 'did_document/index.dart';
 
 /// A signer that uses a key pair associated with a DID document to sign data.
 class DidSigner {
@@ -14,38 +14,77 @@ class DidSigner {
   final SignatureScheme signatureScheme;
 
   /// The DID document containing the key information.
-  final DidDocument _didDocument;
+  final String _did;
 
   /// The identifier of the key inside the DID document.
-  final String didKeyId;
+  final String _didKeyId;
 
   /// Creates a new [DidSigner] instance.
   ///
-  /// [didDocument] - The DID document containing the key information.
+  /// [did] - The DID for which this keyPair is being used.
   /// [didKeyId] - The identifier of the key inside the DID document.
   /// [keyPair] - The key pair to use for signing.
   /// [signatureScheme] - The signature scheme to use for signing.
-  // TODO(FTL-20741) validations, eg. keyId in doc, signature scheme supported, etc.
+  ///
+  /// Throws [SsiException] if parameters are invalid or incompatible.
   DidSigner({
-    required DidDocument didDocument,
-    required this.didKeyId,
+    required String did,
+    required String didKeyId,
     required KeyPair keyPair,
     required this.signatureScheme,
-  })  : _keyPair = keyPair,
-        _didDocument = didDocument;
+  })  : _didKeyId = didKeyId,
+        _keyPair = keyPair,
+        _did = did {
+    _validateParameters(did, didKeyId, keyPair, signatureScheme);
+  }
 
   /// Returns the DID identifier from the DID document.
-  String get did => _didDocument.id;
-
-  /// Returns the public key from the key pair.
-  PublicKey get publicKey => _keyPair.publicKey;
+  String get did => _did;
 
   /// The identifier of the key inside the DID document
-  String get keyId => didKeyId;
+  String get keyId => _didKeyId;
 
   /// Signs the provided data using the key pair and signature scheme.
   Future<Uint8List> sign(Uint8List data) => _keyPair.sign(
         data,
         signatureScheme: signatureScheme,
       );
+
+  /// Validates constructor parameters to ensure consistency and security.
+  static void _validateParameters(
+    String did,
+    String didKeyId,
+    KeyPair keyPair,
+    SignatureScheme signatureScheme,
+  ) {
+    if (did.isEmpty) {
+      throw SsiException(
+        message: 'DID cannot be empty',
+        code: SsiExceptionType.other.code,
+      );
+    }
+
+    if (!did.startsWith('did:')) {
+      throw SsiException(
+        message: 'Invalid DID format: must start with "did:"',
+        code: SsiExceptionType.other.code,
+      );
+    }
+
+    if (didKeyId.isEmpty) {
+      throw SsiException(
+        message: 'DID key ID cannot be empty',
+        code: SsiExceptionType.other.code,
+      );
+    }
+
+    if (!keyPair.supportedSignatureSchemes.contains(signatureScheme)) {
+      throw SsiException(
+        message:
+            'Signature scheme ${signatureScheme.name} is not supported by this key pair. '
+            'Supported schemes: [${keyPair.supportedSignatureSchemes.map((s) => s.name).join(', ')}]',
+        code: SsiExceptionType.unsupportedSignatureScheme.code,
+      );
+    }
+  }
 }

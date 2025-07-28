@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import '../../../ssi.dart';
@@ -10,14 +11,39 @@ class RevocationList2020Verifier implements VcVerifier {
   ///
   /// The status list credential must contain a `credentialSubject.encodedList`
   /// field encoded as base64-url.
-  final Future<Map<String, dynamic>> Function(Uri uri)
+  final Future<Map<String, dynamic>> Function(Uri uri)?
       fetchStatusListCredential;
 
-  /// Creates a new [RevocationList2020Verifier] with a fetch function.
+  /// Custom document loader for loading external resources.
+  final DocumentLoader? customDocumentLoader;
+
+  /// Creates a new [RevocationList2020Verifier] with optional fetch function and document loader.
   ///
-  /// The [fetchStatusListCredential] function should retrieve and return
-  /// the full status list VC document from a remote URI.
-  RevocationList2020Verifier({required this.fetchStatusListCredential});
+  /// If [fetchStatusListCredential] is not provided, the verifier will use
+  /// [customDocumentLoader] or the default document loader to fetch status lists.
+  RevocationList2020Verifier({
+    this.fetchStatusListCredential,
+    this.customDocumentLoader,
+  });
+
+  /// Fetches the status list credential using the configured loader.
+  Future<Map<String, dynamic>> _fetchStatusList(Uri uri) async {
+    if (fetchStatusListCredential != null) {
+      return await fetchStatusListCredential!(uri);
+    }
+
+    if (customDocumentLoader == null) {
+      throw Exception('No document loader available to fetch status list');
+    }
+
+    final document = await customDocumentLoader!(uri);
+
+    if (document == null) {
+      throw Exception('Could not load RevocationList2020Credential from $uri');
+    }
+
+    return document;
+  }
 
   @override
   Future<VerificationResult> verify(ParsedVerifiableCredential vc) async {
@@ -41,7 +67,7 @@ class RevocationList2020Verifier implements VcVerifier {
 
       Map<String, dynamic> statusListVc;
       try {
-        statusListVc = await fetchStatusListCredential(listUri);
+        statusListVc = await _fetchStatusList(listUri);
       } catch (e) {
         errors.add(
             '${SsiExceptionType.failedToFetchRevocationList.code} for status ${status.id}: $e');
@@ -57,7 +83,9 @@ class RevocationList2020Verifier implements VcVerifier {
 
       Uint8List bitstring;
       try {
-        bitstring = base64Url.decode(encodedList);
+        final normalizedList = base64Url.normalize(encodedList);
+        final compressed = base64Url.decode(normalizedList);
+        bitstring = Uint8List.fromList(gzip.decode(compressed));
       } catch (_) {
         errors.add(
             '${SsiExceptionType.invalidEncoding.code} for status ${status.id}');
@@ -74,7 +102,7 @@ class RevocationList2020Verifier implements VcVerifier {
       }
 
       final byte = bitstring[byteIndex];
-      final isRevoked = (byte & (1 << (7 - bitOffset))) != 0;
+      final isRevoked = (byte & (1 << bitOffset)) != 0;
 
       if (isRevoked) {
         errors

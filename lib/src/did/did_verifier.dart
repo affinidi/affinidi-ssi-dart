@@ -8,6 +8,7 @@ import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
 import 'did_document/index.dart';
+import 'did_resolver.dart';
 import 'universal_did_resolver.dart';
 import 'verifier.dart';
 
@@ -33,7 +34,7 @@ class DidVerifier implements Verifier {
   /// [algorithm] - The signature scheme to use for verification.
   /// [kid] - The key ID to use for verification.
   /// [issuerDid] - The DID of the issuer.
-  /// [resolverAddress] - Optional address of the DID resolver.
+  /// [didResolver] - Optional DID resolver instance. If not provided, uses the default UniversalDIDResolver.
   ///
   /// Returns a new [DidVerifier] instance.
   ///
@@ -42,12 +43,10 @@ class DidVerifier implements Verifier {
     required SignatureScheme algorithm,
     String? kid,
     required String issuerDid,
-    String? resolverAddress,
+    DidResolver? didResolver,
   }) async {
-    final didDocument = await UniversalDIDResolver.resolve(
-      issuerDid,
-      resolverAddress: resolverAddress,
-    );
+    final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
+    final didDocument = await resolver.resolveDid(issuerDid);
 
     kid ??= didDocument.assertionMethod[0] as String;
 
@@ -87,7 +86,9 @@ class DidVerifier implements Verifier {
   }
 
   static bool _isAlgorithmCompatibleWithJwk(
-      Map<String, dynamic> jwk, String algorithm) {
+    Map<String, dynamic> jwk,
+    String algorithm,
+  ) {
     if (jwk['kty'] == 'OKP' && jwk['crv'] == 'Ed25519') {
       return algorithm == 'EdDSA' || algorithm == 'Ed25519';
     }
@@ -124,11 +125,8 @@ class DidVerifier implements Verifier {
         _jwk['kid'] = _kId;
       }
 
-      if (_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') {
-        if (_algorithm.alg != 'EdDSA') {
-          return false;
-        }
-
+      if ((_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') ||
+          (_jwk['alg'] == 'Ed25519')) {
         final publicKeyBytes = base64UrlNoPadDecode(_jwk['x']);
         return ed.verify(ed.PublicKey(publicKeyBytes), data, signature);
       }

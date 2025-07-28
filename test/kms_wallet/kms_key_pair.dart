@@ -36,6 +36,10 @@ class KmsKeyPair implements KeyPair {
       ];
 
   @override
+  SignatureScheme get defaultSignatureScheme =>
+      SignatureScheme.rsa_pkcs1_sha256;
+
+  @override
   PublicKey get publicKey {
     return PublicKey(id, _publicKeyBytes, KeyType.rsa);
   }

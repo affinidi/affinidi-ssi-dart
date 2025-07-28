@@ -1,9 +1,35 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ssi/src/did/did_verifier.dart';
-import 'package:ssi/src/types.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
+
+import '../fixtures/did_document_fixtures.dart';
+
+class MockDidResolver implements DidResolver {
+  final DidDocument mockDocument;
+  bool resolveCalled = false;
+  String? lastDid;
+
+  MockDidResolver(this.mockDocument);
+
+  @override
+  Future<DidDocument> resolveDid(String did) async {
+    resolveCalled = true;
+    lastDid = did;
+    return mockDocument;
+  }
+}
+
+class _FailingDidResolver implements DidResolver {
+  @override
+  Future<DidDocument> resolveDid(String did) async {
+    throw SsiException(
+      message: 'Test resolver failure',
+      code: SsiExceptionType.unableToResolveDid.code,
+    );
+  }
+}
 
 void main() {
   group('DidVerifier', () {
@@ -13,7 +39,7 @@ void main() {
     test('should correctly handle algorithm support for Ed25519 keys',
         () async {
       final verifier = await DidVerifier.create(
-        algorithm: SignatureScheme.eddsa_sha512,
+        algorithm: SignatureScheme.ed25519,
         kid: kid,
         issuerDid: didKey,
       );
@@ -26,7 +52,7 @@ void main() {
 
     test('should reject invalid signatures for Ed25519 keys', () async {
       final verifier = await DidVerifier.create(
-        algorithm: SignatureScheme.eddsa_sha512,
+        algorithm: SignatureScheme.ed25519,
         kid: kid,
         issuerDid: didKey,
       );
@@ -42,19 +68,104 @@ void main() {
           reason: 'Should reject another fake signature');
     });
 
-    test('should handle algorithm mismatches correctly', () async {
-      final wrongAlgVerifier = await DidVerifier.create(
-        algorithm: SignatureScheme.eddsa_sha512, // Wrong algorithm for Ed25519
-        kid: kid,
-        issuerDid: didKey,
+    test('algorithm mismatch throws error', () async {
+      void act() async {
+        await DidVerifier.create(
+          algorithm: SignatureScheme.ecdsa_p256_sha256,
+          kid: kid,
+          issuerDid: didKey,
+        );
+      }
+
+      await expectLater(
+        act,
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.code,
+            'code',
+            SsiExceptionType.invalidDidDocument.code,
+          ),
+        ),
       );
+    });
 
-      final testData = Uint8List.fromList(utf8.encode('Test data'));
-      final signature = Uint8List.fromList(List.filled(64, 0));
+    group('with custom DidResolver', () {
+      test('should use provided resolver instead of default', () async {
+        final didDocument = DidDocument.fromJson(
+          jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey)
+              as Map<String, dynamic>,
+        );
 
-      expect(wrongAlgVerifier.verify(testData, signature), isFalse);
-      expect(wrongAlgVerifier.isAllowedAlgorithm('EdDSA'), isTrue);
-      expect(wrongAlgVerifier.isAllowedAlgorithm('ES256K'), isFalse);
+        final mockResolver = MockDidResolver(didDocument);
+
+        final verifier = await DidVerifier.create(
+          algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
+          kid: 'zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R',
+          issuerDid: didKey,
+          didResolver: mockResolver,
+        );
+
+        expect(mockResolver.resolveCalled, isTrue);
+        expect(mockResolver.lastDid, equals(didKey));
+        expect(verifier.isAllowedAlgorithm('ES256K'), isTrue);
+      });
+
+      test('should use custom resolver when provided', () async {
+        final didDocument = DidDocument.fromJson(
+          jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey)
+              as Map<String, dynamic>,
+        );
+
+        final mockResolver = MockDidResolver(didDocument);
+
+        await DidVerifier.create(
+          algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
+          kid: 'zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R',
+          issuerDid: didKey,
+          didResolver: mockResolver,
+        );
+
+        expect(mockResolver.resolveCalled, isTrue);
+        expect(mockResolver.lastDid, equals(didKey));
+      });
+
+      test('should use custom resolver with resolver address (Ivan way)',
+          () async {
+        // IVAN's way: When you need a custom resolver address:
+        // 1. Create a UniversalDIDResolver with the address in constructor
+        const customResolverAddress = 'https://example.com/resolver';
+        final resolver =
+            UniversalDIDResolver(resolverAddress: customResolverAddress);
+
+        // 2. Pass that resolver instance to DidVerifier
+        // This demonstrates IVAN's approach - resolver address set once in constructor
+        expect(resolver.resolverAddress, equals(customResolverAddress));
+      });
+
+      test('should work without didResolver parameter (default behavior)',
+          () async {
+        final verifier = await DidVerifier.create(
+          algorithm: SignatureScheme.ed25519,
+          kid: kid,
+          issuerDid: didKey,
+        );
+
+        expect(verifier.isAllowedAlgorithm('EdDSA'), isTrue);
+        expect(verifier.isAllowedAlgorithm('Ed25519'), isTrue);
+      });
+
+      test('should handle exceptions from custom resolver', () async {
+        final failingResolver = _FailingDidResolver();
+
+        expect(
+          () async => await DidVerifier.create(
+            algorithm: SignatureScheme.ed25519,
+            issuerDid: didKey,
+            didResolver: failingResolver,
+          ),
+          throwsA(isA<SsiException>()),
+        );
+      });
     });
   });
 }

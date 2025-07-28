@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
 
-import '../../did/did_signer.dart';
+import '../../../did/did_signer.dart';
 
 Future<void> main() async {
   // Example seed for deterministic key generation
