@@ -12,5 +12,5 @@ abstract interface class VpVerifier {
   ///
   /// Returns a [VerificationResult] indicating success, failure,
   /// and any associated warnings or errors.
-  Future<VerificationResult> verify(ParsedVerifiablePresentation vc);
+  Future<VerificationResult> verify(ParsedVerifiablePresentation vp);
 }

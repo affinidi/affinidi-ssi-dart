@@ -3,6 +3,335 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-25
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.10.0`](#ssi---v2100)
+
+---
+
+#### `ssi` - `v2.10.0`
+
+ - **FEAT**: improve didverifier (#156).
+
+## 2.10.0
+
+ - **FEAT**: improve didverifier (#156).
+
+
+## 2025-07-25
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.9.1`](#ssi---v291)
+
+---
+
+#### `ssi` - `v2.9.1`
+
+ - **FIX**: package publishing.
+
+## 2.9.1
+
+ - **FIX**: package publishing.
+
+
+## 2025-07-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.9.0`](#ssi---v290)
+
+---
+
+#### `ssi` - `v2.9.0`
+
+ - **FEAT**: expose X and Y coordinates on PublicKey JWK conversion (#157).
+
+## 2.9.0
+
+ - **FEAT**: expose X and Y coordinates on PublicKey JWK conversion (#157).
+
+
+## 2025-07-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.8.2`](#ssi---v282)
+
+---
+
+#### `ssi` - `v2.8.2`
+
+ - **FIX**: remove invalid TODOs and add DidSigner validation (#158).
+
+## 2.8.2
+
+ - **FIX**: remove invalid TODOs and add DidSigner validation (#158).
+
+
+## 2025-07-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.8.1`](#ssi---v281)
+
+---
+
+#### `ssi` - `v2.8.1`
+
+ - **FIX**: fix revocation verifier (#164).
+
+## 2.8.1
+
+ - **FIX**: fix revocation verifier (#164).
+
+
+## 2025-07-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.8.0`](#ssi---v280)
+
+---
+
+#### `ssi` - `v2.8.0`
+
+ - **FEAT**: extend vp universal verifier (#162).
+
+## 2.8.0
+
+ - **FEAT**: extend vp universal verifier (#162).
+
+
+## 2025-07-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.7.0`](#ssi---v270)
+
+---
+
+#### `ssi` - `v2.7.0`
+
+ - **FEAT**: extend universal verifiers (#161).
+
+## 2.7.0
+
+ - **FEAT**: extend universal verifiers (#161).
+
+
+## 2025-07-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.6.0`](#ssi---v260)
+
+---
+
+#### `ssi` - `v2.6.0`
+
+ - **FEAT**: add customDocumentLoader to vp verifyIntegrity (#160).
+
+## 2.6.0
+
+ - **FEAT**: add customDocumentLoader to vp verifyIntegrity (#160).
+
+
+## 2025-07-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.5.0`](#ssi---v250)
+
+---
+
+#### `ssi` - `v2.5.0`
+
+ - **FEAT**: implement delegation vc verifier (#146).
+
+## 2.5.0
+
+ - **FEAT**: implement delegation vc verifier (#146).
+
+
+## 2025-07-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.4.0`](#ssi---v240)
+
+---
+
+#### `ssi` - `v2.4.0`
+
+ - **FEAT**: update secp keys decryption (#150).
+
+## 2.4.0
+
+ - **FEAT**: update secp keys decryption (#150).
+
+
+## 2025-07-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.3.2`](#ssi---v232)
+
+---
+
+#### `ssi` - `v2.3.2`
+
+ - **FIX**: specify 'meta' dependency version (#154).
+ - **FIX**: change meta dependency to 'any' and update version to '2.3.1' (#153).
+ - **DOCS**: fix the VCDM 2 context in description (#152).
+
+## 2.3.2
+
+ - **FIX**: specify 'meta' dependency version (#154).
+ - **FIX**: change meta dependency to 'any' and update version to '2.3.1' (#153).
+ - **DOCS**: fix the VCDM 2 context in description (#152).
+
+
+## 2025-07-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.3.0`](#ssi---v230)
+
+---
+
+#### `ssi` - `v2.3.0`
+
+ - **FEAT**: Add custom document loader support for verifiable credential verification (#141).
+
+## 2.3.0
+
+ - **FEAT**: Add custom document loader support for verifiable credential verification (#141).
+
+
+## 2025-07-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.2.1`](#ssi---v221)
+
+---
+
+#### `ssi` - `v2.2.1`
+
+ - **DOCS**: fix the VCDM 2 description (#151).
+
+## 2.2.1
+
+ - **DOCS**: fix the VCDM 2 description (#151).
+
+
 ## 2025-07-10
 
 ### Changes

@@ -9,11 +9,10 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import './_encryption_utils.dart';
 
-/// The length of a full public key.
-const fullPublicKeyLength = 64;
+import '_curve_names.dart';
 
 /// The length of a compressed public key.
-const compressedPublidKeyLength = 32;
+const compressedPublicKeyLength = 32;
 
 /// A static nonce used for HKDF key derivation.
 final staticHkdNonce = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
@@ -21,10 +20,24 @@ final staticHkdNonce = Uint8List(12); // Use a nonce (e.g., 12-byte for AES-GCM)
 /// The encryption utils instance.
 final encryptionUtils = EncryptionUtils();
 
+// Gets the length of the non-compressed public key for the given curve.
+/// This is used to determine how many bytes to read for the public key in the encrypted package.
+
+int getNonCompressedPublicKeyLength(Curve curve) {
+  final name = curve.name.toLowerCase();
+
+  final curveName = CurveName.values.byName(name);
+  final uncompressedSize = uncompressedPublicKeySizesWithLeadingByte[curveName];
+  if (uncompressedSize == null) {
+    throw ArgumentError('Unsupported curve: ${curve.name}');
+  }
+
+  return uncompressedSize;
+}
+
 /// Generates an ephemeral public key for the given curve.
 PublicKey generateEphemeralPubKey(Curve curve) {
   final privateKey = curve.generatePrivateKey();
-
   return curve.privateToPublicKey(privateKey);
 }
 
@@ -74,8 +87,8 @@ Future<Uint8List> encryptData({
   final symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
   final encryptedData = encryptionUtils.encryptToBytes(symmetricKey, data);
-
   final publicKeyToUseBytes = hex.decode(publicKeyToUse.toHex());
+
   return Uint8List.fromList(publicKeyToUseBytes + encryptedData);
 }
 
@@ -87,10 +100,9 @@ Future<Uint8List> decryptData({
   Uint8List? publicKeyBytes,
 }) async {
   final privateKey = PrivateKey.fromBytes(curve, privateKeyBytes);
-
-  final ephemeralPublicKeyBytes =
-      encryptedPackage.sublist(0, fullPublicKeyLength + 1);
-  final encryptedData = encryptedPackage.sublist(fullPublicKeyLength + 1);
+  final publicKeyLen = getNonCompressedPublicKeyLength(curve);
+  final ephemeralPublicKeyBytes = encryptedPackage.sublist(0, publicKeyLen);
+  final encryptedData = encryptedPackage.sublist(publicKeyLen);
 
   final pubKeyToUse = publicKeyBytes == null
       ? curve.hexToPublicKey(hex.encode(ephemeralPublicKeyBytes))

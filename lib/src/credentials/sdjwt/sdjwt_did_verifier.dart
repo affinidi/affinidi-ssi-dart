@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart'
     show Verifier;
 
+import '../../did/did_resolver.dart';
 import '../../did/did_verifier.dart';
 import '../../types.dart';
 
@@ -25,20 +26,20 @@ class SdJwtDidVerifier implements Verifier {
   /// [algorithm] - The signature scheme used to sign the credential.
   /// [kid] - The key identifier within the DID Document.
   /// [issuerDid] - The DID of the issuer who signed the credential.
-  /// [resolverAddress] - Optional DID resolver address for resolving DIDs.
+  /// [didResolver] - Optional DID resolver instance. If not provided, uses the default UniversalDIDResolver.
   ///
   /// Returns a configured verifier ready to verify SD-JWT signatures.
   static Future<SdJwtDidVerifier> create({
     required SignatureScheme algorithm,
     String? kid,
     required String issuerDid,
-    String? resolverAddress,
+    DidResolver? didResolver,
   }) async {
     final verifier = await DidVerifier.create(
       algorithm: algorithm,
       kid: kid,
       issuerDid: issuerDid,
-      resolverAddress: resolverAddress,
+      didResolver: didResolver,
     );
 
     return SdJwtDidVerifier._(verifier);

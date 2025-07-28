@@ -7,14 +7,14 @@ void main() {
   group('DidKeyPair Tests', () {
     late Wallet wallet;
     late DidKeyManager didKeyManager;
-    late DidStore didStore;
+    late InMemoryDidStore store;
 
     setUp(() async {
       wallet = PersistentWallet(InMemoryKeyStore());
-      didStore = InMemoryDidStore();
+      store = InMemoryDidStore();
       didKeyManager = DidKeyManager(
-        store: didStore,
         wallet: wallet,
+        store: store,
       );
     });
 

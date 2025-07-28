@@ -51,7 +51,7 @@ void main() {
             isA<SsiException>().having(
               (e) => e.code,
               'code',
-              SsiExceptionType.unsupportedNumberOfKeys.code,
+              SsiExceptionType.tooManyVerificationMethods.code,
             ),
           ),
         );
@@ -150,7 +150,7 @@ void main() {
             isA<SsiException>().having(
               (e) => e.code,
               'code',
-              SsiExceptionType.unsupportedNumberOfKeys.code,
+              SsiExceptionType.verificationMethodNotFound.code,
             ),
           ),
         );
