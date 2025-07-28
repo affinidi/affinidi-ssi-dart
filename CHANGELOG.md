@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.10.2`](#ssi---v2102)
+
+---
+
+#### `ssi` - `v2.10.2`
+
+ - **REFACTOR**: remove live key (#166).
+
+## 2.10.2
+
+ - **REFACTOR**: remove live key (#166).
+
+
+## 2025-07-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.10.1`](#ssi---v2101)
 
 ---
