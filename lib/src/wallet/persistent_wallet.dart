@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import '../../ssi.dart';
 import '../utility.dart';
 
-/// A non-hierarchical wallet implementation that supports multiple key types.
+/// A non-hierarchical wallet implementation that supports secp256k1, ed25519, and p256 key types.
 ///
 /// This wallet expects a secure [KeyStore] to store key material.
 /// It supports signing and verifying messages, and ecrypting/decrypting payloads.
@@ -78,14 +78,6 @@ class PersistentWallet implements Wallet {
       final (instance, pKeyBytes) = P256KeyPair.generate(id: effectiveKeyId);
       keyPairInstance = instance;
       privateKeyBytes = pKeyBytes;
-    } else if (effectiveKeyType == KeyType.p384) {
-      final (instance, pKeyBytes) = P384KeyPair.generate(id: effectiveKeyId);
-      keyPairInstance = instance;
-      privateKeyBytes = pKeyBytes;
-    } else if (effectiveKeyType == KeyType.p521) {
-      final (instance, pKeyBytes) = P521KeyPair.generate(id: effectiveKeyId);
-      keyPairInstance = instance;
-      privateKeyBytes = pKeyBytes;
     } else if (effectiveKeyType == KeyType.secp256k1) {
       final (instance, pKeyBytes) =
           Secp256k1KeyPair.generate(id: effectiveKeyId);
@@ -97,7 +89,7 @@ class PersistentWallet implements Wallet {
       privateKeyBytes = pKeyBytes;
     } else {
       throw ArgumentError(
-          'Unsupported key type for PersistentWallet: $effectiveKeyType. Only p256, p384, p521, secp256k1, and ed25519 are supported.');
+          'Unsupported key type for PersistentWallet: $effectiveKeyType. Only secp256k1, ed25519, and p256 are supported.');
     }
 
     final storedKey =
@@ -180,17 +172,14 @@ class PersistentWallet implements Wallet {
     KeyPair keyPair;
     if (keyType == KeyType.p256) {
       keyPair = P256KeyPair.fromPrivateKey(privateKeyBytes);
-    } else if (keyType == KeyType.p384) {
-      keyPair = P384KeyPair.fromPrivateKey(privateKeyBytes);
-    } else if (keyType == KeyType.p521) {
-      keyPair = P521KeyPair.fromPrivateKey(privateKeyBytes);
     } else if (keyType == KeyType.secp256k1) {
       keyPair = Secp256k1KeyPair.fromPrivateKey(privateKeyBytes);
     } else if (keyType == KeyType.ed25519) {
       keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
     } else {
       throw SsiException(
-          message: 'Unsupported key type retrieved from KeyStore: $keyType',
+          message:
+              'Unsupported key type retrieved from KeyStore: $keyType. Only secp256k1, ed25519, and p256 are supported.',
           code: SsiExceptionType.invalidKeyType.code);
     }
 
