@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
+import 'package:archive/archive.dart';
 
 import '../../../ssi.dart';
 import '../models/field_types/credential_status/revocation_list_2020.dart';
@@ -25,6 +25,8 @@ class RevocationList2020Verifier implements VcVerifier {
     this.fetchStatusListCredential,
     this.customDocumentLoader,
   });
+
+  static const _gZipDecoder = GZipDecoder();
 
   /// Fetches the status list credential using the configured loader.
   Future<Map<String, dynamic>> _fetchStatusList(Uri uri) async {
@@ -85,7 +87,7 @@ class RevocationList2020Verifier implements VcVerifier {
       try {
         final normalizedList = base64Url.normalize(encodedList);
         final compressed = base64Url.decode(normalizedList);
-        bitstring = Uint8List.fromList(gzip.decode(compressed));
+        bitstring = Uint8List.fromList(_gZipDecoder.decodeBytes(compressed));
       } catch (_) {
         errors.add(
             '${SsiExceptionType.invalidEncoding.code} for status ${status.id}');
