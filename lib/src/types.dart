@@ -124,11 +124,55 @@ enum SignatureScheme {
   }
 }
 
-/// Maps W3C-standard cryptosuite identifiers to their corresponding SignatureScheme.
-const cryptosuiteToScheme = <String, SignatureScheme>{
-  'ecdsa-rdfc-2019': SignatureScheme.ecdsa_p256_sha256,
-  'eddsa-rdfc-2022': SignatureScheme.ed25519,
+/// Maps W3C cryptosuite identifiers to their corresponding SignatureScheme(s).
+///
+/// Some cryptosuites support multiple curves and require dynamic determination
+/// from the verification method. Single-scheme cryptosuites have a list with one element.
+const cryptosuiteToScheme = <String, List<SignatureScheme>>{
+  'ecdsa-rdfc-2019': [
+    SignatureScheme.ecdsa_p256_sha256,
+    SignatureScheme.ecdsa_p384_sha384
+  ],
+  'ecdsa-jcs-2019': [
+    SignatureScheme.ecdsa_p256_sha256,
+    SignatureScheme.ecdsa_p384_sha384
+  ],
+  'eddsa-rdfc-2022': [SignatureScheme.ed25519],
+  'eddsa-jcs-2022': [SignatureScheme.ed25519],
 };
+
+/// Determines the SignatureScheme for ECDSA cryptosuites from a JWK.
+///
+/// Both ecdsa-jcs-2019 and ecdsa-rdfc-2019 cryptosuites support both P-256 and P-384 curves.
+/// Returns the appropriate SignatureScheme based on the JWK curve.
+///
+/// Throws [ArgumentError] if the curve is not supported.
+SignatureScheme getEcdsaSignatureScheme(Map<String, dynamic> jwkMap) {
+  final curve = jwkMap['crv'] as String?;
+
+  switch (curve) {
+    case 'P-256':
+      return SignatureScheme.ecdsa_p256_sha256;
+    case 'P-384':
+      return SignatureScheme.ecdsa_p384_sha384;
+    default:
+      throw ArgumentError(
+        'Unsupported curve for ECDSA cryptosuites: $curve. Only P-256 and P-384 are supported.',
+      );
+  }
+}
+
+/// Determines the SignatureScheme for ecdsa-jcs-2019 from a JWK.
+///
+/// @deprecated Use [getEcdsaSignatureScheme] instead.
+/// The ecdsa-jcs-2019 cryptosuite supports both P-256 and P-384 curves.
+/// Returns the appropriate SignatureScheme based on the JWK curve.
+///
+/// Throws [ArgumentError] if the curve is not supported.
+@Deprecated('Use getEcdsaSignatureScheme instead')
+SignatureScheme getEcdsaJcsSignatureScheme(Map<String, dynamic> jwkMap) {
+  return getEcdsaSignatureScheme(jwkMap);
+}
 
 /// Supported DID peer types.
 enum DidPeerType {
