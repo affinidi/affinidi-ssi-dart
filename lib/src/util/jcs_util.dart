@@ -49,31 +49,15 @@ class JcsUtil {
       );
     }
 
-    // For integers, return as-is
-    if (value is int) {
-      return value.toString();
+    // Use jsonEncode but handle whole number doubles per JCS requirements
+    final result = jsonEncode(value);
+
+    // JCS requires whole numbers to be represented without .0 suffix
+    if (result.endsWith('.0')) {
+      return result.substring(0, result.length - 2);
     }
 
-    // For doubles, check if it's a whole number
-    if (value is double) {
-      if (value == value.truncateToDouble()) {
-        // It's a whole number, but we need to handle large numbers carefully
-        // to avoid integer overflow when truncating
-        final str = value.toString();
-        if (str.endsWith('.0')) {
-          return str.substring(0, str.length - 2);
-        } else {
-          // For very large numbers in scientific notation that are whole numbers
-          return str;
-        }
-      } else {
-        // It's a fractional number, use toString() which handles it correctly
-        return value.toString();
-      }
-    }
-
-    // Fallback
-    return value.toString();
+    return result;
   }
 
   /// Canonicalizes an array by recursively canonicalizing elements.

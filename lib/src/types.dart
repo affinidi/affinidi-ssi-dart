@@ -124,16 +124,6 @@ enum SignatureScheme {
   }
 }
 
-/// JCS 2019 cryptosuite suffix constant.
-///
-/// Used for ECDSA-based JCS cryptosuites (ecdsa-jcs-2019).
-const String JCS_2019_SUFFIX = '-jcs-2019';
-
-/// JCS 2022 cryptosuite suffix constant.
-///
-/// Used for EdDSA-based JCS cryptosuites (eddsa-jcs-2022).
-const String JCS_2022_SUFFIX = '-jcs-2022';
-
 /// Maps W3C cryptosuite identifiers to their corresponding SignatureScheme(s).
 ///
 /// Some cryptosuites support multiple curves and require dynamic determination

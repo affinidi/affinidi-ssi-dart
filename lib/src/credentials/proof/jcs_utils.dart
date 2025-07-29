@@ -19,6 +19,12 @@ class JcsUtils {
   /// Data Integrity proof type constant.
   static const String dataIntegrityType = 'DataIntegrityProof';
 
+  /// ECDSA JCS 2019 cryptosuite identifier.
+  static const String ecdsaJcs2019 = 'ecdsa-jcs-2019';
+
+  /// EdDSA JCS 2022 cryptosuite identifier.
+  static const String eddsaJcs2022 = 'eddsa-jcs-2022';
+
   /// Validates proof configuration structure and required fields.
   ///
   /// Ensures the proof has the correct type and cryptosuite values,
@@ -42,7 +48,13 @@ class JcsUtils {
 
     // Validate created field format if present
     final created = proofConfig['created'];
-    if (created != null && created is String) {
+    if (created != null) {
+      if (created is! String) {
+        throw SsiException(
+          message: 'Invalid created field: must be a string',
+          code: SsiExceptionType.unableToParseVerifiableCredential.code,
+        );
+      }
       try {
         DateTime.parse(created);
       } catch (e) {
@@ -56,7 +68,13 @@ class JcsUtils {
 
     // Validate expires field format if present
     final expires = proofConfig['expires'];
-    if (expires != null && expires is String) {
+    if (expires != null) {
+      if (expires is! String) {
+        throw SsiException(
+          message: 'Invalid expires field: must be a string',
+          code: SsiExceptionType.unableToParseVerifiableCredential.code,
+        );
+      }
       try {
         DateTime.parse(expires);
       } catch (e) {
@@ -211,7 +229,7 @@ class JcsUtils {
   ///
   /// Returns true if the cryptosuite uses JCS canonicalization.
   static bool isJcsCryptosuite(String cryptosuite) {
-    return cryptosuite == 'ecdsa-jcs-2019' || cryptosuite == 'eddsa-jcs-2022';
+    return cryptosuite == ecdsaJcs2019 || cryptosuite == eddsaJcs2022;
   }
 
   /// Gets the appropriate hashing algorithm for a signature scheme.

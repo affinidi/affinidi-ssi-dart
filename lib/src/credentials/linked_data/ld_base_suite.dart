@@ -11,6 +11,7 @@ import '../proof/data_integrity_eddsa_suite.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../proof/embedded_proof_suite.dart'
     show DocumentLoader, EmbeddedProofGenerator, EmbeddedProofVerifier;
+import '../proof/jcs_utils.dart';
 
 /// A no-operation document loader that always returns null.
 Future<Map<String, dynamic>?> _noOpLoader(Uri url) async {
@@ -163,7 +164,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
               issuerDid: issuerDid,
               customDocumentLoader: loader,
             );
-          case 'ecdsa-jcs-2019':
+          case JcsUtils.ecdsaJcs2019:
             return DataIntegrityEcdsaJcsVerifier(
               verifierDid: issuerDid,
               customDocumentLoader: loader,
@@ -173,7 +174,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
               issuerDid: issuerDid,
               customDocumentLoader: loader,
             );
-          case 'eddsa-jcs-2022':
+          case JcsUtils.eddsaJcs2022:
             return DataIntegrityEddsaJcsVerifier(
               verifierDid: issuerDid,
               customDocumentLoader: loader,
