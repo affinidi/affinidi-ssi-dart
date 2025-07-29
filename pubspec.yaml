@@ -7,6 +7,7 @@ repository: https://github.com/affinidi/affinidi-ssi-dart
 environment:
   sdk: ^3.6.0
 dependencies:
+  archive: ^4.0.7
   base_codecs: ^1.0.1
   bip32_plus: ^1.0.0
   crypto: ^3.0.3
