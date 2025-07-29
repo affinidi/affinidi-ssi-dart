@@ -1,6 +1,32 @@
+import 'dart:typed_data';
+
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/util/jcs_util.dart';
 import 'package:test/test.dart';
+
+double hex2double(String hexValue) {
+  if (hexValue.startsWith('0x')) {
+    hexValue = hexValue.substring(2);
+  }
+  if (hexValue.length != 16) {
+    throw Exception('Expecting 64 bit number');
+  }
+
+  final bdata = ByteData(8);
+  for (var i = 0; i < hexValue.length / 2; i += 1) {
+    bdata.setInt8(
+      i,
+      int.parse(hexValue.substring(2 * i, 2 * i + 2), radix: 16),
+    );
+  }
+  return bdata.getFloat64(0);
+}
+
+void testNumber(String hex, String expected) {
+  final d = hex2double(hex);
+  final canonical = JcsUtil.canonicalize(d);
+  expect(canonical, equals(expected));
+}
 
 void main() {
   group('JcsUtil RFC 8785 Compliance Tests', () {
@@ -19,6 +45,33 @@ void main() {
         expect(JcsUtil.canonicalize(42), equals('42'));
         expect(JcsUtil.canonicalize(-17), equals('-17'));
         expect(JcsUtil.canonicalize(1000000), equals('1000000'));
+      });
+
+      test('Appendix B', () {
+        testNumber('0x0000000000000000', '0');
+        testNumber('0x8000000000000000', '0');
+        testNumber('0x0000000000000001', '5e-324');
+        testNumber('0x8000000000000001', '-5e-324');
+        testNumber('0x7fefffffffffffff', '1.7976931348623157e+308');
+        testNumber('0xffefffffffffffff', '-1.7976931348623157e+308');
+        testNumber('0x4340000000000000', '9007199254740992');
+        testNumber('0xc340000000000000', '-9007199254740992');
+        testNumber('0x4430000000000000', '295147905179352830000');
+        testNumber('0x44b52d02c7e14af5', '9.999999999999997e+22');
+        testNumber('0x44b52d02c7e14af6', '1e+23');
+        testNumber('0x44b52d02c7e14af7', '1.0000000000000001e+23');
+        testNumber('0x444b1ae4d6e2ef4e', '999999999999999700000');
+        testNumber('0x444b1ae4d6e2ef4f', '999999999999999900000');
+        testNumber('0x444b1ae4d6e2ef50', '1e+21');
+        testNumber('0x3eb0c6f7a0b5ed8c', '9.999999999999997e-7');
+        testNumber('0x3eb0c6f7a0b5ed8d', '0.000001');
+        testNumber('0x41b3de4355555553', '333333333.3333332');
+        testNumber('0x41b3de4355555554', '333333333.33333325');
+        testNumber('0x41b3de4355555555', '333333333.3333333');
+        testNumber('0x41b3de4355555556', '333333333.3333334');
+        testNumber('0x41b3de4355555557', '333333333.33333343');
+        testNumber('0xbecbf647612f3696', '-0.0000033333333333333333');
+        testNumber('0x43143ff3c1cb0959', '1424953923781206.2');
       });
 
       test('double numbers - integer values', () {
