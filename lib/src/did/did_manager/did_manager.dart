@@ -321,10 +321,26 @@ abstract class DidManager {
   // Note: All verification IDs may need recalculation in did:peer (they are indexed)
 
   /// Builds the verification method ID for a given public key.
-  /// Subclasses implement this to handle method-specific ID construction.
-  ///
-  /// [publicKey] - The public key to create a verification method ID for.
-  Future<String> buildVerificationMethodId(PublicKey publicKey);
+  /// Always returns the fully qualified verification method ID: <did>#<keyId>
+  /// Handles both fragment and fully qualified formats for mapping.
+  Future<String> buildVerificationMethodId(PublicKey publicKey) async {
+    final didDocument = await getDidDocument();
+    final did = didDocument.id;
+    final keyId = publicKey.id;
+    // If keyId is already a fragment (starts with #), remove leading #
+    final fragment = keyId.startsWith('#') ? keyId.substring(1) : keyId;
+    final fullyQualifiedId = '$did#$fragment';
+    // Always map #<fragment> to walletKeyId
+    await store.setMapping('#$fragment', publicKey.id);
+    // If the input is already fully qualified and matches the DID, also map #<fragment>
+    if (keyId.startsWith(did)) {
+      final split = keyId.split('#');
+      if (split.length == 2 && split[0] == did) {
+        await store.setMapping('#${split[1]}', publicKey.id);
+      }
+    }
+    return fullyQualifiedId;
+  }
 
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {
