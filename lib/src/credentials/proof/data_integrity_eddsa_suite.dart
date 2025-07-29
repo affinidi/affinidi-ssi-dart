@@ -41,11 +41,12 @@ class DataIntegrityEddsaGenerator extends EmbeddedProofSuiteCreateOptions
     super.domain,
     super.proofValueMultiBase,
   }) {
-    final expectedScheme = cryptosuiteToScheme[_eddsaCryptosuite];
-    if (signer.signatureScheme != expectedScheme) {
+    final expectedSchemes = cryptosuiteToScheme[_eddsaCryptosuite];
+    if (expectedSchemes == null ||
+        !expectedSchemes.contains(signer.signatureScheme)) {
       throw SsiException(
         message:
-            'Signer algorithm ${signer.signatureScheme} is not compatible with $_eddsaCryptosuite. Expected $expectedScheme.',
+            'Signer algorithm ${signer.signatureScheme} is not compatible with $_eddsaCryptosuite. Expected $expectedSchemes.',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
@@ -106,6 +107,8 @@ class DataIntegrityEddsaGenerator extends EmbeddedProofSuiteCreateOptions
 ///
 /// Normalizes and hashes the credential and proof separately, then verifies
 /// the combined hash against the provided proof signature using the issuer's DID key.
+@Deprecated(
+    'Use DataIntegrityEddsaRdfcVerifier for eddsa-rdfc-2022 cryptosuite instead')
 class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
   /// Constructs a new [DataIntegrityRdfcEddsaVerifier].
   ///
@@ -114,6 +117,64 @@ class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
   DataIntegrityRdfcEddsaVerifier({
+    required super.issuerDid,
+    super.getNow,
+    super.domain,
+    super.challenge,
+    super.customDocumentLoader,
+  });
+
+  @override
+  String get expectedProofType => _dataIntegrityType;
+
+  @override
+  String get expectedCryptosuite => _eddsaCryptosuite;
+
+  @override
+  String get contextUrl => _dataIntegrityContext;
+
+  @override
+  String get proofValueField => 'proofValue';
+
+  @override
+  Future<Uint8List> computeSignatureHash(
+    Map<String, dynamic> proof,
+    Map<String, dynamic> unsignedCredential,
+    Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
+        documentLoader,
+  ) async {
+    return computeDataIntegrityHash(proof, unsignedCredential, documentLoader);
+  }
+
+  @override
+  Future<bool> verifySignature(
+    String proofValue,
+    String issuerDid,
+    Uri verificationMethod,
+    Uint8List hash,
+  ) async {
+    return verifyDataIntegritySignature(
+      proofValue,
+      issuerDid,
+      verificationMethod,
+      hash,
+      _eddsaCryptosuite,
+    );
+  }
+}
+
+/// Verifies Data Integrity Proofs signed with the eddsa-rdfc-2022 cryptosuite.
+///
+/// Normalizes and hashes the credential and proof separately, then verifies
+/// the combined hash against the provided proof signature using the issuer's DID key.
+class DataIntegrityEddsaRdfcVerifier extends BaseDataIntegrityVerifier {
+  /// Constructs a new [DataIntegrityEddsaRdfcVerifier].
+  ///
+  /// [issuerDid]: The expected issuer DID.
+  /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
+  /// [domain]: Optional expected domain(s).
+  /// [challenge]: Optional expected challenge string.
+  DataIntegrityEddsaRdfcVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
@@ -188,11 +249,12 @@ class DataIntegrityEddsaJcsGenerator extends BaseJcsGenerator {
 
   @override
   void validateSignerCompatibility(DidSigner signer) {
-    final expectedScheme = cryptosuiteToScheme[_eddsaJcsCryptosuite];
-    if (signer.signatureScheme != expectedScheme) {
+    final expectedSchemes = cryptosuiteToScheme[_eddsaJcsCryptosuite];
+    if (expectedSchemes == null ||
+        !expectedSchemes.contains(signer.signatureScheme)) {
       throw SsiException(
         message:
-            'Signer algorithm ${signer.signatureScheme} is not compatible with $_eddsaJcsCryptosuite. Expected $expectedScheme.',
+            'Signer algorithm ${signer.signatureScheme} is not compatible with $_eddsaJcsCryptosuite. Expected $expectedSchemes.',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }

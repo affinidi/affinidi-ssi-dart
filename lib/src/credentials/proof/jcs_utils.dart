@@ -131,7 +131,7 @@ class JcsUtils {
     } catch (e) {
       throw SsiException(
         message:
-            'JCS cryptosuite $cryptosuite requires valid multibase encoding (z or u prefix). Error: $e',
+            'JCS cryptosuite $cryptosuite requires valid multibase encoding. Error: $e',
         code: SsiExceptionType.invalidEncoding.code,
       );
     }
@@ -211,8 +211,7 @@ class JcsUtils {
   ///
   /// Returns true if the cryptosuite uses JCS canonicalization.
   static bool isJcsCryptosuite(String cryptosuite) {
-    return cryptosuite.endsWith(JCS_2019_SUFFIX) ||
-        cryptosuite.endsWith(JCS_2022_SUFFIX);
+    return cryptosuite == 'ecdsa-jcs-2019' || cryptosuite == 'eddsa-jcs-2022';
   }
 
   /// Gets the appropriate hashing algorithm for a signature scheme.

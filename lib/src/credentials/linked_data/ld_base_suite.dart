@@ -159,7 +159,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
         final cryptosuite = proof['cryptosuite'] as String?;
         switch (cryptosuite) {
           case 'ecdsa-rdfc-2019':
-            return DataIntegrityEcdsaVerifier(
+            return DataIntegrityEcdsaRdfcVerifier(
               issuerDid: issuerDid,
               customDocumentLoader: loader,
             );
@@ -169,7 +169,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
               customDocumentLoader: loader,
             );
           case 'eddsa-rdfc-2022':
-            return DataIntegrityRdfcEddsaVerifier(
+            return DataIntegrityEddsaRdfcVerifier(
               issuerDid: issuerDid,
               customDocumentLoader: loader,
             );

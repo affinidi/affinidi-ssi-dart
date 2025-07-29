@@ -43,11 +43,12 @@ class DataIntegrityEcdsaGenerator extends EmbeddedProofSuiteCreateOptions
     super.domain,
     super.proofValueMultiBase,
   }) {
-    final expectedScheme = cryptosuiteToScheme[_ecdsaCryptosuite];
-    if (signer.signatureScheme != expectedScheme) {
+    final expectedSchemes = cryptosuiteToScheme[_ecdsaCryptosuite];
+    if (expectedSchemes == null ||
+        !expectedSchemes.contains(signer.signatureScheme)) {
       throw SsiException(
         message:
-            'Signer algorithm ${signer.signatureScheme} is not compatible with $_ecdsaCryptosuite. Expected $expectedScheme.',
+            'Signer algorithm ${signer.signatureScheme} is not compatible with $_ecdsaCryptosuite. Expected $expectedSchemes.',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
@@ -108,6 +109,8 @@ class DataIntegrityEcdsaGenerator extends EmbeddedProofSuiteCreateOptions
 ///
 /// Normalizes and hashes the credential and proof separately, then verifies
 /// the combined hash against the provided proof signature using the issuer's DID key.
+@Deprecated(
+    'Use DataIntegrityEcdsaRdfcVerifier for ecdsa-rdfc-2019 cryptosuite instead')
 class DataIntegrityEcdsaVerifier extends BaseDataIntegrityVerifier {
   /// Constructs a new [DataIntegrityEcdsaVerifier].
   ///
@@ -116,6 +119,64 @@ class DataIntegrityEcdsaVerifier extends BaseDataIntegrityVerifier {
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
   DataIntegrityEcdsaVerifier({
+    required super.issuerDid,
+    super.getNow,
+    super.domain,
+    super.challenge,
+    super.customDocumentLoader,
+  });
+
+  @override
+  String get expectedProofType => _dataIntegrityType;
+
+  @override
+  String get expectedCryptosuite => _ecdsaCryptosuite;
+
+  @override
+  String get contextUrl => _dataIntegrityContext;
+
+  @override
+  String get proofValueField => 'proofValue';
+
+  @override
+  Future<Uint8List> computeSignatureHash(
+    Map<String, dynamic> proof,
+    Map<String, dynamic> unsignedCredential,
+    Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
+        documentLoader,
+  ) async {
+    return computeDataIntegrityHash(proof, unsignedCredential, documentLoader);
+  }
+
+  @override
+  Future<bool> verifySignature(
+    String proofValue,
+    String issuerDid,
+    Uri verificationMethod,
+    Uint8List hash,
+  ) async {
+    return verifyDataIntegritySignature(
+      proofValue,
+      issuerDid,
+      verificationMethod,
+      hash,
+      _ecdsaCryptosuite,
+    );
+  }
+}
+
+/// Verifies Data Integrity Proofs signed with the ecdsa-rdfc-2019 cryptosuite.
+///
+/// Normalizes and hashes the credential and proof separately, then verifies
+/// the combined hash against the provided proof signature using the issuer's DID key.
+class DataIntegrityEcdsaRdfcVerifier extends BaseDataIntegrityVerifier {
+  /// Constructs a new [DataIntegrityEcdsaRdfcVerifier].
+  ///
+  /// [issuerDid]: The expected issuer DID.
+  /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
+  /// [domain]: Optional expected domain(s).
+  /// [challenge]: Optional expected challenge string.
+  DataIntegrityEcdsaRdfcVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
@@ -292,6 +353,6 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
     // Get the JWK and determine the signature scheme
     final jwk = vm.asJwk();
     final jwkMap = jwk.toJson();
-    return getEcdsaJcsSignatureScheme(jwkMap);
+    return getEcdsaSignatureScheme(jwkMap);
   }
 }

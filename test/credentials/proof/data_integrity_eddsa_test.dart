@@ -12,12 +12,12 @@ void main() async {
   final edSigner = await initEdSigner(seed);
   final p256Signer = await initP256Signer(seed);
 
-  group('Test Data Integrity EdDSA VC issuance', () {
+  group('Test Data Integrity EdDSA-RDFC VC issuance', () {
     final multiBaseList = [MultiBase.base58bitcoin, MultiBase.base64UrlNoPad];
 
     for (final proofValueMultiBase in multiBaseList) {
       group(proofValueMultiBase.name, () {
-        test('Create and verify Data Integrity EdDSA proof', () async {
+        test('Create and verify Data Integrity EdDSA-RDFC proof', () async {
           final unsignedCredential = MutableVcDataModelV1(
             context: [
               'https://www.w3.org/2018/credentials/v1',
@@ -55,7 +55,7 @@ void main() async {
           );
 
           final proofVerifier =
-              DataIntegrityRdfcEddsaVerifier(issuerDid: edSigner.did);
+              DataIntegrityEddsaRdfcVerifier(issuerDid: edSigner.did);
 
           final verificationResult =
               await proofVerifier.verify(issuedCredential.toJson());
@@ -75,7 +75,8 @@ void main() async {
               proofValueMultiBase == MultiBase.base58bitcoin ? 'z' : 'u');
         });
 
-        test('Verify Data Integrity EdDSA proof through LdBaseSuite', () async {
+        test('Verify Data Integrity EdDSA-RDFC proof through LdBaseSuite',
+            () async {
           final unsignedCredential = MutableVcDataModelV1(
             context: [
               'https://www.w3.org/2018/credentials/v1',

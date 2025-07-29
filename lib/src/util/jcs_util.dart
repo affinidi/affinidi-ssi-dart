@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 
@@ -20,14 +22,10 @@ class JcsUtil {
 
   /// Internal method to canonicalize a value recursively.
   static String _canonicalizeValue(dynamic value) {
-    if (value == null) {
-      return 'null';
-    } else if (value is bool) {
-      return value ? 'true' : 'false';
+    if (value == null || value is bool || value is String) {
+      return jsonEncode(value);
     } else if (value is num) {
       return _canonicalizeNumber(value);
-    } else if (value is String) {
-      return _canonicalizeString(value);
     } else if (value is List) {
       return _canonicalizeArray(value);
     } else if (value is Map) {
@@ -40,110 +38,42 @@ class JcsUtil {
     }
   }
 
-  /// Canonicalizes a number according to ECMAScript 6 number formatting rules.
-  ///
-  /// Per RFC 8785, numbers are formatted using ECMAScript 6 Number.prototype.toString()
-  /// rules which ensure a deterministic and interoperable representation.
+  /// Canonicalizes a number according to JCS rules.
   static String _canonicalizeNumber(num value) {
-    if (value.isNaN) {
+    // Handle special cases (NaN, Infinity)
+    if (value.isNaN || value.isInfinite) {
       throw SsiException(
-        message: 'NaN is not allowed in JSON',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
-    if (value.isInfinite) {
-      throw SsiException(
-        message: 'Infinity is not allowed in JSON',
+        message:
+            'Invalid number: $value (NaN and Infinity are not allowed in JCS)',
         code: SsiExceptionType.invalidJson.code,
       );
     }
 
-    // Handle integers - simple decimal representation
+    // For integers, return as-is
     if (value is int) {
       return value.toString();
     }
 
-    // Handle doubles
-    if (value is double && value.isFinite) {
-      // Check if the double represents an integer value
+    // For doubles, check if it's a whole number
+    if (value is double) {
       if (value == value.truncateToDouble()) {
-        // For very large numbers that exceed integer limits, keep as double
-        if (value.abs() > 9007199254740991) {
-          // JavaScript MAX_SAFE_INTEGER
-          return value.toString().replaceAll('.0', '');
+        // It's a whole number, but we need to handle large numbers carefully
+        // to avoid integer overflow when truncating
+        final str = value.toString();
+        if (str.endsWith('.0')) {
+          return str.substring(0, str.length - 2);
+        } else {
+          // For very large numbers in scientific notation that are whole numbers
+          return str;
         }
-        // Remove decimal point for integer values (e.g., 1.0 -> "1")
-        return value.truncate().toString();
+      } else {
+        // It's a fractional number, use toString() which handles it correctly
+        return value.toString();
       }
-
-      // For fractional values, use ECMAScript 6 compliant formatting
-      // Dart's toString() generally produces ECMAScript-compatible output,
-      // but we need to ensure no unnecessary trailing zeros
-      String str = value.toString();
-
-      // Handle scientific notation - convert to decimal if reasonable
-      if (str.contains('e') || str.contains('E')) {
-        // For very small or very large numbers, keep scientific notation
-        // as per ECMAScript 6 rules
-        return str;
-      }
-
-      // Remove trailing zeros after decimal point
-      if (str.contains('.')) {
-        str = str.replaceAll(RegExp(r'0+$'), '');
-        // Remove decimal point if no fractional part remains
-        str = str.replaceAll(RegExp(r'\.$'), '');
-      }
-
-      return str;
     }
 
-    // Fallback (should not reach here for valid JSON numbers)
+    // Fallback
     return value.toString();
-  }
-
-  /// Canonicalizes a string by properly escaping characters.
-  static String _canonicalizeString(String value) {
-    final buffer = StringBuffer('"');
-
-    for (int i = 0; i < value.length; i++) {
-      final char = value[i];
-      final codeUnit = value.codeUnitAt(i);
-
-      switch (char) {
-        case '"':
-          buffer.write('\\"');
-          break;
-        case '\\':
-          buffer.write('\\\\');
-          break;
-        case '\b':
-          buffer.write('\\b');
-          break;
-        case '\f':
-          buffer.write('\\f');
-          break;
-        case '\n':
-          buffer.write('\\n');
-          break;
-        case '\r':
-          buffer.write('\\r');
-          break;
-        case '\t':
-          buffer.write('\\t');
-          break;
-        default:
-          if (codeUnit < 0x20) {
-            // Control characters must be escaped as \uXXXX
-            buffer.write('\\u${codeUnit.toRadixString(16).padLeft(4, '0')}');
-          } else {
-            buffer.write(char);
-          }
-      }
-    }
-
-    buffer.write('"');
-    return buffer.toString();
   }
 
   /// Canonicalizes an array by recursively canonicalizing elements.
@@ -177,7 +107,7 @@ class JcsUtil {
       final key = sortedKeys[i];
       final value = object[key] ?? object[_findOriginalKey(object, key)];
 
-      buffer.write(_canonicalizeString(key));
+      buffer.write(jsonEncode(key));
       buffer.write(':');
       buffer.write(_canonicalizeValue(value));
     }

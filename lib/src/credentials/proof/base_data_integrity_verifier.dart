@@ -63,12 +63,11 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       return expiryResult;
     }
 
-    // JCS cryptosuites require context validation per specs
-    if (_isJcsCryptosuite(expectedCryptosuite)) {
-      final contextValidationResult = _validateJcsContext(document, proof);
-      if (!contextValidationResult.isValid) {
-        return contextValidationResult;
-      }
+    // Subclasses handle cryptosuite-specific validation
+    final cryptosuiteValidationResult =
+        await validateCryptosuite(document, proof);
+    if (!cryptosuiteValidationResult.isValid) {
+      return cryptosuiteValidationResult;
     }
 
     final Uri verificationMethod;
@@ -87,8 +86,8 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    // Prepare proof for verification
-    final proofForVerification = _prepareProofForVerification(proof, document);
+    // Prepare proof for verification (subclasses handle cryptosuite-specific preparation)
+    final proofForVerification = prepareProofForVerification(proof, document);
 
     final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
     final hash = await computeSignatureHash(
@@ -171,51 +170,23 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
     return VerificationResult.ok();
   }
 
-  /// Validates context for JCS cryptosuites.
+  /// Validates cryptosuite-specific requirements.
   ///
-  /// Ensures that the document context starts with all values from the proof context
-  /// in the same order, as required by the JCS specification.
-  VerificationResult _validateJcsContext(
-      Map<String, dynamic> document, Map<String, dynamic> proof) {
-    final proofContext = proof['@context'];
-    if (proofContext != null) {
-      final documentContext = document['@context'];
-      if (!contextStartsWith(documentContext, proofContext)) {
-        return VerificationResult.invalid(
-          errors: [
-            'Document @context must include all proof @context entries at the beginning in the same order'
-          ],
-        );
-      }
-    }
+  /// Subclasses override this method to implement cryptosuite-specific validation logic.
+  /// Base implementation performs no additional validation.
+  Future<VerificationResult> validateCryptosuite(
+      Map<String, dynamic> document, Map<String, dynamic> proof) async {
     return VerificationResult.ok();
   }
 
-  /// Checks if the cryptosuite uses JCS canonicalization.
-  bool _isJcsCryptosuite(String cryptosuite) {
-    return cryptosuite.endsWith(JCS_2019_SUFFIX) ||
-        cryptosuite.endsWith(JCS_2022_SUFFIX);
-  }
-
   /// Prepares proof structure for verification according to cryptosuite requirements.
-  Map<String, dynamic> _prepareProofForVerification(
+  ///
+  /// Subclasses override this method to implement cryptosuite-specific proof preparation.
+  /// Base implementation uses standard data integrity context.
+  Map<String, dynamic> prepareProofForVerification(
       Map<String, dynamic> proof, Map<String, dynamic> document) {
     final proofCopy = Map<String, dynamic>.from(proof);
-
-    if (_isJcsCryptosuite(expectedCryptosuite)) {
-      // Use document context in proof for JCS cryptosuites during verification
-      final documentContext = document['@context'];
-      if (documentContext != null) {
-        proofCopy['@context'] = documentContext;
-      }
-
-      // For JCS cryptosuites, we do NOT add null fields during verification
-      // The proof should be verified exactly as it was signed
-    } else {
-      // For RDFC cryptosuites, use standard data integrity context
-      proofCopy['@context'] = contextUrl;
-    }
-
+    proofCopy['@context'] = contextUrl;
     return proofCopy;
   }
 }
@@ -264,14 +235,18 @@ Future<bool> verifyDataIntegritySignature(
 ) async {
   final signature = multiBaseToUint8List(proofValue);
 
-  final expectedScheme = cryptosuiteToScheme[cryptosuite];
-  if (expectedScheme == null) {
+  final expectedSchemes = cryptosuiteToScheme[cryptosuite];
+  if (expectedSchemes == null || expectedSchemes.isEmpty) {
     throw SsiException(
       message:
           'Unknown cryptosuite: $cryptosuite, cannot determine signature scheme.',
       code: SsiExceptionType.unsupportedSignatureScheme.code,
     );
   }
+
+  // For single-scheme cryptosuites, use the only scheme
+  // For multi-scheme cryptosuites, this should be handled by specialized verifiers
+  final expectedScheme = expectedSchemes.first;
 
   final verifier = await DidVerifier.create(
     algorithm: expectedScheme,
@@ -309,36 +284,6 @@ LibDocumentLoader createCacheDocumentLoader(
   DocumentLoader customLoader,
 ) =>
     _cacheLoadDocument(customLoader);
-
-/// Checks if document context starts with proof context values in order.
-/// Required for JCS cryptosuite context validation.
-bool contextStartsWith(dynamic documentContext, dynamic proofContext) {
-  // Convert both contexts to lists for comparison
-  final List<dynamic> docList = _contextToList(documentContext);
-  final List<dynamic> proofList = _contextToList(proofContext);
-
-  // Check if document context starts with proof context values
-  if (proofList.length > docList.length) return false;
-
-  for (int i = 0; i < proofList.length; i++) {
-    if (docList[i] != proofList[i]) return false;
-  }
-
-  return true;
-}
-
-/// Converts a context value to normalized list format for comparison.
-List<dynamic> _contextToList(dynamic context) {
-  if (context is List) {
-    return context;
-  } else if (context is String) {
-    return [context];
-  } else if (context is Map) {
-    return [context];
-  } else {
-    return [];
-  }
-}
 
 final _documentCache = <Uri, RemoteDocument>{
   Uri.parse('https://w3id.org/security/data-integrity/v1'): RemoteDocument(

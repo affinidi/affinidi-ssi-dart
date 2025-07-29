@@ -93,14 +93,97 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
   /// Subclasses can override this to provide static or dynamic scheme detection.
   /// The default implementation uses the static cryptosuite-to-scheme mapping.
   Future<SignatureScheme> getSignatureScheme(Uri verificationMethod) async {
-    final expectedScheme = cryptosuiteToScheme[expectedJcsCryptosuite];
-    if (expectedScheme == null) {
+    final expectedSchemes = cryptosuiteToScheme[expectedJcsCryptosuite];
+    if (expectedSchemes == null || expectedSchemes.isEmpty) {
       throw SsiException(
         message:
             'Unknown cryptosuite: $expectedJcsCryptosuite, cannot determine signature scheme.',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
-    return expectedScheme;
+
+    // For single-scheme cryptosuites, return the only scheme
+    if (expectedSchemes.length == 1) {
+      return expectedSchemes.first;
+    }
+
+    // For multi-scheme cryptosuites, this method should be overridden by subclasses
+    // to determine the scheme dynamically from the verification method
+    throw SsiException(
+      message:
+          'Cryptosuite $expectedJcsCryptosuite supports multiple signature schemes. Override getSignatureScheme to determine the correct scheme.',
+      code: SsiExceptionType.unsupportedSignatureScheme.code,
+    );
+  }
+
+  @override
+  Future<VerificationResult> validateCryptosuite(
+      Map<String, dynamic> document, Map<String, dynamic> proof) async {
+    return _validateJcsContext(document, proof);
+  }
+
+  @override
+  Map<String, dynamic> prepareProofForVerification(
+      Map<String, dynamic> proof, Map<String, dynamic> document) {
+    final proofCopy = Map<String, dynamic>.from(proof);
+
+    // Use document context in proof for JCS cryptosuites during verification
+    final documentContext = document['@context'];
+    if (documentContext != null) {
+      proofCopy['@context'] = documentContext;
+    }
+
+    return proofCopy;
+  }
+
+  /// Validates context for JCS cryptosuites according to W3C Data Integrity specification.
+  ///
+  /// Per the W3C VC Data Integrity ECDSA specification:
+  /// "The document context must include all proof context entries at the beginning in the same order"
+  /// Reference: https://www.w3.org/TR/vc-di-ecdsa/#verify-proof-ecdsa-jcs-2019
+  VerificationResult _validateJcsContext(
+      Map<String, dynamic> document, Map<String, dynamic> proof) {
+    final proofContext = proof['@context'];
+    if (proofContext != null) {
+      final documentContext = document['@context'];
+      if (!_contextStartsWith(documentContext, proofContext)) {
+        return VerificationResult.invalid(
+          errors: [
+            'Document @context must include all proof @context entries at the beginning in the same order'
+          ],
+        );
+      }
+    }
+    return VerificationResult.ok();
+  }
+
+  /// Checks if document context starts with proof context values in order.
+  /// Required for JCS cryptosuite context validation.
+  bool _contextStartsWith(dynamic documentContext, dynamic proofContext) {
+    // Convert both contexts to lists for comparison
+    final List<dynamic> docList = _contextToList(documentContext);
+    final List<dynamic> proofList = _contextToList(proofContext);
+
+    // Check if document context starts with proof context values
+    if (proofList.length > docList.length) return false;
+
+    for (int i = 0; i < proofList.length; i++) {
+      if (docList[i] != proofList[i]) return false;
+    }
+
+    return true;
+  }
+
+  /// Converts a context value to normalized list format for comparison.
+  List<dynamic> _contextToList(dynamic context) {
+    if (context is List) {
+      return context;
+    } else if (context is String) {
+      return [context];
+    } else if (context is Map) {
+      return [context];
+    } else {
+      return [];
+    }
   }
 }

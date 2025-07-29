@@ -10,8 +10,7 @@ void main() async {
   );
 
   final signer = await initP256Signer(seed);
-  // TODO: Add P384 signer when available in test utils
-  // final p384Signer = await initP384Signer(seed);
+  final p384Signer = await initP384Signer(seed);
   final edSigner = await initEdSigner(seed);
 
   group('Test Data Integrity ECDSA VC issuance', () {
@@ -57,7 +56,7 @@ void main() async {
           );
 
           final proofVerifier =
-              DataIntegrityEcdsaVerifier(issuerDid: signer.did);
+              DataIntegrityEcdsaRdfcVerifier(issuerDid: signer.did);
 
           final verificationResult =
               await proofVerifier.verify(issuedCredential.toJson());
@@ -183,8 +182,8 @@ void main() async {
       expect(proof['proofValue'], startsWith('z')); // base58-btc multibase
     });
 
-    // TODO: Re-enable when P384 signer is available in test utils
-    /*test('Create and verify Data Integrity ECDSA-JCS proof with P-384', () async {
+    test('Create and verify Data Integrity ECDSA-JCS proof with P-384',
+        () async {
       final unsignedCredential = MutableVcDataModelV1(
         context: [
           'https://www.w3.org/2018/credentials/v1',
@@ -219,7 +218,8 @@ void main() async {
         proofGenerator: proofGenerator,
       );
 
-      final proofVerifier = DataIntegrityEcdsaJcsVerifier(verifierDid: p384Signer.did);
+      final proofVerifier =
+          DataIntegrityEcdsaJcsVerifier(verifierDid: p384Signer.did);
 
       final verificationResult =
           await proofVerifier.verify(issuedCredential.toJson());
@@ -233,7 +233,7 @@ void main() async {
       expect(proof['cryptosuite'], 'ecdsa-jcs-2019');
       expect(proof['proofValue'], isNotNull);
       expect(proof['proofValue'], startsWith('z')); // base58-btc multibase
-    });*/
+    });
 
     test('JCS context validation works correctly', () async {
       final unsignedCredential = MutableVcDataModelV1(
