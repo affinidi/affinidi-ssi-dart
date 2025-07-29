@@ -125,7 +125,7 @@ class DidPeerManager extends DidManager {
     // Create a list of public keys for each unique verification method.
     final verificationMethodsPubKeys = <PublicKey>[];
     for (final vmId in uniqueVmIds) {
-      final walletKeyId = await getWalletKeyIdUniversally(vmId);
+      final walletKeyId = await getWalletKeyId(vmId);
       if (walletKeyId == null) {
         throw SsiException(
             message: 'Could not find wallet key for $vmId',

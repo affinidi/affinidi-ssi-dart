@@ -345,15 +345,13 @@ abstract class DidManager {
 
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {
-    if (_cacheVerificationMethodIdToWalletKeyId
-        .containsKey(verificationMethodId)) {
-      return _cacheVerificationMethodIdToWalletKeyId[verificationMethodId];
+    final fragment = '#${verificationMethodId.split('#').last}';
+    if (_cacheVerificationMethodIdToWalletKeyId.containsKey(fragment)) {
+      return _cacheVerificationMethodIdToWalletKeyId[fragment];
     }
-
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    final walletKeyId = await store.getWalletKeyId(fragment);
     if (walletKeyId != null) {
-      _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
-          walletKeyId;
+      _cacheVerificationMethodIdToWalletKeyId[fragment] = walletKeyId;
     }
     return walletKeyId;
   }
@@ -371,7 +369,7 @@ abstract class DidManager {
       );
     }
 
-    final walletKeyId = await getWalletKeyIdUniversally(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -399,7 +397,7 @@ abstract class DidManager {
       );
     }
 
-    final walletKeyId = await getWalletKeyIdUniversally(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -427,7 +425,7 @@ abstract class DidManager {
       );
     }
 
-    final walletKeyId = await getWalletKeyIdUniversally(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -455,7 +453,7 @@ abstract class DidManager {
       );
     }
 
-    final walletKeyId = await getWalletKeyIdUniversally(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -483,7 +481,7 @@ abstract class DidManager {
       );
     }
 
-    final walletKeyId = await getWalletKeyIdUniversally(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -648,7 +646,7 @@ abstract class DidManager {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = await getWalletKeyIdUniversally(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -678,7 +676,7 @@ abstract class DidManager {
     String verificationMethodId, {
     SignatureScheme? signatureScheme,
   }) async {
-    final walletKeyId = await getWalletKeyIdUniversally(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -710,7 +708,7 @@ abstract class DidManager {
   }) async {
     final didDocument = await getDidDocument();
 
-    final walletKeyId = await getWalletKeyIdUniversally(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -755,7 +753,7 @@ abstract class DidManager {
   ///
   /// Throws [SsiException] if the verification method is not found in the mapping.
   Future<DidKeyPair> getKey(String verificationMethodId) async {
-    final walletKeyId = await getWalletKeyIdUniversally(verificationMethodId);
+    final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
         message:
@@ -779,27 +777,13 @@ abstract class DidManager {
   ///
   /// Throws if the key is not found or cannot be retrieved.
   Future<KeyPair> getKeyPairByDidKeyId(String didKeyId) async {
-    final keyId = await getWalletKeyIdUniversally(didKeyId);
+    final keyId = await getWalletKeyId(didKeyId);
 
     if (keyId == null) {
       throw Exception('Key ID not found for DID key ID: $didKeyId');
     }
 
     return await getKeyPair(keyId);
-  }
-
-  /// Retrieves the wallet key associated with the given [didKeyId] universally.
-  ///
-  /// Tries to find the key by the fully qualified DID key ID first.
-  /// If not found, tries to find by the fragment after the hash sign.
-  ///
-  /// Returns a [String] containing the wallet key if found, or `null` if no key is associated
-  /// with the provided [didKeyId].
-  Future<String?> getWalletKeyIdUniversally(String didKeyId) async {
-    var keyId = await getWalletKeyId(didKeyId);
-    keyId ??= await getWalletKeyId(getKeyIdFromId(didKeyId));
-
-    return keyId;
   }
 
   /// Extracts the key identifier from a given DID (Decentralized Identifier) string.
