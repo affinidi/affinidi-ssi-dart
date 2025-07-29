@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-29
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.10.4`](#ssi---v2104)
+
+---
+
+#### `ssi` - `v2.10.4`
+
+ - **FIX**: wasm compatibility (#173).
+
+## 2.10.4
+
+ - **FIX**: wasm compatibility (#173).
+
+
 ## 2025-07-28
 
 ### Changes
