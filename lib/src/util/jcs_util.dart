@@ -49,6 +49,23 @@ class JcsUtil {
       );
     }
 
+    // Handle negative zero per RFC 8785 Section 3.2.2.3 and ECMA-262 Section 7.1.12.1
+    //
+    // RFC 8785 requires JCS-compliant number serialization to follow ECMAScript's
+    // Number-to-String conversion algorithm, which specifies:
+    // "If the number is +0 or -0, return '0'"
+    //
+    // Dart's native jsonEncode(-0.0) incorrectly outputs "-0.0" instead of "0",
+    // violating the canonical representation required for cryptographic operations.
+    // This explicit check ensures RFC 8785 compliance for negative zero values.
+    //
+    // References:
+    // - RFC 8785: https://datatracker.ietf.org/doc/html/rfc8785#section-3.2.2.3
+    // - ECMA-262: https://tc39.es/ecma262/#sec-tostring-applied-to-the-number-type
+    if (value == 0.0 && value.isNegative) {
+      return '0';
+    }
+
     // Use jsonEncode but handle whole number doubles per JCS requirements
     final result = jsonEncode(value);
 
