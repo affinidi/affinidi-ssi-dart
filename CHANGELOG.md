@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.11.0`](#ssi---v2110)
+
+---
+
+#### `ssi` - `v2.11.0`
+
+ - **FEAT**: jcs variation (#170).
+
+## 2.11.0
+
+ - **FEAT**: jcs variation (#170).
+
+
+## 2025-07-29
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.10.4`](#ssi---v2104)
 
 ---
