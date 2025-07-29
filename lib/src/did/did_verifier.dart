@@ -48,31 +48,18 @@ class DidVerifier implements Verifier {
     final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
     final didDocument = await resolver.resolveDid(issuerDid);
 
-    // Fix: assertionMethod is a list of VerificationMethod, not String
-    kid ??= didDocument.assertionMethod.isNotEmpty
-        ? didDocument.assertionMethod[0].id
-        : null;
+    kid ??= didDocument.assertionMethod[0].id;
 
     VerificationMethod? verificationMethod;
-    if (kid != null) {
-      final fragment = kid.contains('#') ? kid.split('#').last : kid;
-      verificationMethod = didDocument.verificationMethod.firstWhere(
-        (method) => method.id == kid || method.id.endsWith('#$fragment'),
-        orElse: () => throw SsiException(
-          message:
-              'Verification method with id $kid not found in DID Document for $issuerDid',
-          code: SsiExceptionType.invalidDidDocument.code,
-        ),
-      );
-    }
-
-    if (verificationMethod == null) {
-      throw SsiException(
+    final fragment = kid.contains('#') ? kid.split('#').last : kid;
+    verificationMethod = didDocument.verificationMethod.firstWhere(
+      (method) => method.id == kid || method.id.endsWith('#$fragment'),
+      orElse: () => throw SsiException(
         message:
             'Verification method with id $kid not found in DID Document for $issuerDid',
         code: SsiExceptionType.invalidDidDocument.code,
-      );
-    }
+      ),
+    );
 
     final jwk = verificationMethod.asJwk();
     final jwkMap = Map<String, dynamic>.from(jwk.toJson());
