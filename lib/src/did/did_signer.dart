@@ -53,14 +53,6 @@ class DidSigner {
         signatureScheme: signatureScheme,
       );
 
-  /// Returns the full DID key identifier by combining the `did` and `keyId` if `keyId` starts with '#'.
-  /// If `keyId` does not start with '#', returns `keyId` as is.
-  ///
-  /// Example:
-  /// - If `did` is 'did:example:123' and `keyId` is '#key-1', returns 'did:example:123#key-1'.
-  /// - If `keyId` is 'key-1', returns 'key-1'.
-  String get didKeyId => keyId.startsWith('#') ? '$did$keyId' : keyId;
-
   /// Validates constructor parameters to ensure consistency and security.
   static void _validateParameters(
     String did,
