@@ -335,7 +335,8 @@ abstract class DidManager {
     final walletKeyId = await store.getWalletKeyId(verificationMethodId) ??
         await store.getWalletKeyId(getKeyIdFromId(verificationMethodId));
     if (walletKeyId != null) {
-      _cacheVerificationMethodIdToWalletKeyId[fragment] = walletKeyId;
+      _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
+          walletKeyId;
     }
     return walletKeyId;
   }
