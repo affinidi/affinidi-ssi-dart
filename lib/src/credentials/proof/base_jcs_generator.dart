@@ -60,10 +60,13 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
       domain: domain,
     );
 
+    final additionalProperties = <String, dynamic>{};
+
     // Set proof context to document context if present
     final documentContext = document['@context'];
     if (documentContext != null) {
       proof['@context'] = documentContext;
+      additionalProperties['@context'] = documentContext;
     }
 
     // Validate proof configuration structure
@@ -80,10 +83,6 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     );
     final signature = await computeSignature(hash, signer);
 
-    // Remove context and add signature to proof
-    proof.remove('@context');
-    proof['proofValue'] = signature;
-
     return EmbeddedProof(
       type: JcsUtils.dataIntegrityType,
       cryptosuite: cryptosuite,
@@ -94,6 +93,7 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
       expires: expires,
       challenge: challenge,
       domain: domain,
+      additionalProperties: additionalProperties,
     );
   }
 
