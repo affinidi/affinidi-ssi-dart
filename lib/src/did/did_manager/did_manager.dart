@@ -326,10 +326,14 @@ abstract class DidManager {
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {
     if (_cacheVerificationMethodIdToWalletKeyId
-            .containsKey(verificationMethodId) ||
-        _cacheVerificationMethodIdToWalletKeyId
-            .containsKey(getKeyIdFromId(verificationMethodId))) {
+        .containsKey(verificationMethodId)) {
       return _cacheVerificationMethodIdToWalletKeyId[verificationMethodId];
+    }
+
+    if (_cacheVerificationMethodIdToWalletKeyId
+        .containsKey(getKeyIdFromId(verificationMethodId))) {
+      return _cacheVerificationMethodIdToWalletKeyId[
+          getKeyIdFromId(verificationMethodId)];
     }
 
     final walletKeyId = await store.getWalletKeyId(verificationMethodId) ??
@@ -756,19 +760,6 @@ abstract class DidManager {
       verificationMethodId: verificationMethodId,
       didDocument: didDocument,
     );
-  }
-
-  /// Retrieves the [KeyPair] associated with the given [didKeyId] from this [DidManager].
-  ///
-  /// Throws if the key is not found or cannot be retrieved.
-  Future<KeyPair> getKeyPairByDidKeyId(String didKeyId) async {
-    final keyId = await getWalletKeyId(didKeyId);
-
-    if (keyId == null) {
-      throw Exception('Key ID not found for DID key ID: $didKeyId');
-    }
-
-    return await getKeyPair(keyId);
   }
 
   /// Extracts the key identifier from a given DID (Decentralized Identifier) string.
