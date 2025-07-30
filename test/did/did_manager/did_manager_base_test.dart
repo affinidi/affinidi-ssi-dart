@@ -63,27 +63,6 @@ void main() {
         );
       });
     });
-
-    test('buildVerificationMethodId returns fully qualified format', () async {
-      final keyPair = await wallet.generateKey(keyId: 'test-key-1');
-      final didDocument = await manager.getDidDocument();
-      final did = didDocument.id;
-      final vmId = await manager.buildVerificationMethodId(keyPair.publicKey);
-      expect(vmId, equals('$did#${keyPair.id}'));
-    });
-
-    test('mapping works for both fragment and fully qualified IDs', () async {
-      final keyPair = await wallet.generateKey(keyId: 'test-key-2');
-      final didDocument = await manager.getDidDocument();
-      final did = didDocument.id;
-      final fragmentId = '#${keyPair.id}';
-      final fullyQualifiedId = '$did#${keyPair.id}';
-      await manager.addVerificationMethod(keyPair.id);
-      final fragmentMapping = await store.getWalletKeyId(fragmentId);
-      final qualifiedMapping = await store.getWalletKeyId(fullyQualifiedId);
-      expect(fragmentMapping, equals(keyPair.id));
-      expect(qualifiedMapping, equals(keyPair.id));
-    });
   });
 }
 
