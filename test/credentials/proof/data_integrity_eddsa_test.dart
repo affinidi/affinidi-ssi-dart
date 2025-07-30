@@ -209,7 +209,6 @@ void main() async {
       final credentialJson = issuedCredential.toJson();
       final proof = credentialJson['proof'] as Map<String, dynamic>;
 
-      // The proof should NOT have @context in the final form (it's removed after signing)
       expect(proof.containsKey('@context'), true);
 
       final proofVerifier =
