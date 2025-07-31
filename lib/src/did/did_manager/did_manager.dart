@@ -323,6 +323,7 @@ abstract class DidManager {
   /// Builds the verification method ID for a given public key.
   Future<String> buildVerificationMethodId(PublicKey publicKey);
 
+  // TODO: Update after the did_store is refactored, so only the fragment is used
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {
     if (_cacheVerificationMethodIdToWalletKeyId
