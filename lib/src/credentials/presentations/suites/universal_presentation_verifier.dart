@@ -26,7 +26,7 @@ final class UniversalPresentationVerifier {
   final List<VpVerifier> customVerifiers;
 
   /// The list of vc verifiers
-  final List<VcVerifier> credentialCustomVerifiers;
+  final List<VcVerifier> customCredentialVerifiers;
 
   /// Custom document loader for loading external resources during verification.
   final DocumentLoader? customDocumentLoader;
@@ -45,10 +45,10 @@ final class UniversalPresentationVerifier {
   /// Optionally accepts [customVerifiers] to extend validation logic.
   UniversalPresentationVerifier({
     List<VpVerifier>? customVerifiers,
-    List<VcVerifier>? credentialCustomVerifiers,
+    List<VcVerifier>? customCredentialVerifiers,
     this.customDocumentLoader,
   })  : customVerifiers = customVerifiers ?? [],
-        credentialCustomVerifiers = credentialCustomVerifiers ?? [];
+        customCredentialVerifiers = customCredentialVerifiers ?? [];
 
   /// Verifies the given [ParsedVerifiablePresentation] using all registered verifiers.
   ///
@@ -70,7 +70,7 @@ final class UniversalPresentationVerifier {
     }
 
     final vcVerifier = UniversalVerifier(
-        customVerifiers: credentialCustomVerifiers,
+        customVerifiers: customCredentialVerifiers,
         customDocumentLoader: customDocumentLoader);
 
     for (final credential in vp.verifiableCredential) {
