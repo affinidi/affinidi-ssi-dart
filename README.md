@@ -162,7 +162,7 @@ When generating a DID Document with an Ed25519 key, the package automatically:
 - Uses **Ed25519** for signing (digital signatures)
 - Internally derives **X25519** keys for encryption/ECDH (key agreement) operations
 
-This key derivation and DID Document construction is handled automatically - you don't need to manually convert keys or add verification methods. The same Ed25519 key material is used in different forms for both signing and encryption operations.
+This key derivation and DID Document construction are handled automatically - you don't need to manually convert keys or add verification methods. It uses the same Ed25519 key material in different forms for both signing and encryption operations.
 
 
 ## Support & feedback
