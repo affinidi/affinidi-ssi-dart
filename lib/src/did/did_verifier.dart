@@ -47,16 +47,24 @@ class DidVerifier implements Verifier {
   }) async {
     final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
     final didDocument = await resolver.resolveDid(issuerDid);
+    final kidToUse = kid ?? didDocument.assertionMethod.firstOrNull?.id;
 
-    kid ??= didDocument.assertionMethod[0].id;
+    if (kidToUse == null) {
+      throw SsiException(
+        message:
+            'No key ID provided and no assertion method found in DID Document for $issuerDid',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
+    }
 
     VerificationMethod? verificationMethod;
-    final fragment = kid.contains('#') ? kid.split('#').last : kid;
+    final fragment =
+        kidToUse.contains('#') ? kidToUse.split('#').last : kidToUse;
     verificationMethod = didDocument.verificationMethod.firstWhere(
-      (method) => method.id == kid || method.id.endsWith('#$fragment'),
+      (method) => method.id == kidToUse || method.id.endsWith('#$fragment'),
       orElse: () => throw SsiException(
         message:
-            'Verification method with id $kid not found in DID Document for $issuerDid',
+            'Verification method with id $kidToUse not found in DID Document for $issuerDid',
         code: SsiExceptionType.invalidDidDocument.code,
       ),
     );
@@ -72,7 +80,7 @@ class DidVerifier implements Verifier {
       );
     }
 
-    return DidVerifier._(algorithm, kid, jwkMap);
+    return DidVerifier._(algorithm, kidToUse, jwkMap);
   }
 
   @override
