@@ -17,7 +17,7 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
   - [Installation](#installation)
   - [Usage](#usage)
   - [DID Manager](#did-manager)
-  - [Ed25519/X25519 Key Derivation](#ed25519x25519-key-derivation)
+  - [Ed25519 Key Agreement](#ed25519-key-agreement)
   - [Support & feedback](#support--feedback)
   - [Contributing](#contributing)
 
