@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-07-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.11.1`](#ssi---v2111)
+
+---
+
+#### `ssi` - `v2.11.1`
+
+ - **FIX**: jcs proof context (#175).
+
+## 2.11.1
+
+ - **FIX**: jcs proof context (#175).
+
+
 ## 2025-07-29
 
 ### Changes
