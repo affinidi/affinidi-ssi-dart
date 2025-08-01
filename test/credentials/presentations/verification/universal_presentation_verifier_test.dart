@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:ssi/src/credentials/presentations/presentations.dart';
+import 'package:ssi/src/credentials/verification/vc_revocation_verifier.dart';
 import 'package:test/test.dart';
 
 import '../../../fixtures/verifiable_presentations_fixtures.dart';
@@ -37,8 +38,11 @@ void main() async {
       final v1Vp = UniversalPresentationParser.parse(
           VerifiablePresentationDataFixtures.v1VpWithRevokedVCString);
       final verificationStatus = await UniversalPresentationVerifier(
-              customDocumentLoader: defaultDocumentLoader)
-          .verify(v1Vp);
+          customDocumentLoader: defaultDocumentLoader,
+          customCredentialVerifiers: [
+            RevocationList2020Verifier(
+                customDocumentLoader: defaultDocumentLoader)
+          ]).verify(v1Vp);
 
       expect(verificationStatus.errors.length, 1);
       expect(verificationStatus.warnings.length, 0);
