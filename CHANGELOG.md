@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-08-01
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.11.2`](#ssi---v2112)
+
+---
+
+#### `ssi` - `v2.11.2`
+
+ - **REFACTOR**: improve data integrity suite naming and add JCS compliance tests (#178).
+
+## 2.11.2
+
+ - **REFACTOR**: improve data integrity suite naming and add JCS compliance tests (#178).
+
+
 ## 2025-07-30
 
 ### Changes
