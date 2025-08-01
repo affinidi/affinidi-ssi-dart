@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ssi/src/exceptions/ssi_exception.dart';
@@ -26,6 +28,17 @@ void testNumber(String hex, String expected) {
   final d = hex2double(hex);
   final canonical = JcsUtil.canonicalize(d);
   expect(canonical, equals(expected));
+}
+
+void testJcsVector(String vectorName) {
+  final inputFile = File('test/util/vectors/input/$vectorName.json');
+  final outputFile = File('test/util/vectors/output/$vectorName.json');
+
+  final inputJson = jsonDecode(inputFile.readAsStringSync());
+  final expectedOutput = outputFile.readAsStringSync().trim();
+
+  final actualOutput = JcsUtil.canonicalize(inputJson);
+  expect(actualOutput, equals(expectedOutput));
 }
 
 void main() {
@@ -384,6 +397,15 @@ void main() {
         expect(result2, equals(result3));
         expect(result1, equals('{"first":1,"second":2,"third":3}'));
       });
+    });
+
+    group('Test Vectors Validation', () {
+      test('arrays vector', () => testJcsVector('arrays'));
+      test('french vector', () => testJcsVector('french'));
+      test('structures vector', () => testJcsVector('structures'));
+      test('unicode vector', () => testJcsVector('unicode'));
+      test('values vector', () => testJcsVector('values'));
+      test('weird vector', () => testJcsVector('weird'));
     });
   });
 }
