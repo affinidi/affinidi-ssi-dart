@@ -17,7 +17,7 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
   - [Installation](#installation)
   - [Usage](#usage)
   - [DID Manager](#did-manager)
-  - [Ed25519/X25519 Key Derivation](#ed25519x25519-key-derivation)
+  - [Ed25519 Key Agreement](#ed25519-key-agreement)
   - [Support & feedback](#support--feedback)
   - [Contributing](#contributing)
 
@@ -53,11 +53,12 @@ Refer to [this example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/
 
 This package supports the following key management solutions for securely managing keys associated with the digital wallet:
 
-- **BIP32** - a standard for creating Hierarchical Deterministic (HD) wallets and generating multiple keys from a single seed. It primarily supports the secp256k1 elliptic curve.
+- **BIP32** - a standard for creating Hierarchical Deterministic (HD) wallets and generating multiple keys from a single seed. Supports **secp256k1** key type only.
 
-- **BIP32 ED25519** - adapts the BIP32 standard to work with the ED25519 elliptic curve cryptography.
+- **BIP32 ED25519** - adapts the BIP32 standard to work with the ED25519 elliptic curve cryptography. Supports **ed25519** key type only.
 
-- **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports different key types (e.g., P256 and ED25519).
+- **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports **secp256k1**, **ed25519**, **p256**, **p384**, and **p521** key types.
+
 
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/wallet) to learn how to create different wallets.
 
@@ -153,16 +154,16 @@ The introduction of the DID Manager simplifies DID management by shifting DID-re
 Each DID method extends the base class [`DidManager`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_manager/did_manager.dart) to inherit the functionality to manage the supported DIDs.
 
 
-## Ed25519/X25519 Key Derivation
+## Ed25519 Key Agreement
 
-If you select an Ed25519 key (Edwards curve) for your DID or wallet, the Dart SSI package will use this curve for digital signatures. However, for key agreement purposes, the package automatically derives an X25519 key from the Ed25519 key.
+When using Ed25519 keys for digital signatures, the Dart SSI package automatically handles key agreement operations by internally deriving X25519 keys from Ed25519 keys when needed.
 
-When generating a DID Document with the Dart SSI package using an Ed25519 key, the resulting document will include both:
+When generating a DID Document with an Ed25519 key, the package automatically:
 
-- **Ed25519** for signing (digital signatures).
-- **X25519** for encryption/ECDH (key agreement) derived from Ed25519 as needed.
+- Uses **Ed25519** for signing (digital signatures)
+- Internally derives **X25519** keys for encryption/ECDH (key agreement) operations
 
-The Dart SSI package handles both the key derivation and DID Document construction automatically, so you don't need to convert keys or add verification methods manually. Be aware that it uses the same key material in different forms for signing and encryption operations.
+This key derivation and DID Document construction are handled automatically - you don't need to manually convert keys or add verification methods. It uses the same Ed25519 key material in different forms for both signing and encryption operations.
 
 
 ## Support & feedback

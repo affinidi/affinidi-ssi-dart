@@ -73,6 +73,36 @@ void main() {
           32); // secp256k1 private key is 32 bytes
     });
 
+    test('createKeyPair should create a P384 key pair', () async {
+      final newKey = await wallet.generateKey(keyType: KeyType.p384);
+      expect(newKey.id, isNotNull);
+      expect(newKey.id, isNotEmpty);
+      expect(await wallet.hasKey(newKey.id), isTrue);
+      expect(newKey.publicKey.type, KeyType.p384);
+
+      final storedData = await keyStore.get(newKey.id);
+      expect(storedData, isNotNull);
+      expect(storedData!.keyType, KeyType.p384);
+      expect(storedData.privateKeyBytes, isA<Uint8List>());
+      expect(storedData.privateKeyBytes.length,
+          48); // P384 private key is 48 bytes
+    });
+
+    test('createKeyPair should create a P521 key pair', () async {
+      final newKey = await wallet.generateKey(keyType: KeyType.p521);
+      expect(newKey.id, isNotNull);
+      expect(newKey.id, isNotEmpty);
+      expect(await wallet.hasKey(newKey.id), isTrue);
+      expect(newKey.publicKey.type, KeyType.p521);
+
+      final storedData = await keyStore.get(newKey.id);
+      expect(storedData, isNotNull);
+      expect(storedData!.keyType, KeyType.p521);
+      expect(storedData.privateKeyBytes, isA<Uint8List>());
+      expect(storedData.privateKeyBytes.length,
+          66); // P521 private key is 66 bytes
+    });
+
     test('createKeyPair should generate a random keyId if none is provided',
         () async {
       final newKey1 = await wallet.generateKey(keyType: KeyType.p256);
