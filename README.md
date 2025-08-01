@@ -57,7 +57,8 @@ This package supports the following key management solutions for securely managi
 
 - **BIP32 ED25519** - adapts the BIP32 standard to work with the ED25519 elliptic curve cryptography. Supports **ed25519** key type only.
 
-- **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports **secp256k1**, **ed25519**, and **p256** key types.
+- **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports **secp256k1**, **ed25519**, **p256**, **p384**, and **p521** key types.
+
 
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/wallet) to learn how to create different wallets.
 

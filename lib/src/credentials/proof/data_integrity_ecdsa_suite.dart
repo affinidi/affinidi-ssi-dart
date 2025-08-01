@@ -253,10 +253,11 @@ class DataIntegrityEcdsaJcsGenerator extends BaseJcsGenerator {
   @override
   void validateSignerCompatibility(DidSigner signer) {
     if (signer.signatureScheme != SignatureScheme.ecdsa_p256_sha256 &&
-        signer.signatureScheme != SignatureScheme.ecdsa_p384_sha384) {
+        signer.signatureScheme != SignatureScheme.ecdsa_p384_sha384 &&
+        signer.signatureScheme != SignatureScheme.ecdsa_p521_sha512) {
       throw SsiException(
         message:
-            'Signer algorithm ${signer.signatureScheme} is not compatible with $_ecdsaJcsCryptosuite. Expected P-256 (SHA-256) or P-384 (SHA-384).',
+            'Signer algorithm ${signer.signatureScheme} is not compatible with $_ecdsaJcsCryptosuite. Expected P-256 (SHA-256), P-384 (SHA-384), or P-521 (SHA-512).',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
@@ -288,7 +289,7 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
   @override
   HashingAlgorithm get hashingAlgorithm {
     // For ECDSA JCS, we can't determine the hash algorithm statically
-    // since it supports both P-256 (SHA-256) and P-384 (SHA-384).
+    // since it supports P-256 (SHA-256), P-384 (SHA-384), and P-521 (SHA-512).
     // The actual algorithm is determined dynamically in computeSignatureHash.
     throw UnsupportedError(
         'ECDSA JCS requires dynamic hash algorithm determination');
@@ -302,7 +303,7 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
         documentLoader,
   ) async {
     // For ecdsa-jcs-2019, we need to dynamically determine the signature scheme
-    // by examining the verification method since it supports both P-256 and P-384
+    // by examining the verification method since it supports P-256, P-384, and P-521
     final signatureScheme =
         await _getSignatureSchemeFromVerificationMethod(proof);
     return JcsUtils.computeDataIntegrityJcsHash(

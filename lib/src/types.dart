@@ -131,11 +131,13 @@ enum SignatureScheme {
 const cryptosuiteToScheme = <String, List<SignatureScheme>>{
   'ecdsa-rdfc-2019': [
     SignatureScheme.ecdsa_p256_sha256,
-    SignatureScheme.ecdsa_p384_sha384
+    SignatureScheme.ecdsa_p384_sha384,
+    SignatureScheme.ecdsa_p521_sha512
   ],
   'ecdsa-jcs-2019': [
     SignatureScheme.ecdsa_p256_sha256,
-    SignatureScheme.ecdsa_p384_sha384
+    SignatureScheme.ecdsa_p384_sha384,
+    SignatureScheme.ecdsa_p521_sha512
   ],
   'eddsa-rdfc-2022': [SignatureScheme.ed25519],
   'eddsa-jcs-2022': [SignatureScheme.ed25519],
@@ -143,7 +145,7 @@ const cryptosuiteToScheme = <String, List<SignatureScheme>>{
 
 /// Determines the SignatureScheme for ECDSA cryptosuites from a JWK.
 ///
-/// Both ecdsa-jcs-2019 and ecdsa-rdfc-2019 cryptosuites support both P-256 and P-384 curves.
+/// Both ecdsa-jcs-2019 and ecdsa-rdfc-2019 cryptosuites support P-256, P-384, and P-521 curves.
 /// Returns the appropriate SignatureScheme based on the JWK curve.
 ///
 /// Throws [ArgumentError] if the curve is not supported.
@@ -155,9 +157,11 @@ SignatureScheme getEcdsaSignatureScheme(Map<String, dynamic> jwkMap) {
       return SignatureScheme.ecdsa_p256_sha256;
     case 'P-384':
       return SignatureScheme.ecdsa_p384_sha384;
+    case 'P-521':
+      return SignatureScheme.ecdsa_p521_sha512;
     default:
       throw ArgumentError(
-        'Unsupported curve for ECDSA cryptosuites: $curve. Only P-256 and P-384 are supported.',
+        'Unsupported curve for ECDSA cryptosuites: $curve. Only P-256, P-384, and P-521 are supported.',
       );
   }
 }
@@ -165,7 +169,7 @@ SignatureScheme getEcdsaSignatureScheme(Map<String, dynamic> jwkMap) {
 /// Determines the SignatureScheme for ecdsa-jcs-2019 from a JWK.
 ///
 /// @deprecated Use [getEcdsaSignatureScheme] instead.
-/// The ecdsa-jcs-2019 cryptosuite supports both P-256 and P-384 curves.
+/// The ecdsa-jcs-2019 cryptosuite supports P-256, P-384, and P-521 curves.
 /// Returns the appropriate SignatureScheme based on the JWK curve.
 ///
 /// Throws [ArgumentError] if the curve is not supported.
