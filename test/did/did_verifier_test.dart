@@ -167,5 +167,26 @@ void main() {
         );
       });
     });
+
+    test('should resolve both fragment and fully qualified kid', () async {
+      final fragmentKid = kid;
+      final fullyQualifiedKid = '$didKey#$kid';
+
+      final verifierFragment = await DidVerifier.create(
+        algorithm: SignatureScheme.ed25519,
+        kid: fragmentKid,
+        issuerDid: didKey,
+      );
+      final verifierQualified = await DidVerifier.create(
+        algorithm: SignatureScheme.ed25519,
+        kid: fullyQualifiedKid,
+        issuerDid: didKey,
+      );
+
+      expect(verifierFragment.isAllowedAlgorithm('EdDSA'), isTrue);
+      expect(verifierQualified.isAllowedAlgorithm('EdDSA'), isTrue);
+      expect(verifierFragment.isAllowedAlgorithm('Ed25519'), isTrue);
+      expect(verifierQualified.isAllowedAlgorithm('Ed25519'), isTrue);
+    });
   });
 }

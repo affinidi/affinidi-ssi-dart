@@ -39,7 +39,7 @@ void main() {
     });
 
     group('using did:web,', () {
-      test('it throws exception on non-200 responces', () {
+      test('it throws exception on non-200 responses', () {
         final did = 'did:web:example.com';
 
         expectLater(
@@ -51,7 +51,7 @@ void main() {
     });
 
     group('using resolver address', () {
-      test('it throws undable to resolve did when resolverAddress null', () {
+      test('it throws unable to resolve did when resolverAddress null', () {
         final did = 'did:test';
 
         expectLater(

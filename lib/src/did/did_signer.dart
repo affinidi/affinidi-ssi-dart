@@ -44,6 +44,9 @@ class DidSigner {
   /// The identifier of the key inside the DID document
   String get keyId => _didKeyId;
 
+  /// Returns the full DID key identifier by combining the `did` and `keyId`.
+  String get didKeyId => '$did$keyId';
+
   /// Signs the provided data using the key pair and signature scheme.
   Future<Uint8List> sign(Uint8List data) => _keyPair.sign(
         data,
