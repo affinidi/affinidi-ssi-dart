@@ -22,17 +22,17 @@ const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v2';
 ///
 /// Signs Verifiable Credentials by normalizing the credential and the proof separately,
 /// hashing them, and then signing the combined hash using a [DidSigner].
-class DataIntegrityEddsaGenerator extends EmbeddedProofSuiteCreateOptions
+class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
     implements EmbeddedProofGenerator {
   /// The DID signer used to produce the proof signature.
   final DidSigner signer;
 
-  /// Constructs a new [DataIntegrityEddsaGenerator].
+  /// Constructs a new [DataIntegrityEddsaRdfcGenerator].
   ///
   /// [signer]: The DID signer responsible for creating the proof signature.
   /// Optional parameters like [proofPurpose], [customDocumentLoader], [expires],
   /// [challenge], and [domain] configure the proof metadata.
-  DataIntegrityEddsaGenerator({
+  DataIntegrityEddsaRdfcGenerator({
     required this.signer,
     super.proofPurpose,
     super.customDocumentLoader,
@@ -102,6 +102,16 @@ class DataIntegrityEddsaGenerator extends EmbeddedProofSuiteCreateOptions
     );
   }
 }
+
+/// Generates Data Integrity Proofs using the eddsa-rdfc-2022 cryptosuite.
+///
+/// Signs Verifiable Credentials by normalizing the credential and the proof separately,
+/// hashing them, and then signing the combined hash using a [DidSigner].
+///
+/// @deprecated Use [DataIntegrityEddsaRdfcGenerator] instead for consistent naming.
+@Deprecated(
+    'Use DataIntegrityEddsaRdfcGenerator instead for consistent naming.')
+typedef DataIntegrityEddsaGenerator = DataIntegrityEddsaRdfcGenerator;
 
 /// Verifies Data Integrity Proofs signed with the eddsa-rdfc-2022 cryptosuite.
 ///

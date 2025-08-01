@@ -44,7 +44,7 @@ void main() async {
             issuer: Issuer.uri(edSigner.did),
           );
 
-          final proofGenerator = DataIntegrityEddsaGenerator(
+          final proofGenerator = DataIntegrityEddsaRdfcGenerator(
             signer: edSigner,
             proofValueMultiBase: proofValueMultiBase,
           );
@@ -103,7 +103,7 @@ void main() async {
             issuer: Issuer.uri(edSigner.did),
           );
 
-          final proofGenerator = DataIntegrityEddsaGenerator(
+          final proofGenerator = DataIntegrityEddsaRdfcGenerator(
             signer: edSigner,
             proofValueMultiBase: proofValueMultiBase,
           );
