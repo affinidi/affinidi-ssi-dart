@@ -30,6 +30,10 @@ void testNumber(String hex, String expected) {
   expect(canonical, equals(expected));
 }
 
+/// Tests JCS implementation against test vectors.
+///
+/// Test vectors sourced from:
+/// https://github.com/cyberphone/json-canonicalization/tree/master/testdata
 void testJcsVector(String vectorName) {
   final inputFile = File('test/util/vectors/input/$vectorName.json');
   final outputFile = File('test/util/vectors/output/$vectorName.json');
@@ -400,6 +404,7 @@ void main() {
     });
 
     group('Test Vectors Validation', () {
+      // Test vectors from https://github.com/cyberphone/json-canonicalization/tree/master/testdata
       test('arrays vector', () => testJcsVector('arrays'));
       test('french vector', () => testJcsVector('french'));
       test('structures vector', () => testJcsVector('structures'));
