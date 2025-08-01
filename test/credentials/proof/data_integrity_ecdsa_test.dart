@@ -263,7 +263,8 @@ void main() async {
       final credentialJson = issuedCredential.toJson();
       final proof = credentialJson['proof'] as Map<String, dynamic>;
 
-      expect(proof.containsKey('@context'), true);
+      // The proof should NOT have @context in the final form (it's removed after signing)
+      expect(proof.containsKey('@context'), false);
 
       final proofVerifier =
           DataIntegrityEcdsaJcsVerifier(verifierDid: signer.did);
