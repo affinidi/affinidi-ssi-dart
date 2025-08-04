@@ -235,8 +235,6 @@ void main() async {
       expect(proof['proofValue'], startsWith('z')); // base58-btc multibase
     });
 
-    //TODO:  Add a proper test for ECDSA-JCS proof with P-521
-
     test('JCS context validation works correctly', () async {
       final unsignedCredential = MutableVcDataModelV1(
         context: [
