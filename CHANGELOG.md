@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-08-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.11.3`](#ssi---v2113)
+
+---
+
+#### `ssi` - `v2.11.3`
+
+ - **FIX**: initial DID verifier update (#172).
+
+## 2.11.3
+
+ - **FIX**: initial DID verifier update (#172).
+
+
 ## 2025-08-01
 
 ### Changes
