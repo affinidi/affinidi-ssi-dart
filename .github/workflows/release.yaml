@@ -5,5 +5,5 @@ on:
       - test/dart-security-scanner
 jobs:
   dart-pipeline:
-    uses: affinidi/pipeline-dart/.github/workflows/release.yaml@feat/dart-security-scanner
+    uses: affinidi/pipeline-dart/.github/workflows/release.yaml@dart-security-scanner
     secrets: inherit
