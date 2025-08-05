@@ -321,11 +321,9 @@ abstract class DidManager {
   // Note: All verification IDs may need recalculation in did:peer (they are indexed)
 
   /// Builds the verification method ID for a given public key.
-  /// Subclasses implement this to handle method-specific ID construction.
-  ///
-  /// [publicKey] - The public key to create a verification method ID for.
   Future<String> buildVerificationMethodId(PublicKey publicKey);
 
+  // TODO: Update after the did_store is refactored, so only the fragment is used
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {
     if (_cacheVerificationMethodIdToWalletKeyId
@@ -333,7 +331,14 @@ abstract class DidManager {
       return _cacheVerificationMethodIdToWalletKeyId[verificationMethodId];
     }
 
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId);
+    if (_cacheVerificationMethodIdToWalletKeyId
+        .containsKey(getKeyIdFromId(verificationMethodId))) {
+      return _cacheVerificationMethodIdToWalletKeyId[
+          getKeyIdFromId(verificationMethodId)];
+    }
+
+    final walletKeyId = await store.getWalletKeyId(verificationMethodId) ??
+        await store.getWalletKeyId(getKeyIdFromId(verificationMethodId));
     if (walletKeyId != null) {
       _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
           walletKeyId;
@@ -756,5 +761,14 @@ abstract class DidManager {
       verificationMethodId: verificationMethodId,
       didDocument: didDocument,
     );
+  }
+
+  /// Extracts the key identifier from a given DID (Decentralized Identifier) string.
+  ///
+  /// The [id] parameter is expected to be a DID URL or identifier containing a key reference.
+  ///
+  /// Returns the key identifier as a [String].
+  String getKeyIdFromId(String id) {
+    return '#${id.split('#').last}';
   }
 }

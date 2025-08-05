@@ -32,8 +32,8 @@ class DidVerifier implements Verifier {
   /// Creates a new [DidVerifier] instance.
   ///
   /// [algorithm] - The signature scheme to use for verification.
-  /// [kid] - The key ID to use for verification.
   /// [issuerDid] - The DID of the issuer.
+  /// [kid] - The key ID to use for verification.
   /// [didResolver] - Optional DID resolver instance. If not provided, uses the default UniversalDIDResolver.
   ///
   /// Returns a new [DidVerifier] instance.
@@ -41,30 +41,33 @@ class DidVerifier implements Verifier {
   /// Throws [SsiException] if there is an error resolving the DID document.
   static Future<DidVerifier> create({
     required SignatureScheme algorithm,
-    String? kid,
     required String issuerDid,
+    String? kid,
     DidResolver? didResolver,
   }) async {
     final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
     final didDocument = await resolver.resolveDid(issuerDid);
+    final kidToUse = kid ?? didDocument.assertionMethod.firstOrNull?.id;
 
-    kid ??= didDocument.assertionMethod[0] as String;
-
-    VerificationMethod? verificationMethod;
-    for (final method in didDocument.verificationMethod) {
-      if (method.id == kid || method.id.endsWith('#$kid')) {
-        verificationMethod = method;
-        break;
-      }
-    }
-
-    if (verificationMethod == null) {
+    if (kidToUse == null) {
       throw SsiException(
         message:
-            'Verification method with id $kid not found in DID Document for $issuerDid',
+            'No key ID provided and no assertion method found in DID Document for $issuerDid',
         code: SsiExceptionType.invalidDidDocument.code,
       );
     }
+
+    VerificationMethod? verificationMethod;
+    final fragment =
+        kidToUse.contains('#') ? kidToUse.split('#').last : kidToUse;
+    verificationMethod = didDocument.verificationMethod.firstWhere(
+      (method) => method.id == kidToUse || method.id.endsWith('#$fragment'),
+      orElse: () => throw SsiException(
+        message:
+            'Verification method with id $kidToUse not found in DID Document for $issuerDid',
+        code: SsiExceptionType.invalidDidDocument.code,
+      ),
+    );
 
     final jwk = verificationMethod.asJwk();
     final jwkMap = Map<String, dynamic>.from(jwk.toJson());
@@ -77,7 +80,7 @@ class DidVerifier implements Verifier {
       );
     }
 
-    return DidVerifier._(algorithm, kid, jwkMap);
+    return DidVerifier._(algorithm, kidToUse, jwkMap);
   }
 
   @override
