@@ -3,6 +3,181 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-08-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.11.3`](#ssi---v2113)
+
+---
+
+#### `ssi` - `v2.11.3`
+
+ - **FIX**: initial DID verifier update (#172).
+
+## 2.11.3
+
+ - **FIX**: initial DID verifier update (#172).
+
+
+## 2025-08-01
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.11.2`](#ssi---v2112)
+
+---
+
+#### `ssi` - `v2.11.2`
+
+ - **REFACTOR**: improve data integrity suite naming and add JCS compliance tests (#178).
+
+## 2.11.2
+
+ - **REFACTOR**: improve data integrity suite naming and add JCS compliance tests (#178).
+
+
+## 2025-07-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.11.1`](#ssi---v2111)
+
+---
+
+#### `ssi` - `v2.11.1`
+
+ - **FIX**: jcs proof context (#175).
+
+## 2.11.1
+
+ - **FIX**: jcs proof context (#175).
+
+
+## 2025-07-29
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.11.0`](#ssi---v2110)
+
+---
+
+#### `ssi` - `v2.11.0`
+
+ - **FEAT**: jcs variation (#170).
+
+## 2.11.0
+
+ - **FEAT**: jcs variation (#170).
+
+
+## 2025-07-29
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.10.4`](#ssi---v2104)
+
+---
+
+#### `ssi` - `v2.10.4`
+
+ - **FIX**: wasm compatibility (#173).
+
+## 2.10.4
+
+ - **FIX**: wasm compatibility (#173).
+
+
+## 2025-07-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.10.3`](#ssi---v2103)
+
+---
+
+#### `ssi` - `v2.10.3`
+
+ - **FIX**: vc signature (#169).
+
+## 2.10.3
+
+ - **FIX**: vc signature (#169).
+
+
+## 2025-07-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.10.2`](#ssi---v2102)
+
+---
+
+#### `ssi` - `v2.10.2`
+
+ - **REFACTOR**: remove live key (#166).
+
+## 2.10.2
+
+ - **REFACTOR**: remove live key (#166).
+
+
 ## 2025-07-28
 
 ### Changes
