@@ -75,8 +75,8 @@ final class UniversalPresentationVerifier {
 
     for (final credential in vp.verifiableCredential) {
       final vcVerificationResult = await vcVerifier.verify(credential);
-      errors.add(vcVerificationResult.errors);
-      warnings.add(vcVerificationResult.warnings);
+      errors.addAll(vcVerificationResult.errors);
+      warnings.addAll(vcVerificationResult.warnings);
     }
 
     return VerificationResult.fromFindings(
