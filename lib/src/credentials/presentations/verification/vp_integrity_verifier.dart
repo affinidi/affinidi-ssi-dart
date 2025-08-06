@@ -39,18 +39,6 @@ class VpIntegrityVerifier implements VpVerifier {
       );
     }
 
-    // Create instance of [VcIntegrityVerifier] for credential-level integrity checks.
-    final vcIntegrityVerifier =
-        VcIntegrityVerifier(customDocumentLoader: customDocumentLoader);
-
-    for (final credential in data.verifiableCredential) {
-      var vcIntegrity = await vcIntegrityVerifier.verify(credential);
-
-      if (!vcIntegrity.isValid) {
-        return vcIntegrity;
-      }
-    }
-
     return Future.value(
       VerificationResult.ok(),
     );
