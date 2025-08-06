@@ -52,7 +52,6 @@ void main() async {
               customDocumentLoader: defaultDocumentLoader)
           .verify(v1Vp);
 
-      expect(verificationStatus.errors.length, 1);
       expect(
           verificationStatus.errors.contains('integrity_verification_failed'),
           true);

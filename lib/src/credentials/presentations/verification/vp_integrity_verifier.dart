@@ -1,7 +1,7 @@
 import '../../../../ssi.dart';
 
 /// Verifier that ensures the integrity of the Verifiable Presentation (VP).
-/// 
+///
 /// This verifier fails fast: it stops at the first encountered integrity issue.
 /// Example:
 /// ```dart
