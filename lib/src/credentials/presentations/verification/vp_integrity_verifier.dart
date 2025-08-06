@@ -1,7 +1,7 @@
 import '../../../../ssi.dart';
 
 /// Verifier that ensures the integrity of the Verifiable Presentation (VP).
-///
+/// [VpIntegrityVerifier] handles VP-level integrity checks only. Use [VcIntegrityVerifier] for individual credential verification within the VP.
 /// This verifier fails fast: it stops at the first encountered integrity issue.
 /// Example:
 /// ```dart

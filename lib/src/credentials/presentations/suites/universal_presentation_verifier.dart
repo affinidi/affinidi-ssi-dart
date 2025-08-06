@@ -64,9 +64,9 @@ final class UniversalPresentationVerifier {
     }
 
     for (final customVerifier in customVerifiers) {
-      var verifResult = await customVerifier.verify(vp);
-      errors.addAll(verifResult.errors);
-      warnings.addAll(verifResult.warnings);
+      var verificationResult = await customVerifier.verify(vp);
+      errors.addAll(verificationResult.errors);
+      warnings.addAll(verificationResult.warnings);
     }
 
     final vcVerifier = UniversalVerifier(
