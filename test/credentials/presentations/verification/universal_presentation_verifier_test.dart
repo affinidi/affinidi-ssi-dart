@@ -17,7 +17,7 @@ void main() async {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-      ).timeout(Duration(seconds: 30));
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
