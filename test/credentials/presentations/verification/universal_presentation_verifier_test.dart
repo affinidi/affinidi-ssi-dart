@@ -38,11 +38,8 @@ void main() async {
       final v1Vp = UniversalPresentationParser.parse(
           VerifiablePresentationDataFixtures.v1VpWithRevokedVCString);
       final verificationStatus = await UniversalPresentationVerifier(
-          customDocumentLoader: defaultDocumentLoader,
-          customCredentialVerifiers: [
-            RevocationList2020Verifier(
-                customDocumentLoader: defaultDocumentLoader)
-          ]).verify(v1Vp);
+        customDocumentLoader: defaultDocumentLoader,
+      ).verify(v1Vp);
 
       expect(verificationStatus.errors.length, 1);
       expect(verificationStatus.warnings.length, 0);

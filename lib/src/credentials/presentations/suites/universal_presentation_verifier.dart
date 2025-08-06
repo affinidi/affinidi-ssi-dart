@@ -1,5 +1,7 @@
 import '../../../types.dart';
 import '../../proof/embedded_proof_suite.dart';
+import '../../suites/universal_verifier.dart';
+import '../../verification/vc_integrity_verifier.dart';
 import '../../verification/vc_verifier.dart';
 import '../models/parsed_vp.dart';
 import '../verification/delegation_vc_verifier.dart';
@@ -67,10 +69,24 @@ final class UniversalPresentationVerifier {
       errors.addAll(verifResult.errors);
       warnings.addAll(verifResult.warnings);
     }
-    // Verify each credential using the custom credential verifiers
-    for (final vcVerifier in customCredentialVerifiers) {
+
+    // Verify each credential using the default credential verifiers
+    for (final vcVerifier in UniversalVerifier().defaultVerifiers) {
+      if (vcVerifier is VcIntegrityVerifier) {
+        // Skip integrity verifier as it is already handled by the VpIntegrityVerifier
+        continue;
+      }
       for (final credential in vp.verifiableCredential) {
         final vcVerificationResult = await vcVerifier.verify(credential);
+        errors.addAll(vcVerificationResult.errors);
+        warnings.addAll(vcVerificationResult.warnings);
+      }
+    }
+
+    // Verify each credential using the custom credential verifiers
+    for (final vcCustomVerifier in customCredentialVerifiers) {
+      for (final credential in vp.verifiableCredential) {
+        final vcVerificationResult = await vcCustomVerifier.verify(credential);
         errors.addAll(vcVerificationResult.errors);
         warnings.addAll(vcVerificationResult.warnings);
       }
