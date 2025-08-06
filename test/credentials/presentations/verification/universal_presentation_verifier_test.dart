@@ -34,13 +34,28 @@ void main() async {
     test(
         'should be able to verify the revoked credential inside of a valid V1 presentation',
         () async {
-      final v2Vp = UniversalPresentationParser.parse(
+      final v1Vp = UniversalPresentationParser.parse(
           VerifiablePresentationDataFixtures.v1VpWithRevokedVCString);
       final verificationStatus = await UniversalPresentationVerifier(
               customDocumentLoader: defaultDocumentLoader)
-          .verify(v2Vp);
+          .verify(v1Vp);
 
       expect(verificationStatus.errors.length, 1);
+      expect(verificationStatus.warnings.length, 0);
+      expect(verificationStatus.isValid, false);
+    });
+
+    test('should return integrity error for 1 VC', () async {
+      final v1Vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v1VpWithInvalidIntegrityVC);
+      final verificationStatus = await UniversalPresentationVerifier(
+              customDocumentLoader: defaultDocumentLoader)
+          .verify(v1Vp);
+
+      expect(verificationStatus.errors.length, 1);
+      expect(
+          verificationStatus.errors.contains('integrity_verification_failed'),
+          true);
       expect(verificationStatus.warnings.length, 0);
       expect(verificationStatus.isValid, false);
     });
