@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.12.1`](#ssi---v2121)
+
+---
+
+#### `ssi` - `v2.12.1`
+
+ - **DOCS**: update change log with missing info (#179).
+
+## 2.12.1
+
+ - **DOCS**: update change log with missing info (#179).
+
+
+## 2025-08-07
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.12.0`](#ssi---v2120)
 
 ---
