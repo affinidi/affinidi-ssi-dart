@@ -27,6 +27,12 @@ Packages with other changes:
 
  - **FEAT**: enhance UniversalPresentationVerifier to allow custom credential verifiers (#176).
 
+ - **UniversalPresentationVerifier**
+    - Updated UniversalPresentationVerifier to use UniversalVerifier for individual credential verification within presentations.
+    - Added support for custom VC verifiers (customVclVerifiers) to allow more flexible credential-level verification.
+
+  - **VpIntegrityVerifier**
+    - Updated to handle VP-level integrity checks only. Individual credentials within the VP should be verified using VcIntegrityVerifier.
 
 ## 2025-08-04
 
