@@ -1,0 +1,9 @@
+ignore:
+  CVE-2023-38545:
+    - '*':
+        reason: "False positive or acceptable risk for flutter_curl 0.5.0"
+        expires: 2025-12-31T23:59:59Z
+  CVE-2023-41387:
+    - '*':
+        reason: "False positive or acceptable risk for flutter_downloader 1.11.0"
+        expires: 2025-12-31T23:59:59Z
