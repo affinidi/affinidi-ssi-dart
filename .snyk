@@ -1,9 +1,15 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-  CVE-2023-38545:
+  CVE-2023-38546:
     - '*':
-        reason: "False positive or acceptable risk for flutter_curl 0.5.0"
-        expires: 2025-12-31T23:59:59Z
+        reason: None Given
+        expires: 2025-09-06T09:34:32.692Z
+        created: 2025-08-07T09:34:32.693Z
   CVE-2023-41387:
     - '*':
-        reason: "False positive or acceptable risk for flutter_downloader 1.11.0"
-        expires: 2025-12-31T23:59:59Z
+        reason: None Given
+        expires: 2025-09-06T09:35:06.938Z
+        created: 2025-08-07T09:35:06.942Z
+patch: {}
