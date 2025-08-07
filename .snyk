@@ -7,9 +7,5 @@ ignore:
         reason: None Given
         expires: 2025-09-06T09:34:32.692Z
         created: 2025-08-07T09:34:32.693Z
-  CVE-2023-41387:
-    - '*':
-        reason: None Given
-        expires: 2025-09-06T09:35:06.938Z
-        created: 2025-08-07T09:35:06.942Z
+  
 patch: {}
