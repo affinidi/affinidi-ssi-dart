@@ -12,8 +12,8 @@ class PersistentDidManagerStore extends DidStore {
   Future<void> setMapping(String didKeyId, String walletKeyId) async {
     _storage[didKeyId] = walletKeyId;
     _metadata[didKeyId] = {
-      'createdAt': DateTime.now().toIso8601String(),
-      'lastUsed': DateTime.now().toIso8601String(),
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
+      'lastUsed': DateTime.now().toUtc().toIso8601String(),
     };
     print('  ✓ Stored mapping: $didKeyId -> $walletKeyId');
   }
@@ -22,7 +22,7 @@ class PersistentDidManagerStore extends DidStore {
   Future<String?> getWalletKeyId(String didKeyId) async {
     final walletKeyId = _storage[didKeyId];
     if (walletKeyId != null) {
-      _metadata[didKeyId]?['lastUsed'] = DateTime.now().toIso8601String();
+      _metadata[didKeyId]?['lastUsed'] = DateTime.now().toUtc().toIso8601String();
     }
     return walletKeyId;
   }
