@@ -25,7 +25,7 @@ Future<void> main() async {
     type: {'VerifiableCredential', 'UserProfile'},
     issuer: Issuer.uri(signer.did),
     holder: MutableHolder.uri('did:example:1'),
-    issuanceDate: DateTime.now(),
+    issuanceDate: DateTime.now().toUtc(),
     credentialSubject: [
       MutableCredentialSubject({
         'Fname': 'Fname',

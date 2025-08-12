@@ -26,7 +26,7 @@ void main() async {
     id: Uri.parse('uuid:123456abcd'),
     type: {'VerifiableCredential', 'UserProfile'},
     issuer: Issuer.uri(signer.did),
-    issuanceDate: DateTime.now(),
+    issuanceDate: DateTime.now().toUtc(),
     credentialSubject: [
       MutableCredentialSubject({
         'id': 'did:example:holder123', // Holder DID is required for JWT VC
