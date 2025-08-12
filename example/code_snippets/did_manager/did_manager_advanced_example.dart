@@ -22,7 +22,8 @@ class PersistentDidManagerStore extends DidStore {
   Future<String?> getWalletKeyId(String didKeyId) async {
     final walletKeyId = _storage[didKeyId];
     if (walletKeyId != null) {
-      _metadata[didKeyId]?['lastUsed'] = DateTime.now().toUtc().toIso8601String();
+      _metadata[didKeyId]?['lastUsed'] =
+          DateTime.now().toUtc().toIso8601String();
     }
     return walletKeyId;
   }
