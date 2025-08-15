@@ -69,7 +69,9 @@ class RevocationList2020Verifier implements VcVerifier {
 
       Map<String, dynamic> statusListVc;
       try {
-        statusListVc = await _fetchStatusList(listUri);
+        final revocationDocument = await _fetchStatusList(listUri);
+        statusListVc = revocationDocument['revocationListCredential'] ??
+            revocationDocument;
       } catch (e) {
         errors.add(
             '${SsiExceptionType.failedToFetchRevocationList.code} for status ${status.id}: $e');
