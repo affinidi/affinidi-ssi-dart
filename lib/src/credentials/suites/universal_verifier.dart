@@ -74,7 +74,7 @@ final class UniversalVerifier {
     final defaultVerifiers = <VcVerifier>[
       VcExpiryVerifier(),
       VcIntegrityVerifier(customDocumentLoader: customDocumentLoader),
-      RevocationList2020Verifier(),
+      RevocationList2020Verifier(customDocumentLoader: customDocumentLoader),
     ];
 
     return UniversalVerifier._(

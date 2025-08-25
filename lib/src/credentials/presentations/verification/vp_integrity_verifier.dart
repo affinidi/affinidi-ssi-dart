@@ -1,9 +1,9 @@
 import '../../../../ssi.dart';
 
-/// Verifier that ensures the integrity of both the Verifiable Presentation (VP)
-/// and its embedded Verifiable Credentials (VCs).
-///
-/// This verifier fails fast: it stops at the first encountered integrity issue./// Example:
+/// Verifier that ensures the integrity of the Verifiable Presentation (VP).
+/// [VpIntegrityVerifier] handles VP-level integrity checks only. Use [VcIntegrityVerifier] for individual credential verification within the VP.
+/// This verifier fails fast: it stops at the first encountered integrity issue.
+/// Example:
 /// ```dart
 /// final verifier = VpIntegrityVerifier();
 /// final result = await verifier.verify(vp);
@@ -37,17 +37,6 @@ class VpIntegrityVerifier implements VpVerifier {
           errors: [SsiExceptionType.failedIntegrityVerification.code],
         ),
       );
-    }
-    // Create instance of [VcIntegrityVerifier] for credential-level integrity checks.
-    final vcIntegrityVerifier =
-        VcIntegrityVerifier(customDocumentLoader: customDocumentLoader);
-
-    for (final credential in data.verifiableCredential) {
-      var vcIntegrity = await vcIntegrityVerifier.verify(credential);
-
-      if (!vcIntegrity.isValid) {
-        return vcIntegrity;
-      }
     }
 
     return Future.value(

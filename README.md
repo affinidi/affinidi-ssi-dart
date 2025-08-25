@@ -53,11 +53,12 @@ Refer to [this example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/
 
 This package supports the following key management solutions for securely managing keys associated with the digital wallet:
 
-- **BIP32** - a standard for creating Hierarchical Deterministic (HD) wallets and generating multiple keys from a single seed. It primarily supports the secp256k1 elliptic curve.
+- **BIP32** - a standard for creating Hierarchical Deterministic (HD) wallets and generating multiple keys from a single seed. Supports **secp256k1** key type only.
 
-- **BIP32 ED25519** - adapts the BIP32 standard to work with the ED25519 elliptic curve cryptography.
+- **BIP32 ED25519** - adapts the BIP32 standard to work with the ED25519 elliptic curve cryptography. Supports **ed25519** key type only.
 
-- **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports different key types (e.g., P256 and ED25519).
+- **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports **secp256k1**, **ed25519**, **p256**, **p384**, and **p521** key types.
+
 
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/wallet) to learn how to create different wallets.
 

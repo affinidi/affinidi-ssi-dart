@@ -3,6 +3,112 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-08-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.12.3`](#ssi---v2123)
+
+---
+
+#### `ssi` - `v2.12.3`
+
+ - **FIX**: Update vc revocation verifier (#182).
+
+## 2.12.3
+
+ - **FIX**: Update vc revocation verifier (#182).
+
+
+## 2025-08-12
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.12.2`](#ssi---v2122)
+
+---
+
+#### `ssi` - `v2.12.2`
+
+ - **FIX**: use the utc time in examples to fix the failing vp when verified (#181).
+
+## 2.12.2
+
+ - **FIX**: use the utc time in examples to fix the failing vp when verified (#181).
+
+
+## 2025-08-07
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.12.1`](#ssi---v2121)
+
+---
+
+#### `ssi` - `v2.12.1`
+
+ - **DOCS**: update change log with missing info (#179).
+
+## 2.12.1
+
+ - **DOCS**: update change log with missing info (#179).
+
+
+## 2025-08-07
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.12.0`](#ssi---v2120)
+
+---
+
+#### `ssi` - `v2.12.0`
+
+ - **FEAT**: enhance UniversalPresentationVerifier to allow custom credential verifiers (#176).
+
+## 2.12.0
+
+ - **FEAT**: enhance UniversalPresentationVerifier to allow custom credential verifiers (#176).
+
+ - **UniversalPresentationVerifier**
+    - Updated UniversalPresentationVerifier to use UniversalVerifier for individual credential verification within presentations.
+    - Added support for custom VC verifiers (customVclVerifiers) to allow more flexible credential-level verification.
+
+  - **VpIntegrityVerifier**
+    - Updated to handle VP-level integrity checks only. Individual credentials within the VP should be verified using VcIntegrityVerifier.
+
 ## 2025-08-04
 
 ### Changes

@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import '../../ssi.dart';
 import '../utility.dart';
 
-/// A non-hierarchical wallet implementation that supports multiple key types.
+/// A non-hierarchical wallet implementation that supports secp256k1, ed25519, p256, p384, and p521 key types.
 ///
 /// This wallet expects a secure [KeyStore] to store key material.
 /// It supports signing and verifying messages, and ecrypting/decrypting payloads.
@@ -97,7 +97,7 @@ class PersistentWallet implements Wallet {
       privateKeyBytes = pKeyBytes;
     } else {
       throw ArgumentError(
-          'Unsupported key type for PersistentWallet: $effectiveKeyType. Only p256, p384, p521, secp256k1, and ed25519 are supported.');
+          'Unsupported key type for PersistentWallet: $effectiveKeyType. Only secp256k1, ed25519, p256, p384, and p521 are supported.');
     }
 
     final storedKey =
@@ -190,7 +190,8 @@ class PersistentWallet implements Wallet {
       keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
     } else {
       throw SsiException(
-          message: 'Unsupported key type retrieved from KeyStore: $keyType',
+          message:
+              'Unsupported key type retrieved from KeyStore: $keyType. Only secp256k1, ed25519, p256, p384, and p521 are supported.',
           code: SsiExceptionType.invalidKeyType.code);
     }
 
