@@ -44,8 +44,13 @@ class DidSigner {
   /// The identifier of the key inside the DID document
   String get keyId => _didKeyId;
 
-  /// Returns the full DID key identifier by combining the `did` and `keyId`.
-  String get didKeyId => '$did$keyId';
+  /// Returns the full DID key identifier by combining the `did` and `keyId` if `keyId` starts with '#'.
+  /// If `keyId` does not start with '#', returns `keyId` as is.
+  ///
+  /// Example:
+  /// - If `did` is 'did:example:123' and `keyId` is '#key-1', returns 'did:example:123#key-1'.
+  /// - If `keyId` is 'did:key:...', returns 'did:key:...'.
+  String get didKeyId => keyId.startsWith('#') ? '$did$keyId' : keyId;
 
   /// Signs the provided data using the key pair and signature scheme.
   Future<Uint8List> sign(Uint8List data) => _keyPair.sign(
