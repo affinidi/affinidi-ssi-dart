@@ -39,7 +39,7 @@ class MutableVcDataModelV2 {
   /// The JSON-LD context for this presentation.
   ///
   /// First item must be 'https://www.w3.org/ns/credentials/v2'.
-  List<String> context;
+  List<dynamic> context;
 
   /// The optional identifier for the Verifiable Credential.
   Uri? id;
@@ -129,7 +129,7 @@ class MutableVcDataModelV2 {
   /// The [termsOfUse] is a list of terms of use (optional)
   /// The [evidence] is a list of evidence (optional)
   MutableVcDataModelV2({
-    List<String>? context,
+    List<dynamic>? context,
     this.id,
     List<MutableCredentialSchema>? credentialSchema,
     List<MutableCredentialSubject>? credentialSubject,
