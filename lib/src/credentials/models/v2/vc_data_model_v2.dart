@@ -214,7 +214,7 @@ class VcDataModelV2 implements VerifiableCredential {
   factory VcDataModelV2.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getStringList(json, _P.context.key, mandatory: true);
+    final context = getContextList(json, _P.context.key, mandatory: true);
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(

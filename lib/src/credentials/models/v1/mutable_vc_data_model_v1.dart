@@ -168,7 +168,7 @@ class MutableVcDataModelV1 {
   factory MutableVcDataModelV1.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getStringList(json, _P.context.key);
+    final context = getContextList(json, _P.context.key, mandatory: true);
     final id = getUri(json, _P.id.key);
     final type =
         getStringList(json, _P.type.key, allowSingleValue: true).toSet();

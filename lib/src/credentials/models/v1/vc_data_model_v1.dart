@@ -53,7 +53,7 @@ class VcDataModelV1 implements VerifiableCredential {
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
-  final UnmodifiableListView<String> context;
+  final UnmodifiableListView<dynamic> context;
 
   /// The optional identifier for the Verifiable Credential.
   @override
@@ -204,7 +204,7 @@ class VcDataModelV1 implements VerifiableCredential {
   /// The [termsOfUse] is a list of terms of use (optional)
   /// The [evidence] is a list of evidence (optional)
   VcDataModelV1({
-    required List<String> context,
+    required List<dynamic> context,
     this.id,
     required List<CredentialSubject> credentialSubject,
     required this.issuer,
@@ -236,7 +236,7 @@ class VcDataModelV1 implements VerifiableCredential {
   factory VcDataModelV1.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getStringList(json, _P.context.key, mandatory: true);
+    final context = getContextList(json, _P.context.key, mandatory: true);
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(

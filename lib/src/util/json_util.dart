@@ -53,6 +53,31 @@ String getMandatoryString(Map<String, dynamic> json, String fieldName) {
   return json[fieldName] as String;
 }
 
+/// Return `@context` as a List<dynamic> preserving strings and objects.
+/// Accepts: string, object, or array of strings/objects.
+List<dynamic> getContextList(Map<String, dynamic> json, String fieldName,
+    {bool mandatory = false}) {
+  final fieldExists = json.containsKey(fieldName);
+
+  if (!fieldExists) {
+    if (mandatory) {
+      throw SsiException(
+        message: '`$fieldName` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+    return [];
+  }
+  final value = json[fieldName];
+
+  if (value is List) {
+    // Preserve both strings and maps as-is
+    return List<dynamic>.from(value);
+  }
+  // Single string or single map -> wrap into a list
+  return <dynamic>[value];
+}
+
 /// Return [fieldName] as `List<String>`
 List<String> getStringList(
   Map<String, dynamic> json,

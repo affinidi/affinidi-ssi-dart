@@ -10,7 +10,7 @@ import 'field_types/terms_of_use.dart';
 /// which can also be cryptographically verifiable.
 abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   /// The context defining the schema for this credential.
-  List<String> get context;
+  List<dynamic> get context;
 
   /// The unique identifier for this credential.
   Uri? get id;
