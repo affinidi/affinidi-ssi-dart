@@ -1,11 +1,12 @@
 // ignore_for_file: avoid_print
 
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 
 void main() {
   // Create a sample VcDataModelV2 with realistic fields
   final vc = MutableVcDataModelV2(
-    context: [dmV2ContextUrl, 'https://example.org/context/v2'],
+    context: MutableJsonLdContext.fromJson([dmV2ContextUrl, 'https://example.org/context/v2']),
     id: Uri.parse('http://example.edu/credentials/abcde'),
     type: {'VerifiableCredential', 'ExampleCredentialV2'},
     issuer: Issuer.uri('did:example:issuerV2'),
