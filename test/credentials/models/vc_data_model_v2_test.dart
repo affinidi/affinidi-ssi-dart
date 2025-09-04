@@ -333,7 +333,7 @@ void main() {
         evidence: evidences,
       );
       final map = vc.toJson();
-      expect(map['@context'], ctx);
+      expect(map['@context'], ctx.uris.map((u) => u.toString()).toList());
       expect(map['id'], id.toString());
       expect(map['type'], type);
       expect(map['issuer'], issuer.toJson());
@@ -407,7 +407,7 @@ void main() {
         evidence: evidences,
       );
       final map = vc.toJson();
-      expect(map['@context'], [ctx.uris.first.toString()]);
+      expect(map['@context'], ctx.uris.map((u) => u.toString()).toList());
       expect(map['id'], id.toString());
       expect(map['type'], type);
       expect(map['issuer'], issuer.toJson());

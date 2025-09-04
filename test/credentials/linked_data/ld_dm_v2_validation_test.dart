@@ -23,7 +23,7 @@ void main() {
 
     test('Throws when context is empty', () {
       final credentialWithEmptyContext = MutableVcDataModelV2(
-        MutableVcDataModelV1.fromJson([]),
+        context: MutableJsonLdContext.fromJson([]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
         type: {'VerifiableCredential'},
@@ -43,7 +43,8 @@ void main() {
 
     test('Throws when context does not include required URL', () {
       final credentialWithWrongContext = MutableVcDataModelV2(
-        context: MutableJsonLdContext.fromJson(['https://www.w3.org/2018/credentials/v1']),
+        context: MutableJsonLdContext.fromJson(
+            ['https://www.w3.org/2018/credentials/v1']),
         // Wrong context URL
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
@@ -122,7 +123,7 @@ void main() {
 
     test('Reports multiple validation errors at once', () {
       final credentialWithMultipleErrors = MutableVcDataModelV2(
-        MutableVcDataModelV1.fromJson([]),
+        context: MutableJsonLdContext.fromJson([]),
         issuer: MutableIssuer.uri(''),
         type: {},
         credentialSubject: [],

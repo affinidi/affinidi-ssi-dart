@@ -1,3 +1,4 @@
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -12,7 +13,7 @@ void main() {
       final expectedContext =
           raw is List ? List<String>.from(raw) : [raw as String];
       final vc = VcDataModelV1.fromJson(jsonFixture);
-      expect(vc.context, expectedContext);
+      expect(vc.context.uris.map((u) => u.toString()).toList(), expectedContext);
     });
 
     test('should correctly assign id', () {
@@ -321,8 +322,8 @@ void main() {
 
       try {
         final parsed = VcDataModelV1.fromJson(jsonMap);
-
-        expect(parsed.context, testContext);
+        expect(
+            parsed.context.uris.map((u) => u.toString()).toList(), testContext);
         expect(parsed.id.toString(),
             Uri.parse(jsonFixture['id'] as String).toString());
         expect(parsed.type, testType);
