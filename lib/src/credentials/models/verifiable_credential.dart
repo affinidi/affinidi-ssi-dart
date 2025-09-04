@@ -1,4 +1,5 @@
 import 'doc_with_embedded_proof.dart';
+import 'field_types/context/context.dart';
 import 'field_types/credential_schema.dart';
 import 'field_types/credential_subject.dart';
 import 'field_types/issuer.dart';
@@ -10,7 +11,7 @@ import 'field_types/terms_of_use.dart';
 /// which can also be cryptographically verifiable.
 abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   /// The context defining the schema for this credential.
-  List<dynamic> get context;
+  JsonLdContext get context;
 
   /// The unique identifier for this credential.
   Uri? get id;

@@ -39,7 +39,7 @@ class MutableVcDataModelV1 {
   /// The JSON-LD context for this presentation.
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
-  List<dynamic> context;
+  MutableJsonLdContext? context;
 
   /// The optional identifier for the Verifiable Credential.
   Uri? id;
@@ -100,7 +100,7 @@ class MutableVcDataModelV1 {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json[_P.context.key] = context;
+    json[_P.context.key] = context?.toJson();
     json[_P.issuer.key] = issuer?.toJson();
     json[_P.type.key] = type.toList();
     json[_P.id.key] = id?.toString();
@@ -136,7 +136,7 @@ class MutableVcDataModelV1 {
   /// The [termsOfUse] is a list of terms of use (optional)
   /// The [evidence] is a list of evidence (optional)
   MutableVcDataModelV1({
-    List<dynamic>? context,
+    this.context,
     this.id,
     List<MutableCredentialSchema>? credentialSchema,
     List<MutableCredentialSubject>? credentialSubject,
@@ -150,8 +150,7 @@ class MutableVcDataModelV1 {
     List<MutableRefreshServiceV1>? refreshService,
     List<MutableTermsOfUse>? termsOfUse,
     List<MutableEvidence>? evidence,
-  })  : context = context ?? [],
-        credentialSchema = credentialSchema ?? [],
+  })  : credentialSchema = credentialSchema ?? [],
         credentialSubject = credentialSubject ?? [],
         type = type ?? {},
         proof = proof ?? [],
@@ -168,7 +167,7 @@ class MutableVcDataModelV1 {
   factory MutableVcDataModelV1.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getContextList(json, _P.context.key, mandatory: true);
+    final context = MutableJsonLdContext.fromJson(json[_P.context.key]);
     final id = getUri(json, _P.id.key);
     final type =
         getStringList(json, _P.type.key, allowSingleValue: true).toSet();
