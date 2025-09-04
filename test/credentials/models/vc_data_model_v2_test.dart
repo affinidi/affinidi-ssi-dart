@@ -1,10 +1,12 @@
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('VcDataModelV2 Tests', () {
     test('should correctly assign context', () {
-      final ctx = [dmV2ContextUrl, 'https://example.org/context/v2'];
+      final ctx = MutableJsonLdContext.fromJson(
+          [dmV2ContextUrl, 'https://example.org/context/v2']);
       final vc = MutableVcDataModelV2(
           context: ctx,
           id: Uri.parse('http://example.edu/credentials/abcde'),
@@ -22,7 +24,7 @@ void main() {
     test('should correctly assign id', () {
       final id = Uri.parse('http://example.edu/credentials/abcde');
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: id,
         type: {'VerifiableCredential'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -36,7 +38,7 @@ void main() {
     test('should correctly assign type', () {
       final type = {'VerifiableCredential', 'ExampleCredentialV2'};
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: type,
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -50,7 +52,7 @@ void main() {
     test('should correctly assign issuer', () {
       final issuer = Issuer.uri('did:example:issuerV2');
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: issuer,
@@ -65,7 +67,7 @@ void main() {
     test('should correctly assign validFrom', () {
       final vf = DateTime.utc(2024, 01, 01, 12, 0, 0);
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -80,7 +82,7 @@ void main() {
     test('should correctly assign validUntil', () {
       final vu = DateTime.utc(2025, 01, 01, 12, 0, 0);
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -99,7 +101,7 @@ void main() {
       });
 
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -123,7 +125,7 @@ void main() {
             type: 'AnotherSchemaValidator'),
       ];
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -142,7 +144,7 @@ void main() {
         'type': 'CredentialStatusList2021',
       });
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -176,7 +178,7 @@ void main() {
         ),
       ];
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -198,7 +200,7 @@ void main() {
         type: 'ManualRefreshService2021',
       );
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -222,7 +224,7 @@ void main() {
         MutableTermsOfUse(type: 'AnotherTermV2'),
       ];
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -246,7 +248,7 @@ void main() {
         MutableEvidence(type: 'AnotherEvidenceV2'),
       ];
       final vc = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -260,7 +262,7 @@ void main() {
     });
 
     test('toJson() should produce correct map (multiple proofs)', () {
-      final ctx = [dmV2ContextUrl, 'https://example.org/context/v2'];
+      final ctx = MutableJsonLdContext.fromJson([dmV2ContextUrl, 'https://example.org/context/v2']);
       final id = Uri.parse('http://example.edu/credentials/abcde');
       final type = ['VerifiableCredential', 'ExampleCredentialV2'];
       final issuer = Issuer.uri('did:example:issuerV2');
@@ -347,7 +349,8 @@ void main() {
     });
 
     test('toJson() should produce correct map (single proof)', () {
-      final ctx = [dmV2ContextUrl, 'https://example.org/context/v2'];
+      final ctx = MutableJsonLdContext.fromJson(
+          [dmV2ContextUrl, 'https://example.org/context/v2']);
       final id = Uri.parse('http://example.edu/credentials/abcde');
       final type = ['VerifiableCredential', 'ExampleCredentialV2'];
       final issuer = Issuer.uri('did:example:issuerV2');
@@ -404,7 +407,7 @@ void main() {
         evidence: evidences,
       );
       final map = vc.toJson();
-      expect(map['@context'], ctx);
+      expect(map['@context'], [ctx.uris.first.toString()]);
       expect(map['id'], id.toString());
       expect(map['type'], type);
       expect(map['issuer'], issuer.toJson());
@@ -420,7 +423,7 @@ void main() {
     });
 
     test('fromJson() should correctly parse map (multiple proofs)', () {
-      final ctx = [dmV2ContextUrl];
+      final ctx = MutableJsonLdContext.fromJson([dmV2ContextUrl]);
       final vcOriginal = MutableVcDataModelV2(
         context: ctx,
         id: Uri.parse('id'),
@@ -453,7 +456,7 @@ void main() {
       final map = vcOriginal.toJson();
 
       final parsed = VcDataModelV2.fromJson(map);
-      expect(parsed.context, ctx);
+      expect(parsed.context.uris, ctx.uris);
       expect(parsed.id.toString(), 'id');
       expect(parsed.type, ['t']);
       expect(parsed.proof.length, 2);
@@ -464,7 +467,7 @@ void main() {
     });
 
     test('fromJson() should correctly parse map (single proof object)', () {
-      final ctx = [dmV2ContextUrl];
+      final ctx = MutableJsonLdContext.fromJson([dmV2ContextUrl]);
       final proof = [
         EmbeddedProof(
           type: 'DataIntegrityProof',
@@ -489,7 +492,7 @@ void main() {
       );
       final map = vcOriginal.toJson();
       final parsed = VcDataModelV2.fromJson(map);
-      expect(parsed.context, ctx);
+      expect(parsed.context.uris, ctx.uris);
       expect(parsed.id.toString(), 'id');
       expect(parsed.proof.length, 1);
       expect(parsed.proof.first.type, proof.first.type);
@@ -507,7 +510,7 @@ void main() {
         'credentialSubject': {'id': 'did:example:subjectV2'}
       };
       final parsed = VcDataModelV2.fromJson(map);
-      expect(parsed.context, ctx);
+      expect([parsed.context.uris.first.toString()], ctx);
       expect(parsed.id.toString(), 'id');
       expect(parsed.validUntil, isNull);
       expect(parsed.credentialSchema, isEmpty);

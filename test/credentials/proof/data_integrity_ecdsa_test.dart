@@ -1,4 +1,5 @@
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -20,10 +21,10 @@ void main() async {
       group(proofValueMultiBase.name, () {
         test('Create and verify Data Integrity ECDSA proof', () async {
           final unsignedCredential = MutableVcDataModelV1(
-            context: [
+            context: MutableJsonLdContext.fromJson([
               'https://www.w3.org/2018/credentials/v1',
               'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-            ],
+            ]),
             id: Uri.parse('uuid:123456abcd'),
             type: {'VerifiableCredential', 'UserProfile'},
             credentialSubject: [
@@ -78,10 +79,10 @@ void main() async {
 
         test('Verify Data Integrity ECDSA proof through LdBaseSuite', () async {
           final unsignedCredential = MutableVcDataModelV1(
-            context: [
+            context: MutableJsonLdContext.fromJson([
               'https://www.w3.org/2018/credentials/v1',
               'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-            ],
+            ]),
             id: Uri.parse('uuid:123456abcd'),
             type: {'VerifiableCredential', 'UserProfile'},
             credentialSubject: [
@@ -132,10 +133,10 @@ void main() async {
     test('Create and verify Data Integrity ECDSA-JCS proof with P-256',
         () async {
       final unsignedCredential = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
@@ -185,10 +186,10 @@ void main() async {
     test('Create and verify Data Integrity ECDSA-JCS proof with P-384',
         () async {
       final unsignedCredential = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
@@ -237,10 +238,10 @@ void main() async {
 
     test('JCS context validation works correctly', () async {
       final unsignedCredential = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
@@ -282,10 +283,10 @@ void main() async {
 
     test('Verify Data Integrity ECDSA-JCS proof through LdBaseSuite', () async {
       final unsignedCredential = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [

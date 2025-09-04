@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -22,7 +23,7 @@ void main() async {
     test('should be able to create a presentation containing V2 compatible VCs',
         () async {
       final v2Vp = MutableVpDataModelV2(
-          context: [dmV2ContextUrl],
+          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
           id: Uri.parse('testVpV2'),
           type: {'VerifiablePresentation'},
           holder: MutableHolder.uri(signer.did),
@@ -39,8 +40,8 @@ void main() async {
       expect(issuedPresentation.serialized, isNotNull);
       expect(issuedPresentation.serialized, isA<String>());
       expect(issuedPresentation.holder, isNotNull);
-      expect(issuedPresentation.context.first, isNotEmpty);
-      expect(dmV2ContextUrl, isIn(issuedPresentation.context));
+      expect(issuedPresentation.context.uris, isNotEmpty);
+      expect(dmV2ContextUrl, isIn(issuedPresentation.context.uris.first.toString()));
       expect(issuedPresentation.proof, isNotEmpty);
     });
 
