@@ -1,5 +1,8 @@
 import 'dart:collection';
 
+import '../../../exceptions/ssi_exception.dart';
+import '../../../exceptions/ssi_exception_type.dart';
+
 /// Interface for JSON-LD `@context`.
 ///
 /// Provides access to the list of context URIs and merged term definitions,
@@ -78,7 +81,10 @@ class JsonLdContext extends _JsonLdContextInterface {
       } else if (ctx == null) {
         // JSON-LD allows explicit context reset.
       } else {
-        throw FormatException('Unsupported @context type: ${ctx.runtimeType}');
+        throw SsiException(
+          message: 'Unsupported @context type: ${ctx.runtimeType}',
+          code: SsiExceptionType.unsupportedContext.code,
+        );
       }
     }
 
@@ -158,7 +164,10 @@ class MutableJsonLdContext extends _JsonLdContextInterface {
       } else if (ctx == null) {
         // JSON-LD allows explicit context reset.
       } else {
-        throw FormatException('Unsupported @context type: ${ctx.runtimeType}');
+        throw SsiException(
+          message: 'Unsupported @context type: ${ctx.runtimeType}',
+          code: SsiExceptionType.unsupportedContext.code,
+        );
       }
     }
 
