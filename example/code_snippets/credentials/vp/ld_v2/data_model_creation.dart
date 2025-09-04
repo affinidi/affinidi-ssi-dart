@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../did/did_signer.dart';
@@ -22,7 +23,7 @@ void main() async {
 
   // Create a Verifiable Presentation (V2)
   final vpDataModelV2 = MutableVpDataModelV2(
-    context: ['https://www.w3.org/ns/credentials/v2'],
+    context: MutableJsonLdContext.fromJson(['https://www.w3.org/ns/credentials/v2']),
     id: Uri.parse('testVpV2'),
     type: {'VerifiablePresentation'},
     holder: MutableHolder.uri(holderDid),
