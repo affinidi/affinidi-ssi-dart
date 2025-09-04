@@ -1,5 +1,5 @@
 import 'doc_with_embedded_proof.dart';
-import 'field_types/context/context.dart';
+import 'field_types/context.dart';
 import 'field_types/credential_schema.dart';
 import 'field_types/credential_subject.dart';
 import 'field_types/issuer.dart';
