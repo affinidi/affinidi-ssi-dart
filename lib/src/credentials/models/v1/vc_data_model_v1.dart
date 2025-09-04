@@ -4,6 +4,7 @@ import '../../../exceptions/ssi_exception.dart';
 import '../../../exceptions/ssi_exception_type.dart';
 import '../../../util/json_util.dart';
 import '../../proof/embedded_proof.dart';
+import '../field_types/context/context.dart';
 import '../field_types/credential_schema.dart';
 import '../field_types/credential_status/v1.dart';
 import '../field_types/credential_subject.dart';
@@ -204,7 +205,7 @@ class VcDataModelV1 implements VerifiableCredential {
   /// The [termsOfUse] is a list of terms of use (optional)
   /// The [evidence] is a list of evidence (optional)
   VcDataModelV1({
-    required List<dynamic> context,
+    required dynamic context,
     this.id,
     required List<CredentialSubject> credentialSubject,
     required this.issuer,
@@ -236,7 +237,7 @@ class VcDataModelV1 implements VerifiableCredential {
   factory VcDataModelV1.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getContextList(json, _P.context.key, mandatory: true);
+    final context = JsonLdContext.fromJson(json[_P.context.key]).toJsonValue();
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(

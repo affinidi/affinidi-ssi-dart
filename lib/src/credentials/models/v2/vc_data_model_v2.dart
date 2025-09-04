@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import '../../../../ssi.dart';
 import '../../../util/json_util.dart';
+import '../field_types/context/context.dart';
 
 part './mutable_vc_data_model_v2.dart';
 
@@ -42,7 +43,7 @@ class VcDataModelV2 implements VerifiableCredential {
   ///
   /// First item must be 'https://www.w3.org/ns/credentials/v2'.
   @override
-  final UnmodifiableListView<String> context;
+  final UnmodifiableListView<dynamic> context;
 
   /// The optional identifier for the Verifiable Credential.
   @override
@@ -182,7 +183,7 @@ class VcDataModelV2 implements VerifiableCredential {
   /// The [termsOfUse] is a list of terms of use (optional)
   /// The [evidence] is a list of evidence (optional)
   VcDataModelV2({
-    required List<String> context,
+    required dynamic context,
     this.id,
     required List<CredentialSubject> credentialSubject,
     required this.issuer,
@@ -214,7 +215,7 @@ class VcDataModelV2 implements VerifiableCredential {
   factory VcDataModelV2.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getContextList(json, _P.context.key, mandatory: true);
+    final context = JsonLdContext.fromJson(json[_P.context.key]).toJsonValue();
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(
