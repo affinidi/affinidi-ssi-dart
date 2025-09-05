@@ -1,4 +1,5 @@
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -15,10 +16,10 @@ void main() {
       final signer = await initSigner(seed);
 
       final unsignedCredential = MutableVcDataModelV2(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           dmV2ContextUrl,
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [

@@ -2,6 +2,7 @@
 
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../../did/did_signer.dart';
@@ -18,7 +19,7 @@ void main() async {
 
   // Build the unsigned Verifiable Presentation
   final v2Vp = MutableVpDataModelV2(
-      context: [dmV2ContextUrl],
+      context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
       id: Uri.parse('testVpV2'),
       type: {'VerifiablePresentation'},
       holder: MutableHolder.uri(signer.did),
