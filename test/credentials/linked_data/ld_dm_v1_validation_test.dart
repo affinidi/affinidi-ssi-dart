@@ -26,7 +26,8 @@ void main() {
 
     test('Throws when context does not include required URL', () {
       final credentialWithWrongContext = MutableVcDataModelV1(
-        context: MutableJsonLdContext.fromJson(['https://www.w3.org/ns/credentials/v2']),
+        context: MutableJsonLdContext.fromJson(
+            ['https://www.w3.org/ns/credentials/v2']),
         // Wrong context URL
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),

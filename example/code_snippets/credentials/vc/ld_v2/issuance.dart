@@ -16,8 +16,6 @@ Future<void> main() async {
   // Initialize signer using the seed
   final signer = await initSigner(seed);
 
-
-
   // Create a sample verifiable credential
   final credential = MutableVcDataModelV2(
     context: MutableJsonLdContext.fromJson([

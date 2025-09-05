@@ -262,7 +262,8 @@ void main() {
     });
 
     test('toJson() should produce correct map (multiple proofs)', () {
-      final ctx = MutableJsonLdContext.fromJson([dmV2ContextUrl, 'https://example.org/context/v2']);
+      final ctx = MutableJsonLdContext.fromJson(
+          [dmV2ContextUrl, 'https://example.org/context/v2']);
       final id = Uri.parse('http://example.edu/credentials/abcde');
       final type = ['VerifiableCredential', 'ExampleCredentialV2'];
       final issuer = Issuer.uri('did:example:issuerV2');

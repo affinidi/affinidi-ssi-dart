@@ -12,7 +12,8 @@ void main() {
       final expectedContext =
           raw is List ? List<String>.from(raw) : [raw as String];
       final vc = VcDataModelV1.fromJson(jsonFixture);
-      expect(vc.context.uris.map((u) => u.toString()).toList(), expectedContext);
+      expect(
+          vc.context.uris.map((u) => u.toString()).toList(), expectedContext);
     });
 
     test('should correctly assign id', () {
