@@ -20,7 +20,7 @@ class MutableVpDataModelV2 {
   /// The JSON-LD context for this presentation.
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
-  List<String> context;
+  MutableJsonLdContext? context;
 
   /// The optional identifier for this presentation.
   Uri? id;
@@ -48,7 +48,7 @@ class MutableVpDataModelV2 {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json[_P.context.key] = context;
+    json[_P.context.key] = context?.toJson();
     json[_P.id.key] = id?.toString();
     json[_P.type.key] = type.toList();
     json[_P.holder.key] = holder?.toJson();
@@ -68,15 +68,14 @@ class MutableVpDataModelV2 {
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
   MutableVpDataModelV2({
-    List<String>? context,
+    this.context,
     this.id,
     Set<String>? type,
     this.holder,
     List<ParsedVerifiableCredential>? verifiableCredential,
     List<EmbeddedProof>? proof,
     List<TermsOfUse>? termsOfUse,
-  })  : context = context ?? [],
-        type = type ?? {},
+  })  : type = type ?? {},
         proof = proof ?? [],
         termsOfUse = termsOfUse ?? [],
         verifiableCredential = verifiableCredential ?? [];
@@ -88,7 +87,7 @@ class MutableVpDataModelV2 {
   factory MutableVpDataModelV2.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getStringList(json, _P.context.key);
+    final context = MutableJsonLdContext.fromJson(json[_P.context.key]);
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(

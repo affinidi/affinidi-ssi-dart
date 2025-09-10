@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
+import '../../../models/field_types/context.dart';
 import '../vc_parse_present.dart';
 
 part './mutable_vp_data_model_v1.dart';
@@ -27,7 +28,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
-  final UnmodifiableListView<String> context;
+  final JsonLdContext context;
 
   /// The optional identifier for this presentation.
   @override
@@ -57,7 +58,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json[_P.context.key] = context;
+    json[_P.context.key] = context.toJson();
     json[_P.id.key] = id?.toString();
     json[_P.type.key] = type.toList();
     json[_P.holder.key] = holder.toJson();
@@ -75,14 +76,14 @@ class VpDataModelV1 implements VerifiablePresentation {
   ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
-    if (context.isEmpty) {
+    if (context.uris.isEmpty && context.terms.isEmpty) {
       throw SsiException(
         message: '`${_P.context.key}` property is mandatory',
         code: SsiExceptionType.invalidJson.code,
       );
     }
 
-    if (context.first != dmV1ContextUrl) {
+    if (context.uris.first.toString() != dmV1ContextUrl) {
       throw SsiException(
         message:
             'The first URI of `${_P.context.key}` property should always be $dmV1ContextUrl',
@@ -108,14 +109,13 @@ class VpDataModelV1 implements VerifiablePresentation {
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
   VpDataModelV1({
-    required List<String> context,
+    required this.context,
     this.id,
     required Set<String> type,
     required this.holder,
     required List<ParsedVerifiableCredential> verifiableCredential,
     required List<EmbeddedProof> proof,
-  })  : context = UnmodifiableListView(context),
-        type = UnmodifiableSetView(type),
+  })  : type = UnmodifiableSetView(type),
         verifiableCredential = UnmodifiableListView(verifiableCredential),
         proof = UnmodifiableListView(proof) {
     validate();
@@ -128,7 +128,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   factory VpDataModelV1.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getStringList(json, _P.context.key, mandatory: true);
+    final context = JsonLdContext.fromJson(json[_P.context.key]);
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(
