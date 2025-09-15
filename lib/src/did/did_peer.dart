@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:base_codecs/base_codecs.dart';
 
+import '../../ssi.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../json_ld/context.dart';
@@ -493,17 +494,38 @@ class DidPeer {
       context: Context.fromJson(context),
       id: did,
       verificationMethod: vms,
-      authentication:
-          relationships[VerificationRelationship.authentication] ?? [],
-      keyAgreement: relationships[VerificationRelationship.keyAgreement] ?? [],
-      assertionMethod:
-          relationships[VerificationRelationship.assertionMethod] ?? [],
-      capabilityInvocation:
-          relationships[VerificationRelationship.capabilityInvocation] ?? [],
-      capabilityDelegation:
-          relationships[VerificationRelationship.capabilityDelegation] ?? [],
+      authentication: _fullDidRelationships(
+        did,
+        relationships[VerificationRelationship.authentication] ?? [],
+      ),
+      keyAgreement: _fullDidRelationships(
+        did,
+        relationships[VerificationRelationship.keyAgreement] ?? [],
+      ),
+      assertionMethod: _fullDidRelationships(
+        did,
+        relationships[VerificationRelationship.assertionMethod] ?? [],
+      ),
+      capabilityInvocation: _fullDidRelationships(
+        did,
+        relationships[VerificationRelationship.capabilityInvocation] ?? [],
+      ),
+      capabilityDelegation: _fullDidRelationships(
+        did,
+        relationships[VerificationRelationship.capabilityDelegation] ?? [],
+      ),
       service: serviceEndpoints,
     );
+  }
+
+  static List<String> _fullDidRelationships(
+    String did,
+    List<String> keyReferences,
+  ) {
+    return keyReferences
+        .map((method) =>
+            VerificationMethodRef(reference: '$did$method', method: method))
+        .toList();
   }
 
   /// Resolves a peer DID to a DID document.
