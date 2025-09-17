@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:base_codecs/base_codecs.dart';
 
+import '../credentials/models/field_types/context.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
-import '../json_ld/context.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
@@ -259,7 +259,7 @@ DidDocument _resolveDidPeer2(String did) {
   }
 
   return DidDocument.create(
-    context: Context.fromJson(context),
+    context: JsonLdContext.fromJson(context),
     id: did,
     verificationMethod: verificationMethods,
     assertionMethod: assertionMethod,
@@ -301,7 +301,7 @@ DidDocument _buildEDDoc(
   );
 
   return DidDocument.create(
-    context: Context.fromJson(context),
+    context: JsonLdContext.fromJson(context),
     id: id,
     verificationMethod: [verificationMethod, keyAgreementMethod],
     assertionMethod: [verificationKeyId],
@@ -329,7 +329,7 @@ DidDocument _buildSimpleDoc(
   );
 
   return DidDocument.create(
-    context: Context.fromJson(context),
+    context: JsonLdContext.fromJson(context),
     id: id,
     verificationMethod: [verificationMethod],
     assertionMethod: forSigning ? [verificationKeyId] : null,
@@ -490,7 +490,7 @@ class DidPeer {
     }
 
     return DidDocument.create(
-      context: Context.fromJson(context),
+      context: JsonLdContext.fromJson(context),
       id: did,
       verificationMethod: vms,
       authentication:

@@ -118,6 +118,17 @@ class JsonLdContext extends _JsonLdContextInterface {
     list.add(terms);
     return list.length == 1 ? list.first : list;
   }
+
+  /// Checks if the context contains the given URL.
+  bool hasUrlContext(Uri url) {
+    for (final c in uris) {
+      var urlStr = url.toString();
+      if (c.toString() == urlStr) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 /// Represents a mutable JSON-LD `@context`.
@@ -197,5 +208,16 @@ class MutableJsonLdContext extends _JsonLdContextInterface {
     list.addAll(uris.map((u) => u.toString()));
     list.add(terms);
     return list.length == 1 ? list.first : list;
+  }
+
+  /// Checks if the context contains the given URL.
+  bool hasUrlContext(Uri url) {
+    for (final c in uris) {
+      var urlStr = url.toString();
+      if (c is String && c.toString() == urlStr) {
+        return true;
+      }
+    }
+    return false;
   }
 }
