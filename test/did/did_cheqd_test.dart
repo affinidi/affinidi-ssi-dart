@@ -167,40 +167,65 @@ void main() {
     });
   });
 
-  group('DidCheqd Error Handling', () {
-    test('should throw SsiException for network errors', () async {
-      // Test error handling for network issues
-      const invalidUrl = 'http://invalid-url:9999';
-      const publicKeyBase64 = 'dGVzdFB1YmxpY0tleQ==';
-      const privateKeyBase64 = 'dGVzdFByaXZhdGVLZXk=';
+  group('DidCheqd Register Method', () {
+    test('should successfully register a DID with valid keys', () async {
+      // Generate test keys
+      final (keyPair, privateKeyBytes) = Ed25519KeyPair.generate();
+      final publicKeyBase64 = base64Encode(keyPair.publicKey.bytes);
+      final privateKeyBase64 = base64Encode(privateKeyBytes);
 
+      // Call the register method with real HTTP request
+      final registeredDid = await DidCheqd.register(
+        publicKeyBase64,
+        privateKeyBase64,
+        registrarUrl: 'http://localhost:3000',
+      );
+
+      // Verify the result
+      expect(registeredDid, isNotEmpty);
+      expect(registeredDid, startsWith('did:cheqd:'));
+      expect(registeredDid, contains('testnet'));
+      print('Successfully registered DID: $registeredDid');
+    });
+
+    test('should use default registrar URL when not provided', () async {
+      // Generate test keys
+      final (keyPair, privateKeyBytes) = Ed25519KeyPair.generate();
+      final publicKeyBase64 = base64Encode(keyPair.publicKey.bytes);
+      final privateKeyBase64 = base64Encode(privateKeyBytes);
+
+      // Call the register method without specifying registrarUrl
+      final registeredDid = await DidCheqd.register(
+        publicKeyBase64,
+        privateKeyBase64,
+      );
+
+      // Verify the result
+      expect(registeredDid, isNotEmpty);
+      expect(registeredDid, startsWith('did:cheqd:'));
+      expect(registeredDid, contains('testnet'));
+      print('Successfully registered DID with default URL: $registeredDid');
+    });
+
+
+    test('should throw SsiException for invalid registrar URL', () async {
+      // Generate test keys
+      final (keyPair, privateKeyBytes) = Ed25519KeyPair.generate();
+      final publicKeyBase64 = base64Encode(keyPair.publicKey.bytes);
+      final privateKeyBase64 = base64Encode(privateKeyBytes);
+
+      // Try to register with invalid URL
       await expectLater(
         DidCheqd.register(
           publicKeyBase64,
           privateKeyBase64,
-          registrarUrl: invalidUrl,
+          registrarUrl: 'http://invalid-url:9999',
         ),
         throwsA(isA<SsiException>()),
       );
     });
-
-    test('should handle timeout scenarios', () async {
-      // Test timeout handling
-      const publicKeyBase64 = 'dGVzdFB1YmxpY0tleQ==';
-      const privateKeyBase64 = 'dGVzdFByaXZhdGVLZXk=';
-
-      // This test would require a mock server that delays responses
-      // For now, we'll test that the method accepts timeout parameters
-      expect(
-        () => DidCheqd.register(
-          publicKeyBase64,
-          privateKeyBase64,
-          registrarUrl: 'http://localhost:3000',
-        ),
-        returnsNormally,
-      );
-    });
   });
+
 
   group('DidCheqd Integration', () {
     test('should work with existing DID infrastructure', () async {
