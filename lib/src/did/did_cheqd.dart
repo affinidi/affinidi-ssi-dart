@@ -287,7 +287,7 @@ class DidCheqd {
       
       // Sign the data
       final dataBytes = utf8.encode(dataToSign.toString());
-      final signature = keyPair.sign(Uint8List.fromList(dataBytes));
+      final signature = await keyPair.sign(Uint8List.fromList(dataBytes));
 
       // Submit the signature
       final signaturePayload = {
