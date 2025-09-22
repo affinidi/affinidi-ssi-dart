@@ -201,6 +201,26 @@ class DidCheqd {
       return initialResponse['did'] ?? initialResponse['didState']?['did'];
     }
 
+    // Check if the initial response already requires action
+    final didState = initialResponse['didState'];
+    if (didState != null) {
+      final state = didState['state'];
+      if (state == 'action') {
+        // Handle signature requirement from initial response
+        await _handleSignatureRequirement(
+          registrarUrl,
+          jobId,
+          didState,
+          privateKeyBytes,
+        );
+      } else if (state == 'finished' || state == 'completed') {
+        final did = didState['did'];
+        if (did != null) {
+          return did;
+        }
+      }
+    }
+
     const maxAttempts = 30; // Maximum polling attempts
     const pollInterval = Duration(seconds: 2);
 
@@ -215,11 +235,11 @@ class DidCheqd {
 
         if (statusResponse.statusCode == 200) {
           final statusBody = jsonDecode(statusResponse.body);
-          final state = statusBody['state'] ?? statusBody['status'];
+          final didState = statusBody['didState'] ?? statusBody;
+          final state = didState['state'] ?? statusBody['state'];
 
           if (state == 'finished' || state == 'completed') {
             // Registration completed successfully
-            final didState = statusBody['didState'] ?? statusBody;
             final did = didState['did'];
             
             if (did != null) {
@@ -231,15 +251,15 @@ class DidCheqd {
               message: 'DID registration failed: $error',
               code: SsiExceptionType.invalidDidCheqd.code,
             );
-          } else if (state == 'action' || state == 'waiting') {
+          } else if (state == 'action') {
             // Check if we need to sign something
-            final action = statusBody['action'] ?? statusBody['nextAction'];
+            final action = didState['action'] ?? statusBody['action'];
             if (action != null && action.toString().toLowerCase().contains('sign')) {
               // Handle signature requirement
               await _handleSignatureRequirement(
                 registrarUrl,
                 jobId,
-                statusBody,
+                didState,
                 privateKeyBytes,
               );
             }
@@ -273,11 +293,11 @@ class DidCheqd {
     Uint8List privateKeyBytes,
   ) async {
     try {
-      // Extract the data that needs to be signed
-      final dataToSign = statusBody['dataToSign'] ?? statusBody['signingData'];
-      if (dataToSign == null) {
+      // Extract the signing request from the response
+      final signingRequest = statusBody['signingRequest'];
+      if (signingRequest == null) {
         throw SsiException(
-          message: 'No data provided for signing',
+          message: 'No signing request provided',
           code: SsiExceptionType.invalidDidCheqd.code,
         );
       }
@@ -285,18 +305,39 @@ class DidCheqd {
       // Create Ed25519 key pair for signing
       final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
       
-      // Sign the data
-      final dataBytes = utf8.encode(dataToSign.toString());
-      final signature = await keyPair.sign(Uint8List.fromList(dataBytes));
+      // Process each signing request
+      final signingResponse = <String, Map<String, dynamic>>{};
+      
+      for (final entry in signingRequest.entries) {
+        final requestId = entry.key;
+        final request = entry.value as Map<String, dynamic>;
+        
+        final kid = request['kid'] as String;
+        final alg = request['alg'] as String;
+        final serializedPayload = request['serializedPayload'] as String;
+        
+        // Decode the base64 payload
+        final payloadBytes = base64Decode(serializedPayload);
+        
+        // Sign the payload
+        final signature = await keyPair.sign(payloadBytes);
+        
+        // Add to signing response
+        signingResponse[requestId] = {
+          'kid': kid,
+          'signature': base64Encode(signature),
+        };
+      }
 
-      // Submit the signature
+      // Submit the signature response
       final signaturePayload = {
-        'signature': base64Encode(signature),
-        'jobId': jobId,
+        'secret': {
+          'signingResponse': signingResponse,
+        },
       };
 
       final signatureResponse = await post(
-        Uri.parse('$registrarUrl/1.0/create/$jobId/sign'),
+        Uri.parse('$registrarUrl/1.0/create/$jobId'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
