@@ -43,14 +43,13 @@ void main() {
         final did =
             'did:cheqd:testnet:a0880139-00cf-4279-adfa-b78323993930';
 
-        // final expectedDidDoc =
-        //     jsonDecode(DidDocumentFixtures.didDocumentWithControllerCheqd);
+        final expectedDidDoc =
+            jsonDecode(DidDocumentFixtures.didDocumentWithControllerCheqd);
 
         final resolvedDidDoc =
             await UniversalDIDResolver.defaultResolver.resolveDid(did);
 
-        // expect(resolvedDidDoc.toJson(), expectedDidDoc);
-        expect(resolvedDidDoc.toJson(), isNotEmpty);
+        expect(resolvedDidDoc.toJson(), expectedDidDoc);
       });
     });
 
