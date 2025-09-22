@@ -9,14 +9,16 @@ void main() {
     test('should resolve a valid did:cheqd', () async {
       // This test would require a real cheqd resolver or mock
       // For now, we'll test the validation logic
-      const validDid = 'did:cheqd:testnet:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
-      
+      const validDid =
+          'did:cheqd:testnet:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
+
       // Test that the DID format is recognized as cheqd
       expect(validDid.startsWith('did:cheqd'), isTrue);
     });
 
     test('should throw SsiException for invalid did:cheqd format', () async {
-      const invalidDid = 'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
+      const invalidDid =
+          'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
 
       await expectLater(
         DidCheqd.resolve(invalidDid),
@@ -43,10 +45,10 @@ void main() {
     test('should create valid DID document structure', () {
       // Test basic DID document creation logic
       final publicKey = testKeyPair.publicKey;
-      
+
       // Test that we can create a basic DID document structure
       const testDid = 'did:cheqd:testnet:test';
-      
+
       // Verify basic DID structure
       expect(testDid, startsWith('did:cheqd:'));
       expect(testDid, contains('testnet'));
@@ -95,7 +97,7 @@ void main() {
       // Test signing functionality
       final privateKeyBytes = base64Decode(privateKeyBase64);
       final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
-      
+
       final testData = Uint8List.fromList(utf8.encode('test data to sign'));
       final signature = await keyPair.sign(testData);
 
@@ -107,7 +109,7 @@ void main() {
       // Test signature verification
       final privateKeyBytes = base64Decode(privateKeyBase64);
       final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
-      
+
       final testData = Uint8List.fromList(utf8.encode('test data to sign'));
       final signature = await keyPair.sign(testData);
       final isValid = await keyPair.verify(testData, signature);
@@ -119,7 +121,7 @@ void main() {
       // Test that invalid signatures are rejected
       final privateKeyBytes = base64Decode(privateKeyBase64);
       final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
-      
+
       final testData = Uint8List.fromList(utf8.encode('test data to sign'));
       final fakeSignature = Uint8List.fromList(List.filled(64, 0));
       final isValid = await keyPair.verify(testData, fakeSignature);
@@ -139,8 +141,10 @@ void main() {
 
     test('should validate DID format', () {
       // Test DID format validation
-      const validCheqdDid = 'did:cheqd:testnet:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
-      const invalidDid = 'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
+      const validCheqdDid =
+          'did:cheqd:testnet:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
+      const invalidDid =
+          'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
 
       expect(validCheqdDid.startsWith('did:cheqd'), isTrue);
       expect(invalidDid.startsWith('did:cheqd'), isFalse);
@@ -221,7 +225,6 @@ void main() {
       }
     });
 
-
     test('should throw SsiException for invalid registrar URL', () async {
       // Generate test keys
       final (keyPair, privateKeyBytes) = Ed25519KeyPair.generate();
@@ -239,7 +242,6 @@ void main() {
       );
     });
   });
-
 
   group('DidCheqd Integration', () {
     test('should work with existing DID infrastructure', () async {

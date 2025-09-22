@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:http/http.dart';
@@ -86,11 +87,40 @@ class DidCheqd {
 
       // Generate a unique identifier for the DID
       // Using a simple approach with timestamp and random bytes
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final randomBytes = Uint8List.fromList(
-        List.generate(16, (index) => (timestamp >> (index % 4)) & 0xFF),
-      );
-      final didIdentifier = base64UrlNoPadEncode(randomBytes);
+      // Generate a UUID v4 for the DID identifier
+      final random = Random.secure();
+      final uuidBytes = Uint8List(16);
+      for (int i = 0; i < 16; i++) {
+        uuidBytes[i] = random.nextInt(256);
+      }
+
+      // Set version (4) and variant bits for UUID v4
+      uuidBytes[6] = (uuidBytes[6] & 0x0f) | 0x40; // Version 4
+      uuidBytes[8] = (uuidBytes[8] & 0x3f) | 0x80; // Variant bits
+
+      // Convert to proper UUID string format (hex)
+      final didIdentifier = [
+        uuidBytes
+            .sublist(0, 4)
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join(''),
+        uuidBytes
+            .sublist(4, 6)
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join(''),
+        uuidBytes
+            .sublist(6, 8)
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join(''),
+        uuidBytes
+            .sublist(8, 10)
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join(''),
+        uuidBytes
+            .sublist(10, 16)
+            .map((b) => b.toRadixString(16).padLeft(2, '0'))
+            .join(''),
+      ].join('-');
 
       // Create the DID
       final did = 'did:cheqd:testnet:$didIdentifier';
@@ -176,14 +206,18 @@ class DidCheqd {
 
     if (response.statusCode == 202) {
       // 202 Accepted - registration initiated, need to poll for completion
-      return jsonDecode(response.body);
+      final responseData = jsonDecode(response.body);
+      responseData['_originalPayload'] = requestPayload;
+      return responseData;
     } else if (response.statusCode == 201 || response.statusCode == 200) {
       // Immediate success (some registrars may return this)
       final responseJson = jsonDecode(response.body);
+      responseJson['_originalPayload'] = requestPayload;
       return responseJson;
     } else {
       throw SsiException(
-        message: 'Failed to submit initial registration: ${response.statusCode} - ${response.body}',
+        message:
+            'Failed to submit initial registration: ${response.statusCode} - ${response.body}',
         code: SsiExceptionType.invalidDidCheqd.code,
       );
     }
@@ -207,12 +241,19 @@ class DidCheqd {
       final state = didState['state'];
       if (state == 'action') {
         // Handle signature requirement from initial response
-        await _handleSignatureRequirement(
+        final originalPayload =
+            initialResponse['_originalPayload'] as Map<String, dynamic>;
+        final result = await _handleSignatureRequirement(
           registrarUrl,
           jobId,
           didState,
           privateKeyBytes,
+          originalPayload['didDocument'],
+          originalPayload['options'],
         );
+        if (result != null) {
+          return result;
+        }
       } else if (state == 'finished' || state == 'completed') {
         final did = didState['did'];
         if (did != null) {
@@ -241,12 +282,13 @@ class DidCheqd {
           if (state == 'finished' || state == 'completed') {
             // Registration completed successfully
             final did = didState['did'];
-            
+
             if (did != null) {
               return did;
             }
           } else if (state == 'failed' || state == 'error') {
-            final error = statusBody['error'] ?? statusBody['message'] ?? 'Unknown error';
+            final error =
+                statusBody['error'] ?? statusBody['message'] ?? 'Unknown error';
             throw SsiException(
               message: 'DID registration failed: $error',
               code: SsiExceptionType.invalidDidCheqd.code,
@@ -254,20 +296,29 @@ class DidCheqd {
           } else if (state == 'action') {
             // Check if we need to sign something
             final action = didState['action'] ?? statusBody['action'];
-            if (action != null && action.toString().toLowerCase().contains('sign')) {
+            if (action != null &&
+                action.toString().toLowerCase().contains('sign')) {
               // Handle signature requirement
-              await _handleSignatureRequirement(
+              final originalPayload =
+                  initialResponse['_originalPayload'] as Map<String, dynamic>;
+              final result = await _handleSignatureRequirement(
                 registrarUrl,
                 jobId,
                 didState,
                 privateKeyBytes,
+                originalPayload['didDocument'],
+                originalPayload['options'],
               );
+              if (result != null) {
+                return result;
+              }
             }
             // Continue polling
           }
         } else {
           throw SsiException(
-            message: 'Failed to fetch registration status: ${statusResponse.statusCode}',
+            message:
+                'Failed to fetch registration status: ${statusResponse.statusCode}',
             code: SsiExceptionType.invalidDidCheqd.code,
           );
         }
@@ -280,17 +331,20 @@ class DidCheqd {
     }
 
     throw SsiException(
-      message: 'DID registration polling timed out after ${maxAttempts * pollInterval.inSeconds} seconds',
+      message:
+          'DID registration polling timed out after ${maxAttempts * pollInterval.inSeconds} seconds',
       code: SsiExceptionType.invalidDidCheqd.code,
     );
   }
 
   /// Handles signature requirements during the registration process.
-  static Future<void> _handleSignatureRequirement(
+  static Future<String?> _handleSignatureRequirement(
     String registrarUrl,
     String jobId,
     Map<String, dynamic> statusBody,
     Uint8List privateKeyBytes,
+    Map<String, dynamic> originalDidDocument,
+    Map<String, dynamic> originalOptions,
   ) async {
     try {
       // Extract the signing request from the response
@@ -304,50 +358,70 @@ class DidCheqd {
 
       // Create Ed25519 key pair for signing
       final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
-      
+
       // Process each signing request
       final signingResponse = <String, Map<String, dynamic>>{};
-      
+
       for (final entry in signingRequest.entries) {
         final requestId = entry.key;
         final request = entry.value as Map<String, dynamic>;
-        
+
         final kid = request['kid'] as String;
         final alg = request['alg'] as String;
         final serializedPayload = request['serializedPayload'] as String;
-        
+
         // Decode the base64 payload
         final payloadBytes = base64Decode(serializedPayload);
-        
+
         // Sign the payload
         final signature = await keyPair.sign(payloadBytes);
-        
-        // Add to signing response
+
+        // Add to signing response with the correct structure
         signingResponse[requestId] = {
           'kid': kid,
           'signature': base64Encode(signature),
         };
       }
 
-      // Submit the signature response
-      final signaturePayload = {
-        'secret': {
-          'signingResponse': signingResponse,
-        },
+      // Create the secret object
+      final secret = {
+        'signingResponse': signingResponse,
+      };
+
+      // Resubmit the complete request with the signature
+      final completePayload = {
+        'jobId': jobId,
+        'secret': secret,
+        'options': originalOptions,
+        'didDocument': originalDidDocument,
       };
 
       final signatureResponse = await post(
-        Uri.parse('$registrarUrl/1.0/create/$jobId'),
+        Uri.parse('$registrarUrl/1.0/create/'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode(signaturePayload),
+        body: jsonEncode(completePayload),
       ).timeout(const Duration(seconds: 30));
 
-      if (signatureResponse.statusCode != 200 && signatureResponse.statusCode != 202) {
+      if (signatureResponse.statusCode == 200 ||
+          signatureResponse.statusCode == 201 ||
+          signatureResponse.statusCode == 202) {
+        // Check if the response indicates completion
+        final responseData = jsonDecode(signatureResponse.body);
+        final didState = responseData['didState'];
+        if (didState != null && didState['state'] == 'finished') {
+          final did = didState['did'];
+          if (did != null) {
+            // Return the DID directly from the signature response
+            return did;
+          }
+        }
+      } else {
         throw SsiException(
-          message: 'Failed to submit signature: ${signatureResponse.statusCode} - ${signatureResponse.body}',
+          message:
+              'Failed to submit signature: ${signatureResponse.statusCode} - ${signatureResponse.body}',
           code: SsiExceptionType.invalidDidCheqd.code,
         );
       }

@@ -40,8 +40,7 @@ void main() {
 
     group('using did:cheqd,', () {
       test('it resolves successfully', () async {
-        final did =
-            'did:cheqd:testnet:a0880139-00cf-4279-adfa-b78323993930';
+        final did = 'did:cheqd:testnet:a0880139-00cf-4279-adfa-b78323993930';
 
         final expectedDidDoc =
             jsonDecode(DidDocumentFixtures.didDocumentWithControllerCheqd);

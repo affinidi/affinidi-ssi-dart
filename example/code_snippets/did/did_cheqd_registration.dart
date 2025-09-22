@@ -21,12 +21,14 @@ import 'package:ssi/ssi.dart';
 Future<void> main() async {
   // Example base64-encoded Ed25519 keys
   // In a real application, these would come from your key generation process
-  const publicKeyBase64 = 'dGVzdFB1YmxpY0tleQ=='; // Replace with actual public key
-  const privateKeyBase64 = 'dGVzdFByaXZhdGVLZXk='; // Replace with actual private key
+  const publicKeyBase64 =
+      'dGVzdFB1YmxpY0tleQ=='; // Replace with actual public key
+  const privateKeyBase64 =
+      'dGVzdFByaXZhdGVLZXk='; // Replace with actual private key
 
   try {
     print('Registering did:cheqd on testnet...');
-    
+
     // Register the DID using the provided keys
     final registeredDid = await DidCheqd.register(
       publicKeyBase64,
@@ -34,15 +36,14 @@ Future<void> main() async {
       // Optional: specify custom registrar URL
       // registrarUrl: 'http://localhost:3000',
     );
-    
+
     print('Successfully registered DID: $registeredDid');
-    
+
     // Verify the registration by resolving the DID
     print('Resolving the registered DID...');
     final didDocument = await DidCheqd.resolve(registeredDid);
     print('DID Document:');
     print(jsonEncode(didDocument.toJson()));
-    
   } catch (e) {
     print('Error registering DID: $e');
   }
@@ -53,7 +54,7 @@ Future<void> main() async {
 Map<String, String> generateExampleKeys() {
   // Generate random bytes for demonstration
   final random = Uint8List.fromList(List.generate(32, (index) => index));
-  
+
   return {
     'publicKey': base64Encode(random),
     'privateKey': base64Encode(random),
