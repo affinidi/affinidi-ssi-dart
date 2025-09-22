@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import 'did_cheqd.dart';
 import 'did_document/index.dart';
 import 'did_key.dart';
 import 'did_peer.dart';
@@ -72,6 +73,8 @@ class UniversalDIDResolver implements DidResolver {
       return DidPeer.resolve(did);
     } else if (did.startsWith('did:web')) {
       return DidWeb.resolve(did);
+    } else if (did.startsWith('did:cheqd')) {
+      return DidCheqd.resolve(did);
     } else {
       if (resolverAddress == null) {
         throw SsiException(

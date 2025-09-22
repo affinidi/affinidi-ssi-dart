@@ -166,7 +166,14 @@ class DidDocument implements JsonObject {
         capabilityInvocation = [] {
     final document = jsonToMap(jsonObject);
 
-    context = Context.fromJson(document['@context']);
+    // Handle missing @context field - provide default W3C DID context
+    final contextValue = document['@context'];
+    if (contextValue != null) {
+      context = Context.fromJson(contextValue);
+    } else {
+      // Default to W3C DID context when @context is missing
+      context = Context.fromJson('https://www.w3.org/ns/did/v1');
+    }
 
     if (document.containsKey('id')) {
       id = document['id'];

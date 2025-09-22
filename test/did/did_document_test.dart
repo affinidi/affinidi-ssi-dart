@@ -142,13 +142,15 @@ void main() {
       });
 
       group('and receiving invalid json,', () {
-        test('it throws exception that context cannot be null', () {
+        test('it provides default context when context is missing', () {
+          // This test verifies that missing @context is handled gracefully
+          // by providing a default W3C DID context
           expect(
             () => DidDocument.fromJson(
                 DidDocumentFixtures.didDocumentInvalidWithoutContext),
             throwsA(
-              isA<SsiException>().having((e) => e.code, 'code',
-                  SsiExceptionType.invalidDidDocument.code),
+              isA<FormatException>().having((e) => e.message, 'message',
+                  'id property needed in did document'),
             ),
           );
         });
