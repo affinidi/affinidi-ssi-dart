@@ -4,6 +4,7 @@
 library;
 
 export 'src/credentials/credentials.dart';
+export 'src/did/did_cheqd.dart';
 export 'src/did/did_document/index.dart';
 export 'src/did/did_key.dart';
 export 'src/did/did_key_pair.dart';
