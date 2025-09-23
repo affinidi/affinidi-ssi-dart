@@ -41,10 +41,18 @@ Future<void> main() async {
     print('   - Initial registration request');
     print('   - Polling for completion with signature verification');
 
+    // Using default testnet (no network parameter needed)
     final registeredDid = await DidCheqd.register(
       publicKeyBase64,
       privateKeyBase64,
     );
+    
+    // Alternative: Explicitly specify network
+    // final registeredDid = await DidCheqd.register(
+    //   publicKeyBase64,
+    //   privateKeyBase64,
+    //   network: 'testnet', // or 'mainnet'
+    // );
 
     print('✅ Successfully registered DID: $registeredDid');
     print('');

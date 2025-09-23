@@ -54,7 +54,7 @@ class DidCheqd {
     }
   }
 
-  /// Registers a new did:cheqd on testnet using the provided keys.
+  /// Registers a new did:cheqd using the provided keys.
   ///
   /// This method implements the complete two-step registration process:
   /// 1. Initial registration request
@@ -62,6 +62,7 @@ class DidCheqd {
   ///
   /// [publicKeyBase64] - The public key in base64 format.
   /// [privateKeyBase64] - The private key in base64 format.
+  /// [network] - The network to register on ('testnet' or 'mainnet'). Defaults to 'testnet'.
   /// [registrarUrl] - Optional custom registrar URL (defaults to localhost:3000).
   ///
   /// Returns the registered DID string.
@@ -70,6 +71,7 @@ class DidCheqd {
   static Future<String> register(
     String publicKeyBase64,
     String privateKeyBase64, {
+    String network = 'testnet',
     String? registrarUrl,
   }) async {
     try {
@@ -123,7 +125,7 @@ class DidCheqd {
       ].join('-');
 
       // Create the DID
-      final did = 'did:cheqd:testnet:$didIdentifier';
+      final did = 'did:cheqd:$network:$didIdentifier';
 
       // Convert public key to multibase format
       final multiKey = toMultikey(publicKey.bytes, publicKey.type);
@@ -159,6 +161,7 @@ class DidCheqd {
         didDocument,
         publicKeyBytes,
         privateKeyBytes,
+        network,
       );
 
       // Step 2: Poll for completion and handle signature verification
@@ -186,12 +189,13 @@ class DidCheqd {
     DidDocument didDocument,
     Uint8List publicKeyBytes,
     Uint8List privateKeyBytes,
+    String network,
   ) async {
     // Prepare the request payload
     final requestPayload = {
       'didDocument': didDocument.toJson(),
       'options': {
-        'network': 'testnet',
+        'network': network,
       },
     };
 
