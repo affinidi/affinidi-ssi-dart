@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-09-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - [`ssi` - `v3.0.0`](#ssi---v300)
+
+Packages with other changes:
+
+ - There are no other changes in this release.
+
+---
+
+#### `ssi` - `v3.0.0`
+
+ - **BREAKING**: The `@context` field now accepts nested map objects, lists of maps, or mixed types (string + map), instead of only strings or list of strings.
+ - **BREAKING**: Introduced `MutableJsonLdContext` and `JsonLdContext` classes.
+ - **BREAKING**: Replace all `@context: []` with either:
+     - `@context: MutableJsonLdContext.fromJson([])`  
+     - `@context: JsonLdContext.fromJson([])`
+ - **FIX**: Fixed VC issuance example in `example/code_snippets/credentials/vc/ld_v2/issuance.dart` for JSON-LD 2, ensuring compatibility with verifier and parser.
+ - **FEAT**: Added support for nested and mixed JSON-LD `@context` values.
+ - **FEAT**: Updated tests and examples to reflect the new context handling.
+
 ## 2025-08-28
 
 ### Changes
