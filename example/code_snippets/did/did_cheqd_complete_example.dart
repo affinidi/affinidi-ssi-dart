@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:ssi/ssi.dart';
 
@@ -85,46 +84,3 @@ Future<void> main() async {
   }
 }
 
-/// Alternative example using a wallet to generate keys
-Future<void> walletBasedExample() async {
-  try {
-    print('=== Wallet-based Cheqd DID Registration ===\n');
-
-    // Create a BIP32 Ed25519 wallet
-    final seed = Uint8List.fromList(List.generate(32, (index) => index));
-    final wallet = Bip32Ed25519Wallet.fromSeed(seed);
-
-    // Generate a key pair from the wallet using a derivation path
-    final key =
-        await wallet.generateKey(keyId: 'm/0/0', keyType: KeyType.ed25519);
-    final publicKey = key.publicKey;
-
-    // For this example, we'll use the direct key generation approach
-    // since the wallet doesn't expose private key bytes directly
-    final (directKeyPair, privateKeyBytes) = Ed25519KeyPair.generate();
-
-    // Encode keys in base64
-    final publicKeyBase64 = base64Encode(publicKey.bytes);
-    final privateKeyBase64 = base64Encode(privateKeyBytes);
-
-    print('Generated keys:');
-    print('Public Key ID: ${publicKey.id}');
-    print('Public Key (base64): $publicKeyBase64');
-    print('');
-
-    // Register the DID
-    final registeredDid = await DidCheqd.register(
-      publicKeyBase64,
-      privateKeyBase64,
-    );
-
-    print('✅ Registered DID: $registeredDid');
-
-    // Resolve to verify
-    final didDocument = await DidCheqd.resolve(registeredDid);
-    print('✅ Verified registration - DID document resolved successfully');
-    print('DID: ${didDocument.id}');
-  } catch (e) {
-    print('❌ Error in wallet-based example: $e');
-  }
-}

@@ -195,7 +195,7 @@ void main() {
       } catch (e) {
         // For now, just verify that the method can be called
         // The signature format issue needs to be resolved separately
-        print('Registration failed (expected due to signature format): $e');
+        print('Registration failed (expected due to register service availability): $e');
         expect(e, isA<SsiException>());
       }
     });
@@ -220,7 +220,7 @@ void main() {
         print('Successfully registered DID with default URL: $registeredDid');
       } catch (e) {
         // For now, just verify that the method can be called
-        print('Registration failed (expected due to signature format): $e');
+        print('Registration failed (expected due to register service availability): $e');
         expect(e, isA<SsiException>());
       }
     });

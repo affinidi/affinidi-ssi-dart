@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:ssi/ssi.dart';
 
@@ -16,20 +15,31 @@ import 'package:ssi/ssi.dart';
 ///    - Install: npm install && npm run build
 ///    - Set environment variables (see README in the repository)
 ///    - Start: npm start (runs on http://localhost:3000)
-///
-/// 2. Have base64-encoded Ed25519 public and private keys ready
 Future<void> main() async {
-  // Example base64-encoded Ed25519 keys
-  // In a real application, these would come from your key generation process
-  const publicKeyBase64 =
-      'dGVzdFB1YmxpY0tleQ=='; // Replace with actual public key
-  const privateKeyBase64 =
-      'dGVzdFByaXZhdGVLZXk='; // Replace with actual private key
-
   try {
-    print('Registering did:cheqd on testnet...');
+    print('=== Cheqd DID Registration Example ===\n');
 
-    // Register the DID using the provided keys
+    // Step 1: Generate Ed25519 key pair
+    print('1. Generating Ed25519 key pair...');
+    final (keyPair, privateKeyBytes) = Ed25519KeyPair.generate();
+    final publicKey = keyPair.publicKey;
+
+    // Step 2: Encode keys in base64 format
+    print('2. Encoding keys in base64 format...');
+    final publicKeyBase64 = base64Encode(publicKey.bytes);
+    final privateKeyBase64 = base64Encode(privateKeyBytes);
+
+    print('Public Key (base64): $publicKeyBase64');
+    print('Private Key (base64): $privateKeyBase64');
+    print('Key Type: ${publicKey.type}');
+    print('');
+
+    // Step 3: Register the DID on cheqd testnet
+    print('3. Registering did:cheqd on testnet...');
+    print('   This involves:');
+    print('   - Initial registration request');
+    print('   - Polling for completion with signature verification');
+
     final registeredDid = await DidCheqd.register(
       publicKeyBase64,
       privateKeyBase64,
@@ -37,26 +47,30 @@ Future<void> main() async {
       // registrarUrl: 'http://localhost:3000',
     );
 
-    print('Successfully registered DID: $registeredDid');
+    print('✅ Successfully registered DID: $registeredDid');
+    print('');
 
-    // Verify the registration by resolving the DID
-    print('Resolving the registered DID...');
+    // Step 4: Verify the registration by resolving the DID
+    print('4. Resolving the registered DID...');
     final didDocument = await DidCheqd.resolve(registeredDid);
-    print('DID Document:');
-    print(jsonEncode(didDocument.toJson()));
+    
+    print('✅ Successfully resolved DID document:');
+    print('DID: ${didDocument.id}');
+    print('Controller: ${didDocument.controller}');
+    print('Verification Methods: ${didDocument.verificationMethod.length}');
+    print('');
+    print('Full DID Document (JSON):');
+    print(const JsonEncoder.withIndent('  ').convert(didDocument.toJson()));
   } catch (e) {
-    print('Error registering DID: $e');
+    print('❌ Error registering DID: $e');
+    
+    // Provide helpful error messages
+    if (e.toString().contains('Connection refused') ||
+        e.toString().contains('Failed to register DID: 500')) {
+      print('\n💡 Troubleshooting:');
+      print('1. Make sure the cheqd DID registrar is running on http://localhost:3000');
+      print('2. Check that all required environment variables are set');
+      print('3. Verify the registrar service is properly configured for testnet');
+    }
   }
-}
-
-/// Helper function to generate example Ed25519 keys
-/// This is just for demonstration - in real usage, you'd use proper key generation
-Map<String, String> generateExampleKeys() {
-  // Generate random bytes for demonstration
-  final random = Uint8List.fromList(List.generate(32, (index) => index));
-
-  return {
-    'publicKey': base64Encode(random),
-    'privateKey': base64Encode(random),
-  };
 }
