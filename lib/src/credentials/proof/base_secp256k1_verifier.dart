@@ -300,7 +300,7 @@ Future<bool> verifyJws(
   // If signature length is DER (starts with 0x30) or variable-length and not 64, try DER->P1363
   if (signature.length != 64 && signature.isNotEmpty && signature[0] == 0x30) {
     try {
-      final p1363 = derToP1363(signature, 32); // 32-byte coords for secp256k1
+      final p1363 = _derToP1363(signature, 32); // 32-byte coords for secp256k1
       ok = verifier.verify(signingInput, p1363);
       return ok;
     } catch (e) {
@@ -319,7 +319,7 @@ Future<bool> verifyJws(
 }
 
 // Helper: convert ASN.1 DER encoded ECDSA signature -> P1363 r||s
-Uint8List derToP1363(Uint8List der, int coordinateLength) {
+Uint8List _derToP1363(Uint8List der, int coordinateLength) {
   // Simple minimal ASN.1 parser enough for ECDSA signature: SEQUENCE { INTEGER r, INTEGER s }
   if (der.isEmpty || der[0] != 0x30) {
     throw ArgumentError('Not a DER SEQUENCE');
