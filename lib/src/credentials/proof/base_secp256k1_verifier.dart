@@ -292,7 +292,9 @@ Future<bool> verifyJws(
   bool ok = false;
   try {
     ok = verifier.verify(signingInput, signature);
-    if (ok) return true;
+    if (ok) {
+      return true;
+    }
   } catch (e) {
     // ignore; we'll try conversion path below
   }
@@ -325,48 +327,59 @@ Uint8List _derToP1363(Uint8List der, int coordinateLength) {
     throw ArgumentError('Not a DER SEQUENCE');
   }
   int idx = 1;
-  if (idx >= der.length) throw ArgumentError('Invalid DER');
+  if (idx >= der.length) {
+    throw ArgumentError('Invalid DER');
+  }
   int seqLen = der[idx++];
   if (seqLen & 0x80 != 0) {
     final numBytes = seqLen & 0x7F;
-    if (numBytes == 0 || idx + numBytes > der.length)
+    if (numBytes == 0 || idx + numBytes > der.length) {
       throw ArgumentError('Invalid DER length');
+    }
     seqLen = 0;
     for (int i = 0; i < numBytes; i++) {
       seqLen = (seqLen << 8) | der[idx++];
     }
   }
   // parse INTEGER r
-  if (idx >= der.length || der[idx++] != 0x02)
+  if (idx >= der.length || der[idx++] != 0x02) {
     throw ArgumentError('Expected INTEGER for r');
+  }
   int rLen = der[idx++];
   if (rLen & 0x80 != 0) {
     final numBytes = rLen & 0x7F;
-    if (numBytes == 0 || idx + numBytes > der.length)
+    if (numBytes == 0 || idx + numBytes > der.length) {
       throw ArgumentError('Invalid r length');
+    }
     rLen = 0;
     for (int i = 0; i < numBytes; i++) {
       rLen = (rLen << 8) | der[idx++];
     }
   }
-  if (idx + rLen > der.length) throw ArgumentError('Truncated r');
+  if (idx + rLen > der.length) {
+    throw ArgumentError('Truncated r');
+  }
   final rBytes = der.sublist(idx, idx + rLen);
   idx += rLen;
 
   // parse INTEGER s
-  if (idx >= der.length || der[idx++] != 0x02)
+  if (idx >= der.length || der[idx++] != 0x02) {
     throw ArgumentError('Expected INTEGER for s');
+  }
   int sLen = der[idx++];
   if (sLen & 0x80 != 0) {
     final numBytes = sLen & 0x7F;
-    if (numBytes == 0 || idx + numBytes > der.length)
+    if (numBytes == 0 || idx + numBytes > der.length) {
       throw ArgumentError('Invalid s length');
+    }
     sLen = 0;
     for (int i = 0; i < numBytes; i++) {
       sLen = (sLen << 8) | der[idx++];
     }
   }
-  if (idx + sLen > der.length) throw ArgumentError('Truncated s');
+  if (idx + sLen > der.length) {
+    throw ArgumentError('Truncated s');
+  }
   final sBytes = der.sublist(idx, idx + sLen);
   // rBytes and sBytes are minimal signed big-endian integers: they may have a leading 0x00 to indicate positive
   Uint8List r = _trimLeadingZero(rBytes);
@@ -384,12 +397,16 @@ Uint8List _derToP1363(Uint8List der, int coordinateLength) {
 
 Uint8List _trimLeadingZero(Uint8List inBytes) {
   int i = 0;
-  while (i < inBytes.length - 1 && inBytes[i] == 0) i++;
+  while (i < inBytes.length - 1 && inBytes[i] == 0) {
+    i++;
+  }
   return inBytes.sublist(i);
 }
 
 Uint8List _leftPad(Uint8List src, int length) {
-  if (src.length == length) return src;
+  if (src.length == length) {
+    return src;
+  }
   final out = Uint8List(length);
   final offset = length - src.length;
   out.setRange(offset, length, src);
