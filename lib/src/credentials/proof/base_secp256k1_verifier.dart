@@ -171,32 +171,229 @@ Future<Uint8List> computeVcHash(
 Future<bool> verifyJws(
   String jws,
   String issuerDid,
-  Uri verificationMethod,
-  Uint8List payloadToSign,
+  Uri verificationMethod, // expected kid / verification method DID URL
+  Uint8List payloadToSign, // canonicalized UTF-8 bytes of the JSON-LD document
 ) async {
-  final jwsParts = jws.split('..');
-  if (jwsParts.length != 2) {
-    throw SsiException(
-      message: 'Invalid jws format',
-      code: SsiExceptionType.other.code,
-    );
+  // 1) Parse JWS compact or RFC7797 detached (header..signature)
+  String encodedHeader;
+  String? encodedPayloadFromJws; // only present in 3-part JWS
+  String encodedSignature;
+
+  if (jws.contains('..')) {
+    final parts = jws.split('..');
+    if (parts.length != 2) {
+      throw SsiException(
+          message: 'Invalid detached JWS format',
+          code: SsiExceptionType.other.code);
+    }
+    encodedHeader = parts[0];
+    encodedSignature = parts[1];
+  } else {
+    final parts = jws.split('.');
+    if (parts.length != 3) {
+      throw SsiException(
+          message: 'Invalid JWS compact serialization',
+          code: SsiExceptionType.other.code);
+    }
+    encodedHeader = parts[0];
+    encodedPayloadFromJws = parts[1];
+    encodedSignature = parts[2];
   }
 
-  final encodedHeader = jwsParts[0];
-  final encodedSignature = jwsParts[1];
+  // 2) Decode header
+  final headerBytes = base64UrlNoPadDecode(encodedHeader);
+  final headerJson = utf8.decode(headerBytes);
+  final header = json.decode(headerJson) as Map<String, dynamic>;
 
-  final signature = base64UrlNoPadDecode(encodedSignature);
+  // 3) Validate alg
+  final alg = header['alg'] as String?;
+  if (alg == null) {
+    throw SsiException(
+        message: 'Missing alg in JWS header',
+        code: SsiExceptionType.other.code);
+  }
+  if (alg != 'ES256K' && alg != 'ES256K-R') {
+    // ES256K-R (recovery) is sometimes used by some suites; accept if you support it.
+    throw SsiException(
+        message: 'Unsupported alg: $alg', code: SsiExceptionType.other.code);
+  }
 
-  final jwsToSign = Uint8List.fromList(
-    utf8.encode(encodedHeader) + utf8.encode('.') + payloadToSign,
-  );
+  // 4) b64 handling
+  final b64Raw = header.containsKey('b64') ? header['b64'] : null;
+  final bool b64 = b64Raw == null ? true : (b64Raw == true);
+  if (b64Raw == false) {
+    final crit = header['crit'];
+    if (crit is! List || !crit.contains('b64')) {
+      throw SsiException(
+          message: 'Invalid header: b64=false must appear in crit',
+          code: SsiExceptionType.other.code);
+    }
+    // If compact serialization included a payload part when b64=false, this should be empty (RFC7797).
+    if (encodedPayloadFromJws != null && encodedPayloadFromJws.isNotEmpty) {
+      throw SsiException(
+          message:
+              'Invalid compact serialization: encoded payload must be empty when b64=false',
+          code: SsiExceptionType.other.code);
+    }
+  }
 
+  // 5) kid/verification method check (tighten matching)
+  final headerKid = header['kid'] as String?;
+  if (headerKid != null) {
+    final expectedKid = verificationMethod.toString();
+    final expectedFragment =
+        expectedKid.contains('#') ? expectedKid.split('#').last : null;
+    final headerIsFragment =
+        headerKid.startsWith('#') ? headerKid.substring(1) : headerKid;
+    final bool kidMatches = headerKid == expectedKid ||
+        (expectedFragment != null && (headerIsFragment == expectedFragment)) ||
+        // also accept `kid=` fragment style in some VC usages: e.g. did:...#kid=BASE64
+        (expectedKid.contains('#') &&
+            expectedKid.split('#').last.startsWith('kid=') &&
+            headerKid == expectedKid.split('#').last);
+    if (!kidMatches) {
+      throw SsiException(
+          message:
+              'kid mismatch between JWS header and expected verificationMethod',
+          code: SsiExceptionType.other.code);
+    }
+  }
+
+  // 6) Build signing input
+  Uint8List signingInput;
+  if (b64) {
+    final encodedPayload = base64UrlNoPadEncode(payloadToSign);
+    if (encodedPayloadFromJws != null &&
+        encodedPayloadFromJws != encodedPayload) {
+      throw SsiException(
+          message: 'Payload mismatch between provided payload and JWS payload',
+          code: SsiExceptionType.other.code);
+    }
+    final headerAndDot = utf8.encode(encodedHeader) + utf8.encode('.');
+    final payloadBytes = utf8.encode(encodedPayload);
+    signingInput = Uint8List.fromList(headerAndDot + payloadBytes);
+  } else {
+    // b64 == false -> raw payload bytes are used directly
+    final headerAndDot = utf8.encode(encodedHeader) + utf8.encode('.');
+    signingInput = Uint8List.fromList(headerAndDot + payloadToSign);
+  }
+
+  // 7) Decode signature bytes
+  Uint8List signature = base64UrlNoPadDecode(encodedSignature);
+
+  // 8) Create verifier
   final verifier = await DidVerifier.create(
     algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
     kid: verificationMethod.toString(),
     issuerDid: issuerDid,
   );
-  return verifier.verify(jwsToSign, signature);
+
+  // 9) Verify: try as-is, then if fails and signature looks like DER, convert to r||s and retry
+  bool ok = false;
+  try {
+    ok = verifier.verify(signingInput, signature);
+    if (ok) return true;
+  } catch (e) {
+    // ignore; we'll try conversion path below
+  }
+
+  // If signature length is DER (starts with 0x30) or variable-length and not 64, try DER->P1363
+  if (signature.length != 64 && signature.isNotEmpty && signature[0] == 0x30) {
+    try {
+      final p1363 = derToP1363(signature, 32); // 32-byte coords for secp256k1
+      ok = verifier.verify(signingInput, p1363);
+      return ok;
+    } catch (e) {
+      // fall through
+    }
+  }
+
+  // Some libraries produce r||s with variable size (?) — as last resort, if signature is 64 bytes try split
+  if (signature.length == 64) {
+    // already tried as-is above, so failing here means verification failed
+    return false;
+  }
+
+  // If we reach here, verification failed
+  return false;
+}
+
+// Helper: convert ASN.1 DER encoded ECDSA signature -> P1363 r||s
+Uint8List derToP1363(Uint8List der, int coordinateLength) {
+  // Simple minimal ASN.1 parser enough for ECDSA signature: SEQUENCE { INTEGER r, INTEGER s }
+  if (der.isEmpty || der[0] != 0x30) {
+    throw ArgumentError('Not a DER SEQUENCE');
+  }
+  int idx = 1;
+  if (idx >= der.length) throw ArgumentError('Invalid DER');
+  int seqLen = der[idx++];
+  if (seqLen & 0x80 != 0) {
+    final numBytes = seqLen & 0x7F;
+    if (numBytes == 0 || idx + numBytes > der.length)
+      throw ArgumentError('Invalid DER length');
+    seqLen = 0;
+    for (int i = 0; i < numBytes; i++) {
+      seqLen = (seqLen << 8) | der[idx++];
+    }
+  }
+  // parse INTEGER r
+  if (idx >= der.length || der[idx++] != 0x02)
+    throw ArgumentError('Expected INTEGER for r');
+  int rLen = der[idx++];
+  if (rLen & 0x80 != 0) {
+    final numBytes = rLen & 0x7F;
+    if (numBytes == 0 || idx + numBytes > der.length)
+      throw ArgumentError('Invalid r length');
+    rLen = 0;
+    for (int i = 0; i < numBytes; i++) {
+      rLen = (rLen << 8) | der[idx++];
+    }
+  }
+  if (idx + rLen > der.length) throw ArgumentError('Truncated r');
+  final rBytes = der.sublist(idx, idx + rLen);
+  idx += rLen;
+
+  // parse INTEGER s
+  if (idx >= der.length || der[idx++] != 0x02)
+    throw ArgumentError('Expected INTEGER for s');
+  int sLen = der[idx++];
+  if (sLen & 0x80 != 0) {
+    final numBytes = sLen & 0x7F;
+    if (numBytes == 0 || idx + numBytes > der.length)
+      throw ArgumentError('Invalid s length');
+    sLen = 0;
+    for (int i = 0; i < numBytes; i++) {
+      sLen = (sLen << 8) | der[idx++];
+    }
+  }
+  if (idx + sLen > der.length) throw ArgumentError('Truncated s');
+  final sBytes = der.sublist(idx, idx + sLen);
+  // rBytes and sBytes are minimal signed big-endian integers: they may have a leading 0x00 to indicate positive
+  Uint8List r = _trimLeadingZero(rBytes);
+  Uint8List s = _trimLeadingZero(sBytes);
+
+  // pad to coordinateLength
+  if (r.length > coordinateLength || s.length > coordinateLength) {
+    throw ArgumentError('Coordinate length too big for curve');
+  }
+  final rPadded = _leftPad(r, coordinateLength);
+  final sPadded = _leftPad(s, coordinateLength);
+
+  return Uint8List.fromList(rPadded + sPadded);
+}
+
+Uint8List _trimLeadingZero(Uint8List inBytes) {
+  int i = 0;
+  while (i < inBytes.length - 1 && inBytes[i] == 0) i++;
+  return inBytes.sublist(i);
+}
+
+Uint8List _leftPad(Uint8List src, int length) {
+  if (src.length == length) return src;
+  final out = Uint8List(length);
+  final offset = length - src.length;
+  out.setRange(offset, length, src);
+  return out;
 }
 
 /// Document loader function type.
