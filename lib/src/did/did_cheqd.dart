@@ -174,9 +174,9 @@ class DidCheqd {
 
       // For the private key, we need to create a signing function that uses the wallet
       // This is more secure as the private key never leaves the wallet
-      final signingFunction = (Uint8List data) async {
+      Future<Uint8List> signingFunction(Uint8List data) async {
         return await wallet.sign(data, keyId: keyId);
-      };
+      }
 
       // Generate a unique identifier for the DID
       final didIdentifier = _generateDidIdentifier();
