@@ -47,7 +47,7 @@ class VerifiableCredentialDataFixtures {
         },
         'credentialSubject': {'email': 'savani.j+dev21@affinidi.com'},
         'holder': {
-          'id': 'did:key:zQ3shjgjhNvjBGseaMQW9fKHMUtmf9oDU8LQNPa1Sxf79MJnf'
+          'id': 'did:key:zQ3shX6mwJADbt9LwKhcmvZ9BkqjJiyNN4VPk8jdH95QX2Yn5'
         },
         'issuanceDate': '2024-09-04T12:15:23.355Z',
         'issuer': 'did:key:zQ3shXLA2cHanJgCUsDfXxBi2BGnMLArHVz5NWoC9axr8pEy6',

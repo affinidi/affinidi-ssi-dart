@@ -31,7 +31,7 @@ void main() async {
         'should be able to verify the integrity of a valid V1 presentation containing invalid VC',
         () async {
       final v1Vp = UniversalPresentationParser.parse(
-          VerifiablePresentationDataFixtures.v1VpWithInvalidVCString);
+          VerifiablePresentationDataFixtures.v1VpWithInvalidVCStringSameHolder);
 
       final verificationStatus = await VpIntegrityVerifier().verify(v1Vp);
 

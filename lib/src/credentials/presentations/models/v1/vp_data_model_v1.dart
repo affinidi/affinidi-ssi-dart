@@ -107,16 +107,17 @@ class VpDataModelV1 implements VerifiablePresentation {
 
     // Check that each VC belongs to the VP holder
     for (final vc in verifiableCredential) {
+      if (vc is! LdVcDataModelV1) {
+        continue;
+      }
+
       String? credentialHolderId;
 
       // Prefer explicit holder if the VC supports it
-      if (vc is VerifiableCredentialWithHolder) {
-        final vcWithHolder = vc as VerifiableCredentialWithHolder;
-        final holderId = vcWithHolder.holder?.id.toString();
+      final holderId = vc.holder?.id.toString();
 
-        if (holderId != null && holderId.isNotEmpty) {
-          credentialHolderId = holderId;
-        }
+      if (holderId != null && holderId.isNotEmpty) {
+        credentialHolderId = holderId;
       } else {
         // Fallback to credentialSubject.id(s)
         final subjects = vc.credentialSubject;

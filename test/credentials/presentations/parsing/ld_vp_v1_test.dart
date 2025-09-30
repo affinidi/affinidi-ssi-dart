@@ -12,7 +12,7 @@ void main() async {
         'should be able to parse a V1 presentation containing V1 compatible VCs',
         () async {
       final v1Vp = UniversalPresentationParser.parse(
-          VerifiablePresentationDataFixtures.v1VpString);
+          VerifiablePresentationDataFixtures.v1VpStringSameHolder);
 
       expect(v1Vp, isNotNull);
       expect(v1Vp.serialized, isNotNull);
