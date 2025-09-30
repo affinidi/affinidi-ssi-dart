@@ -532,7 +532,7 @@ void main() {
   group('VcDataModelV2 Type Validation (VC DM v2)', () {
     test('validate() throws when `type` is empty', () {
       expect(
-            () => VcDataModelV2(
+        () => VcDataModelV2(
           context: [dmV2ContextUrl],
           id: Uri.parse('id'),
           type: <String>{}, // empty set
@@ -542,15 +542,16 @@ void main() {
           ],
         ),
         throwsA(predicate((e) =>
-        e is SsiException &&
+            e is SsiException &&
             e.code == SsiExceptionType.invalidJson.code &&
             e.message.contains('`type` property is mandatory'))),
       );
     });
 
-    test('validate() throws when `VerifiableCredential` is missing in type', () {
+    test('validate() throws when `VerifiableCredential` is missing in type',
+        () {
       expect(
-            () => VcDataModelV2(
+        () => VcDataModelV2(
           context: [dmV2ContextUrl],
           id: Uri.parse('id'),
           type: {'ExampleCredentialV2'},
@@ -560,9 +561,10 @@ void main() {
           ],
         ),
         throwsA(predicate((e) =>
-        e is SsiException &&
+            e is SsiException &&
             e.code == SsiExceptionType.invalidJson.code &&
-            e.message.contains('MUST include the value "VerifiableCredential"'))),
+            e.message
+                .contains('MUST include the value "VerifiableCredential"'))),
       );
     });
 
