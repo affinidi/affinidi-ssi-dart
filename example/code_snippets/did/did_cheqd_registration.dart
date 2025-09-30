@@ -32,7 +32,7 @@ Future<void> main() async {
     );
 
     print('Key ID: ${keyPair.id}');
-    print('Key Type: ${keyPair.type}');
+    print('Key Type: ${keyPair.publicKey.type}');
     print('');
 
     // Step 3: Register the DID on cheqd testnet using wallet
