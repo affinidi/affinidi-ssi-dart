@@ -424,7 +424,7 @@ void main() {
       final vcOriginal = MutableVcDataModelV2(
         context: ctx,
         id: Uri.parse('id'),
-        type: {'t'},
+        type: {'t', 'VerifiableCredential'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
           MutableCredentialSubject({
@@ -455,7 +455,8 @@ void main() {
       final parsed = VcDataModelV2.fromJson(map);
       expect(parsed.context, ctx);
       expect(parsed.id.toString(), 'id');
-      expect(parsed.type, ['t']);
+      expect(parsed.type.contains('t'), isTrue);
+      expect(parsed.type.contains('VerifiableCredential'), isTrue);
       expect(parsed.proof.length, 2);
       expect(parsed.proof[0].type, vcOriginal.proof[0].type);
       expect(parsed.proof[0].cryptosuite, vcOriginal.proof[0].cryptosuite);
@@ -478,7 +479,7 @@ void main() {
       final vcOriginal = MutableVcDataModelV2(
         context: ctx,
         id: Uri.parse('id'),
-        type: {'t'},
+        type: {'t', 'VerifiableCredential'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
           MutableCredentialSubject({
@@ -494,6 +495,8 @@ void main() {
       expect(parsed.proof.length, 1);
       expect(parsed.proof.first.type, proof.first.type);
       expect(parsed.proof.first.cryptosuite, proof.first.cryptosuite);
+      expect(parsed.type.contains('VerifiableCredential'), isTrue);
+      expect(parsed.type.contains('t'), isTrue);
     });
 
     test('fromJson() should handle missing optional fields', () {
@@ -501,7 +504,7 @@ void main() {
       final map = {
         '@context': ctx,
         'id': 'id',
-        'type': ['t'],
+        'type': ['VerifiableCredential', 't'], // include mandatory type
         'issuer': {'id': 'did:example:issuerV2'},
         'validFrom': DateTime.utc(2024, 01, 01).toIso8601String(),
         'credentialSubject': {'id': 'did:example:subjectV2'}
@@ -516,12 +519,65 @@ void main() {
       expect(parsed.refreshService, isEmpty);
       expect(parsed.termsOfUse, isEmpty);
       expect(parsed.evidence, isEmpty);
+      expect(parsed.type.contains('VerifiableCredential'), isTrue);
     });
 
     test('fromJson() should throw error for invalid JSON structure', () {
       final invalidJson = '{"@context": "invalid"}';
       expect(() => VcDataModelV2.fromJson(invalidJson as Map<String, dynamic>),
           throwsA(isA<TypeError>()));
+    });
+  });
+
+  group('VcDataModelV2 Type Validation (VC DM v2)', () {
+    test('validate() throws when `type` is empty', () {
+      expect(
+            () => VcDataModelV2(
+          context: [dmV2ContextUrl],
+          id: Uri.parse('id'),
+          type: <String>{}, // empty set
+          issuer: Issuer.uri('did:example:issuerV2'),
+          credentialSubject: [
+            CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+          ],
+        ),
+        throwsA(predicate((e) =>
+        e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message.contains('`type` property is mandatory'))),
+      );
+    });
+
+    test('validate() throws when `VerifiableCredential` is missing in type', () {
+      expect(
+            () => VcDataModelV2(
+          context: [dmV2ContextUrl],
+          id: Uri.parse('id'),
+          type: {'ExampleCredentialV2'},
+          issuer: Issuer.uri('did:example:issuerV2'),
+          credentialSubject: [
+            CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+          ],
+        ),
+        throwsA(predicate((e) =>
+        e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message.contains('MUST include the value "VerifiableCredential"'))),
+      );
+    });
+
+    test('validate() succeeds when `type` contains VerifiableCredential', () {
+      final vc = VcDataModelV2(
+        context: [dmV2ContextUrl],
+        id: Uri.parse('id'),
+        type: {'VerifiableCredential', 'ExampleCredentialV2'},
+        issuer: Issuer.uri('did:example:issuerV2'),
+        credentialSubject: [
+          CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+        ],
+      );
+      expect(vc.type.contains('VerifiableCredential'), isTrue);
+      expect(vc.type.contains('ExampleCredentialV2'), isTrue);
     });
   });
 }
