@@ -111,13 +111,17 @@ class VpDataModelV1 implements VerifiablePresentation {
         continue;
       }
 
-      String? credentialHolderId;
-
       // Prefer explicit holder if the VC supports it
       final holderId = vc.holder?.id.toString();
 
       if (holderId != null && holderId.isNotEmpty) {
-        credentialHolderId = holderId;
+        // If the VC has a holder, it must match VP holder
+        if (holderId != vpHolderId) {
+          throw SsiException(
+            message: 'Credential holder does not match VP holder',
+            code: SsiExceptionType.holderBindingMismatch.code,
+          );
+        }
       } else {
         // Fallback to credentialSubject.id(s)
         final subjects = vc.credentialSubject;
@@ -140,14 +144,6 @@ class VpDataModelV1 implements VerifiablePresentation {
             code: SsiExceptionType.holderBindingMismatch.code,
           );
         }
-      }
-
-      // If the VC has a holder, it must match VP holder
-      if (credentialHolderId != null && credentialHolderId != vpHolderId) {
-        throw SsiException(
-          message: 'Credential holder does not match VP holder',
-          code: SsiExceptionType.holderBindingMismatch.code,
-        );
       }
     }
 

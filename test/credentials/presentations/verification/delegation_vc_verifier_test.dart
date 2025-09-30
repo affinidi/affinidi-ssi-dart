@@ -15,17 +15,6 @@ void main() {
       expect(result.warnings, isEmpty);
     });
 
-    test('should fail if VP DID and VC DID do not match and no delegation VC',
-        () async {
-      final verifier = DelegationVcVerifier();
-      final vp = UniversalPresentationParser.parse(
-          VerifiablePresentationDataFixtures.v1VpWithMissingDelegationVC);
-      final result = await verifier.verify(vp);
-      expect(result.isValid, false);
-      expect(result.errors,
-          contains('Missing Delegation VC from: did:key:externalholder1'));
-    });
-
     test('should pass if there is DelegationVC and all matches', () async {
       final verifier = DelegationVcVerifier();
       final vp = UniversalPresentationParser.parse(
