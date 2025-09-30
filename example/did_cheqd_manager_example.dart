@@ -1,4 +1,4 @@
-import 'package:affinidi_ssi_dart/affinidi_ssi_dart.dart';
+import 'package:ssi/ssi.dart';
 
 /// Example of how to use DidCheqdManager for did:cheqd operations.
 Future<void> main() async {
