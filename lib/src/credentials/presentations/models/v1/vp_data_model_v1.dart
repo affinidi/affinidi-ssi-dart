@@ -97,6 +97,59 @@ class VpDataModelV1 implements VerifiablePresentation {
       );
     }
 
+    final vpHolderId = holder.id.toString();
+    if (vpHolderId.isEmpty) {
+      throw SsiException(
+        message: 'VP holder is missing',
+        code: SsiExceptionType.missingPresentationHolder.code,
+      );
+    }
+
+    // Check that each VC belongs to the VP holder
+    for (final vc in verifiableCredential) {
+      String? credentialHolderId;
+
+      // Prefer explicit holder if the VC supports it
+      if (vc is VerifiableCredentialWithHolder) {
+        final vcWithHolder = vc as VerifiableCredentialWithHolder;
+        final holderId = vcWithHolder.holder?.id.toString();
+
+        if (holderId != null && holderId.isNotEmpty) {
+          credentialHolderId = holderId;
+        }
+      } else {
+        // Fallback to credentialSubject.id(s)
+        final subjects = vc.credentialSubject;
+        if (subjects.isEmpty) {
+          throw SsiException(
+            message: 'Credential has no subject IDs',
+            code: SsiExceptionType.missingCredentialHolder.code,
+          );
+        }
+
+        final subjectIds = subjects
+            .map((s) => s.id.toString())
+            .where((id) => id.isNotEmpty)
+            .toList();
+
+        if (!subjectIds.contains(vpHolderId)) {
+          throw SsiException(
+            message:
+                'None of the credentialSubject IDs match the VP holder for this VC',
+            code: SsiExceptionType.holderBindingMismatch.code,
+          );
+        }
+      }
+
+      // If the VC has a holder, it must match VP holder
+      if (credentialHolderId != null && credentialHolderId != vpHolderId) {
+        throw SsiException(
+          message: 'Credential holder does not match VP holder',
+          code: SsiExceptionType.holderBindingMismatch.code,
+        );
+      }
+    }
+
     return true;
   }
 

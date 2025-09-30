@@ -72,6 +72,15 @@ enum SsiExceptionType {
   /// Revocation index out of bounds
   revocationIndexOutOfBounds(code: 'revocation_index_out_of_bounds'),
 
+  /// Missing presentation holder
+  missingPresentationHolder(code: 'missing_presentation_holder'),
+
+  /// Missing credential holder
+  missingCredentialHolder(code: 'missing_credential_holder'),
+
+  /// Holder binding mismatch
+  holderBindingMismatch(code: 'holder_binding_mismatch'),
+
   /// An unknown error has occurred.
   other(code: 'other'),
   ;
