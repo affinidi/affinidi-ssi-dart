@@ -55,7 +55,7 @@ Future<void> main() async {
     // Step 4: Verify the registration by resolving the DID
     print('4. Resolving the registered DID...');
     final didDocument = await DidCheqd.resolve(registeredDid);
-    
+
     print('✅ Successfully resolved DID document:');
     print('DID: ${didDocument.id}');
     print('Controller: ${didDocument.controller}');
@@ -65,14 +65,16 @@ Future<void> main() async {
     print(const JsonEncoder.withIndent('  ').convert(didDocument.toJson()));
   } catch (e) {
     print('❌ Error registering DID: $e');
-    
+
     // Provide helpful error messages
     if (e.toString().contains('Connection refused') ||
         e.toString().contains('Failed to register DID: 500')) {
       print('\n💡 Troubleshooting:');
-      print('1. Make sure the cheqd DID registrar is running on http://localhost:3000');
+      print(
+          '1. Make sure the cheqd DID registrar is running on http://localhost:3000');
       print('2. Check that all required environment variables are set');
-      print('3. Verify the registrar service is properly configured for testnet');
+      print(
+          '3. Verify the registrar service is properly configured for testnet');
     }
   }
 }

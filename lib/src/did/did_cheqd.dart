@@ -128,7 +128,8 @@ class DidCheqd {
 
       // Step 2: Poll for completion and handle signature verification
       final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
-      final signingFunction = (Uint8List data) async => await keyPair.sign(data);
+      final signingFunction =
+          (Uint8List data) async => await keyPair.sign(data);
       final registeredDid = await _pollForCompletion(
         url,
         initialResponse,
@@ -410,7 +411,8 @@ class DidCheqd {
   ) async {
     try {
       // Extract the signing request from the response
-      final signingRequest = statusBody['signingRequest'] as Map<String, dynamic>?;
+      final signingRequest =
+          statusBody['signingRequest'] as Map<String, dynamic>?;
       if (signingRequest == null) {
         throw SsiException(
           message: 'No signing request provided',
@@ -483,7 +485,7 @@ class DidCheqd {
           code: SsiExceptionType.invalidDidCheqd.code,
         );
       }
-      
+
       // If we get here, the signature was submitted but registration is still pending
       return null;
     } catch (e) {
@@ -535,5 +537,4 @@ class DidCheqd {
           .join(''),
     ].join('-');
   }
-
 }

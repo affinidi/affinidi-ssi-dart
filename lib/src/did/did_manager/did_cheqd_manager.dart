@@ -58,11 +58,10 @@ class DidCheqdManager extends DidManager {
   @override
   Future<DidDocument> getDidDocument() async {
     final did = await store.did;
-    
+
     if (did == null) {
       throw SsiException(
-        message:
-            'Did not find did before creating did:cheqd document',
+        message: 'Did not find did before creating did:cheqd document',
         code: SsiExceptionType.invalidDidDocument.code,
       );
     }

@@ -35,7 +35,8 @@ void main() {
         // Assert
         expect(result.verificationMethodId, startsWith('#key-'));
         expect(result.verificationMethodId, contains('1'));
-        expect(result.relationships, contains(VerificationRelationship.authentication));
+        expect(result.relationships,
+            contains(VerificationRelationship.authentication));
       });
 
       test('should add multiple verification methods', () async {
@@ -62,8 +63,10 @@ void main() {
         // Assert
         expect(result1.verificationMethodId, '#key-1');
         expect(result2.verificationMethodId, '#key-2');
-        expect(result1.relationships, contains(VerificationRelationship.authentication));
-        expect(result2.relationships, contains(VerificationRelationship.keyAgreement));
+        expect(result1.relationships,
+            contains(VerificationRelationship.authentication));
+        expect(result2.relationships,
+            contains(VerificationRelationship.keyAgreement));
       });
 
       test('should support all verification relationships', () async {
@@ -86,11 +89,16 @@ void main() {
         );
 
         // Assert
-        expect(result.relationships, contains(VerificationRelationship.authentication));
-        expect(result.relationships, contains(VerificationRelationship.keyAgreement));
-        expect(result.relationships, contains(VerificationRelationship.assertionMethod));
-        expect(result.relationships, contains(VerificationRelationship.capabilityInvocation));
-        expect(result.relationships, contains(VerificationRelationship.capabilityDelegation));
+        expect(result.relationships,
+            contains(VerificationRelationship.authentication));
+        expect(result.relationships,
+            contains(VerificationRelationship.keyAgreement));
+        expect(result.relationships,
+            contains(VerificationRelationship.assertionMethod));
+        expect(result.relationships,
+            contains(VerificationRelationship.capabilityInvocation));
+        expect(result.relationships,
+            contains(VerificationRelationship.capabilityDelegation));
       });
     });
 
@@ -240,10 +248,12 @@ void main() {
 
         // Assert
         expect(id1, '#key-1');
-        expect(id2, '#key-1'); // Both should be #key-1 since no verification methods are added yet
+        expect(id2,
+            '#key-1'); // Both should be #key-1 since no verification methods are added yet
       });
 
-      test('should increment ID based on existing verification methods', () async {
+      test('should increment ID based on existing verification methods',
+          () async {
         // Arrange
         final key1 = await wallet.generateKey(
           keyId: 'key-1',
@@ -264,12 +274,14 @@ void main() {
         final id2 = await manager.buildVerificationMethodId(key2.publicKey);
 
         // Assert
-        expect(id2, '#key-2'); // Should be #key-2 since one verification method already exists
+        expect(id2,
+            '#key-2'); // Should be #key-2 since one verification method already exists
       });
     });
 
     group('Integration Tests', () {
-      test('should complete full workflow: add key, register, get document', () async {
+      test('should complete full workflow: add key, register, get document',
+          () async {
         try {
           // Step 1: Generate key
           final keyPair = await wallet.generateKey(
@@ -287,8 +299,10 @@ void main() {
           );
 
           expect(addResult.verificationMethodId, '#key-1');
-          expect(addResult.relationships, contains(VerificationRelationship.authentication));
-          expect(addResult.relationships, contains(VerificationRelationship.assertionMethod));
+          expect(addResult.relationships,
+              contains(VerificationRelationship.authentication));
+          expect(addResult.relationships,
+              contains(VerificationRelationship.assertionMethod));
 
           // Step 3: Register DID
           final registeredDid = await manager.registerDid(keyPair.id);
@@ -339,7 +353,8 @@ void main() {
           final didDocument = await manager.getDidDocument();
           // For Ed25519 keyAgreement, an X25519 verification method is created
           // So we should have 2 verification methods: 1 for auth, 1 for keyAgreement
-          expect(didDocument.verificationMethod.length, greaterThanOrEqualTo(1));
+          expect(
+              didDocument.verificationMethod.length, greaterThanOrEqualTo(1));
           expect(didDocument.authentication, isNotEmpty);
           // Note: keyAgreement might be empty if X25519 conversion fails
           // This is expected behavior for this test

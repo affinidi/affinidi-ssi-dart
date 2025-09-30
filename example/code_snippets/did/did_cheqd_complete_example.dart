@@ -48,7 +48,7 @@ Future<void> main() async {
       wallet,
       keyPair.id,
     );
-    
+
     // Alternative: Explicitly specify network
     // final registeredDid = await DidCheqd.registerWithWallet(
     //   wallet,
@@ -93,4 +93,3 @@ Future<void> main() async {
     }
   }
 }
-

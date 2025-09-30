@@ -251,7 +251,7 @@ void main() {
       // Create a test wallet
       final keyStore = InMemoryKeyStore();
       wallet = PersistentWallet(keyStore);
-      
+
       // Generate a test key
       final keyPair = await wallet.generateKey(
         keyId: 'test-cheqd-key',
@@ -346,7 +346,8 @@ void main() {
       );
     });
 
-    test('should generate unique DID identifiers for different registrations', () async {
+    test('should generate unique DID identifiers for different registrations',
+        () async {
       try {
         // Generate multiple keys and register them
         final keyPair1 = await wallet.generateKey(
@@ -390,7 +391,7 @@ void main() {
         // Verify the DID format
         expect(registeredDid, startsWith('did:cheqd:'));
         expect(registeredDid, contains('testnet'));
-        
+
         // Verify we can resolve the DID (if registration was successful)
         final didDocument = await DidCheqd.resolve(registeredDid);
         expect(didDocument.id, equals(registeredDid));

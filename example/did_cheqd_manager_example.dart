@@ -6,7 +6,7 @@ Future<void> main() async {
   final keyStore = InMemoryKeyStore();
   final wallet = PersistentWallet(keyStore);
   final store = InMemoryDidStore();
-  
+
   // Create the DID manager
   final manager = DidCheqdManager(store: store, wallet: wallet);
   await manager.init();
@@ -38,7 +38,6 @@ Future<void> main() async {
     // Get the DID document
     final didDocument = await manager.getDidDocument();
     print('DID Document: ${didDocument.toJson()}');
-
   } catch (e) {
     print('Error: $e');
   }
