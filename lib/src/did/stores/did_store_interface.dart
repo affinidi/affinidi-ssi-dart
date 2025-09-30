@@ -47,6 +47,12 @@ abstract class DidStore {
   /// Gets all service endpoints.
   Future<List<ServiceEndpoint>> get serviceEndpoints;
 
+  /// Gets the DID identifier.
+  Future<String?> get did;
+
+  /// Sets the DID identifier.
+  Future<void> setDid(String did);
+
   /// Adds a verification method reference to authentication.
   Future<void> addAuthentication(String verificationMethodId);
 

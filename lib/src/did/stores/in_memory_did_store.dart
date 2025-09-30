@@ -14,6 +14,7 @@ class InMemoryDidStore extends DidStore {
   final List<String> _capabilityDelegation = [];
   final List<String> _assertionMethod = [];
   final List<ServiceEndpoint> _serviceEndpoints = [];
+  String? _did;
 
   @override
   Future<void> setMapping(
@@ -34,6 +35,7 @@ class InMemoryDidStore extends DidStore {
   @override
   Future<void> clearAll() async {
     _keyMapping.clear();
+    _did = null;
     await clearVerificationMethodReferences();
     await clearServiceEndpoints();
   }
@@ -59,6 +61,14 @@ class InMemoryDidStore extends DidStore {
 
   @override
   Future<List<ServiceEndpoint>> get serviceEndpoints async => _serviceEndpoints;
+
+  @override
+  Future<String?> get did async => _did;
+
+  @override
+  Future<void> setDid(String did) async {
+    _did = did;
+  }
 
   @override
   Future<void> addAuthentication(String verificationMethodId) async {

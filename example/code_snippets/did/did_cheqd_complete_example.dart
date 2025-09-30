@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:ssi/ssi.dart';
 
-/// Complete example demonstrating did:cheqd registration with proper key generation
+/// Complete example demonstrating did:cheqd registration with secure wallet-based key management
 ///
 /// This example shows the complete two-step registration process:
-/// 1. How to generate Ed25519 key pairs
-/// 2. How to encode them in base64 format
-/// 3. How to register a did:cheqd on testnet (initial request + polling with signature)
+/// 1. How to create a wallet for secure key management
+/// 2. How to generate Ed25519 key pairs in the wallet
+/// 3. How to register a did:cheqd on testnet using wallet (initial request + polling with signature)
 /// 4. How to resolve and verify the registered DID
 ///
 /// Prerequisites:
@@ -20,37 +20,39 @@ Future<void> main() async {
   try {
     print('=== Cheqd DID Registration Example ===\n');
 
-    // Step 1: Generate Ed25519 key pair
-    print('1. Generating Ed25519 key pair...');
-    final (keyPair, privateKeyBytes) = Ed25519KeyPair.generate();
-    final publicKey = keyPair.publicKey;
+    // Step 1: Create a wallet for secure key management
+    print('1. Creating wallet for secure key management...');
+    final keyStore = InMemoryKeyStore();
+    final wallet = PersistentWallet(keyStore);
 
-    // Step 2: Encode keys in base64 format
-    print('2. Encoding keys in base64 format...');
-    final publicKeyBase64 = base64Encode(publicKey.bytes);
-    final privateKeyBase64 = base64Encode(privateKeyBytes);
+    // Step 2: Generate Ed25519 key pair in the wallet
+    print('2. Generating Ed25519 key pair in wallet...');
+    final keyPair = await wallet.generateKey(
+      keyId: 'cheqd-key',
+      keyType: KeyType.ed25519,
+    );
 
-    print('Public Key (base64): $publicKeyBase64');
-    print('Private Key (base64): $privateKeyBase64');
-    print('Key Type: ${publicKey.type}');
+    print('Key ID: ${keyPair.id}');
+    print('Key Type: ${keyPair.type}');
     print('');
 
-    // Step 3: Register the DID on cheqd testnet (two-step process)
-    print('3. Registering did:cheqd on testnet...');
+    // Step 3: Register the DID on cheqd testnet using wallet (two-step process)
+    print('3. Registering did:cheqd on testnet using wallet...');
     print('   This involves:');
     print('   - Initial registration request');
     print('   - Polling for completion with signature verification');
+    print('   - Secure signing using wallet (private key never exposed)');
 
     // Using default testnet (no network parameter needed)
-    final registeredDid = await DidCheqd.register(
-      publicKeyBase64,
-      privateKeyBase64,
+    final registeredDid = await DidCheqd.registerWithWallet(
+      wallet,
+      keyPair.id,
     );
     
     // Alternative: Explicitly specify network
-    // final registeredDid = await DidCheqd.register(
-    //   publicKeyBase64,
-    //   privateKeyBase64,
+    // final registeredDid = await DidCheqd.registerWithWallet(
+    //   wallet,
+    //   keyPair.id,
     //   network: 'testnet', // or 'mainnet'
     // );
 

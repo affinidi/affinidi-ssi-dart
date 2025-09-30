@@ -10,7 +10,7 @@ import '../json_ld/context.dart';
 import '../key_pair/ed25519_key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
-import '../util/base64_util.dart';
+import '../wallet/wallet.dart';
 import 'did_document/index.dart';
 import 'public_key_utils.dart';
 
@@ -88,43 +88,7 @@ class DidCheqd {
       );
 
       // Generate a unique identifier for the DID
-      // Using a simple approach with timestamp and random bytes
-      // Generate a UUID v4 for the DID identifier
-      final random = Random.secure();
-      final uuidBytes = Uint8List(16);
-      for (int i = 0; i < 16; i++) {
-        uuidBytes[i] = random.nextInt(256);
-      }
-
-      // Set version (4) and variant bits for UUID v4
-      uuidBytes[6] = (uuidBytes[6] & 0x0f) | 0x40; // Version 4
-      uuidBytes[8] = (uuidBytes[8] & 0x3f) | 0x80; // Variant bits
-
-      // Convert to proper UUID string format (hex)
-      final didIdentifier = [
-        uuidBytes
-            .sublist(0, 4)
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join(''),
-        uuidBytes
-            .sublist(4, 6)
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join(''),
-        uuidBytes
-            .sublist(6, 8)
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join(''),
-        uuidBytes
-            .sublist(8, 10)
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join(''),
-        uuidBytes
-            .sublist(10, 16)
-            .map((b) => b.toRadixString(16).padLeft(2, '0'))
-            .join(''),
-      ].join('-');
-
-      // Create the DID
+      final didIdentifier = _generateDidIdentifier();
       final did = 'did:cheqd:$network:$didIdentifier';
 
       // Convert public key to multibase format
@@ -159,16 +123,105 @@ class DidCheqd {
       final initialResponse = await _submitInitialRegistration(
         url,
         didDocument,
-        publicKeyBytes,
-        privateKeyBytes,
         network,
+      );
+
+      // Step 2: Poll for completion and handle signature verification
+      final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
+      final signingFunction = (Uint8List data) async => await keyPair.sign(data);
+      final registeredDid = await _pollForCompletion(
+        url,
+        initialResponse,
+        signingFunction,
+      );
+
+      return registeredDid;
+    } catch (e) {
+      if (e is SsiException) {
+        rethrow;
+      }
+      throw SsiException(
+        message: 'Failed to register DID: $e',
+        code: SsiExceptionType.invalidDidCheqd.code,
+      );
+    }
+  }
+
+  /// Registers a new did:cheqd using a wallet and key ID.
+  ///
+  /// This method implements the complete two-step registration process:
+  /// 1. Initial registration request
+  /// 2. Polling for completion with signature verification
+  ///
+  /// [wallet] - The wallet instance containing the keys.
+  /// [keyId] - The identifier of the key in the wallet.
+  /// [network] - The network to register on ('testnet' or 'mainnet'). Defaults to 'testnet'.
+  /// [registrarUrl] - Optional custom registrar URL (defaults to localhost:3000).
+  ///
+  /// Returns the registered DID string.
+  ///
+  /// Throws [SsiException] if registration fails.
+  static Future<String> registerWithWallet(
+    Wallet wallet,
+    String keyId, {
+    String network = 'testnet',
+    String? registrarUrl,
+  }) async {
+    try {
+      // Get the public key from the wallet
+      final publicKey = await wallet.getPublicKey(keyId);
+
+      // For the private key, we need to create a signing function that uses the wallet
+      // This is more secure as the private key never leaves the wallet
+      final signingFunction = (Uint8List data) async {
+        return await wallet.sign(data, keyId: keyId);
+      };
+
+      // Generate a unique identifier for the DID
+      final didIdentifier = _generateDidIdentifier();
+      final did = 'did:cheqd:$network:$didIdentifier';
+
+      // Convert public key to multibase format
+      final multiKey = toMultikey(publicKey.bytes, publicKey.type);
+      final publicKeyMultibase = toMultiBase(multiKey);
+
+      // Create verification method
+      final verificationMethod = VerificationMethodMultibase(
+        id: '$did#key-1',
+        controller: did,
+        type: 'Ed25519VerificationKey2020',
+        publicKeyMultibase: publicKeyMultibase,
+      );
+
+      // Create DID document
+      final didDocument = DidDocument.create(
+        context: Context.fromJson([
+          'https://www.w3.org/ns/did/v1',
+          'https://w3id.org/security/suites/ed25519-2020/v1',
+        ]),
+        id: did,
+        controller: [did],
+        verificationMethod: [verificationMethod],
+        authentication: ['$did#key-1'],
+        assertionMethod: ['$did#key-1'],
+        capabilityInvocation: ['$did#key-1'],
+        capabilityDelegation: ['$did#key-1'],
+      );
+
+      // Step 1: Initial registration request
+      final url = registrarUrl ?? cheqdRegistrarUrl;
+      final initialResponse = await _submitInitialRegistration(
+        url,
+        didDocument,
+        network,
+        signingFunction: signingFunction,
       );
 
       // Step 2: Poll for completion and handle signature verification
       final registeredDid = await _pollForCompletion(
         url,
         initialResponse,
-        privateKeyBytes,
+        signingFunction,
       );
 
       return registeredDid;
@@ -187,10 +240,9 @@ class DidCheqd {
   static Future<Map<String, dynamic>> _submitInitialRegistration(
     String registrarUrl,
     DidDocument didDocument,
-    Uint8List publicKeyBytes,
-    Uint8List privateKeyBytes,
-    String network,
-  ) async {
+    String network, {
+    Future<Uint8List> Function(Uint8List)? signingFunction,
+  }) async {
     // Prepare the request payload
     final requestPayload = {
       'didDocument': didDocument.toJson(),
@@ -212,11 +264,17 @@ class DidCheqd {
       // 202 Accepted - registration initiated, need to poll for completion
       final responseData = jsonDecode(response.body);
       responseData['_originalPayload'] = requestPayload;
+      if (signingFunction != null) {
+        responseData['_signingFunction'] = signingFunction;
+      }
       return responseData;
     } else if (response.statusCode == 201 || response.statusCode == 200) {
       // Immediate success (some registrars may return this)
       final responseJson = jsonDecode(response.body);
       responseJson['_originalPayload'] = requestPayload;
+      if (signingFunction != null) {
+        responseJson['_signingFunction'] = signingFunction;
+      }
       return responseJson;
     } else {
       throw SsiException(
@@ -231,7 +289,7 @@ class DidCheqd {
   static Future<String> _pollForCompletion(
     String registrarUrl,
     Map<String, dynamic> initialResponse,
-    Uint8List privateKeyBytes,
+    Future<Uint8List> Function(Uint8List) signingFunction,
   ) async {
     final jobId = initialResponse['jobId'] ?? initialResponse['id'];
     if (jobId == null) {
@@ -251,7 +309,7 @@ class DidCheqd {
           registrarUrl,
           jobId,
           didState,
-          privateKeyBytes,
+          signingFunction,
           originalPayload['didDocument'],
           originalPayload['options'],
         );
@@ -309,7 +367,7 @@ class DidCheqd {
                 registrarUrl,
                 jobId,
                 didState,
-                privateKeyBytes,
+                signingFunction,
                 originalPayload['didDocument'],
                 originalPayload['options'],
               );
@@ -346,22 +404,19 @@ class DidCheqd {
     String registrarUrl,
     String jobId,
     Map<String, dynamic> statusBody,
-    Uint8List privateKeyBytes,
+    Future<Uint8List> Function(Uint8List) signingFunction,
     Map<String, dynamic> originalDidDocument,
     Map<String, dynamic> originalOptions,
   ) async {
     try {
       // Extract the signing request from the response
-      final signingRequest = statusBody['signingRequest'];
+      final signingRequest = statusBody['signingRequest'] as Map<String, dynamic>?;
       if (signingRequest == null) {
         throw SsiException(
           message: 'No signing request provided',
           code: SsiExceptionType.invalidDidCheqd.code,
         );
       }
-
-      // Create Ed25519 key pair for signing
-      final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
 
       // Process each signing request
       final signingResponse = <String, Map<String, dynamic>>{};
@@ -371,14 +426,13 @@ class DidCheqd {
         final request = entry.value as Map<String, dynamic>;
 
         final kid = request['kid'] as String;
-        final alg = request['alg'] as String;
         final serializedPayload = request['serializedPayload'] as String;
 
         // Decode the base64 payload
         final payloadBytes = base64Decode(serializedPayload);
 
-        // Sign the payload
-        final signature = await keyPair.sign(payloadBytes);
+        // Sign the payload using the provided signing function
+        final signature = await signingFunction(payloadBytes);
 
         // Add to signing response with the correct structure
         signingResponse[requestId] = {
@@ -429,6 +483,9 @@ class DidCheqd {
           code: SsiExceptionType.invalidDidCheqd.code,
         );
       }
+      
+      // If we get here, the signature was submitted but registration is still pending
+      return null;
     } catch (e) {
       if (e is SsiException) {
         rethrow;
@@ -439,4 +496,44 @@ class DidCheqd {
       );
     }
   }
+
+  /// Generates a unique DID identifier using UUID v4 format.
+  ///
+  /// Returns a UUID v4 string that can be used as a DID identifier.
+  static String _generateDidIdentifier() {
+    final random = Random.secure();
+    final uuidBytes = Uint8List(16);
+    for (int i = 0; i < 16; i++) {
+      uuidBytes[i] = random.nextInt(256);
+    }
+
+    // Set version (4) and variant bits for UUID v4
+    uuidBytes[6] = (uuidBytes[6] & 0x0f) | 0x40; // Version 4
+    uuidBytes[8] = (uuidBytes[8] & 0x3f) | 0x80; // Variant bits
+
+    // Convert to proper UUID string format (hex)
+    return [
+      uuidBytes
+          .sublist(0, 4)
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join(''),
+      uuidBytes
+          .sublist(4, 6)
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join(''),
+      uuidBytes
+          .sublist(6, 8)
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join(''),
+      uuidBytes
+          .sublist(8, 10)
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join(''),
+      uuidBytes
+          .sublist(10, 16)
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join(''),
+    ].join('-');
+  }
+
 }
