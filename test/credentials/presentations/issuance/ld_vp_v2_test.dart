@@ -40,9 +40,8 @@ void main() async {
       expect(issuedPresentation.serialized, isNotNull);
       expect(issuedPresentation.serialized, isA<String>());
       expect(issuedPresentation.holder, isNotNull);
-      expect(issuedPresentation.context.uris, isNotEmpty);
-      expect(dmV2ContextUrl,
-          isIn(issuedPresentation.context.uris.first.toString()));
+      expect(issuedPresentation.context.firstUri, isNotNull);
+      expect(dmV2ContextUrl, isIn(issuedPresentation.context.context));
       expect(issuedPresentation.proof, isNotEmpty);
     });
 

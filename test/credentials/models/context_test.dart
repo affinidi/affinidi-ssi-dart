@@ -1,145 +1,295 @@
+import 'dart:convert';
+
+import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
+
+import '../../fixtures/context_fixtures.dart';
+import '../../test_utils.dart';
 
 void main() {
   group('JsonLdContext', () {
-    test('fromJson with a single URI string', () {
-      final ctx = JsonLdContext.fromJson('https://example.org/context');
-      expect(ctx.uris, hasLength(1));
-      expect(ctx.uris.first.toString(), equals('https://example.org/context'));
-      expect(ctx.terms, isEmpty);
-      final json = ctx.toJson();
-      expect(json, isA<List>());
-      expect(json, equals(['https://example.org/context']));
+    test('Single string URI context', () {
+      final context = JsonLdContext.fromJson(['https://example.com/context']);
+      expect(context.firstUri.toString(), 'https://example.com/context');
+      expect(context.toJson(), ['https://example.com/context']);
+      expect(context.hasUrlContext(Uri.parse('https://example.com/context')),
+          isTrue);
     });
 
-    test('fromJson with terms map only', () {
-      final input = {
-        '@vocab': 'https://schema.org/',
-        'name': 'schema:name',
-      };
-      final ctx = JsonLdContext.fromJson(input);
-      expect(ctx.uris, isEmpty);
-      expect(ctx.terms, hasLength(2));
-      expect(ctx['@vocab'], equals('https://schema.org/'));
-      expect(ctx['name'], equals('schema:name'));
-
-      final json = ctx.toJson();
-      expect(json, isA<Map>());
-      expect((json as Map)['@vocab'], equals('https://schema.org/'));
+    test('List with string URIs', () {
+      final context = JsonLdContext.fromJson(
+          ['https://example.com/context', 'https://example.com/other']);
+      expect(context.firstUri.toString(), 'https://example.com/context');
+      expect(context.hasUrlContext(Uri.parse('https://example.com/other')),
+          isTrue);
+      expect(context.hasUrlContext(Uri.parse('https://not-in-context.com')),
+          isFalse);
     });
 
-    test('fromJson with mixed list of uris and term objects', () {
-      final input = [
-        'https://www.w3.org/ns/credentials/v2',
-        {'@vocab': 'https://schema.org/'},
-        'https://example.org/extra',
-        {'name': 'schema:name'}
-      ];
-
-      final ctx = JsonLdContext.fromJson(input);
-
-      expect(ctx.uris, hasLength(2));
+    test('List with first element as a map throws exception (VC compliance)',
+        () {
       expect(
-          ctx.uris.map((u) => u.toString()).toList(),
-          containsAll([
-            'https://www.w3.org/ns/credentials/v2',
-            'https://example.org/extra'
-          ]));
-
-      expect(ctx.terms, hasLength(2));
-      expect(ctx['@vocab'], equals('https://schema.org/'));
-      expect(ctx['name'], equals('schema:name'));
-
-      final json = ctx.toJson();
-      expect(json, isA<List>());
-      final listJson = json as List;
-      expect(listJson.last, isA<Map>());
-      expect((listJson.last as Map)['@vocab'], equals('https://schema.org/'));
-      expect(
-          listJson.sublist(0, 2),
-          equals([
-            'https://www.w3.org/ns/credentials/v2',
-            'https://example.org/extra',
-          ]));
+          () => JsonLdContext.fromJson([
+                {'@vocab': 'https://schema.org/'},
+                'https://example.com/context'
+              ]),
+          throwsA(isA<SsiException>().having((e) => e.message, 'message',
+              contains('first element of @context must be a string URI'))));
     });
 
-    test('null input yields empty context and toJson returns {}', () {
-      final ctx = JsonLdContext.fromJson(null);
-      expect(ctx.uris, isEmpty);
-      expect(ctx.terms, isEmpty);
-      expect(ctx.toJson(), equals({}));
-    });
-
-    test('JsonLdContext is immutable (unmodifiable views)', () {
-      final ctx = JsonLdContext.fromJson({
-        '@vocab': 'https://schema.org/',
-      });
-
-      expect(ctx.uris, isA<Iterable>());
-      expect(() => (ctx.uris as dynamic).add(Uri.parse('https://a')),
-          throwsUnsupportedError);
-
-      expect(ctx.terms, isA<Map>());
+    test('Passing top-level map throws exception', () {
       expect(
-          () => (ctx.terms as dynamic)['foo'] = 'bar', throwsUnsupportedError);
-    });
-
-    test('unsupported context type throws SsiException', () {
-      expect(
-        () => JsonLdContext.fromJson(123),
-        throwsA(predicate((e) {
-          if (e is SsiException) {
-            final msg = e.message.toString();
-            return msg.contains('Unsupported @context type') &&
-                msg.contains('int');
-          }
-          return false;
-        })),
-      );
+          () => JsonLdContext.fromJson({'@vocab': 'https://schema.org/'}),
+          throwsA(isA<SsiException>().having((e) => e.message, 'message',
+              contains('Top-level @context must be a string URI or a list'))));
     });
   });
 
   group('MutableJsonLdContext', () {
-    test('fromJson with terms and mutability', () {
-      final ctx = MutableJsonLdContext.fromJson({
+    test('Mutable context from list', () {
+      final context = MutableJsonLdContext.fromJson([
+        'https://example.com/context',
+        {'@vocab': 'https://schema.org/'}
+      ]);
+      expect(context.firstUri.toString(), 'https://example.com/context');
+
+      (context.context as List)[1] = {
         '@vocab': 'https://schema.org/',
-        'name': 'schema:name',
-      });
-
-      expect(ctx.uris, isEmpty);
-      expect(ctx.terms, hasLength(2));
-      expect(ctx['name'], equals('schema:name'));
-
-      ctx.terms['age'] = 'schema:age';
-      expect(ctx['age'], equals('schema:age'));
-      expect(ctx.keys, containsAll(['@vocab', 'name', 'age']));
-
-      final json = ctx.toJson();
-      expect(json, isA<Map>());
-      expect((json as Map)['age'], equals('schema:age'));
+        'age': 'schema:age'
+      };
+      expect((context.context as List)[1],
+          {'@vocab': 'https://schema.org/', 'age': 'schema:age'});
     });
 
-    test('mutating uris reflected in toJson when terms also exist', () {
-      final ctx =
-          MutableJsonLdContext.fromJson(['https://example.org/context']);
+    test('Single string mutable context as list', () {
+      final context =
+          MutableJsonLdContext.fromJson(['https://example.com/context']);
+      expect(context.firstUri.toString(), 'https://example.com/context');
 
-      ctx.terms['foo'] = 'bar';
-      ctx.uris.add(Uri.parse('https://extra.org/c'));
+      context.context = ['https://example.org/new'];
+      expect(context.firstUri.toString(), 'https://example.org/new');
+      expect(context.toJson(), ['https://example.org/new']);
+    });
 
-      final json = ctx.toJson();
-      expect(json, isA<List>());
-
-      final listJson = json as List;
+    test('List with first element as map throws exception', () {
       expect(
-          listJson.sublist(0, 2),
-          equals([
-            'https://example.org/context',
-            'https://extra.org/c',
-          ]));
-      expect(listJson.last, isA<Map>());
-      expect((listJson.last as Map)['foo'], equals('bar'));
+          () => MutableJsonLdContext.fromJson([
+                {'@vocab': 'https://schema.org/'},
+                'https://example.com/context'
+              ]),
+          throwsA(isA<SsiException>().having((e) => e.message, 'message',
+              contains('first element of @context must be a string URI'))));
+    });
+
+    test('Passing top-level map throws exception', () {
+      expect(
+          () =>
+              MutableJsonLdContext.fromJson({'@vocab': 'https://schema.org/'}),
+          throwsA(isA<SsiException>().having((e) => e.message, 'message',
+              contains('Top-level @context must be a string URI or a list'))));
+    });
+  });
+  group('Complex Context Example', () {
+    final seed = hexDecode(
+      'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
+    );
+
+    test('Context1', () async {
+      final signer = await initSigner(seed);
+      final credential = MutableVcDataModelV1(
+        context: MutableJsonLdContext.fromJson(context1),
+        id: Uri.parse('uuid:123456abcd'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        issuer: Issuer.uri(signer.did),
+        holder: MutableHolder.uri('did:example:1'),
+        issuanceDate: DateTime.now().toUtc(),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'data': {
+              '@type': ['Person', 'PersonE', 'NamePerson'],
+              'givenName': 'DenisUpdated',
+              'familyName': 'Popov',
+            },
+          }),
+        ],
+        credentialSchema: [
+          MutableCredentialSchema(
+            id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+            type: 'JsonSchemaValidator2018',
+          ),
+        ],
+      );
+
+      final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
+      final issuedCredential = await LdVcDm1Suite().issue(
+        unsignedData: VcDataModelV1.fromMutable(credential),
+        proofGenerator: proofGenerator,
+      );
+
+      final json = jsonEncode(issuedCredential.toJson());
+
+      final verifiableCredential = UniversalParser.parse(json.toString());
+
+      final verifier = VcIntegrityVerifier();
+      final result = await verifier.verify(verifiableCredential);
+
+      expect(result.isValid, true);
+      expect(result.errors.length, 0);
+      expect(result.warnings.length, 0);
+    });
+
+    test('Context2', () async {
+      final signer = await initSigner(seed);
+      final credential = MutableVcDataModelV1(
+        context: MutableJsonLdContext.fromJson(context1),
+        id: Uri.parse('uuid:123456abcd'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        issuer: Issuer.uri(signer.did),
+        holder: MutableHolder.uri('did:example:1'),
+        issuanceDate: DateTime.now().toUtc(),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'data': {
+              '@type': ['Person', 'PersonE', 'NamePerson'],
+              'givenName': 'DenisUpdated',
+              'familyName': 'Popov',
+            },
+          }),
+        ],
+        credentialSchema: [
+          MutableCredentialSchema(
+            id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+            type: 'JsonSchemaValidator2018',
+          ),
+        ],
+      );
+
+      final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
+      final issuedCredential = await LdVcDm1Suite().issue(
+        unsignedData: VcDataModelV1.fromMutable(credential),
+        proofGenerator: proofGenerator,
+      );
+
+      final json = jsonEncode(issuedCredential.toJson());
+
+      final verifiableCredential = UniversalParser.parse(json.toString());
+
+      final verifier = VcIntegrityVerifier();
+      final result = await verifier.verify(verifiableCredential);
+
+      expect(result.isValid, true);
+      expect(result.errors.length, 0);
+      expect(result.warnings.length, 0);
+    });
+
+    test('Context3', () async {
+      final signer = await initSigner(seed);
+      final credential = MutableVcDataModelV1(
+        context: MutableJsonLdContext.fromJson(context1),
+        id: Uri.parse('uuid:123456abcd'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        issuer: Issuer.uri(signer.did),
+        holder: MutableHolder.uri('did:example:1'),
+        issuanceDate: DateTime.now().toUtc(),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'data': {
+              '@type': ['Person', 'PersonE', 'NamePerson'],
+              'givenName': 'DenisUpdated',
+              'familyName': 'Popov',
+            },
+          }),
+        ],
+        credentialSchema: [
+          MutableCredentialSchema(
+            id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+            type: 'JsonSchemaValidator2018',
+          ),
+        ],
+      );
+
+      final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
+      final issuedCredential = await LdVcDm1Suite().issue(
+        unsignedData: VcDataModelV1.fromMutable(credential),
+        proofGenerator: proofGenerator,
+      );
+
+      final json = jsonEncode(issuedCredential.toJson());
+
+      final verifiableCredential = UniversalParser.parse(json.toString());
+
+      final verifier = VcIntegrityVerifier();
+      final result = await verifier.verify(verifiableCredential);
+
+      expect(result.isValid, true);
+      expect(result.errors.length, 0);
+      expect(result.warnings.length, 0);
+    });
+
+    test('Context4 invalid', () async {
+      final signer = await initSigner(seed);
+
+      final credential = MutableVcDataModelV2(
+        context: MutableJsonLdContext.fromJson([
+          'https://www.w3.org/ns/credentials/v2',
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+        ]),
+        id: Uri.parse('uuid:123456abcd'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        issuer: Issuer.uri(signer.did),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'Fname': 'Fname',
+            'Lname': 'Lame',
+            'Age': '22',
+            'Address': 'Eihhornstr'
+          }),
+        ],
+        credentialSchema: [
+          MutableCredentialSchema(
+            id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+            type: 'JsonSchemaValidator2018',
+          ),
+        ],
+      );
+
+      final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
+      final issuedCredential = await LdVcDm2Suite().issue(
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        proofGenerator: proofGenerator,
+      );
+
+      final json = jsonEncode(issuedCredential.toJson());
+
+      final ldV2VC = UniversalParser.parse(json.toString());
+
+      final v2Vp = MutableVpDataModelV2(
+        context: MutableJsonLdContext.fromJson(
+            'https://www.w3.org/ns/credentials/v2'),
+        id: Uri.parse('testVpV1Id'),
+        type: {'VerifiablePresentation'},
+        holder: MutableHolder.uri(signer.did),
+        verifiableCredential: [ldV2VC],
+      );
+
+      final vpProofGenerator = Secp256k1Signature2019Generator(
+        signer: signer,
+      );
+
+      final vpToSign = VpDataModelV2.fromMutable(v2Vp);
+      final issuedVp = await LdVpDm2Suite()
+          .issue(unsignedData: vpToSign, proofGenerator: vpProofGenerator);
+
+      final issuedVpString = issuedVp.serialized;
+      final verificationStatus = await VpIntegrityVerifier()
+          .verify(UniversalPresentationParser.parse(issuedVpString));
+
+      expect(verificationStatus.isValid, true);
+      expect(verificationStatus.errors.length, 0);
+      expect(verificationStatus.warnings.length, 0);
     });
   });
 }

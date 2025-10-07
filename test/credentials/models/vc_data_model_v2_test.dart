@@ -334,7 +334,7 @@ void main() {
         evidence: evidences,
       );
       final map = vc.toJson();
-      expect(map['@context'], ctx.uris.map((u) => u.toString()).toList());
+      expect(map['@context'], ctx.context);
       expect(map['id'], id.toString());
       expect(map['type'], type);
       expect(map['issuer'], issuer.toJson());
@@ -408,7 +408,7 @@ void main() {
         evidence: evidences,
       );
       final map = vc.toJson();
-      expect(map['@context'], ctx.uris.map((u) => u.toString()).toList());
+      expect(map['@context'], ctx.toJson());
       expect(map['id'], id.toString());
       expect(map['type'], type);
       expect(map['issuer'], issuer.toJson());
@@ -457,7 +457,7 @@ void main() {
       final map = vcOriginal.toJson();
 
       final parsed = VcDataModelV2.fromJson(map);
-      expect(parsed.context.uris, ctx.uris);
+      expect(parsed.context.firstUri, ctx.firstUri);
       expect(parsed.id.toString(), 'id');
       expect(parsed.type, ['t']);
       expect(parsed.proof.length, 2);
@@ -493,7 +493,7 @@ void main() {
       );
       final map = vcOriginal.toJson();
       final parsed = VcDataModelV2.fromJson(map);
-      expect(parsed.context.uris, ctx.uris);
+      expect(parsed.context.firstUri, ctx.firstUri);
       expect(parsed.id.toString(), 'id');
       expect(parsed.proof.length, 1);
       expect(parsed.proof.first.type, proof.first.type);
@@ -511,7 +511,7 @@ void main() {
         'credentialSubject': {'id': 'did:example:subjectV2'}
       };
       final parsed = VcDataModelV2.fromJson(map);
-      expect([parsed.context.uris.first.toString()], ctx);
+      expect([parsed.context.firstUri.toString()], ctx);
       expect(parsed.id.toString(), 'id');
       expect(parsed.validUntil, isNull);
       expect(parsed.credentialSchema, isEmpty);

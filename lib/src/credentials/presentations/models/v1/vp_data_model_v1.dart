@@ -76,14 +76,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
-    if (context.uris.isEmpty && context.terms.isEmpty) {
-      throw SsiException(
-        message: '`${_P.context.key}` property is mandatory',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
-
-    if (context.uris.first.toString() != dmV1ContextUrl) {
+    if (context.firstUri.toString() != dmV1ContextUrl) {
       throw SsiException(
         message:
             'The first URI of `${_P.context.key}` property should always be $dmV1ContextUrl',

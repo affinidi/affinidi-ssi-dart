@@ -1,130 +1,119 @@
-import 'dart:collection';
-
 import '../../../exceptions/ssi_exception.dart';
 import '../../../exceptions/ssi_exception_type.dart';
 
-/// Interface for JSON-LD `@context`.
+/// Base interface for JSON-LD `@context`.
 ///
-/// Provides access to the list of context URIs and merged term definitions,
-/// along with a method to serialize back to JSON.
+/// This interface provides access to the stored context and the
+/// first URI, along with serialization to JSON.
 abstract interface class _JsonLdContextInterface {
-  /// Context URIs in encounter order.
-  List<Uri> get uris;
-
-  /// Merged term and reserved-key mappings (e.g., `"@vocab"`, `"@base"`, `"name"`).
-  Map<String, Object?> get terms;
-
-  /// Map-style access to [terms].
-  Object? operator [](Object? key);
-
-  /// Keys of [terms].
-  Iterable<String> get keys;
-
-  /// Converts this context back to a JSON-serializable `@context` object.
+  /// Returns the stored JSON-LD context.
   ///
-  /// Returns:
-  /// - `[]` of URI strings when only URIs are present,
-  /// - the terms object when only terms are present,
-  /// - `[uris..., terms]` when both are present,
-  /// - `{}` when empty.
-  Object? toJson();
+  /// Can be a [String] URI, a [Map] of term definitions, or a [List] of
+  /// URIs and/or term maps.
+  Object get context;
+
+  /// Returns the first URI in the context, if any.
+  ///
+  /// Searches the stored [context] for the first string URI.
+  /// Returns `null` if no string URI is found.
+  Uri? get firstUri;
+
+  /// Serializes the stored context back to a JSON-compatible object.
+  ///
+  /// Returns the original [context] value.
+  Object toJson() => context;
 }
 
 /// Represents an immutable JSON-LD `@context`.
 ///
-/// A JSON-LD context defines mappings from terms to IRIs, along with reserved
-/// keywords. This class parses and stores both context URIs and merged terms.
+/// Stores the context and provides access to the first URI as well as JSON
+/// serialization. Throws an exception if the first element of a list is not
+/// a string URI to comply with VC 1.1 specification.
 ///
 /// Example:
 /// ```dart
 /// final context = JsonLdContext.fromJson(
-///   ["https://www.w3.org/ns/credentials/v2", {"@vocab":"https://schema.org/"}],
+///   ["https://www.w3.org/ns/credentials/v2", {"@vocab": "https://schema.org/"}],
 /// );
-/// print(context.uris);   // [https://www.w3.org/ns/credentials/v2]
-/// print(context.terms);  // {@vocab: https://schema.org/}
+/// print(context.firstUri); // https://www.w3.org/ns/credentials/v2
 /// ```
 class JsonLdContext extends _JsonLdContextInterface {
+  /// The stored JSON-LD context.
   @override
-  final UnmodifiableListView<Uri> uris;
+  final Object context;
 
+  /// Private constructor to enforce creation via `fromJson`.
+  JsonLdContext._(this.context);
+
+  /// Returns the first string URI in the context.
+  ///
+  /// If [context] is a string, parses and returns it as a [Uri].
+  /// If [context] is a list, returns the first element as a [Uri] (VC-compliant).
+  /// Returns `null` if no string URI is present.
   @override
-  final UnmodifiableMapView<String, Object?> terms;
+  Uri? get firstUri {
+    if (context is String) return Uri.tryParse(context as String);
 
-  JsonLdContext._(this.uris, this.terms);
+    if (context is List) {
+      final list = context as List<dynamic>;
+      if (list.isNotEmpty && list.first is String) {
+        return Uri.tryParse(list.first as String);
+      }
+    }
 
-  /// Creates a [JsonLdContext] from JSON data.
+    return null;
+  }
+
+  /// Creates an immutable JSON-LD context from a JSON object.
   ///
-  /// Accepts a JSON value representing a `@context`:
-  /// - string  a single URI
-  /// - object  term mappings
-  /// - array   mix of URIs and objects
+  /// Accepts a [String] URI, a [Map] of term definitions, or a [List] of URIs
+  /// and/or term maps.
   ///
-  /// Example:
-  /// ```dart
-  /// final context = JsonLdContext.fromJson("https://www.w3.org/2018/credentials/v1");
-  /// ```
+  /// Throws [SsiException] if [json] is `null`, not a valid type, or if the
+  /// first element of a list is not a string URI (VC-compliant).
   factory JsonLdContext.fromJson(Object? json) {
-    final uris = <Uri>[];
-    final terms = <String, Object?>{};
+    if (json == null) {
+      throw SsiException(
+        message: '"@context" cannot be null',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
 
-    void process(Object? ctx) {
-      if (ctx is String) {
-        uris.add(Uri.parse(ctx));
-      } else if (ctx is List) {
-        for (final item in ctx) {
-          process(item);
-        }
-      } else if (ctx is Map) {
-        ctx.forEach((key, val) {
-          terms[key as String] = val;
-        });
-      } else if (ctx == null) {
-        // JSON-LD allows explicit context reset.
-      } else {
+    if (json is! String && json is! List) {
+      throw SsiException(
+        message:
+            'Top-level @context must be a string URI or a list of URIs/maps',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    final normalized = json is List ? List<Object>.from(json) : json;
+
+    // VC-compliant check: first element must be string if it's a list
+    if (normalized is List && normalized.isNotEmpty) {
+      final first = normalized.first;
+      if (first is! String) {
         throw SsiException(
-          message: 'Unsupported @context type: ${ctx.runtimeType}',
-          code: SsiExceptionType.unsupportedContext.code,
+          message:
+              'The first element of @context must be a string URI, but found ${first.runtimeType}',
+          code: SsiExceptionType.invalidJson.code,
         );
       }
     }
 
-    process(json);
-
-    return JsonLdContext._(
-      UnmodifiableListView(uris),
-      UnmodifiableMapView(terms),
-    );
+    return JsonLdContext._(normalized);
   }
 
-  @override
-  Object? operator [](Object? key) => terms[key];
-
-  @override
-  Iterable<String> get keys => terms.keys;
-
-  @override
-  Object? toJson() {
-    final hasTerms = terms.isNotEmpty;
-
-    if (!hasTerms) {
-      if (uris.isEmpty) return {};
-      return uris.map((u) => u.toString()).toList();
-    }
-
-    if (uris.isEmpty) return terms;
-
-    final list = <Object>[];
-    list.addAll(uris.map((u) => u.toString()));
-    list.add(terms);
-    return list.length == 1 ? list.first : list;
-  }
-
-  /// Checks if the context contains the given URL.
+  /// Checks whether the context contains the given [url].
+  ///
+  /// Returns `true` if [context] matches [url] directly (when string), or
+  /// if [url] is found as a string in a list of context elements.
   bool hasUrlContext(Uri url) {
-    for (final c in uris) {
-      var urlStr = url.toString();
-      if (c.toString() == urlStr) {
-        return true;
+    final urlStr = url.toString();
+    if (context is String) return context == urlStr;
+    if (context is List) {
+      for (final element in context as List<dynamic>) {
+        if (element is String && element == urlStr) return true;
       }
     }
     return false;
@@ -133,91 +122,99 @@ class JsonLdContext extends _JsonLdContextInterface {
 
 /// Represents a mutable JSON-LD `@context`.
 ///
-/// Unlike [JsonLdContext], this class allows modification of [uris] and [terms].
+/// Unlike [JsonLdContext], this class allows modification of the stored context,
+/// which can be a [Map], [List], or [String]. Mutations are performed by
+/// directly updating the [context] property.
 ///
 /// Example:
 /// ```dart
 /// final context = MutableJsonLdContext.fromJson(
 ///   {"@vocab": "https://schema.org/", "name": "schema:name"},
 /// );
-/// context.terms["age"] = "schema:age";
+/// (context.context as Map)['age'] = 'schema:age';
+/// print(context.toJson()); // {"@vocab": "https://schema.org/", "name":"schema:name", "age":"schema:age"}
 /// ```
 class MutableJsonLdContext extends _JsonLdContextInterface {
+  /// The mutable stored JSON-LD context.
   @override
-  final List<Uri> uris;
+  Object context;
 
-  @override
-  final Map<String, Object?> terms;
+  /// Private constructor to enforce creation via `fromJson`.
+  MutableJsonLdContext._(this.context);
 
-  MutableJsonLdContext._(this.uris, this.terms);
-
-  /// Creates a [MutableJsonLdContext] from JSON data.
+  /// Returns the first string URI in the context.
   ///
-  /// Accepts a JSON value representing a `@context`:
-  /// - string  a single URI
-  /// - object  term mappings
-  /// - array   mix of URIs and objects
-  factory MutableJsonLdContext.fromJson(Object? json) {
-    final uris = <Uri>[];
-    final terms = <String, Object?>{};
+  /// Works the same as [JsonLdContext.firstUri].
+  @override
+  Uri? get firstUri {
+    if (context is String) return Uri.tryParse(context as String);
 
-    void process(Object? ctx) {
-      if (ctx is String) {
-        uris.add(Uri.parse(ctx));
-      } else if (ctx is List) {
-        for (final item in ctx) {
-          process(item);
-        }
-      } else if (ctx is Map) {
-        ctx.forEach((key, val) {
-          terms[key as String] = val;
-        });
-      } else if (ctx == null) {
-        // JSON-LD allows explicit context reset.
-      } else {
+    if (context is List) {
+      final list = context as List<dynamic>;
+      if (list.isNotEmpty && list.first is String) {
+        return Uri.tryParse(list.first as String);
+      }
+    }
+
+    return null;
+  }
+
+  /// Creates a mutable JSON-LD context from a JSON object.
+  ///
+  /// Accepts a [String] URI, a [Map] of term definitions, or a [List] of URIs
+  /// and/or term maps.
+  ///
+  /// Throws [SsiException] if [json] is `null`, not a valid type, or if the
+  /// first element of a list is not a string URI (VC-compliant).
+  factory MutableJsonLdContext.fromJson(Object? json) {
+    if (json == null) {
+      throw SsiException(
+        message: '"@context" cannot be null',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (json is! String && json is! List) {
+      throw SsiException(
+        message:
+            'Top-level @context must be a string URI or a list of URIs/maps',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    final normalized = json is List ? List<Object>.from(json) : json;
+
+    // VC-compliant check: first element must be string if it's a list
+    if (normalized is List && normalized.isNotEmpty) {
+      final first = normalized.first;
+      if (first is! String) {
         throw SsiException(
-          message: 'Unsupported @context type: ${ctx.runtimeType}',
-          code: SsiExceptionType.unsupportedContext.code,
+          message:
+              'The first element of @context must be a string URI, but found ${first.runtimeType}',
+          code: SsiExceptionType.invalidJson.code,
         );
       }
     }
 
-    process(json);
-
-    return MutableJsonLdContext._(uris, terms);
+    return MutableJsonLdContext._(normalized);
   }
 
-  @override
-  Object? operator [](Object? key) => terms[key];
-
-  @override
-  Iterable<String> get keys => terms.keys;
-
-  @override
-  Object? toJson() {
-    final hasTerms = terms.isNotEmpty;
-
-    if (!hasTerms) {
-      if (uris.isEmpty) return {};
-      return uris.map((u) => u.toString()).toList();
-    }
-
-    if (uris.isEmpty) return terms;
-
-    final list = <Object>[];
-    list.addAll(uris.map((u) => u.toString()));
-    list.add(terms);
-    return list.length == 1 ? list.first : list;
-  }
-
-  /// Checks if the context contains the given URL.
+  /// Checks whether the context contains the given [url].
+  ///
+  /// Returns `true` if [context] matches [url] directly (when string), or
+  /// if [url] is found as a string in a list of context elements.
   bool hasUrlContext(Uri url) {
-    for (final c in uris) {
-      var urlStr = url.toString();
-      if (c is String && c.toString() == urlStr) {
-        return true;
+    final urlStr = url.toString();
+    if (context is String) return context == urlStr;
+    if (context is List) {
+      for (final element in context as List<dynamic>) {
+        if (element is String && element == urlStr) return true;
       }
     }
     return false;
   }
+
+  /// Returns the current JSON representation of the context.
+  @override
+  Object toJson() => context;
 }
