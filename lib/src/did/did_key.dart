@@ -1,8 +1,8 @@
 import 'package:base_codecs/base_codecs.dart';
 
+import '../credentials/models/field_types/context.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
-import '../json_ld/context.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../utility.dart';
@@ -50,7 +50,7 @@ DidDocument _buildEDDoc(
   );
 
   return DidDocument.create(
-    context: Context.fromJson(context),
+    context: JsonLdContext.fromJson(context),
     id: id,
     verificationMethod: [verification, keyAgreement],
     assertionMethod: [verificationKeyId],
@@ -84,7 +84,7 @@ DidDocument _buildXDoc(
     publicKeyMultibase: 'z$keyPart',
   );
   return DidDocument.create(
-    context: Context.fromJson(context),
+    context: JsonLdContext.fromJson(context),
     id: id,
     verificationMethod: [verification],
     keyAgreement: [verificationKeyId],
@@ -116,7 +116,7 @@ DidDocument _buildOtherDoc(
     publicKeyMultibase: 'z$keyPart',
   );
   return DidDocument.create(
-    context: Context.fromJson(context),
+    context: JsonLdContext.fromJson(context),
     id: id,
     verificationMethod: [verification],
     assertionMethod: [verificationKeyId],

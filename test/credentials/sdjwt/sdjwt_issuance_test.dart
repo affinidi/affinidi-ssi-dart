@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -20,7 +21,7 @@ void main() {
 
     test('can issue a credential with default options', () async {
       final credential = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'UniversityDegreeCredential'},
@@ -66,7 +67,7 @@ void main() {
 
     test('can issue a credential with custom disclosure frame', () async {
       final credential = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'UniversityDegreeCredential'},
@@ -114,7 +115,7 @@ void main() {
 
     test('handles errors when issuing with invalid credential data', () async {
       final invalidCredential = MutableVcDataModelV2(
-        context: [],
+        context: MutableJsonLdContext.fromJson([]),
         issuer: Issuer.uri(''),
         type: {},
       );

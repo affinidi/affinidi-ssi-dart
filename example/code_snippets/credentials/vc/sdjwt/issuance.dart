@@ -2,6 +2,7 @@
 
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
 import 'package:ssi/src/credentials/models/field_types/issuer.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
@@ -18,7 +19,7 @@ void main() async {
 
   // Create a mutable VC
   final mutableVC = MutableVcDataModelV2(
-    context: [dmV2ContextUrl],
+    context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
     id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
     issuer: Issuer.uri(signer.did),
     type: {'VerifiableCredential', 'UniversityDegreeCredential'},

@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../did/did_signer.dart';
@@ -23,7 +24,7 @@ Future<void> main() async {
 
   // Create a Verifiable Presentation (V2)
   final v2Vp = MutableVpDataModelV2(
-      context: [dmV2ContextUrl],
+      context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
       id: Uri.parse('testVpV2'),
       type: {'VerifiablePresentation'},
       holder: MutableHolder.uri(signer.did),

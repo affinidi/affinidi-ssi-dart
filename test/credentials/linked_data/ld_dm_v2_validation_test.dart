@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -22,7 +23,7 @@ void main() {
 
     test('Throws when context is empty', () {
       final credentialWithEmptyContext = MutableVcDataModelV2(
-        context: [],
+        context: MutableJsonLdContext.fromJson([]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
         type: {'VerifiableCredential'},
@@ -42,7 +43,8 @@ void main() {
 
     test('Throws when context does not include required URL', () {
       final credentialWithWrongContext = MutableVcDataModelV2(
-        context: ['https://www.w3.org/2018/credentials/v1'],
+        context: MutableJsonLdContext.fromJson(
+            ['https://www.w3.org/2018/credentials/v1']),
         // Wrong context URL
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
@@ -63,7 +65,7 @@ void main() {
 
     test('Throws when type is empty', () {
       final credentialWithEmptyType = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
         type: {},
@@ -83,7 +85,7 @@ void main() {
 
     test('Throws when issuer is empty', () {
       final credentialWithEmptyIssuer = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri(''),
         type: {'VerifiableCredential'},
@@ -106,7 +108,7 @@ void main() {
 
     test('Throws when credentialSubject is empty', () {
       final credentialWithEmptySubject = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
         type: {'VerifiableCredential'},
@@ -121,7 +123,7 @@ void main() {
 
     test('Reports multiple validation errors at once', () {
       final credentialWithMultipleErrors = MutableVcDataModelV2(
-        context: [],
+        context: MutableJsonLdContext.fromJson([]),
         issuer: MutableIssuer.uri(''),
         type: {},
         credentialSubject: [],
