@@ -38,10 +38,33 @@ class P521KeyPair extends KeyPair {
   /// Creates a [P521KeyPair] instance from a seed.
   factory P521KeyPair.fromSeed(Uint8List seed, {String? id}) {
     final digest = pc.Digest('SHA-512');
-    final privateKeyBytes = digest.process(seed);
-    final effectiveId = id ?? randomId();
-    return P521KeyPair._(
-        ec.PrivateKey.fromBytes(_p521, privateKeyBytes), effectiveId);
+
+    // Rejection sampling to ensure private key is in [1, n-1]
+    // Start with SHA-512(seed), and if invalid, retry with SHA-512(seed || counter).
+    Uint8List candidate = digest.process(seed);
+    final n = _p521.n; // Curve order
+
+    int counter = 0;
+    while (true) {
+      // Interpret candidate as big-endian integer
+      BigInt k = BigInt.zero;
+      for (final b in candidate) {
+        k = (k << 8) + BigInt.from(b);
+      }
+
+      if (k > BigInt.zero && k < n) {
+        final effectiveId = id ?? randomId();
+        return P521KeyPair._(
+            ec.PrivateKey.fromBytes(_p521, candidate), effectiveId);
+      }
+
+      // Not in range; derive a new candidate deterministically
+      counter = (counter + 1) & 0xff;
+      final data = Uint8List(seed.length + 1)
+        ..setRange(0, seed.length, seed)
+        ..[seed.length] = counter;
+      candidate = digest.process(data);
+    }
   }
 
   /// Creates a [P521KeyPair] instance from a private key.
