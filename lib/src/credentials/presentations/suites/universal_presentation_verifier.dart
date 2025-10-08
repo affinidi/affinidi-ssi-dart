@@ -4,6 +4,7 @@ import '../../suites/universal_verifier.dart';
 import '../../verification/vc_verifier.dart';
 import '../models/parsed_vp.dart';
 import '../verification/delegation_vc_verifier.dart';
+import '../verification/holder_binding_verifier.dart';
 import '../verification/vp_expiry_verifier.dart';
 import '../verification/vp_integrity_verifier.dart';
 import '../verification/vp_verifier.dart';
@@ -37,6 +38,7 @@ final class UniversalPresentationVerifier {
           VpExpiryVerifier(),
           VpIntegrityVerifier(customDocumentLoader),
           DelegationVcVerifier(),
+          HolderBindingVerifier(),
         ],
       );
 

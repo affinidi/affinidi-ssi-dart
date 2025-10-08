@@ -21,7 +21,8 @@ Packages with other changes:
 
 #### `ssi` - `v3.0.0`
 
- - **BREAKING**: The `@context` field now accepts nested map objects, lists of maps, or mixed types (string + map), instead of only strings or list of strings.
+ - **BREAKING**: Top-level @context now **must be either a string URI or a list of URIs/maps**.
+ - **BREAKING**: The first element of a list must be a string URI, per VC specification.
  - **BREAKING**: Introduced `MutableJsonLdContext` and `JsonLdContext` classes.
  - **BREAKING**: Replace all `@context: []` with either:
      - `@context: MutableJsonLdContext.fromJson([])`  
