@@ -48,6 +48,8 @@ mixin JwtParser implements VerifiableDataParser<String, Jws> {
     final segments = input.split('.');
 
     if (segments.length != 3) {
+      print('segments.length: ${segments.length}');
+      print('segments: ${segments}');
       throw SsiException(
         message: 'Invalid JWT',
         code: SsiExceptionType.invalidVC.code,

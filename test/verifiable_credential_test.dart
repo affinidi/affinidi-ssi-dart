@@ -22,10 +22,13 @@ void main() {
         var data =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
 
-        final verifiableCredential = UniversalParser.parse(
-          VerifiableCredentialDataFixtures
-              .credentialWithProofDataModelV11JsonEncoded,
-        );
+        late ParsedVerifiableCredential verifiableCredential;
+        setUpAll(() {
+          verifiableCredential = UniversalParser.parse(
+             VerifiableCredentialDataFixtures
+                .credentialWithProofDataModelV11JsonEncoded,
+             );
+        });
 
         test(
           'it retrieves the correct issuer',
@@ -146,7 +149,11 @@ void main() {
 
     group('and receiving a JWT token', () {
       var data = VerifiableCredentialDataFixtures.jwtCredentialDataModelV11;
-      final verifiableCredential = UniversalParser.parse(data);
+      late ParsedVerifiableCredential verifiableCredential;
+      setUpAll(() {
+        print('and receiving a JWT token data: ${data}');
+        verifiableCredential = UniversalParser.parse(data);
+      });
 
       test(
         'it has correct signature',
@@ -299,7 +306,10 @@ void main() {
       group('with a proof', () {
         var data = VerifiableCredentialDataFixtures
             .credentialWithProofDataModelV20String;
-        final verifiableCredential = UniversalParser.parse(data);
+        late ParsedVerifiableCredential verifiableCredential;
+        setUpAll(() {
+          verifiableCredential = UniversalParser.parse(data);
+        });
         test(
           'it retrieves the correct issuer',
           () {
