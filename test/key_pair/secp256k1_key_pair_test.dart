@@ -37,6 +37,26 @@ void main() {
       expect(schemes, contains(SignatureScheme.ecdsa_secp256k1_sha256));
     });
 
+    group('fromSeed factory', () {
+      test('fromSeed should produce same public key as BIP32.fromSeed', () {
+        final kp = Secp256k1KeyPair.fromSeed(seed);
+        expect(kp.publicKey.type, KeyType.secp256k1);
+        expect(kp.publicKey.bytes, equals(rootNode.publicKey));
+      });
+
+      test('fromSeed should honor provided id', () {
+        final customId = 'custom-id-123';
+        final kp = Secp256k1KeyPair.fromSeed(seed, id: customId);
+        expect(kp.id, equals(customId));
+      });
+
+      test('fromSeed should throw on invalid seed length', () {
+        final badSeed = Uint8List.fromList(List.generate(20, (i) => i));
+        expect(() => Secp256k1KeyPair.fromSeed(badSeed),
+            throwsA(isA<ArgumentError>()));
+      });
+    });
+
     group('Test ECDH secret computation', () {
       late Secp256k1KeyPair keyPairAlice;
       late Secp256k1KeyPair keyPairBob;
