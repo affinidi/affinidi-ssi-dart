@@ -45,10 +45,33 @@ class P256KeyPair extends KeyPair {
   /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
   factory P256KeyPair.fromSeed(Uint8List seed, {String? id}) {
     final digest = pc.Digest('SHA-256');
-    final privateKeyBytes = digest.process(seed);
-    final effectiveId = id ?? randomId();
-    return P256KeyPair._(
-        ec.PrivateKey.fromBytes(_p256, privateKeyBytes), effectiveId);
+
+    // Rejection sampling to ensure private key is in [1, n-1]
+    // Start with SHA-256(seed), and if invalid, retry with SHA-256(seed || counter).
+    Uint8List candidate = digest.process(seed);
+    final n = _p256.n; // Curve order
+
+    int counter = 0;
+    while (true) {
+      // Interpret candidate as big-endian integer
+      BigInt k = BigInt.zero;
+      for (final b in candidate) {
+        k = (k << 8) + BigInt.from(b);
+      }
+
+      if (k > BigInt.zero && k < n) {
+        final effectiveId = id ?? randomId();
+        return P256KeyPair._(
+            ec.PrivateKey.fromBytes(_p256, candidate), effectiveId);
+      }
+
+      // Not in range; derive a new candidate deterministically
+      counter = (counter + 1) & 0xff;
+      final data = Uint8List(seed.length + 1)
+        ..setRange(0, seed.length, seed)
+        ..[seed.length] = counter;
+      candidate = digest.process(data);
+    }
   }
 
   /// Creates a [P256KeyPair] instance from a private key.
