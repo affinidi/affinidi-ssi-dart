@@ -2,7 +2,7 @@ name: release
 on:
   push:
     branches:
-      - main
+      - test/dart-security-scanner-reports
 jobs:
   dart-pipeline:
     uses: affinidi/pipeline-dart/.github/workflows/release.yaml@test/dart-security-scanner-reports
