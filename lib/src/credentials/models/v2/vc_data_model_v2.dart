@@ -157,13 +157,13 @@ class VcDataModelV2 implements VerifiableCredential {
     }
 
     final hasVerifiableCredential = type.any(
-          (t) => t.trim() == 'VerifiableCredential',
+      (t) => t.trim() == 'VerifiableCredential',
     );
 
     if (!hasVerifiableCredential) {
       throw SsiException(
         message:
-        '`${_P.type.key}` MUST include the value "VerifiableCredential" per VC Data Model v2.',
+            '`${_P.type.key}` MUST include the value "VerifiableCredential" per VC Data Model v2.',
         code: SsiExceptionType.invalidJson.code,
       );
     }
