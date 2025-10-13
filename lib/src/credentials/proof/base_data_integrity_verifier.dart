@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
+import 'package:pointycastle/api.dart';
 
 import '../../did/did_verifier.dart';
 import '../../did/public_key_utils.dart';
-import '../../digest_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
@@ -63,13 +63,6 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       return expiryResult;
     }
 
-    // Subclasses handle cryptosuite-specific validation
-    final cryptosuiteValidationResult =
-        await validateCryptosuite(document, proof);
-    if (!cryptosuiteValidationResult.isValid) {
-      return cryptosuiteValidationResult;
-    }
-
     final Uri verificationMethod;
     try {
       verificationMethod = Uri.parse(proof['verificationMethod'] as String);
@@ -86,12 +79,10 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    // Prepare proof for verification (subclasses handle cryptosuite-specific preparation)
-    final proofForVerification = prepareProofForVerification(proof, document);
+    proof['@context'] = contextUrl;
 
     final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-    final hash = await computeSignatureHash(
-        proofForVerification, copy, cacheLoadDocument);
+    final hash = await computeSignatureHash(proof, copy, cacheLoadDocument);
     final isValid = await verifySignature(
         originalProofValue as String, issuerDid, verificationMethod, hash);
 
@@ -169,26 +160,6 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
     }
     return VerificationResult.ok();
   }
-
-  /// Validates cryptosuite-specific requirements.
-  ///
-  /// Subclasses override this method to implement cryptosuite-specific validation logic.
-  /// Base implementation performs no additional validation.
-  Future<VerificationResult> validateCryptosuite(
-      Map<String, dynamic> document, Map<String, dynamic> proof) async {
-    return VerificationResult.ok();
-  }
-
-  /// Prepares proof structure for verification according to cryptosuite requirements.
-  ///
-  /// Subclasses override this method to implement cryptosuite-specific proof preparation.
-  /// Base implementation uses standard data integrity context.
-  Map<String, dynamic> prepareProofForVerification(
-      Map<String, dynamic> proof, Map<String, dynamic> document) {
-    final proofCopy = Map<String, dynamic>.from(proof);
-    proofCopy['@context'] = contextUrl;
-    return proofCopy;
-  }
 }
 
 /// Computes Data Integrity hash from proof and document.
@@ -205,9 +176,8 @@ Future<Uint8List> computeDataIntegrityHash(
       documentLoader: documentLoader,
     ),
   );
-  final proofConfigHash = DigestUtils.getDigest(
+  final proofConfigHash = Digest('SHA-256').process(
     utf8.encode(normalizedProof),
-    hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   final normalizedContent = await JsonLdProcessor.normalize(
@@ -217,9 +187,8 @@ Future<Uint8List> computeDataIntegrityHash(
       documentLoader: documentLoader,
     ),
   );
-  final transformedDocumentHash = DigestUtils.getDigest(
+  final transformedDocumentHash = Digest('SHA-256').process(
     utf8.encode(normalizedContent),
-    hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   return Uint8List.fromList(proofConfigHash + transformedDocumentHash);
@@ -235,18 +204,14 @@ Future<bool> verifyDataIntegritySignature(
 ) async {
   final signature = multiBaseToUint8List(proofValue);
 
-  final expectedSchemes = cryptosuiteToScheme[cryptosuite];
-  if (expectedSchemes == null || expectedSchemes.isEmpty) {
+  final expectedScheme = cryptosuiteToScheme[cryptosuite];
+  if (expectedScheme == null) {
     throw SsiException(
       message:
           'Unknown cryptosuite: $cryptosuite, cannot determine signature scheme.',
       code: SsiExceptionType.unsupportedSignatureScheme.code,
     );
   }
-
-  // For single-scheme cryptosuites, use the only scheme
-  // For multi-scheme cryptosuites, this should be handled by specialized verifiers
-  final expectedScheme = expectedSchemes.first;
 
   final verifier = await DidVerifier.create(
     algorithm: expectedScheme,

@@ -277,11 +277,11 @@ Packages with other changes:
 
 #### `ssi` - `v2.11.1`
 
- - **FIX**: jcs proof context (#175).
+ - **FIX**: proof context (#175).
 
 ## 2.11.1
 
- - **FIX**: jcs proof context (#175).
+ - **FIX**: proof context (#175).
 
 
 ## 2025-07-29
@@ -302,11 +302,11 @@ Packages with other changes:
 
 #### `ssi` - `v2.11.0`
 
- - **FEAT**: jcs variation (#170).
+ - **FEAT**: proof variation (#170).
 
 ## 2.11.0
 
- - **FEAT**: jcs variation (#170).
+ - **FEAT**: proof variation (#170).
 
 
 ## 2025-07-29

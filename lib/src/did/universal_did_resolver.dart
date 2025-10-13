@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -81,28 +80,16 @@ class UniversalDIDResolver implements DidResolver {
         );
       }
 
-      try {
-        final res = await http
-            .get(Uri.parse('$resolverAddress/1.0/identifiers/$did'))
-            .timeout(const Duration(seconds: 30));
+      final res = await http
+          .get(Uri.parse('$resolverAddress/1.0/identifiers/$did'))
+          .timeout(const Duration(seconds: 30));
 
-        if (res.statusCode == 200) {
-          final didResolution = jsonDecode(res.body);
-          return DidDocument.fromJson(didResolution['didDocument']);
-        } else {
-          throw SsiException(
-            message: 'Bad status code ${res.statusCode}',
-            code: SsiExceptionType.unableToResolveDid.code,
-          );
-        }
-      } on TimeoutException {
+      if (res.statusCode == 200) {
+        final didResolution = jsonDecode(res.body);
+        return DidDocument.fromJson(didResolution['didDocument']);
+      } else {
         throw SsiException(
-          message: 'Request to resolver timed out',
-          code: SsiExceptionType.unableToResolveDid.code,
-        );
-      } catch (e) {
-        throw SsiException(
-          message: 'Failed to resolve DID: $e',
+          message: 'Bad status code ${res.statusCode}',
           code: SsiExceptionType.unableToResolveDid.code,
         );
       }

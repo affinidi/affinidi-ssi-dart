@@ -8,14 +8,11 @@ import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import 'base_data_integrity_verifier.dart';
-import 'base_jcs_generator.dart';
-import 'base_jcs_verifier.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 
 const _dataIntegrityType = 'DataIntegrityProof';
 const _eddsaCryptosuite = 'eddsa-rdfc-2022';
-const _eddsaJcsCryptosuite = 'eddsa-jcs-2022';
 const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v2';
 
 /// Generates Data Integrity Proofs using the eddsa-rdfc-2022 cryptosuite.
@@ -41,12 +38,11 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
     super.domain,
     super.proofValueMultiBase,
   }) {
-    final expectedSchemes = cryptosuiteToScheme[_eddsaCryptosuite];
-    if (expectedSchemes == null ||
-        !expectedSchemes.contains(signer.signatureScheme)) {
+    final expectedScheme = cryptosuiteToScheme[_eddsaCryptosuite];
+    if (signer.signatureScheme != expectedScheme) {
       throw SsiException(
         message:
-            'Signer algorithm ${signer.signatureScheme} is not compatible with $_eddsaCryptosuite. Expected $expectedSchemes.',
+            'Signer algorithm ${signer.signatureScheme} is not compatible with $_eddsaCryptosuite. Expected $expectedScheme.',
         code: SsiExceptionType.unsupportedSignatureScheme.code,
       );
     }
@@ -117,16 +113,14 @@ typedef DataIntegrityEddsaGenerator = DataIntegrityEddsaRdfcGenerator;
 ///
 /// Normalizes and hashes the credential and proof separately, then verifies
 /// the combined hash against the provided proof signature using the issuer's DID key.
-@Deprecated(
-    'Use DataIntegrityEddsaRdfcVerifier for eddsa-rdfc-2022 cryptosuite instead')
-class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
-  /// Constructs a new [DataIntegrityRdfcEddsaVerifier].
+class DataIntegrityEddsaVerifier extends BaseDataIntegrityVerifier {
+  /// Constructs a new [DataIntegrityEddsaVerifier].
   ///
   /// [issuerDid]: The expected issuer DID.
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
-  DataIntegrityRdfcEddsaVerifier({
+  DataIntegrityEddsaVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
@@ -171,128 +165,4 @@ class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
       _eddsaCryptosuite,
     );
   }
-}
-
-/// Verifies Data Integrity Proofs signed with the eddsa-rdfc-2022 cryptosuite.
-///
-/// Normalizes and hashes the credential and proof separately, then verifies
-/// the combined hash against the provided proof signature using the issuer's DID key.
-class DataIntegrityEddsaRdfcVerifier extends BaseDataIntegrityVerifier {
-  /// Constructs a new [DataIntegrityEddsaRdfcVerifier].
-  ///
-  /// [issuerDid]: The expected issuer DID.
-  /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
-  /// [domain]: Optional expected domain(s).
-  /// [challenge]: Optional expected challenge string.
-  DataIntegrityEddsaRdfcVerifier({
-    required super.issuerDid,
-    super.getNow,
-    super.domain,
-    super.challenge,
-    super.customDocumentLoader,
-  });
-
-  @override
-  String get expectedProofType => _dataIntegrityType;
-
-  @override
-  String get expectedCryptosuite => _eddsaCryptosuite;
-
-  @override
-  String get contextUrl => _dataIntegrityContext;
-
-  @override
-  String get proofValueField => 'proofValue';
-
-  @override
-  Future<Uint8List> computeSignatureHash(
-    Map<String, dynamic> proof,
-    Map<String, dynamic> unsignedCredential,
-    Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
-  ) async {
-    return computeDataIntegrityHash(proof, unsignedCredential, documentLoader);
-  }
-
-  @override
-  Future<bool> verifySignature(
-    String proofValue,
-    String issuerDid,
-    Uri verificationMethod,
-    Uint8List hash,
-  ) async {
-    return verifyDataIntegritySignature(
-      proofValue,
-      issuerDid,
-      verificationMethod,
-      hash,
-      _eddsaCryptosuite,
-    );
-  }
-}
-
-/// Generates Data Integrity Proofs using the eddsa-jcs-2022 cryptosuite.
-///
-/// Signs Verifiable Credentials by canonicalizing the credential and the proof using JCS,
-/// hashing them, and then signing the combined hash using a [DidSigner].
-class DataIntegrityEddsaJcsGenerator extends BaseJcsGenerator {
-  /// Constructs a new [DataIntegrityEddsaJcsGenerator].
-  ///
-  /// [signer]: The DID signer responsible for creating the proof signature.
-  /// Optional parameters like [proofPurpose], [customDocumentLoader], [expires],
-  /// [challenge], [domain], and [proofValueMultiBase] configure the proof metadata.
-  DataIntegrityEddsaJcsGenerator({
-    required super.signer,
-    super.proofPurpose,
-    super.customDocumentLoader,
-    super.expires,
-    super.challenge,
-    super.domain,
-    super.proofValueMultiBase,
-  });
-
-  @override
-  String get cryptosuite => _eddsaJcsCryptosuite;
-
-  @override
-  HashingAlgorithm get hashingAlgorithm => HashingAlgorithm.sha256;
-
-  @override
-  void validateSignerCompatibility(DidSigner signer) {
-    final expectedSchemes = cryptosuiteToScheme[_eddsaJcsCryptosuite];
-    if (expectedSchemes == null ||
-        !expectedSchemes.contains(signer.signatureScheme)) {
-      throw SsiException(
-        message:
-            'Signer algorithm ${signer.signatureScheme} is not compatible with $_eddsaJcsCryptosuite. Expected $expectedSchemes.',
-        code: SsiExceptionType.unsupportedSignatureScheme.code,
-      );
-    }
-  }
-}
-
-/// Verifies Data Integrity Proofs signed with the eddsa-jcs-2022 cryptosuite.
-///
-/// Canonicalizes using JCS and hashes the credential and proof separately, then verifies
-/// the combined hash against the provided proof signature using the issuer's DID key.
-class DataIntegrityEddsaJcsVerifier extends BaseJcsVerifier {
-  /// Constructs a new [DataIntegrityEddsaJcsVerifier].
-  ///
-  /// [verifierDid]: The DID of the issuer whose credential this verifier will validate.
-  /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
-  /// [domain]: Optional expected domain(s).
-  /// [challenge]: Optional expected challenge string.
-  DataIntegrityEddsaJcsVerifier({
-    required super.verifierDid,
-    super.getNow,
-    super.domain,
-    super.challenge,
-    super.customDocumentLoader,
-  });
-
-  @override
-  String get expectedJcsCryptosuite => _eddsaJcsCryptosuite;
-
-  @override
-  HashingAlgorithm get hashingAlgorithm => HashingAlgorithm.sha256;
 }
