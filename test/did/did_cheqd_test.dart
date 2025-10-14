@@ -425,11 +425,11 @@ void main() {
         // If successful, verify the result
         expect(registeredDid, isNotEmpty);
         expect(registeredDid, startsWith('did:cheqd:testnet:'));
-        
+
         // Verify the key types
         expect(ed25519KeyPair.publicKey.type, KeyType.ed25519);
         expect(p256KeyPair.publicKey.type, KeyType.p256);
-        
+
         // Successfully registered DID with both key types
       } catch (e) {
         print('Registration failed with error: $e');

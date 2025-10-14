@@ -175,7 +175,8 @@ class DidCheqd {
         return 'JsonWebKey2020';
       default:
         throw SsiException(
-          message: 'Unsupported key type: $keyType. Only ed25519 and P-256 are supported.',
+          message:
+              'Unsupported key type: $keyType. Only ed25519 and P-256 are supported.',
           code: SsiExceptionType.invalidKeyType.code,
         );
     }
@@ -196,7 +197,8 @@ class DidCheqd {
         ];
       default:
         throw SsiException(
-          message: 'Unsupported key type: $keyType. Only ed25519 and P-256 are supported.',
+          message:
+              'Unsupported key type: $keyType. Only ed25519 and P-256 are supported.',
           code: SsiExceptionType.invalidKeyType.code,
         );
     }
@@ -255,18 +257,19 @@ class DidCheqd {
       // Find the Ed25519 key for signing (required)
       String? ed25519KeyId;
       final p256KeyIds = <String>[];
-      
+
       for (final entry in publicKeys.entries) {
         final keyId = entry.key;
         final publicKey = entry.value;
-        
+
         if (publicKey.type == KeyType.ed25519) {
           ed25519KeyId = keyId;
         } else if (publicKey.type == KeyType.p256) {
           p256KeyIds.add(keyId);
         } else {
           throw SsiException(
-            message: 'Unsupported key type: ${publicKey.type}. Only ed25519 and P-256 are supported.',
+            message:
+                'Unsupported key type: ${publicKey.type}. Only ed25519 and P-256 are supported.',
             code: SsiExceptionType.invalidKeyType.code,
           );
         }
@@ -300,16 +303,17 @@ class DidCheqd {
 
       // Add Ed25519 key as primary verification method
       final ed25519PublicKey = publicKeys[ed25519KeyId]!;
-      final ed25519MultiKey = toMultikey(ed25519PublicKey.bytes, ed25519PublicKey.type);
+      final ed25519MultiKey =
+          toMultikey(ed25519PublicKey.bytes, ed25519PublicKey.type);
       final ed25519PublicKeyMultibase = toMultiBase(ed25519MultiKey);
-      
+
       final ed25519VerificationMethod = VerificationMethodMultibase(
         id: '$did#key-1',
         controller: did,
         type: _getVerificationMethodType(ed25519PublicKey.type),
         publicKeyMultibase: ed25519PublicKeyMultibase,
       );
-      
+
       verificationMethods.add(ed25519VerificationMethod);
       authenticationMethods.add('$did#key-1');
       assertionMethods.add('$did#key-1');
@@ -326,7 +330,7 @@ class DidCheqd {
           type: _getVerificationMethodType(p256PublicKey.type),
           publicKeyJwk: _createJwkFromPublicKey(p256PublicKey),
         );
-        
+
         verificationMethods.add(p256VerificationMethod);
         keyAgreementMethods.add('$did#key-$keyIndex');
         keyIndex++;
@@ -337,12 +341,14 @@ class DidCheqd {
         context: Context.fromJson(_getContextForKeyType(ed25519PublicKey.type)),
         id: did,
         controller: [did],
-        verificationMethod: verificationMethods.cast<EmbeddedVerificationMethod>(),
+        verificationMethod:
+            verificationMethods.cast<EmbeddedVerificationMethod>(),
         authentication: authenticationMethods,
         assertionMethod: assertionMethods,
         capabilityInvocation: capabilityInvocationMethods,
         capabilityDelegation: capabilityDelegationMethods,
-        keyAgreement: keyAgreementMethods.isNotEmpty ? keyAgreementMethods : null,
+        keyAgreement:
+            keyAgreementMethods.isNotEmpty ? keyAgreementMethods : null,
       );
 
       // Step 1: Initial registration request
