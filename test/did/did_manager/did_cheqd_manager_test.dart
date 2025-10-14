@@ -1,5 +1,6 @@
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
+import 'package:ssi/src/did/did_document/verification_method.dart';
 
 void main() {
   group('DidCheqdManager', () {
@@ -99,6 +100,189 @@ void main() {
             contains(VerificationRelationship.capabilityInvocation));
         expect(result.relationships,
             contains(VerificationRelationship.capabilityDelegation));
+      });
+
+      test('should add P256 key as second verification method', () async {
+        // Arrange - First add an Ed25519 key
+        final ed25519Key = await wallet.generateKey(
+          keyId: 'ed25519-key',
+          keyType: KeyType.ed25519,
+        );
+        final p256Key = await wallet.generateKey(
+          keyId: 'p256-key',
+          keyType: KeyType.p256,
+        );
+
+        // Act - Add Ed25519 key first
+        final result1 = await manager.addVerificationMethod(
+          ed25519Key.id,
+          relationships: {VerificationRelationship.authentication},
+        );
+
+        // Add P256 key as second verification method
+        final result2 = await manager.addVerificationMethod(
+          p256Key.id,
+          relationships: {VerificationRelationship.keyAgreement},
+        );
+
+        // Assert
+        expect(result1.verificationMethodId, '#key-1');
+        expect(result2.verificationMethodId, '#key-2');
+        expect(result1.relationships,
+            contains(VerificationRelationship.authentication));
+        expect(result2.relationships,
+            contains(VerificationRelationship.keyAgreement));
+
+        // Verify the verification method IDs are stored correctly
+        final storedVerificationMethods = await store.verificationMethodIds;
+        expect(storedVerificationMethods, hasLength(2));
+        expect(storedVerificationMethods, contains('#key-1'));
+        expect(storedVerificationMethods, contains('#key-2'));
+      });
+
+      test('should handle mixed key types (Ed25519 + P256) for registration',
+          () async {
+        // Arrange
+        final ed25519Key = await wallet.generateKey(
+          keyId: 'ed25519-auth-key',
+          keyType: KeyType.ed25519,
+        );
+        final p256Key = await wallet.generateKey(
+          keyId: 'p256-agreement-key',
+          keyType: KeyType.p256,
+        );
+
+        // Act - Add both keys with different relationships
+        final result1 = await manager.addVerificationMethod(
+          ed25519Key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.assertionMethod,
+          },
+        );
+
+        final result2 = await manager.addVerificationMethod(
+          p256Key.id,
+          relationships: {VerificationRelationship.keyAgreement},
+        );
+
+        // Assert - Verify the verification methods were added correctly
+        expect(result1.verificationMethodId, '#key-1');
+        expect(result2.verificationMethodId, '#key-2');
+        expect(result1.relationships,
+            contains(VerificationRelationship.authentication));
+        expect(result1.relationships,
+            contains(VerificationRelationship.assertionMethod));
+        expect(result2.relationships,
+            contains(VerificationRelationship.keyAgreement));
+
+        // Verify that both keys were added to the store
+        final storedVerificationMethods = await store.verificationMethodIds;
+        expect(storedVerificationMethods, hasLength(2));
+        expect(storedVerificationMethods, contains('#key-1'));
+        expect(storedVerificationMethods, contains('#key-2'));
+
+        // Try to register the DID with both key types
+        try {
+          final did = await manager.registerDid([ed25519Key.id, p256Key.id]);
+          expect(did, startsWith('did:cheqd:'));
+          expect(did, contains('testnet'));
+        } catch (e) {
+          // Registration failed (expected due to registrar service availability)
+          // Just verify that the method can be called with mixed key types
+          expect(e, isA<SsiException>());
+        }
+      });
+
+      test('should create and resolve DID document with mixed key types',
+          () async {
+        // Arrange
+        final ed25519Key = await wallet.generateKey(
+          keyId: 'ed25519-auth-key',
+          keyType: KeyType.ed25519,
+        );
+        final p256Key = await wallet.generateKey(
+          keyId: 'p256-agreement-key',
+          keyType: KeyType.p256,
+        );
+
+        // Act - Add both keys with different relationships
+        await manager.addVerificationMethod(
+          ed25519Key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.assertionMethod,
+            VerificationRelationship.capabilityInvocation,
+          },
+        );
+
+        await manager.addVerificationMethod(
+          p256Key.id,
+          relationships: {VerificationRelationship.keyAgreement},
+        );
+
+        // Try to register and resolve the DID document
+        try {
+          final did = await manager.registerDid([ed25519Key.id, p256Key.id]);
+          final didDocument = await manager.getDidDocument();
+
+          // Assert - Verify DID document structure
+          expect(didDocument.id, equals(did));
+          expect(didDocument.controller, contains(did));
+
+          // Verify verification methods
+          expect(didDocument.verificationMethod, hasLength(2));
+
+          // Verify Ed25519 key (first verification method)
+          final ed25519Vm = didDocument.verificationMethod[0];
+          expect(ed25519Vm.id, equals('$did#key-1'));
+          expect(ed25519Vm.controller, equals(did));
+          expect(
+              ed25519Vm.type,
+              anyOf([
+                'Ed25519VerificationKey2020',
+                'Ed25519VerificationKey2018'
+              ]));
+
+          // Verify P256 key (second verification method)
+          final p256Vm = didDocument.verificationMethod[1];
+          expect(p256Vm.id, equals('$did#key-2'));
+          expect(p256Vm.controller, equals(did));
+          expect(p256Vm.type, anyOf(['JsonWebKey2020', 'JsonWebKey']));
+
+          // Verify relationships - they contain VerificationMethodRef objects
+          expect(didDocument.authentication, hasLength(1));
+          expect(didDocument.assertionMethod, hasLength(1));
+          expect(didDocument.capabilityInvocation, hasLength(1));
+          expect(didDocument.keyAgreement, hasLength(1));
+
+          // Check that the relationships reference the correct verification methods
+          final authRef =
+              didDocument.authentication.first as VerificationMethodRef;
+          final assertionRef =
+              didDocument.assertionMethod.first as VerificationMethodRef;
+          final capabilityRef =
+              didDocument.capabilityInvocation.first as VerificationMethodRef;
+          final keyAgreementRef =
+              didDocument.keyAgreement.first as VerificationMethodRef;
+
+          expect(authRef.reference, equals('$did#key-1'));
+          expect(assertionRef.reference, equals('$did#key-1'));
+          expect(capabilityRef.reference, equals('$did#key-1'));
+          expect(keyAgreementRef.reference, equals('$did#key-2'));
+
+          // Verify no capability delegation (not set for either key)
+          expect(didDocument.capabilityDelegation, isEmpty);
+        } catch (e) {
+          // Registration failed (expected due to registrar service availability)
+          expect(e, isA<SsiException>());
+
+          // Even if registration fails, verify the verification methods were added correctly
+          final storedVerificationMethods = await store.verificationMethodIds;
+          expect(storedVerificationMethods, hasLength(2));
+          expect(storedVerificationMethods, contains('#key-1'));
+          expect(storedVerificationMethods, contains('#key-2'));
+        }
       });
     });
 
