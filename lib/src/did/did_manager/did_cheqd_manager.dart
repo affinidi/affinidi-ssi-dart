@@ -26,7 +26,7 @@ class DidCheqdManager extends DidManager {
   /// the DID on the Cheqd network and store the generated DID identifier.
   /// Uses the keys from the wallet that was passed to the manager.
   ///
-  /// [keyId] - The ID of the key in the wallet to use for registration.
+  /// [keyIds] - The IDs of the keys in the wallet to use for registration.
   /// [network] - The network to register on ('testnet' or 'mainnet'). Defaults to 'testnet'.
   /// [registrarUrl] - Optional custom registrar URL.
   ///
@@ -34,14 +34,14 @@ class DidCheqdManager extends DidManager {
   ///
   /// Throws [SsiException] if registration fails.
   Future<String> registerDid(
-    String keyId, {
+    List<String> keyIds, {
     String network = 'testnet',
     String? registrarUrl,
   }) async {
     try {
       final did = await DidCheqd.registerWithWallet(
         wallet,
-        [keyId],
+        keyIds,
         network: network,
         registrarUrl: registrarUrl,
       );

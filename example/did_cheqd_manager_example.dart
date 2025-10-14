@@ -29,7 +29,7 @@ Future<void> main() async {
     // Register the DID on Cheqd network using the wallet's keys
     // The wallet keeps private keys secure and handles signing internally
     final did = await manager.registerDid(
-      keyPair.id, // Use the key ID from the wallet
+      [keyPair.id], // Use the key ID from the wallet
       network: 'testnet', // or 'mainnet'
     );
 

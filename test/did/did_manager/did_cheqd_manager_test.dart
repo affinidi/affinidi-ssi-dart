@@ -118,7 +118,7 @@ void main() {
         // For now, test that the method can be called without errors
         // The actual registration might fail due to registrar service availability
         try {
-          final registeredDid = await manager.registerDid(keyId);
+          final registeredDid = await manager.registerDid([keyId]);
 
           // If successful, verify the result
           expect(registeredDid, isNotEmpty);
@@ -135,13 +135,13 @@ void main() {
       test('should register DID with specified network', () async {
         try {
           final testnetDid = await manager.registerDid(
-            keyId,
+            [keyId],
             network: 'testnet',
           );
           expect(testnetDid, contains('testnet'));
 
           final mainnetDid = await manager.registerDid(
-            keyId,
+            [keyId],
             network: 'mainnet',
           );
           expect(mainnetDid, contains('mainnet'));
@@ -154,7 +154,7 @@ void main() {
       test('should register DID with custom registrar URL', () async {
         try {
           final registeredDid = await manager.registerDid(
-            keyId,
+            [keyId],
             network: 'testnet',
             registrarUrl: 'http://localhost:3000',
           );
@@ -170,14 +170,14 @@ void main() {
 
       test('should throw SsiException for invalid key ID', () async {
         await expectLater(
-          manager.registerDid('non-existent-key'),
+          manager.registerDid(['non-existent-key']),
           throwsA(isA<SsiException>()),
         );
       });
 
       test('should store DID after successful registration', () async {
         try {
-          final registeredDid = await manager.registerDid(keyId);
+          final registeredDid = await manager.registerDid([keyId]);
 
           // Verify the DID is stored
           final storedDid = await store.did;
@@ -214,7 +214,7 @@ void main() {
 
         try {
           // Register the DID
-          final registeredDid = await manager.registerDid(keyPair.id);
+          final registeredDid = await manager.registerDid([keyPair.id]);
 
           // Act
           final didDocument = await manager.getDidDocument();
@@ -305,7 +305,7 @@ void main() {
               contains(VerificationRelationship.assertionMethod));
 
           // Step 3: Register DID
-          final registeredDid = await manager.registerDid(keyPair.id);
+          final registeredDid = await manager.registerDid([keyPair.id]);
           expect(registeredDid, startsWith('did:cheqd:'));
           expect(registeredDid, contains('testnet'));
 
@@ -346,7 +346,7 @@ void main() {
           );
 
           // Register using the first key
-          final registeredDid = await manager.registerDid(authKey.id);
+          final registeredDid = await manager.registerDid([authKey.id]);
           expect(registeredDid, startsWith('did:cheqd:'));
 
           // Get document and verify both keys are included
