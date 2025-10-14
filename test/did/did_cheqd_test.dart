@@ -266,7 +266,7 @@ void main() {
       try {
         final registeredDid = await DidCheqd.registerWithWallet(
           wallet,
-          keyId,
+          [keyId],
           registrarUrl: 'http://localhost:3000',
         );
 
@@ -286,7 +286,7 @@ void main() {
       try {
         final registeredDid = await DidCheqd.registerWithWallet(
           wallet,
-          keyId,
+          [keyId],
         );
 
         // If successful, verify the result
@@ -306,7 +306,7 @@ void main() {
         // Test testnet
         final testnetDid = await DidCheqd.registerWithWallet(
           wallet,
-          keyId,
+          [keyId],
           network: 'testnet',
         );
         expect(testnetDid, contains('testnet'));
@@ -314,7 +314,7 @@ void main() {
         // Test mainnet
         final mainnetDid = await DidCheqd.registerWithWallet(
           wallet,
-          keyId,
+          [keyId],
           network: 'mainnet',
         );
         expect(mainnetDid, contains('mainnet'));
@@ -329,7 +329,7 @@ void main() {
       await expectLater(
         DidCheqd.registerWithWallet(
           wallet,
-          'non-existent-key',
+          ['non-existent-key'],
         ),
         throwsA(isA<SsiException>()),
       );
@@ -339,7 +339,7 @@ void main() {
       await expectLater(
         DidCheqd.registerWithWallet(
           wallet,
-          keyId,
+          [keyId],
           registrarUrl: 'http://invalid-url:9999',
         ),
         throwsA(isA<SsiException>()),
@@ -361,11 +361,11 @@ void main() {
 
         final did1 = await DidCheqd.registerWithWallet(
           wallet,
-          keyPair1.id,
+          [keyPair1.id],
         );
         final did2 = await DidCheqd.registerWithWallet(
           wallet,
-          keyPair2.id,
+          [keyPair2.id],
         );
 
         // Verify they are different
@@ -385,7 +385,7 @@ void main() {
       try {
         final registeredDid = await DidCheqd.registerWithWallet(
           wallet,
-          keyId,
+          [keyId],
         );
 
         // Verify the DID format
@@ -402,30 +402,42 @@ void main() {
       }
     });
 
-    test('should register DID with secp256k1 key and use correct verification method type', () async {
-      // Create a new wallet with secp256k1 key
-      final secpWallet = PersistentWallet(InMemoryKeyStore());
-      final secpKeyPair = await secpWallet.generateKey(
-        keyId: 'test-secp256k1-key',
-        keyType: KeyType.secp256k1,
+    test('should register DID with Ed25519 and P-256 keys', () async {
+      // Create a new wallet with both Ed25519 and P-256 keys
+      final multiKeyWallet = PersistentWallet(InMemoryKeyStore());
+      final ed25519KeyPair = await multiKeyWallet.generateKey(
+        keyId: 'test-ed25519-key',
+        keyType: KeyType.ed25519,
+      );
+      final p256KeyPair = await multiKeyWallet.generateKey(
+        keyId: 'test-p256-key',
+        keyType: KeyType.p256,
       );
 
       try {
         final registeredDid = await DidCheqd.registerWithWallet(
-          secpWallet,
-          secpKeyPair.id,
+          multiKeyWallet,
+          [ed25519KeyPair.id, p256KeyPair.id],
           network: 'testnet',
         );
 
+        print('Registered DID: $registeredDid');
         // If successful, verify the result
         expect(registeredDid, isNotEmpty);
         expect(registeredDid, startsWith('did:cheqd:testnet:'));
         
-        // Verify the key type is secp256k1
-        expect(secpKeyPair.publicKey.type, KeyType.secp256k1);
+        // Verify the key types
+        expect(ed25519KeyPair.publicKey.type, KeyType.ed25519);
+        expect(p256KeyPair.publicKey.type, KeyType.p256);
         
-        // Successfully registered DID with secp256k1 key
+        // Successfully registered DID with both key types
       } catch (e) {
+        print('Registration failed with error: $e');
+        if (e is SsiException) {
+          print('SsiException details:');
+          print('  Message: ${e.message}');
+          print('  Code: ${e.code}');
+        }
         // For now, just verify that the method can be called
         // Registration failed (expected due to register service availability)
         expect(e, isA<SsiException>());
@@ -433,18 +445,41 @@ void main() {
     });
 
     test('should reject unsupported key types', () async {
-      // Create a wallet with an unsupported key type (p256)
+      // Create a wallet with an unsupported key type (secp256k1)
       final unsupportedWallet = PersistentWallet(InMemoryKeyStore());
       final unsupportedKeyPair = await unsupportedWallet.generateKey(
-        keyId: 'test-p256-key',
-        keyType: KeyType.p256,
+        keyId: 'test-secp256k1-key',
+        keyType: KeyType.secp256k1,
       );
 
       // Should throw SsiException for unsupported key type
       await expectLater(
         DidCheqd.registerWithWallet(
           unsupportedWallet,
-          unsupportedKeyPair.id,
+          [unsupportedKeyPair.id],
+          network: 'testnet',
+        ),
+        throwsA(isA<SsiException>().having(
+          (e) => e.code,
+          'code',
+          SsiExceptionType.invalidKeyType.code,
+        )),
+      );
+    });
+
+    test('should require at least one Ed25519 key', () async {
+      // Create a wallet with only P-256 key (no Ed25519)
+      final p256OnlyWallet = PersistentWallet(InMemoryKeyStore());
+      final p256KeyPair = await p256OnlyWallet.generateKey(
+        keyId: 'test-p256-only-key',
+        keyType: KeyType.p256,
+      );
+
+      // Should throw SsiException for missing Ed25519 key
+      await expectLater(
+        DidCheqd.registerWithWallet(
+          p256OnlyWallet,
+          [p256KeyPair.id],
           network: 'testnet',
         ),
         throwsA(isA<SsiException>().having(

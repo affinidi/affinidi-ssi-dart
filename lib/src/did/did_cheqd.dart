@@ -8,6 +8,7 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../json_ld/context.dart';
 import '../key_pair/ed25519_key_pair.dart';
+import '../key_pair/p256_key_pair.dart';
 import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../wallet/wallet.dart';
@@ -96,12 +97,19 @@ class DidCheqd {
       final publicKeyMultibase = toMultiBase(multiKey);
 
       // Create verification method
-      final verificationMethod = VerificationMethodMultibase(
-        id: '$did#key-1',
-        controller: did,
-        type: _getVerificationMethodType(publicKey.type),
-        publicKeyMultibase: publicKeyMultibase,
-      );
+      final verificationMethod = publicKey.type == KeyType.p256
+          ? VerificationMethodJwk(
+              id: '$did#key-1',
+              controller: did,
+              type: _getVerificationMethodType(publicKey.type),
+              publicKeyJwk: _createJwkFromPublicKey(publicKey),
+            )
+          : VerificationMethodMultibase(
+              id: '$did#key-1',
+              controller: did,
+              type: _getVerificationMethodType(publicKey.type),
+              publicKeyMultibase: publicKeyMultibase,
+            );
 
       // Create DID document
       final didDocument = DidDocument.create(
@@ -124,9 +132,21 @@ class DidCheqd {
       );
 
       // Step 2: Poll for completion and handle signature verification
-      final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
-      final signingFunction =
-          (Uint8List data) async => await keyPair.sign(data);
+      final signingFunction = (Uint8List data) async {
+        if (publicKey.type == KeyType.ed25519) {
+          final keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
+          return await keyPair.sign(data);
+        } else if (publicKey.type == KeyType.p256) {
+          final keyPair = P256KeyPair.fromPrivateKey(privateKeyBytes);
+          // Use the standard sign method for P-256
+          return await keyPair.sign(data);
+        } else {
+          throw SsiException(
+            message: 'Unsupported key type for signing: ${publicKey.type}',
+            code: SsiExceptionType.invalidKeyType.code,
+          );
+        }
+      };
       final registeredDid = await _pollForCompletion(
         url,
         initialResponse,
@@ -146,16 +166,16 @@ class DidCheqd {
   }
 
   /// Determines the verification method type based on the key type.
-  /// Only supports ed25519 and secp256k1 keys.
+  /// Only supports ed25519 and P-256 keys.
   static String _getVerificationMethodType(KeyType keyType) {
     switch (keyType) {
       case KeyType.ed25519:
         return 'Ed25519VerificationKey2020';
-      case KeyType.secp256k1:
-        return 'EcdsaSecp256k1VerificationKey2019';
+      case KeyType.p256:
+        return 'JsonWebKey2020';
       default:
         throw SsiException(
-          message: 'Unsupported key type: $keyType. Only ed25519 and secp256k1 are supported.',
+          message: 'Unsupported key type: $keyType. Only ed25519 and P-256 are supported.',
           code: SsiExceptionType.invalidKeyType.code,
         );
     }
@@ -169,27 +189,41 @@ class DidCheqd {
           'https://www.w3.org/ns/did/v1',
           'https://w3id.org/security/suites/ed25519-2020/v1',
         ];
-      case KeyType.secp256k1:
+      case KeyType.p256:
         return [
           'https://www.w3.org/ns/did/v1',
-          'https://w3id.org/security/suites/secp256k1-2019/v1',
+          'https://w3id.org/security/suites/jws-2020/v1',
         ];
       default:
         throw SsiException(
-          message: 'Unsupported key type: $keyType. Only ed25519 and secp256k1 are supported.',
+          message: 'Unsupported key type: $keyType. Only ed25519 and P-256 are supported.',
           code: SsiExceptionType.invalidKeyType.code,
         );
     }
   }
 
-  /// Registers a new did:cheqd using a wallet and key ID.
+  /// Creates a JWK from a public key for P-256 keys.
+  static Jwk _createJwkFromPublicKey(PublicKey publicKey) {
+    if (publicKey.type != KeyType.p256) {
+      throw SsiException(
+        message: 'JWK creation is only supported for P-256 keys',
+        code: SsiExceptionType.invalidKeyType.code,
+      );
+    }
+
+    // Use the existing utility function to convert public key to JWK
+    final jwkMap = keyToJwk(publicKey);
+    return Jwk.fromJson(jwkMap);
+  }
+
+  /// Registers a new did:cheqd using a wallet and key IDs.
   ///
   /// This method implements the complete two-step registration process:
   /// 1. Initial registration request
   /// 2. Polling for completion with signature verification
   ///
   /// [wallet] - The wallet instance containing the keys.
-  /// [keyId] - The identifier of the key in the wallet.
+  /// [keyIds] - The identifiers of the keys in the wallet. At least one must be Ed25519.
   /// [network] - The network to register on ('testnet' or 'mainnet'). Defaults to 'testnet'.
   /// [registrarUrl] - Optional custom registrar URL (defaults to localhost:3000).
   ///
@@ -198,18 +232,50 @@ class DidCheqd {
   /// Throws [SsiException] if registration fails.
   static Future<String> registerWithWallet(
     Wallet wallet,
-    String keyId, {
+    List<String> keyIds, {
     String network = 'testnet',
     String? registrarUrl,
   }) async {
     try {
-      // Get the public key from the wallet
-      final publicKey = await wallet.getPublicKey(keyId);
-
-      // Validate that only ed25519 and secp256k1 keys are supported
-      if (publicKey.type != KeyType.ed25519 && publicKey.type != KeyType.secp256k1) {
+      // Validate that we have at least one key
+      if (keyIds.isEmpty) {
         throw SsiException(
-          message: 'Unsupported key type: ${publicKey.type}. Only ed25519 and secp256k1 are supported.',
+          message: 'At least one key ID must be provided.',
+          code: SsiExceptionType.invalidKeyType.code,
+        );
+      }
+
+      // Get all public keys from the wallet
+      final publicKeys = <String, PublicKey>{};
+      for (final keyId in keyIds) {
+        final publicKey = await wallet.getPublicKey(keyId);
+        publicKeys[keyId] = publicKey;
+      }
+
+      // Find the Ed25519 key for signing (required)
+      String? ed25519KeyId;
+      final p256KeyIds = <String>[];
+      
+      for (final entry in publicKeys.entries) {
+        final keyId = entry.key;
+        final publicKey = entry.value;
+        
+        if (publicKey.type == KeyType.ed25519) {
+          ed25519KeyId = keyId;
+        } else if (publicKey.type == KeyType.p256) {
+          p256KeyIds.add(keyId);
+        } else {
+          throw SsiException(
+            message: 'Unsupported key type: ${publicKey.type}. Only ed25519 and P-256 are supported.',
+            code: SsiExceptionType.invalidKeyType.code,
+          );
+        }
+      }
+
+      // Validate that we have at least one Ed25519 key
+      if (ed25519KeyId == null) {
+        throw SsiException(
+          message: 'At least one Ed25519 key is required for signing.',
           code: SsiExceptionType.invalidKeyType.code,
         );
       }
@@ -217,36 +283,66 @@ class DidCheqd {
       // For the private key, we need to create a signing function that uses the wallet
       // This is more secure as the private key never leaves the wallet
       Future<Uint8List> signingFunction(Uint8List data) async {
-        return await wallet.sign(data, keyId: keyId);
+        return await wallet.sign(data, keyId: ed25519KeyId!);
       }
 
       // Generate a unique identifier for the DID
       final didIdentifier = _generateDidIdentifier();
       final did = 'did:cheqd:$network:$didIdentifier';
 
-      // Convert public key to multibase format
-      final multiKey = toMultikey(publicKey.bytes, publicKey.type);
-      final publicKeyMultibase = toMultiBase(multiKey);
+      // Create verification methods
+      final verificationMethods = <VerificationMethod>[];
+      final authenticationMethods = <String>[];
+      final assertionMethods = <String>[];
+      final capabilityInvocationMethods = <String>[];
+      final capabilityDelegationMethods = <String>[];
+      final keyAgreementMethods = <String>[];
 
-      // Create verification method
-      final verificationMethod = VerificationMethodMultibase(
+      // Add Ed25519 key as primary verification method
+      final ed25519PublicKey = publicKeys[ed25519KeyId]!;
+      final ed25519MultiKey = toMultikey(ed25519PublicKey.bytes, ed25519PublicKey.type);
+      final ed25519PublicKeyMultibase = toMultiBase(ed25519MultiKey);
+      
+      final ed25519VerificationMethod = VerificationMethodMultibase(
         id: '$did#key-1',
         controller: did,
-        type: _getVerificationMethodType(publicKey.type),
-        publicKeyMultibase: publicKeyMultibase,
+        type: _getVerificationMethodType(ed25519PublicKey.type),
+        publicKeyMultibase: ed25519PublicKeyMultibase,
       );
+      
+      verificationMethods.add(ed25519VerificationMethod);
+      authenticationMethods.add('$did#key-1');
+      assertionMethods.add('$did#key-1');
+      capabilityInvocationMethods.add('$did#key-1');
+      capabilityDelegationMethods.add('$did#key-1');
+
+      // Add P-256 keys as JWK format for key agreement
+      int keyIndex = 2;
+      for (final p256KeyId in p256KeyIds) {
+        final p256PublicKey = publicKeys[p256KeyId]!;
+        final p256VerificationMethod = VerificationMethodJwk(
+          id: '$did#key-$keyIndex',
+          controller: did,
+          type: _getVerificationMethodType(p256PublicKey.type),
+          publicKeyJwk: _createJwkFromPublicKey(p256PublicKey),
+        );
+        
+        verificationMethods.add(p256VerificationMethod);
+        keyAgreementMethods.add('$did#key-$keyIndex');
+        keyIndex++;
+      }
 
       // Create DID document
       final didDocument = DidDocument.create(
-        context: Context.fromJson(_getContextForKeyType(publicKey.type)),
+        context: Context.fromJson(_getContextForKeyType(ed25519PublicKey.type)),
         id: did,
         controller: [did],
-        verificationMethod: [verificationMethod],
-        authentication: ['$did#key-1'],
-        assertionMethod: ['$did#key-1'],
-        capabilityInvocation: ['$did#key-1'],
-        capabilityDelegation: ['$did#key-1'],
-        keyAgreement: publicKey.type == KeyType.secp256k1 ? ['$did#key-1'] : null,
+        verificationMethod: verificationMethods.cast<EmbeddedVerificationMethod>(),
+        authentication: authenticationMethods,
+        assertionMethod: assertionMethods,
+        capabilityInvocation: capabilityInvocationMethods,
+        capabilityDelegation: capabilityDelegationMethods,
+        keyAgreement: keyAgreementMethods.isNotEmpty ? keyAgreementMethods : null,
       );
 
       // Step 1: Initial registration request

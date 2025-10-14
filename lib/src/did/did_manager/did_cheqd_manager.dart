@@ -41,7 +41,7 @@ class DidCheqdManager extends DidManager {
     try {
       final did = await DidCheqd.registerWithWallet(
         wallet,
-        keyId,
+        [keyId],
         network: network,
         registrarUrl: registrarUrl,
       );
