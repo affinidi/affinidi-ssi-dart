@@ -99,16 +99,13 @@ class DidCheqd {
       final verificationMethod = VerificationMethodMultibase(
         id: '$did#key-1',
         controller: did,
-        type: 'Ed25519VerificationKey2020',
+        type: _getVerificationMethodType(publicKey.type),
         publicKeyMultibase: publicKeyMultibase,
       );
 
       // Create DID document
       final didDocument = DidDocument.create(
-        context: Context.fromJson([
-          'https://www.w3.org/ns/did/v1',
-          'https://w3id.org/security/suites/ed25519-2020/v1',
-        ]),
+        context: Context.fromJson(_getContextForKeyType(publicKey.type)),
         id: did,
         controller: [did],
         verificationMethod: [verificationMethod],
@@ -148,6 +145,43 @@ class DidCheqd {
     }
   }
 
+  /// Determines the verification method type based on the key type.
+  /// Only supports ed25519 and secp256k1 keys.
+  static String _getVerificationMethodType(KeyType keyType) {
+    switch (keyType) {
+      case KeyType.ed25519:
+        return 'Ed25519VerificationKey2020';
+      case KeyType.secp256k1:
+        return 'EcdsaSecp256k1VerificationKey2019';
+      default:
+        throw SsiException(
+          message: 'Unsupported key type: $keyType. Only ed25519 and secp256k1 are supported.',
+          code: SsiExceptionType.invalidKeyType.code,
+        );
+    }
+  }
+
+  /// Determines the context array based on the key type.
+  static List<String> _getContextForKeyType(KeyType keyType) {
+    switch (keyType) {
+      case KeyType.ed25519:
+        return [
+          'https://www.w3.org/ns/did/v1',
+          'https://w3id.org/security/suites/ed25519-2020/v1',
+        ];
+      case KeyType.secp256k1:
+        return [
+          'https://www.w3.org/ns/did/v1',
+          'https://w3id.org/security/suites/secp256k1-2019/v1',
+        ];
+      default:
+        throw SsiException(
+          message: 'Unsupported key type: $keyType. Only ed25519 and secp256k1 are supported.',
+          code: SsiExceptionType.invalidKeyType.code,
+        );
+    }
+  }
+
   /// Registers a new did:cheqd using a wallet and key ID.
   ///
   /// This method implements the complete two-step registration process:
@@ -172,6 +206,14 @@ class DidCheqd {
       // Get the public key from the wallet
       final publicKey = await wallet.getPublicKey(keyId);
 
+      // Validate that only ed25519 and secp256k1 keys are supported
+      if (publicKey.type != KeyType.ed25519 && publicKey.type != KeyType.secp256k1) {
+        throw SsiException(
+          message: 'Unsupported key type: ${publicKey.type}. Only ed25519 and secp256k1 are supported.',
+          code: SsiExceptionType.invalidKeyType.code,
+        );
+      }
+
       // For the private key, we need to create a signing function that uses the wallet
       // This is more secure as the private key never leaves the wallet
       Future<Uint8List> signingFunction(Uint8List data) async {
@@ -190,16 +232,13 @@ class DidCheqd {
       final verificationMethod = VerificationMethodMultibase(
         id: '$did#key-1',
         controller: did,
-        type: 'Ed25519VerificationKey2020',
+        type: _getVerificationMethodType(publicKey.type),
         publicKeyMultibase: publicKeyMultibase,
       );
 
       // Create DID document
       final didDocument = DidDocument.create(
-        context: Context.fromJson([
-          'https://www.w3.org/ns/did/v1',
-          'https://w3id.org/security/suites/ed25519-2020/v1',
-        ]),
+        context: Context.fromJson(_getContextForKeyType(publicKey.type)),
         id: did,
         controller: [did],
         verificationMethod: [verificationMethod],
@@ -207,6 +246,7 @@ class DidCheqd {
         assertionMethod: ['$did#key-1'],
         capabilityInvocation: ['$did#key-1'],
         capabilityDelegation: ['$did#key-1'],
+        keyAgreement: publicKey.type == KeyType.secp256k1 ? ['$did#key-1'] : null,
       );
 
       // Step 1: Initial registration request
