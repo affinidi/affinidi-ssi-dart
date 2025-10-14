@@ -44,7 +44,7 @@ Future<void> main() async {
 
     final registeredDid = await DidCheqd.registerWithWallet(
       wallet,
-      keyPair.id,
+      [keyPair.id],
       // Optional: specify custom registrar URL
       // registrarUrl: 'http://localhost:3000',
     );

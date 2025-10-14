@@ -46,13 +46,13 @@ Future<void> main() async {
     // Using default testnet (no network parameter needed)
     final registeredDid = await DidCheqd.registerWithWallet(
       wallet,
-      keyPair.id,
+      [keyPair.id],
     );
 
     // Alternative: Explicitly specify network
     // final registeredDid = await DidCheqd.registerWithWallet(
     //   wallet,
-    //   keyPair.id,
+    //   [keyPair.id],
     //   network: 'testnet', // or 'mainnet'
     // );
 
