@@ -185,6 +185,7 @@ void main() {
         // Try to register the DID with both key types
         try {
           final did = await manager.registerDid([ed25519Key.id, p256Key.id]);
+          print('did: $did');
           expect(did, startsWith('did:cheqd:'));
           expect(did, contains('testnet'));
         } catch (e) {
@@ -233,16 +234,11 @@ void main() {
           // Verify verification methods
           expect(didDocument.verificationMethod, hasLength(2));
 
-          // Verify Ed25519 key (first verification method)
+          // Verify Ed25519 key (first verification method) - now in JWK format
           final ed25519Vm = didDocument.verificationMethod[0];
           expect(ed25519Vm.id, equals('$did#key-1'));
           expect(ed25519Vm.controller, equals(did));
-          expect(
-              ed25519Vm.type,
-              anyOf([
-                'Ed25519VerificationKey2020',
-                'Ed25519VerificationKey2018'
-              ]));
+          expect(ed25519Vm.type, equals('JsonWebKey2020'));
 
           // Verify P256 key (second verification method)
           final p256Vm = didDocument.verificationMethod[1];

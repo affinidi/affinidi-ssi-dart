@@ -188,7 +188,7 @@ class DidCheqd {
       case KeyType.ed25519:
         return [
           'https://www.w3.org/ns/did/v1',
-          'https://w3id.org/security/suites/ed25519-2020/v1',
+          'https://w3id.org/security/suites/jws-2020/v1',
         ];
       case KeyType.p256:
         return [
@@ -204,11 +204,11 @@ class DidCheqd {
     }
   }
 
-  /// Creates a JWK from a public key for P-256 keys.
+  /// Creates a JWK from a public key for supported key types.
   static Jwk _createJwkFromPublicKey(PublicKey publicKey) {
-    if (publicKey.type != KeyType.p256) {
+    if (publicKey.type != KeyType.p256 && publicKey.type != KeyType.ed25519) {
       throw SsiException(
-        message: 'JWK creation is only supported for P-256 keys',
+        message: 'JWK creation is only supported for P-256 and Ed25519 keys',
         code: SsiExceptionType.invalidKeyType.code,
       );
     }
@@ -301,17 +301,14 @@ class DidCheqd {
       final capabilityDelegationMethods = <String>[];
       final keyAgreementMethods = <String>[];
 
-      // Add Ed25519 key as primary verification method
+      // Add Ed25519 key as primary verification method in JWK format
       final ed25519PublicKey = publicKeys[ed25519KeyId]!;
-      final ed25519MultiKey =
-          toMultikey(ed25519PublicKey.bytes, ed25519PublicKey.type);
-      final ed25519PublicKeyMultibase = toMultiBase(ed25519MultiKey);
 
-      final ed25519VerificationMethod = VerificationMethodMultibase(
+      final ed25519VerificationMethod = VerificationMethodJwk(
         id: '$did#key-1',
         controller: did,
-        type: _getVerificationMethodType(ed25519PublicKey.type),
-        publicKeyMultibase: ed25519PublicKeyMultibase,
+        type: 'JsonWebKey2020',
+        publicKeyJwk: _createJwkFromPublicKey(ed25519PublicKey),
       );
 
       verificationMethods.add(ed25519VerificationMethod);
