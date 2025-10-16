@@ -122,6 +122,18 @@ class Secp256k1KeyPair extends KeyPair {
     return Secp256k1KeyPair(node: node, id: id);
   }
 
+  /// Creates a [Secp256k1KeyPair] instance from a seed.
+  ///
+  /// [seed] - The seed as a [Uint8List]. Must be 16, 32, or 64 bytes.
+  /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
+  factory Secp256k1KeyPair.fromSeed(Uint8List seed, {String? id}) {
+    if (seed.length != 16 && seed.length != 32 && seed.length != 64) {
+      throw ArgumentError('BIP32 seed length must be 16, 32, or 64 bytes.');
+    }
+    final node = BIP32.fromSeed(seed);
+    return Secp256k1KeyPair(node: node, id: id);
+  }
+
   /// Generates a new secp256k1 key pair.
   /// /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
   static (Secp256k1KeyPair, Uint8List) generate({String? id}) {
