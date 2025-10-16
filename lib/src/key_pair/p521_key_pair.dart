@@ -45,7 +45,8 @@ class P521KeyPair extends KeyPair {
     final n = _p521.n; // Curve order
 
     int counter = 0;
-    while (true) {
+    const int maxAttempts = 256;
+    for (var attempts = 0; attempts < maxAttempts; attempts++) {
       // Interpret candidate as big-endian integer
       BigInt k = BigInt.zero;
       for (final b in candidate) {
@@ -65,6 +66,9 @@ class P521KeyPair extends KeyPair {
         ..[seed.length] = counter;
       candidate = digest.process(data);
     }
+
+    throw ArgumentError(
+        'Failed to derive a valid P-521 private key from seed after $maxAttempts attempts');
   }
 
   /// Creates a [P521KeyPair] instance from a private key.

@@ -52,7 +52,8 @@ class P256KeyPair extends KeyPair {
     final n = _p256.n; // Curve order
 
     int counter = 0;
-    while (true) {
+    const int maxAttempts = 256;
+    for (var attempts = 0; attempts < maxAttempts; attempts++) {
       // Interpret candidate as big-endian integer
       BigInt k = BigInt.zero;
       for (final b in candidate) {
@@ -72,6 +73,9 @@ class P256KeyPair extends KeyPair {
         ..[seed.length] = counter;
       candidate = digest.process(data);
     }
+
+    throw ArgumentError(
+        'Failed to derive a valid P-256 private key from seed after $maxAttempts attempts');
   }
 
   /// Creates a [P256KeyPair] instance from a private key.
