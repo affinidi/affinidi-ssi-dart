@@ -310,7 +310,7 @@ Future<bool> verifyJws(
     }
   }
 
-  // Some libraries produce r||s with variable size (?) — as last resort, if signature is 64 bytes try split
+  // If signature is 64 bytes, verification was already attempted above; if it fails, return false.
   if (signature.length == 64) {
     // already tried as-is above, so failing here means verification failed
     return false;
