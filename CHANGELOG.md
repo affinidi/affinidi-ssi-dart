@@ -3,6 +3,56 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-10-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.14.1`](#ssi---v2141)
+
+---
+
+#### `ssi` - `v2.14.1`
+
+ - **FIX**: add check for type to be VerifiableCredential (#191).
+
+## 2.14.1
+
+ - **FIX**: add check for type to be VerifiableCredential (#191).
+
+
+## 2025-10-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.14.0`](#ssi---v2140)
+
+---
+
+#### `ssi` - `v2.14.0`
+
+ - **FEAT**: secp256k1 key pair factory from seed (#189).
+
+## 2.14.0
+
+ - **FEAT**: secp256k1 key pair factory from seed (#189).
+
+
 ## 2025-10-08
 
 ### Changes
