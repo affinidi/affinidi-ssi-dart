@@ -155,4 +155,236 @@ void main() {
       );
     });
   });
+
+  group('DidWeb.generateDocument', () {
+    late PublicKey testPublicKey;
+
+    setUp(() {
+      // Create a mock public key for testing
+      testPublicKey = PublicKey(
+        'test-key-id',
+        Uint8List.fromList(List.generate(32, (i) => i)),
+        KeyType.ed25519,
+      );
+    });
+
+    test('generates basic DID document with single key', () {
+      final did = 'did:web:example.com';
+      final vmId = '$did#key-1';
+
+      final doc = DidWeb.generateDocument(
+        did: did,
+        verificationMethodIds: [vmId],
+        publicKeys: [testPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [vmId],
+          VerificationRelationship.assertionMethod: [vmId],
+        },
+        serviceEndpoints: [],
+      );
+
+      expect(doc.id, equals(did));
+      expect(doc.verificationMethod.length, equals(1));
+      expect(doc.verificationMethod.first.id, equals(vmId));
+      expect(doc.authentication.length, equals(1));
+      expect((doc.authentication.first as VerificationMethodRef).reference,
+          equals(vmId));
+      expect(doc.assertionMethod.length, equals(1));
+      expect((doc.assertionMethod.first as VerificationMethodRef).reference,
+          equals(vmId));
+      expect(doc.service.length, equals(0));
+    });
+
+    test('generates DID document with multiple verification relationships', () {
+      final did = 'did:web:example.com';
+      final vmId = '$did#key-1';
+
+      final doc = DidWeb.generateDocument(
+        did: did,
+        verificationMethodIds: [vmId],
+        publicKeys: [testPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [vmId],
+          VerificationRelationship.assertionMethod: [vmId],
+          VerificationRelationship.keyAgreement: [vmId],
+          VerificationRelationship.capabilityInvocation: [vmId],
+          VerificationRelationship.capabilityDelegation: [vmId],
+        },
+        serviceEndpoints: [],
+      );
+
+      expect(doc.authentication.length, equals(1));
+      expect(doc.assertionMethod.length, equals(1));
+      expect(doc.keyAgreement.length, equals(1));
+      expect(doc.capabilityInvocation.length, equals(1));
+      expect(doc.capabilityDelegation.length, equals(1));
+    });
+
+    test('generates DID document with service endpoints', () {
+      final did = 'did:web:example.com';
+      final vmId = '$did#key-1';
+      final serviceEndpoint = ServiceEndpoint(
+        id: '$did#linked-domain',
+        type: 'LinkedDomains',
+        serviceEndpoint: const StringEndpoint('https://example.com/'),
+      );
+
+      final doc = DidWeb.generateDocument(
+        did: did,
+        verificationMethodIds: [vmId],
+        publicKeys: [testPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [vmId],
+        },
+        serviceEndpoints: [serviceEndpoint],
+      );
+
+      expect(doc.service.length, equals(1));
+      expect(doc.service.first.id, equals('$did#linked-domain'));
+      expect(doc.service.first.type, equals('LinkedDomains'));
+    });
+
+    test('generates DID document with multiple service endpoints', () {
+      final did = 'did:web:example.com';
+      final vmId = '$did#key-1';
+      final services = [
+        ServiceEndpoint(
+          id: '$did#linked-domain',
+          type: 'LinkedDomains',
+          serviceEndpoint: const StringEndpoint('https://example.com/'),
+        ),
+        ServiceEndpoint(
+          id: '$did#didcomm',
+          type: 'DIDCommMessaging',
+          serviceEndpoint: const StringEndpoint('https://example.com/didcomm'),
+        ),
+      ];
+
+      final doc = DidWeb.generateDocument(
+        did: did,
+        verificationMethodIds: [vmId],
+        publicKeys: [testPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [vmId],
+        },
+        serviceEndpoints: services,
+      );
+
+      expect(doc.service.length, equals(2));
+      expect(doc.service[0].type, equals('LinkedDomains'));
+      expect(doc.service[1].type, equals('DIDCommMessaging'));
+    });
+
+    test('generates DID document for domain with port', () {
+      final did = 'did:web:example.com%3A3000';
+      final vmId = '$did#key-1';
+
+      final doc = DidWeb.generateDocument(
+        did: did,
+        verificationMethodIds: [vmId],
+        publicKeys: [testPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [vmId],
+        },
+        serviceEndpoints: [],
+      );
+
+      expect(doc.id, equals(did));
+      expect(doc.verificationMethod.first.controller, equals(did));
+    });
+
+    test('generates DID document for domain with path', () {
+      final did = 'did:web:w3c-ccg.github.io:user:alice';
+      final vmId = '$did#key-1';
+
+      final doc = DidWeb.generateDocument(
+        did: did,
+        verificationMethodIds: [vmId],
+        publicKeys: [testPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [vmId],
+        },
+        serviceEndpoints: [],
+      );
+
+      expect(doc.id, equals(did));
+      expect(doc.verificationMethod.first.id, equals(vmId));
+    });
+
+    test('generates DID document with correct context', () {
+      final did = 'did:web:example.com';
+      final vmId = '$did#key-1';
+
+      final doc = DidWeb.generateDocument(
+        did: did,
+        verificationMethodIds: [vmId],
+        publicKeys: [testPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [vmId],
+        },
+        serviceEndpoints: [],
+      );
+
+      final contextJson = doc.context.toJson();
+      final contextList = contextJson is List ? contextJson : [contextJson];
+      expect(contextList, contains('https://www.w3.org/ns/did/v1'));
+      expect(contextList, contains('https://w3id.org/security/multikey/v1'));
+    });
+
+    test('generates verification method with Multikey type', () {
+      final did = 'did:web:example.com';
+      final vmId = '$did#key-1';
+
+      final doc = DidWeb.generateDocument(
+        did: did,
+        verificationMethodIds: [vmId],
+        publicKeys: [testPublicKey],
+        relationships: {
+          VerificationRelationship.authentication: [vmId],
+        },
+        serviceEndpoints: [],
+      );
+
+      final vm = doc.verificationMethod.first as VerificationMethodMultibase;
+      expect(vm.type, equals('Multikey'));
+      expect(vm.controller, equals(did));
+      expect(vm.publicKeyMultibase, isNotEmpty);
+    });
+
+    test('handles empty relationships', () {
+      final did = 'did:web:example.com';
+      final vmId = '$did#key-1';
+
+      final doc = DidWeb.generateDocument(
+        did: did,
+        verificationMethodIds: [vmId],
+        publicKeys: [testPublicKey],
+        relationships: {},
+        serviceEndpoints: [],
+      );
+
+      expect(doc.authentication.length, equals(0));
+      expect(doc.assertionMethod.length, equals(0));
+      expect(doc.keyAgreement.length, equals(0));
+    });
+
+    test(
+        'throws ArgumentError when verification method IDs and keys length mismatch',
+        () {
+      final did = 'did:web:example.com';
+      final vmId1 = '$did#key-1';
+      final vmId2 = '$did#key-2';
+
+      expect(
+        () => DidWeb.generateDocument(
+          did: did,
+          verificationMethodIds: [vmId1, vmId2],
+          publicKeys: [testPublicKey], // Only one key for two IDs
+          relationships: {},
+          serviceEndpoints: [],
+        ),
+        throwsArgumentError,
+      );
+    });
+  });
 }
