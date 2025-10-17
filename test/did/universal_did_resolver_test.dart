@@ -11,7 +11,7 @@ import '../fixtures/did_document_fixtures.dart';
 void main() {
   group('When resolving did document', () {
     group('using did:key,', () {
-      test('it resolves succesfully', () async {
+      test('it resolves successfully', () async {
         final did = 'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
 
         final expectedDidDoc =
@@ -61,7 +61,7 @@ void main() {
         );
       });
 
-      test('it throws exception on non-200 responces', () async {
+      test('it throws exception on non-200 responses', () async {
         final did = 'did:test';
         final resolverAddress = 'https://example.com';
         final resolver = UniversalDIDResolver(resolverAddress: resolverAddress);
