@@ -25,6 +25,29 @@ Packages with other changes:
  - **FIX**: improve secp256k1 jws verifier to support DER encoded signatures (#186).
  - **FIX**: fix jcs hash calculation on issuance (#193).
 
+
+## 2025-10-17
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.14.2`](#ssi---v2142)
+
+---
+
+#### `ssi` - `v2.14.2`
+
+ - **FIX**: rejection sampling for p256/p384/p521 keys from seed (#190).
+ - **FIX**: improve secp256k1 jws verifier to support DER encoded signatures (#186).
+ - **FIX**: fix jcs hash calculation on issuance (#193).
+
 ## 2.14.2
 
  - **FIX**: rejection sampling for p256/p384/p521 keys from seed (#190).
