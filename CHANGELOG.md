@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.15.0`](#ssi---v2150)
+
+---
+
+#### `ssi` - `v2.15.0`
+
+ - **FEAT**: implement DidWeb.generateDocument functionality (#192).
+
+## 2.15.0
+
+ - **FEAT**: implement DidWeb.generateDocument functionality (#192).
+
+
+## 2025-10-17
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.14.2`](#ssi---v2142)
 
 ---
