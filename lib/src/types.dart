@@ -76,7 +76,7 @@ enum SignatureScheme {
 
   /// EdDSA with Ed25519 curve and SHA-512 hashing.
   ed25519(
-    alg: 'Ed25519',
+    alg: 'EdDSA',
     crv: 'Ed25519',
     keyType: KeyType.ed25519,
     hashingAlgorithm: HashingAlgorithm.sha512,
