@@ -406,14 +406,8 @@ class DidPeer {
     final ciIdx = rels[VerificationRelationship.capabilityInvocation] ?? [];
     final cdIdx = rels[VerificationRelationship.capabilityDelegation] ?? [];
 
-    // did:peer:0 is for a single key used only for authentication
+    // did:peer:0 is for a single key (equivalent to did:key).
     final isDid0 = verificationMethods.length == 1 &&
-        authIdx.length == 1 &&
-        authIdx.first == 0 &&
-        kaIdx.isEmpty &&
-        amIdx.isEmpty &&
-        ciIdx.isEmpty &&
-        cdIdx.isEmpty &&
         (serviceEndpoints == null || serviceEndpoints.isEmpty);
 
     if (isDid0) {
@@ -521,8 +515,7 @@ class DidPeer {
       );
     }
 
-    var isPeer0 = did[9] == '0';
-    if (isPeer0) {
+    if (DidPeer.determineType(did) == DidPeerType.peer0) {
       return _resolveDidPeer0(did);
     } else {
       return _resolveDidPeer2(did);
