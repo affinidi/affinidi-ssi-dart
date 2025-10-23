@@ -400,11 +400,6 @@ class DidPeer {
     }
 
     final rels = relationships ?? {};
-    final authIdx = rels[VerificationRelationship.authentication] ?? [];
-    final kaIdx = rels[VerificationRelationship.keyAgreement] ?? [];
-    final amIdx = rels[VerificationRelationship.assertionMethod] ?? [];
-    final ciIdx = rels[VerificationRelationship.capabilityInvocation] ?? [];
-    final cdIdx = rels[VerificationRelationship.capabilityDelegation] ?? [];
 
     // did:peer:0 is for a single key (equivalent to did:key).
     final isDid0 = verificationMethods.length == 1 &&
