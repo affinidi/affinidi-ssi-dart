@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
 
 import '../../did/did_signer.dart';
