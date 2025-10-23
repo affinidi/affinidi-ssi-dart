@@ -6,6 +6,7 @@ import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
+import '../models/did_signer_adapter.dart';
 import '../models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
 import '../parsers/sdjwt_parser.dart';
@@ -200,46 +201,7 @@ final class SdJwtDm2Suite
 ///
 /// Returns a Signer implementation for SD-JWT operations.
 Signer _createSdJwtSigner(DidSigner signer) {
-  return _DidSignerAdapter(signer);
-}
-
-/// Adapter to wrap the DidSigner for SD-JWT signing operations.
-///
-/// This adapter uses the synchronous signing method from DidSigner
-/// to implement the Signer interface required by SD-JWT library.
-class _DidSignerAdapter implements Signer {
-  /// The wrapped DID signer.
-  final DidSigner _didSigner;
-
-  /// Creates a new adapter for the given DID signer.
-  ///
-  /// [_didSigner] - The DID signer to adapt.
-  _DidSignerAdapter(this._didSigner);
-
-  /// Gets the IANA algorithm name for the signature scheme.
-  ///
-  /// Returns the JWT algorithm name from the signature scheme,
-  /// defaulting to ES256K if not available.
-  @override
-  String get algIanaName => _didSigner.signatureScheme.alg != null
-      ? _didSigner.signatureScheme.alg!
-      : 'ES256K'; // Default to ES256K if no JWT name is available
-
-  /// Gets the key ID for the signing key.
-  ///
-  /// Returns the key ID from the wrapped DID signer.
-  @override
-  String? get keyId => _didSigner.keyId;
-
-  /// Signs the input data using the synchronous sign method.
-  ///
-  /// [input] - The data to sign.
-  ///
-  /// Returns the signature as a byte array.
-  @override
-  Future<Uint8List> sign(Uint8List input) {
-    return _didSigner.sign(input);
-  }
+  return DidSignerAdapter(signer);
 }
 
 /// A [VcDataModelV2] backed by an SD-JWT credential structure.
