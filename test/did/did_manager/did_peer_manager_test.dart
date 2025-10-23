@@ -560,7 +560,7 @@ void main() {
         final signer = await manager.getSigner(vmId);
 
         // Assert
-        expect(signer.keyId, equals(vmId));
+        expect(signer.keyId, equals('${signer.did}$vmId'));
         expect(signer.signatureScheme, isNotNull);
         expect(signer.did,
             startsWith('did:peer:0')); // Single auth key generates peer:0
@@ -584,6 +584,65 @@ void main() {
 
         // Assert
         expect(signer.signatureScheme, SignatureScheme.ecdsa_p256_sha256);
+      });
+
+      test(
+          'normalizes fragment-only verificationMethodId to full DID URL and uses full ID in proofs',
+          () async {
+        final key = await wallet.generateKey(keyType: KeyType.ed25519);
+        final result = await manager.addVerificationMethod(key.id,
+            relationships: {VerificationRelationship.authentication});
+        final vmIdFragment = result.verificationMethodId; // e.g. '#key-1'
+
+        final signer = await manager.getSigner(vmIdFragment);
+
+        // signer.keyId should now be fully qualified DID + fragment
+        expect(signer.keyId, '${signer.did}$vmIdFragment');
+
+        // signer.did should be a did:peer:0 (single auth key)
+        expect(signer.did.startsWith('did:peer:0'), isTrue);
+
+        // signer.didKeyId should equal keyId (already fully qualified)
+        expect(signer.didKeyId, signer.keyId);
+
+        // Generate a simple credential using this signer and assert proof.verificationMethod is fully-qualified
+        final unsignedCredential = MutableVcDataModelV1(
+          context: ['https://www.w3.org/2018/credentials/v1'],
+          id: Uri.parse('uuid:test-normalization'),
+          type: {'VerifiableCredential'},
+          credentialSubject: [
+            MutableCredentialSubject({'id': signer.did, 'test': 'value'})
+          ],
+          issuanceDate: DateTime.now(),
+          issuer: Issuer.uri(signer.did),
+        );
+
+        final proofGenerator = DataIntegrityEddsaJcsGenerator(signer: signer);
+        final issued = await LdVcDm1Suite().issue(
+          unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+          proofGenerator: proofGenerator,
+        );
+
+        final proof = issued.toJson()['proof'] as Map<String, dynamic>;
+        expect(proof['verificationMethod'], signer.keyId);
+        expect(proof['verificationMethod'], startsWith(signer.did));
+      });
+
+      test('keeps fully-qualified verificationMethodId unchanged', () async {
+        final key1 = await wallet.generateKey(keyType: KeyType.p256);
+        final key2 = await wallet.generateKey(keyType: KeyType.p256);
+        await manager.addVerificationMethod(key1.id,
+            relationships: {VerificationRelationship.authentication});
+        await manager.addVerificationMethod(key2.id,
+            relationships: {VerificationRelationship.authentication});
+        final didDocument = await manager.getDidDocument(); // did:peer:2
+        final vmFull = '${didDocument.id}#key-1';
+
+        // getSigner should not double prefix
+        final signer = await manager.getSigner(vmFull);
+        expect(signer.keyId, vmFull); // keyId is what was passed
+        expect(signer.did, didDocument.id);
+        expect(signer.didKeyId, vmFull);
       });
     });
 
