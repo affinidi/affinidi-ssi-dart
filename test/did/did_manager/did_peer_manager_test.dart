@@ -586,9 +586,12 @@ void main() {
         expect(signer.signatureScheme, SignatureScheme.ecdsa_p256_sha256);
       });
 
-      test('normalizes fragment-only verificationMethodId to full DID URL and uses full ID in proofs', () async {
+      test(
+          'normalizes fragment-only verificationMethodId to full DID URL and uses full ID in proofs',
+          () async {
         final key = await wallet.generateKey(keyType: KeyType.ed25519);
-        final result = await manager.addVerificationMethod(key.id, relationships: {VerificationRelationship.authentication});
+        final result = await manager.addVerificationMethod(key.id,
+            relationships: {VerificationRelationship.authentication});
         final vmIdFragment = result.verificationMethodId; // e.g. '#key-1'
 
         final signer = await manager.getSigner(vmIdFragment);
@@ -607,7 +610,9 @@ void main() {
           context: ['https://www.w3.org/2018/credentials/v1'],
           id: Uri.parse('uuid:test-normalization'),
           type: {'VerifiableCredential'},
-          credentialSubject: [MutableCredentialSubject({'id': signer.did, 'test': 'value'})],
+          credentialSubject: [
+            MutableCredentialSubject({'id': signer.did, 'test': 'value'})
+          ],
           issuanceDate: DateTime.now(),
           issuer: Issuer.uri(signer.did),
         );
@@ -626,8 +631,10 @@ void main() {
       test('keeps fully-qualified verificationMethodId unchanged', () async {
         final key1 = await wallet.generateKey(keyType: KeyType.p256);
         final key2 = await wallet.generateKey(keyType: KeyType.p256);
-        await manager.addVerificationMethod(key1.id, relationships: {VerificationRelationship.authentication});
-        await manager.addVerificationMethod(key2.id, relationships: {VerificationRelationship.authentication});
+        await manager.addVerificationMethod(key1.id,
+            relationships: {VerificationRelationship.authentication});
+        await manager.addVerificationMethod(key2.id,
+            relationships: {VerificationRelationship.authentication});
         final didDocument = await manager.getDidDocument(); // did:peer:2
         final vmFull = '${didDocument.id}#key-1';
 
