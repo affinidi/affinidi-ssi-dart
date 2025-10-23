@@ -6,7 +6,7 @@ import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
-import '../models/did_signer_adapter.dart';
+import '../models/sdjwt_signer_adapter.dart';
 import '../models/parsed_vc.dart';
 import '../models/v2/vc_data_model_v2.dart';
 import '../parsers/sdjwt_parser.dart';
@@ -201,7 +201,7 @@ final class SdJwtDm2Suite
 ///
 /// Returns a Signer implementation for SD-JWT operations.
 Signer _createSdJwtSigner(DidSigner signer) {
-  return DidSignerAdapter(signer);
+  return SdJwtSignerAdapter(signer);
 }
 
 /// A [VcDataModelV2] backed by an SD-JWT credential structure.

@@ -8,14 +8,14 @@ import '../../did/did_signer.dart';
 ///
 /// This adapter uses the synchronous signing method from DidSigner
 /// to implement the Signer interface required by SD-JWT library.
-class DidSignerAdapter implements Signer {
+class SdJwtSignerAdapter implements Signer {
   /// The wrapped DID signer.
   final DidSigner _didSigner;
 
   /// Creates a new adapter for the given DID signer.
   ///
   /// [_didSigner] - The DID signer to adapt.
-  DidSignerAdapter(this._didSigner);
+  SdJwtSignerAdapter(this._didSigner);
 
   /// Gets the IANA algorithm name for the signature scheme.
   ///
