@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -53,10 +51,15 @@ void main() {
       );
 
       final unsignedCredential = MutableVcDataModelV2(
-        context: [dmV2ContextUrl, 'https://schema.affinidi.com/UserProfileV1-0.jsonld'],
+        context: [
+          dmV2ContextUrl,
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+        ],
         id: Uri.parse('uuid:peer2-vc-1'),
         type: {'VerifiableCredential', 'UserProfile'},
-        credentialSubject: [MutableCredentialSubject({'Fname': 'Alice'})],
+        credentialSubject: [
+          MutableCredentialSubject({'Fname': 'Alice'})
+        ],
         issuer: Issuer.uri(signer.did),
         validFrom: DateTime.now(),
         validUntil: DateTime.now().add(const Duration(days: 365)),
@@ -92,10 +95,15 @@ void main() {
 
       // Issue a VC first
       final unsignedCredential = MutableVcDataModelV2(
-        context: [dmV2ContextUrl, 'https://schema.affinidi.com/UserProfileV1-0.jsonld'],
+        context: [
+          dmV2ContextUrl,
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+        ],
         id: Uri.parse('uuid:peer2-vc-2'),
         type: {'VerifiableCredential', 'UserProfile'},
-        credentialSubject: [MutableCredentialSubject({'Fname': 'Bob'})],
+        credentialSubject: [
+          MutableCredentialSubject({'Fname': 'Bob'})
+        ],
         issuer: Issuer.uri(signer.did),
         validFrom: DateTime.now(),
         validUntil: DateTime.now().add(const Duration(days: 365)),
@@ -123,7 +131,7 @@ void main() {
 
       expect(issuedPresentation, isNotNull);
       expect(issuedPresentation.proof, isNotEmpty);
-      expect(issuedPresentation.holder?.id.toString(), didDocument.id);
+      expect(issuedPresentation.holder.id.toString(), didDocument.id);
       expect(issuedPresentation.verifiableCredential, hasLength(1));
       expect(issuedPresentation.verifiableCredential.first.issuer.id.toString(),
           didDocument.id);
