@@ -21,15 +21,15 @@ String cheqdResolverUrl = 'https://resolver.cheqd.net/1.0/identifiers/';
 /// The base URL for the Cheqd DID registrar service (running locally).
 String cheqdRegistrarUrl = 'http://localhost:3000';
 
-/// TRQP-Compliant Recognition Query Response Structure
-class RecognitionQueryResponse {
+/// TRQP-Compliant Authorization Query Response Structure
+class AuthorizationQueryResponse {
   /// Entity ID
   final String entityId;
 
-  /// TRQP Recognition status
-  final bool recognized;
+  /// TRQP Authorization status
+  final bool authorized;
 
-  /// TRQP Recognition status detail
+  /// TRQP Authorization status detail
   final String message;
 
   /// Assertion ID (Role)
@@ -42,9 +42,9 @@ class RecognitionQueryResponse {
   final String? authorityId;
 
   /// Converted Response
-  RecognitionQueryResponse({
+  AuthorizationQueryResponse({
     required this.entityId,
-    required this.recognized,
+    required this.authorized,
     required this.message,
     this.accreditorDids,
     this.authorityId,
@@ -52,8 +52,8 @@ class RecognitionQueryResponse {
   });
 }
 
-/// Represents a Recognition Query Request as defined by the Trust Registry Query Protocol (TRQP).
-class RecognitionQueryRequest {
+/// Represents a Authorization Query Request as defined by the Trust Registry Query Protocol (TRQP).
+class AuthorizationQueryRequest {
   /// A unique identifier for the entity whose recognition status is being evaluated (e.g., a DID).
   final String entityId;
 
@@ -69,10 +69,11 @@ class RecognitionQueryRequest {
   /// Auxiliary parameters that influence evaluation, such as a timestamp. Optional.
   final Map<String, dynamic>? context;
 
+  /// List of schemas the entity is authorized for
   final List<String>? schemas;
 
-  /// Recognition Query Request
-  RecognitionQueryRequest({
+  /// Authorization Query Request
+  AuthorizationQueryRequest({
     required this.entityId,
     required this.uri,
     this.authorityId,
@@ -275,8 +276,8 @@ class DidCheqd {
 
   /// Verifies the trust chain and returns a TRQP-compliant object on success.
   /// Throws a TrustVerificationException on failure.
-  static Future<RecognitionQueryResponse> recognize(
-      RecognitionQueryRequest query) async {
+  static Future<AuthorizationQueryResponse> authorize(
+      AuthorizationQueryRequest query) async {
     List<String> accreditorDids = [];
     String uri = query.uri;
     String subject = query.entityId;
@@ -307,11 +308,11 @@ class DidCheqd {
               code: '400');
       // validate subject
       if (subject != currentSubject) {
-        return RecognitionQueryResponse(
+        return AuthorizationQueryResponse(
             entityId: query.entityId,
             message:
                 'Expected subject DID $subject in trust chain, but found $currentSubject',
-            recognized: false);
+            authorized: false);
       }
 
       // Validate role in the ecosystem
@@ -325,11 +326,11 @@ class DidCheqd {
                   : null;
 
       if (role != null && accreditorDids.isEmpty && role != assertionId) {
-        return RecognitionQueryResponse(
+        return AuthorizationQueryResponse(
             entityId: query.entityId,
             message:
                 'Expected entity role $role in trust chain, but found $assertionId',
-            recognized: false);
+            authorized: false);
       }
 
       // validate schema permissions
@@ -354,19 +355,19 @@ class DidCheqd {
         });
 
         if (!hasAllRequiredSchemas) {
-          return RecognitionQueryResponse(
+          return AuthorizationQueryResponse(
               entityId: query.entityId,
               message: 'Authorized entity $subject does not have permissions',
-              recognized: false);
+              authorized: false);
         }
       }
 
       // End the loop after finding the rootDid
       if (accreditationType.contains(DIDAccreditationTypes.authorize.value)) {
         // SUCCESS: Accreditation is a root/terminal type, and all trust links passed.
-        return RecognitionQueryResponse(
+        return AuthorizationQueryResponse(
             entityId: query.entityId,
-            recognized:
+            authorized:
                 rootAuthority != null ? rootAuthority == currentSubject : true,
             message: 'Accreditation trust chain successfully verified.',
             accreditorDids: accreditorDids,
@@ -378,11 +379,11 @@ class DidCheqd {
             termsOfUse['parentAccreditation'] == null ||
             (termsOfUse['rootAuthorization'] == null &&
                 termsOfUse['rootAuthorization'] is String)) {
-          return RecognitionQueryResponse(
+          return AuthorizationQueryResponse(
               entityId: query.entityId,
               message:
                   'Missing parentAccreditaiton/rootAuthorization required for delegated trust link',
-              recognized: false);
+              authorized: false);
         }
 
         // Validate root if provided in every authority
