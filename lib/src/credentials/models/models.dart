@@ -1,3 +1,4 @@
+export 'sdjwt_signer_adapter.dart';
 export 'doc_with_embedded_proof.dart';
 export 'field_types/field_types.dart';
 export 'parsed_vc.dart';
