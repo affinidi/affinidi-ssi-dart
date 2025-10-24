@@ -519,4 +519,18 @@ void main() {
       expect(publicKey.type, KeyType.ed25519);
     });
   });
+
+  group('DidCheqd TRQP', () {
+    test('should recognize valid identifier', () async {
+      // Should throw SsiException for missing Ed25519 key
+      final response = await DidCheqd.authorize(AuthorizationQueryRequest(
+          authorityId: 'did:cheqd:testnet:06f1b8a0-5650-4d57-a28e-36e6e7b66882',
+          entityId: 'did:cheqd:testnet:0fff211f-c4db-4223-a1c3-0db25c512c47',
+          assertionId: DIDAccreditationTypes.attest,
+          uri:
+              'did:cheqd:testnet:169753bb-71a3-4d3d-856a-02c3f8734266?resourceName=AccreditationForIssuingAgentFacts&resourceType=VerifiableAccreditationToAttest'));
+
+      expect(response.authorized, true);
+    });
+  });
 }

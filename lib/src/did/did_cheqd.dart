@@ -21,6 +21,85 @@ String cheqdResolverUrl = 'https://resolver.cheqd.net/1.0/identifiers/';
 /// The base URL for the Cheqd DID registrar service (running locally).
 String cheqdRegistrarUrl = 'http://localhost:3000';
 
+/// TRQP-Compliant Authorization Query Response Structure
+class AuthorizationQueryResponse {
+  /// Entity ID
+  final String entityId;
+
+  /// TRQP Authorization status
+  final bool authorized;
+
+  /// TRQP Authorization status detail
+  final String message;
+
+  /// Assertion ID (Role)
+  final DIDAccreditationTypes? assertionId;
+
+  /// The chain of issuers encountered
+  final List<String>? accreditorDids;
+
+  /// The final root authorization DID
+  final String? authorityId;
+
+  /// Converted Response
+  AuthorizationQueryResponse({
+    required this.entityId,
+    required this.authorized,
+    required this.message,
+    this.accreditorDids,
+    this.authorityId,
+    this.assertionId,
+  });
+}
+
+/// Represents a Authorization Query Request as defined by the Trust Registry Query Protocol (TRQP).
+class AuthorizationQueryRequest {
+  /// A unique identifier for the entity whose recognition status is being evaluated (e.g., a DID).
+  final String entityId;
+
+  /// A uri pointing to the authorization proof of the entity
+  final String uri;
+
+  /// A unique identifier for the authority making the recognition assertion (e.g., an Root DID).
+  final String? authorityId;
+
+  /// A unique identifier for the specific authorization type being queried
+  final DIDAccreditationTypes? assertionId;
+
+  /// Auxiliary parameters that influence evaluation, such as a timestamp. Optional.
+  final Map<String, dynamic>? context;
+
+  /// List of schemas the entity is authorized for
+  final List<String>? schemas;
+
+  /// Authorization Query Request
+  AuthorizationQueryRequest({
+    required this.entityId,
+    required this.uri,
+    this.authorityId,
+    this.assertionId,
+    this.schemas,
+    this.context,
+  });
+}
+
+/// Represents the different types of DID Accreditations used in a trust chain.
+enum DIDAccreditationTypes {
+  /// Authorize (Root DID, can authorize a did with accredit, attest permissions)
+  authorize('VerifiableAuthorizationForTrustChain'),
+
+  /// Accredit  (Accreditor DID, can authorize other did with attest permissions)
+  accredit('VerifiableAccreditationToAccredit'),
+
+  /// Attest    (Attest DID, can issue credentials by proving recognition)
+  attest('VerifiableAccreditationToAttest');
+
+  /// type string value
+  final String value;
+
+  const DIDAccreditationTypes(this.value);
+}
+
 /// A utility class for working with the "did:cheqd" method.
 class DidCheqd {
   /// Resolves a [DidDocument] for a given DID.
@@ -50,6 +129,36 @@ class DidCheqd {
     } else {
       throw SsiException(
         message: 'Failed to fetch DID Cheqd document for $didToResolve',
+        code: SsiExceptionType.invalidDidCheqd.code,
+      );
+    }
+  }
+
+  /// Resolves a DidLinkedResource for a given DID.
+  ///
+  /// [didUrlToResolve] - The DID to resolve.
+  ///
+  /// Returns a [List<int>] object.
+  static Future<List<int>> resolveResource(
+    String didUrlToResolve,
+  ) async {
+    if (!didUrlToResolve.startsWith('did:cheqd')) {
+      throw SsiException(
+        message: '`$didUrlToResolve` is not did:cheqd DID',
+        code: SsiExceptionType.invalidDidCheqd.code,
+      );
+    }
+
+    var res = await get(Uri.parse('$cheqdResolverUrl$didUrlToResolve'))
+        .timeout(const Duration(seconds: 30), onTimeout: () {
+      return Response('Timeout', 408);
+    });
+
+    if (res.statusCode == 200) {
+      return res.bodyBytes;
+    } else {
+      throw SsiException(
+        message: 'Failed to fetch DID Cheqd document for $didUrlToResolve',
         code: SsiExceptionType.invalidDidCheqd.code,
       );
     }
@@ -162,6 +271,130 @@ class DidCheqd {
         message: 'Failed to register DID: $e',
         code: SsiExceptionType.invalidDidCheqd.code,
       );
+    }
+  }
+
+  /// Verifies the trust chain and returns a TRQP-compliant object on success.
+  /// Throws a TrustVerificationException on failure.
+  static Future<AuthorizationQueryResponse> authorize(
+      AuthorizationQueryRequest query) async {
+    List<String> accreditorDids = [];
+    String uri = query.uri;
+    String subject = query.entityId;
+    final String? rootAuthority = query.authorityId;
+    DIDAccreditationTypes? role = query.assertionId;
+
+    DIDAccreditationTypes? assertionId;
+
+    while (true) {
+      final resource = await DidCheqd.resolveResource(uri);
+      final accreditation = jsonDecode(utf8.decode(resource));
+      final issuerData = accreditation['issuer'];
+      final currentIssuer = (issuerData is String)
+          ? issuerData // Case 1: 'issuer' is a simple string.
+          // Check if the value is a Map (which contains the 'id' we want)
+          : (issuerData is Map<String, dynamic>)
+              ? issuerData['id'] as String // Case 2: It's a Map, access 'id'.
+
+              // Final Fallback (Catch-all for List, null, or any other unexpected type)
+              : throw SsiException(
+                  message: 'Invalid issuer in trust chain $issuerData',
+                  code: '400');
+      final currentSubject = accreditation['credentialSubject']['id'] as String;
+      final accreditationType = (accreditation['type'] is List)
+          ? (accreditation['type'] as List).cast<String>()
+          : throw SsiException(
+              message: 'Invalid role type ${accreditation['type']}',
+              code: '400');
+      // validate subject
+      if (subject != currentSubject) {
+        return AuthorizationQueryResponse(
+            entityId: query.entityId,
+            message:
+                'Expected subject DID $subject in trust chain, but found $currentSubject',
+            authorized: false);
+      }
+
+      // Validate role in the ecosystem
+      assertionId = accreditationType
+              .contains(DIDAccreditationTypes.authorize.value)
+          ? DIDAccreditationTypes.authorize
+          : accreditationType.contains(DIDAccreditationTypes.accredit.value)
+              ? DIDAccreditationTypes.accredit
+              : accreditationType.contains(DIDAccreditationTypes.attest.value)
+                  ? DIDAccreditationTypes.attest
+                  : null;
+
+      if (role != null && accreditorDids.isEmpty && role != assertionId) {
+        return AuthorizationQueryResponse(
+            entityId: query.entityId,
+            message:
+                'Expected entity role $role in trust chain, but found $assertionId',
+            authorized: false);
+      }
+
+      // validate schema permissions
+      if (query.schemas != null) {
+        final List<dynamic> accreditationForData =
+            (accreditation['credentialSubject']?['accreditedFor']
+                    as List<dynamic>?) ??
+                [];
+
+        final bool hasAllRequiredSchemas = accreditationForData.every((schema) {
+          final schemaTypes = (schema['types'] as List<dynamic>?) ?? [];
+          final schemaId = schema['schemaId'];
+
+          return accreditationForData.any((accredited) {
+            final accreditedTypes =
+                (accredited['types'] as List<dynamic>?) ?? [];
+            final accreditedSchemaId = accredited['schemaId'];
+
+            final hasAllTypes = schemaTypes.every(accreditedTypes.contains);
+            return hasAllTypes && accreditedSchemaId == schemaId;
+          });
+        });
+
+        if (!hasAllRequiredSchemas) {
+          return AuthorizationQueryResponse(
+              entityId: query.entityId,
+              message: 'Authorized entity $subject does not have permissions',
+              authorized: false);
+        }
+      }
+
+      // End the loop after finding the rootDid
+      if (accreditationType.contains(DIDAccreditationTypes.authorize.value)) {
+        // SUCCESS: Accreditation is a root/terminal type, and all trust links passed.
+        return AuthorizationQueryResponse(
+            entityId: query.entityId,
+            authorized:
+                rootAuthority != null ? rootAuthority == currentSubject : true,
+            message: 'Accreditation trust chain successfully verified.',
+            accreditorDids: accreditorDids,
+            authorityId: currentSubject,
+            assertionId: assertionId);
+      } else {
+        final termsOfUse = accreditation['termsOfUse'];
+        if (termsOfUse == null ||
+            termsOfUse['parentAccreditation'] == null ||
+            (termsOfUse['rootAuthorization'] == null &&
+                termsOfUse['rootAuthorization'] is String)) {
+          return AuthorizationQueryResponse(
+              entityId: query.entityId,
+              message:
+                  'Missing parentAccreditaiton/rootAuthorization required for delegated trust link',
+              authorized: false);
+        }
+
+        // Validate root if provided in every authority
+        // final currentRootAuthority = termsOfUse['rootAuthorization'] as String;
+        // print(currentRootAuthority);
+
+        // Prepare for next iteration (traversing up the chain)
+        accreditorDids.add(currentIssuer);
+        uri = termsOfUse['parentAccreditation'] as String;
+        subject = currentIssuer;
+      }
     }
   }
 
