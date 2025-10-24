@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-10-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.16.0`](#ssi---v2160)
+
+---
+
+#### `ssi` - `v2.16.0`
+
+ - **FEAT**: export DidSignerAdapter (#196).
+
+## 2.16.0
+
+ - **FEAT**: export DidSignerAdapter (#196).
+
+
 ## 2025-10-23
 
 ### Changes
