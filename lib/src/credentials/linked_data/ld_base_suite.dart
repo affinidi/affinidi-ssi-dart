@@ -91,23 +91,25 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     required VC unsignedData,
     required EmbeddedProofGenerator proofGenerator,
   }) async {
-    
+    print('Issuing credential with proof generator: $proofGenerator');
     var json = unsignedData.toJson();
     // remove proof in case it's already there
     json.remove(proofKey);
-
+    print('Unsigned credential JSON: $json');
     final proof = await proofGenerator.generate(json);
-
+    print('Generated proof: $proof');
     final issuer = Issuer.fromJson(json[issuerKey]);
     if (proof.verificationMethod?.split('#').first != issuer.id.toString()) {
+      print(
+          'Issuer mismatch: ${proof.verificationMethod?.split('#').first} != ${issuer.id}');
       throw SsiException(
         message: 'Issuer mismatch',
         code: SsiExceptionType.invalidJson.code,
       );
     }
-
+    print('Adding proof to credential JSON');
     json[proofKey] = proof.toJson();
-
+    print('Final issued credential JSON: $json');
     return fromParsed(jsonEncode(json), json);
   }
 
