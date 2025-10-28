@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:logger/web.dart';
+import 'package:logging/logging.dart';
 
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -95,25 +95,25 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     required VC unsignedData,
     required EmbeddedProofGenerator proofGenerator,
   }) async {
-    logger.i('Issuing credential with proof generator: $proofGenerator');
+    logger.info('Issuing credential with proof generator: $proofGenerator');
     var json = unsignedData.toJson();
     // remove proof in case it's already there
     json.remove(proofKey);
-    logger.i('Unsigned credential JSON: $json');
+    logger.info('Unsigned credential JSON: $json');
     final proof = await proofGenerator.generate(json);
-    logger.i('Generated proof: $proof');
+    logger.info('Generated proof: $proof');
     final issuer = Issuer.fromJson(json[issuerKey]);
     if (proof.verificationMethod?.split('#').first != issuer.id.toString()) {
-      logger.i(
+      logger.info(
           'Issuer mismatch: ${proof.verificationMethod?.split('#').first} != ${issuer.id}');
       throw SsiException(
         message: 'Issuer mismatch',
         code: SsiExceptionType.invalidJson.code,
       );
     }
-    logger.i('Adding proof to credential JSON');
+    logger.info('Adding proof to credential JSON');
     json[proofKey] = proof.toJson();
-    logger.i('Final issued credential JSON: $json');
+    logger.info('Final issued credential JSON: $json');
     return fromParsed(jsonEncode(json), json);
   }
 

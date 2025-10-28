@@ -23,7 +23,7 @@ dependencies:
   pointycastle: ^4.0.0
   selective_disclosure_jwt: ^1.1.0
   x25519: ^0.1.1
-  logger: ^2.0.2
+
 
 dev_dependencies:
   aws_kms_api: ^2.0.0
