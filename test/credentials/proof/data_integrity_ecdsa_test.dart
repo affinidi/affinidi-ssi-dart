@@ -77,7 +77,9 @@ void main() async {
               proofValueMultiBase == MultiBase.base58bitcoin ? 'z' : 'u');
         });
 
-        test('Create and verify Data Integrity ECDSA proof with data-integrity context', () async {
+        test(
+            'Create and verify Data Integrity ECDSA proof with data-integrity context',
+            () async {
           final unsignedCredential = MutableVcDataModelV1(
             context: [
               'https://www.w3.org/2018/credentials/v1',
@@ -108,14 +110,17 @@ void main() async {
             proofGenerator: proofGenerator,
           );
 
-          final proofVerifier = DataIntegrityEcdsaRdfcVerifier(issuerDid: signer.did);
-          final verificationResult = await proofVerifier.verify(issuedCredential.toJson());
+          final proofVerifier =
+              DataIntegrityEcdsaRdfcVerifier(issuerDid: signer.did);
+          final verificationResult =
+              await proofVerifier.verify(issuedCredential.toJson());
 
           expect(verificationResult.isValid, true);
           expect(verificationResult.errors, isEmpty);
         });
 
-        test('Reject issuance without data-integrity or VC v2 context', () async {
+        test('Reject issuance without data-integrity or VC v2 context',
+            () async {
           final unsignedCredential = MutableVcDataModelV1(
             context: [
               // Intentionally omit data-integrity and VC v2 contexts
@@ -141,7 +146,8 @@ void main() async {
               unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
               proofGenerator: proofGenerator,
             ),
-            throwsA(isA<SsiException>().having((e) => e.code, 'code', SsiExceptionType.invalidContext.code)),
+            throwsA(isA<SsiException>().having(
+                (e) => e.code, 'code', SsiExceptionType.invalidContext.code)),
           );
         });
 
@@ -199,7 +205,8 @@ void main() async {
   });
 
   group('Test Data Integrity ECDSA-JCS VC issuance', () {
-    test('Reject JCS issuance without data-integrity or VC v2 context', () async {
+    test('Reject JCS issuance without data-integrity or VC v2 context',
+        () async {
       final unsignedCredential = MutableVcDataModelV1(
         context: [
           // Intentionally omit data-integrity and VC v2 contexts
@@ -224,7 +231,8 @@ void main() async {
           unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
           proofGenerator: proofGenerator,
         ),
-        throwsA(isA<SsiException>().having((e) => e.code, 'code', SsiExceptionType.invalidContext.code)),
+        throwsA(isA<SsiException>().having(
+            (e) => e.code, 'code', SsiExceptionType.invalidContext.code)),
       );
     });
 
@@ -336,7 +344,9 @@ void main() async {
       expect(proof['proofValue'], startsWith('z')); // base58-btc multibase
     });
 
-    test('Create and verify Data Integrity ECDSA-JCS proof with data-integrity context', () async {
+    test(
+        'Create and verify Data Integrity ECDSA-JCS proof with data-integrity context',
+        () async {
       final unsignedCredential = MutableVcDataModelV1(
         context: [
           'https://www.w3.org/2018/credentials/v1',
@@ -366,8 +376,10 @@ void main() async {
         proofGenerator: proofGenerator,
       );
 
-      final proofVerifier = DataIntegrityEcdsaJcsVerifier(verifierDid: signer.did);
-      final verificationResult = await proofVerifier.verify(issuedCredential.toJson());
+      final proofVerifier =
+          DataIntegrityEcdsaJcsVerifier(verifierDid: signer.did);
+      final verificationResult =
+          await proofVerifier.verify(issuedCredential.toJson());
 
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
