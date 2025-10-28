@@ -246,4 +246,6 @@ class JcsUtils {
   ) {
     return signatureScheme.hashingAlgorithm;
   }
+
+
 }

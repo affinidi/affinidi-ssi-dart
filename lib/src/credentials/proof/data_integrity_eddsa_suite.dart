@@ -10,6 +10,7 @@ import '../../types.dart';
 import 'base_data_integrity_verifier.dart';
 import 'base_jcs_generator.dart';
 import 'base_jcs_verifier.dart';
+import 'data_integrity_context_util.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 
@@ -56,6 +57,8 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
+    // Validate credential @context contains Data Integrity or VC v2 context
+    DataIntegrityContextUtil.validate(document);
     final proof = {
       '@context': _dataIntegrityContext,
       'type': _dataIntegrityType,

@@ -4,22 +4,22 @@ SSI package provides libraries and tools for implementing Self-Sovereign Identit
 
 It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1.0/) methods to represent an entity's identity in the decentralised ecosystem. It leverages different key management solutions and standards for generating and managing cryptographic keys associated with the digital wallet.
 
-> **IMPORTANT:** 
+> **IMPORTANT:**
 > This project does not collect or process any personal data. However, when used as part of a broader system or application that handles personally identifiable information (PII), users are responsible for ensuring that any such use complies with applicable privacy laws and data protection obligations.
 
 ## Table of Contents
 
-  - [Core Concepts](#core-concepts)
-  - [Supported DID Methods](#supported-did-methods)
-  - [Supported Key Management](#supported-key-management)
-  - [Credential Data Models](#credential-data-models)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [DID Manager](#did-manager)
-  - [Ed25519/X25519 Key Derivation](#ed25519x25519-key-derivation)
-  - [Support & feedback](#support--feedback)
-  - [Contributing](#contributing)
+- [Core Concepts](#core-concepts)
+- [Supported DID Methods](#supported-did-methods)
+- [Supported Key Management](#supported-key-management)
+- [Credential Data Models](#credential-data-models)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [DID Manager](#did-manager)
+- [Ed25519/X25519 Key Derivation](#ed25519x25519-key-derivation)
+- [Support & feedback](#support--feedback)
+- [Contributing](#contributing)
 
 ## Core Concepts
 
@@ -31,7 +31,7 @@ SSI introduces several key concepts:
 
 - **Verifiable Presentation (VP):** A collection of one or more Verifiable Credentials (VCs) that an individual shares with the verifier to prove specific claims. VP is cryptographically signed and verifiable.
 
-- **Data Model:** A standard data structure defined by W3C  for consistency and interoperability.
+- **Data Model:** A standard data structure defined by W3C for consistency and interoperability.
 
 - **Wallet:** A digital wallet to manage cryptographic keys supporting different algorithms for signing and verifying VC and VP.
 
@@ -59,8 +59,30 @@ This package supports the following key management solutions for securely managi
 
 - **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports **secp256k1**, **ed25519**, **p256**, **p384**, and **p521** key types.
 
-
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/wallet) to learn how to create different wallets.
+
+## Data Integrity Context Requirements
+
+### Ordering and Mixing Guidance
+
+When using `VcDataModelV1` the first `@context` entry MUST be `https://www.w3.org/2018/credentials/v1`. Do not prepend other contexts before it.
+
+Do NOT mix `https://www.w3.org/2018/credentials/v1` and `https://www.w3.org/ns/credentials/v2` in the same credential when using `VcDataModelV1` – the package does not yet support simultaneous inclusion and JSON-LD protected term collisions may occur.
+
+For Data Integrity proofs with `VcDataModelV1`, include either:
+- `https://w3id.org/security/data-integrity/v2` (preferred) or `https://w3id.org/security/data-integrity/v1`, after the VC v1 context; OR
+- Switch entirely to a future `VcDataModelV2` implementation (not yet provided here) if you need VC v2 features.
+
+Place application or schema contexts (e.g. Affinidi JSON-LD schemas) after the required standard contexts.
+
+When issuing Data Integrity proofs (RDFC or JCS cryptosuites) for Verifiable Credentials using this package, the credential's `@context` MUST include either:
+
+- `https://www.w3.org/ns/credentials/v2` (which implicitly includes the Data Integrity definitions), OR
+- `https://w3id.org/security/data-integrity/v2` (or the legacy `https://w3id.org/security/data-integrity/v1`), in addition to any other application-specific contexts.
+
+If neither the VC v2 context nor a Data Integrity context is present, issuance will throw an `SsiException` with code `invalid_context`.
+
+This enforcement helps ensure canonicalization security and aligns with W3C Data Integrity specifications.
 
 ## Credential Data Models
 
@@ -153,7 +175,6 @@ The introduction of the DID Manager simplifies DID management by shifting DID-re
 
 Each DID method extends the base class [`DidManager`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_manager/did_manager.dart) to inherit the functionality to manage the supported DIDs.
 
-
 ## Ed25519/X25519 Key Derivation
 
 If you select an Ed25519 key (Edwards curve) for your DID or wallet, the Dart SSI package will use this curve for digital signatures. However, for key agreement purposes, the package automatically derives an X25519 key from the Ed25519 key.
@@ -164,7 +185,6 @@ When generating a DID Document with the Dart SSI package using an Ed25519 key, t
 - **X25519** for encryption/ECDH (key agreement) derived from Ed25519 as needed.
 
 The Dart SSI package handles both the key derivation and DID Document construction automatically, so you don't need to convert keys or add verification methods manually. Be aware that it uses the same key material in different forms for signing and encryption operations.
-
 
 ## Support & feedback
 
@@ -187,5 +207,3 @@ If you have a technical issue with the Affinidi SSI's codebase, you can also cre
 Want to contribute?
 
 Head over to our [CONTRIBUTING](https://github.com/affinidi/affinidi-ssi-dart/blob/main/CONTRIBUTING.md) guidelines.
-
-

@@ -21,6 +21,7 @@ void main() async {
           final unsignedCredential = MutableVcDataModelV1(
             context: [
               'https://www.w3.org/2018/credentials/v1',
+              'https://w3id.org/security/data-integrity/v2',
               'https://schema.affinidi.com/UserProfileV1-0.jsonld'
             ],
             id: Uri.parse('uuid:123456abcd'),
@@ -75,11 +76,80 @@ void main() async {
               proofValueMultiBase == MultiBase.base58bitcoin ? 'z' : 'u');
         });
 
+        test('Create and verify Data Integrity EdDSA-RDFC proof with data-integrity context', () async {
+          final unsignedCredential = MutableVcDataModelV1(
+            context: [
+              'https://www.w3.org/2018/credentials/v1',
+              'https://w3id.org/security/data-integrity/v2',
+              'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+            ],
+            id: Uri.parse('uuid:dataintegrityeddsardfc'),
+            type: {'VerifiableCredential', 'UserProfile'},
+            credentialSubject: [
+              MutableCredentialSubject({
+                'Fname': 'Fname',
+                'Lname': 'Lame',
+                'Age': '22',
+                'Address': 'Eihhornstr'
+              })
+            ],
+            issuanceDate: DateTime.now(),
+            issuer: Issuer.uri(edSigner.did),
+          );
+
+          final proofGenerator = DataIntegrityEddsaRdfcGenerator(
+            signer: edSigner,
+            proofValueMultiBase: proofValueMultiBase,
+          );
+
+          final issuedCredential = await LdVcDm1Suite().issue(
+            unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+            proofGenerator: proofGenerator,
+          );
+
+          final proofVerifier = DataIntegrityEddsaRdfcVerifier(issuerDid: edSigner.did);
+          final verificationResult = await proofVerifier.verify(issuedCredential.toJson());
+
+          expect(verificationResult.isValid, true);
+          expect(verificationResult.errors, isEmpty);
+        });
+
+        test('Reject issuance without data-integrity or VC v2 context', () async {
+          final unsignedCredential = MutableVcDataModelV1(
+            context: [
+              // Intentionally omit data-integrity and VC v2 contexts
+              'https://www.w3.org/2018/credentials/v1',
+              'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+            ],
+            id: Uri.parse('uuid:missingctx123'),
+            type: {'VerifiableCredential', 'UserProfile'},
+            credentialSubject: [
+              MutableCredentialSubject({'Fname': 'Fname'}),
+            ],
+            issuanceDate: DateTime.now(),
+            issuer: Issuer.uri(edSigner.did),
+          );
+
+          final proofGenerator = DataIntegrityEddsaRdfcGenerator(
+            signer: edSigner,
+            proofValueMultiBase: proofValueMultiBase,
+          );
+
+          expect(
+            () async => await LdVcDm1Suite().issue(
+              unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+              proofGenerator: proofGenerator,
+            ),
+            throwsA(isA<SsiException>().having((e) => e.code, 'code', SsiExceptionType.invalidContext.code)),
+          );
+        });
+
         test('Verify Data Integrity EdDSA-RDFC proof through LdBaseSuite',
             () async {
           final unsignedCredential = MutableVcDataModelV1(
             context: [
               'https://www.w3.org/2018/credentials/v1',
+              'https://w3id.org/security/data-integrity/v2',
               'https://schema.affinidi.com/UserProfileV1-0.jsonld'
             ],
             id: Uri.parse('uuid:123456abcd'),
@@ -129,10 +199,40 @@ void main() async {
   });
 
   group('Test Data Integrity EdDSA-JCS VC issuance', () {
+    test('Reject JCS issuance without data-integrity or VC v2 context', () async {
+      final unsignedCredential = MutableVcDataModelV1(
+        context: [
+          // Intentionally omit data-integrity and VC v2 contexts
+          'https://www.w3.org/2018/credentials/v1',
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+        ],
+        id: Uri.parse('uuid:missingctxjcs123'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        credentialSubject: [
+          MutableCredentialSubject({'Fname': 'Fname'}),
+        ],
+        issuanceDate: DateTime.now(),
+        issuer: Issuer.uri(edSigner.did),
+      );
+
+      final proofGenerator = DataIntegrityEddsaJcsGenerator(
+        signer: edSigner,
+      );
+
+      expect(
+        () async => await LdVcDm1Suite().issue(
+          unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+          proofGenerator: proofGenerator,
+        ),
+        throwsA(isA<SsiException>().having((e) => e.code, 'code', SsiExceptionType.invalidContext.code)),
+      );
+    });
+
     test('Create and verify Data Integrity EdDSA-JCS proof', () async {
       final unsignedCredential = MutableVcDataModelV1(
         context: [
           'https://www.w3.org/2018/credentials/v1',
+          'https://w3id.org/security/data-integrity/v2',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
         ],
         id: Uri.parse('uuid:123456abcd'),
@@ -181,10 +281,49 @@ void main() async {
       expect(proof['proofValue'], startsWith('z')); // base58-btc multibase
     });
 
+    test('Create and verify Data Integrity EdDSA-JCS proof with data-integrity context', () async {
+      final unsignedCredential = MutableVcDataModelV1(
+        context: [
+          'https://www.w3.org/2018/credentials/v1',
+          'https://w3id.org/security/data-integrity/v2',
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+        ],
+        id: Uri.parse('uuid:dataintegrityeddsajcs'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        credentialSubject: [
+          MutableCredentialSubject({
+            'Fname': 'Fname',
+            'Lname': 'Lame',
+            'Age': '22',
+            'Address': 'Eihhornstr'
+          })
+        ],
+        issuanceDate: DateTime.now(),
+        issuer: Issuer.uri(edSigner.did),
+      );
+
+      final proofGenerator = DataIntegrityEddsaJcsGenerator(
+        signer: edSigner,
+      );
+
+      final issuedCredential = await LdVcDm1Suite().issue(
+        unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+        proofGenerator: proofGenerator,
+      );
+
+      final proofVerifier = DataIntegrityEddsaJcsVerifier(verifierDid: edSigner.did);
+      final verificationResult = await proofVerifier.verify(issuedCredential.toJson());
+
+      expect(verificationResult.isValid, true);
+      expect(verificationResult.errors, isEmpty);
+      expect(verificationResult.warnings, isEmpty);
+    });
+
     test('JCS context validation works correctly', () async {
       final unsignedCredential = MutableVcDataModelV1(
         context: [
           'https://www.w3.org/2018/credentials/v1',
+          'https://w3id.org/security/data-integrity/v2',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
         ],
         id: Uri.parse('uuid:123456abcd'),
@@ -230,6 +369,7 @@ void main() async {
       final unsignedCredential = MutableVcDataModelV1(
         context: [
           'https://www.w3.org/2018/credentials/v1',
+          'https://w3id.org/security/data-integrity/v2',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
         ],
         id: Uri.parse('uuid:123456abcd'),
