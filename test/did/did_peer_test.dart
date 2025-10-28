@@ -482,5 +482,63 @@ void main() {
         equals(serviceEndpointData),
       );
     });
+
+    test(
+        'single key with relationships still yields did:peer:0 and all relationships present',
+        () async {
+      final seed = Uint8List.fromList(List.generate(32, (i) => i + 1));
+      final keyPair = Ed25519KeyPair.fromSeed(seed, id: 'test-key-single-rel');
+      final pubKey = keyPair.publicKey;
+
+      // Provide both authentication and keyAgreement pointing at the same single key index
+      final did = DidPeer.getDid(
+        verificationMethods: [pubKey],
+        relationships: {
+          VerificationRelationship.assertionMethod: [0],
+          VerificationRelationship.keyAgreement: [0],
+        },
+      );
+
+      // Should still pick numalgo0
+      expect(did.startsWith('did:peer:0'), isTrue);
+
+      final doc = DidPeer.resolve(did);
+
+      // Signing key relationships must reference the same fragment
+      expect(doc.authentication, isNotEmpty);
+      expect(doc.assertionMethod, isNotEmpty);
+      expect(doc.capabilityInvocation, isNotEmpty);
+      expect(doc.capabilityDelegation, isNotEmpty);
+
+      final authId = doc.authentication.first.id;
+      expect(doc.assertionMethod.first.id, authId);
+      expect(doc.capabilityInvocation.first.id, authId);
+      expect(doc.capabilityDelegation.first.id, authId);
+
+      // There must be a derived X25519 key in keyAgreement and it must be different
+      expect(doc.keyAgreement, isNotEmpty);
+      expect(doc.keyAgreement.first.id, isNot(equals(authId)));
+    });
+  });
+
+  test('did:key and did:peer:0 have equivalent key fragments', () async {
+    final seed = Uint8List.fromList(List.generate(32, (i) => i + 1));
+    final keyPair = Ed25519KeyPair.fromSeed(seed, id: 'equiv-test');
+    final pubKey = keyPair.publicKey;
+
+    final didKey = DidKey.getDid(pubKey);
+    final peer0 = DidPeer.getDid(verificationMethods: [pubKey]);
+
+    final didKeyDoc = DidKey.resolve(didKey);
+    final peerDoc = DidPeer.resolve(peer0);
+
+    final didKeyMultibase = didKeyDoc.verificationMethod
+        .map((vm) => base64Encode(vm.asMultiKey()))
+        .toList();
+    final peerMultibase = peerDoc.verificationMethod
+        .map((vm) => base64Encode(vm.asMultiKey()))
+        .toList();
+
+    expect(peerMultibase, equals(didKeyMultibase));
   });
 }

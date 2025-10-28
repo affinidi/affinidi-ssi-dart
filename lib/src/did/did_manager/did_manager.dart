@@ -711,9 +711,13 @@ abstract class DidManager {
     final effectiveSignatureScheme =
         signatureScheme ?? keyPair.defaultSignatureScheme;
 
+    final normalizedVerificationMethodId = verificationMethodId.startsWith('#')
+        ? '${didDocument.id}$verificationMethodId'
+        : verificationMethodId;
+
     return DidSigner(
       did: didDocument.id,
-      didKeyId: verificationMethodId,
+      didKeyId: normalizedVerificationMethodId,
       keyPair: keyPair,
       signatureScheme: effectiveSignatureScheme,
     );
