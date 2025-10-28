@@ -91,6 +91,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     required VC unsignedData,
     required EmbeddedProofGenerator proofGenerator,
   }) async {
+    
     var json = unsignedData.toJson();
     // remove proof in case it's already there
     json.remove(proofKey);
