@@ -3,6 +3,183 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-10-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.16.0`](#ssi---v2160)
+
+---
+
+#### `ssi` - `v2.16.0`
+
+ - **FEAT**: export DidSignerAdapter (#196).
+
+## 2.16.0
+
+ - **FEAT**: export DidSignerAdapter (#196).
+
+
+## 2025-10-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.15.1`](#ssi---v2151)
+
+---
+
+#### `ssi` - `v2.15.1`
+
+ - **FIX**: did peer verification method id and did peer 0 relationships (#195).
+
+## 2.15.1
+
+ - **FIX**: did peer verification method id and did peer 0 relationships (#195).
+
+
+## 2025-10-17
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.15.0`](#ssi---v2150)
+
+---
+
+#### `ssi` - `v2.15.0`
+
+ - **FEAT**: implement DidWeb.generateDocument functionality (#192).
+
+## 2.15.0
+
+ - **FEAT**: implement DidWeb.generateDocument functionality (#192).
+
+
+## 2025-10-17
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.14.2`](#ssi---v2142)
+
+---
+
+#### `ssi` - `v2.14.2`
+
+ - **FIX**: rejection sampling for p256/p384/p521 keys from seed (#190).
+ - **FIX**: improve secp256k1 jws verifier to support DER encoded signatures (#186).
+ - **FIX**: fix jcs hash calculation on issuance (#193).
+
+
+## 2025-10-17
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.14.2`](#ssi---v2142)
+
+---
+
+#### `ssi` - `v2.14.2`
+
+ - **FIX**: rejection sampling for p256/p384/p521 keys from seed (#190).
+ - **FIX**: improve secp256k1 jws verifier to support DER encoded signatures (#186).
+ - **FIX**: fix jcs hash calculation on issuance (#193).
+
+## 2.14.2
+
+ - **FIX**: rejection sampling for p256/p384/p521 keys from seed (#190).
+ - **FIX**: improve secp256k1 jws verifier to support DER encoded signatures (#186).
+ - **FIX**: fix jcs hash calculation on issuance (#193).
+
+
+## 2025-10-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.14.1`](#ssi---v2141)
+
+---
+
+#### `ssi` - `v2.14.1`
+
+ - **FIX**: add check for type to be VerifiableCredential (#191).
+
+## 2.14.1
+
+ - **FIX**: add check for type to be VerifiableCredential (#191).
+
+
+## 2025-10-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.14.0`](#ssi---v2140)
+
+---
+
+#### `ssi` - `v2.14.0`
+
+ - **FEAT**: secp256k1 key pair factory from seed (#189).
+
+## 2.14.0
+
+ - **FEAT**: secp256k1 key pair factory from seed (#189).
+
+
 ## 2025-10-08
 
 ### Changes

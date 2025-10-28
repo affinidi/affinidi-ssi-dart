@@ -194,7 +194,11 @@ class JcsUtils {
       proof['challenge'] = challenge;
     }
     if (domain != null) {
-      proof['domain'] = domain;
+      if (domain.length == 1) {
+        proof['domain'] = domain.first;
+      } else if (domain.isNotEmpty) {
+        proof['domain'] = domain;
+      }
     }
 
     return proof;
