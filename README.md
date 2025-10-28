@@ -67,13 +67,12 @@ Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/mai
 
 When using `VcDataModelV1` the first `@context` entry MUST be `https://www.w3.org/2018/credentials/v1`. Do not prepend other contexts before it.
 
-Do NOT mix `https://www.w3.org/2018/credentials/v1` and `https://www.w3.org/ns/credentials/v2` in the same credential when using `VcDataModelV1` – the package does not yet support simultaneous inclusion and JSON-LD protected term collisions may occur.
-
 For Data Integrity proofs with `VcDataModelV1`, include either:
-- `https://w3id.org/security/data-integrity/v2` (preferred) or `https://w3id.org/security/data-integrity/v1`, after the VC v1 context; OR
-- Switch entirely to a future `VcDataModelV2` implementation (not yet provided here) if you need VC v2 features.
 
-Place application or schema contexts (e.g. Affinidi JSON-LD schemas) after the required standard contexts.
+- `https://w3id.org/security/data-integrity/v2` or `https://w3id.org/security/data-integrity/v1`, after the VC v1 context; OR
+- Switch entirely to the new `VcDataModelV2` implementation.
+
+Place application or schema contexts after the required standard contexts.
 
 When issuing Data Integrity proofs (RDFC or JCS cryptosuites) for Verifiable Credentials using this package, the credential's `@context` MUST include either:
 
