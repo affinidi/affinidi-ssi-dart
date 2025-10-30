@@ -25,9 +25,9 @@ void main() {
         late ParsedVerifiableCredential verifiableCredential;
         setUpAll(() {
           verifiableCredential = UniversalParser.parse(
-             VerifiableCredentialDataFixtures
+            VerifiableCredentialDataFixtures
                 .credentialWithProofDataModelV11JsonEncoded,
-             );
+          );
         });
 
         test(

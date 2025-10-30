@@ -162,7 +162,8 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     final vmDid = vm.split('#').first;
     if (vmDid != issuerDid) {
       throw SsiException(
-        message: 'Issuer mismatch: issuer DID and proof.verificationMethod DID differ',
+        message:
+            'Issuer mismatch: issuer DID and proof.verificationMethod DID differ',
         code: SsiExceptionType.invalidJson.code,
       );
     }

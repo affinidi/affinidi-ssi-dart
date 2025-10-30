@@ -584,7 +584,8 @@ void main() {
   });
 
   group('VcDataModelV2 issuer/proof DID cross-check', () {
-    test('fromJson passes when issuer DID matches proof.verificationMethod DID', () {
+    test('fromJson passes when issuer DID matches proof.verificationMethod DID',
+        () {
       final json = {
         '@context': [dmV2ContextUrl],
         'type': ['VerifiableCredential'],
@@ -606,7 +607,9 @@ void main() {
       expect(vc.proof.first.verificationMethod, 'did:example:issuerA#keys-1');
     });
 
-    test('fromJson throws when issuer DID differs from proof.verificationMethod DID', () {
+    test(
+        'fromJson throws when issuer DID differs from proof.verificationMethod DID',
+        () {
       final json = {
         '@context': [dmV2ContextUrl],
         'type': ['VerifiableCredential'],
@@ -623,10 +626,10 @@ void main() {
       };
 
       expect(
-            () => VcDataModelV2.fromJson(json),
+        () => VcDataModelV2.fromJson(json),
         throwsA(
           predicate((e) =>
-          e is SsiException &&
+              e is SsiException &&
               e.code == SsiExceptionType.invalidJson.code &&
               e.message.contains('Issuer mismatch')),
         ),

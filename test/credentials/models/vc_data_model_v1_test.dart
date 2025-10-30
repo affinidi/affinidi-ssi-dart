@@ -384,33 +384,37 @@ void main() {
 
   group('VcDataModelV1 issuer vs proof.verificationMethod DID consistency', () {
     Map<String, dynamic> baseCredential({Object? proof}) => {
-      '@context': ['https://www.w3.org/2018/credentials/v1'],
-      'type': ['VerifiableCredential'],
-      'issuer': 'did:key:issuerDid',
-      'issuanceDate': '2024-01-01T00:00:00Z',
-      'credentialSubject': {'id': 'did:example:subject'},
-      if (proof != null) 'proof': proof,
-    };
+          '@context': ['https://www.w3.org/2018/credentials/v1'],
+          'type': ['VerifiableCredential'],
+          'issuer': 'did:key:issuerDid',
+          'issuanceDate': '2024-01-01T00:00:00Z',
+          'credentialSubject': {'id': 'did:example:subject'},
+          if (proof != null) 'proof': proof,
+        };
 
     Map<String, dynamic> proofMap({required String? vmDid}) => {
-      'type': 'Ed25519Signature2020',
-      'created': '2024-01-01T00:00:00Z',
-      'proofPurpose': 'assertionMethod',
-      if (vmDid != null)
-        'verificationMethod': 'did:key:$vmDid#key-1'
-      else
-        'verificationMethod': null,
-      'jws': 'mock-jws',
-    };
+          'type': 'Ed25519Signature2020',
+          'created': '2024-01-01T00:00:00Z',
+          'proofPurpose': 'assertionMethod',
+          if (vmDid != null)
+            'verificationMethod': 'did:key:$vmDid#key-1'
+          else
+            'verificationMethod': null,
+          'jws': 'mock-jws',
+        };
 
-    test('passes when issuer DID matches verificationMethod DID (single proof map)', () {
+    test(
+        'passes when issuer DID matches verificationMethod DID (single proof map)',
+        () {
       final json = baseCredential(proof: proofMap(vmDid: 'issuerDid'));
       final vc = VcDataModelV1.fromJson(json);
       expect(vc.issuer.id.toString(), 'did:key:issuerDid');
       expect(vc.proof.first.verificationMethod, 'did:key:issuerDid#key-1');
     });
 
-    test('throws when issuer DID mismatches verificationMethod DID (single proof map)', () {
+    test(
+        'throws when issuer DID mismatches verificationMethod DID (single proof map)',
+        () {
       final json = baseCredential(proof: proofMap(vmDid: 'differentDid'));
       expect(
         () => VcDataModelV1.fromJson(json),
@@ -419,21 +423,25 @@ void main() {
               .having(
                 (e) => e.message,
                 'message',
-                contains('Issuer mismatch: `issuer` (did:key:issuerDid) and proof.verificationMethod DID (did:key:differentDid) differ - v1'),
+                contains(
+                    'Issuer mismatch: `issuer` (did:key:issuerDid) and proof.verificationMethod DID (did:key:differentDid) differ - v1'),
               )
               .having((e) => e.code, 'code', SsiExceptionType.invalidJson.code),
         )),
       );
     });
 
-    test('passes when issuer DID matches verificationMethod DID (proof list)', () {
+    test('passes when issuer DID matches verificationMethod DID (proof list)',
+        () {
       final json = baseCredential(proof: [proofMap(vmDid: 'issuerDid')]);
       final vc = VcDataModelV1.fromJson(json);
       expect(vc.issuer.id.toString(), 'did:key:issuerDid');
       expect(vc.proof.first.verificationMethod, 'did:key:issuerDid#key-1');
     });
 
-    test('throws when issuer DID mismatches verificationMethod DID (proof list)', () {
+    test(
+        'throws when issuer DID mismatches verificationMethod DID (proof list)',
+        () {
       final json = baseCredential(proof: [proofMap(vmDid: 'otherDid')]);
       expect(
         () => VcDataModelV1.fromJson(json),
@@ -442,7 +450,8 @@ void main() {
               .having(
                 (e) => e.message,
                 'message',
-                contains('Issuer mismatch: `issuer` (did:key:issuerDid) and proof.verificationMethod DID (did:key:otherDid) differ - v1'),
+                contains(
+                    'Issuer mismatch: `issuer` (did:key:issuerDid) and proof.verificationMethod DID (did:key:otherDid) differ - v1'),
               )
               .having((e) => e.code, 'code', SsiExceptionType.invalidJson.code),
         )),

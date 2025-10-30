@@ -159,12 +159,16 @@ void main() {
       }
     });
 
-    test('Verifier rejects when verifierDid mismatches proof.verificationMethod DID', () async {
-      final json = Map<String, dynamic>.from(JcsTestVectors.ecdsaJcs2019TestVector);
+    test(
+        'Verifier rejects when verifierDid mismatches proof.verificationMethod DID',
+        () async {
+      final json =
+          Map<String, dynamic>.from(JcsTestVectors.ecdsaJcs2019TestVector);
       // expect((json['proof'] as Map<String, dynamic>)['verificationMethod'], startsWith(json['issuer'] as String));
 
       final wrongIssuerDid = 'did:example:someone-else';
-      final verifier = DataIntegrityEcdsaJcsVerifier(verifierDid: wrongIssuerDid);
+      final verifier =
+          DataIntegrityEcdsaJcsVerifier(verifierDid: wrongIssuerDid);
 
       final result = await verifier.verify(json);
 
