@@ -248,6 +248,26 @@ class VcDataModelV1 implements VerifiableCredential {
 
     final issuer = Issuer.fromJson(json[_P.issuer.key]);
 
+    final dynamic rawProof = json[_P.proof.key];
+    String? vm;
+    if (rawProof is Map<String, dynamic>) {
+      vm = rawProof['verificationMethod'] as String?;
+    } else if (rawProof is List && rawProof.isNotEmpty && rawProof.first is Map) {
+      vm = (rawProof.first as Map)['verificationMethod'] as String?;
+    }
+    if (vm != null) {
+      final vmDid = vm.split('#').first;
+      final issuerDid = issuer.id.toString();
+      final shouldEnforce = vmDid.startsWith('did:') && issuerDid.startsWith('did:');
+      if (shouldEnforce && vmDid != issuerDid) {
+        throw SsiException(
+          message:
+          'Issuer mismatch: `issuer` ($issuerDid) and proof.verificationMethod DID ($vmDid) differ - v1',
+          code: SsiExceptionType.invalidJson.code,
+        );
+      }
+    }
+
     final credentialSubject = parseListOrSingleItem<CredentialSubject>(
         json,
         _P.credentialSubject.key,

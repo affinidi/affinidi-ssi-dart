@@ -248,10 +248,11 @@ class VcDataModelV2 implements VerifiableCredential {
     if (vm != null) {
       final vmDid = vm.split('#').first;
       final issuerDid = issuer.id.toString();
-      if (vmDid != issuerDid) {
+      final shouldEnforce = vmDid.startsWith('did:') && issuerDid.startsWith('did:');
+      if (shouldEnforce && vmDid != issuerDid) {
         throw SsiException(
           message:
-          'Issuer mismatch: `issuer` ($issuerDid) and proof.verificationMethod DID ($vmDid) differ',
+          'Issuer mismatch: `issuer` ($issuerDid) and proof.verificationMethod DID ($vmDid) differ - v2',
           code: SsiExceptionType.invalidJson.code,
         );
       }
