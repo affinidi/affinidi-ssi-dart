@@ -188,22 +188,25 @@ Packages with other changes:
 
 Packages with breaking changes:
 
- - There are no breaking changes in this release.
+ - [`ssi` - `v3.0.0`](#ssi---v300)
 
 Packages with other changes:
 
- - [`ssi` - `v2.13.0`](#ssi---v2130)
+ - There are no other changes in this release.
 
 ---
 
-#### `ssi` - `v2.13.0`
+#### `ssi` - `v3.0.0`
 
- - **FEAT**: add holder binding verifier (#188).
-
-## 2.13.0
-
- - **FEAT**: add holder binding verifier (#188).
-
+ - **BREAKING**: Top-level @context now **must be either a string URI or a list of URIs/maps**.
+ - **BREAKING**: The first element of a list must be a string URI, per VC specification.
+ - **BREAKING**: Introduced `MutableJsonLdContext` and `JsonLdContext` classes.
+ - **BREAKING**: Replace all `@context: []` with either:
+     - `@context: MutableJsonLdContext.fromJson([])`  
+     - `@context: JsonLdContext.fromJson([])`
+ - **FIX**: Fixed VC issuance example in `example/code_snippets/credentials/vc/ld_v2/issuance.dart` for JSON-LD 2, ensuring compatibility with verifier and parser.
+ - **FEAT**: Added support for nested and mixed JSON-LD `@context` values.
+ - **FEAT**: Updated tests and examples to reflect the new context handling.
 
 ## 2025-08-28
 

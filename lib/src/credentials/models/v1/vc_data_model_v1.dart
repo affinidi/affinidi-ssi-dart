@@ -4,6 +4,7 @@ import '../../../exceptions/ssi_exception.dart';
 import '../../../exceptions/ssi_exception_type.dart';
 import '../../../util/json_util.dart';
 import '../../proof/embedded_proof.dart';
+import '../field_types/context.dart';
 import '../field_types/credential_schema.dart';
 import '../field_types/credential_status/v1.dart';
 import '../field_types/credential_subject.dart';
@@ -53,7 +54,7 @@ class VcDataModelV1 implements VerifiableCredential {
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
-  final UnmodifiableListView<String> context;
+  final JsonLdContext context;
 
   /// The optional identifier for the Verifiable Credential.
   @override
@@ -128,7 +129,7 @@ class VcDataModelV1 implements VerifiableCredential {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json[_P.context.key] = context;
+    json[_P.context.key] = context.toJson();
     json[_P.issuer.key] = issuer.toJson();
     json[_P.type.key] = type.toList();
     json[_P.id.key] = id?.toString();
@@ -155,14 +156,7 @@ class VcDataModelV1 implements VerifiableCredential {
   ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
-    if (context.isEmpty) {
-      throw SsiException(
-        message: '`${_P.context.key}` property is mandatory',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
-
-    if (context.first != dmV1ContextUrl) {
+    if (context.firstUri.toString() != dmV1ContextUrl) {
       throw SsiException(
         message:
             'The first URI of `${_P.context.key}` property should always be $dmV1ContextUrl',
@@ -204,7 +198,7 @@ class VcDataModelV1 implements VerifiableCredential {
   /// The [termsOfUse] is a list of terms of use (optional)
   /// The [evidence] is a list of evidence (optional)
   VcDataModelV1({
-    required List<String> context,
+    required this.context,
     this.id,
     required List<CredentialSubject> credentialSubject,
     required this.issuer,
@@ -218,8 +212,7 @@ class VcDataModelV1 implements VerifiableCredential {
     List<RefreshServiceV1>? refreshService,
     List<TermsOfUse>? termsOfUse,
     List<Evidence>? evidence,
-  })  : context = UnmodifiableListView(context),
-        credentialSubject = UnmodifiableListView(credentialSubject),
+  })  : credentialSubject = UnmodifiableListView(credentialSubject),
         type = UnmodifiableSetView(type),
         proof = UnmodifiableListView(proof ?? []),
         credentialSchema = UnmodifiableListView(credentialSchema ?? []),
@@ -236,7 +229,7 @@ class VcDataModelV1 implements VerifiableCredential {
   factory VcDataModelV1.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getStringList(json, _P.context.key, mandatory: true);
+    final context = JsonLdContext.fromJson(json[_P.context.key]);
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(

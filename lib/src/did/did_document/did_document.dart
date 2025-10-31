@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
-import '../../json_ld/context.dart';
+import '../../credentials/models/field_types/context.dart';
 import '../../types.dart';
 import '../../util/json_util.dart';
 import 'service_endpoint.dart';
@@ -11,7 +11,7 @@ import 'verification_method.dart';
 /// Represents a DID Document as defined by the W3C DID specification.
 class DidDocument implements JsonObject {
   /// The JSON-LD context of the DID document.
-  Context context;
+  JsonLdContext context;
 
   /// The DID that the DID document is about.
   late String id;
@@ -61,7 +61,7 @@ class DidDocument implements JsonObject {
   ///
   /// [id] The DID that the DID document is about.
   factory DidDocument.create({
-    Context? context,
+    JsonLdContext? context,
     required String id,
     alsoKnownAs,
     controller,
@@ -87,7 +87,7 @@ class DidDocument implements JsonObject {
     }
 
     return DidDocument._(
-      context: context ?? Context.fromJson(''),
+      context: context ?? JsonLdContext.fromJson(''),
       id: id,
       alsoKnownAs: alsoKnownAs ?? [],
       controller: controller ?? [],
@@ -154,7 +154,7 @@ class DidDocument implements JsonObject {
   ///
   /// [jsonObject] The JSON data to create the DID document from.
   DidDocument.fromJson(dynamic jsonObject)
-      : context = Context.fromJson(''),
+      : context = JsonLdContext.fromJson(''),
         alsoKnownAs = [],
         controller = [],
         verificationMethod = [],
@@ -166,7 +166,14 @@ class DidDocument implements JsonObject {
         capabilityInvocation = [] {
     final document = jsonToMap(jsonObject);
 
-    context = Context.fromJson(document['@context']);
+    if (document.containsKey('@context')) {
+      context = JsonLdContext.fromJson(document['@context']);
+    } else {
+      throw SsiException(
+        message: 'null context',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
+    }
 
     if (document.containsKey('id')) {
       id = document['id'];

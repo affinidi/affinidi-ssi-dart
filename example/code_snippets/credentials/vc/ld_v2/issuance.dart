@@ -2,10 +2,8 @@
 import 'dart:convert';
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/credentials/models/field_types/credential_subject.dart';
-import 'package:ssi/src/credentials/models/field_types/issuer.dart';
-import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
-import 'package:ssi/src/credentials/sdjwt/sdjwt_dm_v2_suite.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
+import 'package:ssi/ssi.dart';
 
 import '../../../did/did_signer.dart';
 
@@ -18,31 +16,37 @@ Future<void> main() async {
   // Initialize signer using the seed
   final signer = await initSigner(seed);
 
-  // Create the SD-JWT DM2 suite
-  final suite = SdJwtDm2Suite();
-
   // Create a sample verifiable credential
   final credential = MutableVcDataModelV2(
-      context: [dmV2ContextUrl],
-      id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-      issuer: Issuer.uri(signer.did),
-      type: {'VerifiableCredential', 'UniversityDegreeCredential'},
-      validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
-      validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
-      credentialSubject: [
-        MutableCredentialSubject({
-          'id': 'did:example:subject',
-          'degree': {
-            'type': 'BachelorDegree',
-            'name': 'Bachelor of Science and Arts',
-          },
-        })
-      ]);
+    context: MutableJsonLdContext.fromJson([
+      dmV2ContextUrl,
+      'https://schema.affinidi.com/UserProfileV1-0.jsonld',
+    ]),
+    id: Uri.parse('uuid:123456abcd'),
+    type: {'VerifiableCredential', 'UserProfile'},
+    issuer: Issuer.uri(signer.did),
+    credentialSubject: [
+      MutableCredentialSubject({
+        'Fname': 'Fname',
+        'Lname': 'Lame',
+        'Age': '22',
+        'Address': 'Eihhornstr',
+      }),
+    ],
+    credentialSchema: [
+      MutableCredentialSchema(
+        id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+        type: 'JsonSchemaValidator2018',
+      ),
+    ],
+  );
 
-  // Issue the VC
-  final credentialToSign = VcDataModelV2.fromMutable(credential);
-  final issuedCredential =
-      await suite.issue(unsignedData: credentialToSign, signer: signer);
+  // Issue VC with LD proof
+  final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
+  final issuedCredential = await LdVcDm2Suite().issue(
+    unsignedData: VcDataModelV2.fromMutable(credential),
+    proofGenerator: proofGenerator,
+  );
 
   // VC as JSON string
   final json = jsonEncode(issuedCredential.toJson());

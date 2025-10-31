@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -17,10 +18,10 @@ void main() async {
   group('Test Linked Data VC issuance', () {
     test('Create and verify proof', () async {
       final unsignedCredential = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [

@@ -22,7 +22,7 @@ This creates mutable verified credentials for example:
 ```dart
   // Create a sample verifiable credential
 final credential = MutableVcDataModelV2(
-    context: [DMV2ContextUrl],
+    context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
     id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
     issuer: Issuer.uri(signer.did),
     type: {'VerifiableCredential', 'UniversityDegreeCredential'},

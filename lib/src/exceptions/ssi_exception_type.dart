@@ -72,6 +72,9 @@ enum SsiExceptionType {
   /// Revocation index out of bounds
   revocationIndexOutOfBounds(code: 'revocation_index_out_of_bounds'),
 
+  /// Revocation index out of bounds
+  unsupportedContext(code: 'unsupported_context'),
+
   /// An unknown error has occurred.
   other(code: 'other'),
   ;
