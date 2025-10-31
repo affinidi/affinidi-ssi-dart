@@ -5,6 +5,7 @@ import '../../types.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 import 'jcs_utils.dart';
+import 'data_integrity_context_util.dart';
 
 /// Base class for Data Integrity proof generators using JCS canonicalization.
 ///
@@ -65,6 +66,8 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     // Set proof context to document context if present
     final documentContext = document['@context'];
     if (documentContext != null) {
+      // Validate Data Integrity context presence (VC v2 or data-integrity context)
+      DataIntegrityContextUtil.validate(document);
       proof['@context'] = documentContext;
       additionalProperties['@context'] = documentContext;
     }
