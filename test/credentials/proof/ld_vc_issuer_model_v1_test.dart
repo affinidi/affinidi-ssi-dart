@@ -89,6 +89,7 @@ void main() async {
           .toJson());
 
       unsigned.issuer = MutableIssuer.uri(signer.did);
+      unsigned.proof = [];
 
       final proofGenerator = Secp256k1Signature2019Generator(
         signer: signer,

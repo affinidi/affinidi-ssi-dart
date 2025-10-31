@@ -439,7 +439,7 @@ void main() {
           EmbeddedProof(
             type: 'DataIntegrityProof',
             created: DateTime.utc(2024, 01, 01),
-            verificationMethod: 'did:example:issuer#1',
+            verificationMethod: 'did:example:issuerV2#1',
             proofPurpose: 'assertionMethod',
             proofValue: 'z',
             cryptosuite: 'eddsa-jcs-2022',
@@ -447,7 +447,7 @@ void main() {
           EmbeddedProof(
             type: 'AnotherProofType',
             created: DateTime.utc(2024, 01, 02),
-            verificationMethod: 'did:example:issuer#2',
+            verificationMethod: 'did:example:issuerV2#2',
             proofPurpose: 'authentication',
             proofValue: 'x',
             cryptosuite: 'ecdsa-jcs-2019',
@@ -474,7 +474,7 @@ void main() {
         EmbeddedProof(
           type: 'DataIntegrityProof',
           created: DateTime.utc(2024, 01, 01),
-          verificationMethod: 'did:example:issuer#1',
+          verificationMethod: 'did:example:issuerV2#1',
           proofPurpose: 'assertionMethod',
           proofValue: 'z',
           cryptosuite: 'eddsa-jcs-2022',
@@ -530,6 +530,114 @@ void main() {
       final invalidJson = '{"@context": "invalid"}';
       expect(() => VcDataModelV2.fromJson(invalidJson as Map<String, dynamic>),
           throwsA(isA<TypeError>()));
+    });
+  });
+
+  group('VcDataModelV2 Type Validation (VC DM v2)', () {
+    test('validate() throws when `type` is empty', () {
+      expect(
+        () => VcDataModelV2(
+          context: [dmV2ContextUrl],
+          id: Uri.parse('id'),
+          type: <String>{}, // empty set
+          issuer: Issuer.uri('did:example:issuerV2'),
+          credentialSubject: [
+            CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+          ],
+        ),
+        throwsA(predicate((e) =>
+            e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message.contains('`type` property is mandatory'))),
+      );
+    });
+
+    test('validate() throws when `VerifiableCredential` is missing in type',
+        () {
+      expect(
+        () => VcDataModelV2(
+          context: [dmV2ContextUrl],
+          id: Uri.parse('id'),
+          type: {'ExampleCredentialV2'},
+          issuer: Issuer.uri('did:example:issuerV2'),
+          credentialSubject: [
+            CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+          ],
+        ),
+        throwsA(predicate((e) =>
+            e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message
+                .contains('MUST include the value "VerifiableCredential"'))),
+      );
+    });
+
+    test('validate() succeeds when `type` contains VerifiableCredential', () {
+      final vc = VcDataModelV2(
+        context: [dmV2ContextUrl],
+        id: Uri.parse('id'),
+        type: {'VerifiableCredential', 'ExampleCredentialV2'},
+        issuer: Issuer.uri('did:example:issuerV2'),
+        credentialSubject: [
+          CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+        ],
+      );
+      expect(vc.type.contains('VerifiableCredential'), isTrue);
+      expect(vc.type.contains('ExampleCredentialV2'), isTrue);
+    });
+  });
+
+  group('VcDataModelV2 issuer/proof DID cross-check', () {
+    test('fromJson passes when issuer DID matches proof.verificationMethod DID',
+        () {
+      final json = {
+        '@context': [dmV2ContextUrl],
+        'type': ['VerifiableCredential'],
+        'issuer': 'did:example:issuerA', // matches
+        'credentialSubject': {'id': 'did:example:subjectV2'},
+        'proof': {
+          'type': 'DataIntegrityProof',
+          'created': '2024-01-01T00:00:00Z',
+          'verificationMethod': 'did:example:issuerA#keys-1', // matches
+          'proofPurpose': 'assertionMethod',
+          'cryptosuite': 'eddsa-jcs-2022',
+          'proofValue': 'z123',
+        },
+      };
+
+      final vc = VcDataModelV2.fromJson(json);
+      expect(vc.issuer.id.toString(), 'did:example:issuerA');
+      expect(vc.proof, isNotEmpty);
+      expect(vc.proof.first.verificationMethod, 'did:example:issuerA#keys-1');
+    });
+
+    test(
+        'fromJson throws when issuer DID differs from proof.verificationMethod DID',
+        () {
+      final json = {
+        '@context': [dmV2ContextUrl],
+        'type': ['VerifiableCredential'],
+        'issuer': 'did:example:issuerA', // doesn't match
+        'credentialSubject': {'id': 'did:example:subjectV2'},
+        'proof': {
+          'type': 'DataIntegrityProof',
+          'created': '2024-01-01T00:00:00Z',
+          'verificationMethod': 'did:example:issuerB#keys-1', // doesn't match
+          'proofPurpose': 'assertionMethod',
+          'cryptosuite': 'eddsa-jcs-2022',
+          'proofValue': 'z123',
+        },
+      };
+
+      expect(
+        () => VcDataModelV2.fromJson(json),
+        throwsA(
+          predicate((e) =>
+              e is SsiException &&
+              e.code == SsiExceptionType.invalidJson.code &&
+              e.message.contains('Issuer mismatch')),
+        ),
+      );
     });
   });
 

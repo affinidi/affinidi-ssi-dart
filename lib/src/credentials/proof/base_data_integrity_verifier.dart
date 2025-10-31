@@ -79,6 +79,13 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
+    final vmDid = verificationMethod.toString().split('#').first;
+    if (vmDid != issuerDid) {
+      return VerificationResult.invalid(
+        errors: ['issuer DID does not match proof.verificationMethod DID'],
+      );
+    }
+
     final originalProofValue = proof.remove(proofValueField);
     if (originalProofValue == null) {
       return VerificationResult.invalid(
