@@ -290,11 +290,12 @@ void main() {
       );
 
       group('and amending the initial data', () {
-        data = 'aaa';
-
         test('it does not update the verifiable credential rawData', () {
+          final original = data; // keep original JWT
+          data = 'aaa'; // mutate after parsing occurred
           expect(verifiableCredential.serialized,
               VerifiableCredentialDataFixtures.jwtCredentialDataModelV11);
+          data = original; // restore to avoid side-effects on other tests
         });
       });
     });
