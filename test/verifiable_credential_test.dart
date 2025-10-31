@@ -151,7 +151,6 @@ void main() {
       var data = VerifiableCredentialDataFixtures.jwtCredentialDataModelV11;
       late ParsedVerifiableCredential verifiableCredential;
       setUpAll(() {
-        print('and receiving a JWT token data: ${data}');
         verifiableCredential = UniversalParser.parse(data);
       });
 

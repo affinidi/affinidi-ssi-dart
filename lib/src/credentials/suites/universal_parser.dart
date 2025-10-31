@@ -15,7 +15,6 @@ final class UniversalParser {
   ///  - Thrown if it is unable to parse the provided data
   static ParsedVerifiableCredential parse(Object rawData) {
     for (final suite in VcSuites.suites) {
-      print('parse: ${rawData}');
       final result = suite.tryParse(rawData);
       if (result != null) {
         return result;
