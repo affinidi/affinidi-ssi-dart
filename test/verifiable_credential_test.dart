@@ -22,10 +22,13 @@ void main() {
         var data =
             VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
 
-        final verifiableCredential = UniversalParser.parse(
-          VerifiableCredentialDataFixtures
-              .credentialWithProofDataModelV11JsonEncoded,
-        );
+        late ParsedVerifiableCredential verifiableCredential;
+        setUpAll(() {
+          verifiableCredential = UniversalParser.parse(
+            VerifiableCredentialDataFixtures
+                .credentialWithProofDataModelV11JsonEncoded,
+          );
+        });
 
         test(
           'it retrieves the correct issuer',
@@ -146,7 +149,10 @@ void main() {
 
     group('and receiving a JWT token', () {
       var data = VerifiableCredentialDataFixtures.jwtCredentialDataModelV11;
-      final verifiableCredential = UniversalParser.parse(data);
+      late ParsedVerifiableCredential verifiableCredential;
+      setUpAll(() {
+        verifiableCredential = UniversalParser.parse(data);
+      });
 
       test(
         'it has correct signature',
@@ -284,11 +290,12 @@ void main() {
       );
 
       group('and amending the initial data', () {
-        data = 'aaa';
-
         test('it does not update the verifiable credential rawData', () {
+          final original = data; // keep original JWT
+          data = 'aaa'; // mutate after parsing occurred
           expect(verifiableCredential.serialized,
               VerifiableCredentialDataFixtures.jwtCredentialDataModelV11);
+          data = original; // restore to avoid side-effects on other tests
         });
       });
     });
@@ -299,7 +306,10 @@ void main() {
       group('with a proof', () {
         var data = VerifiableCredentialDataFixtures
             .credentialWithProofDataModelV20String;
-        final verifiableCredential = UniversalParser.parse(data);
+        late ParsedVerifiableCredential verifiableCredential;
+        setUpAll(() {
+          verifiableCredential = UniversalParser.parse(data);
+        });
         test(
           'it retrieves the correct issuer',
           () {
