@@ -216,14 +216,14 @@ void main() {
     });
 
     test('Succeeds with unique proof IDs', () {
-      final vc = VcDataModelV2(
+      final credentialWithUniqueProofIds = MutableVcDataModelV2(
         context: [dmV2ContextUrl],
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+        issuer: MutableIssuer.uri('did:example:issuer'),
         type: {'VerifiableCredential'},
-        issuer: Issuer.uri('did:example:issuer'),
         validFrom: DateTime.now(),
         credentialSubject: [
-          CredentialSubject.fromJson({
+          MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
           })
@@ -249,20 +249,22 @@ void main() {
           ),
         ],
       );
+
+      final vc = VcDataModelV2.fromMutable(credentialWithUniqueProofIds);
       expect(vc.proof.length, 2);
       expect(vc.proof[0].id.toString(), 'did:example:proof-1');
       expect(vc.proof[1].id.toString(), 'did:example:proof-2');
     });
 
     test('Succeeds when some proofs have IDs and some do not', () {
-      final vc = VcDataModelV2(
+      final credentialWithMixedProofIds = MutableVcDataModelV2(
         context: [dmV2ContextUrl],
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+        issuer: MutableIssuer.uri('did:example:issuer'),
         type: {'VerifiableCredential'},
-        issuer: Issuer.uri('did:example:issuer'),
         validFrom: DateTime.now(),
         credentialSubject: [
-          CredentialSubject.fromJson({
+          MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
           })
@@ -288,6 +290,8 @@ void main() {
           ),
         ],
       );
+
+      final vc = VcDataModelV2.fromMutable(credentialWithMixedProofIds);
       expect(vc.proof.length, 2);
       expect(vc.proof[0].id.toString(), 'did:example:proof-1');
       expect(vc.proof[1].id, isNull);
