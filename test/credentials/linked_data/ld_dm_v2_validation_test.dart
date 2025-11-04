@@ -134,6 +134,170 @@ void main() {
         throwsA(isA<SsiException>()),
       );
     });
+
+    test('Throws when proof has empty id', () {
+      final credentialWithEmptyProofId = MutableVcDataModelV2(
+        context: [dmV2ContextUrl],
+        id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+        issuer: MutableIssuer.uri('did:example:issuer'),
+        type: {'VerifiableCredential'},
+        validFrom: DateTime.now(),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'id': 'did:example:subject',
+            'name': 'John Doe',
+          })
+        ],
+        proof: [
+          EmbeddedProof(
+            id: Uri.parse(''), // Empty ID
+            type: 'DataIntegrityProof',
+            created: DateTime.now(),
+            verificationMethod: 'did:example:issuer#key-1',
+            proofPurpose: 'assertionMethod',
+            proofValue: 'zABC...',
+            cryptosuite: 'eddsa-jcs-2022',
+          ),
+        ],
+      );
+
+      expect(
+        () => VcDataModelV2.fromMutable(credentialWithEmptyProofId),
+        throwsA(isA<SsiException>().having(
+          (e) => e.message,
+          'message',
+          contains('Proof id cannot be empty'),
+        )),
+      );
+    });
+
+    test('Throws when multiple proofs have duplicate IDs', () {
+      final duplicateId = Uri.parse('did:example:proof-1');
+      final credentialWithDuplicateProofIds = MutableVcDataModelV2(
+        context: [dmV2ContextUrl],
+        id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+        issuer: MutableIssuer.uri('did:example:issuer'),
+        type: {'VerifiableCredential'},
+        validFrom: DateTime.now(),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'id': 'did:example:subject',
+            'name': 'John Doe',
+          })
+        ],
+        proof: [
+          EmbeddedProof(
+            id: duplicateId,
+            type: 'DataIntegrityProof',
+            created: DateTime.now(),
+            verificationMethod: 'did:example:issuer#key-1',
+            proofPurpose: 'assertionMethod',
+            proofValue: 'zABC...',
+            cryptosuite: 'eddsa-jcs-2022',
+          ),
+          EmbeddedProof(
+            id: duplicateId, // Duplicate ID
+            type: 'EcdsaSecp256k1Signature2019',
+            created: DateTime.now(),
+            verificationMethod: 'did:example:issuer#key-2',
+            proofPurpose: 'assertionMethod',
+            proofValue: 'zDEF...',
+            cryptosuite: 'ecdsa-jcs-2019',
+          ),
+        ],
+      );
+
+      expect(
+        () => VcDataModelV2.fromMutable(credentialWithDuplicateProofIds),
+        throwsA(isA<SsiException>().having(
+          (e) => e.message,
+          'message',
+          contains('Duplicate proof id found'),
+        )),
+      );
+    });
+
+    test('Succeeds with unique proof IDs', () {
+      final credentialWithUniqueProofIds = MutableVcDataModelV2(
+        context: [dmV2ContextUrl],
+        id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+        issuer: MutableIssuer.uri('did:example:issuer'),
+        type: {'VerifiableCredential'},
+        validFrom: DateTime.now(),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'id': 'did:example:subject',
+            'name': 'John Doe',
+          })
+        ],
+        proof: [
+          EmbeddedProof(
+            id: Uri.parse('did:example:proof-1'),
+            type: 'DataIntegrityProof',
+            created: DateTime.now(),
+            verificationMethod: 'did:example:issuer#key-1',
+            proofPurpose: 'assertionMethod',
+            proofValue: 'zABC...',
+            cryptosuite: 'eddsa-jcs-2022',
+          ),
+          EmbeddedProof(
+            id: Uri.parse('did:example:proof-2'),
+            type: 'EcdsaSecp256k1Signature2019',
+            created: DateTime.now(),
+            verificationMethod: 'did:example:issuer#key-2',
+            proofPurpose: 'assertionMethod',
+            proofValue: 'zDEF...',
+            cryptosuite: 'ecdsa-jcs-2019',
+          ),
+        ],
+      );
+
+      final vc = VcDataModelV2.fromMutable(credentialWithUniqueProofIds);
+      expect(vc.proof.length, 2);
+      expect(vc.proof[0].id.toString(), 'did:example:proof-1');
+      expect(vc.proof[1].id.toString(), 'did:example:proof-2');
+    });
+
+    test('Succeeds when some proofs have IDs and some do not', () {
+      final credentialWithMixedProofIds = MutableVcDataModelV2(
+        context: [dmV2ContextUrl],
+        id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+        issuer: MutableIssuer.uri('did:example:issuer'),
+        type: {'VerifiableCredential'},
+        validFrom: DateTime.now(),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'id': 'did:example:subject',
+            'name': 'John Doe',
+          })
+        ],
+        proof: [
+          EmbeddedProof(
+            id: Uri.parse('did:example:proof-1'),
+            type: 'DataIntegrityProof',
+            created: DateTime.now(),
+            verificationMethod: 'did:example:issuer#key-1',
+            proofPurpose: 'assertionMethod',
+            proofValue: 'zABC...',
+            cryptosuite: 'eddsa-jcs-2022',
+          ),
+          EmbeddedProof(
+            // No ID
+            type: 'EcdsaSecp256k1Signature2019',
+            created: DateTime.now(),
+            verificationMethod: 'did:example:issuer#key-2',
+            proofPurpose: 'assertionMethod',
+            proofValue: 'zDEF...',
+            cryptosuite: 'ecdsa-jcs-2019',
+          ),
+        ],
+      );
+
+      final vc = VcDataModelV2.fromMutable(credentialWithMixedProofIds);
+      expect(vc.proof.length, 2);
+      expect(vc.proof[0].id.toString(), 'did:example:proof-1');
+      expect(vc.proof[1].id, isNull);
+    });
   });
 }
 
