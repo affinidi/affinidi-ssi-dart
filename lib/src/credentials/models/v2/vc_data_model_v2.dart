@@ -169,6 +169,26 @@ class VcDataModelV2 implements VerifiableCredential {
       );
     }
 
+    /// Proof IDs, if present, must be non-empty and unique within the list.
+    final ids = <Uri>{};
+    for (final p in proof) {
+      if (p.id != null) {
+        if (p.id.toString().isEmpty) {
+          throw SsiException(
+            message: 'Proof id cannot be empty',
+            code: SsiExceptionType.invalidJson.code,
+          );
+        }
+        if (ids.contains(p.id)) {
+          throw SsiException(
+            message: 'Duplicate proof id found: ${p.id}',
+            code: SsiExceptionType.invalidJson.code,
+          );
+        }
+        ids.add(p.id!);
+      }
+    }
+
     return true;
   }
 
