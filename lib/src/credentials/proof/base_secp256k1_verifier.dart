@@ -115,7 +115,14 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    if (proof['type'] != expectedProofType) {
+    final proofType = proof['type'];
+    if (proofType == null || (proofType is String && proofType.isEmpty)) {
+      return VerificationResult.invalid(
+        errors: ['proof type is required and cannot be empty'],
+      );
+    }
+
+    if (proofType != expectedProofType) {
       return VerificationResult.invalid(
         errors: ['invalid proof type, expected $expectedProofType'],
       );

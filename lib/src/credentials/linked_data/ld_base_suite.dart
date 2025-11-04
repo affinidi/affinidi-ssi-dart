@@ -150,7 +150,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     }
 
     final proofType = proof['type'] as String?;
-    if (proofType == null) {
+    if (proofType == null || proofType.isEmpty) {
       return null;
     }
 
