@@ -24,6 +24,28 @@ Packages with other changes:
  - **FEAT**: added context to the default document loader of data integrity verifier (#200).
  - **DOCS**: revocation vc issuance example and tests (#197).
 
+
+## 2025-11-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.17.0`](#ssi---v2170)
+
+---
+
+#### `ssi` - `v2.17.0`
+
+ - **FEAT**: added context to the default document loader of data integrity verifier (#200).
+ - **DOCS**: revocation vc issuance example and tests (#197).
+
 ## 2.17.0
 
  - **FEAT**: added context to the default document loader of data integrity verifier (#200).
