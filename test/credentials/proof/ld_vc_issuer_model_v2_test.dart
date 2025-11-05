@@ -73,7 +73,7 @@ void main() {
       final signer = await initSigner(seed);
 
       final unsignedCredential = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('uuid:issuer-mismatch'),
         type: {'VerifiableCredential'},
         credentialSubject: [
@@ -106,7 +106,7 @@ void main() {
 
       // issue a valid credential first (issuer == signer DID)
       final unsignedCredential = MutableVcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('uuid:will-mutate'),
         type: {'VerifiableCredential'},
         credentialSubject: [
