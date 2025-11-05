@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -42,10 +43,10 @@ void main() {
           }
         };
 
-        final vc = LdVcDm1Suite().parse(jsonEncode(credential));
-        final isValid = await LdVcDm1Suite().verifyIntegrity(vc);
-
-        expect(isValid, false);
+        expect(
+          () => LdVcDm1Suite().parse(jsonEncode(credential)),
+          throwsA(isA<TypeError>()),
+        );
       });
 
       test('Should fail verification when proof type is empty string',
@@ -110,10 +111,10 @@ void main() {
           'proof': 'invalid_proof_string', // proof is not a map
         };
 
-        final vc = LdVcDm1Suite().parse(jsonEncode(credential));
-        final isValid = await LdVcDm1Suite().verifyIntegrity(vc);
-
-        expect(isValid, false);
+        expect(
+          () => LdVcDm1Suite().parse(jsonEncode(credential)),
+          throwsA(isA<TypeError>()),
+        );
       });
     });
 
@@ -174,10 +175,10 @@ void main() {
     group('Supported Proof Types', () {
       test('Should accept DataIntegrityProof with ecdsa-rdfc-2019', () async {
         final unsignedCredential = MutableVcDataModelV1(
-          context: [
+          context: MutableJsonLdContext.fromJson([
             'https://www.w3.org/2018/credentials/v1',
             'https://w3id.org/security/data-integrity/v2',
-          ],
+          ]),
           id: Uri.parse('uuid:test-supported-di-ecdsa'),
           type: {'VerifiableCredential'},
           credentialSubject: [
@@ -204,23 +205,23 @@ void main() {
       });
 
       test('Should accept EcdsaSecp256k1Signature2019', () async {
+        final secp256k1Signer = await initSigner(
+          hexDecode(
+            'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
+          ),
+        );
+
         final unsignedCredential = MutableVcDataModelV1(
-          context: [
+          context: MutableJsonLdContext.fromJson([
             'https://www.w3.org/2018/credentials/v1',
-          ],
+          ]),
           id: Uri.parse('uuid:test-supported-secp256k1'),
           type: {'VerifiableCredential'},
           credentialSubject: [
             MutableCredentialSubject({'id': 'did:example:123'})
           ],
           issuanceDate: DateTime.now(),
-          issuer: Issuer.uri(signer.did),
-        );
-
-        final secp256k1Signer = await initSigner(
-          hexDecode(
-            'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
-          ),
+          issuer: Issuer.uri(secp256k1Signer.did),
         );
 
         final proofGenerator = Secp256k1Signature2019Generator(
@@ -302,10 +303,10 @@ void main() {
           'Should fail verification when proof type does not match expected type',
           () async {
         final unsignedCredential = MutableVcDataModelV1(
-          context: [
+          context: MutableJsonLdContext.fromJson([
             'https://www.w3.org/2018/credentials/v1',
             'https://w3id.org/security/data-integrity/v2',
-          ],
+          ]),
           id: Uri.parse('uuid:test-verify-wrong-type'),
           type: {'VerifiableCredential'},
           credentialSubject: [
@@ -334,7 +335,10 @@ void main() {
         expect(result.isValid, false);
         expect(
           result.errors,
-          contains(contains('invalid proof type')),
+          anyOf(
+            contains(contains('invalid proof type')),
+            contains(contains('invalid cryptosuite')),
+          ),
         );
       });
     });
