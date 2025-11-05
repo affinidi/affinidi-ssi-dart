@@ -1,3 +1,4 @@
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -51,10 +52,10 @@ void main() {
       );
 
       final unsignedCredential = MutableVcDataModelV2(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           dmV2ContextUrl,
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:peer2-vc-1'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
@@ -95,10 +96,10 @@ void main() {
 
       // Issue a VC first
       final unsignedCredential = MutableVcDataModelV2(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           dmV2ContextUrl,
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:peer2-vc-2'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
@@ -116,7 +117,7 @@ void main() {
 
       // Build VP with the issued VC
       final mutableVp = MutableVpDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('uuid:peer2-vp-1'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(signer.did),

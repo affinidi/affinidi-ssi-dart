@@ -537,7 +537,7 @@ void main() {
     test('validate() throws when `type` is empty', () {
       expect(
         () => VcDataModelV2(
-          context: [dmV2ContextUrl],
+          context: JsonLdContext.fromJson([dmV2ContextUrl]),
           id: Uri.parse('id'),
           type: <String>{}, // empty set
           issuer: Issuer.uri('did:example:issuerV2'),
@@ -556,7 +556,7 @@ void main() {
         () {
       expect(
         () => VcDataModelV2(
-          context: [dmV2ContextUrl],
+          context: JsonLdContext.fromJson([dmV2ContextUrl]),
           id: Uri.parse('id'),
           type: {'ExampleCredentialV2'},
           issuer: Issuer.uri('did:example:issuerV2'),
@@ -574,7 +574,7 @@ void main() {
 
     test('validate() succeeds when `type` contains VerifiableCredential', () {
       final vc = VcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: JsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'VerifiableCredential', 'ExampleCredentialV2'},
         issuer: Issuer.uri('did:example:issuerV2'),
@@ -645,7 +645,7 @@ void main() {
     test('validate() throws when `type` is empty', () {
       expect(
         () => VcDataModelV2(
-          context: [dmV2ContextUrl],
+          context: JsonLdContext.fromJson([dmV2ContextUrl]),
           id: Uri.parse('id'),
           type: <String>{}, // empty set
           issuer: Issuer.uri('did:example:issuerV2'),
@@ -664,7 +664,7 @@ void main() {
         () {
       expect(
         () => VcDataModelV2(
-          context: [dmV2ContextUrl],
+          context: JsonLdContext.fromJson([dmV2ContextUrl]),
           id: Uri.parse('id'),
           type: {'ExampleCredentialV2'},
           issuer: Issuer.uri('did:example:issuerV2'),
@@ -682,7 +682,7 @@ void main() {
 
     test('validate() succeeds when `type` contains VerifiableCredential', () {
       final vc = VcDataModelV2(
-        context: [dmV2ContextUrl],
+        context: JsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'VerifiableCredential', 'ExampleCredentialV2'},
         issuer: Issuer.uri('did:example:issuerV2'),

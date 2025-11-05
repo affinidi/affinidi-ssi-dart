@@ -82,11 +82,11 @@ void main() async {
             'Create and verify Data Integrity ECDSA proof with data-integrity context',
             () async {
           final unsignedCredential = MutableVcDataModelV1(
-            context: [
+            context: MutableJsonLdContext.fromJson([
               'https://www.w3.org/2018/credentials/v1',
               'https://w3id.org/security/data-integrity/v2',
               'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-            ],
+            ]),
             id: Uri.parse('uuid:dataintegrityecdsa'),
             type: {'VerifiableCredential', 'UserProfile'},
             credentialSubject: [
@@ -123,11 +123,11 @@ void main() async {
         test('Reject issuance without data-integrity or VC v2 context',
             () async {
           final unsignedCredential = MutableVcDataModelV1(
-            context: [
+            context: MutableJsonLdContext.fromJson([
               // Intentionally omit data-integrity and VC v2 contexts
               'https://www.w3.org/2018/credentials/v1',
               'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-            ],
+            ]),
             id: Uri.parse('uuid:missingctx123'),
             type: {'VerifiableCredential', 'UserProfile'},
             credentialSubject: [
@@ -209,11 +209,11 @@ void main() async {
     test('Reject JCS issuance without data-integrity or VC v2 context',
         () async {
       final unsignedCredential = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           // Intentionally omit data-integrity and VC v2 contexts
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:missingctxjcs256'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
@@ -349,11 +349,11 @@ void main() async {
         'Create and verify Data Integrity ECDSA-JCS proof with data-integrity context',
         () async {
       final unsignedCredential = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
           'https://w3id.org/security/data-integrity/v2',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld'
-        ],
+        ]),
         id: Uri.parse('uuid:dataintegrityecdsajcs'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
