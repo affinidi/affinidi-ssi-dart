@@ -70,4 +70,3 @@ class ProofValidationUtils {
     return validateProofTypeMatch(proofType, expectedProofType);
   }
 }
-
