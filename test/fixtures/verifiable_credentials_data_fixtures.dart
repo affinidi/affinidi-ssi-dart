@@ -602,4 +602,97 @@ class VerifiableCredentialDataFixtures {
     ]
   }
   ''';
+
+  // VC with multiple proofs
+  // Note: The current implementation supports generating only one proof per VC.
+  // For testing purposes, this fixture manually simulates multiple proofs.
+  // In this case, both proofs are valid.
+  static String get credentialWithValidProofSet => r'''
+  {
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1",
+      "https://schema.affinidi.com/UserProfileV1-0.jsonld"
+    ],
+    "id": "uuid:123456abcd",
+    "type": [
+      "VerifiableCredential",
+      "UserProfile"
+    ],
+    "credentialSubject": {
+      "Fname": "Fname",
+      "Lname": "Lame",
+      "Age": "22",
+      "Address": "Eihhornstr"
+    },
+    "credentialSchema": {
+      "id": "https://schema.affinidi.com/UserProfileV1-0.json",
+      "type": "JsonSchemaValidator2018"
+    },
+    "issuanceDate": "2023-01-01T09:51:00.272Z",
+    "expirationDate": "3024-01-01T12:00:00Z",
+    "issuer": "did:key:zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT",
+    "proof": [{
+      "type": "EcdsaSecp256k1Signature2019",
+      "created": "2025-04-11T15:20:35Z",
+      "verificationMethod": "did:key:zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT#zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT",
+      "proofPurpose": "assertionMethod",
+      "jws": "eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..jL90Nk1rSfgBXgZJif44x1KkdD0iYgkRjTfChEb0W0gJ6HDDc5BVE5jb1osse7JEueSSJcYaAMfbh_2QsOdcSA"
+    },
+    {
+      "type": "EcdsaSecp256k1Signature2019",
+      "created": "2025-04-11T15:20:35Z",
+      "verificationMethod": "did:key:zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT#zQ3shtijsLSQoFxN4gXcX8C6ZTJBrDpCTugray7sSP4BamFWT",
+      "proofPurpose": "assertionMethod",
+      "jws": "eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..jL90Nk1rSfgBXgZJif44x1KkdD0iYgkRjTfChEb0W0gJ6HDDc5BVE5jb1osse7JEueSSJcYaAMfbh_2QsOdcSA"
+    }]
+  }
+  ''';
+
+  // VC with multiple proofs (one invalid)
+  // Note: Similar to the above fixture, but the second proof is intentionally invalid.
+  // Used to verify that VC integrity checks fail when any proof is invalid.
+  static String get credentialWithOneInvalidProofInProofSet => r'''
+  {
+    "@context": [
+      "https://www.w3.org/ns/credentials/v2",
+      "https://schema.affinidi.com/UserProfileV1-0.jsonld"
+    ],
+    "issuer": {
+      "id": "did:key:zDnaekzjM53ySkVLUuWoxiMgQB1CMV7Ek5cciydqzHawzSSzy"
+    },
+    "type": [
+      "VerifiableCredential",
+      "UniversityDegreeCredential"
+    ],
+    "id": "urn:uuid:1eeabcd-167t-2bcd-1234-abcd123e4abcd",
+    "credentialSchema": {
+      "id": "https://schema.affinidi.com/UserProfileV1-0.json",
+      "type": "JsonSchemaValidator2018"
+    },
+    "validFrom": "2023-01-01T12:00:00.000Z",
+    "validUntil": "2028-01-01T12:00:00.000Z",
+    "credentialSubject": {
+      "Fname": "M",
+      "Lname": "A",
+      "Age": "33",
+      "Address": "EG"
+    },
+    "proof": [{
+      "type": "DataIntegrityProof",
+      "created": "2025-11-05T15:21:46.469433",
+      "verificationMethod": "did:key:zDnaekzjM53ySkVLUuWoxiMgQB1CMV7Ek5cciydqzHawzSSzy#zDnaekzjM53ySkVLUuWoxiMgQB1CMV7Ek5cciydqzHawzSSzy",
+      "proofPurpose": "assertionMethod",
+      "cryptosuite": "ecdsa-rdfc-2019",
+      "proofValue": "zJuD7kTfc5USrrv7WNurRLDRWqekQfaGgm5fUA4ejUoMzydvYRkw75TxY7QK2DHBMVrWnJ3vchB9tRrhJ8J2Jo4M"
+    },
+    {
+      "type": "DataIntegrityProof",
+      "created": "2025-11-05T15:21:46.469433",
+      "verificationMethod": "did:key:zDnaekzjM53ySkVLUuWoxiMgQB1CMV7Ek5cciydqzHawzSSzy#zDnaekzjM53ySkVLUuWoxiMgQB1CMV7Ek5cciydqzHawzSSzy",
+      "proofPurpose": "assertionMethod",
+      "cryptosuite": "ecdsa-rdfc-2019",
+      "proofValue": "zKuD7kTfc5USrrv7WNurRLDRWqekQfaGgm5fUA4ejUoMzydvYRkw75TxY7QK2DHBMVrWnJ3vchB9tRrhJ8J2Jo4L"
+    }]
+  }
+  ''';
 }

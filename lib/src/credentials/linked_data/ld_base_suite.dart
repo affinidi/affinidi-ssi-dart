@@ -130,24 +130,45 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   Future<bool> verifyIntegrity(Model input,
       {DateTime Function() getNow = DateTime.now}) async {
     final document = input.toJson();
-    final proofSuite = _getDocumentProofVerifier(document);
+    final proofData = document[proofKey];
 
-    if (proofSuite == null) {
+    if (proofData == null ||
+        (proofData is Map && proofData.isEmpty) ||
+        (proofData is List && proofData.isEmpty)) {
       return false;
     }
 
-    final verificationResult =
-        await proofSuite.verify(document, getNow: getNow);
-    return verificationResult.isValid;
-  }
+    // Handle both single proof and array of proofs
+    final proofs = proofData is List ? proofData : [proofData];
 
-  EmbeddedProofVerifier? _getDocumentProofVerifier(
-      Map<String, dynamic> document) {
-    final proof = document[proofKey];
-    if (proof == null || proof is! Map<String, dynamic>) {
-      return null;
+    // All proofs must be valid for the credential to be valid
+    for (final proofItem in proofs) {
+      if (proofItem is! Map<String, dynamic>) {
+        return false;
+      }
+
+      final proofSuite = _getProofVerifierForProof(proofItem, document);
+      if (proofSuite == null) {
+        return false;
+      }
+
+      // Create a document copy with only the current proof for verification
+      final documentWithSingleProof = Map<String, dynamic>.from(document);
+      documentWithSingleProof[proofKey] = proofItem;
+
+      final verificationResult =
+          await proofSuite.verify(documentWithSingleProof, getNow: getNow);
+
+      if (!verificationResult.isValid) {
+        return false;
+      }
     }
 
+    return true;
+  }
+
+  EmbeddedProofVerifier? _getProofVerifierForProof(
+      Map<String, dynamic> proof, Map<String, dynamic> document) {
     final proofType = proof['type'] as String?;
     if (proofType == null) {
       return null;
