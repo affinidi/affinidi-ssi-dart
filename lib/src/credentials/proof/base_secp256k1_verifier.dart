@@ -10,6 +10,7 @@ import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'embedded_proof_suite.dart';
+import 'proof_validation_utils.dart';
 
 /// Base class for SECP256K1 signature verifiers.
 abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
@@ -115,17 +116,13 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    final proofType = proof['type'];
-    if (proofType == null || (proofType is String && proofType.isEmpty)) {
-      return VerificationResult.invalid(
-        errors: ['proof type is required and cannot be empty'],
-      );
-    }
+    final typeValidation = ProofValidationUtils.validateProofTypeStructure(
+      proof,
+      expectedProofType,
+    );
 
-    if (proofType != expectedProofType) {
-      return VerificationResult.invalid(
-        errors: ['invalid proof type, expected $expectedProofType'],
-      );
+    if (!typeValidation.isValid) {
+      return typeValidation;
     }
 
     return VerificationResult.ok();
