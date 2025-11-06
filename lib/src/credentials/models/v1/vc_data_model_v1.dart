@@ -151,8 +151,8 @@ class VcDataModelV1 implements VerifiableCredential {
   /// Validates the essential Verifiable Credential properties (`context`, `type`, `credentialSubject`).
   ///
   /// Ensures [context] is not empty and starts with [dmV1ContextUrl],
-  /// and the [type] is not empty.
-  /// and the [credentialSubject] is not empty
+  /// and the [type] is not empty and MUST contain 'VerifiableCredential',
+  /// and the [credentialSubject] is not empty.
   ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
@@ -167,6 +167,18 @@ class VcDataModelV1 implements VerifiableCredential {
     if (type.isEmpty) {
       throw SsiException(
         message: '`${_P.type.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    final hasVerifiableCredential = type.any(
+      (t) => t.trim() == 'VerifiableCredential',
+    );
+
+    if (!hasVerifiableCredential) {
+      throw SsiException(
+        message:
+            '`${_P.type.key}` MUST include the value "VerifiableCredential" per VC Data Model v1.',
         code: SsiExceptionType.invalidJson.code,
       );
     }
