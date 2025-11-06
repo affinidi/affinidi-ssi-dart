@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/src/credentials/models/field_types/holder.dart';
 import 'package:ssi/src/credentials/models/v2/vc_data_model_v2.dart';
 import 'package:ssi/src/credentials/presentations/linked_data/ld_vp_dm_v2_suite.dart';
@@ -21,7 +22,7 @@ void main() async {
 
   group('VP LD V2 Domain Challenge Verification', () {
     final v2Vp = MutableVpDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('testVpV2'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(signer.did),

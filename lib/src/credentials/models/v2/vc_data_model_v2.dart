@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import '../../../../ssi.dart';
 import '../../../util/json_util.dart';
+import '../field_types/context.dart';
 
 part './mutable_vc_data_model_v2.dart';
 
@@ -42,7 +43,7 @@ class VcDataModelV2 implements VerifiableCredential {
   ///
   /// First item must be 'https://www.w3.org/ns/credentials/v2'.
   @override
-  final UnmodifiableListView<String> context;
+  final JsonLdContext context;
 
   /// The optional identifier for the Verifiable Credential.
   @override
@@ -108,7 +109,7 @@ class VcDataModelV2 implements VerifiableCredential {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json[_P.context.key] = context;
+    json[_P.context.key] = context.toJson();
     json[_P.issuer.key] = issuer.toJson();
     json[_P.type.key] = type.toList();
     json[_P.id.key] = id?.toString();
@@ -134,14 +135,7 @@ class VcDataModelV2 implements VerifiableCredential {
   ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
-    if (context.isEmpty) {
-      throw SsiException(
-        message: '`${_P.context.key}` property is mandatory',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
-
-    if (context.first != dmV2ContextUrl) {
+    if (context.firstUri.toString() != dmV2ContextUrl) {
       throw SsiException(
         message:
             'The first URI of `${_P.context.key}` property should always be $dmV2ContextUrl',
@@ -175,6 +169,26 @@ class VcDataModelV2 implements VerifiableCredential {
       );
     }
 
+    /// Proof IDs, if present, must be non-empty and unique within the list.
+    final ids = <Uri>{};
+    for (final p in proof) {
+      if (p.id != null) {
+        if (p.id.toString().isEmpty) {
+          throw SsiException(
+            message: 'Proof id cannot be empty',
+            code: SsiExceptionType.invalidJson.code,
+          );
+        }
+        if (ids.contains(p.id)) {
+          throw SsiException(
+            message: 'Duplicate proof id found: ${p.id}',
+            code: SsiExceptionType.invalidJson.code,
+          );
+        }
+        ids.add(p.id!);
+      }
+    }
+
     return true;
   }
 
@@ -194,7 +208,7 @@ class VcDataModelV2 implements VerifiableCredential {
   /// The [termsOfUse] is a list of terms of use (optional)
   /// The [evidence] is a list of evidence (optional)
   VcDataModelV2({
-    required List<String> context,
+    required this.context,
     this.id,
     required List<CredentialSubject> credentialSubject,
     required this.issuer,
@@ -207,8 +221,7 @@ class VcDataModelV2 implements VerifiableCredential {
     List<RefreshServiceV2>? refreshService,
     List<TermsOfUse>? termsOfUse,
     List<Evidence>? evidence,
-  })  : context = UnmodifiableListView(context),
-        credentialSubject = UnmodifiableListView(credentialSubject),
+  })  : credentialSubject = UnmodifiableListView(credentialSubject),
         type = UnmodifiableSetView(type),
         proof = UnmodifiableListView(proof ?? []),
         credentialSchema = UnmodifiableListView(credentialSchema ?? []),
@@ -226,7 +239,7 @@ class VcDataModelV2 implements VerifiableCredential {
   factory VcDataModelV2.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getStringList(json, _P.context.key, mandatory: true);
+    final context = JsonLdContext.fromJson(json[_P.context.key]);
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(
@@ -237,6 +250,29 @@ class VcDataModelV2 implements VerifiableCredential {
     ).toSet();
 
     final issuer = Issuer.fromJson(json[_P.issuer.key]);
+
+    final dynamic rawProof = json[_P.proof.key];
+    String? vm;
+    if (rawProof is Map<String, dynamic>) {
+      vm = rawProof['verificationMethod'] as String?;
+    } else if (rawProof is List &&
+        rawProof.isNotEmpty &&
+        rawProof.first is Map) {
+      vm = (rawProof.first as Map)['verificationMethod'] as String?;
+    }
+    if (vm != null) {
+      final vmDid = vm.split('#').first;
+      final issuerDid = issuer.id.toString();
+      final shouldEnforce =
+          vmDid.startsWith('did:') && issuerDid.startsWith('did:');
+      if (shouldEnforce && vmDid != issuerDid) {
+        throw SsiException(
+          message:
+              'Issuer mismatch: `issuer` ($issuerDid) and proof.verificationMethod DID ($vmDid) differ - v2',
+          code: SsiExceptionType.invalidJson.code,
+        );
+      }
+    }
 
     final credentialSubject = parseListOrSingleItem<CredentialSubject>(
         json,
