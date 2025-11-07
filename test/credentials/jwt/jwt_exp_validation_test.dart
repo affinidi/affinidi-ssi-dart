@@ -27,7 +27,8 @@ void main() {
         'holder': {'id': signer.did},
         'issuanceDate': '2023-01-01T12:00:00Z',
         'credentialSubject': {'email': 'test@example.com'},
-      })..issuer = MutableIssuer.uri(signer.did);
+      })
+        ..issuer = MutableIssuer.uri(signer.did);
 
       final issuedCredential = await suite.issue(
           unsignedData: VcDataModelV1.fromMutable(credential), signer: signer);
@@ -47,7 +48,8 @@ void main() {
         'issuanceDate': '2023-01-01T12:00:00Z',
         'expirationDate': '2025-12-31T23:59:59Z',
         'credentialSubject': {'email': 'test@example.com'},
-      })..issuer = MutableIssuer.uri(signer.did);
+      })
+        ..issuer = MutableIssuer.uri(signer.did);
 
       final issuedCredential = await suite.issue(
           unsignedData: VcDataModelV1.fromMutable(credential), signer: signer);
@@ -70,7 +72,8 @@ void main() {
         'issuanceDate': '2023-01-01T12:00:00Z',
         'expirationDate': '2024-12-31T23:59:59Z',
         'credentialSubject': {'email': 'test@example.com'},
-      })..issuer = MutableIssuer.uri(signer.did);
+      })
+        ..issuer = MutableIssuer.uri(signer.did);
 
       final issuedCredential = await suite.issue(
           unsignedData: VcDataModelV1.fromMutable(credential), signer: signer);
@@ -95,7 +98,8 @@ void main() {
         'issuanceDate': '2023-01-01T12:00:00Z',
         'expirationDate': expirationDate.toIso8601String(),
         'credentialSubject': {'email': 'test@example.com'},
-      })..issuer = MutableIssuer.uri(signer.did);
+      })
+        ..issuer = MutableIssuer.uri(signer.did);
 
       final issuedCredential = await suite.issue(
           unsignedData: VcDataModelV1.fromMutable(credential), signer: signer);
@@ -110,4 +114,3 @@ void main() {
     });
   });
 }
-
