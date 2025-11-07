@@ -124,10 +124,13 @@ final class SdJwtDm2Suite
 
     final validFrom = payload.remove(VcDataModelV2Key.validFrom.key);
     if (validFrom != null) {
-      jwtClaims['iat'] =
+      jwtClaims['nbf'] =
           (DateTime.parse(validFrom as String).millisecondsSinceEpoch / 1000)
               .floor();
     }
+
+    jwtClaims['iat'] =
+        (DateTime.now().millisecondsSinceEpoch / 1000).floor();
 
     disclosureFrame ??= _getDefaultDisclosureFrame(payload);
 
