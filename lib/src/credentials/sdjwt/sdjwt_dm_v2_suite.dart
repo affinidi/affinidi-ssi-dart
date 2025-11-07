@@ -129,8 +129,7 @@ final class SdJwtDm2Suite
               .floor();
     }
 
-    jwtClaims['iat'] =
-        (DateTime.now().millisecondsSinceEpoch / 1000).floor();
+    jwtClaims['iat'] = (DateTime.now().millisecondsSinceEpoch / 1000).floor();
 
     disclosureFrame ??= _getDefaultDisclosureFrame(payload);
 
