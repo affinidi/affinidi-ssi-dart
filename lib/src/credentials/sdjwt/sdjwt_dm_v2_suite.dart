@@ -114,6 +114,21 @@ final class SdJwtDm2Suite
 
     final jwtClaims = <String, dynamic>{};
     jwtClaims.addAll(payload);
+
+    final validUntil = payload.remove(VcDataModelV2Key.validUntil.key);
+    if (validUntil != null) {
+      jwtClaims['exp'] =
+          (DateTime.parse(validUntil as String).millisecondsSinceEpoch / 1000)
+              .floor();
+    }
+
+    final validFrom = payload.remove(VcDataModelV2Key.validFrom.key);
+    if (validFrom != null) {
+      jwtClaims['iat'] =
+          (DateTime.parse(validFrom as String).millisecondsSinceEpoch / 1000)
+              .floor();
+    }
+
     disclosureFrame ??= _getDefaultDisclosureFrame(payload);
 
     final jwtSigner = _createSdJwtSigner(signer);
