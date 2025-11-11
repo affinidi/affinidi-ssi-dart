@@ -138,7 +138,7 @@ void main() {
 
     test('Throws when proof has empty id', () {
       final credentialWithEmptyProofId = MutableVcDataModelV1(
-        context: [dmV1ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
         type: {'VerifiableCredential'},
@@ -174,7 +174,7 @@ void main() {
     test('Throws when multiple proofs have duplicate IDs', () {
       final duplicateId = Uri.parse('did:example:proof-1');
       final credentialWithDuplicateProofIds = MutableVcDataModelV1(
-        context: [dmV1ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
         type: {'VerifiableCredential'},
@@ -217,7 +217,7 @@ void main() {
 
     test('Succeeds with unique proof IDs', () {
       final credentialWithUniqueProofIds = MutableVcDataModelV1(
-        context: [dmV1ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
         type: {'VerifiableCredential'},
@@ -256,7 +256,7 @@ void main() {
 
     test('Succeeds when some proofs have IDs and some do not', () {
       final credentialWithMixedProofIds = MutableVcDataModelV1(
-        context: [dmV1ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
         type: {'VerifiableCredential'},

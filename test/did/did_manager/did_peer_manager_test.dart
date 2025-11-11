@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -607,10 +608,10 @@ void main() {
 
         // Generate a simple credential using this signer and assert proof.verificationMethod is fully-qualified
         final unsignedCredential = MutableVcDataModelV1(
-          context: [
+          context: MutableJsonLdContext.fromJson([
             'https://www.w3.org/2018/credentials/v1',
             'https://w3id.org/security/data-integrity/v2'
-          ],
+          ]),
           id: Uri.parse('uuid:test-normalization'),
           type: {'VerifiableCredential'},
           credentialSubject: [
