@@ -2,4 +2,5 @@
 export 'did_document.dart';
 export 'service_endpoint.dart';
 export 'service_endpoint_value.dart';
+export 'service_type.dart';
 export 'verification_method.dart';
