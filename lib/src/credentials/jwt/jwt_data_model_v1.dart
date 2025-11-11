@@ -39,10 +39,16 @@ class JwtVcDataModelV1 extends VcDataModelV1
           (DateTime.parse(exp as String).millisecondsSinceEpoch / 1000).floor();
     }
 
-    final nbf = json.remove(_VC1.issuanceDate.key);
+    final nbf = json.remove(_VC1.validFrom.key);
     if (nbf != null) {
       payload['nbf'] =
           (DateTime.parse(nbf as String).millisecondsSinceEpoch / 1000).floor();
+    }
+
+    final iat = json.remove(_VC1.issuanceDate.key);
+    if (iat != null) {
+      payload['iat'] =
+          (DateTime.parse(iat as String).millisecondsSinceEpoch / 1000).floor();
     }
 
     payload['iss'] = json.remove(_VC1.issuer.key);
@@ -67,7 +73,8 @@ class JwtVcDataModelV1 extends VcDataModelV1
     final json = payload['vc'] as Map<String, dynamic>;
 
     _jwtToJsonDate(payload, 'exp', json, _VC1.expirationDate.key);
-    _jwtToJsonDate(payload, 'nbf', json, _VC1.issuanceDate.key);
+    _jwtToJsonDate(payload, 'nbf', json, _VC1.validFrom.key);
+    _jwtToJsonDate(payload, 'iat', json, _VC1.issuanceDate.key);
     _jwtToJsonDynamic(payload, 'iss', json, _VC1.issuer.key);
     if (payload.containsKey('sub')) {
       (json[_VC1.credentialSubject.key] as Map<String, dynamic>)['id'] =

@@ -71,6 +71,9 @@ class MutableVcDataModelV1 {
   /// The date and time at which the credential was issued
   DateTime? issuanceDate;
 
+  /// The date and time at which the credential will become valid
+  DateTime? validFrom;
+
   /// The date and time at which the credential becomes invalid.
   DateTime? expirationDate;
 
@@ -107,6 +110,7 @@ class MutableVcDataModelV1 {
     json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
     json[_P.holder.key] = holder?.toJson();
     json[_P.issuanceDate.key] = issuanceDate?.toIso8601String();
+    json[_P.validFrom.key] = validFrom?.toIso8601String();
     json[_P.expirationDate.key] = expirationDate?.toIso8601String();
     json[_P.credentialSubject.key] =
         encodeListToSingleOrArray(credentialSubject);
@@ -128,6 +132,7 @@ class MutableVcDataModelV1 {
   /// The [issuer] is issuer of this VC (required)
   /// The [type] is an array that must include 'VerifiableCredential' (required)
   /// The [issuanceDate] is date and time at this VC is issued (required)
+  /// The [validFrom] is date and time at which VC's validity begin (optional)
   /// The [expirationDate] is expiry date of VC (optional)
   /// The [holder] is an identifier for the holder (optional)
   /// The [proof] is a cryptographic proof (optional)
@@ -144,6 +149,7 @@ class MutableVcDataModelV1 {
     Set<String>? type,
     this.issuanceDate,
     this.expirationDate,
+    this.validFrom,
     this.holder,
     List<EmbeddedProof>? proof,
     this.credentialStatus,
@@ -194,6 +200,7 @@ class MutableVcDataModelV1 {
 
     final issuanceDate = getDateTime(json, _P.issuanceDate.key);
     final expirationDate = getDateTime(json, _P.expirationDate.key);
+    final validFrom = getDateTime(json, _P.validFrom.key);
 
     final holder = MutableHolder.fromJson(json[_P.holder.key]);
 
@@ -231,6 +238,7 @@ class MutableVcDataModelV1 {
         issuanceDate: issuanceDate,
         credentialSchema: credentialSchema,
         expirationDate: expirationDate,
+        validFrom: validFrom,
         holder: holder,
         proof: proof,
         credentialStatus: credentialStatus,
@@ -273,6 +281,9 @@ enum VcDataModelV1Key {
 
   /// Key for the `issuanceDate` property, representing the issuance date.
   issuanceDate,
+
+  /// Key for the `validFrom` property, representing the time, VC will be valid from.
+  validFrom,
 
   /// Key for the `credentialStatus` property, representing the credential status.
   credentialStatus,

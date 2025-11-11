@@ -40,7 +40,7 @@ abstract interface class VerifiableCredential implements DocWithEmbeddedProof {
   /// See [MutableCredentialSchema] for more details.
   List<CredentialSchema> get credentialSchema;
 
-  /// The date when this credential was issued.
+  /// The date at which this credential will become valid.
   DateTime? get validFrom;
 
   /// The date when this credential expires.

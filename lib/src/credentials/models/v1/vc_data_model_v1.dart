@@ -96,9 +96,9 @@ class VcDataModelV1 implements VerifiableCredential {
   /// The date and time the credential expires.
   final DateTime? expirationDate;
 
-  /// The date and time the credential was issued.
+  /// The date and time the credential will be valid from.
   @override
-  DateTime get validFrom => issuanceDate;
+  final DateTime? validFrom;
 
   /// The date and time the credential expires.
   @override
@@ -136,6 +136,7 @@ class VcDataModelV1 implements VerifiableCredential {
     json[_P.credentialSchema.key] = encodeListToSingleOrArray(credentialSchema);
     json[_P.holder.key] = holder?.toJson();
     json[_P.issuanceDate.key] = issuanceDate.toIso8601String();
+    json[_P.validFrom.key] = validFrom?.toIso8601String();
     json[_P.expirationDate.key] = expirationDate?.toIso8601String();
     json[_P.credentialSubject.key] =
         encodeListToSingleOrArray(credentialSubject);
@@ -223,6 +224,7 @@ class VcDataModelV1 implements VerifiableCredential {
     required this.issuer,
     required Set<String> type,
     required this.issuanceDate,
+    this.validFrom,
     List<CredentialSchema>? credentialSchema,
     this.expirationDate,
     this.holder,
@@ -303,6 +305,7 @@ class VcDataModelV1 implements VerifiableCredential {
     final issuanceDate =
         getDateTime(json, _P.issuanceDate.key, mandatory: true)!;
 
+    final validFrom = getDateTime(json, _P.validFrom.key);
     final expirationDate = getDateTime(json, _P.expirationDate.key);
 
     Holder? holder;
@@ -339,6 +342,7 @@ class VcDataModelV1 implements VerifiableCredential {
         issuer: issuer,
         type: type,
         issuanceDate: issuanceDate,
+        validFrom: validFrom,
         credentialSchema: credentialSchema,
         expirationDate: expirationDate,
         holder: holder,
