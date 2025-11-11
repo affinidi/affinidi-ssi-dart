@@ -80,7 +80,7 @@ void main() {
         // Add service endpoint
         final serviceEndpoint = ServiceEndpoint(
           id: '#service-1',
-          type: 'DIDCommMessaging',
+          type: const StringServiceType('DIDCommMessaging'),
           serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
         );
         await manager.addServiceEndpoint(serviceEndpoint);
@@ -114,7 +114,7 @@ void main() {
         // Add service endpoint
         final serviceEndpoint = ServiceEndpoint(
           id: '#service-1',
-          type: 'DIDCommMessaging',
+          type: const StringServiceType('DIDCommMessaging'),
           serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
         );
         await manager.addServiceEndpoint(serviceEndpoint);
@@ -146,7 +146,8 @@ void main() {
         // Verify service endpoint
         expect(didDocument.service, hasLength(1));
         expect(didDocument.service[0].id, '#service-1');
-        expect(didDocument.service[0].type, 'DIDCommMessaging');
+        expect(didDocument.service[0].type,
+            const StringServiceType('DIDCommMessaging'));
         expect((didDocument.service[0].serviceEndpoint as StringEndpoint).url,
             'https://example.com/endpoint');
 
@@ -219,14 +220,14 @@ void main() {
 
         final endpoint1 = ServiceEndpoint(
           id: '#service-1',
-          type: 'MessagingService',
+          type: const StringServiceType('MessagingService'),
           serviceEndpoint:
               const StringEndpoint('https://example.com/messaging'),
         );
 
         final endpoint2 = ServiceEndpoint(
           id: '#service-2',
-          type: 'CredentialService',
+          type: const StringServiceType('CredentialService'),
           serviceEndpoint: const MapEndpoint({
             'uri': 'https://example.com/credentials',
             'accept': ['application/json'],
@@ -255,7 +256,7 @@ void main() {
 
         final endpoint = ServiceEndpoint(
           id: '#service-to-remove',
-          type: 'TestService',
+          type: const StringServiceType('TestService'),
           serviceEndpoint: const StringEndpoint('https://example.com'),
         );
 
@@ -285,7 +286,7 @@ void main() {
 
         final endpoint = ServiceEndpoint(
           id: '#duplicate-service',
-          type: 'TestService',
+          type: const StringServiceType('TestService'),
           serviceEndpoint: const StringEndpoint('https://example.com'),
         );
 
@@ -760,7 +761,7 @@ void main() {
         // Add service endpoint
         final serviceEndpoint = ServiceEndpoint(
           id: '#service-1',
-          type: 'DIDCommMessaging',
+          type: const StringServiceType('DIDCommMessaging'),
           serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
         );
         await manager.addServiceEndpoint(serviceEndpoint);

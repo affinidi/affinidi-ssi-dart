@@ -28,7 +28,7 @@ void main() {
       // Add a service endpoint to ensure did:peer:2
       await manager.addServiceEndpoint(ServiceEndpoint(
         id: '#service-1',
-        type: 'DIDCommMessaging',
+        type: const StringServiceType('DIDCommMessaging'),
         serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       ));
     });
