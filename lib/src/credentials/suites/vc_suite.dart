@@ -1,3 +1,4 @@
+import '../../did/did_resolver.dart';
 import '../models/parsed_vc.dart';
 import '../models/verifiable_credential.dart';
 
@@ -27,8 +28,10 @@ abstract interface class VerifiableCredentialSuite<
   ///
   /// NOTE: only the signature is verified, other claims like `challenge` or
   /// `nonce` must be separately validated
+  ///
+  /// Optionally accepts a custom [didResolver] for resolving DID documents.
   Future<bool> verifyIntegrity(ParsedVC input,
-      {DateTime Function() getNow = DateTime.now});
+      {DateTime Function() getNow = DateTime.now, DidResolver? didResolver});
 
   /// Presents the [input] credential in its serialized form.
   dynamic present(ParsedVC input);

@@ -128,12 +128,14 @@ class DataIntegrityEcdsaVerifier extends BaseDataIntegrityVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEcdsaVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -186,12 +188,14 @@ class DataIntegrityEcdsaRdfcVerifier extends BaseDataIntegrityVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEcdsaRdfcVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -284,12 +288,14 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEcdsaJcsVerifier({
     required super.verifierDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -342,8 +348,8 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
   Future<SignatureScheme> _getSignatureSchemeFromDid(
       Uri verificationMethod) async {
     // Resolve the DID to get the verification method
-    final didDocument =
-        await UniversalDIDResolver.defaultResolver.resolveDid(issuerDid);
+    final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
+    final didDocument = await resolver.resolveDid(issuerDid);
 
     // Find the verification method in the DID document
     final vm = didDocument.verificationMethod

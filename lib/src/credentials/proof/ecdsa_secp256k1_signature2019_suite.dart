@@ -604,12 +604,14 @@ class Secp256k1Signature2019Verifier extends BaseSecp256k1Verifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   Secp256k1Signature2019Verifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override

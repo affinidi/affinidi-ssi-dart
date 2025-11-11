@@ -153,6 +153,73 @@ The introduction of the DID Manager simplifies DID management by shifting DID-re
 
 Each DID method extends the base class [`DidManager`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_manager/did_manager.dart) to inherit the functionality to manage the supported DIDs.
 
+## Custom DID Resolver
+
+The package supports custom DID resolvers for advanced use cases where you need to customize how DID documents are resolved during credential verification. This is useful for:
+
+- **Caching strategies** - Cache resolved DID documents to reduce network calls
+- **Logging and monitoring** - Track which DIDs are being resolved
+- **Custom DID methods** - Support private or custom DID methods
+- **Offline operation** - Use pre-fetched DID documents without network access
+
+### Using a Custom DID Resolver
+
+To use a custom DID resolver, implement the `DidResolver` interface and pass it to the verifier:
+
+```dart
+import 'package:ssi/ssi.dart';
+
+// Implement a custom DID resolver
+class CachingDidResolver implements DidResolver {
+  final Map<String, DidDocument> _cache = {};
+  final DidResolver _fallbackResolver = UniversalDIDResolver();
+
+  @override
+  Future<DidDocument> resolveDid(String did) async {
+    // Check cache first
+    if (_cache.containsKey(did)) {
+      return _cache[did]!;
+    }
+
+    // Resolve and cache
+    final document = await _fallbackResolver.resolveDid(did);
+    _cache[did] = document;
+    return document;
+  }
+}
+
+// Use it with the verifier
+void main() async {
+  final credential = UniversalParser.parse(vcString);
+  
+  // Create verifier with custom resolver
+  final verifier = VcIntegrityVerifier(
+    didResolver: CachingDidResolver(),
+  );
+  
+  final result = await verifier.verify(credential);
+  print('Verification result: ${result.isValid}');
+}
+```
+
+For a complete example with multiple resolver implementations, see [custom_did_resolver_verification.dart](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/custom_did_resolver_verification.dart).
+
+### Custom DID Resolver vs Custom Document Loader
+
+The package supports two different customization points that serve distinct purposes:
+
+- **Custom DID Resolver** (`didResolver`) - Resolves DID identifiers to DID Documents during signature verification. Use this to customize how DIDs (like `did:key:z123...`) are resolved to their corresponding public keys.
+
+- **Custom Document Loader** (`customDocumentLoader`) - Loads JSON-LD context documents during JSON-LD processing and canonicalization. Use this to customize how JSON-LD contexts (like `https://www.w3.org/2018/credentials/v1`) are loaded.
+
+Both can be used independently or together:
+
+```dart
+final verifier = VcIntegrityVerifier(
+  didResolver: myCustomResolver,           // For DID resolution
+  customDocumentLoader: myDocumentLoader,  // For JSON-LD contexts
+);
+```
 
 ## Ed25519/X25519 Key Derivation
 

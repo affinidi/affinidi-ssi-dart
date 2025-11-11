@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+import '../../did/did_resolver.dart';
 import '../../did/did_signer.dart';
 import '../../did/did_verifier.dart';
 import '../../exceptions/ssi_exception.dart';
@@ -102,7 +103,8 @@ final class JwtDm1Suite
 
   @override
   Future<bool> verifyIntegrity(JwtVcDataModelV1 input,
-      {DateTime Function() getNow = DateTime.now}) async {
+      {DateTime Function() getNow = DateTime.now,
+      DidResolver? didResolver}) async {
     final segments = input.serialized.split('.');
 
     if (segments.length != 3) {
@@ -140,6 +142,7 @@ final class JwtDm1Suite
       algorithm: algorithm,
       kid: decodedHeader['kid'] as String?,
       issuerDid: did.toString(),
+      didResolver: didResolver,
     );
 
     return verifier.verify(toSign, base64UrlNoPadDecode(encodedSignature));

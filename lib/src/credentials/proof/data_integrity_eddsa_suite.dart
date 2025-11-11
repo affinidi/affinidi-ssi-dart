@@ -126,12 +126,14 @@ class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityRdfcEddsaVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -184,12 +186,14 @@ class DataIntegrityEddsaRdfcVerifier extends BaseDataIntegrityVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEddsaRdfcVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -282,12 +286,14 @@ class DataIntegrityEddsaJcsVerifier extends BaseJcsVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEddsaJcsVerifier({
     required super.verifierDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override

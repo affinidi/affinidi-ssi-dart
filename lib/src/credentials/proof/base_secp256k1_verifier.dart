@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:json_ld_processor/json_ld_processor.dart';
 import 'package:pointycastle/api.dart';
 
+import '../../did/did_resolver.dart';
 import '../../did/did_verifier.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -26,12 +27,16 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
   /// Optional challenge value.
   final String? challenge;
 
+  /// Optional custom DID resolver for offline/test verification.
+  final DidResolver? didResolver;
+
   /// Creates a new BaseSecp256k1Verifier.
   BaseSecp256k1Verifier({
     required this.issuerDid,
     this.getNow = DateTime.now,
     this.domain,
     this.challenge,
+    this.didResolver,
     super.customDocumentLoader,
   });
 
@@ -173,6 +178,7 @@ Future<bool> verifyJws(
   String issuerDid,
   Uri verificationMethod, // expected kid / verification method DID URL
   Uint8List payloadToSign, // canonicalized UTF-8 bytes of the JSON-LD document
+  {DidResolver? didResolver}
 ) async {
   // 1) Parse JWS compact or RFC7797 detached (header..signature)
   String encodedHeader;
@@ -286,6 +292,7 @@ Future<bool> verifyJws(
     algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
     kid: verificationMethod.toString(),
     issuerDid: issuerDid,
+    didResolver: didResolver,
   );
 
   // 9) Verify: try as-is, then if fails and signature looks like DER, convert to r||s and retry
