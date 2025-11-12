@@ -168,6 +168,21 @@ void main() {
         expect(serviceEndpoint.type, 'GenericService');
       });
 
+      test('it handles lists with one element for type', () {
+        final serviceEndpoint = ServiceEndpoint.fromJson(
+            DidDocumentFixtures.serviceEndpointTypeListOneElement);
+
+        expect(serviceEndpoint.type, 'DIDCommMessaging');
+      });
+
+      test('it throws an error for lists with two elements for type', () {
+        expect(
+            () => ServiceEndpoint.fromJson(
+                  DidDocumentFixtures.serviceEndpointTypeListTwoElement,
+                ),
+            throwsFormatException);
+      });
+
       test('it retrieves correct service endpoint', () {
         final endpointValue = serviceEndpoint.serviceEndpoint;
         expect(endpointValue, isA<SetEndpoint>());

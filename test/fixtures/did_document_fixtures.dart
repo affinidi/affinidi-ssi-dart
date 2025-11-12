@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class DidDocumentFixtures {
   static Map<String, dynamic> get didDocumentValid => {
         'id': 'did:web:example.com',
@@ -97,6 +99,58 @@ class DidDocumentFixtures {
           }
         ]
       };
+
+  static Map<String, dynamic> get serviceEndpointTypeListOneElement =>
+      jsonDecode(r'''
+  {
+    "id": "did:web:example.com#service",
+    "type": [
+      "DIDCommMessaging"
+    ],
+    "serviceEndpoint": [
+      {
+        "accept": [
+          "didcomm/v2"
+        ],
+        "routingKeys": [],
+        "uri": "https://example.com"
+      },
+      {
+        "accept": [
+          "didcomm/v2"
+        ],
+        "routingKeys": [],
+        "uri": "wss://example.com/ws"
+      }
+    ]
+  }
+  ''');
+
+  static Map<String, dynamic> get serviceEndpointTypeListTwoElement =>
+      jsonDecode(r'''
+  {
+    "id": "did:web:example.com#service",
+    "type": [
+      "DIDCommMessaging", "two"
+    ],
+    "serviceEndpoint": [
+      {
+        "accept": [
+          "didcomm/v2"
+        ],
+        "routingKeys": [],
+        "uri": "https://example.com"
+      },
+      {
+        "accept": [
+          "didcomm/v2"
+        ],
+        "routingKeys": [],
+        "uri": "wss://example.com/ws"
+      }
+    ]
+  }
+  ''');
 
   static String get didDocumentWithControllerKey =>
       '{"@context":["https://www.w3.org/ns/did/v1","https://ns.did.ai/suites/multikey-2021/v1/"],"id":"did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R","verificationMethod":[{"id":"did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R","controller":"did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R","type":"Secp256k1Key2021","publicKeyMultibase":"zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"}],"authentication":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"capabilityDelegation":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"capabilityInvocation":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"keyAgreement":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"],"assertionMethod":["did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R#zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R"]}';
