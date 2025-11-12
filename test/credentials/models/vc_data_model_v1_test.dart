@@ -1,3 +1,4 @@
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -470,6 +471,63 @@ void main() {
     test('does not throw when proof is empty list', () {
       final json = baseCredential(proof: <dynamic>[]);
       expect(() => VcDataModelV1.fromJson(json), returnsNormally);
+    });
+  });
+
+  group('VcDataModelV1 Type Validation (VC DM v1)', () {
+    test('validate() throws when `type` is empty', () {
+      expect(
+        () => VcDataModelV1(
+          context: JsonLdContext.fromJson([dmV1ContextUrl]),
+          id: Uri.parse('id'),
+          type: <String>{}, // empty set
+          issuer: Issuer.uri('did:example:issuerV1'),
+          issuanceDate: DateTime.now(),
+          credentialSubject: [
+            CredentialSubject.fromJson({'id': 'did:example:subjectV1'})
+          ],
+        ),
+        throwsA(predicate((e) =>
+            e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message.contains('`type` property is mandatory'))),
+      );
+    });
+
+    test('validate() throws when `VerifiableCredential` is missing in type',
+        () {
+      expect(
+        () => VcDataModelV1(
+          context: JsonLdContext.fromJson([dmV1ContextUrl]),
+          id: Uri.parse('id'),
+          type: {'ExampleCredentialV1'},
+          issuer: Issuer.uri('did:example:issuerV1'),
+          issuanceDate: DateTime.now(),
+          credentialSubject: [
+            CredentialSubject.fromJson({'id': 'did:example:subjectV1'})
+          ],
+        ),
+        throwsA(predicate((e) =>
+            e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message
+                .contains('MUST include the value "VerifiableCredential"'))),
+      );
+    });
+
+    test('validate() succeeds when `type` contains VerifiableCredential', () {
+      final vc = VcDataModelV1(
+        context: JsonLdContext.fromJson([dmV1ContextUrl]),
+        id: Uri.parse('id'),
+        type: {'VerifiableCredential', 'ExampleCredentialV1'},
+        issuer: Issuer.uri('did:example:issuerV1'),
+        issuanceDate: DateTime.now(),
+        credentialSubject: [
+          CredentialSubject.fromJson({'id': 'did:example:subjectV1'})
+        ],
+      );
+      expect(vc.type.contains('VerifiableCredential'), isTrue);
+      expect(vc.type.contains('ExampleCredentialV1'), isTrue);
     });
   });
 }
