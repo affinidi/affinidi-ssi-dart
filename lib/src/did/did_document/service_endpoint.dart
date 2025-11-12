@@ -39,13 +39,8 @@ class ServiceEndpoint implements JsonObject {
       case String strType:
         type = strType;
 
-      case List<String> list:
-        if (list.length > 1) {
-          throw const FormatException(
-              'only lists with one element are supported for serviceEndpoint.type');
-        }
-
-        type = list.first;
+      case [String strType]:
+        type = strType;
 
       default:
         throw const FormatException('invalid type property in serviceEndpoint');
