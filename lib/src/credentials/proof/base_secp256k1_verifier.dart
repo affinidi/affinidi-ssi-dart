@@ -174,12 +174,12 @@ Future<Uint8List> computeVcHash(
 
 /// Verifies a JWS signature.
 Future<bool> verifyJws(
-  String jws,
-  String issuerDid,
-  Uri verificationMethod, // expected kid / verification method DID URL
-  Uint8List payloadToSign, // canonicalized UTF-8 bytes of the JSON-LD document
-  {DidResolver? didResolver}
-) async {
+    String jws,
+    String issuerDid,
+    Uri verificationMethod, // expected kid / verification method DID URL
+    Uint8List
+        payloadToSign, // canonicalized UTF-8 bytes of the JSON-LD document
+    {DidResolver? didResolver}) async {
   // 1) Parse JWS compact or RFC7797 detached (header..signature)
   String encodedHeader;
   String? encodedPayloadFromJws; // only present in 3-part JWS

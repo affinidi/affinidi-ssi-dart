@@ -89,8 +89,7 @@ void main() {
           greaterThanOrEqualTo(0));
     });
 
-    test(
-        'Should work with both custom document loader and custom DID resolver',
+    test('Should work with both custom document loader and custom DID resolver',
         () async {
       // Create custom implementations
       final customResolver = TrackingDidResolver();

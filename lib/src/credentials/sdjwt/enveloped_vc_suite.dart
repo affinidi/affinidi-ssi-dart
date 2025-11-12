@@ -99,7 +99,8 @@ final class EnvelopedVcDm2Suite
 
   @override
   Future<bool> verifyIntegrity(ParsedVerifiableCredential<String> input,
-      {DateTime Function() getNow = DateTime.now, DidResolver? didResolver}) async {
+      {DateTime Function() getNow = DateTime.now,
+      DidResolver? didResolver}) async {
     throw SsiException(
       message: 'Call verification on ${VcSuites.getVcSuite(input).runtimeType}',
       code: SsiExceptionType.unsupportedEnvelopeVCOperation.code,
