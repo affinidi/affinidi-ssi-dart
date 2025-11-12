@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -21,11 +22,11 @@ void main() {
 
     test('LD VC issuance preserves credentialStatus', () async {
       final unsigned = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld',
           'https://w3id.org/vc-revocation-list-2020/v1',
-        ],
+        ]),
         id: Uri.parse('uuid:ld-revocable'),
         type: {'VerifiableCredential', 'UserProfile'},
         issuer: Issuer.uri(signer.did),
@@ -70,11 +71,11 @@ void main() {
 
     test('JWT VC issuance preserves credentialStatus', () async {
       final unsigned = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld',
           'https://w3id.org/vc-revocation-list-2020/v1',
-        ],
+        ]),
         id: Uri.parse('uuid:jwt-revocable'),
         type: {'VerifiableCredential', 'UserProfile'},
         issuer: Issuer.uri(signer.did),
@@ -136,11 +137,11 @@ void main() {
       };
 
       final unsigned = MutableVcDataModelV1(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
           'https://schema.affinidi.com/UserProfileV1-0.jsonld',
           'https://w3id.org/vc-revocation-list-2020/v1',
-        ],
+        ]),
         id: Uri.parse('uuid:revoked'),
         type: {'VerifiableCredential', 'UserProfile'},
         issuer: Issuer.uri(signer.did),
