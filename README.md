@@ -4,22 +4,22 @@ SSI package provides libraries and tools for implementing Self-Sovereign Identit
 
 It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1.0/) methods to represent an entity's identity in the decentralised ecosystem. It leverages different key management solutions and standards for generating and managing cryptographic keys associated with the digital wallet.
 
-> **IMPORTANT:** 
+> **IMPORTANT:**
 > This project does not collect or process any personal data. However, when used as part of a broader system or application that handles personally identifiable information (PII), users are responsible for ensuring that any such use complies with applicable privacy laws and data protection obligations.
 
 ## Table of Contents
 
-  - [Core Concepts](#core-concepts)
-  - [Supported DID Methods](#supported-did-methods)
-  - [Supported Key Management](#supported-key-management)
-  - [Credential Data Models](#credential-data-models)
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [DID Manager](#did-manager)
-  - [Ed25519/X25519 Key Derivation](#ed25519x25519-key-derivation)
-  - [Support & feedback](#support--feedback)
-  - [Contributing](#contributing)
+- [Core Concepts](#core-concepts)
+- [Supported DID Methods](#supported-did-methods)
+- [Supported Key Management](#supported-key-management)
+- [Credential Data Models](#credential-data-models)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [DID Manager](#did-manager)
+- [Ed25519/X25519 Key Derivation](#ed25519x25519-key-derivation)
+- [Support & feedback](#support--feedback)
+- [Contributing](#contributing)
 
 ## Core Concepts
 
@@ -31,7 +31,7 @@ SSI introduces several key concepts:
 
 - **Verifiable Presentation (VP):** A collection of one or more Verifiable Credentials (VCs) that an individual shares with the verifier to prove specific claims. VP is cryptographically signed and verifiable.
 
-- **Data Model:** A standard data structure defined by W3C  for consistency and interoperability.
+- **Data Model:** A standard data structure defined by W3C for consistency and interoperability.
 
 - **Wallet:** A digital wallet to manage cryptographic keys supporting different algorithms for signing and verifying VC and VP.
 
@@ -58,7 +58,6 @@ This package supports the following key management solutions for securely managi
 - **BIP32 ED25519** - adapts the BIP32 standard to work with the ED25519 elliptic curve cryptography. Supports **ed25519** key type only.
 
 - **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports **secp256k1**, **ed25519**, **p256**, **p384**, and **p521** key types.
-
 
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/wallet) to learn how to create different wallets.
 
@@ -162,46 +161,6 @@ The package supports custom DID resolvers for advanced use cases where you need 
 - **Custom DID methods** - Support private or custom DID methods
 - **Offline operation** - Use pre-fetched DID documents without network access
 
-### Using a Custom DID Resolver
-
-To use a custom DID resolver, implement the `DidResolver` interface and pass it to the verifier:
-
-```dart
-import 'package:ssi/ssi.dart';
-
-// Implement a custom DID resolver
-class CachingDidResolver implements DidResolver {
-  final Map<String, DidDocument> _cache = {};
-  final DidResolver _fallbackResolver = UniversalDIDResolver();
-
-  @override
-  Future<DidDocument> resolveDid(String did) async {
-    // Check cache first
-    if (_cache.containsKey(did)) {
-      return _cache[did]!;
-    }
-
-    // Resolve and cache
-    final document = await _fallbackResolver.resolveDid(did);
-    _cache[did] = document;
-    return document;
-  }
-}
-
-// Use it with the verifier
-void main() async {
-  final credential = UniversalParser.parse(vcString);
-  
-  // Create verifier with custom resolver
-  final verifier = VcIntegrityVerifier(
-    didResolver: CachingDidResolver(),
-  );
-  
-  final result = await verifier.verify(credential);
-  print('Verification result: ${result.isValid}');
-}
-```
-
 For a complete example with multiple resolver implementations, see [custom_did_resolver_verification.dart](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/custom_did_resolver_verification.dart).
 
 ### Custom DID Resolver vs Custom Document Loader
@@ -232,7 +191,6 @@ When generating a DID Document with the Dart SSI package using an Ed25519 key, t
 
 The Dart SSI package handles both the key derivation and DID Document construction automatically, so you don't need to convert keys or add verification methods manually. Be aware that it uses the same key material in different forms for signing and encryption operations.
 
-
 ## Support & feedback
 
 If you face any issues or have suggestions, please don't hesitate to contact us using [this link](https://share.hsforms.com/1i-4HKZRXSsmENzXtPdIG4g8oa2v).
@@ -254,5 +212,3 @@ If you have a technical issue with the Affinidi SSI's codebase, you can also cre
 Want to contribute?
 
 Head over to our [CONTRIBUTING](https://github.com/affinidi/affinidi-ssi-dart/blob/main/CONTRIBUTING.md) guidelines.
-
-
