@@ -10,6 +10,7 @@ import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import 'embedded_proof_suite.dart';
+import 'proof_validation_utils.dart';
 
 /// Base class for Data Integrity proof verifiers.
 abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
@@ -134,10 +135,13 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    if (proof['type'] != expectedProofType) {
-      return VerificationResult.invalid(
-        errors: ['invalid proof type, expected $expectedProofType'],
-      );
+    final typeValidation = ProofValidationUtils.validateProofTypeStructure(
+      proof,
+      expectedProofType,
+    );
+
+    if (!typeValidation.isValid) {
+      return typeValidation;
     }
 
     final cryptosuite = proof['cryptosuite'];
