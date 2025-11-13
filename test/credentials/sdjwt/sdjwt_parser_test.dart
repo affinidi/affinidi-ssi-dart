@@ -114,9 +114,9 @@ void main() {
       final issuedCredential = await suite.issue(
           unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
       final validSdJwt = issuedCredential.serialized;
-      
+
       final parsedCredential = suite.parse(validSdJwt);
-      
+
       expect(parsedCredential.serialized, equals(validSdJwt));
       expect(parsedCredential.header, isNotEmpty);
       expect(parsedCredential.header, contains('alg'));
