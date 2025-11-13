@@ -10,6 +10,7 @@ import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'embedded_proof_suite.dart';
+import 'proof_validation_utils.dart';
 
 /// Base class for SECP256K1 signature verifiers.
 abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
@@ -115,10 +116,13 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    if (proof['type'] != expectedProofType) {
-      return VerificationResult.invalid(
-        errors: ['invalid proof type, expected $expectedProofType'],
-      );
+    final typeValidation = ProofValidationUtils.validateProofTypeStructure(
+      proof,
+      expectedProofType,
+    );
+
+    if (!typeValidation.isValid) {
+      return typeValidation;
     }
 
     return VerificationResult.ok();

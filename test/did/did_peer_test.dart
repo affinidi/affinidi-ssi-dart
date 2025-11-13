@@ -71,7 +71,7 @@ void main() {
 
       final service = ServiceEndpoint(
         id: '#my-service',
-        type: 'TestService',
+        type: const StringServiceType('TestService'),
         serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       );
 
@@ -89,7 +89,8 @@ void main() {
       expect(resolvedDoc.service, isNotNull);
       expect(resolvedDoc.service.length, 1);
       expect(resolvedDoc.service[0].id, '#my-service');
-      expect(resolvedDoc.service[0].type, 'TestService');
+      expect(
+          resolvedDoc.service[0].type, const StringServiceType('TestService'));
       expect(
         (resolvedDoc.service[0].serviceEndpoint as StringEndpoint).url,
         'https://example.com/endpoint',
@@ -103,13 +104,13 @@ void main() {
 
       final service1 = ServiceEndpoint(
         id: '#service-1',
-        type: 'DIDCommMessaging',
+        type: const StringServiceType('DIDCommMessaging'),
         serviceEndpoint: const StringEndpoint('https://endpoint1.com'),
       );
 
       final service2 = ServiceEndpoint(
         id: '#service-2',
-        type: 'DIDCommMessaging',
+        type: const StringServiceType('DIDCommMessaging'),
         serviceEndpoint: const MapEndpoint({'uri': 'https://endpoint2.com'}),
       );
 
@@ -128,13 +129,15 @@ void main() {
       expect(resolvedDoc.service, isNotNull);
       expect(resolvedDoc.service.length, 2);
       expect(resolvedDoc.service[0].id, '#service-1');
-      expect(resolvedDoc.service[0].type, 'DIDCommMessaging');
+      expect(resolvedDoc.service[0].type,
+          const StringServiceType('DIDCommMessaging'));
       expect(
         (resolvedDoc.service[0].serviceEndpoint as StringEndpoint).url,
         'https://endpoint1.com',
       );
       expect(resolvedDoc.service[1].id, '#service-2');
-      expect(resolvedDoc.service[1].type, 'DIDCommMessaging');
+      expect(resolvedDoc.service[1].type,
+          const StringServiceType('DIDCommMessaging'));
       expect(
         (resolvedDoc.service[1].serviceEndpoint as MapEndpoint).data,
         {'uri': 'https://endpoint2.com'},
@@ -151,7 +154,7 @@ void main() {
 
       final service = ServiceEndpoint(
         id: '#service-1',
-        type: 'TestService',
+        type: const StringServiceType('TestService'),
         serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       );
 
@@ -193,7 +196,7 @@ void main() {
 
       final service = ServiceEndpoint(
         id: '#service-1',
-        type: 'TestService',
+        type: const StringServiceType('TestService'),
         serviceEndpoint: const StringEndpoint('https://denys.com/income'),
       );
 
@@ -281,7 +284,7 @@ void main() {
 
       final service = ServiceEndpoint(
         id: '#service-1',
-        type: 'TestService',
+        type: const StringServiceType('TestService'),
         serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
       );
 
@@ -440,7 +443,7 @@ void main() {
       };
 
       expect(resolvedService.id, '#didcomm-1');
-      expect(resolvedService.type, 'DIDCommMessaging');
+      expect(resolvedService.type, const StringServiceType('DIDCommMessaging'));
       expect(
         (resolvedService.serviceEndpoint as MapEndpoint).data,
         equals(serviceEndpointData),
@@ -458,7 +461,7 @@ void main() {
 
       final service = ServiceEndpoint(
         id: '#other-service',
-        type: 'AnotherServiceType',
+        type: const StringServiceType('AnotherServiceType'),
         serviceEndpoint: MapEndpoint(serviceEndpointData),
       );
 
@@ -476,7 +479,8 @@ void main() {
       final resolvedService = resolvedDoc.service.first;
 
       expect(resolvedService.id, '#other-service');
-      expect(resolvedService.type, 'AnotherServiceType');
+      expect(
+          resolvedService.type, const StringServiceType('AnotherServiceType'));
       expect(
         (resolvedService.serviceEndpoint as MapEndpoint).data,
         equals(serviceEndpointData),

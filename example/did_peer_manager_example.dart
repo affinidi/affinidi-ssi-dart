@@ -38,7 +38,7 @@ Future<void> main() async {
   // Add service endpoints
   final serviceEndpoint = ServiceEndpoint(
     id: '#service-1',
-    type: 'MessagingService',
+    type: const StringServiceType('MessagingService'),
     serviceEndpoint: const StringEndpoint('https://example.com/messaging'),
   );
   await manager.addServiceEndpoint(serviceEndpoint);
