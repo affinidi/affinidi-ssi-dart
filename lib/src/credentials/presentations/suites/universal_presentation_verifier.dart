@@ -45,7 +45,10 @@ final class UniversalPresentationVerifier {
   List<VpVerifier> get defaultVerifiers => List.unmodifiable(
         <VpVerifier>[
           VpExpiryVerifier(),
-          VpIntegrityVerifier(customDocumentLoader),
+          VpIntegrityVerifier(
+            customDocumentLoader: customDocumentLoader,
+            didResolver: didResolver,
+          ),
           DelegationVcVerifier(),
           HolderBindingVerifier(),
         ],

@@ -640,7 +640,8 @@ class Secp256k1Signature2019Verifier extends BaseSecp256k1Verifier {
     Uri verificationMethod,
     Uint8List hash,
   ) async {
-    return verifyJws(proofValue, issuerDid, verificationMethod, hash);
+    return verifyJws(proofValue, issuerDid, verificationMethod, hash,
+        didResolver: didResolver);
   }
 }
 

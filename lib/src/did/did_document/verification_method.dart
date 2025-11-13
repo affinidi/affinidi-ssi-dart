@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:base_codecs/base_codecs.dart';
+
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
@@ -94,7 +96,7 @@ abstract class EmbeddedVerificationMethod
 
     final publicKeyJwk = json['publicKeyJwk'];
     final publicKeyMultibase = json['publicKeyMultibase'];
-    // NOTE: do we need to cover publicKeyBase58?
+    final publicKeyBase58 = json['publicKeyBase58'];
 
     if (publicKeyJwk != null) {
       final jwk = Jwk.fromJson(publicKeyJwk);
@@ -110,6 +112,13 @@ abstract class EmbeddedVerificationMethod
         type: type,
         controller: controller,
         publicKeyMultibase: publicKeyMultibase,
+      );
+    } else if (publicKeyBase58 != null) {
+      return VerificationMethodBase58(
+        id: id,
+        type: type,
+        controller: controller,
+        publicKeyBase58: publicKeyBase58,
       );
     }
 
@@ -201,6 +210,89 @@ class VerificationMethodMultibase extends EmbeddedVerificationMethod {
     final jsonObject = super.toJson();
 
     jsonObject['publicKeyMultibase'] = publicKeyMultibase;
+
+    return jsonObject;
+  }
+}
+
+/// Represents a verification method using base58 encoding.
+/// 
+/// NOTE: While `publicKeyBase58` is included in W3C security context vocabularies
+/// and widely used in practice, it is not part of the official EcdsaSecp256k1Signature2019
+/// specification (https://w3c-ccg.github.io/lds-ecdsa-secp256k1-2019/), which only
+/// specifies `publicKeyJwk` and `publicKeyHex`. This implementation supports it for
+/// compatibility with real-world DID documents that use this format.
+class VerificationMethodBase58 extends EmbeddedVerificationMethod {
+  /// The public key in multikey format.
+  late final Uint8List publicKeyMultikey;
+
+  /// The public key in base58 format.
+  final String publicKeyBase58;
+
+  /// Creates a [VerificationMethodBase58] instance.
+  VerificationMethodBase58({
+    required super.id,
+    required super.controller,
+    required super.type,
+    required this.publicKeyBase58,
+  }) : publicKeyMultikey = _base58ToMultikey(publicKeyBase58, type);
+
+  /// Converts a base58-encoded public key to multikey format based on the verification method type.
+  static Uint8List _base58ToMultikey(String publicKeyBase58, String type) {
+    final publicKeyBytes = base58BitcoinDecode(publicKeyBase58);
+    
+    // Determine the multikey indicator based on the verification method type
+    switch (type) {
+      case 'Ed25519VerificationKey2018':
+      case 'Ed25519VerificationKey2020':
+        return Uint8List.fromList(
+          MultiKeyIndicator.ed25519.indicator + publicKeyBytes,
+        );
+      case 'X25519KeyAgreementKey2019':
+      case 'X25519KeyAgreementKey2020':
+        return Uint8List.fromList(
+          MultiKeyIndicator.x25519.indicator + publicKeyBytes,
+        );
+      case 'EcdsaSecp256k1VerificationKey2019':
+        return Uint8List.fromList(
+          MultiKeyIndicator.secp256k1.indicator + publicKeyBytes,
+        );
+      case 'EcdsaSecp256r1VerificationKey2019':
+      case 'P256Key2021':
+        return Uint8List.fromList(
+          MultiKeyIndicator.p256.indicator + publicKeyBytes,
+        );
+      case 'P384Key2021':
+        return Uint8List.fromList(
+          MultiKeyIndicator.p384.indicator + publicKeyBytes,
+        );
+      case 'P521Key2021':
+        return Uint8List.fromList(
+          MultiKeyIndicator.p521.indicator + publicKeyBytes,
+        );
+      default:
+        throw SsiException(
+          message: 'Unsupported verification method type for publicKeyBase58: $type',
+          code: SsiExceptionType.invalidDidDocument.code,
+        );
+    }
+  }
+
+  @override
+  Jwk asJwk() {
+    return Jwk.fromJson(multiKeyToJwk(publicKeyMultikey));
+  }
+
+  @override
+  Uint8List asMultiKey() {
+    return publicKeyMultikey;
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    final jsonObject = super.toJson();
+
+    jsonObject['publicKeyBase58'] = publicKeyBase58;
 
     return jsonObject;
   }

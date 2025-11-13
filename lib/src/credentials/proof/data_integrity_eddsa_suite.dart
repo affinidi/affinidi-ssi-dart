@@ -171,6 +171,7 @@ class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
       verificationMethod,
       hash,
       _eddsaCryptosuite,
+      didResolver: didResolver,
     );
   }
 }
@@ -231,6 +232,7 @@ class DataIntegrityEddsaRdfcVerifier extends BaseDataIntegrityVerifier {
       verificationMethod,
       hash,
       _eddsaCryptosuite,
+      didResolver: didResolver,
     );
   }
 }
