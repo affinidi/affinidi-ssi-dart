@@ -216,7 +216,7 @@ class VerificationMethodMultibase extends EmbeddedVerificationMethod {
 }
 
 /// Represents a verification method using base58 encoding.
-/// 
+///
 /// NOTE: While `publicKeyBase58` is included in W3C security context vocabularies
 /// and widely used in practice, it is not part of the official EcdsaSecp256k1Signature2019
 /// specification (https://w3c-ccg.github.io/lds-ecdsa-secp256k1-2019/), which only
@@ -240,7 +240,7 @@ class VerificationMethodBase58 extends EmbeddedVerificationMethod {
   /// Converts a base58-encoded public key to multikey format based on the verification method type.
   static Uint8List _base58ToMultikey(String publicKeyBase58, String type) {
     final publicKeyBytes = base58BitcoinDecode(publicKeyBase58);
-    
+
     // Determine the multikey indicator based on the verification method type
     switch (type) {
       case 'Ed25519VerificationKey2018':
@@ -272,7 +272,8 @@ class VerificationMethodBase58 extends EmbeddedVerificationMethod {
         );
       default:
         throw SsiException(
-          message: 'Unsupported verification method type for publicKeyBase58: $type',
+          message:
+              'Unsupported verification method type for publicKeyBase58: $type',
           code: SsiExceptionType.invalidDidDocument.code,
         );
     }

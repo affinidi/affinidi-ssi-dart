@@ -35,7 +35,8 @@ class VpIntegrityVerifier implements VpVerifier {
     var integrityValid = false;
 
     try {
-      integrityValid = await vpSuite.verifyIntegrity(data, didResolver: didResolver);
+      integrityValid =
+          await vpSuite.verifyIntegrity(data, didResolver: didResolver);
     } catch (e) {
       integrityValid = false;
     }

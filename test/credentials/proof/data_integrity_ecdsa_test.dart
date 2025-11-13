@@ -391,8 +391,8 @@ void main() async {
 
       // Verify the credential with custom DID resolver
       final didResolver = _TestDidResolver(didDocument);
-      final verifier =
-          DataIntegrityEcdsaRdfcVerifier(issuerDid: did, didResolver: didResolver);
+      final verifier = DataIntegrityEcdsaRdfcVerifier(
+          issuerDid: did, didResolver: didResolver);
 
       final result = await verifier.verify(issuedVC.toJson());
 
@@ -464,15 +464,14 @@ void main() async {
 
       // Verify the credential with custom DID resolver
       final didResolver = _TestDidResolver(didDocument);
-      final verifier =
-          DataIntegrityEcdsaRdfcVerifier(issuerDid: did, didResolver: didResolver);
+      final verifier = DataIntegrityEcdsaRdfcVerifier(
+          issuerDid: did, didResolver: didResolver);
 
       final result = await verifier.verify(issuedVC.toJson());
 
       expect(result.isValid, true);
       expect(result.errors, isEmpty);
     });
-
   });
 }
 
@@ -534,8 +533,14 @@ Map<String, dynamic> _ecPublicKeyToJwk(
   final yBytes = _bigIntToBytes(publicKey.Y, coordinateLength);
 
   // Base64url encode without padding
-  final xBase64 = base64Encode(xBytes).replaceAll('=', '').replaceAll('+', '-').replaceAll('/', '_');
-  final yBase64 = base64Encode(yBytes).replaceAll('=', '').replaceAll('+', '-').replaceAll('/', '_');
+  final xBase64 = base64Encode(xBytes)
+      .replaceAll('=', '')
+      .replaceAll('+', '-')
+      .replaceAll('/', '_');
+  final yBase64 = base64Encode(yBytes)
+      .replaceAll('=', '')
+      .replaceAll('+', '-')
+      .replaceAll('/', '_');
 
   return {
     'kty': 'EC',
