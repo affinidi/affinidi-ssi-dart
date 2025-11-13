@@ -10,6 +10,7 @@ class ServiceEndpoint implements JsonObject {
 
   /// The identifier of the service endpoint.
   late String id;
+
   // TODO: In the spec, ID can be optional
 
   /// The type of the service endpoint.
@@ -33,11 +34,18 @@ class ServiceEndpoint implements JsonObject {
     } else {
       throw const FormatException('id property is needed in serviceEndpoint');
     }
-    if (se.containsKey('type')) {
-      type = se['type'];
-    } else {
-      throw const FormatException('type property is needed in serviceEndpoint');
+
+    switch (se['type']) {
+      case String strType:
+        type = strType;
+
+      case [String strType]:
+        type = strType;
+
+      default:
+        throw const FormatException('invalid type property in serviceEndpoint');
     }
+
     if (se.containsKey('serviceEndpoint')) {
       serviceEndpoint =
           ServiceEndpointValueParser.fromJson(se['serviceEndpoint']);
