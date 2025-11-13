@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:json_ld_processor/json_ld_processor.dart';
 
 import '../../did/did_signer.dart';
+import '../../did/did_verifier.dart';
 import '../../did/public_key_utils.dart';
 import '../../did/universal_did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
@@ -227,13 +228,48 @@ class DataIntegrityEcdsaRdfcVerifier extends BaseDataIntegrityVerifier {
     Uri verificationMethod,
     Uint8List hash,
   ) async {
-    return verifyDataIntegritySignature(
-      proofValue,
-      issuerDid,
-      verificationMethod,
-      hash,
-      _ecdsaCryptosuite,
+    // For ecdsa-rdfc-2019, we need to dynamically determine the signature scheme
+    // by examining the verification method since it supports both P-256 and P-384
+    final signatureScheme =
+        await _getSignatureSchemeFromDid(verificationMethod);
+
+    final signature = multiBaseToUint8List(proofValue);
+
+    final verifier = await DidVerifier.create(
+      algorithm: signatureScheme,
+      kid: verificationMethod.toString(),
+      issuerDid: issuerDid,
+      didResolver: didResolver,
     );
+    return verifier.verify(hash, signature);
+  }
+
+  /// Determines the signature scheme from the verification method.
+  Future<SignatureScheme> _getSignatureSchemeFromDid(
+      Uri verificationMethod) async {
+    // Resolve the DID to get the verification method
+    final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
+    final didDocument = await resolver.resolveDid(issuerDid);
+
+    // Find the verification method in the DID document
+    final vm = didDocument.verificationMethod
+        .where((vm) =>
+            vm.id == verificationMethod.toString() ||
+            vm.id.endsWith('#${verificationMethod.toString().split('#').last}'))
+        .firstOrNull;
+
+    if (vm == null) {
+      throw SsiException(
+        message:
+            'Verification method $verificationMethod not found in DID document',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
+    }
+
+    // Get the JWK and determine the signature scheme
+    final jwk = vm.asJwk();
+    final jwkMap = jwk.toJson();
+    return getEcdsaSignatureScheme(jwkMap);
   }
 }
 
