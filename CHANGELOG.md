@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-11-18
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.19.0`](#ssi---v2190)
+
+---
+
+#### `ssi` - `v2.19.0`
+
+ - **FEAT**: add custom DID resolvers and base58 public key support (#209).
+
+## 2.19.0
+
+ - **FEAT**: add custom DID resolvers and base58 public key support (#209).
+
+
 ## 2025-11-17
 
 ### Changes
