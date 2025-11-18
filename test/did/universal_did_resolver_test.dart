@@ -39,10 +39,10 @@ void main() {
     });
 
     group('using did:web,', () {
-      test('it throws exception on non-200 responses', () {
+      test('it throws exception on non-200 responses', () async {
         final did = 'did:web:example.com';
 
-        expectLater(
+        await expectLater(
           UniversalDIDResolver.defaultResolver.resolveDid(did),
           throwsA(isA<SsiException>().having(
               (e) => e.code, 'code', SsiExceptionType.invalidDidWeb.code)),
@@ -51,10 +51,10 @@ void main() {
     });
 
     group('using resolver address', () {
-      test('it throws unable to resolve did when resolverAddress null', () {
+      test('it throws unable to resolve did when resolverAddress null', () async {
         final did = 'did:test';
 
-        expectLater(
+        await expectLater(
           UniversalDIDResolver.defaultResolver.resolveDid(did),
           throwsA(isA<SsiException>().having(
               (e) => e.code, 'code', SsiExceptionType.unableToResolveDid.code)),
@@ -63,7 +63,8 @@ void main() {
 
       test('it throws exception on non-200 responses', () async {
         final did = 'did:test';
-        final resolverAddress = 'https://example.com';
+        // Use non-routable address to fail immediately instead of timing out
+        final resolverAddress = 'http://0.0.0.0:1';
         final resolver = UniversalDIDResolver(resolverAddress: resolverAddress);
 
         await expectLater(
@@ -92,7 +93,8 @@ void main() {
 
     test('instance with resolverAddress should handle external DIDs', () async {
       final did = 'did:test';
-      final resolverAddress = 'https://example.com';
+      // Use non-routable address to fail immediately instead of timing out
+      final resolverAddress = 'http://0.0.0.0:1';
       final resolver = UniversalDIDResolver(resolverAddress: resolverAddress);
 
       await expectLater(
