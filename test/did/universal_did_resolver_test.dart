@@ -40,7 +40,8 @@ void main() {
 
     group('using did:web,', () {
       test('it throws exception on non-200 responses', () async {
-        final did = 'did:web:example.com';
+        // Use non-routable address to fail immediately instead of timing out
+        final did = 'did:web:0.0.0.0%3A1';
 
         await expectLater(
           UniversalDIDResolver.defaultResolver.resolveDid(did),
