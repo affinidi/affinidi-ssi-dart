@@ -1,4 +1,5 @@
 import '../../types.dart';
+import '../proof/proof_purpose.dart';
 
 /// Utility functions for proof validation shared across different verifiers.
 class ProofValidationUtils {
@@ -68,5 +69,30 @@ class ProofValidationUtils {
     }
 
     return validateProofTypeMatch(proofType, expectedProofType);
+  }
+
+  /// Validates that the proof purpose matches the expected purpose based on document type.
+  ///
+  /// Parameters:
+  /// - [proofPurpose]: The proof purpose value to validate (should be a String)
+  /// - [docType]: The type of the document containing the proof (can be String or List)
+  ///
+  /// Returns:
+  /// - [VerificationResult.ok()] if the proof purpose matches the expected purpose
+  /// - [VerificationResult.invalid()] with error message if the proof purpose does not match
+  static VerificationResult validateProofPurpose(
+      String proofPurpose, dynamic docType) {
+    final expectedProofPurpose =
+        (docType is List && docType.contains('VerifiablePresentation') ||
+                docType is String && docType == 'VerifiablePresentation')
+            ? ProofPurpose.authentication.value
+            : ProofPurpose.assertionMethod.value;
+
+    if (proofPurpose != expectedProofPurpose) {
+      return VerificationResult.invalid(
+        errors: ['invalid proof purpose, expected $expectedProofPurpose'],
+      );
+    }
+    return VerificationResult.ok();
   }
 }

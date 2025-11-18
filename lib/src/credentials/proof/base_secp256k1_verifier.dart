@@ -56,6 +56,11 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
       return validationResult;
     }
 
+    final proofPurposeValidation = _validateProofPurpose(document, proof);
+    if (!proofPurposeValidation.isValid) {
+      return proofPurposeValidation;
+    }
+
     final expiryResult = _validateExpiry(proof, getNow());
     if (!expiryResult.isValid) {
       return expiryResult;
@@ -116,16 +121,20 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    final typeValidation = ProofValidationUtils.validateProofTypeStructure(
+    return ProofValidationUtils.validateProofTypeStructure(
       proof,
       expectedProofType,
     );
+  }
 
-    if (!typeValidation.isValid) {
-      return typeValidation;
-    }
-
-    return VerificationResult.ok();
+  VerificationResult _validateProofPurpose(
+      Map<String, dynamic> document, Map<String, dynamic> proof) {
+    final actualProofPurpose = proof['proofPurpose'];
+    final docType = document['type'];
+    return ProofValidationUtils.validateProofPurpose(
+      actualProofPurpose,
+      docType,
+    );
   }
 
   VerificationResult _validateExpiry(Map<String, dynamic> proof, DateTime now) {

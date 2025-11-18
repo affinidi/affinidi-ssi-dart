@@ -1,14 +1,13 @@
 // ignore_for_file: avoid_print
 
-import 'package:ssi/src/credentials/presentations/suites/universal_presentation_parser.dart';
-import 'package:ssi/src/credentials/presentations/verification/vp_integrity_verifier.dart';
+import 'package:ssi/src/credentials/credentials.dart';
 
 void main() async {
   // Parse the VP string into a VerifiablePresentation object
   final v2Vp = UniversalPresentationParser.parse(v2VpString);
 
-  // Create a VpIntegrityVerifier
-  final verificationStatus = await VpIntegrityVerifier().verify(v2Vp);
+  // Verify using UniversalPresentationVerifier
+  final verificationStatus = await UniversalPresentationVerifier().verify(v2Vp);
 
   // Print results
   print('Is VP valid? ${verificationStatus.isValid}');
