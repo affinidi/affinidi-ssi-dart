@@ -3,6 +3,56 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-11-17
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.18.0`](#ssi---v2180)
+
+---
+
+#### `ssi` - `v2.18.0`
+
+ - **FEAT**: export full public_key_utils.dart (#213).
+
+## 2.18.0
+
+ - **FEAT**: export full public_key_utils.dart (#213).
+
+
+## 2025-11-12
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.17.1`](#ssi---v2171)
+
+---
+
+#### `ssi` - `v2.17.1`
+
+ - **FIX**: accept lists with one element (#210).
+
+## 2.17.1
+
+ - **FIX**: accept lists with one element (#210).
+
+
 ## 2025-11-04
 
 ### Changes
