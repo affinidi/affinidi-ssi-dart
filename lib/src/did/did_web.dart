@@ -108,7 +108,7 @@ class DidWeb {
     } catch (e) {
       // Re-throw if already an SsiException
       if (e is SsiException) rethrow;
-      
+
       // Handle any HTTP errors (connection refused, timeouts, etc.)
       throw SsiException(
         message: 'Failed to fetch DID Web document for $didToResolve: $e',
