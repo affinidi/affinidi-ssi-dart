@@ -3,8 +3,10 @@ import 'dart:convert';
 import '../../types.dart';
 import '../../util/json_util.dart';
 import 'service_endpoint_value.dart';
+import 'service_type.dart';
 
 /// Represents a service endpoint in a DID Document.
+/// Following https://www.w3.org/TR/did-1.0/#services
 class ServiceEndpoint implements JsonObject {
   // TODO: This class actually represents a `Service`, not the underlying endpoint. Rename it
 
@@ -13,7 +15,8 @@ class ServiceEndpoint implements JsonObject {
   // TODO: In the spec, ID can be optional
 
   /// The type of the service endpoint.
-  late String type;
+  /// Can be a string or a set of strings as per https://www.w3.org/TR/did-1.0/#services
+  late ServiceType type;
 
   /// The service endpoint value (can be string, map, or set).
   late ServiceEndpointValue serviceEndpoint;
@@ -34,7 +37,7 @@ class ServiceEndpoint implements JsonObject {
       throw const FormatException('id property is needed in serviceEndpoint');
     }
     if (se.containsKey('type')) {
-      type = se['type'];
+      type = ServiceType.fromJson(se['type']);
     } else {
       throw const FormatException('type property is needed in serviceEndpoint');
     }
@@ -71,7 +74,7 @@ class ServiceEndpoint implements JsonObject {
 
     return {
       'id': id,
-      'type': type,
+      'type': type.toJson(),
       'serviceEndpoint': jsonValue,
     };
   }

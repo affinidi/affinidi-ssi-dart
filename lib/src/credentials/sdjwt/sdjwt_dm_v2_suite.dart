@@ -113,6 +113,17 @@ final class SdJwtDm2Suite
     }
 
     final jwtClaims = <String, dynamic>{};
+    final exp = payload[_VC2.validUntil.key];
+    if (exp != null) {
+      payload['exp'] =
+          (DateTime.parse(exp as String).millisecondsSinceEpoch / 1000).floor();
+    }
+
+    final nbf = payload[_VC2.validFrom.key];
+    if (nbf != null) {
+      payload['nbf'] =
+          (DateTime.parse(nbf as String).millisecondsSinceEpoch / 1000).floor();
+    }
     jwtClaims.addAll(payload);
     disclosureFrame ??= _getDefaultDisclosureFrame(payload);
 
@@ -153,6 +164,13 @@ final class SdJwtDm2Suite
     final exp = input.sdJwt.payload['exp'];
     if (exp != null &&
         now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000))) {
+      return false;
+    }
+
+    final nbf = input.sdJwt.payload['nbf'];
+    if (nbf != null &&
+        now.isBefore(
+            DateTime.fromMillisecondsSinceEpoch((nbf as int) * 1000))) {
       return false;
     }
 
@@ -224,3 +242,5 @@ class SdJwtDataModelV2 extends VcDataModelV2
   /// Returns the set of selective disclosure claims (disclosures).
   Set<Disclosure> get disclosures => Set.unmodifiable(sdJwt.disclosures);
 }
+
+typedef _VC2 = VcDataModelV2Key;
