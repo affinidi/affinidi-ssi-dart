@@ -51,7 +51,8 @@ void main() {
     });
 
     group('using resolver address', () {
-      test('it throws unable to resolve did when resolverAddress null', () async {
+      test('it throws unable to resolve did when resolverAddress null',
+          () async {
         final did = 'did:test';
 
         await expectLater(
