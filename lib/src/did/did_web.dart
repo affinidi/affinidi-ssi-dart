@@ -90,17 +90,28 @@ class DidWeb {
       );
     }
 
-    var res = await get(didWebToUri(didToResolve),
-            headers: {'Accept': 'application/json'})
-        .timeout(const Duration(seconds: 30), onTimeout: () {
-      return Response('Timeout', 408);
-    });
+    try {
+      var res = await get(didWebToUri(didToResolve),
+              headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 30), onTimeout: () {
+        return Response('Timeout', 408);
+      });
 
-    if (res.statusCode == 200) {
-      return DidDocument.fromJson(res.body);
-    } else {
+      if (res.statusCode == 200) {
+        return DidDocument.fromJson(res.body);
+      } else {
+        throw SsiException(
+          message: 'Failed to fetch DID Web document for $didToResolve',
+          code: SsiExceptionType.invalidDidWeb.code,
+        );
+      }
+    } catch (e) {
+      // Re-throw if already an SsiException
+      if (e is SsiException) rethrow;
+
+      // Handle any HTTP errors (connection refused, timeouts, etc.)
       throw SsiException(
-        message: 'Failed to fetch DID Web document for $didToResolve',
+        message: 'Failed to fetch DID Web document for $didToResolve: $e',
         code: SsiExceptionType.invalidDidWeb.code,
       );
     }
