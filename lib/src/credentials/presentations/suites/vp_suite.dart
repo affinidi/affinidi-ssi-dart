@@ -1,3 +1,4 @@
+import '../../../did/did_resolver.dart';
 import '../models/parsed_vp.dart';
 import '../models/verifiable_presentation.dart';
 
@@ -24,5 +25,10 @@ abstract class VerifiablePresentationSuite<
   ParsedVP? tryParse(Object data);
 
   /// Verifies the cryptographic integrity of the [input] presentation.
-  Future<bool> verifyIntegrity(ParsedVP input);
+  ///
+  /// Optionally accepts:
+  /// - [getNow] to provide a custom "now" time for expiry and validity checks.
+  /// - [didResolver] for custom DID resolution logic.
+  Future<bool> verifyIntegrity(ParsedVP input,
+      {DateTime Function() getNow = DateTime.now, DidResolver? didResolver});
 }

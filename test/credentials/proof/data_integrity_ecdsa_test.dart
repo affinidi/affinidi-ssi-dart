@@ -1,4 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:base_codecs/base_codecs.dart';
+import 'package:elliptic/elliptic.dart' as elliptic;
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -321,4 +325,238 @@ void main() async {
       expect(validationResult, true);
     });
   });
+
+  group('Test Data Integrity ECDSA-RDFC with did:web', () {
+    test('Create and verify RDFC proof with did:web and P-256', () async {
+      // Generate a P-256 key pair
+      final (keyPair, _) = P256KeyPair.generate();
+
+      // Setup did:web identity
+      final did = 'did:web:example.org';
+      final vmId = '$did#key-1';
+
+      // Create DID document
+      final didDocument = DidDocument.fromJson({
+        '@context': [
+          'https://www.w3.org/ns/did/v1',
+          'https://w3id.org/security/suites/jws-2020/v1'
+        ],
+        'id': did,
+        'verificationMethod': [
+          {
+            'id': vmId,
+            'type': 'JsonWebKey2020',
+            'controller': did,
+            'publicKeyJwk': _publicKeyToJwk(keyPair.publicKey),
+          }
+        ],
+        'authentication': [vmId],
+        'assertionMethod': [vmId]
+      });
+
+      // Create unsigned credential
+      final unsignedVC = MutableVcDataModelV1(
+        context: [
+          'https://www.w3.org/2018/credentials/v1',
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+        ],
+        id: Uri.parse('uuid:123456abcd'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        credentialSubject: [
+          MutableCredentialSubject({
+            'Fname': 'John',
+            'Lname': 'Doe',
+          })
+        ],
+        issuanceDate: DateTime.parse('2020-01-01T00:00:00Z'),
+        issuer: Issuer.uri(did),
+      );
+
+      // Sign the credential
+      final signer = DidSigner(
+        did: did,
+        didKeyId: vmId,
+        keyPair: keyPair,
+        signatureScheme: SignatureScheme.ecdsa_p256_sha256,
+      );
+
+      final generator = DataIntegrityEcdsaRdfcGenerator(
+        signer: signer,
+      );
+
+      final issuedVC = await LdVcDm1Suite().issue(
+        unsignedData: VcDataModelV1.fromMutable(unsignedVC),
+        proofGenerator: generator,
+      );
+
+      // Verify the credential with custom DID resolver
+      final didResolver = _TestDidResolver(didDocument);
+      final verifier = DataIntegrityEcdsaRdfcVerifier(
+          issuerDid: did, didResolver: didResolver);
+
+      final result = await verifier.verify(issuedVC.toJson());
+
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('Create and verify RDFC proof with did:web and P-384', () async {
+      // Generate a P-384 key pair
+      final (keyPair, _) = P384KeyPair.generate();
+
+      // Setup did:web identity
+      final did = 'did:web:example.org';
+      final vmId = '$did#key-1';
+
+      // Create DID document
+      final didDocument = DidDocument.fromJson({
+        '@context': [
+          'https://www.w3.org/ns/did/v1',
+          'https://w3id.org/security/suites/jws-2020/v1'
+        ],
+        'id': did,
+        'verificationMethod': [
+          {
+            'id': vmId,
+            'type': 'JsonWebKey2020',
+            'controller': did,
+            'publicKeyJwk': _publicKeyToJwk(keyPair.publicKey),
+          }
+        ],
+        'authentication': [vmId],
+        'assertionMethod': [vmId]
+      });
+
+      // Create unsigned credential
+      final unsignedVC = MutableVcDataModelV1(
+        context: [
+          'https://www.w3.org/2018/credentials/v1',
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+        ],
+        id: Uri.parse('uuid:123456abcd'),
+        type: {'VerifiableCredential', 'UserProfile'},
+        credentialSubject: [
+          MutableCredentialSubject({
+            'Fname': 'Jane',
+            'Lname': 'Smith',
+          })
+        ],
+        issuanceDate: DateTime.parse('2020-01-01T00:00:00Z'),
+        issuer: Issuer.uri(did),
+      );
+
+      // Sign the credential
+      final signer = DidSigner(
+        did: did,
+        didKeyId: vmId,
+        keyPair: keyPair,
+        signatureScheme: SignatureScheme.ecdsa_p384_sha384,
+      );
+
+      final generator = DataIntegrityEcdsaRdfcGenerator(
+        signer: signer,
+      );
+
+      final issuedVC = await LdVcDm1Suite().issue(
+        unsignedData: VcDataModelV1.fromMutable(unsignedVC),
+        proofGenerator: generator,
+      );
+
+      // Verify the credential with custom DID resolver
+      final didResolver = _TestDidResolver(didDocument);
+      final verifier = DataIntegrityEcdsaRdfcVerifier(
+          issuerDid: did, didResolver: didResolver);
+
+      final result = await verifier.verify(issuedVC.toJson());
+
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+  });
+}
+
+/// Simple DID resolver for testing
+class _TestDidResolver implements DidResolver {
+  final DidDocument _didDocument;
+
+  _TestDidResolver(this._didDocument);
+
+  @override
+  Future<DidDocument> resolveDid(String did) async {
+    if (did == _didDocument.id) {
+      return _didDocument;
+    }
+    throw Exception('DID not found: $did');
+  }
+}
+
+/// Converts a PublicKey to JWK format
+Map<String, dynamic> _publicKeyToJwk(PublicKey publicKey) {
+  // Use public_key_utils.keyToJwk which is not exported
+  // So we manually create the JWK from the public key
+  final bytes = publicKey.bytes;
+  final keyType = publicKey.type;
+
+  if (keyType == KeyType.p256) {
+    // Decompress P-256 key
+    return _ecPublicKeyToJwk(bytes, 'P-256', 32);
+  } else if (keyType == KeyType.p384) {
+    // Decompress P-384 key
+    return _ecPublicKeyToJwk(bytes, 'P-384', 48);
+  } else if (keyType == KeyType.p521) {
+    // Decompress P-521 key
+    return _ecPublicKeyToJwk(bytes, 'P-521', 66);
+  } else {
+    throw UnsupportedError('Key type $keyType not supported in test helper');
+  }
+}
+
+/// Converts EC public key bytes to JWK
+Map<String, dynamic> _ecPublicKeyToJwk(
+    Uint8List compressedBytes, String crv, int coordinateLength) {
+  // Use elliptic package curves
+  final elliptic.Curve curve;
+  if (crv == 'P-256') {
+    curve = elliptic.getP256();
+  } else if (crv == 'P-384') {
+    curve = elliptic.getP384();
+  } else if (crv == 'P-521') {
+    curve = elliptic.getP521();
+  } else {
+    throw UnsupportedError('Curve $crv not supported in test helper');
+  }
+
+  final publicKey = curve.compressedHexToPublicKey(hex.encode(compressedBytes));
+
+  // Extract x and y coordinates
+  final xBytes = _bigIntToBytes(publicKey.X, coordinateLength);
+  final yBytes = _bigIntToBytes(publicKey.Y, coordinateLength);
+
+  // Base64url encode without padding
+  final xBase64 = base64Encode(xBytes)
+      .replaceAll('=', '')
+      .replaceAll('+', '-')
+      .replaceAll('/', '_');
+  final yBase64 = base64Encode(yBytes)
+      .replaceAll('=', '')
+      .replaceAll('+', '-')
+      .replaceAll('/', '_');
+
+  return {
+    'kty': 'EC',
+    'crv': crv,
+    'x': xBase64,
+    'y': yBase64,
+  };
+}
+
+/// Converts a BigInt to a fixed-length byte array
+Uint8List _bigIntToBytes(BigInt value, int length) {
+  final bytes = Uint8List(length);
+  var v = value;
+  for (var i = length - 1; i >= 0; i--) {
+    bytes[i] = (v & BigInt.from(0xff)).toInt();
+    v = v >> 8;
+  }
+  return bytes;
 }

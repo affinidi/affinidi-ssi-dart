@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:json_ld_processor/json_ld_processor.dart';
 import 'package:pointycastle/api.dart';
 
+import '../../did/did_resolver.dart';
 import '../../did/did_verifier.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -26,12 +27,16 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
   /// Optional challenge value.
   final String? challenge;
 
+  /// Optional custom DID resolver for offline/test verification.
+  final DidResolver? didResolver;
+
   /// Creates a new BaseSecp256k1Verifier.
   BaseSecp256k1Verifier({
     required this.issuerDid,
     this.getNow = DateTime.now,
     this.domain,
     this.challenge,
+    this.didResolver,
     super.customDocumentLoader,
   });
 
@@ -169,11 +174,12 @@ Future<Uint8List> computeVcHash(
 
 /// Verifies a JWS signature.
 Future<bool> verifyJws(
-  String jws,
-  String issuerDid,
-  Uri verificationMethod, // expected kid / verification method DID URL
-  Uint8List payloadToSign, // canonicalized UTF-8 bytes of the JSON-LD document
-) async {
+    String jws,
+    String issuerDid,
+    Uri verificationMethod, // expected kid / verification method DID URL
+    Uint8List
+        payloadToSign, // canonicalized UTF-8 bytes of the JSON-LD document
+    {DidResolver? didResolver}) async {
   // 1) Parse JWS compact or RFC7797 detached (header..signature)
   String encodedHeader;
   String? encodedPayloadFromJws; // only present in 3-part JWS
@@ -286,9 +292,10 @@ Future<bool> verifyJws(
     algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
     kid: verificationMethod.toString(),
     issuerDid: issuerDid,
+    didResolver: didResolver,
   );
 
-  // 9) Verify: try as-is, then if fails and signature looks like DER, convert to r||s and retry
+  // 9) Verify: try as-is first (works for raw P1363 format)
   bool ok = false;
   try {
     ok = verifier.verify(signingInput, signature);
@@ -299,24 +306,18 @@ Future<bool> verifyJws(
     // ignore; we'll try conversion path below
   }
 
-  // If signature length is DER (starts with 0x30) or variable-length and not 64, try DER->P1363
-  if (signature.length != 64 && signature.isNotEmpty && signature[0] == 0x30) {
+  // If raw verification failed and signature looks like DER (starts with 0x30), convert to P1363 and retry
+  if (!ok && signature.isNotEmpty && signature[0] == 0x30) {
     try {
       final p1363 = _derToP1363(signature, 32); // 32-byte coords for secp256k1
       ok = verifier.verify(signingInput, p1363);
       return ok;
     } catch (e) {
-      // fall through
+      // DER conversion or verification failed, fall through to return false
     }
   }
 
-  // If signature is 64 bytes, verification was already attempted above; if it fails, return false.
-  if (signature.length == 64) {
-    // already tried as-is above, so failing here means verification failed
-    return false;
-  }
-
-  // If we reach here, verification failed
+  // If we reach here, all verification attempts failed
   return false;
 }
 

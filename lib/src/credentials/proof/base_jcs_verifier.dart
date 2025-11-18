@@ -27,11 +27,13 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   BaseJcsVerifier({
     required String verifierDid,
     DateTime Function()? getNow,
     super.domain,
     super.challenge,
+    super.didResolver,
     DocumentLoader? customDocumentLoader,
   }) : super(
           issuerDid: verifierDid,
@@ -84,6 +86,7 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
       algorithm: signatureScheme,
       kid: verificationMethod.toString(),
       issuerDid: issuerDid,
+      didResolver: didResolver,
     );
     return verifier.verify(hash, signature);
   }
