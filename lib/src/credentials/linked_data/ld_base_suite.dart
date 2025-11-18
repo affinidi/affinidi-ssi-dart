@@ -145,7 +145,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   EmbeddedProofVerifier? _getDocumentProofVerifier(
       Map<String, dynamic> document) {
     final proof = document[proofKey];
-    if (proof == null || proof is! Map<String, dynamic> || proof.length > 1) {
+    if (proof == null || proof is! Map<String, dynamic>) {
       return null;
     }
 

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
