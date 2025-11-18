@@ -14,10 +14,10 @@ void main() async {
   );
   print('Resolved did:peer document: $didPeerDocument');
 
-  final didWebDocument = await resolver.resolveDid(
-    'did:web:demo.spruceid.com',
-  );
-  print('Resolved did:web document: $didWebDocument');
+  // Note: did:web resolution requires the target domain to host a valid DID document
+  // at https://domain/.well-known/did.json
+  // Example: final didWebDocument = await resolver.resolveDid('did:web:example.com');
+  // print('Resolved did:web document: $didWebDocument');
 
   // Example with custom resolver address
   final customResolver = UniversalDIDResolver(

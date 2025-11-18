@@ -1,3 +1,4 @@
+import '../../did/did_resolver.dart';
 import '../../types.dart';
 import '../models/parsed_vc.dart';
 import '../proof/embedded_proof_suite.dart' show DocumentLoader;
@@ -33,6 +34,14 @@ final class UniversalVerifier {
   /// If not provided, a default no-op loader is used, which always returns null.
   final DocumentLoader? customDocumentLoader;
 
+  /// Custom DID resolver for resolving DID documents during verification.
+  ///
+  /// This resolver is used by the [VcIntegrityVerifier] and [RevocationList2020Verifier]
+  /// to resolve DID documents during verification.
+  ///
+  /// If not provided, the default universal DID resolver is used.
+  final DidResolver? didResolver;
+
   /// Private constructor for [UniversalVerifier].
   ///
   /// Used by factory constructors to create instances with specific configurations.
@@ -40,6 +49,7 @@ final class UniversalVerifier {
     required this.defaultVerifiers,
     required this.customVerifiers,
     this.customDocumentLoader,
+    this.didResolver,
   });
 
   /// Creates a [UniversalVerifier].
@@ -49,6 +59,7 @@ final class UniversalVerifier {
   /// - [customDocumentLoader]: Custom document loader for loading external resources
   ///   during verification. This is useful for implementing custom caching strategies
   ///   or for loading resources from non-standard locations.
+  /// - [didResolver]: Custom DID resolver for resolving DID documents during verification.
   ///
   /// Example:
   /// ```dart
@@ -59,9 +70,10 @@ final class UniversalVerifier {
   ///   return document;
   /// }
   ///
-  /// // Create a verifier with the custom document loader
+  /// // Create a verifier with the custom document loader and DID resolver
   /// final verifier = UniversalVerifier(
   ///   customDocumentLoader: myDocumentLoader,
+  ///   didResolver: myCustomDidResolver,
   /// );
   ///
   /// // Verify a credential
@@ -70,17 +82,25 @@ final class UniversalVerifier {
   factory UniversalVerifier({
     List<VcVerifier>? customVerifiers,
     DocumentLoader? customDocumentLoader,
+    DidResolver? didResolver,
   }) {
     final defaultVerifiers = <VcVerifier>[
       VcExpiryVerifier(),
-      VcIntegrityVerifier(customDocumentLoader: customDocumentLoader),
-      RevocationList2020Verifier(customDocumentLoader: customDocumentLoader),
+      VcIntegrityVerifier(
+        customDocumentLoader: customDocumentLoader,
+        didResolver: didResolver,
+      ),
+      RevocationList2020Verifier(
+        customDocumentLoader: customDocumentLoader,
+        didResolver: didResolver,
+      ),
     ];
 
     return UniversalVerifier._(
       defaultVerifiers: List.unmodifiable(defaultVerifiers),
       customVerifiers: customVerifiers ?? [],
       customDocumentLoader: customDocumentLoader,
+      didResolver: didResolver,
     );
   }
 
@@ -96,12 +116,14 @@ final class UniversalVerifier {
   /// Optionally accepts:
   /// - [customVerifiers]: Additional verifiers to run after the defaults.
   /// - [customDocumentLoader]: Custom document loader for loading external resources.
+  /// - [didResolver]: Custom DID resolver for resolving DID documents.
   ///
   /// Example:
   /// ```dart
   /// // Create a verifier with cached verifiers
   /// final verifier = UniversalVerifier.createWithCachedVerifiers(
   ///   customDocumentLoader: myCustomDocumentLoader,
+  ///   didResolver: myCustomDidResolver,
   /// );
   ///
   /// // Verify multiple credentials efficiently
@@ -111,12 +133,14 @@ final class UniversalVerifier {
   static UniversalVerifier createWithCachedVerifiers({
     List<VcVerifier>? customVerifiers,
     DocumentLoader? customDocumentLoader,
+    DidResolver? didResolver,
   }) {
     // This is a simple implementation that doesn't actually cache anything yet.
     // In a future version, this could maintain a cache of verifier instances.
     return UniversalVerifier(
       customVerifiers: customVerifiers,
       customDocumentLoader: customDocumentLoader,
+      didResolver: didResolver,
     );
   }
 
