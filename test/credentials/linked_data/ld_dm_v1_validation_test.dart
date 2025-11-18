@@ -171,7 +171,7 @@ void main() {
       );
     });
 
-    test('Throws when multiple proofs have duplicate IDs', () {
+    test('Throws when proof set is present', () async {
       final duplicateId = Uri.parse('did:example:proof-1');
       final credentialWithDuplicateProofIds = MutableVcDataModelV1(
         context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
@@ -210,87 +210,9 @@ void main() {
         throwsA(isA<SsiException>().having(
           (e) => e.message,
           'message',
-          contains('Duplicate proof id found'),
+          contains('Multiple proofs are not supported'),
         )),
       );
-    });
-
-    test('Succeeds with unique proof IDs', () {
-      final credentialWithUniqueProofIds = MutableVcDataModelV1(
-        context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
-        id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-        issuer: MutableIssuer.uri('did:example:issuer'),
-        type: {'VerifiableCredential'},
-        issuanceDate: DateTime.now(),
-        credentialSubject: [
-          MutableCredentialSubject({
-            'id': 'did:example:subject',
-            'name': 'John Doe',
-          })
-        ],
-        proof: [
-          EmbeddedProof(
-            id: Uri.parse('did:example:proof-1'),
-            type: 'DataIntegrityProof',
-            created: DateTime.now(),
-            verificationMethod: 'did:example:issuer#key-1',
-            proofPurpose: 'assertionMethod',
-            proofValue: 'zABC...',
-          ),
-          EmbeddedProof(
-            id: Uri.parse('did:example:proof-2'),
-            type: 'EcdsaSecp256k1Signature2019',
-            created: DateTime.now(),
-            verificationMethod: 'did:example:issuer#key-2',
-            proofPurpose: 'assertionMethod',
-            proofValue: 'zDEF...',
-          ),
-        ],
-      );
-
-      final vc = VcDataModelV1.fromMutable(credentialWithUniqueProofIds);
-      expect(vc.proof.length, 2);
-      expect(vc.proof[0].id.toString(), 'did:example:proof-1');
-      expect(vc.proof[1].id.toString(), 'did:example:proof-2');
-    });
-
-    test('Succeeds when some proofs have IDs and some do not', () {
-      final credentialWithMixedProofIds = MutableVcDataModelV1(
-        context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
-        id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-        issuer: MutableIssuer.uri('did:example:issuer'),
-        type: {'VerifiableCredential'},
-        issuanceDate: DateTime.now(),
-        credentialSubject: [
-          MutableCredentialSubject({
-            'id': 'did:example:subject',
-            'name': 'John Doe',
-          })
-        ],
-        proof: [
-          EmbeddedProof(
-            id: Uri.parse('did:example:proof-1'),
-            type: 'DataIntegrityProof',
-            created: DateTime.now(),
-            verificationMethod: 'did:example:issuer#key-1',
-            proofPurpose: 'assertionMethod',
-            proofValue: 'zABC...',
-          ),
-          EmbeddedProof(
-            // No ID
-            type: 'EcdsaSecp256k1Signature2019',
-            created: DateTime.now(),
-            verificationMethod: 'did:example:issuer#key-2',
-            proofPurpose: 'assertionMethod',
-            proofValue: 'zDEF...',
-          ),
-        ],
-      );
-
-      final vc = VcDataModelV1.fromMutable(credentialWithMixedProofIds);
-      expect(vc.proof.length, 2);
-      expect(vc.proof[0].id.toString(), 'did:example:proof-1');
-      expect(vc.proof[1].id, isNull);
     });
   });
 }

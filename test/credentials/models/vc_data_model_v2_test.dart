@@ -423,7 +423,7 @@ void main() {
       expect(map['evidence'], evidences.first.toJson());
     });
 
-    test('fromJson() should correctly parse map (multiple proofs)', () {
+    test('fromJson() should correctly parse proof from list', () {
       final ctx = MutableJsonLdContext.fromJson([dmV2ContextUrl]);
       final vcOriginal = MutableVcDataModelV2(
         context: ctx,
@@ -444,14 +444,6 @@ void main() {
             proofValue: 'z',
             cryptosuite: 'eddsa-jcs-2022',
           ),
-          EmbeddedProof(
-            type: 'AnotherProofType',
-            created: DateTime.utc(2024, 01, 02),
-            verificationMethod: 'did:example:issuerV2#2',
-            proofPurpose: 'authentication',
-            proofValue: 'x',
-            cryptosuite: 'ecdsa-jcs-2019',
-          ),
         ],
       );
       final map = vcOriginal.toJson();
@@ -461,11 +453,9 @@ void main() {
       expect(parsed.id.toString(), 'id');
       expect(parsed.type.contains('t'), isTrue);
       expect(parsed.type.contains('VerifiableCredential'), isTrue);
-      expect(parsed.proof.length, 2);
+      expect(parsed.proof.length, 1);
       expect(parsed.proof[0].type, vcOriginal.proof[0].type);
       expect(parsed.proof[0].cryptosuite, vcOriginal.proof[0].cryptosuite);
-      expect(parsed.proof[1].type, vcOriginal.proof[1].type);
-      expect(parsed.proof[1].cryptosuite, vcOriginal.proof[1].cryptosuite);
     });
 
     test('fromJson() should correctly parse map (single proof object)', () {
