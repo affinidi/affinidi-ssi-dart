@@ -96,6 +96,13 @@ class VpDataModelV2 implements VerifiablePresentation {
       );
     }
 
+    if (proof.length > 1) {
+      throw SsiException(
+        message: 'Multiple proofs are not supported',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
     return true;
   }
 

@@ -190,6 +190,13 @@ class VcDataModelV1 implements VerifiableCredential {
       );
     }
 
+    if (proof.length > 1) {
+      throw SsiException(
+        message: 'Multiple proofs are not supported',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
     /// Proof IDs, if present, must be non-empty and unique within the list.
     final ids = <Uri>{};
     for (final p in proof) {
@@ -200,6 +207,8 @@ class VcDataModelV1 implements VerifiableCredential {
             code: SsiExceptionType.invalidJson.code,
           );
         }
+
+        /// checks uniqueness when multiple proofs are supported
         if (ids.contains(p.id)) {
           throw SsiException(
             message: 'Duplicate proof id found: ${p.id}',
