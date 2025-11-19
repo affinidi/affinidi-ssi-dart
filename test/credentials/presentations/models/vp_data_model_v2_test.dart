@@ -48,7 +48,9 @@ void main() {
       expect(vp.type.contains('VerifiablePresentation'), isTrue);
     });
 
-    test('validate() succeeds with multiple types including VerifiablePresentation', () {
+    test(
+        'validate() succeeds with multiple types including VerifiablePresentation',
+        () {
       final vp = VpDataModelV2(
         context: [dmV2ContextUrl],
         type: {'VerifiablePresentation', 'CustomPresentation'},
