@@ -1,3 +1,4 @@
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -6,7 +7,7 @@ void main() {
     test('validate() throws when type is empty', () {
       expect(
         () => VpDataModelV2(
-          context: [dmV2ContextUrl],
+          context: JsonLdContext.fromJson([dmV2ContextUrl]),
           type: {},
           holder: Holder.uri('did:example:holder'),
           verifiableCredential: [],
@@ -23,7 +24,7 @@ void main() {
         () {
       expect(
         () => VpDataModelV2(
-          context: [dmV2ContextUrl],
+          context: JsonLdContext.fromJson([dmV2ContextUrl]),
           type: {'CustomPresentation'},
           holder: Holder.uri('did:example:holder'),
           verifiableCredential: [],
@@ -39,7 +40,7 @@ void main() {
 
     test('validate() succeeds when `type` contains VerifiablePresentation', () {
       final vp = VpDataModelV2(
-        context: [dmV2ContextUrl],
+        context: JsonLdContext.fromJson([dmV2ContextUrl]),
         type: {'VerifiablePresentation'},
         holder: Holder.uri('did:example:holder'),
         verifiableCredential: [],
@@ -52,7 +53,7 @@ void main() {
         'validate() succeeds with multiple types including VerifiablePresentation',
         () {
       final vp = VpDataModelV2(
-        context: [dmV2ContextUrl],
+        context: JsonLdContext.fromJson([dmV2ContextUrl]),
         type: {'VerifiablePresentation', 'CustomPresentation'},
         holder: Holder.uri('did:example:holder'),
         verifiableCredential: [],
