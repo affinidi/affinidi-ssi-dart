@@ -1,3 +1,4 @@
+import '../../did/did_resolver.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../models/parsed_vc.dart';
@@ -22,11 +23,18 @@ class VcIntegrityVerifier implements VcVerifier {
   /// If not provided, a default no-op loader is used, which always returns null.
   final DocumentLoader? customDocumentLoader;
 
+  /// Custom DID resolver for resolving DID documents during verification.
+  ///
+  /// If not provided, the default universal DID resolver is used.
+  final DidResolver? didResolver;
+
   /// Creates a [VcIntegrityVerifier].
   ///
-  /// Optionally accepts a [customDocumentLoader] to use when loading external resources
-  /// during verification. This is useful for implementing custom caching strategies
-  /// or for loading resources from non-standard locations.
+  /// Optionally accepts:
+  /// - [customDocumentLoader] to use when loading external resources during verification.
+  ///   This is useful for implementing custom caching strategies or for loading resources
+  ///   from non-standard locations.
+  /// - [didResolver] to use for custom DID resolution logic.
   ///
   /// Example:
   /// ```dart
@@ -40,6 +48,7 @@ class VcIntegrityVerifier implements VcVerifier {
   /// // Create a verifier with the custom document loader
   /// final verifier = VcIntegrityVerifier(
   ///   customDocumentLoader: myDocumentLoader,
+  ///   didResolver: myCustomDidResolver,
   /// );
   ///
   /// // Verify a credential
@@ -47,6 +56,7 @@ class VcIntegrityVerifier implements VcVerifier {
   /// ```
   VcIntegrityVerifier({
     this.customDocumentLoader,
+    this.didResolver,
   });
 
   /// Verifies the signature and cryptographic integrity of the [data] credential.
@@ -55,13 +65,17 @@ class VcIntegrityVerifier implements VcVerifier {
   /// integrity verification error.
   @override
   Future<VerificationResult> verify(ParsedVerifiableCredential data) async {
-    final vcSuite =
-        VcSuites.getVcSuiteWithDocumentLoader(data, customDocumentLoader);
+    final vcSuite = VcSuites.getVcSuiteWithOptions(
+      data,
+      customDocumentLoader: customDocumentLoader,
+      didResolver: didResolver,
+    );
 
     var integrityValid = false;
 
     try {
-      integrityValid = await vcSuite.verifyIntegrity(data);
+      integrityValid =
+          await vcSuite.verifyIntegrity(data, didResolver: didResolver);
     } catch (e) {
       integrityValid = false;
     }

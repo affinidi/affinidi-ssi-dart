@@ -1,5 +1,6 @@
 import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
 
+import '../../did/did_resolver.dart';
 import '../../did/did_signer.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
@@ -153,11 +154,13 @@ final class SdJwtDm2Suite
   /// Verifies the cryptographic integrity of the credential.
   ///
   /// [input] - The SD-JWT credential to verify.
+  /// [didResolver] - Optional custom DID resolver for offline/test verification.
   ///
   /// Returns true if the credential's signature is valid, false otherwise.
   @override
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input,
-      {DateTime Function() getNow = DateTime.now}) async {
+      {DateTime Function() getNow = DateTime.now,
+      DidResolver? didResolver}) async {
     final algorithm =
         SignatureScheme.fromAlg(input.sdJwt.header['alg'] as String);
     var now = getNow();
@@ -178,6 +181,7 @@ final class SdJwtDm2Suite
       algorithm: algorithm,
       kid: input.sdJwt.header['kid'] as String?,
       issuerDid: input.issuer.id.toString(),
+      didResolver: didResolver,
     );
 
     final SdJwt(:bool? isVerified) = SdJwtHandlerV1().verify(
