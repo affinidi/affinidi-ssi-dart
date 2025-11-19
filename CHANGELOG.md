@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.19.1`](#ssi---v2191)
+
+---
+
+#### `ssi` - `v2.19.1`
+
+ - **FIX**: didweb test failures by using mock did resolver (#217).
+
+## 2.19.1
+
+ - **FIX**: didweb test failures by using mock did resolver (#217).
+
+
+## 2025-11-18
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.19.0`](#ssi---v2190)
 
 ---
