@@ -77,7 +77,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   /// Validates the essential Verifiable Presentation properties (`context`, `type`).
   ///
   /// Ensures [context] is not empty and starts with [dmV2ContextUrl],
-  /// and that [type] is not empty.
+  /// and that [type] is not empty and MUST contain 'VerifiablePresentation'.
   ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
@@ -92,6 +92,18 @@ class VpDataModelV2 implements VerifiablePresentation {
     if (type.isEmpty) {
       throw SsiException(
         message: '`${_P.type.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    final hasVerifiablePresentation = type.any(
+      (t) => t.trim() == 'VerifiablePresentation',
+    );
+
+    if (!hasVerifiablePresentation) {
+      throw SsiException(
+        message:
+            '`${_P.type.key}` MUST include the value "VerifiablePresentation" per VC Data Model v2.0.',
         code: SsiExceptionType.invalidJson.code,
       );
     }
