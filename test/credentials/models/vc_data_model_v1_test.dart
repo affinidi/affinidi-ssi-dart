@@ -385,7 +385,7 @@ void main() {
         () {
       expect(
         () => VcDataModelV1(
-          context: [dmV1ContextUrl],
+          context: JsonLdContext.fromJson([dmV1ContextUrl]),
           id: Uri.parse('id'),
           type: {'ExampleCredential'},
           issuer: Issuer.uri('did:example:issuer'),
@@ -404,7 +404,7 @@ void main() {
 
     test('validate() succeeds when `type` contains VerifiableCredential', () {
       final vc = VcDataModelV1(
-        context: [dmV1ContextUrl],
+        context: JsonLdContext.fromJson([dmV1ContextUrl]),
         id: Uri.parse('id'),
         type: {'VerifiableCredential', 'ExampleCredential'},
         issuer: Issuer.uri('did:example:issuer'),
