@@ -40,13 +40,13 @@ class ServiceEndpoint implements JsonObject {
 
     switch (se['type']) {
       case String strType:
-        type = strType;
+        type = StringServiceType(strType);
 
       case [String strType]:
-        type = strType;
+        type = StringServiceType(strType);
 
       default:
-        throw const FormatException('invalid type property in serviceEndpoint');
+        type = ServiceType.fromJson(se['type']);
     }
 
     if (se.containsKey('serviceEndpoint')) {
