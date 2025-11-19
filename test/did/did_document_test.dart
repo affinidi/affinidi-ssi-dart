@@ -173,14 +173,16 @@ void main() {
         final serviceEndpoint = ServiceEndpoint.fromJson(
             DidDocumentFixtures.serviceEndpointTypeListOneElement);
 
-        expect(serviceEndpoint.type, const StringServiceType('DIDCommMessaging'));
+        expect(
+            serviceEndpoint.type, const StringServiceType('DIDCommMessaging'));
       });
 
       test('it handles lists with two elements for type', () {
         final serviceEndpoint = ServiceEndpoint.fromJson(
             DidDocumentFixtures.serviceEndpointTypeListTwoElement);
 
-        expect(serviceEndpoint.type, const SetServiceType(['DIDCommMessaging', 'two']));
+        expect(serviceEndpoint.type,
+            const SetServiceType(['DIDCommMessaging', 'two']));
       });
 
       test('it retrieves correct service endpoint', () {
