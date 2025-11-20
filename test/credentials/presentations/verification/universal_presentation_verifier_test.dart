@@ -4,7 +4,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:ssi/ssi.dart';
-import 'package:ssi/src/credentials/presentations/presentations.dart';
 import 'package:test/test.dart';
 
 import '../../../fixtures/verifiable_presentations_fixtures.dart';

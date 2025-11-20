@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/src/credentials/models/field_types/context.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
