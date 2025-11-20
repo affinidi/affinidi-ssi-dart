@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
 
 import 'package:base_codecs/base_codecs.dart';
-import 'package:ssi/src/credentials/presentations/suites/universal_presentation_verifier.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../../../../test/test_utils.dart';
