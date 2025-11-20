@@ -19,13 +19,91 @@ ParsedVerifiableCredential parseVC(dynamic e) {
 
 /// Converts a [ParsedVerifiableCredential] into its presentable form
 /// using the appropriate VC suite.
+///
+/// When embedding VCs with DataIntegrityProof in presentations that use
+/// different proof types, this ensures the proof's @context is included
+/// for proper JSON-LD processing.
 dynamic presentVC(ParsedVerifiableCredential credential) {
   final suite = VcSuites.getVcSuite(credential);
   final present = suite.present(credential);
 
   if (present is! String && present is! Map<String, dynamic>) {
-    return credential.toJson();
+    final vcJson = credential.toJson();
+    if (_hasDataIntegrityProof(vcJson)) {
+      return _ensureProofContext(vcJson);
+    }
+    return vcJson;
+  }
+
+  if (present is Map<String, dynamic>) {
+    if (_hasDataIntegrityProof(present)) {
+      return _ensureProofContext(present);
+    }
+    return present;
   }
 
   return present;
+}
+
+/// Checks if a VC has DataIntegrityProof
+bool _hasDataIntegrityProof(Map<String, dynamic> vcJson) {
+  final proof = vcJson['proof'];
+
+  if (proof == null) return false;
+
+  if (proof is Map<String, dynamic>) {
+    return proof['type'] == 'DataIntegrityProof';
+  }
+
+  if (proof is List) {
+    return proof.any(
+        (p) => p is Map<String, dynamic> && p['type'] == 'DataIntegrityProof');
+  }
+
+  return false;
+}
+
+/// Ensures DataIntegrityProof proofs have @context when embedded in VPs.
+Map<String, dynamic> _ensureProofContext(Map<String, dynamic> vcJson) {
+  final proof = vcJson['proof'];
+
+  if (proof == null) return vcJson;
+
+  // Handle single proof
+  if (proof is Map<String, dynamic>) {
+    if (proof['type'] == 'DataIntegrityProof' &&
+        !proof.containsKey('@context')) {
+      vcJson = Map<String, dynamic>.from(vcJson);
+      vcJson['proof'] = {
+        '@context': 'https://w3id.org/security/data-integrity/v2',
+        ...proof,
+      };
+    }
+  }
+  // Handle array of proofs
+  else if (proof is List) {
+    final updatedProofs = <Map<String, dynamic>>[];
+    var needsUpdate = false;
+
+    for (final p in proof) {
+      if (p is Map<String, dynamic>) {
+        if (p['type'] == 'DataIntegrityProof' && !p.containsKey('@context')) {
+          updatedProofs.add({
+            '@context': 'https://w3id.org/security/data-integrity/v2',
+            ...p,
+          });
+          needsUpdate = true;
+        } else {
+          updatedProofs.add(p);
+        }
+      }
+    }
+
+    if (needsUpdate) {
+      vcJson = Map<String, dynamic>.from(vcJson);
+      vcJson['proof'] = updatedProofs;
+    }
+  }
+
+  return vcJson;
 }

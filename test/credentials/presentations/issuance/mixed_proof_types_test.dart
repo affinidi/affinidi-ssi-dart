@@ -1,0 +1,157 @@
+import 'dart:typed_data';
+
+import 'package:ssi/src/credentials/models/field_types/context.dart';
+import 'package:ssi/ssi.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group('Mixed Proof Types in VP', () {
+    late DidSigner vcSigner;
+    late DidSigner vpSigner;
+
+    setUp(() async {
+      // Create ed25519 signer for VC
+      final vcSeed = Uint8List.fromList(
+          List.generate(32, (index) => index + 1)); // deterministic seed
+      final ed25519Wallet = Bip32Ed25519Wallet.fromSeed(vcSeed);
+      final ed25519Key = await ed25519Wallet.generateKey(keyId: "m/0'/0'/0'");
+      final vcDidDoc = DidKey.generateDocument(ed25519Key.publicKey);
+      vcSigner = DidSigner(
+        did: vcDidDoc.id,
+        didKeyId: vcDidDoc.verificationMethod[0].id,
+        keyPair: ed25519Key,
+        signatureScheme: SignatureScheme.ed25519,
+      );
+
+      // Create secp256k1 signer for VP
+      final vpSeed = Uint8List.fromList(
+          List.generate(32, (index) => index + 33)); // different seed
+      final secp256k1Wallet = Bip32Wallet.fromSeed(vpSeed);
+      final secp256k1Key =
+          await secp256k1Wallet.generateKey(keyId: "m/44'/60'/0'/0'/0'");
+      final vpDidDoc = DidKey.generateDocument(secp256k1Key.publicKey);
+      vpSigner = DidSigner(
+        did: vpDidDoc.id,
+        didKeyId: vpDidDoc.verificationMethod[0].id,
+        keyPair: secp256k1Key,
+        signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
+      );
+    });
+
+    test('should create VP with multiple VCs having different proof types',
+        () async {
+      // Create VC with DataIntegrity proof (using ed25519 signer)
+      final dataIntegrityVc = await _issueVcWithDataIntegrity(vcSigner);
+
+      // Create VC with EcdsaSecp256k1Signature2019 proof (using secp256k1 signer)
+      final secp256k1Vc = await _issueVcWithSecp256k1Proof(vpSigner);
+
+      // Create VP containing both VCs
+      final vp = MutableVpDataModelV2(
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+        id: Uri.parse('uuid:test-vp-multiple-mixed-proofs'),
+        type: {'VerifiablePresentation'},
+        holder: MutableHolder.uri(vpSigner.did),
+        verifiableCredential: [dataIntegrityVc, secp256k1Vc],
+      );
+
+      final vpProofGenerator = Secp256k1Signature2019Generator(
+        signer: vpSigner,
+        proofPurpose: ProofPurpose.authentication,
+      );
+
+      final issuedVp = await LdVpDm2Suite().issue(
+        unsignedData: VpDataModelV2.fromMutable(vp),
+        proofGenerator: vpProofGenerator,
+      );
+
+      expect(issuedVp, isNotNull);
+      expect(issuedVp.verifiableCredential, hasLength(2));
+      expect(issuedVp.proof.first.type, equals('EcdsaSecp256k1Signature2019'));
+
+      // Verify VP
+      final result = await UniversalPresentationVerifier().verify(issuedVp);
+      expect(result.isValid, isTrue);
+    });
+
+    test('should create VP with multiple VCs having different proof types',
+        () async {
+      // Create VC with DataIntegrity proof (using ed25519 signer)
+      final dataIntegrityVc = await _issueVcWithDataIntegrity(vcSigner);
+
+      // Create VC with EcdsaSecp256k1Signature2019 proof (using secp256k1 signer)
+      final secp256k1Vc = await _issueVcWithSecp256k1Proof(vpSigner);
+
+      // Create VP containing both VCs
+      final vp = MutableVpDataModelV2(
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+        id: Uri.parse('uuid:test-vp-multiple-mixed-proofs'),
+        type: {'VerifiablePresentation'},
+        holder: MutableHolder.uri(vpSigner.did),
+        verifiableCredential: [dataIntegrityVc, secp256k1Vc],
+      );
+
+      final vpProofGenerator = Secp256k1Signature2019Generator(
+        signer: vpSigner,
+        proofPurpose: ProofPurpose.authentication,
+      );
+
+      final issuedVp = await LdVpDm2Suite().issue(
+        unsignedData: VpDataModelV2.fromMutable(vp),
+        proofGenerator: vpProofGenerator,
+      );
+
+      expect(issuedVp, isNotNull);
+      expect(issuedVp.verifiableCredential, hasLength(2));
+      expect(issuedVp.proof.first.type, equals('EcdsaSecp256k1Signature2019'));
+
+      // Verify VP
+      final result = await UniversalPresentationVerifier().verify(issuedVp);
+      expect(result.isValid, isTrue);
+    });
+  });
+}
+
+Future<LdVcDataModelV2> _issueVcWithDataIntegrity(DidSigner signer) async {
+  final unsignedVc = MutableVcDataModelV2(
+    context: MutableJsonLdContext.fromJson([
+      dmV2ContextUrl,
+      'https://schema.affinidi.com/UserProfileV1-0.jsonld',
+    ]),
+    id: Uri.parse('uuid:test-vc-data-integrity'),
+    type: {'VerifiableCredential', 'UserProfile'},
+    issuer: Issuer.uri(signer.did),
+    validFrom: DateTime.now().toUtc(),
+    credentialSubject: [
+      MutableCredentialSubject({'name': 'Alice'}),
+    ],
+  );
+
+  final proofGenerator = DataIntegrityEddsaRdfcGenerator(signer: signer);
+  return await LdVcDm2Suite().issue(
+    unsignedData: VcDataModelV2.fromMutable(unsignedVc),
+    proofGenerator: proofGenerator,
+  );
+}
+
+Future<LdVcDataModelV2> _issueVcWithSecp256k1Proof(DidSigner signer) async {
+  final unsignedVc = MutableVcDataModelV2(
+    context: MutableJsonLdContext.fromJson([
+      dmV2ContextUrl,
+      'https://schema.affinidi.com/UserProfileV1-0.jsonld',
+    ]),
+    id: Uri.parse('uuid:test-vc-secp256k1'),
+    type: {'VerifiableCredential', 'UserProfile'},
+    issuer: Issuer.uri(signer.did),
+    validFrom: DateTime.now().toUtc(),
+    credentialSubject: [
+      MutableCredentialSubject({'name': 'Bob'}),
+    ],
+  );
+
+  final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
+  return await LdVcDm2Suite().issue(
+    unsignedData: VcDataModelV2.fromMutable(unsignedVc),
+    proofGenerator: proofGenerator,
+  );
+}
