@@ -1,8 +1,8 @@
 import 'dart:convert';
 
+import '../../credentials/models/field_types/context.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
-import '../../credentials/models/field_types/context.dart';
 import '../../types.dart';
 import '../../util/json_util.dart';
 import 'service_endpoint.dart';

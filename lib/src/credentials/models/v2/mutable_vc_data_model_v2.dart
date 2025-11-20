@@ -129,7 +129,7 @@ class MutableVcDataModelV2 {
   /// The [termsOfUse] is a list of terms of use (optional)
   /// The [evidence] is a list of evidence (optional)
   MutableVcDataModelV2({
-    MutableJsonLdContext? this.context,
+    this.context,
     this.id,
     List<MutableCredentialSchema>? credentialSchema,
     List<MutableCredentialSubject>? credentialSubject,

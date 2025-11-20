@@ -37,8 +37,8 @@ void main() {
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'TestCredential'},
-        validFrom: DateTime.now().subtract(Duration(hours: 1)),
-        validUntil: DateTime.now().add(Duration(hours: 24)),
+        validFrom: DateTime.now().subtract(const Duration(hours: 1)),
+        validUntil: DateTime.now().add(const Duration(hours: 24)),
         credentialSubject: [
           MutableCredentialSubject({
             'id': 'did:example:subject',
@@ -76,8 +76,8 @@ void main() {
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'TestCredential'},
-        validFrom: DateTime.now().subtract(Duration(hours: 1)),
-        validUntil: DateTime.now().add(Duration(hours: 24)),
+        validFrom: DateTime.now().subtract(const Duration(hours: 1)),
+        validUntil: DateTime.now().add(const Duration(hours: 24)),
         credentialSubject: [
           MutableCredentialSubject({
             'id': 'did:example:subject',
@@ -101,8 +101,8 @@ void main() {
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'TestCredential'},
-        validFrom: DateTime.now().subtract(Duration(hours: 1)),
-        validUntil: DateTime.now().add(Duration(hours: 24)),
+        validFrom: DateTime.now().subtract(const Duration(hours: 1)),
+        validUntil: DateTime.now().add(const Duration(hours: 24)),
         credentialSubject: [
           MutableCredentialSubject({
             'id': 'did:example:subject',
