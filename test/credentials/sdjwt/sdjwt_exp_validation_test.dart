@@ -104,7 +104,8 @@ void main() {
       final isValid = await suite.verifyIntegrity(
         issuedCredential,
         getNow: () => DateTime.fromMillisecondsSinceEpoch(
-            (expirationDate.millisecondsSinceEpoch / 1000).floor() * 1000 + 1),
+            (expirationDate.millisecondsSinceEpoch / 1000).floor() * 1000 + 1,
+            isUtc: true),
       );
       expect(isValid, isFalse);
     });

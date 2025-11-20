@@ -117,7 +117,8 @@ final class JwtDm1Suite
     var now = getNow();
     final exp = input.jws.payload['exp'];
     if (exp != null &&
-        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000))) {
+        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000,
+            isUtc: true))) {
       return false;
     }
 
