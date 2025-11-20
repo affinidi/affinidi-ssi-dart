@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import '../../credentials.dart';
 
+const String _dataIntegrityProofContext =
+    'https://w3id.org/security/data-integrity/v2';
+
 /// Parses a [ParsedVerifiableCredential] from JSON or string input.
 ///
 /// Accepts either a raw credential object or its serialized string form.
@@ -21,7 +24,8 @@ ParsedVerifiableCredential parseVC(dynamic e) {
 /// using the appropriate VC suite.
 ///
 /// When embedding VCs with DataIntegrityProof in presentations that use
-/// different proof types, this ensures the proof's @context is included
+/// different proof types (e.g., secp256k1 VP containing Ed25519 VC),
+/// this ensures each DataIntegrityProof includes its required @context
 /// for proper JSON-LD processing.
 dynamic presentVC(ParsedVerifiableCredential credential) {
   final suite = VcSuites.getVcSuite(credential);
@@ -75,27 +79,29 @@ Map<String, dynamic> _ensureProofContext(Map<String, dynamic> vcJson) {
         !proof.containsKey('@context')) {
       vcJson = Map<String, dynamic>.from(vcJson);
       vcJson['proof'] = {
-        '@context': 'https://w3id.org/security/data-integrity/v2',
+        '@context': _dataIntegrityProofContext,
         ...proof,
       };
     }
   }
   // Handle array of proofs
   else if (proof is List) {
-    final updatedProofs = <Map<String, dynamic>>[];
+    final updatedProofs = <dynamic>[];
     var needsUpdate = false;
 
     for (final p in proof) {
       if (p is Map<String, dynamic>) {
         if (p['type'] == 'DataIntegrityProof' && !p.containsKey('@context')) {
           updatedProofs.add({
-            '@context': 'https://w3id.org/security/data-integrity/v2',
+            '@context': _dataIntegrityProofContext,
             ...p,
           });
           needsUpdate = true;
         } else {
           updatedProofs.add(p);
         }
+      } else {
+        updatedProofs.add(p);
       }
     }
 

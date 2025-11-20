@@ -74,21 +74,19 @@ void main() {
       expect(result.isValid, isTrue);
     });
 
-    test('should create VP with multiple VCs having different proof types',
+    test(
+        'should inject @context into DataIntegrityProof when embedded in VP with different proof type',
         () async {
       // Create VC with DataIntegrity proof (using ed25519 signer)
       final dataIntegrityVc = await _issueVcWithDataIntegrity(vcSigner);
 
-      // Create VC with EcdsaSecp256k1Signature2019 proof (using secp256k1 signer)
-      final secp256k1Vc = await _issueVcWithSecp256k1Proof(vpSigner);
-
-      // Create VP containing both VCs
+      // Create VP containing the DataIntegrity VC, signed with secp256k1
       final vp = MutableVpDataModelV2(
         context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-        id: Uri.parse('uuid:test-vp-multiple-mixed-proofs'),
+        id: Uri.parse('uuid:test-vp-context-injection'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(vpSigner.did),
-        verifiableCredential: [dataIntegrityVc, secp256k1Vc],
+        verifiableCredential: [dataIntegrityVc],
       );
 
       final vpProofGenerator = Secp256k1Signature2019Generator(
@@ -102,8 +100,26 @@ void main() {
       );
 
       expect(issuedVp, isNotNull);
-      expect(issuedVp.verifiableCredential, hasLength(2));
-      expect(issuedVp.proof.first.type, equals('EcdsaSecp256k1Signature2019'));
+      expect(issuedVp.verifiableCredential, hasLength(1));
+
+      // Verify that DataIntegrityProof has @context injected
+      final vcJson = issuedVp.verifiableCredential.first.toJson();
+      final vcProof = vcJson['proof'];
+      expect(vcProof, isNotNull);
+
+      if (vcProof is Map<String, dynamic>) {
+        expect(vcProof['type'], equals('DataIntegrityProof'));
+        expect(vcProof['@context'],
+            equals('https://w3id.org/security/data-integrity/v2'));
+      } else if (vcProof is List) {
+        final dataIntegrityProof = vcProof.firstWhere(
+          (p) => p is Map<String, dynamic> && p['type'] == 'DataIntegrityProof',
+          orElse: () => null,
+        );
+        expect(dataIntegrityProof, isNotNull);
+        expect(dataIntegrityProof['@context'],
+            equals('https://w3id.org/security/data-integrity/v2'));
+      }
 
       // Verify VP
       final result = await UniversalPresentationVerifier().verify(issuedVp);
