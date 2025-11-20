@@ -125,6 +125,62 @@ void main() {
       final result = await UniversalPresentationVerifier().verify(issuedVp);
       expect(result.isValid, isTrue);
     });
+
+    test('should support ECDSA P-256 DataIntegrityProof VC in secp256k1 VP',
+        () async {
+      // Create P-256 signer for VC with ECDSA DataIntegrityProof
+      final p256Seed = Uint8List.fromList(
+          List.generate(32, (index) => index + 65)); // different seed
+      final p256KeyPair = P256KeyPair.fromSeed(p256Seed);
+      final p256DidDoc = DidKey.generateDocument(p256KeyPair.publicKey);
+      final p256Signer = DidSigner(
+        did: p256DidDoc.id,
+        didKeyId: p256DidDoc.verificationMethod[0].id,
+        keyPair: p256KeyPair,
+        signatureScheme: SignatureScheme.ecdsa_p256_sha256,
+      );
+
+      // Create VC with ECDSA P-256 DataIntegrity proof
+      final ecdsaVc = await _issueVcWithEcdsaDataIntegrity(p256Signer);
+
+      // Create VP containing the ECDSA VC, signed with secp256k1
+      final vp = MutableVpDataModelV2(
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+        id: Uri.parse('uuid:test-vp-ecdsa-p256'),
+        type: {'VerifiablePresentation'},
+        holder: MutableHolder.uri(vpSigner.did),
+        verifiableCredential: [ecdsaVc],
+      );
+
+      final vpProofGenerator = Secp256k1Signature2019Generator(
+        signer: vpSigner,
+        proofPurpose: ProofPurpose.authentication,
+      );
+
+      final issuedVp = await LdVpDm2Suite().issue(
+        unsignedData: VpDataModelV2.fromMutable(vp),
+        proofGenerator: vpProofGenerator,
+      );
+
+      expect(issuedVp, isNotNull);
+      expect(issuedVp.verifiableCredential, hasLength(1));
+
+      // Verify that ECDSA DataIntegrityProof has @context injected
+      final vcJson = issuedVp.verifiableCredential.first.toJson();
+      final vcProof = vcJson['proof'];
+      expect(vcProof, isNotNull);
+
+      if (vcProof is Map<String, dynamic>) {
+        expect(vcProof['type'], equals('DataIntegrityProof'));
+        expect(vcProof['cryptosuite'], equals('ecdsa-rdfc-2019'));
+        expect(vcProof['@context'],
+            equals('https://w3id.org/security/data-integrity/v2'));
+      }
+
+      // Verify VP
+      final result = await UniversalPresentationVerifier().verify(issuedVp);
+      expect(result.isValid, isTrue);
+    });
   });
 }
 
@@ -166,6 +222,28 @@ Future<LdVcDataModelV2> _issueVcWithSecp256k1Proof(DidSigner signer) async {
   );
 
   final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
+  return await LdVcDm2Suite().issue(
+    unsignedData: VcDataModelV2.fromMutable(unsignedVc),
+    proofGenerator: proofGenerator,
+  );
+}
+
+Future<LdVcDataModelV2> _issueVcWithEcdsaDataIntegrity(DidSigner signer) async {
+  final unsignedVc = MutableVcDataModelV2(
+    context: MutableJsonLdContext.fromJson([
+      dmV2ContextUrl,
+      'https://schema.affinidi.com/UserProfileV1-0.jsonld',
+    ]),
+    id: Uri.parse('uuid:test-vc-ecdsa-p256'),
+    type: {'VerifiableCredential', 'UserProfile'},
+    issuer: Issuer.uri(signer.did),
+    validFrom: DateTime.now().toUtc(),
+    credentialSubject: [
+      MutableCredentialSubject({'name': 'Charlie'}),
+    ],
+  );
+
+  final proofGenerator = DataIntegrityEcdsaRdfcGenerator(signer: signer);
   return await LdVcDm2Suite().issue(
     unsignedData: VcDataModelV2.fromMutable(unsignedVc),
     proofGenerator: proofGenerator,
