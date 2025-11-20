@@ -125,6 +125,42 @@ void main() async {
         }
       }
     });
+
+    test('should fail when expected nonce does not match the nonce in proof',
+        () async {
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.vpWithNonce);
+      final verifier =
+          UniversalPresentationVerifier(nonce: 'invalid-test-nonce');
+      final result = await verifier.verify(vp);
+      expect(result.isValid, false);
+      expect(result.errors, isNotEmpty);
+      expect(
+          result.errors.first,
+          contains(
+              'Nonce mismatch: expected "invalid-test-nonce" but got "test-nonce"'));
+    });
+    test('should pass when expected nonce matches the nonce in proof',
+        () async {
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.vpWithNonce);
+      final verifier = UniversalPresentationVerifier(nonce: 'test-nonce');
+      final result = await verifier.verify(vp);
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('should fail when expected nonce is provided but proof lacks nonce',
+        () async {
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.vpWithoutNonce);
+      final verifier = UniversalPresentationVerifier(nonce: 'test-nonce');
+      final result = await verifier.verify(vp);
+      expect(result.isValid, false);
+      expect(result.errors, isNotEmpty);
+      expect(result.errors.first,
+          contains('Nonce is required but not found in proof'));
+    });
   });
 }
 

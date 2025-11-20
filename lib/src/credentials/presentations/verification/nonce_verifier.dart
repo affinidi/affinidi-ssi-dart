@@ -34,7 +34,7 @@ class NonceVerifier implements VpVerifier {
   /// If [nonce] is null, the verifier will skip nonce validation.
   /// If [nonce] is provided, the presentation proof must contain
   /// a nonce field that exactly matches this value.
-  const NonceVerifier({this.nonce});
+  NonceVerifier({this.nonce});
 
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation<dynamic> vp) {
