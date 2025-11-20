@@ -1,11 +1,16 @@
 import 'dart:typed_data';
 
+import 'package:uuid/uuid.dart';
+
 import '../../did/did_signer.dart';
 import '../../types.dart';
 import 'data_integrity_context_util.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 import 'jcs_utils.dart';
+
+/// UUID generator for creating nonces.
+final _uuid = Uuid();
 
 /// Base class for Data Integrity proof generators using JCS canonicalization.
 ///
@@ -31,7 +36,6 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     super.expires,
     super.challenge,
     super.domain,
-    super.nonce,
     super.proofValueMultiBase,
   }) {
     validateSignerCompatibility(signer);
@@ -52,6 +56,7 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
+    final nonce = _uuid.v4();
     final proof = JcsUtils.createBaseProofConfiguration(
       cryptosuite: cryptosuite,
       created: created,

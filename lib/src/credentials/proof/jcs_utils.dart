@@ -185,6 +185,7 @@ class JcsUtils {
       'created': created.toIso8601String(),
       'verificationMethod': verificationMethod,
       'proofPurpose': proofPurpose,
+      'nonce': nonce,
     };
 
     // Only add optional fields if they have values

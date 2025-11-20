@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../did/did_signer.dart';
 import '../../did/public_key_utils.dart';
@@ -18,6 +19,9 @@ const _dataIntegrityType = 'DataIntegrityProof';
 const _eddsaCryptosuite = 'eddsa-rdfc-2022';
 const _eddsaJcsCryptosuite = 'eddsa-jcs-2022';
 const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v2';
+
+/// UUID generator for creating nonces.
+final _uuid = Uuid();
 
 /// Generates Data Integrity Proofs using the eddsa-rdfc-2022 cryptosuite.
 ///
@@ -40,7 +44,6 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
     super.expires,
     super.challenge,
     super.domain,
-    super.nonce,
     super.proofValueMultiBase,
   }) {
     final expectedSchemes = cryptosuiteToScheme[_eddsaCryptosuite];
@@ -58,6 +61,7 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
+    final nonce = _uuid.v4();
     // Validate credential @context contains Data Integrity or VC v2 context
     DataIntegrityContextUtil.validate(document);
     final proof = {
@@ -260,7 +264,6 @@ class DataIntegrityEddsaJcsGenerator extends BaseJcsGenerator {
     super.expires,
     super.challenge,
     super.domain,
-    super.nonce,
     super.proofValueMultiBase,
   });
 

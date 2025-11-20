@@ -55,8 +55,7 @@ void main() async {
       holder: MutableHolder.uri(signer.did),
       verifiableCredential: [ldV2VC]);
 
-  final vpProofGenerator =
-      DataIntegrityEddsaJcsGenerator(signer: signer, nonce: 'test-nonce');
+  final vpProofGenerator = DataIntegrityEddsaJcsGenerator(signer: signer);
 
 // Issue the VP with the proof attached
   final issuedPresentation = await LdVpDm2Suite().issue(
@@ -68,8 +67,7 @@ void main() async {
   print('');
 
   final verificationStatus =
-      await UniversalPresentationVerifier(nonce: 'test-nonce')
-          .verify(issuedPresentation);
+      await UniversalPresentationVerifier().verify(issuedPresentation);
 
   // Print results
   print('=== Verification Results ===');

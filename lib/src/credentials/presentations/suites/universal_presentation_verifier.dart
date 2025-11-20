@@ -6,7 +6,6 @@ import '../../verification/vc_verifier.dart';
 import '../models/parsed_vp.dart';
 import '../verification/delegation_vc_verifier.dart';
 import '../verification/holder_binding_verifier.dart';
-import '../verification/nonce_verifier.dart';
 import '../verification/vp_expiry_verifier.dart';
 import '../verification/vp_integrity_verifier.dart';
 import '../verification/vp_verifier.dart';
@@ -31,9 +30,6 @@ final class UniversalPresentationVerifier {
   /// The list of vc verifiers.
   final List<VcVerifier> customVclVerifiers;
 
-  /// Nonce to be used during vp verification.
-  final String? nonce;
-
   /// Custom document loader for loading external resources during verification.
   final DocumentLoader? customDocumentLoader;
 
@@ -55,7 +51,6 @@ final class UniversalPresentationVerifier {
           ),
           DelegationVcVerifier(),
           HolderBindingVerifier(),
-          NonceVerifier(nonce: nonce)
         ],
       );
 
@@ -89,7 +84,6 @@ final class UniversalPresentationVerifier {
   UniversalPresentationVerifier({
     List<VpVerifier>? customVerifiers,
     List<VcVerifier>? customVclVerifiers,
-    this.nonce,
     this.customDocumentLoader,
     this.didResolver,
   })  : customVerifiers = customVerifiers ?? [],

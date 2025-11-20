@@ -22,6 +22,7 @@ dependencies:
   meta: ^1.15.0
   pointycastle: ^4.0.0
   selective_disclosure_jwt: ^1.1.0
+  uuid: ^4.5.2
   x25519: ^0.1.1
 
 dev_dependencies:
