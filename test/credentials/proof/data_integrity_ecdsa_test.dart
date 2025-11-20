@@ -76,6 +76,7 @@ void main() async {
           expect(proof['type'], 'DataIntegrityProof');
           expect(proof['cryptosuite'], 'ecdsa-rdfc-2019');
           expect(proof['proofValue'], isNotNull);
+          expect(proof['nonce'], isNotNull);
 
           final proofValueHeader = proof['proofValue'][0];
           expect(proofValueHeader,
