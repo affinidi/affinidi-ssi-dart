@@ -83,6 +83,63 @@ void main() async {
               proofValueMultiBase == MultiBase.base58bitcoin ? 'z' : 'u');
         });
 
+        test('Verification fails when nonce is tampered with after issuance',
+            () async {
+          final unsignedCredential = MutableVcDataModelV1(
+            context: MutableJsonLdContext.fromJson([
+              'https://www.w3.org/2018/credentials/v1',
+              'https://w3id.org/security/data-integrity/v2',
+              'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+            ]),
+            id: Uri.parse('uuid:123456abcd'),
+            type: {'VerifiableCredential', 'UserProfile'},
+            credentialSubject: [
+              MutableCredentialSubject({
+                'Fname': 'Fname',
+                'Lname': 'Lame',
+                'Age': '22',
+                'Address': 'Eihhornstr'
+              })
+            ],
+            holder: MutableHolder.uri('did:example:1'),
+            credentialSchema: [
+              MutableCredentialSchema(
+                  id: Uri.parse(
+                      'https://schema.affinidi.com/UserProfileV1-0.json'),
+                  type: 'JsonSchemaValidator2018')
+            ],
+            issuanceDate: DateTime.now(),
+            issuer: Issuer.uri(signer.did),
+          );
+
+          final proofGenerator = DataIntegrityEcdsaRdfcGenerator(
+            signer: signer,
+            proofValueMultiBase: proofValueMultiBase,
+          );
+
+          final issuedCredential = await LdVcDm1Suite().issue(
+            unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+            proofGenerator: proofGenerator,
+          );
+
+          // Tamper with nonce to test verification
+          final credential = issuedCredential.toJson();
+
+          // Update the nonce to make sure that it's part of the signature
+          credential['proof']['nonce'] = 'tampered-nonce-value';
+
+          final proofVerifier =
+              DataIntegrityEcdsaRdfcVerifier(issuerDid: signer.did);
+
+          final verificationResult = await proofVerifier.verify(credential);
+
+          // Verification should FAIL because nonce was tampered with
+          expect(verificationResult.isValid, false);
+          expect(verificationResult.errors, isNotEmpty);
+          expect(
+              verificationResult.errors.first, contains('signature invalid'));
+        });
+
         test(
             'Create and verify Data Integrity ECDSA proof with data-integrity context',
             () async {
