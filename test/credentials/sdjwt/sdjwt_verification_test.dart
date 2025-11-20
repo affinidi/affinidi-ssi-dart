@@ -26,8 +26,8 @@ void main() {
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'TestCredential'},
-        validFrom: now.subtract(Duration(hours: 1)),
-        validUntil: now.add(Duration(hours: 1)),
+        validFrom: now.subtract(const Duration(hours: 1)),
+        validUntil: now.add(const Duration(hours: 1)),
         credentialSubject: [
           MutableCredentialSubject({
             'id': 'did:example:subject',
@@ -50,8 +50,8 @@ void main() {
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'TestCredential'},
-        validFrom: now.subtract(Duration(hours: 2)),
-        validUntil: now.subtract(Duration(hours: 1)), // Expired
+        validFrom: now.subtract(const Duration(hours: 2)),
+        validUntil: now.subtract(const Duration(hours: 1)), // Expired
         credentialSubject: [
           MutableCredentialSubject({
             'id': 'did:example:subject',
@@ -74,8 +74,8 @@ void main() {
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'TestCredential'},
-        validFrom: now.add(Duration(hours: 1)), // Not yet valid
-        validUntil: now.add(Duration(hours: 2)),
+        validFrom: now.add(const Duration(hours: 1)), // Not yet valid
+        validUntil: now.add(const Duration(hours: 2)),
         credentialSubject: [
           MutableCredentialSubject({
             'id': 'did:example:subject',
@@ -98,7 +98,7 @@ void main() {
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: Issuer.uri(signer.did),
         type: {'VerifiableCredential', 'TestCredential'},
-        validFrom: now.subtract(Duration(hours: 1)),
+        validFrom: now.subtract(const Duration(hours: 1)),
         // No validUntil
         credentialSubject: [
           MutableCredentialSubject({

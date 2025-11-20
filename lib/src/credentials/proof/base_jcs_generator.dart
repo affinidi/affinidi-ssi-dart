@@ -2,10 +2,10 @@ import 'dart:typed_data';
 
 import '../../did/did_signer.dart';
 import '../../types.dart';
+import 'data_integrity_context_util.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 import 'jcs_utils.dart';
-import 'data_integrity_context_util.dart';
 
 /// Base class for Data Integrity proof generators using JCS canonicalization.
 ///
