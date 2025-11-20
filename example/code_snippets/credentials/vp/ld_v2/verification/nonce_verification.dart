@@ -19,7 +19,7 @@ void main() async {
 
   // Create a sample verifiable credential
   final credential = MutableVcDataModelV2(
-      context: [dmV2ContextUrl],
+      context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
       id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
       issuer: Issuer.uri(signer.did),
       type: {'VerifiableCredential', 'UniversityDegreeCredential'},
@@ -27,7 +27,7 @@ void main() async {
       validUntil: DateTime.parse('2028-01-01T12:00:00Z'),
       credentialSubject: [
         MutableCredentialSubject({
-          'id': 'did:example:subject',
+          'id': signer.did,
           'degree': {
             'type': 'BachelorDegree',
             'name': 'Bachelor of Science and Arts',
@@ -47,10 +47,9 @@ void main() async {
 
   // Parse the VC string
   final ldV2VC = UniversalParser.parse(issuedCredential.serialized);
-
   // Build the unsigned Verifiable Presentation
   final v2Vp = MutableVpDataModelV2(
-      context: [dmV2ContextUrl],
+      context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
       id: Uri.parse('testVpV2'),
       type: {'VerifiablePresentation'},
       holder: MutableHolder.uri(signer.did),
