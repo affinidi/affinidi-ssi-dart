@@ -31,6 +31,7 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     super.expires,
     super.challenge,
     super.domain,
+    super.nonce,
     super.proofValueMultiBase,
   }) {
     validateSignerCompatibility(signer);
@@ -59,6 +60,7 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
       expires: expires,
       challenge: challenge,
       domain: domain,
+      nonce: nonce,
     );
 
     final additionalProperties = <String, dynamic>{};
@@ -87,17 +89,17 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     final signature = await computeSignature(hash, signer);
 
     return EmbeddedProof(
-      type: JcsUtils.dataIntegrityType,
-      cryptosuite: cryptosuite,
-      created: created,
-      verificationMethod: signer.keyId,
-      proofPurpose: proofPurpose?.value,
-      proofValue: signature,
-      expires: expires,
-      challenge: challenge,
-      domain: domain,
-      additionalProperties: additionalProperties,
-    );
+        type: JcsUtils.dataIntegrityType,
+        cryptosuite: cryptosuite,
+        created: created,
+        verificationMethod: signer.keyId,
+        proofPurpose: proofPurpose?.value,
+        proofValue: signature,
+        expires: expires,
+        challenge: challenge,
+        domain: domain,
+        nonce: nonce,
+        additionalProperties: additionalProperties);
   }
 
   /// Computes the signature for the given hash.

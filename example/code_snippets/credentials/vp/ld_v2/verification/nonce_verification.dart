@@ -55,17 +55,21 @@ void main() async {
       holder: MutableHolder.uri(signer.did),
       verifiableCredential: [ldV2VC]);
 
+  final vpProofGenerator =
+      DataIntegrityEddsaJcsGenerator(signer: signer, nonce: 'test-nonce');
+
 // Issue the VP with the proof attached
   final issuedPresentation = await LdVpDm2Suite().issue(
       unsignedData: VpDataModelV2.fromMutable(v2Vp),
-      proofGenerator: proofGenerator);
+      proofGenerator: vpProofGenerator);
 
   print('=== Issued Verifiable Presentation ===');
   print(issuedPresentation.serialized);
   print('');
 
   final verificationStatus =
-      await UniversalPresentationVerifier().verify(issuedPresentation);
+      await UniversalPresentationVerifier(nonce: 'test-nonce')
+          .verify(issuedPresentation);
 
   // Print results
   print('=== Verification Results ===');

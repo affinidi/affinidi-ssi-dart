@@ -43,6 +43,7 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
     super.expires,
     super.challenge,
     super.domain,
+    super.nonce,
     super.proofValueMultiBase,
   }) {
     final expectedSchemes = cryptosuiteToScheme[_ecdsaCryptosuite];
@@ -72,6 +73,7 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
       'expires': expires?.toIso8601String(),
       'challenge': challenge,
       'domain': domain,
+      'nonce': nonce,
     };
 
     document.remove('proof');
@@ -94,6 +96,7 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
       expires: expires,
       challenge: challenge,
       domain: domain,
+      nonce: nonce,
     );
   }
 
@@ -294,6 +297,7 @@ class DataIntegrityEcdsaJcsGenerator extends BaseJcsGenerator {
     super.challenge,
     super.domain,
     super.proofValueMultiBase,
+    super.nonce,
   });
 
   @override
