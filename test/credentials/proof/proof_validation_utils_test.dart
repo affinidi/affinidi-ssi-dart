@@ -209,6 +209,77 @@ void main() {
       });
     });
 
+    group('validateProofPurpose', () {
+      test('should pass for VerifiableCredential with assertionMethod', () {
+        final result = ProofValidationUtils.validateProofPurpose(
+          'assertionMethod',
+          'VerifiableCredential',
+        );
+
+        expect(result.isValid, true);
+        expect(result.errors, isEmpty);
+      });
+
+      test('should pass for VerifiablePresentation with authentication', () {
+        final result = ProofValidationUtils.validateProofPurpose(
+          'authentication',
+          'VerifiablePresentation',
+        );
+
+        expect(result.isValid, true);
+        expect(result.errors, isEmpty);
+      });
+
+      test('should pass for VerifiableCredential list with assertionMethod',
+          () {
+        final result = ProofValidationUtils.validateProofPurpose(
+          'assertionMethod',
+          ['VerifiableCredential', 'CustomCredential'],
+        );
+
+        expect(result.isValid, true);
+        expect(result.errors, isEmpty);
+      });
+
+      test('should pass for VerifiablePresentation list with authentication',
+          () {
+        final result = ProofValidationUtils.validateProofPurpose(
+          'authentication',
+          ['VerifiablePresentation', 'CustomPresentation'],
+        );
+
+        expect(result.isValid, true);
+        expect(result.errors, isEmpty);
+      });
+
+      test('should fail for VerifiableCredential with wrong proof purpose', () {
+        final result = ProofValidationUtils.validateProofPurpose(
+          'authentication',
+          'VerifiableCredential',
+        );
+
+        expect(result.isValid, false);
+        expect(
+          result.errors,
+          contains('invalid proof purpose, expected assertionMethod'),
+        );
+      });
+
+      test('should fail for VerifiablePresentation with wrong proof purpose',
+          () {
+        final result = ProofValidationUtils.validateProofPurpose(
+          'assertionMethod',
+          'VerifiablePresentation',
+        );
+
+        expect(result.isValid, false);
+        expect(
+          result.errors,
+          contains('invalid proof purpose, expected authentication'),
+        );
+      });
+    });
+
     group('Integration with VerificationResult', () {
       test('should return proper VerificationResult structure', () {
         final result = ProofValidationUtils.validateProofType(null);
@@ -234,6 +305,34 @@ void main() {
         if (result.isValid) {
           // Simulate additional validation
           result = VerificationResult.ok();
+        }
+
+        expect(result.isValid, true);
+      });
+
+      test('should chain proof purpose validation correctly', () {
+        final document = {
+          'type': ['VerifiableCredential'],
+          'issuer': 'did:example:issuer',
+        };
+        final proof = {
+          'type': 'DataIntegrityProof',
+          'proofPurpose': 'assertionMethod',
+        };
+
+        // First validate the structure
+        var result = ProofValidationUtils.validateProofTypeStructure(
+          proof,
+          'DataIntegrityProof',
+        );
+        expect(result.isValid, true);
+
+        // Then validate proof purpose
+        if (result.isValid) {
+          result = ProofValidationUtils.validateProofPurpose(
+            proof['proofPurpose'] as String,
+            document['type'],
+          );
         }
 
         expect(result.isValid, true);

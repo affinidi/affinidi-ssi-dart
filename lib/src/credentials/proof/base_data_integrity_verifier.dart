@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
 
+import '../../did/did_resolver.dart';
 import '../../did/did_verifier.dart';
 import '../../did/public_key_utils.dart';
 import '../../digest_utils.dart';
@@ -27,12 +28,16 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
   /// Optional challenge value.
   final String? challenge;
 
+  /// Optional custom DID resolver for offline/test verification.
+  final DidResolver? didResolver;
+
   /// Creates a new BaseDataIntegrityVerifier.
   BaseDataIntegrityVerifier({
     required this.issuerDid,
     this.getNow = DateTime.now,
     this.domain,
     this.challenge,
+    this.didResolver,
     super.customDocumentLoader,
   });
 
@@ -242,8 +247,9 @@ Future<bool> verifyDataIntegritySignature(
   String issuerDid,
   Uri verificationMethod,
   Uint8List hash,
-  String cryptosuite,
-) async {
+  String cryptosuite, {
+  DidResolver? didResolver,
+}) async {
   final signature = multiBaseToUint8List(proofValue);
 
   final expectedSchemes = cryptosuiteToScheme[cryptosuite];
@@ -263,6 +269,7 @@ Future<bool> verifyDataIntegritySignature(
     algorithm: expectedScheme,
     kid: verificationMethod.toString(),
     issuerDid: issuerDid,
+    didResolver: didResolver,
   );
   return verifier.verify(hash, signature);
 }

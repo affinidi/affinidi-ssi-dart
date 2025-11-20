@@ -277,6 +277,7 @@ void main() {
 
       final vpProofGenerator = Secp256k1Signature2019Generator(
         signer: signer,
+        proofPurpose: ProofPurpose.authentication,
       );
 
       final vpToSign = VpDataModelV2.fromMutable(v2Vp);

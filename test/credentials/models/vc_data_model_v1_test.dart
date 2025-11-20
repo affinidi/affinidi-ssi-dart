@@ -380,6 +380,42 @@ void main() {
         );
       },
     );
+
+    test('validate() throws when `VerifiableCredential` is missing in type',
+        () {
+      expect(
+        () => VcDataModelV1(
+          context: JsonLdContext.fromJson([dmV1ContextUrl]),
+          id: Uri.parse('id'),
+          type: {'ExampleCredential'},
+          issuer: Issuer.uri('did:example:issuer'),
+          issuanceDate: DateTime.now(),
+          credentialSubject: [
+            CredentialSubject.fromJson({'id': 'did:example:subject'})
+          ],
+        ),
+        throwsA(predicate((e) =>
+            e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message
+                .contains('MUST include the value "VerifiableCredential"'))),
+      );
+    });
+
+    test('validate() succeeds when `type` contains VerifiableCredential', () {
+      final vc = VcDataModelV1(
+        context: JsonLdContext.fromJson([dmV1ContextUrl]),
+        id: Uri.parse('id'),
+        type: {'VerifiableCredential', 'ExampleCredential'},
+        issuer: Issuer.uri('did:example:issuer'),
+        issuanceDate: DateTime.now(),
+        credentialSubject: [
+          CredentialSubject.fromJson({'id': 'did:example:subject'})
+        ],
+      );
+      expect(vc.type.contains('VerifiableCredential'), isTrue);
+      expect(vc.type.contains('ExampleCredential'), isTrue);
+    });
   });
 
   group('VcDataModelV1 issuer vs proof.verificationMethod DID consistency', () {

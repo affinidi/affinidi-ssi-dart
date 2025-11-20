@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../did/did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/doc_with_embedded_proof.dart';
@@ -128,10 +129,12 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   /// Verifies the cryptographic integrity of the [input] credential.
   ///
   /// Optionally accepts [getNow] to provide a custom "now" time for expiry and validity
+  /// and [didResolver] for custom DID resolution.
   Future<bool> verifyIntegrity(Model input,
-      {DateTime Function() getNow = DateTime.now}) async {
+      {DateTime Function() getNow = DateTime.now,
+      DidResolver? didResolver}) async {
     final document = input.toJson();
-    final proofSuite = _getDocumentProofVerifier(document);
+    final proofSuite = _getDocumentProofVerifier(document, didResolver);
 
     if (proofSuite == null) {
       return false;
@@ -143,7 +146,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   }
 
   EmbeddedProofVerifier? _getDocumentProofVerifier(
-      Map<String, dynamic> document) {
+      Map<String, dynamic> document, DidResolver? didResolver) {
     final proof = document[proofKey];
     if (proof == null || proof is! Map<String, dynamic>) {
       return null;
@@ -178,21 +181,25 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
             return DataIntegrityEcdsaRdfcVerifier(
               issuerDid: issuerDid,
               customDocumentLoader: loader,
+              didResolver: didResolver,
             );
           case JcsUtils.ecdsaJcs2019:
             return DataIntegrityEcdsaJcsVerifier(
               verifierDid: issuerDid,
               customDocumentLoader: loader,
+              didResolver: didResolver,
             );
           case 'eddsa-rdfc-2022':
             return DataIntegrityEddsaRdfcVerifier(
               issuerDid: issuerDid,
               customDocumentLoader: loader,
+              didResolver: didResolver,
             );
           case JcsUtils.eddsaJcs2022:
             return DataIntegrityEddsaJcsVerifier(
               verifierDid: issuerDid,
               customDocumentLoader: loader,
+              didResolver: didResolver,
             );
           default:
             return null;
@@ -201,6 +208,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
         return Secp256k1Signature2019Verifier(
           issuerDid: issuerDid,
           customDocumentLoader: loader,
+          didResolver: didResolver,
         );
       default:
         return null;

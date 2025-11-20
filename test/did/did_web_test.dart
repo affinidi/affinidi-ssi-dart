@@ -3,6 +3,18 @@ import 'dart:typed_data';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+/// Mock DID resolver for testing
+class MockDidResolver implements DidResolver {
+  final DidDocument _mockDocument;
+
+  MockDidResolver(this._mockDocument);
+
+  @override
+  Future<DidDocument> resolveDid(String did) async {
+    return _mockDocument;
+  }
+}
+
 void main() {
   group('DidWeb Resolution', () {
     test('converts did:web:example.com to expected URI', () {
@@ -28,7 +40,7 @@ void main() {
 
   group('DidWeb Verification', () {
     test('should support Ed25519/EdDSA signatures', () async {
-      // Mock DID document based on actual did:web:demo.spruceid.com response
+      // Mock DID document for testing Ed25519/EdDSA signature verification
       final mockDidDoc = DidDocument.fromJson({
         '@context': [
           'https://www.w3.org/ns/did/v1',
@@ -56,11 +68,13 @@ void main() {
         ]
       });
 
+      final mockResolver = MockDidResolver(mockDidDoc);
       final ed25519Vm = mockDidDoc.verificationMethod.first;
       final verifier = await DidVerifier.create(
         algorithm: SignatureScheme.ed25519,
         kid: ed25519Vm.id,
         issuerDid: mockDidDoc.id,
+        didResolver: mockResolver,
       );
 
       expect(verifier.isAllowedAlgorithm('EdDSA'), isTrue);
@@ -70,7 +84,7 @@ void main() {
     });
 
     test('should reject invalid signatures for Ed25519 keys', () async {
-      // Mock DID document based on actual did:web:demo.spruceid.com response
+      // Mock DID document for testing invalid signature rejection
       final mockDidDoc = DidDocument.fromJson({
         '@context': [
           'https://www.w3.org/ns/did/v1',
@@ -92,11 +106,13 @@ void main() {
         ]
       });
 
+      final mockResolver = MockDidResolver(mockDidDoc);
       final vm = mockDidDoc.verificationMethod.first;
       final verifier = await DidVerifier.create(
         algorithm: SignatureScheme.ed25519,
         kid: vm.id,
         issuerDid: mockDidDoc.id,
+        didResolver: mockResolver,
       );
 
       final testData = Uint8List.fromList(utf8.encode('Test data'));
@@ -111,7 +127,7 @@ void main() {
     });
 
     test('algorithm mismatch throws error', () async {
-      // Mock DID document based on actual did:web:demo.spruceid.com response
+      // Mock DID document for testing algorithm mismatch error handling
       final mockDidDoc = DidDocument.fromJson({
         '@context': [
           'https://www.w3.org/ns/did/v1',
@@ -133,6 +149,7 @@ void main() {
         ]
       });
 
+      final mockResolver = MockDidResolver(mockDidDoc);
       final vm = mockDidDoc.verificationMethod.first;
 
       void act() async {
@@ -140,6 +157,7 @@ void main() {
           algorithm: SignatureScheme.ecdsa_p256_sha256,
           kid: vm.id,
           issuerDid: mockDidDoc.id,
+          didResolver: mockResolver,
         );
       }
 
