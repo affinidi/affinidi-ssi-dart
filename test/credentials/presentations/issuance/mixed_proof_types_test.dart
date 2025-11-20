@@ -181,6 +181,65 @@ void main() {
       final result = await UniversalPresentationVerifier().verify(issuedVp);
       expect(result.isValid, isTrue);
     });
+
+    test(
+        'should support secp256k1 VC (v1) in DataIntegrity VP (v2) - using different data models',
+        () async {
+      // Create VC with secp256k1 proof using DATA MODEL V1
+      // Use vcSigner DID as the subject so it matches the VP holder
+      final secp256k1VcV1 =
+          await _issueVcV1WithSecp256k1Proof(vpSigner, vcSigner.did);
+
+      // Create VP with DataIntegrity proof (v2) containing the v1 VC
+      final vp = MutableVpDataModelV2(
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+        id: Uri.parse('uuid:test-vp-v1-vc-in-v2-vp'),
+        type: {'VerifiablePresentation'},
+        holder: MutableHolder.uri(vcSigner.did), // VP holder matches VC subject
+        verifiableCredential: [secp256k1VcV1],
+      );
+
+      final vpProofGenerator = DataIntegrityEddsaRdfcGenerator(
+        signer: vcSigner,
+        proofPurpose: ProofPurpose.authentication,
+      );
+
+      final issuedVp = await LdVpDm2Suite().issue(
+        unsignedData: VpDataModelV2.fromMutable(vp),
+        proofGenerator: vpProofGenerator,
+      );
+
+      expect(issuedVp, isNotNull);
+      expect(issuedVp.verifiableCredential, hasLength(1));
+      expect(issuedVp.proof.first.type, equals('DataIntegrityProof'));
+
+      // Verify that the embedded v1 VC still has its secp256k1 proof
+      final vcJson = issuedVp.verifiableCredential.first.toJson();
+      final vcProof = vcJson['proof'];
+      expect(vcProof, isNotNull);
+
+      if (vcProof is Map<String, dynamic>) {
+        expect(vcProof['type'], equals('EcdsaSecp256k1Signature2019'));
+      }
+
+      // Verify the VP context is v2 and VC context is v1
+      final vpJson = issuedVp.toJson();
+      expect(vpJson['@context'], contains(dmV2ContextUrl));
+      expect(vcJson['@context'],
+          contains('https://www.w3.org/2018/credentials/v1'));
+
+      // Verify VP
+      final result = await UniversalPresentationVerifier().verify(issuedVp);
+      expect(result.isValid, isTrue);
+    });
+
+    // NOTE: The inverse scenario with SAME data model (non-DataIntegrity VC v2 in DataIntegrity VP v2)
+    // is NOT supported. This is an architectural limitation, not a bug. The EcdsaSecp256k1Signature2019
+    // scoped context exists in credentials/v1 but not in credentials/v2, and these contexts cannot be
+    // merged due to protected term redefinition conflicts (both define 'proof' with @protected: true).
+    //
+    // However, the test above shows that using DIFFERENT data models (v1 VC in v2 VP) DOES work because
+    // the VC and VP have separate @context arrays with no conflicts.
   });
 }
 
@@ -246,6 +305,32 @@ Future<LdVcDataModelV2> _issueVcWithEcdsaDataIntegrity(DidSigner signer) async {
   final proofGenerator = DataIntegrityEcdsaRdfcGenerator(signer: signer);
   return await LdVcDm2Suite().issue(
     unsignedData: VcDataModelV2.fromMutable(unsignedVc),
+    proofGenerator: proofGenerator,
+  );
+}
+
+Future<LdVcDataModelV1> _issueVcV1WithSecp256k1Proof(
+  DidSigner issuerSigner,
+  String subjectDid,
+) async {
+  const dmV1ContextUrl = 'https://www.w3.org/2018/credentials/v1';
+
+  final unsignedVc = MutableVcDataModelV1(
+    context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
+    id: Uri.parse('uuid:test-vc-v1-secp256k1'),
+    type: {'VerifiableCredential'},
+    issuer: Issuer.uri(issuerSigner.did),
+    issuanceDate: DateTime.now().toUtc(),
+    credentialSubject: [
+      MutableCredentialSubject({
+        'id': subjectDid,
+      }),
+    ],
+  );
+
+  final proofGenerator = Secp256k1Signature2019Generator(signer: issuerSigner);
+  return await LdVcDm1Suite().issue(
+    unsignedData: VcDataModelV1.fromMutable(unsignedVc),
     proofGenerator: proofGenerator,
   );
 }
