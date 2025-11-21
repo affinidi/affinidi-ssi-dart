@@ -19,9 +19,18 @@ Future<void> main() async {
 
   final ldV2VC = UniversalParser.parse(v2VcString);
 
+  // SD-JWT VCs are automatically enveloped when added to V2 presentations
+  // per W3C VC Data Model v2 spec Section 4.13. The envelope structure:
+  // {
+  //   "@context": ["https://www.w3.org/ns/credentials/v2"],
+  //   "id": "data:application/vc+sd-jwt,<jwt_string>",
+  //   "type": ["EnvelopedVerifiableCredential"]
+  // }
   final sdjwtV2VC = UniversalParser.parse(jwtVcString);
 
   // Create a Verifiable Presentation (V2)
+  // Note: SD-JWT VCs will be automatically enveloped as objects (not strings)
+  // to comply with W3C VC Data Model v2 spec requirements
   final v2Vp = MutableVpDataModelV2(
       context: [dmV2ContextUrl],
       id: Uri.parse('testVpV2'),
