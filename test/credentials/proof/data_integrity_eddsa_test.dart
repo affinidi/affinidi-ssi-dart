@@ -369,6 +369,7 @@ void main() async {
 
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
+      expect(issuedCredential.proof.first.nonce, isNotNull);
     });
 
     test('EdDSA-JCS rejects unsupported signature schemes', () {

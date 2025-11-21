@@ -126,6 +126,7 @@ void main() {
 
       // Verify the proofValue uses expected prefix
       expect(proof.proofValue, startsWith(expectedPrefix));
+      expect(proof.nonce, isNotNull);
 
       // Verify the credential
       final verifier = DataIntegrityEddsaJcsVerifier(

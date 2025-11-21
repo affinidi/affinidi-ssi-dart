@@ -9,6 +9,7 @@ import '../../did/universal_did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
+import '../../utility.dart';
 import 'base_data_integrity_verifier.dart';
 import 'base_jcs_generator.dart';
 import 'base_jcs_verifier.dart';
@@ -57,9 +58,13 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
   }
 
   /// Generates an [EmbeddedProof] for the given [document].
+  ///
+  /// A unique nonce is automatically generated for each proof.
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
+    final nonce = randomId();
+
     // Validate credential @context contains Data Integrity or VC v2 context
     DataIntegrityContextUtil.validate(document);
     final proof = {
@@ -72,6 +77,7 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
       'expires': expires?.toIso8601String(),
       'challenge': challenge,
       'domain': domain,
+      'nonce': nonce,
     };
 
     document.remove('proof');
@@ -94,6 +100,7 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
       expires: expires,
       challenge: challenge,
       domain: domain,
+      nonce: nonce,
     );
   }
 

@@ -60,6 +60,7 @@ void main() async {
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
       expect(verificationResult.warnings, isEmpty);
+      expect(issuedCredential.proof.first.nonce, isNull);
     });
 
     test('CWE issued must verify', () async {
