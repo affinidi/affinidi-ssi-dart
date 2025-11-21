@@ -72,8 +72,8 @@ void main() async {
 
       final envelopedVc = vcArray[0] as Map<String, dynamic>;
 
-      // Verify the SD-JWT VC is properly enveloped per VC Data Model V2 spec
-      // Section 4.13: "The value MUST be one or more verifiable credential
+      // Verify the SD-JWT VC is properly enveloped per VC Data Model V2 spec:
+      // "The value MUST be one or more verifiable credential
       // and/or enveloped verifiable credential objects (the values MUST NOT
       // be non-object values such as numbers, strings, or URLs)"
 
