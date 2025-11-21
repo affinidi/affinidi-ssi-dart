@@ -1,7 +1,8 @@
+import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../did/did_signer.dart';
 import '../../did/did_verifier.dart';
@@ -10,6 +11,7 @@ import '../../did/universal_did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
+import '../../utility.dart';
 import 'base_data_integrity_verifier.dart';
 import 'base_jcs_generator.dart';
 import 'base_jcs_verifier.dart';
@@ -22,9 +24,6 @@ const _dataIntegrityType = 'DataIntegrityProof';
 const _ecdsaCryptosuite = 'ecdsa-rdfc-2019';
 const _ecdsaJcsCryptosuite = 'ecdsa-jcs-2019';
 const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v2';
-
-/// UUID generator for creating nonces.
-final _uuid = Uuid();
 
 /// Generates Data Integrity Proofs using the ecdsa-rdfc-2019 cryptosuite.
 ///
@@ -61,10 +60,12 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
   }
 
   /// Generates an [EmbeddedProof] for the given [document].
+  ///
+  /// A unique nonce is automatically generated for each proof.
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
-    final nonce = _uuid.v4();
+    final nonce = randomId();
 
     // Validate credential @context contains Data Integrity or VC v2 context
     DataIntegrityContextUtil.validate(document);
