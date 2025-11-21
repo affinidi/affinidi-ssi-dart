@@ -77,6 +77,11 @@ Each implementation of the data models enables you to create a Verifiable Creden
 
 The Suite Data Model is the final form of the VC that encapsulates the signed VC, including additional attributes like the disclosures for SD-JWT VC and the JWT Header for JWT VC. The Suite Service provides the functions for parsing, serialising, and issuing a VC for a specific format.
 
+### JWT Credential Support
+
+- **JWT VCs** support V1 data model only (`JwtVcDataModelV1` with `VpDataModelV1`)
+- **SD-JWT VCs** support V2 data model only (`SdJwtDataModelV2` with `VpDataModelV2`)
+
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials) to learn how to create and verify credentials using different models.
 
 ## Requirements

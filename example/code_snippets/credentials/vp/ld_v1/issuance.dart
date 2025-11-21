@@ -14,11 +14,18 @@ Future<void> main() async {
   // Initialize signer from seed
   final signer = await initSigner(testSeed);
 
-  // Load example credentials (LD VC V1 + SD-JWT V1)
+  // Load example credentials (LD VC V1 + JWT VC V1)
   final ldV1VC = UniversalParser.parse(v1VcString);
   final jwtV1VC = UniversalParser.parse(jwtVcString);
 
   // Create a Verifiable Presentation (V1)
+  //
+  // IMPORTANT - V1 Presentation Credential Compatibility:
+  // ✓ Supported: JSON-LD VCs (V1) - embedded as JSON objects
+  // ✓ Supported: JWT VCs (V1) - embedded as JWT strings
+  // ✗ NOT Supported: SD-JWT VCs (SdJwtDataModelV2) - requires V2 presentation context
+  //                  and enveloping per W3C VC Data Model v2.0
+  //                  Use V2 presentations (VpDataModelV2) for SD-JWT VCs instead
   final v1Vp = MutableVpDataModelV1(
     context: [dmV1ContextUrl],
     id: Uri.parse('testVpV1Id'),

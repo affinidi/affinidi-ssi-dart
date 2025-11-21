@@ -26,5 +26,41 @@ void main() async {
       expect(v2Vp.verifiableCredential[1], isA<LdVcDataModelV2>());
       expect(v2Vp.verifiableCredential[2], isA<SdJwtDataModelV2>());
     });
+
+    test(
+        'should correctly parse enveloped SD-JWT VCs from V2 presentations per spec',
+        () async {
+      // Parse the VP that contains enveloped credentials
+      final v2Vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v2VpString);
+
+      // Find the SD-JWT VC (it should be the 3rd credential)
+      final sdJwtVc = v2Vp.verifiableCredential[2];
+      expect(sdJwtVc, isA<SdJwtDataModelV2>());
+
+      // Verify the parsed SD-JWT VC has valid properties
+      expect(sdJwtVc.issuer, isNotNull);
+      expect(sdJwtVc.type, isNotEmpty);
+      expect(sdJwtVc.type, contains('VerifiableCredential'));
+      expect(sdJwtVc.serialized, isNotNull);
+      expect(sdJwtVc.serialized, isA<String>());
+
+      // Verify the serialized form is the raw SD-JWT (not the envelope)
+      expect(
+          sdJwtVc.serialized, isNot(contains('EnvelopedVerifiableCredential')));
+      expect(sdJwtVc.serialized, isNot(startsWith('{')));
+
+      // Verify that when we re-serialize the VP, the SD-JWT is enveloped again
+      final vpJson = v2Vp.toJson();
+      final vcArray = vpJson['verifiableCredential'] as List;
+      final envelopedVc = vcArray[2] as Map<String, dynamic>;
+
+      // Per VC Data Model V2 spec Section 4.13, the credential in the VP
+      // MUST be an object (not a string)
+      expect(envelopedVc, isA<Map<String, dynamic>>());
+      expect(envelopedVc['type'], contains('EnvelopedVerifiableCredential'));
+      expect(envelopedVc['id'], startsWith('data:application/vc+sd-jwt,'));
+      expect(envelopedVc['@context'], contains(dmV2ContextUrl));
+    });
   });
 }
