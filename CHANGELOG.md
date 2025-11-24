@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-11-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.19.2`](#ssi---v2192)
+
+---
+
+#### `ssi` - `v2.19.2`
+
+ - **FIX**: better jwt errors for unsupported model versions (#221).
+
+## 2.19.2
+
+ - **FIX**: better jwt errors for unsupported model versions (#221).
+
+
 ## 2025-11-18
 
 ### Changes
