@@ -9,6 +9,34 @@ import '../utility.dart';
 import 'did_document/index.dart';
 import 'public_key_utils.dart';
 
+/// Specifies the verification method format for Ed25519 keys in DID documents.
+///
+/// The DID:key specification allows for different verification method types
+/// and key formats, both of which encode the same cryptographic material.
+///
+/// This also determines the format for the derived X25519 key agreement method.
+enum Ed25519VerificationMethodFormat {
+  /// Uses Ed25519VerificationKey2018 with publicKeyJwk format.
+  /// Also uses X25519KeyAgreementKey2019 with publicKeyBase58 format.
+  ///
+  /// This is the older W3C specification (2018/2019 era).
+  /// - Ed25519: JSON Web Key (JWK) format
+  /// - X25519: Base58 encoded format
+  /// Context: https://www.w3.org/ns/did/v1
+  /// Widely supported by external DID resolvers and older systems.
+  jwk2018,
+
+  /// Uses Ed25519VerificationKey2020 with publicKeyMultibase format.
+  /// Also uses X25519KeyAgreementKey2020 with publicKeyMultibase format.
+  ///
+  /// This is the newer W3C specification (2020 era).
+  /// - Ed25519: Multibase encoded format
+  /// - X25519: Multibase encoded format
+  /// Context: https://w3id.org/security/suites/ed25519-2020/v1
+  /// More compact and consistent representation.
+  multibase2020,
+}
+
 /// Builds a DID document for Ed25519 keys.
 ///
 /// This function creates a DID document with both verification and key agreement methods
@@ -17,6 +45,7 @@ import 'public_key_utils.dart';
 /// [context] - The context list for the DID document
 /// [id] - The DID identifier
 /// [keyPart] - The key part of the DID
+/// [format] - The verification method format (defaults to multibase2020)
 ///
 /// Returns a [DidDocument]
 ///
@@ -24,8 +53,10 @@ import 'public_key_utils.dart';
 DidDocument _buildEDDoc(
   List<String> context,
   String id,
-  String keyPart,
-) {
+  String keyPart, {
+  Ed25519VerificationMethodFormat format =
+      Ed25519VerificationMethodFormat.multibase2020,
+}) {
   final x25519PubKey = ed25519PublicToX25519Public(
     base58Bitcoin.decode(keyPart).sublist(2),
   );
@@ -36,18 +67,51 @@ DidDocument _buildEDDoc(
   final verificationKeyId = '$id#z$keyPart';
   final agreementKeyId = '$id#$x25519PubKeyMultiBase';
 
-  final verification = VerificationMethodMultibase(
-    id: verificationKeyId,
-    controller: id,
-    type: 'Ed25519VerificationKey2020',
-    publicKeyMultibase: 'z$keyPart',
-  );
-  final keyAgreement = VerificationMethodMultibase(
-    id: agreementKeyId,
-    controller: id,
-    type: 'X25519KeyAgreementKey2020',
-    publicKeyMultibase: x25519PubKeyMultiBase,
-  );
+  // Create the verification method based on the requested format
+  final EmbeddedVerificationMethod verification;
+  final EmbeddedVerificationMethod keyAgreement;
+
+  switch (format) {
+    case Ed25519VerificationMethodFormat.jwk2018:
+      // Convert the multibase key to JWK format
+      final ed25519MultiKey = toMultikey(
+        base58Bitcoin.decode(keyPart).sublist(2),
+        KeyType.ed25519,
+      );
+      final jwk = Jwk.fromJson(multiKeyToJwk(ed25519MultiKey));
+      verification = VerificationMethodJwk(
+        id: verificationKeyId,
+        controller: id,
+        type: 'Ed25519VerificationKey2018',
+        publicKeyJwk: jwk,
+      );
+
+      // For 2018/2019 specs, use publicKeyBase58 for X25519
+      keyAgreement = VerificationMethodBase58(
+        id: agreementKeyId,
+        controller: id,
+        type: 'X25519KeyAgreementKey2019',
+        publicKeyBase58: base58BitcoinEncode(x25519PubKey),
+      );
+      break;
+
+    case Ed25519VerificationMethodFormat.multibase2020:
+      verification = VerificationMethodMultibase(
+        id: verificationKeyId,
+        controller: id,
+        type: 'Ed25519VerificationKey2020',
+        publicKeyMultibase: 'z$keyPart',
+      );
+
+      // For 2020 spec, use publicKeyMultibase for X25519
+      keyAgreement = VerificationMethodMultibase(
+        id: agreementKeyId,
+        controller: id,
+        type: 'X25519KeyAgreementKey2020',
+        publicKeyMultibase: x25519PubKeyMultiBase,
+      );
+      break;
+  }
 
   return DidDocument.create(
     context: Context.fromJson(context),
@@ -160,15 +224,21 @@ class DidKey {
   /// This method takes a public key and creates a DID document
   ///
   /// [publicKey] The public key used to create the DID
+  /// [format] The verification method format for Ed25519 keys
+  ///          (defaults to multibase2020)
   ///
   /// Returns a [DidDocument].
   ///
   /// Throws [SsiException] if the public key is invalid
-  static DidDocument generateDocument(PublicKey publicKey) {
+  static DidDocument generateDocument(
+    PublicKey publicKey, {
+    Ed25519VerificationMethodFormat format =
+        Ed25519VerificationMethodFormat.multibase2020,
+  }) {
     final multiKey = toMultikey(publicKey.bytes, publicKey.type);
     final multibase = toMultiBase(multiKey);
     final did = '$_commonDidKeyPrefix$multibase';
-    return _buildDoc(multibase, did);
+    return _buildDoc(multibase, did, format: format);
   }
 
   /// Resolves a DID string to a DID document.
@@ -182,11 +252,17 @@ class DidKey {
   /// - P521
   ///
   /// [did] - The DID string to resolve
+  /// [format] The verification method format for Ed25519 keys
+  ///          (defaults to multibase2020)
   ///
   /// Returns a [DidDocument]
   ///
   /// Throws [SsiException] if the Did is invalid.
-  static DidDocument resolve(String did) {
+  static DidDocument resolve(
+    String did, {
+    Ed25519VerificationMethodFormat format =
+        Ed25519VerificationMethodFormat.multibase2020,
+  }) {
     if (!did.startsWith('did:key')) {
       throw SsiException(
         message: 'Expected DID to start with `did:key`, got `$did` instead.',
@@ -211,13 +287,18 @@ class DidKey {
       );
     }
 
-    return _buildDoc(multibase, did);
+    return _buildDoc(multibase, did, format: format);
   }
 
-  static DidDocument _buildDoc(String multibase, String id) {
+  static DidDocument _buildDoc(
+    String multibase,
+    String id, {
+    Ed25519VerificationMethodFormat format =
+        Ed25519VerificationMethodFormat.multibase2020,
+  }) {
     final keyPart = multibase.substring(1);
     if (keyPart.startsWith('6Mk')) {
-      return _buildEDDoc(_context, id, keyPart);
+      return _buildEDDoc(_context, id, keyPart, format: format);
     } else if (keyPart.startsWith('6LS')) {
       return _buildXDoc(_context, id, keyPart);
     } else if (keyPart.startsWith('Dn')) {

@@ -179,4 +179,146 @@ void main() {
       });
     });
   });
+
+  group('Verification Method Format', () {
+    late PublicKey publicKey;
+
+    setUp(() async {
+      final (keyPair, _) = Ed25519KeyPair.generate();
+      publicKey = keyPair.publicKey;
+    });
+
+    test('should generate Ed25519VerificationKey2020 with multibase by default',
+        () async {
+      final doc = DidKey.generateDocument(publicKey);
+
+      // Should have 2 verification methods: Ed25519 for signing and X25519 for key agreement
+      expect(doc.verificationMethod, hasLength(2));
+
+      // Find the Ed25519 verification method
+      final ed25519Vm = doc.verificationMethod
+          .firstWhere((vm) => vm.type.contains('Ed25519'));
+
+      // Verify it uses the 2020 spec with multibase format
+      expect(ed25519Vm.type, equals('Ed25519VerificationKey2020'));
+      expect(ed25519Vm, isA<VerificationMethodMultibase>());
+
+      final multibaseVm = ed25519Vm as VerificationMethodMultibase;
+      expect(multibaseVm.publicKeyMultibase, startsWith('z'));
+    });
+
+    test(
+        'should generate Ed25519VerificationKey2018 with explicit jwk2018 format',
+        () async {
+      final doc = DidKey.generateDocument(
+        publicKey,
+        format: Ed25519VerificationMethodFormat.jwk2018,
+      );
+
+      final ed25519Vm = doc.verificationMethod
+          .firstWhere((vm) => vm.type.contains('Ed25519'));
+
+      expect(ed25519Vm.type, equals('Ed25519VerificationKey2018'));
+      expect(ed25519Vm, isA<VerificationMethodJwk>());
+    });
+
+    test('should generate Ed25519VerificationKey2020 with multibase2020 format',
+        () async {
+      final doc = DidKey.generateDocument(
+        publicKey,
+        format: Ed25519VerificationMethodFormat.multibase2020,
+      );
+
+      final ed25519Vm = doc.verificationMethod
+          .firstWhere((vm) => vm.type.contains('Ed25519'));
+
+      expect(ed25519Vm.type, equals('Ed25519VerificationKey2020'));
+      expect(ed25519Vm, isA<VerificationMethodMultibase>());
+
+      final multibaseVm = ed25519Vm as VerificationMethodMultibase;
+      expect(multibaseVm.publicKeyMultibase, startsWith('z'));
+    });
+
+    test('both formats should encode the same key material', () async {
+      final doc2018 = DidKey.generateDocument(
+        publicKey,
+        format: Ed25519VerificationMethodFormat.jwk2018,
+      );
+      final doc2020 = DidKey.generateDocument(
+        publicKey,
+        format: Ed25519VerificationMethodFormat.multibase2020,
+      );
+
+      // Both should generate the same DID
+      expect(doc2018.id, equals(doc2020.id));
+
+      // Extract the Ed25519 verification methods
+      final vm2018 = doc2018.verificationMethod
+          .firstWhere((vm) => vm.type.contains('Ed25519'));
+      final vm2020 = doc2020.verificationMethod
+          .firstWhere((vm) => vm.type.contains('Ed25519'));
+
+      // Convert both to multikey format and compare
+      final multikey2018 = vm2018.asMultiKey();
+      final multikey2020 = vm2020.asMultiKey();
+
+      expect(multikey2018, equals(multikey2020));
+
+      // Convert both to JWK format and compare
+      final jwk2018 = vm2018.asJwk();
+      final jwk2020 = vm2020.asJwk();
+
+      expect(jwk2018.toJson(), equals(jwk2020.toJson()));
+    });
+
+    test('resolve should use the specified format', () async {
+      final did = DidKey.getDid(publicKey);
+
+      // Resolve with default format (multibase2020)
+      final doc2020 = DidKey.resolve(did);
+      final vm2020 = doc2020.verificationMethod
+          .firstWhere((vm) => vm.type.contains('Ed25519'));
+      expect(vm2020.type, equals('Ed25519VerificationKey2020'));
+
+      // Resolve with jwk2018 format
+      final doc2018 = DidKey.resolve(
+        did,
+        format: Ed25519VerificationMethodFormat.jwk2018,
+      );
+      final vm2018 = doc2018.verificationMethod
+          .firstWhere((vm) => vm.type.contains('Ed25519'));
+      expect(vm2018.type, equals('Ed25519VerificationKey2018'));
+    });
+
+    test('X25519 key agreement format should match Ed25519 format', () async {
+      // Test 2018 format uses X25519KeyAgreementKey2019 with publicKeyBase58
+      final doc2018 = DidKey.generateDocument(
+        publicKey,
+        format: Ed25519VerificationMethodFormat.jwk2018,
+      );
+
+      final x25519Vm2018 = doc2018.verificationMethod
+          .firstWhere((vm) => vm.type.contains('X25519'));
+
+      expect(x25519Vm2018.type, equals('X25519KeyAgreementKey2019'));
+      expect(x25519Vm2018, isA<VerificationMethodBase58>());
+
+      // Test 2020 format uses X25519KeyAgreementKey2020 with publicKeyMultibase
+      final doc2020 = DidKey.generateDocument(
+        publicKey,
+        format: Ed25519VerificationMethodFormat.multibase2020,
+      );
+
+      final x25519Vm2020 = doc2020.verificationMethod
+          .firstWhere((vm) => vm.type.contains('X25519'));
+
+      expect(x25519Vm2020.type, equals('X25519KeyAgreementKey2020'));
+      expect(x25519Vm2020, isA<VerificationMethodMultibase>());
+
+      // Both should encode the same X25519 key material
+      final multikey2018 = x25519Vm2018.asMultiKey();
+      final multikey2020 = x25519Vm2020.asMultiKey();
+      expect(multikey2018, equals(multikey2020));
+    });
+  });
 }

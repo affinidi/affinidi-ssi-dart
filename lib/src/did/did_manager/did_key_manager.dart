@@ -15,13 +15,19 @@ import 'verification_relationship.dart';
 /// This manager handles DID documents that use the did:key method,
 /// which supports only a single public key per DID.
 class DidKeyManager extends DidManager {
+  /// The verification method format to use for Ed25519 keys.
+  final Ed25519VerificationMethodFormat ed25519Format;
+
   /// Creates a new DID Key manager instance.
   ///
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
+  /// [ed25519Format] - The verification method format for Ed25519 keys
+  ///                   (defaults to multibase2020).
   DidKeyManager({
     required super.store,
     required super.wallet,
+    this.ed25519Format = Ed25519VerificationMethodFormat.multibase2020,
   });
 
   @override
@@ -98,7 +104,7 @@ class DidKeyManager extends DidManager {
   Future<DidDocument> getDidDocument() async {
     final keyId = await _getKeyId();
     final key = await wallet.getPublicKey(keyId);
-    return DidKey.generateDocument(key);
+    return DidKey.generateDocument(key, format: ed25519Format);
   }
 
   @override
