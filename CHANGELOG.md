@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v2.19.3`](#ssi---v2193)
+
+---
+
+#### `ssi` - `v2.19.3`
+
+ - **FIX**: support secp256k1 VPs that include DataIntegrityProof VCs (#220).
+
+## 2.19.3
+
+ - **FIX**: support secp256k1 VPs that include DataIntegrityProof VCs (#220).
+
+
+## 2025-11-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v2.19.2`](#ssi---v2192)
 
 ---
