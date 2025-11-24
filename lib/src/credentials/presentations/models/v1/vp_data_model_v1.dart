@@ -73,6 +73,11 @@ class VpDataModelV1 implements VerifiablePresentation {
   /// Ensures [context] is not empty and starts with [dmV1ContextUrl],
   /// and that [type] is not empty.
   ///
+  /// Also validates that all verifiable credentials are compatible with V1 presentations:
+  /// - JWT VCs are supported
+  /// - JSON-LD VCs (V1) are supported
+  /// - SD-JWT VCs are NOT supported (use V2 presentations for SD-JWT VCs)
+  ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
     if (context.isEmpty) {
@@ -97,7 +102,36 @@ class VpDataModelV1 implements VerifiablePresentation {
       );
     }
 
+    // Validate credential compatibility with V1 presentations
+    _validateCredentialCompatibility();
+
     return true;
+  }
+
+  /// Validates that all credentials in this V1 presentation are compatible.
+  ///
+  /// V1 presentations support:
+  /// - JWT VCs (JwtVcDataModelV1)
+  /// - JSON-LD VCs (LdVcDataModelV1)
+  ///
+  /// V1 presentations do NOT support:
+  /// - SD-JWT VCs (SdJwtDataModelV2) - these require V2 presentation context
+  ///   and enveloping per W3C VC Data Model v2.0
+  ///
+  /// Throws [SsiException] if incompatible credentials are found.
+  void _validateCredentialCompatibility() {
+    for (final credential in verifiableCredential) {
+      // Check for SD-JWT VC
+      if (credential.runtimeType.toString() == 'SdJwtDataModelV2') {
+        throw SsiException(
+          message:
+              'SD-JWT VCs (SdJwtDataModelV2) are not compatible with V1 presentations. '
+              'SD-JWT VCs require V2 presentation context and must be enveloped per W3C VC Data Model v2.0. '
+              'Use V2 presentations (VpDataModelV2) for SD-JWT VCs, or use JWT VCs (JwtVcDataModelV1) with V1 presentations.',
+          code: SsiExceptionType.invalidVC.code,
+        );
+      }
+    }
   }
 
   /// Creates a [VpDataModelV1] instance.
