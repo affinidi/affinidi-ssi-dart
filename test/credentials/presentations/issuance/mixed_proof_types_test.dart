@@ -47,7 +47,7 @@ void main() {
 
       // Create VP containing both VCs
       final vp = MutableVpDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('uuid:test-vp-multiple-mixed-proofs'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(vpSigner.did),
@@ -81,7 +81,7 @@ void main() {
 
       // Create VP containing the DataIntegrity VC, signed with secp256k1
       final vp = MutableVpDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('uuid:test-vp-context-injection'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(vpSigner.did),
@@ -144,7 +144,7 @@ void main() {
 
       // Create VP containing the ECDSA VC, signed with secp256k1
       final vp = MutableVpDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('uuid:test-vp-ecdsa-p256'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(vpSigner.did),
@@ -191,7 +191,7 @@ void main() {
 
       // Create VP with DataIntegrity proof (v2) containing the v1 VC
       final vp = MutableVpDataModelV2(
-        context: [dmV2ContextUrl],
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('uuid:test-vp-v1-vc-in-v2-vp'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(vcSigner.did), // VP holder matches VC subject
@@ -244,10 +244,10 @@ void main() {
 
 Future<LdVcDataModelV2> _issueVcWithDataIntegrity(DidSigner signer) async {
   final unsignedVc = MutableVcDataModelV2(
-    context: [
+    context: MutableJsonLdContext.fromJson([
       dmV2ContextUrl,
       'https://schema.affinidi.com/UserProfileV1-0.jsonld',
-    ],
+    ]),
     id: Uri.parse('uuid:test-vc-data-integrity'),
     type: {'VerifiableCredential', 'UserProfile'},
     issuer: Issuer.uri(signer.did),
@@ -266,10 +266,10 @@ Future<LdVcDataModelV2> _issueVcWithDataIntegrity(DidSigner signer) async {
 
 Future<LdVcDataModelV2> _issueVcWithSecp256k1Proof(DidSigner signer) async {
   final unsignedVc = MutableVcDataModelV2(
-    context: [
+    context: MutableJsonLdContext.fromJson([
       dmV2ContextUrl,
       'https://schema.affinidi.com/UserProfileV1-0.jsonld',
-    ],
+    ]),
     id: Uri.parse('uuid:test-vc-secp256k1'),
     type: {'VerifiableCredential', 'UserProfile'},
     issuer: Issuer.uri(signer.did),
@@ -288,10 +288,10 @@ Future<LdVcDataModelV2> _issueVcWithSecp256k1Proof(DidSigner signer) async {
 
 Future<LdVcDataModelV2> _issueVcWithEcdsaDataIntegrity(DidSigner signer) async {
   final unsignedVc = MutableVcDataModelV2(
-    context: [
+    context: MutableJsonLdContext.fromJson([
       dmV2ContextUrl,
       'https://schema.affinidi.com/UserProfileV1-0.jsonld',
-    ],
+    ]),
     id: Uri.parse('uuid:test-vc-ecdsa-p256'),
     type: {'VerifiableCredential', 'UserProfile'},
     issuer: Issuer.uri(signer.did),
@@ -315,7 +315,7 @@ Future<LdVcDataModelV1> _issueVcV1WithSecp256k1Proof(
   const dmV1ContextUrl = 'https://www.w3.org/2018/credentials/v1';
 
   final unsignedVc = MutableVcDataModelV1(
-    context: [dmV1ContextUrl],
+    context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
     id: Uri.parse('uuid:test-vc-v1-secp256k1'),
     type: {'VerifiableCredential'},
     issuer: Issuer.uri(issuerSigner.did),

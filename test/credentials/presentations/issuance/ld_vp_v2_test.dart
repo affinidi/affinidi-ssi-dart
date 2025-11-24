@@ -50,7 +50,7 @@ void main() async {
         () async {
       // Create a VP V2 containing an SD-JWT VC
       final v2Vp = MutableVpDataModelV2(
-          context: [dmV2ContextUrl],
+          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
           id: Uri.parse('testVpV2WithSdJwt'),
           type: {'VerifiablePresentation'},
           holder: MutableHolder.uri(signer.did),
