@@ -50,8 +50,8 @@ dynamic presentVC(ParsedVerifiableCredential credential) {
 }
 
 /// Checks if a VC has DataIntegrityProof
-bool _hasDataIntegrityProof(Map<String, dynamic> vcJson) {
-  final proof = vcJson['proof'];
+bool _hasDataIntegrityProof(Map<String, dynamic> credentialMap) {
+  final proof = credentialMap['proof'];
 
   if (proof == null) return false;
 
@@ -68,17 +68,17 @@ bool _hasDataIntegrityProof(Map<String, dynamic> vcJson) {
 }
 
 /// Ensures DataIntegrityProof proofs have @context when embedded in VPs.
-Map<String, dynamic> _ensureProofContext(Map<String, dynamic> vcJson) {
-  final proof = vcJson['proof'];
+Map<String, dynamic> _ensureProofContext(Map<String, dynamic> credentialMap) {
+  final proof = credentialMap['proof'];
 
-  if (proof == null) return vcJson;
+  if (proof == null) return credentialMap;
 
   // Handle single proof
   if (proof is Map<String, dynamic>) {
     if (proof['type'] == 'DataIntegrityProof' &&
         !proof.containsKey('@context')) {
-      vcJson = Map<String, dynamic>.from(vcJson);
-      vcJson['proof'] = {
+      credentialMap = Map<String, dynamic>.from(credentialMap);
+      credentialMap['proof'] = {
         '@context': _dataIntegrityProofContext,
         ...proof,
       };
@@ -106,10 +106,10 @@ Map<String, dynamic> _ensureProofContext(Map<String, dynamic> vcJson) {
     }
 
     if (needsUpdate) {
-      vcJson = Map<String, dynamic>.from(vcJson);
-      vcJson['proof'] = updatedProofs;
+      credentialMap = Map<String, dynamic>.from(credentialMap);
+      credentialMap['proof'] = updatedProofs;
     }
   }
 
-  return vcJson;
+  return credentialMap;
 }
