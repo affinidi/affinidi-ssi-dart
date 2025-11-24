@@ -79,6 +79,11 @@ class VpDataModelV2 implements VerifiablePresentation {
   /// Ensures [context] is not empty and starts with [dmV2ContextUrl],
   /// and that [type] is not empty and MUST contain 'VerifiablePresentation'.
   ///
+  /// Also validates that all verifiable credentials are compatible with V2 presentations:
+  /// - SD-JWT VCs are supported (automatically enveloped per W3C spec)
+  /// - JSON-LD VCs (V1 and V2) are supported
+  /// - JWT VCs are NOT supported (use V1 presentations for JWT VCs)
+  ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
     if (context.firstUri.toString() != dmV2ContextUrl) {
@@ -115,7 +120,35 @@ class VpDataModelV2 implements VerifiablePresentation {
       );
     }
 
+    // Validate credential compatibility with V2 presentations
+    _validateCredentialCompatibility();
+
     return true;
+  }
+
+  /// Validates that all credentials in this V2 presentation are compatible.
+  ///
+  /// V2 presentations support:
+  /// - SD-JWT VCs (SdJwtDataModelV2) - automatically enveloped
+  /// - JSON-LD VCs (LdVcDataModelV1, LdVcDataModelV2)
+  ///
+  /// V2 presentations do NOT support:
+  /// - JWT VCs (JwtVcDataModelV1) - causes JSON-LD context conflicts
+  ///
+  /// Throws [SsiException] if incompatible credentials are found.
+  void _validateCredentialCompatibility() {
+    for (final credential in verifiableCredential) {
+      // Check for JWT VC (not SD-JWT)
+      if (credential.runtimeType.toString() == 'JwtVcDataModelV1') {
+        throw SsiException(
+          message:
+              'JWT VCs (JwtVcDataModelV1) are not compatible with V2 presentations. '
+              'JWT VCs contain V1 context which conflicts with V2 presentation context during JSON-LD processing. '
+              'Use V1 presentations (VpDataModelV1) for JWT VCs, or use SD-JWT VCs (SdJwtDataModelV2) with V2 presentations.',
+          code: SsiExceptionType.invalidVC.code,
+        );
+      }
+    }
   }
 
   /// Creates a [VpDataModelV2] instance.
