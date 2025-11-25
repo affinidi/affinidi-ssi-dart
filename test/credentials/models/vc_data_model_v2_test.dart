@@ -684,4 +684,101 @@ void main() {
       expect(vc.type.contains('ExampleCredentialV2'), isTrue);
     });
   });
+
+  group('VcDataModelV2 credentialStatus Array Limit', () {
+    test('should accept credentialStatus array with 5 items', () {
+      final statusList = List.generate(
+        5,
+        (i) => {
+          'id': 'https://example.edu/status/v2/$i',
+          'type': 'CredentialStatusList2021',
+        },
+      );
+
+      final json = {
+        '@context': [dmV2ContextUrl],
+        'id': 'id',
+        'type': ['VerifiableCredential'],
+        'issuer': {'id': 'did:example:issuerV2'},
+        'credentialSubject': {'id': 'did:example:subjectV2'},
+        'credentialStatus': statusList,
+      };
+
+      final vc = VcDataModelV2.fromJson(json);
+      expect(vc.credentialStatus.length, 5);
+    });
+
+    test('should accept credentialStatus with single object', () {
+      final json = {
+        '@context': [dmV2ContextUrl],
+        'id': 'id',
+        'type': ['VerifiableCredential'],
+        'issuer': {'id': 'did:example:issuerV2'},
+        'credentialSubject': {'id': 'did:example:subjectV2'},
+        'credentialStatus': {
+          'id': 'https://example.edu/status/v2/1',
+          'type': 'CredentialStatusList2021',
+        },
+      };
+
+      final vc = VcDataModelV2.fromJson(json);
+      expect(vc.credentialStatus.length, 1);
+    });
+
+    test('should throw when credentialStatus array exceeds 5 items', () {
+      final statusList = List.generate(
+        6,
+        (i) => {
+          'id': 'https://example.edu/status/v2/$i',
+          'type': 'CredentialStatusList2021',
+        },
+      );
+
+      final json = {
+        '@context': [dmV2ContextUrl],
+        'id': 'id',
+        'type': ['VerifiableCredential'],
+        'issuer': {'id': 'did:example:issuerV2'},
+        'credentialSubject': {'id': 'did:example:subjectV2'},
+        'credentialStatus': statusList,
+      };
+
+      expect(
+        () => VcDataModelV2.fromJson(json),
+        throwsA(predicate((e) =>
+            e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message.contains('must not exceed 5 items'))),
+      );
+    });
+
+    test(
+        'should throw when MutableVcDataModelV2 credentialStatus exceeds 5 items',
+        () {
+      final statusList = List.generate(
+        7,
+        (i) => {
+          'id': 'https://example.edu/status/v2/$i',
+          'type': 'CredentialStatusList2021',
+        },
+      );
+
+      final json = {
+        '@context': [dmV2ContextUrl],
+        'id': 'id',
+        'type': ['VerifiableCredential'],
+        'issuer': {'id': 'did:example:issuerV2'},
+        'credentialSubject': {'id': 'did:example:subjectV2'},
+        'credentialStatus': statusList,
+      };
+
+      expect(
+        () => MutableVcDataModelV2.fromJson(json),
+        throwsA(predicate((e) =>
+            e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message.contains('must not exceed 5 items'))),
+      );
+    });
+  });
 }
