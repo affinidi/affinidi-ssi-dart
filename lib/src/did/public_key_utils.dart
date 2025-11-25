@@ -336,3 +336,59 @@ BigInt decodeBigInt(Uint8List bytes) {
 
   return result;
 }
+
+/// Compares two JWK objects for cryptographic equality.
+///
+/// This function compares only the essential cryptographic fields that define
+/// the public key material, ignoring metadata fields like `kid`, `alg`, `use`,
+/// and `key_ops`.
+///
+/// Only supports key types that this library can actually use for signing/verification:
+/// - EC keys: P-256, P-384, P-521, secp256k1 (P-256K)
+/// - OKP keys: Ed25519, X25519
+///
+/// For EC and OKP keys, compares:
+/// - `kty` (key type)
+/// - `crv` (curve name)
+/// - `x` (x-coordinate or public key bytes)
+/// - `y` (y-coordinate, for EC keys only)
+///
+/// [jwk1] - First JWK to compare.
+/// [jwk2] - Second JWK to compare.
+///
+/// Returns true if the JWKs represent the same cryptographic key.
+/// Returns false if the key type is not supported by this library (e.g., RSA, oct).
+///
+/// Example:
+/// ```dart
+/// final jwk1 = {'kty': 'EC', 'crv': 'P-256', 'x': '...', 'y': '...', 'kid': 'key-1'};
+/// final jwk2 = {'kty': 'EC', 'crv': 'P-256', 'x': '...', 'y': '...', 'kid': 'key-2'};
+/// print(areJwksEqual(jwk1, jwk2)); // true (different kid, same key)
+/// ```
+bool areJwksEqual(Map<String, dynamic> jwk1, Map<String, dynamic> jwk2) {
+  // Compare key type (mandatory for all JWKs)
+  if (jwk1['kty'] != jwk2['kty']) return false;
+
+  final kty = jwk1['kty'];
+
+  // For Elliptic Curve (EC) and Octet Key Pair (OKP) keys
+  // These are the only key types supported by this library
+  if (kty == 'EC' || kty == 'OKP') {
+    // Compare curve
+    if (jwk1['crv'] != jwk2['crv']) return false;
+
+    // Compare x-coordinate (or public key bytes for OKP)
+    if (jwk1['x'] != jwk2['x']) return false;
+
+    // EC keys have y coordinate, OKP keys don't
+    if (kty == 'EC') {
+      if (jwk1['y'] != jwk2['y']) return false;
+    }
+
+    return true;
+  }
+
+  // Unsupported key type (e.g., RSA, oct)
+  // Return false since this library cannot use these keys for verification
+  return false;
+}

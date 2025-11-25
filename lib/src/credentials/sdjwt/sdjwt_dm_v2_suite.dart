@@ -2,6 +2,7 @@ import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
 
 import '../../did/did_resolver.dart';
 import '../../did/did_signer.dart';
+import '../../did/public_key_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
@@ -165,6 +166,17 @@ final class SdJwtDm2Suite
       issuerDid: input.issuer.id.toString(),
       didResolver: didResolver,
     );
+
+    // Validate header JWK if present (defense-in-depth)
+    final headerJwk = input.sdJwt.header['jwk'];
+    if (headerJwk != null) {
+      if (!areJwksEqual(headerJwk as Map<String, dynamic>, verifier.jwk)) {
+        throw SsiException(
+          message: 'Header JWK does not match the public key from DID document',
+          code: SsiExceptionType.invalidVC.code,
+        );
+      }
+    }
 
     final SdJwt(:bool? isVerified) = SdJwtHandlerV1().verify(
       sdJwt: input.sdJwt,
