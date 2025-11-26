@@ -10,7 +10,7 @@ abstract interface class _CredentialStatusV1Interface
   /// Converts this status to a JSON-serializable map.
   Map<String, dynamic> toJson() {
     return cleanEmpty({
-      'id': id.toString(),
+      'id': id?.toString(),
       'type': type,
       ...Map<String, dynamic>.fromEntries(entries)
     });
@@ -105,11 +105,11 @@ class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
 /// });
 /// ```
 interface class CredentialStatusV1 extends _CredentialStatusV1Interface {
-  /// The URL of unique identifier for the credential status object.
+  /// The URL identifier for the credential status object (required in VCDM v1.1).
   @override
   final Uri id;
 
-  /// The schema type of credential status.
+  /// The type of status mechanism used (required in VCDM v1.1).
   @override
   final String type;
 
