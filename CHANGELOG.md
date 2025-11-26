@@ -24,6 +24,28 @@ Packages with other changes:
  - **FIX**: null safe toJson for credential status id (#224).
  - **FEAT**: add JWK validation against issuer did (#226).
 
+
+## 2025-11-26
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.20.0`](#ssi---v2200)
+
+---
+
+#### `ssi` - `v2.20.0`
+
+ - **FIX**: null safe toJson for credential status id (#224).
+ - **FEAT**: add JWK validation against issuer did (#226).
+
 ## 2.20.0
 
  - **FIX**: null safe toJson for credential status id (#224).
