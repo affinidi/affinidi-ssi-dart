@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import '../../did/did_resolver.dart';
 import '../../did/did_signer.dart';
 import '../../did/did_verifier.dart';
+import '../../did/public_key_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
@@ -144,6 +145,17 @@ final class JwtDm1Suite
       issuerDid: did.toString(),
       didResolver: didResolver,
     );
+
+    // Validate header JWK if present (defense-in-depth)
+    final headerJwk = decodedHeader['jwk'];
+    if (headerJwk != null) {
+      if (!areJwksEqual(headerJwk as Map<String, dynamic>, verifier.jwk)) {
+        throw SsiException(
+          message: 'Header JWK does not match the public key from DID document',
+          code: SsiExceptionType.invalidVC.code,
+        );
+      }
+    }
 
     return verifier.verify(toSign, base64UrlNoPadDecode(encodedSignature));
   }
