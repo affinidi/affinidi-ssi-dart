@@ -16,6 +16,11 @@ class SdJwtDidVerifier implements Verifier {
   /// The underlying DID verifier that performs the actual verification.
   final DidVerifier _delegate;
 
+  /// Gets the JWK used by this verifier.
+  ///
+  /// Returns an unmodifiable copy of the JWK containing the public key information.
+  Map<String, dynamic> get jwk => _delegate.jwk;
+
   /// Private constructor that creates a verifier with the given delegate.
   ///
   /// [_delegate] - The DID verifier to use for verification.
