@@ -134,6 +134,9 @@ final class SdJwtDm2Suite
 
     disclosureFrame ??= _getDefaultDisclosureFrame(payload);
 
+    // Validate that mandatory claims are not made selectively disclosable
+    _validateMandatoryClaims(disclosureFrame, payload);
+
     final jwtSigner = _createSdJwtSigner(signer);
     final handler = SdJwtHandlerV1();
 
@@ -218,6 +221,73 @@ final class SdJwtDm2Suite
       };
     } else {
       return {};
+    }
+  }
+}
+
+/// Validates that mandatory claims are not made selectively disclosable.
+///
+/// According to W3C VC Data Model v2 specification for SD-JWT credentials,
+/// certain fields MUST be disclosed by default and MUST NOT be selectively disclosable:
+/// - @context
+/// - type
+/// - credentialSchema (if present)
+/// - credentialStatus (if present)
+/// - issuer
+///
+/// [disclosureFrame] - The disclosure frame to validate.
+/// [payload] - The credential payload.
+///
+/// Throws [SsiException] if any mandatory claim is found in the disclosure frame.
+void _validateMandatoryClaims(
+    Map<String, dynamic> disclosureFrame, Map<String, dynamic> payload) {
+  // List of mandatory top-level claims that must not be selectively disclosable
+  final mandatoryClaims = ['@context', 'type', 'issuer'];
+
+  // Optional mandatory claims (only mandatory if present in the credential)
+  final optionalMandatoryClaims = ['credentialSchema', 'credentialStatus'];
+
+  // Check top-level _sd array
+  if (disclosureFrame.containsKey('_sd')) {
+    final sdArray = disclosureFrame['_sd'];
+    if (sdArray is List) {
+      // Check for mandatory claims in top-level _sd
+      for (final claim in mandatoryClaims) {
+        if (sdArray.contains(claim)) {
+          throw SsiException(
+            message:
+                'Mandatory claim "$claim" MUST NOT be selectively disclosable',
+            code: SsiExceptionType.invalidVC.code,
+          );
+        }
+      }
+
+      // Check for optional mandatory claims (only if they exist in payload)
+      for (final claim in optionalMandatoryClaims) {
+        if (payload.containsKey(claim) && sdArray.contains(claim)) {
+          throw SsiException(
+            message:
+                'Mandatory claim "$claim" MUST NOT be selectively disclosable when present',
+            code: SsiExceptionType.invalidVC.code,
+          );
+        }
+      }
+    }
+  }
+
+  // Check nested objects for mandatory claims
+  // credentialSchema and credentialStatus must not have any fields selectively disclosed
+  for (final mandatoryField in optionalMandatoryClaims) {
+    if (disclosureFrame.containsKey(mandatoryField) &&
+        payload.containsKey(mandatoryField)) {
+      final fieldFrame = disclosureFrame[mandatoryField];
+      if (fieldFrame is Map<String, dynamic> && fieldFrame.containsKey('_sd')) {
+        throw SsiException(
+          message:
+              'Fields within mandatory claim "$mandatoryField" MUST NOT be selectively disclosable',
+          code: SsiExceptionType.invalidVC.code,
+        );
+      }
     }
   }
 }
