@@ -135,6 +135,10 @@ class RevocationList2020Verifier implements VcVerifier {
 /// credential models and returns a list of [RevocationList2020Status] entries
 /// found in the VC.
 ///
+/// Note: DoS protection via credentialStatus count validation is enforced at
+/// the parsing level (max 5 items for V2 data models). V1 models use a single
+/// credentialStatus object, so no additional validation is needed here.
+///
 /// Returns an empty list if no valid entries are found.
 List getCredentialStatusFromVc(ParsedVerifiableCredential vc) {
   List<Map<String, dynamic>> credentialStatus;

@@ -252,6 +252,7 @@ List<T> parseListOrSingleItem<T>(
   T Function(dynamic) parser, {
   bool allowSingleValue = false,
   bool mandatory = false,
+  int? maxLength,
 }) {
   final jsonValue = json[fieldName];
 
@@ -270,6 +271,13 @@ List<T> parseListOrSingleItem<T>(
     if (jsonValue.isEmpty && mandatory) {
       throw SsiException(
         message: '`$fieldName` property should have at least one value',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (maxLength != null && jsonValue.length > maxLength) {
+      throw SsiException(
+        message: '`$fieldName` property must not exceed $maxLength items',
         code: SsiExceptionType.invalidJson.code,
       );
     }

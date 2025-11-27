@@ -308,7 +308,8 @@ class VcDataModelV2 implements VerifiableCredential {
         json,
         _P.credentialStatus.key,
         (item) => CredentialStatusV2.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+        allowSingleValue: true,
+        maxLength: 5);
 
     final refreshService = parseListOrSingleItem<RefreshServiceV2>(
         json,

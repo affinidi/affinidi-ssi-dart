@@ -195,7 +195,8 @@ class MutableVcDataModelV2 {
         _P.credentialStatus.key,
         (item) =>
             MutableCredentialStatusV2.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+        allowSingleValue: true,
+        maxLength: 5);
 
     final refreshService = parseListOrSingleItem<MutableRefreshServiceV2>(
         json,
