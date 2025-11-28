@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v3.0.2`](#ssi---v302)
+
+---
+
+#### `ssi` - `v3.0.2`
+
+ - **FIX**: changelog entry (#229).
+
+## 3.0.2
+
+ - **FIX**: changelog entry (#229).
+
+
+## 2025-11-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v3.0.1`](#ssi---v301)
 
 ---
