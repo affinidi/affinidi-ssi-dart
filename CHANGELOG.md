@@ -21,13 +21,184 @@ Packages with other changes:
 
 #### `ssi` - `v3.0.0`
 
- - **BREAKING** **FEAT**: W3C compliance and security enhancements for v3.0.0 (#222).
+- **BREAKING**: `VerifiableCredential` MUST exist in VC type field (v1) (#205).
+- **BREAKING**: `VerifiablePresentation` MUST exist in VP type fields (v1 & v2) (#216).
+- **BREAKING**: Data Integrity proofs require proper `@context` entries (VC v2 context OR Data Integrity context) (#198).
+- **BREAKING**: Service types must use `StringServiceType` or `SetServiceType` classes (#208).
+- **BREAKING**: Issuer DID must match proof verificationMethod DID (#199).
+- **BREAKING**: Proof IDs must be unique and non-empty within credentials (#201).
+- **BREAKING**: Proof types cannot be null or empty strings (#202).
+- **BREAKING**: Proof purpose must match document type - VCs use `assertionMethod`, VPs use `authentication` (#214).
+- **BREAKING**: Credentials and presentations must be within their validity period for verification (#206).
+- **BREAKING**: SD-JWT credentials validate exp and nbf claims (#211).
+- **BREAKING**: Stricter proof field structure validation (#204).
+- **FEAT**: automatic nonce generation for data integrity proofs to prevent replay attacks (#215).
+- **FIX**: tests and melos issue (#203).
+- **FIX**: type issues (#218).
 
 ## 3.0.0
 
 > Note: This release has breaking changes.
 
- - **BREAKING** **FEAT**: W3C compliance and security enhancements for v3.0.0 (#222).
+- **BREAKING**: `VerifiableCredential` MUST exist in VC type field (v1) (#205).
+- **BREAKING**: `VerifiablePresentation` MUST exist in VP type fields (v1 & v2) (#216).
+- **BREAKING**: Data Integrity proofs require proper `@context` entries (VC v2 context OR Data Integrity context) (#198).
+- **BREAKING**: Service types must use `StringServiceType` or `SetServiceType` classes (#208).
+- **BREAKING**: Issuer DID must match proof verificationMethod DID (#199).
+- **BREAKING**: Proof IDs must be unique and non-empty within credentials (#201).
+- **BREAKING**: Proof types cannot be null or empty strings (#202).
+- **BREAKING**: Proof purpose must match document type - VCs use `assertionMethod`, VPs use `authentication` (#214).
+- **BREAKING**: Credentials and presentations must be within their validity period for verification (#206).
+- **BREAKING**: SD-JWT credentials validate exp and nbf claims (#211).
+- **BREAKING**: Stricter proof field structure validation (#204).
+- **FEAT**: automatic nonce generation for data integrity proofs to prevent replay attacks (#215).
+- **FIX**: tests and melos issue (#203).
+- **FIX**: type issues (#218).
+
+This major release enforces strict W3C specification compliance and introduces important security enhancements for Verifiable Credentials and Decentralized Identifiers.
+
+### What This Release Provides
+
+- Improved W3C VC Data Model v1.1 and v2.0 compliance
+- Improved W3C Data Integrity specification compliance
+- Enhanced security against fraudulent credentials
+- Temporal validation for credential lifecycle management
+- Stricter proof validation and consistency checks
+- Improved DID service endpoint handling
+- Automatic nonce generation for replay attack prevention
+- Better interoperability with W3C-compliant systems
+
+### Migration Guide
+
+#### Update Credential Types
+
+```dart
+// For Verifiable Credentials (v1)
+final vc = VcDataModelV1(
+  type: {'VerifiableCredential', 'UserCredential'}, // Must include VerifiableCredential
+  // ...
+);
+
+// For Verifiable Presentations (v1 & v2)
+final vp = VpDataModelV1(
+  type: {'VerifiablePresentation', 'CustomPresentation'}, // Must include VerifiablePresentation
+  // ...
+);
+```
+
+#### Update Contexts for Data Integrity
+
+```dart
+final vc = MutableVcDataModelV2(
+  context: [
+    'https://www.w3.org/2018/credentials/v1',
+    'https://w3id.org/security/data-integrity/v2', // Required for Data Integrity proofs
+  ],
+  // ...
+);
+```
+
+#### Update Service Endpoints
+
+```dart
+// Single type
+final service = ServiceEndpoint(
+  id: 'service-1',
+  type: StringServiceType('MessagingService'),
+  serviceEndpoint: 'https://example.com',
+);
+
+// Multiple types
+final service = ServiceEndpoint(
+  id: 'service-2',
+  type: SetServiceType(['MessagingService', 'CredentialRepository']),
+  serviceEndpoint: 'https://example.com',
+);
+```
+
+#### Ensure Proof Consistency
+
+```dart
+// Issuer DID must match verificationMethod DID
+final issuerDid = 'did:example:issuer123';
+final vc = await suite.issue(
+  credential: MutableVcDataModelV1(
+    issuer: Issuer.uri(issuerDid),
+    // ...
+  ),
+  signer: signer, // Must have matching DID
+);
+```
+
+#### Handle Temporal Validation
+
+```dart
+final now = DateTime.now();
+final vc = MutableVcDataModelV2(
+  issuanceDate: now,
+  expirationDate: now.add(Duration(days: 365)),
+  // ...
+);
+
+// Verification will fail if outside validity period
+final result = await verifier.verify(credential);
+```
+
+### Common Issues and Solutions
+
+**Issue 1: "proof type is required and cannot be empty"**
+
+- Solution: Ensure all proofs have a valid, non-empty type string
+
+**Issue 2: "invalid proof purpose, expected assertionMethod/authentication"**
+
+- Solution: VCs should use `assertionMethod`, VPs should use `authentication`
+
+**Issue 3: "Missing required context"**
+
+- Solution: Add Data Integrity context when using Data Integrity proof types
+
+**Issue 4: "VerifiableCredential/VerifiablePresentation must exist in type"**
+
+- Solution: Include the base type in your type array
+
+**Issue 5: "Service type must use StringServiceType or SetServiceType"**
+
+- Solution: Wrap service type strings in `StringServiceType()` or `SetServiceType()`
+
+**Issue 6: "Credential has expired"**
+
+- Solution: Ensure credentials are within their validity period, or reissue expired credentials
+
+**Issue 1: "proof type is required and cannot be empty"**
+
+- Solution: Ensure all proofs have a valid, non-empty type string
+
+**Issue 2: "invalid proof purpose, expected assertionMethod/authentication"**
+
+- Solution: VCs should use `assertionMethod`, VPs should use `authentication`
+
+**Issue 3: "Missing required context"**
+
+- Solution: Add Data Integrity context when using Data Integrity proof types
+
+**Issue 4: "VerifiableCredential/VerifiablePresentation must exist in type"**
+
+- Solution: Include the base type in your type array
+
+**Issue 5: "Service type must use StringServiceType or SetServiceType"**
+
+- Solution: Wrap service type strings in `StringServiceType()` or `SetServiceType()`
+
+**Issue 6: "Credential has expired"**
+
+- Solution: Ensure credentials are within their validity period, or reissue expired credentials
+
+### Additional Resources
+
+- [W3C Verifiable Credentials Data Model v1.1](https://www.w3.org/TR/vc-data-model/)
+- [W3C Verifiable Credentials Data Model v2.0](https://www.w3.org/TR/vc-data-model-2.0/)
+- [W3C Data Integrity](https://www.w3.org/TR/vc-data-integrity/)
 
 
 ## 2025-11-26
