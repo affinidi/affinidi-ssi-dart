@@ -11,6 +11,31 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Packages with breaking changes:
 
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.0.1`](#ssi---v301)
+
+---
+
+#### `ssi` - `v3.0.1`
+
+ - **FIX**: updated changelog entry for v3 (#228).
+
+## 3.0.1
+
+ - **FIX**: updated changelog entry for v3 (#228).
+
+
+## 2025-11-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
  - [`ssi` - `v3.0.0`](#ssi---v300)
 
 Packages with other changes:
