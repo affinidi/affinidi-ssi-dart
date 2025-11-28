@@ -116,7 +116,8 @@ void main() {
 
         test('it retrieves correct service', () {
           expect(didDoc.service[0].id, 'did:web:example.com#service');
-          expect(didDoc.service[0].type, 'GenericService');
+          expect(didDoc.service[0].type,
+              const StringServiceType('GenericService'));
         });
 
         test('it retrieves correct context', () {
@@ -165,22 +166,23 @@ void main() {
       });
 
       test('it retrieves correct type', () {
-        expect(serviceEndpoint.type, 'GenericService');
+        expect(serviceEndpoint.type, const StringServiceType('GenericService'));
       });
 
       test('it handles lists with one element for type', () {
         final serviceEndpoint = ServiceEndpoint.fromJson(
             DidDocumentFixtures.serviceEndpointTypeListOneElement);
 
-        expect(serviceEndpoint.type, 'DIDCommMessaging');
+        expect(
+            serviceEndpoint.type, const StringServiceType('DIDCommMessaging'));
       });
 
-      test('it throws an error for lists with two elements for type', () {
-        expect(
-            () => ServiceEndpoint.fromJson(
-                  DidDocumentFixtures.serviceEndpointTypeListTwoElement,
-                ),
-            throwsFormatException);
+      test('it handles lists with two elements for type', () {
+        final serviceEndpoint = ServiceEndpoint.fromJson(
+            DidDocumentFixtures.serviceEndpointTypeListTwoElement);
+
+        expect(serviceEndpoint.type,
+            const SetServiceType(['DIDCommMessaging', 'two']));
       });
 
       test('it retrieves correct service endpoint', () {
@@ -319,7 +321,7 @@ void main() {
         },
       });
       expect(se.id, 'i');
-      expect(se.type, 't');
+      expect(se.type, const StringServiceType('t'));
       expect(se.serviceEndpoint, isA<MapEndpoint>());
 
       final mapEndpoint = se.serviceEndpoint as MapEndpoint;
@@ -328,7 +330,7 @@ void main() {
     test('toString returns json string', () {
       final se = ServiceEndpoint(
         id: 'id',
-        type: 'type',
+        type: const StringServiceType('type'),
         serviceEndpoint: const MapEndpoint({
           'accept': ['a'],
           'routingKeys': <String>[],
@@ -345,7 +347,7 @@ void main() {
         'serviceEndpoint': 'https://example.com',
       });
       expect(se.id, 'service1');
-      expect(se.type, 'LinkedDomains');
+      expect(se.type, const StringServiceType('LinkedDomains'));
       expect(se.serviceEndpoint, isA<StringEndpoint>());
 
       final stringEndpoint = se.serviceEndpoint as StringEndpoint;
@@ -365,7 +367,7 @@ void main() {
         ],
       });
       expect(se.id, 'service2');
-      expect(se.type, 'ExampleService');
+      expect(se.type, const StringServiceType('ExampleService'));
       expect(se.serviceEndpoint, isA<SetEndpoint>());
 
       final setEndpoint = se.serviceEndpoint as SetEndpoint;
@@ -381,9 +383,116 @@ void main() {
         'serviceEndpoint': 'https://warbler.example/sal674',
       });
 
-      expect(se.type, 'https://social.example/ExampleSocialMediaService');
+      expect(
+          se.type,
+          const StringServiceType(
+              'https://social.example/ExampleSocialMediaService'));
       expect((se.serviceEndpoint as StringEndpoint).url,
           'https://warbler.example/sal674');
+    });
+
+    test('accepts list of strings for type', () {
+      final se = ServiceEndpoint.fromJson({
+        'id': 'service3',
+        'type': ['LinkedDomains', 'CredentialRegistry'],
+        'serviceEndpoint': 'https://example.com',
+      });
+
+      expect(se.type,
+          const SetServiceType(['LinkedDomains', 'CredentialRegistry']));
+      expect(se.serviceEndpoint, isA<StringEndpoint>());
+    });
+
+    test('serializes list of strings for type correctly', () {
+      final se = ServiceEndpoint(
+        id: 'service4',
+        type: const SetServiceType(['Type1', 'Type2']),
+        serviceEndpoint: const StringEndpoint('https://example.com'),
+      );
+
+      final json = se.toJson();
+      expect(json['type'], ['Type1', 'Type2']);
+      expect(json['id'], 'service4');
+      expect(json['serviceEndpoint'], 'https://example.com');
+    });
+
+    test('throws FormatException when type is a number', () {
+      expect(
+        () => ServiceEndpoint.fromJson({
+          'id': 'service5',
+          'type': 123,
+          'serviceEndpoint': 'https://example.com',
+        }),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('Service type must be a string or a list of strings'),
+          ),
+        ),
+      );
+    });
+
+    test('throws FormatException when type is an object', () {
+      expect(
+        () => ServiceEndpoint.fromJson({
+          'id': 'service6',
+          'type': {'invalid': 'object'},
+          'serviceEndpoint': 'https://example.com',
+        }),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('Service type must be a string or a list of strings'),
+          ),
+        ),
+      );
+    });
+
+    test('throws FormatException when type is a boolean', () {
+      expect(
+        () => ServiceEndpoint.fromJson({
+          'id': 'service7',
+          'type': true,
+          'serviceEndpoint': 'https://example.com',
+        }),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('Service type must be a string or a list of strings'),
+          ),
+        ),
+      );
+    });
+
+    test('throws FormatException when type is null', () {
+      expect(
+        () => ServiceEndpoint.fromJson({
+          'id': 'service8',
+          'type': null,
+          'serviceEndpoint': 'https://example.com',
+        }),
+        throwsA(
+          isA<FormatException>().having(
+            (e) => e.message,
+            'message',
+            contains('Service type must be a string or a list of strings'),
+          ),
+        ),
+      );
+    });
+
+    test('throws TypeError when type is a list with non-strings', () {
+      expect(
+        () => ServiceEndpoint.fromJson({
+          'id': 'service9',
+          'type': [1, 2, 3],
+          'serviceEndpoint': 'https://example.com',
+        }),
+        throwsA(isA<TypeError>()),
+      );
     });
   });
 }

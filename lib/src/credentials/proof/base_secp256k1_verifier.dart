@@ -11,6 +11,7 @@ import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'embedded_proof_suite.dart';
+import 'proof_validation_utils.dart';
 
 /// Base class for SECP256K1 signature verifiers.
 abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
@@ -58,6 +59,11 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
     final validationResult = _validateProofStructure(proof);
     if (!validationResult.isValid) {
       return validationResult;
+    }
+
+    final proofPurposeValidation = _validateProofPurpose(document, proof);
+    if (!proofPurposeValidation.isValid) {
+      return proofPurposeValidation;
     }
 
     final expiryResult = _validateExpiry(proof, getNow());
@@ -120,13 +126,20 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    if (proof['type'] != expectedProofType) {
-      return VerificationResult.invalid(
-        errors: ['invalid proof type, expected $expectedProofType'],
-      );
-    }
+    return ProofValidationUtils.validateProofTypeStructure(
+      proof,
+      expectedProofType,
+    );
+  }
 
-    return VerificationResult.ok();
+  VerificationResult _validateProofPurpose(
+      Map<String, dynamic> document, Map<String, dynamic> proof) {
+    final actualProofPurpose = proof['proofPurpose'];
+    final docType = document['type'];
+    return ProofValidationUtils.validateProofPurpose(
+      actualProofPurpose,
+      docType,
+    );
   }
 
   VerificationResult _validateExpiry(Map<String, dynamic> proof, DateTime now) {

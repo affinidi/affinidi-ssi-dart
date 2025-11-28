@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 
 import '../../../did/did_signer.dart';
@@ -16,7 +17,6 @@ Future<void> main() async {
 
   // Load example credentials (LD VC V1 + LD VC V2 + SD-JWT V2)
   final ldV1VC = UniversalParser.parse(v1VcString);
-
   final ldV2VC = UniversalParser.parse(v2VcString);
 
   // SD-JWT VCs are automatically enveloped when added to V2 presentations
@@ -38,7 +38,7 @@ Future<void> main() async {
   // ✗ NOT Supported: JWT VCs (JwtVcDataModelV1) - causes JSON-LD context conflicts
   //                  Use V1 presentations (VpDataModelV1) for JWT VCs instead
   final v2Vp = MutableVpDataModelV2(
-      context: [dmV2ContextUrl],
+      context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
       id: Uri.parse('testVpV2'),
       type: {'VerifiablePresentation'},
       holder: MutableHolder.uri(signer.did),
@@ -47,6 +47,7 @@ Future<void> main() async {
   // create a proof Generator
   final proofGenerator = Secp256k1Signature2019Generator(
     signer: signer,
+    proofPurpose: ProofPurpose.authentication,
   );
 
   // Issue the VP using the V2 suite
@@ -60,6 +61,7 @@ Future<void> main() async {
 
 const v1VcString =
     '{"@context":["https://www.w3.org/2018/credentials/v1","https://schema.affinidi.com/UserProfileV1-0.jsonld"],"issuer":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","type":["VerifiableCredential","UserProfile"],"id":"uuid:123456abcd","credentialSchema":{"id":"https://schema.affinidi.com/UserProfileV1-0.json","type":"JsonSchemaValidator2018"},"issuanceDate":"2025-04-22T11:23:37.513399","expirationDate":"2026-04-22T11:23:37.513400","credentialSubject":{"Fname":"Fname","Lname":"Lame","Age":"22","Address":"Eihhornstr"},"holder":{"id":"did:example:1"},"proof":{"type":"EcdsaSecp256k1Signature2019","proofPurpose":"assertionMethod","verificationMethod":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","created":"2025-04-22T11:23:37.514746","jws":"eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..CcRHMEsMLurFKqpGlX7RwncS1e5GKwJPaKdJGeyK_yEoSiWJKekboeWnOcCuH3QJE-8rMsCdmcNmR1UyXucA_Q"}}';
+
 const v2VcString =
     '{"@context":["https://www.w3.org/ns/credentials/v2","https://schema.affinidi.com/UserProfileV1-0.jsonld"],"issuer":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","type":["VerifiableCredential","UserProfile"],"id":"uuid:123456abcd","credentialSchema":{"id":"https://schema.affinidi.com/UserProfileV1-0.json","type":"JsonSchemaValidator2018"},"validFrom":"2025-04-22T11:40:21.359650","validUntil":"2026-04-22T11:40:21.359650","credentialSubject":{"Fname":"Fname","Lname":"Lame","Age":"22","Address":"Eihhornstr"},"proof":{"type":"EcdsaSecp256k1Signature2019","proofPurpose":"assertionMethod","verificationMethod":"did:key:zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2#zQ3shd83o9cAdtd5SFF8epKAqDBpMV3x9f3sbv4mMPV8uaDC2","created":"2025-04-22T11:40:21.361346","jws":"eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..wogMzfg-au-YTXTEZHv6uOiKYO7DxF4eAl1zoN1gwh5qk_OfvK4wniG3k0PiYA7jQZV-HBUBAdhCAhTbn3Zw3A"}}';
 

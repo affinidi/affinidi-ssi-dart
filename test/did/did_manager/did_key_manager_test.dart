@@ -234,7 +234,7 @@ void main() {
         // Arrange
         final endpoint = ServiceEndpoint(
           id: '#service-1',
-          type: 'MessagingService',
+          type: const StringServiceType('MessagingService'),
           serviceEndpoint: const StringEndpoint('https://example.com'),
         );
 

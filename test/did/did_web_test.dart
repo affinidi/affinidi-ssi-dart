@@ -243,7 +243,7 @@ void main() {
       final vmId = '$did#key-1';
       final serviceEndpoint = ServiceEndpoint(
         id: '$did#linked-domain',
-        type: 'LinkedDomains',
+        type: const StringServiceType('LinkedDomains'),
         serviceEndpoint: const StringEndpoint('https://example.com/'),
       );
 
@@ -259,7 +259,7 @@ void main() {
 
       expect(doc.service.length, equals(1));
       expect(doc.service.first.id, equals('$did#linked-domain'));
-      expect(doc.service.first.type, equals('LinkedDomains'));
+      expect(doc.service.first.type, const StringServiceType('LinkedDomains'));
     });
 
     test('generates DID document with multiple service endpoints', () {
@@ -268,12 +268,12 @@ void main() {
       final services = [
         ServiceEndpoint(
           id: '$did#linked-domain',
-          type: 'LinkedDomains',
+          type: const StringServiceType('LinkedDomains'),
           serviceEndpoint: const StringEndpoint('https://example.com/'),
         ),
         ServiceEndpoint(
           id: '$did#didcomm',
-          type: 'DIDCommMessaging',
+          type: const StringServiceType('DIDCommMessaging'),
           serviceEndpoint: const StringEndpoint('https://example.com/didcomm'),
         ),
       ];
@@ -289,8 +289,8 @@ void main() {
       );
 
       expect(doc.service.length, equals(2));
-      expect(doc.service[0].type, equals('LinkedDomains'));
-      expect(doc.service[1].type, equals('DIDCommMessaging'));
+      expect(doc.service[0].type, const StringServiceType('LinkedDomains'));
+      expect(doc.service[1].type, const StringServiceType('DIDCommMessaging'));
     });
 
     test('generates DID document for domain with port', () {

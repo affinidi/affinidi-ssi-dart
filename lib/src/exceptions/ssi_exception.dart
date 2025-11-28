@@ -15,4 +15,13 @@ class SsiException implements Exception {
     required this.code,
     this.originalMessage,
   });
+
+  @override
+  String toString() {
+    var result = 'SsiException: $message (code: $code)';
+    if (originalMessage != null) {
+      result += ' [original: $originalMessage]';
+    }
+    return result;
+  }
 }

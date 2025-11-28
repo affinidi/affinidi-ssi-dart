@@ -211,5 +211,67 @@ void main() {
               '${SsiExceptionType.invalidVC.code} for status urn:uuid:revocation-list-1'));
       expect(result.warnings, isEmpty);
     });
+
+    test(
+        'Should fail parsing V2 credential with more than 5 credentialStatus items',
+        () {
+      final statusList = List.generate(
+        6,
+        (i) => {
+          'id': 'urn:uuid:revocation-list-$i',
+          'type': 'RevocationList2020Status',
+          'revocationListIndex': '$i',
+          'revocationListCredential':
+              'https://example.edu/status/revocation-list',
+        },
+      );
+
+      final vcJson = {
+        '@context': [dmV2ContextUrl],
+        'id': 'urn:uuid:test-credential',
+        'type': ['VerifiableCredential'],
+        'issuer': {'id': 'did:example:issuer'},
+        'validFrom': DateTime.now().toIso8601String(),
+        'credentialSubject': {'id': 'did:example:subject'},
+        'credentialStatus': statusList,
+      };
+
+      // Test parsing directly with VcDataModelV2 - this is where the validation happens
+      expect(
+        () => VcDataModelV2.fromJson(vcJson),
+        throwsA(predicate((e) =>
+            e is SsiException &&
+            e.code == SsiExceptionType.invalidJson.code &&
+            e.message.contains('must not exceed 5 items'))),
+      );
+    });
+
+    test('Should accept V2 credential with exactly 5 credentialStatus items',
+        () {
+      final statusList = List.generate(
+        5,
+        (i) => {
+          'id': 'urn:uuid:revocation-list-$i',
+          'type': 'RevocationList2020Status',
+          'revocationListIndex': '$i',
+          'revocationListCredential':
+              'https://example.edu/status/revocation-list',
+        },
+      );
+
+      final vcJson = {
+        '@context': [dmV2ContextUrl],
+        'id': 'urn:uuid:test-credential',
+        'type': ['VerifiableCredential'],
+        'issuer': {'id': 'did:example:issuer'},
+        'validFrom': DateTime.now().toIso8601String(),
+        'credentialSubject': {'id': 'did:example:subject'},
+        'credentialStatus': statusList,
+      };
+
+      // Test parsing directly with VcDataModelV2 - this should succeed
+      final vc = VcDataModelV2.fromJson(vcJson);
+      expect(vc.credentialStatus.length, 5);
+    });
   });
 }

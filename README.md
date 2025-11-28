@@ -61,6 +61,28 @@ This package supports the following key management solutions for securely managi
 
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/wallet) to learn how to create different wallets.
 
+## Data Integrity Context Requirements
+
+### Ordering and Mixing Guidance
+
+When using `VcDataModelV1` the first `@context` entry MUST be `https://www.w3.org/2018/credentials/v1`. Do not prepend other contexts before it.
+
+For Data Integrity proofs with `VcDataModelV1`, include either:
+
+- `https://w3id.org/security/data-integrity/v2` or `https://w3id.org/security/data-integrity/v1`, after the VC v1 context; OR
+- Switch entirely to the new `VcDataModelV2` implementation.
+
+Place application or schema contexts after the required standard contexts.
+
+When issuing Data Integrity proofs (RDFC or JCS cryptosuites) for Verifiable Credentials using this package, the credential's `@context` MUST include either:
+
+- `https://www.w3.org/ns/credentials/v2` (which implicitly includes the Data Integrity definitions), OR
+- `https://w3id.org/security/data-integrity/v2` (or the legacy `https://w3id.org/security/data-integrity/v1`), in addition to any other application-specific contexts.
+
+If neither the VC v2 context nor a Data Integrity context is present, issuance will throw an `SsiException` with code `invalid_context`.
+
+This enforcement helps ensure canonicalization security and aligns with W3C Data Integrity specifications.
+
 ## Credential Data Models
 
 The package supports the following Credential Models to create Verifiable Credentials (VCs) and Verifiable Presentations (VPs).
@@ -156,34 +178,6 @@ The DID Manager manages the relationship between DID methods and key pairs from 
 The introduction of the DID Manager simplifies DID management by shifting DID-related operations from the Wallet to the DID Manager, including signing and verifying data using the keys mapped in the DID document.
 
 Each DID method extends the base class [`DidManager`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_manager/did_manager.dart) to inherit the functionality to manage the supported DIDs.
-
-## Custom DID Resolver
-
-The package supports custom DID resolvers for advanced use cases where you need to customize how DID documents are resolved during credential verification. This is useful for:
-
-- **Caching strategies** - Cache resolved DID documents to reduce network calls
-- **Logging and monitoring** - Track which DIDs are being resolved
-- **Custom DID methods** - Support private or custom DID methods
-- **Offline operation** - Use pre-fetched DID documents without network access
-
-For a complete example with multiple resolver implementations, see [custom_did_resolver_verification.dart](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/custom_did_resolver_verification.dart).
-
-### Custom DID Resolver vs Custom Document Loader
-
-The package supports two different customization points that serve distinct purposes:
-
-- **Custom DID Resolver** (`didResolver`) - Resolves DID identifiers to DID Documents during signature verification. Use this to customize how DIDs (like `did:key:z123...`) are resolved to their corresponding public keys.
-
-- **Custom Document Loader** (`customDocumentLoader`) - Loads JSON-LD context documents during JSON-LD processing and canonicalization. Use this to customize how JSON-LD contexts (like `https://www.w3.org/2018/credentials/v1`) are loaded.
-
-Both can be used independently or together:
-
-```dart
-final verifier = VcIntegrityVerifier(
-  didResolver: myCustomResolver,           // For DID resolution
-  customDocumentLoader: myDocumentLoader,  // For JSON-LD contexts
-);
-```
 
 ## Ed25519/X25519 Key Derivation
 

@@ -62,18 +62,18 @@ List<String> getStringList(
 }) {
   final fieldExists = json.containsKey(fieldName);
 
-  if (!fieldExists && !mandatory) {
+  if (!fieldExists) {
+    if (mandatory) {
+      throw SsiException(
+        message: '`$fieldName` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
     return [];
   }
 
-  if (!fieldExists && mandatory) {
-    throw SsiException(
-      message: '`$fieldName` property is mandatory',
-      code: SsiExceptionType.invalidJson.code,
-    );
-  }
-
   final jsonValue = json[fieldName];
+
   switch (jsonValue) {
     case String s:
       if (!allowSingleValue) {
@@ -91,7 +91,28 @@ List<String> getStringList(
           code: SsiExceptionType.invalidJson.code,
         );
       }
-      return l.map((e) => e as String).toList(growable: true);
+
+      if (l.every((e) => e is String)) {
+        return l.cast<String>().toList(growable: true);
+      }
+
+      if (fieldName == '@context') {
+        return l.whereType<String>().toList(growable: true);
+      }
+
+      throw SsiException(
+        message: '`$fieldName` must be a list of strings',
+        code: SsiExceptionType.invalidJson.code,
+      );
+
+    case Map<String, dynamic> _:
+      if (fieldName == '@context') {
+        return <String>[];
+      }
+      throw SsiException(
+        message: '`$fieldName` must be a list or an individual string',
+        code: SsiExceptionType.invalidJson.code,
+      );
 
     default:
       throw SsiException(
@@ -231,6 +252,7 @@ List<T> parseListOrSingleItem<T>(
   T Function(dynamic) parser, {
   bool allowSingleValue = false,
   bool mandatory = false,
+  int? maxLength,
 }) {
   final jsonValue = json[fieldName];
 
@@ -249,6 +271,13 @@ List<T> parseListOrSingleItem<T>(
     if (jsonValue.isEmpty && mandatory) {
       throw SsiException(
         message: '`$fieldName` property should have at least one value',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (maxLength != null && jsonValue.length > maxLength) {
+      throw SsiException(
+        message: '`$fieldName` property must not exceed $maxLength items',
         code: SsiExceptionType.invalidJson.code,
       );
     }

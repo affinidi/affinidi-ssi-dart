@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
+import '../../../models/field_types/context.dart';
 import '../vc_parse_present.dart';
 
 part 'mutable_vp_data_model_v2.dart';
@@ -27,7 +28,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
-  final UnmodifiableListView<String> context;
+  final JsonLdContext context;
 
   /// The optional identifier for this presentation.
   @override
@@ -61,7 +62,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json[_P.context.key] = context;
+    json[_P.context.key] = context.toJson();
     json[_P.id.key] = id?.toString();
     json[_P.type.key] = type.toList();
     json[_P.holder.key] = holder.toJson();
@@ -76,7 +77,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   /// Validates the essential Verifiable Presentation properties (`context`, `type`).
   ///
   /// Ensures [context] is not empty and starts with [dmV2ContextUrl],
-  /// and that [type] is not empty.
+  /// and that [type] is not empty and MUST contain 'VerifiablePresentation'.
   ///
   /// Also validates that all verifiable credentials are compatible with V2 presentations:
   /// - SD-JWT VCs are supported (automatically enveloped per W3C spec)
@@ -85,14 +86,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
-    if (context.isEmpty) {
-      throw SsiException(
-        message: '`${_P.context.key}` property is mandatory',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
-
-    if (context.first != dmV2ContextUrl) {
+    if (context.firstUri.toString() != dmV2ContextUrl) {
       throw SsiException(
         message:
             'The first URI of `${_P.context.key}` property should always be $dmV2ContextUrl',
@@ -103,6 +97,25 @@ class VpDataModelV2 implements VerifiablePresentation {
     if (type.isEmpty) {
       throw SsiException(
         message: '`${_P.type.key}` property is mandatory',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    final hasVerifiablePresentation = type.any(
+      (t) => t.trim() == 'VerifiablePresentation',
+    );
+
+    if (!hasVerifiablePresentation) {
+      throw SsiException(
+        message:
+            '`${_P.type.key}` MUST include the value "VerifiablePresentation" per VC Data Model v2.0.',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (proof.length > 1) {
+      throw SsiException(
+        message: 'Multiple proofs are not supported',
         code: SsiExceptionType.invalidJson.code,
       );
     }
@@ -146,15 +159,14 @@ class VpDataModelV2 implements VerifiablePresentation {
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
   VpDataModelV2(
-      {required List<String> context,
+      {required this.context,
       this.id,
       required Set<String> type,
       required this.holder,
       required List<ParsedVerifiableCredential> verifiableCredential,
       required List<EmbeddedProof> proof,
       List<TermsOfUse>? termsOfUse})
-      : context = UnmodifiableListView(context),
-        type = UnmodifiableSetView(type),
+      : type = UnmodifiableSetView(type),
         verifiableCredential = UnmodifiableListView(verifiableCredential),
         proof = UnmodifiableListView(proof),
         termsOfUse = UnmodifiableListView(termsOfUse ?? []) {
@@ -168,7 +180,7 @@ class VpDataModelV2 implements VerifiablePresentation {
   factory VpDataModelV2.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getStringList(json, _P.context.key, mandatory: true);
+    final context = JsonLdContext.fromJson(json[_P.context.key]);
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(

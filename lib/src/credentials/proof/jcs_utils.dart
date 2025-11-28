@@ -177,6 +177,7 @@ class JcsUtils {
     DateTime? expires,
     String? challenge,
     List<String>? domain,
+    String? nonce,
   }) {
     final proof = <String, dynamic>{
       'type': dataIntegrityType,
@@ -184,6 +185,7 @@ class JcsUtils {
       'created': created.toIso8601String(),
       'verificationMethod': verificationMethod,
       'proofPurpose': proofPurpose,
+      'nonce': nonce,
     };
 
     // Only add optional fields if they have values
@@ -199,6 +201,9 @@ class JcsUtils {
       } else if (domain.isNotEmpty) {
         proof['domain'] = domain;
       }
+    }
+    if (nonce != null) {
+      proof['nonce'] = nonce;
     }
 
     return proof;

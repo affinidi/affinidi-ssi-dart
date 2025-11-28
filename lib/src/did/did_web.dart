@@ -1,9 +1,9 @@
 import 'package:http/http.dart';
 
+import '../credentials/models/field_types/context.dart';
 import '../did/public_key_utils.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
-import '../json_ld/context.dart';
 import '../key_pair/public_key.dart';
 import 'did_document/index.dart';
 import 'did_manager/verification_relationship.dart';
@@ -52,7 +52,7 @@ class DidWeb {
     }
 
     return DidDocument.create(
-      context: Context.fromJson(context),
+      context: JsonLdContext.fromJson(context),
       id: did,
       verificationMethod: vms,
       authentication:

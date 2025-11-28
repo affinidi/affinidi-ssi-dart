@@ -36,6 +36,9 @@ enum SsiExceptionType {
   /// The vc is invalid
   invalidVC(code: 'invalid_vc'),
 
+  /// The JSON-LD @context for issuance/verification is invalid or missing required entries
+  invalidContext(code: 'invalid_context'),
+
   /// The encoding can't be parsed
   invalidEncoding(code: 'invalid_encoding'),
 
@@ -71,6 +74,9 @@ enum SsiExceptionType {
 
   /// Revocation index out of bounds
   revocationIndexOutOfBounds(code: 'revocation_index_out_of_bounds'),
+
+  /// Revocation index out of bounds
+  unsupportedContext(code: 'unsupported_context'),
 
   /// An unknown error has occurred.
   other(code: 'other'),

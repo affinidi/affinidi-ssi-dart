@@ -59,7 +59,8 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     if (!data.containsKey(proofKey)) return false;
 
     final context = data[contextKey];
-    return (context is List) && context.contains(contextUrl);
+    return (context is List) && context.contains(contextUrl) ||
+        (context is String) && context == contextUrl;
   }
 
   /// Checks if the given [input] can be parsed.
@@ -152,11 +153,25 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     }
 
     final proofType = proof['type'] as String?;
-    if (proofType == null) {
+    if (proofType == null || proofType.isEmpty) {
       return null;
     }
 
     final issuerDid = Issuer.uri(document[issuerKey]).id.toString();
+
+    final vm = proof['verificationMethod'] as String?;
+    if (vm == null) {
+      return null;
+    }
+    final vmDid = vm.split('#').first;
+    if (vmDid != issuerDid) {
+      throw SsiException(
+        message:
+            'Issuer mismatch: issuer DID and proof.verificationMethod DID differ',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
     final loader = customDocumentLoader ?? _noOpLoader;
     switch (proofType) {
       case 'DataIntegrityProof':
