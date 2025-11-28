@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-11-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - [`ssi` - `v3.0.0`](#ssi---v300)
+
+Packages with other changes:
+
+ - There are no other changes in this release.
+
+---
+
+#### `ssi` - `v3.0.0`
+
+ - **BREAKING** **FEAT**: W3C compliance and security enhancements for v3.0.0 (#222).
+
+## 3.0.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: W3C compliance and security enhancements for v3.0.0 (#222).
+
+
 ## 2025-11-26
 
 ### Changes
