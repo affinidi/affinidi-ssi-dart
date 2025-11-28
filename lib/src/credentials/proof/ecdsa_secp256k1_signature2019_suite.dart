@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
 
 import '../../did/did_signer.dart';
+import '../../exceptions/json_ld_exception.dart';
 import '../../util/base64_util.dart';
 import 'base_secp256k1_verifier.dart';
 import 'embedded_proof.dart';
@@ -38,37 +41,49 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
   /// Generates an [EmbeddedProof] for the given [document].
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
-    final created = DateTime.now();
-    final proof = {
-      '@context': _securityContext,
-      'type': _signatureType,
-      'created': created.toIso8601String(),
-      'verificationMethod': signer.keyId,
-      'proofPurpose': proofPurpose?.value,
-      'expires': expires?.toIso8601String(),
-      'challenge': challenge,
-      'domain': domain,
-    };
+    try {
+      final created = DateTime.now();
+      final proof = {
+        '@context': _securityContext,
+        'type': _signatureType,
+        'created': created.toIso8601String(),
+        'verificationMethod': signer.keyId,
+        'proofPurpose': proofPurpose?.value,
+        'expires': expires?.toIso8601String(),
+        'challenge': challenge,
+        'domain': domain,
+      };
 
-    document.remove('proof');
+      document.remove('proof');
 
-    final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-    final jws = await computeVcHash(proof, document, cacheLoadDocument).then(
-      (hash) => _computeJws(hash, signer),
-    );
+      final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
+      final jws = await computeVcHash(proof, document, cacheLoadDocument).then(
+        (hash) => _computeJws(hash, signer),
+      );
 
-    proof.remove('@context');
-    proof['jws'] = jws;
+      proof.remove('@context');
+      proof['jws'] = jws;
 
-    return EcdsaSecp256k1Signature2019Proof(
-        type: 'EcdsaSecp256k1Signature2019',
-        created: created,
-        verificationMethod: signer.keyId,
-        proofPurpose: proofPurpose?.value,
-        jws: jws,
-        expires: expires,
-        challenge: challenge,
-        domain: domain);
+      return EcdsaSecp256k1Signature2019Proof(
+          type: 'EcdsaSecp256k1Signature2019',
+          created: created,
+          verificationMethod: signer.keyId,
+          proofPurpose: proofPurpose?.value,
+          jws: jws,
+          expires: expires,
+          challenge: challenge,
+          domain: domain);
+    } on RemoteContextLoadException {
+      rethrow;
+    } on JsonLdException {
+      rethrow;
+    } catch (e) {
+      throw JsonLdException(
+        message: 'Unexpected error during proof generation',
+        operation: 'generate_proof',
+        cause: e,
+      );
+    }
   }
 
   static Future<String> _computeJws(
@@ -110,7 +125,41 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
           return Future.value(RemoteDocument(document: custom));
         }
 
-        return loadDocument(url, options);
+        try {
+          return await loadDocument(url, options);
+        } on SocketException catch (e) {
+          throw RemoteContextLoadException(
+            uri: url,
+            cause: 'Network error: ${e.message}',
+          );
+        } on HttpException catch (e) {
+          throw RemoteContextLoadException(
+            uri: url,
+            cause: 'HTTP error: ${e.message}',
+          );
+        } on TimeoutException catch (e) {
+          throw RemoteContextLoadException(
+            uri: url,
+            cause: 'Timeout: ${e.message ?? "Request timed out"}',
+          );
+        } on FormatException catch (e) {
+          throw RemoteContextLoadException(
+            uri: url,
+            cause: 'Invalid JSON response: ${e.message}',
+          );
+        } catch (e) {
+          // Catch any other errors including JsonLdError from the processor
+          if (e.toString().contains('loading remote context failed')) {
+            throw RemoteContextLoadException(
+              uri: url,
+              cause: e.toString(),
+            );
+          }
+          throw RemoteContextLoadException(
+            uri: url,
+            cause: e,
+          );
+        }
       };
 
   static final _documentCache = <Uri, RemoteDocument>{

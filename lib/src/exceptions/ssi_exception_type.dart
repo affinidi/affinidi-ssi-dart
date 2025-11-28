@@ -78,6 +78,9 @@ enum SsiExceptionType {
   /// Revocation index out of bounds
   unsupportedContext(code: 'unsupported_context'),
 
+  /// JSON-LD processing error
+  jsonLdProcessing(code: 'json_ld_processing_error'),
+
   /// An unknown error has occurred.
   other(code: 'other'),
   ;

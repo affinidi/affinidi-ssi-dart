@@ -22,6 +22,7 @@ export 'src/did/stores/did_store_interface.dart';
 export 'src/did/stores/in_memory_did_store.dart';
 export 'src/did/universal_did_resolver.dart';
 export 'src/did/verifier.dart';
+export 'src/exceptions/json_ld_exception.dart';
 export 'src/exceptions/ssi_exception.dart';
 export 'src/exceptions/ssi_exception_type.dart';
 export 'src/key_pair/ed25519_key_pair.dart';
