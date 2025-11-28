@@ -195,29 +195,9 @@ final result = await verifier.verify(credential);
 
 - Solution: Ensure credentials are within their validity period, or reissue expired credentials
 
-**Issue 1: "proof type is required and cannot be empty"**
+**Issue 7: "`credentialStatus` property must not exceed 5 items"**
 
-- Solution: Ensure all proofs have a valid, non-empty type string
-
-**Issue 2: "invalid proof purpose, expected assertionMethod/authentication"**
-
-- Solution: VCs should use `assertionMethod`, VPs should use `authentication`
-
-**Issue 3: "Missing required context"**
-
-- Solution: Add Data Integrity context when using Data Integrity proof types
-
-**Issue 4: "VerifiableCredential/VerifiablePresentation must exist in type"**
-
-- Solution: Include the base type in your type array
-
-**Issue 5: "Service type must use StringServiceType or SetServiceType"**
-
-- Solution: Wrap service type strings in `StringServiceType()` or `SetServiceType()`
-
-**Issue 6: "Credential has expired"**
-
-- Solution: Ensure credentials are within their validity period, or reissue expired credentials
+- Solution: V2 credentials can have a maximum of 5 credentialStatus entries; reduce the number of status items
 
 ### Additional Resources
 
