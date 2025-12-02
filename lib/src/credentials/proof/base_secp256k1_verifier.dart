@@ -63,15 +63,15 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
         return validationResult;
       }
 
-    final proofPurposeValidation = _validateProofPurpose(document, proof);
-    if (!proofPurposeValidation.isValid) {
-      return proofPurposeValidation;
-    }
+      final proofPurposeValidation = _validateProofPurpose(document, proof);
+      if (!proofPurposeValidation.isValid) {
+        return proofPurposeValidation;
+      }
 
-    final expiryResult = _validateExpiry(proof, getNow());
-    if (!expiryResult.isValid) {
-      return expiryResult;
-    }
+      final expiryResult = _validateExpiry(proof, getNow());
+      if (!expiryResult.isValid) {
+        return expiryResult;
+      }
 
       final Uri verificationMethod;
       try {

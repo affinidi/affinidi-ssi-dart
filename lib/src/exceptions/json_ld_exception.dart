@@ -50,4 +50,3 @@ class RemoteContextLoadException extends JsonLdException {
           operation: 'load_remote_context',
         );
 }
-

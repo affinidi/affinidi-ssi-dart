@@ -89,19 +89,19 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
         );
       }
 
-    final vmDid = verificationMethod.toString().split('#').first;
-    if (vmDid != issuerDid) {
-      return VerificationResult.invalid(
-        errors: ['issuer DID does not match proof.verificationMethod DID'],
-      );
-    }
+      final vmDid = verificationMethod.toString().split('#').first;
+      if (vmDid != issuerDid) {
+        return VerificationResult.invalid(
+          errors: ['issuer DID does not match proof.verificationMethod DID'],
+        );
+      }
 
-    final originalProofValue = proof.remove(proofValueField);
-    if (originalProofValue == null) {
-      return VerificationResult.invalid(
-        errors: ['missing $proofValueField'],
-      );
-    }
+      final originalProofValue = proof.remove(proofValueField);
+      if (originalProofValue == null) {
+        return VerificationResult.invalid(
+          errors: ['missing $proofValueField'],
+        );
+      }
 
       // Prepare proof for verification (subclasses handle cryptosuite-specific preparation)
       final proofForVerification = prepareProofForVerification(proof, document);

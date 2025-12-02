@@ -78,7 +78,8 @@ void main() {
     });
 
     group('Secp256k1 Verifier - Network Error Handling', () {
-      test('should return validation error when context loading fails', () async {
+      test('should return validation error when context loading fails',
+          () async {
         // Create a verifier with a custom document loader that simulates network failure
         final verifier = Secp256k1Signature2019Verifier(
           issuerDid: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK',
@@ -120,9 +121,11 @@ void main() {
         // It may come as "Failed to load remote context" or from JSON-LD processor
         final errorText = result.errors.join(' ').toLowerCase();
         expect(
-          errorText.contains('context') && (errorText.contains('failed') || errorText.contains('error')),
+          errorText.contains('context') &&
+              (errorText.contains('failed') || errorText.contains('error')),
           isTrue,
-          reason: 'Error should mention context loading issue. Actual: ${result.errors}',
+          reason:
+              'Error should mention context loading issue. Actual: ${result.errors}',
         );
       });
 
@@ -163,9 +166,11 @@ void main() {
         // The error should indicate a context loading problem
         final errorText = result.errors.join(' ').toLowerCase();
         expect(
-          errorText.contains('context') && (errorText.contains('failed') || errorText.contains('error')),
+          errorText.contains('context') &&
+              (errorText.contains('failed') || errorText.contains('error')),
           isTrue,
-          reason: 'Error should mention context issue. Actual: ${result.errors}',
+          reason:
+              'Error should mention context issue. Actual: ${result.errors}',
         );
       });
 
@@ -206,13 +211,16 @@ void main() {
         // The error should indicate a context loading problem
         final errorText = result.errors.join(' ').toLowerCase();
         expect(
-          errorText.contains('context') && (errorText.contains('failed') || errorText.contains('error')),
+          errorText.contains('context') &&
+              (errorText.contains('failed') || errorText.contains('error')),
           isTrue,
-          reason: 'Error should mention context issue. Actual: ${result.errors}',
+          reason:
+              'Error should mention context issue. Actual: ${result.errors}',
         );
       });
 
-      test('should return validation error for invalid JSON response', () async {
+      test('should return validation error for invalid JSON response',
+          () async {
         final verifier = Secp256k1Signature2019Verifier(
           issuerDid: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK',
           customDocumentLoader: (Uri uri) async {
@@ -249,17 +257,21 @@ void main() {
         // The error should indicate a context loading problem
         final errorText = result.errors.join(' ').toLowerCase();
         expect(
-          errorText.contains('context') && (errorText.contains('failed') || errorText.contains('error')),
+          errorText.contains('context') &&
+              (errorText.contains('failed') || errorText.contains('error')),
           isTrue,
-          reason: 'Error should mention context issue. Actual: ${result.errors}',
+          reason:
+              'Error should mention context issue. Actual: ${result.errors}',
         );
       });
     });
 
     group('Data Integrity Verifier - Network Error Handling', () {
-      test('should return validation error when context loading fails', () async {
+      test('should return validation error when context loading fails',
+          () async {
         final verifier = DataIntegrityEcdsaRdfcVerifier(
-          issuerDid: 'did:key:zDnaerx9CtfPJ7PZ4sL8SsSZfYmfB7FS6VTbNc3fHnEEVHg4X',
+          issuerDid:
+              'did:key:zDnaerx9CtfPJ7PZ4sL8SsSZfYmfB7FS6VTbNc3fHnEEVHg4X',
           customDocumentLoader: (Uri uri) async {
             if (uri.toString().contains('example.com')) {
               throw SocketException('Network unreachable');
@@ -284,7 +296,8 @@ void main() {
             'verificationMethod':
                 'did:key:zDnaerx9CtfPJ7PZ4sL8SsSZfYmfB7FS6VTbNc3fHnEEVHg4X#key-1',
             'proofPurpose': 'assertionMethod',
-            'proofValue': 'z58DAdFfa9SkqZMVPxAQpic7ndSayn1PzZs6ZjWp1CktyGesjuTSwRdoWhAfGFCF5bppETSTojQCrfFPP2oumHKtz',
+            'proofValue':
+                'z58DAdFfa9SkqZMVPxAQpic7ndSayn1PzZs6ZjWp1CktyGesjuTSwRdoWhAfGFCF5bppETSTojQCrfFPP2oumHKtz',
           },
         };
 
@@ -303,10 +316,12 @@ void main() {
 
       test('should handle timeout in Data Integrity verification', () async {
         final verifier = DataIntegrityEcdsaRdfcVerifier(
-          issuerDid: 'did:key:zDnaerx9CtfPJ7PZ4sL8SsSZfYmfB7FS6VTbNc3fHnEEVHg4X',
+          issuerDid:
+              'did:key:zDnaerx9CtfPJ7PZ4sL8SsSZfYmfB7FS6VTbNc3fHnEEVHg4X',
           customDocumentLoader: (Uri uri) async {
             if (uri.toString().contains('slow')) {
-              throw TimeoutException('Connection timed out', const Duration(seconds: 30));
+              throw TimeoutException(
+                  'Connection timed out', const Duration(seconds: 30));
             }
             return null;
           },
@@ -328,7 +343,8 @@ void main() {
             'verificationMethod':
                 'did:key:zDnaerx9CtfPJ7PZ4sL8SsSZfYmfB7FS6VTbNc3fHnEEVHg4X#key-1',
             'proofPurpose': 'assertionMethod',
-            'proofValue': 'z58DAdFfa9SkqZMVPxAQpic7ndSayn1PzZs6ZjWp1CktyGesjuTSwRdoWhAfGFCF5bppETSTojQCrfFPP2oumHKtz',
+            'proofValue':
+                'z58DAdFfa9SkqZMVPxAQpic7ndSayn1PzZs6ZjWp1CktyGesjuTSwRdoWhAfGFCF5bppETSTojQCrfFPP2oumHKtz',
           },
         };
 
@@ -340,7 +356,8 @@ void main() {
           isTrue,
         );
         expect(
-          result.errors.any((e) => e.contains('Timeout') || e.contains('timed out')),
+          result.errors
+              .any((e) => e.contains('Timeout') || e.contains('timed out')),
           isTrue,
         );
       });
@@ -388,9 +405,11 @@ void main() {
         // The error should indicate a context loading problem
         final errorText = result.errors.join(' ').toLowerCase();
         expect(
-          errorText.contains('context') && (errorText.contains('failed') || errorText.contains('error')),
+          errorText.contains('context') &&
+              (errorText.contains('failed') || errorText.contains('error')),
           isTrue,
-          reason: 'Error should mention context issue. Actual: ${result.errors}',
+          reason:
+              'Error should mention context issue. Actual: ${result.errors}',
         );
       });
 
@@ -502,4 +521,3 @@ void main() {
     });
   });
 }
-
