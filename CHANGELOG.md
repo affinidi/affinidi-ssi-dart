@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-12-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.1.0`](#ssi---v310)
+
+---
+
+#### `ssi` - `v3.1.0`
+
+ - **FEAT**: add JSON-LD exception handling and error propagation (#230).
+
+## 3.1.0
+
+ - **FEAT**: add JSON-LD exception handling and error propagation (#230).
+
+
 ## 2025-11-28
 
 ### Changes
