@@ -41,6 +41,33 @@ String? getString(Map<String, dynamic> json, String fieldName) {
   return json[fieldName] as String?;
 }
 
+/// Return [fieldName] as `String`, converting from number if needed, or null if not present.
+/// Throws an exception if the field value cannot be converted to string.
+///
+/// This function accepts both String and numeric types, converting numbers to strings.
+/// Useful for fields that should be strings per spec but may be provided as numbers
+/// in practice (e.g., revocationListIndex).
+String? getStringOrNumber(Map<String, dynamic> json, String fieldName) {
+  if (!json.containsKey(fieldName)) {
+    return null;
+  }
+
+  final value = json[fieldName];
+
+  if (value == null) {
+    return null;
+  } else if (value is String) {
+    return value;
+  } else if (value is num) {
+    return value.toString();
+  } else {
+    throw SsiException(
+      message: '`$fieldName` must be a string or number',
+      code: SsiExceptionType.invalidJson.code,
+    );
+  }
+}
+
 /// Return [fieldName] as `String`. Throws an exception if the field
 /// value is not a string or the field does not exist.
 String getMandatoryString(Map<String, dynamic> json, String fieldName) {
@@ -51,6 +78,34 @@ String getMandatoryString(Map<String, dynamic> json, String fieldName) {
     );
   }
   return json[fieldName] as String;
+}
+
+/// Return [fieldName] as `String`, converting from number if needed.
+/// Throws an exception if the field does not exist or cannot be converted to string.
+///
+/// This function accepts both String and numeric types, converting numbers to strings.
+/// Useful for fields that should be strings per spec but may be provided as numbers
+/// in practice (e.g., revocationListIndex).
+String getMandatoryStringOrNumber(Map<String, dynamic> json, String fieldName) {
+  if (!json.containsKey(fieldName)) {
+    throw SsiException(
+      message: '`$fieldName` property is mandatory',
+      code: SsiExceptionType.invalidJson.code,
+    );
+  }
+
+  final value = json[fieldName];
+
+  if (value is String) {
+    return value;
+  } else if (value is num) {
+    return value.toString();
+  } else {
+    throw SsiException(
+      message: '`$fieldName` must be a string or number',
+      code: SsiExceptionType.invalidJson.code,
+    );
+  }
 }
 
 /// Return [fieldName] as `List<String>`

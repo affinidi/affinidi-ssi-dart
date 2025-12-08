@@ -57,7 +57,7 @@ class MutableRevocationList2020Status extends _RevocationList2020StatusInterface
     return MutableRevocationList2020Status(
       id: getUri(json, 'id'),
       type: getString(json, 'type'),
-      revocationListIndex: getString(json, 'revocationListIndex'),
+      revocationListIndex: getStringOrNumber(json, 'revocationListIndex'),
       revocationListCredential: getString(json, 'revocationListCredential'),
     );
   }
@@ -157,7 +157,7 @@ class RevocationList2020Status extends _RevocationList2020StatusInterface
   factory RevocationList2020Status.fromJson(Map<String, dynamic> json) {
     final id = getMandatoryUri(json, 'id');
     final type = getMandatoryString(json, 'type');
-    final revocationListIndex = getMandatoryString(json, 'revocationListIndex');
+    final revocationListIndex = getMandatoryStringOrNumber(json, 'revocationListIndex');
     final revocationListCredential =
         getMandatoryString(json, 'revocationListCredential');
     return RevocationList2020Status(
