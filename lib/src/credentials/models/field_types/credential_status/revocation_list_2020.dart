@@ -157,7 +157,8 @@ class RevocationList2020Status extends _RevocationList2020StatusInterface
   factory RevocationList2020Status.fromJson(Map<String, dynamic> json) {
     final id = getMandatoryUri(json, 'id');
     final type = getMandatoryString(json, 'type');
-    final revocationListIndex = getMandatoryStringOrNumber(json, 'revocationListIndex');
+    final revocationListIndex =
+        getMandatoryStringOrNumber(json, 'revocationListIndex');
     final revocationListCredential =
         getMandatoryString(json, 'revocationListCredential');
     return RevocationList2020Status(

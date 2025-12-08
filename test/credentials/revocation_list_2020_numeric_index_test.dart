@@ -3,7 +3,9 @@ import 'package:test/test.dart';
 
 void main() {
   group('RevocationList2020Status with Numeric revocationListIndex', () {
-    test('should parse credentialStatus directly with Numeric revocationListIndex', () {
+    test(
+        'should parse credentialStatus directly with Numeric revocationListIndex',
+        () {
       final statusJsonWithNumber = {
         'id': 'https://example.com/status#7',
         'type': 'RevocationList2020Status',
@@ -20,10 +22,13 @@ void main() {
 
       expect(status.revocationListIndex, equals('7'));
       expect(status.type, equals('RevocationList2020Status'));
-      expect(status.revocationListCredential, equals('https://example.com/status'));
+      expect(status.revocationListCredential,
+          equals('https://example.com/status'));
     });
 
-    test('should parse credentialStatus directly with String revocationListIndex', () {
+    test(
+        'should parse credentialStatus directly with String revocationListIndex',
+        () {
       final statusJsonWithString = {
         'id': 'https://example.com/status#7',
         'type': 'RevocationList2020Status',
@@ -120,4 +125,3 @@ void main() {
     });
   });
 }
-
