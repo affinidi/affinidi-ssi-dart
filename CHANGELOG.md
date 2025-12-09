@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-12-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.1.1`](#ssi---v311)
+
+---
+
+#### `ssi` - `v3.1.1`
+
+ - **FIX**: revocation list 2020 handle numeric index (#231).
+
+## 3.1.1
+
+ - **FIX**: revocation list 2020 handle numeric index (#231).
+
+
 ## 2025-12-03
 
 ### Changes
