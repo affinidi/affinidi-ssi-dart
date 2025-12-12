@@ -15,6 +15,33 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v3.2.0`](#ssi---v320)
+
+---
+
+#### `ssi` - `v3.2.0`
+
+ - **FIX**: jwt vc verification for all supported alg.
+ - **FEAT**: update example input (#233).
+
+## 3.2.0
+
+ - **FIX**: jwt vc verification for all supported alg.
+ - **FEAT**: update example input (#233).
+
+
+## 2025-12-12
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v3.1.1`](#ssi---v311)
 
 ---
