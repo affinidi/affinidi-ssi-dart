@@ -25,92 +25,20 @@ class HolderBindingVerifier implements VpVerifier {
     // Map: external holder DID -> List of VC IDs held by them
     final externalHolderVcIdsMap = <String, List<String>>{};
     
-    for (final vc in vp.verifiableCredential) {
-      if (vc is! LdVcDataModelV1) {
-        continue;
-      }
-      
-      final isDelegation = vc.type.contains(_delegationVcType);
-      
-      if (isDelegation) {
-        // The issuer of the delegation VC is the delegator (original credential holder)
-        final delegatorDid = vc.issuer.id.toString();
-        
-        // Verify delegation VC holder matches VP holder
-        final delegationHolderId = vc.holder?.id.toString();
-        if (delegationHolderId != vpHolderDid) {
-          errors.add(
-            'Delegation VC ${vc.id} holder $delegationHolderId does not match VP holder $vpHolderDid',
-          );
-          // Still track this delegation to avoid cascading "missing delegation" errors
-          delegationMap[delegatorDid] = <String>{};
-          continue;
-        }
-        
-        // Get the delegated credentials list from credentialSubject
-        final subject = vc.credentialSubject.isNotEmpty 
-            ? vc.credentialSubject.first 
-            : <String, dynamic>{};
-        
-        final delegationLevel = subject['delegationLevel'] as String? ?? 'restricted';
-        
-        // For 'full' delegation, all credentials from this delegator are allowed
-        if (delegationLevel == 'full') {
-          delegationMap[delegatorDid] = {}; // Empty set means all credentials allowed
-        } else if (delegationLevel == 'restricted') {
-          // For 'restricted' delegation, collect specific credential IDs
-          final credentialsList = subject['credentials'] as List<dynamic>? ?? [];
-          final authorizedIds = credentialsList
-              .whereType<Map<String, dynamic>>()
-              .map((cred) => cred['id'] as String?)
-              .whereType<String>()
-              .toSet();
-          
-          delegationMap[delegatorDid] = authorizedIds;
-        } else {
-          errors.add('Invalid delegation level: $delegationLevel');
-          // Still track this delegation to avoid cascading "missing delegation" errors
-          delegationMap[delegatorDid] = <String>{};
-        }
-      } else {
-        // Track VCs with external holders (holder != VP holder)
-        // Only track if VC has explicit holder field
-        final vcHolderDid = vc.holder?.id.toString();
-        if (vcHolderDid != null && vcHolderDid != vpHolderDid) {
-          final vcId = vc.id?.toString() ?? '<unknown-vc>';
-          externalHolderVcIdsMap
-              .putIfAbsent(vcHolderDid, () => [])
-              .add(vcId);
-        }
-      }
-    }
+    _collectDelegationsAndExternalHolders(
+      vp,
+      vpHolderDid,
+      delegationMap,
+      externalHolderVcIdsMap,
+      errors,
+    );
 
     // Second pass: verify all external holder VCs have corresponding delegation VCs
-    for (final externalHolderDid in externalHolderVcIdsMap.keys) {
-      final vcIds = externalHolderVcIdsMap[externalHolderDid]!;
-      final delegatedIds = delegationMap[externalHolderDid];
-
-      if (delegatedIds == null) {
-        errors.add('Missing delegation VC from: $externalHolderDid');
-        continue;
-      }
-
-      // Full delegation (empty set) allows all credentials
-      if (delegatedIds.isEmpty) {
-        continue;
-      }
-
-      // Restricted delegation - verify all VCs are in the authorized list
-      final missedVcs = vcIds.where((vcId) => !delegatedIds.contains(vcId)).toList();
-      if (missedVcs.isNotEmpty) {
-        errors.add('Missing delegation VC IDs: ${missedVcs.join(', ')}');
-      }
-
-      final unexpectedVcs = delegatedIds.where((vcId) => !vcIds.contains(vcId)).toList();
-      if (unexpectedVcs.isNotEmpty) {
-        errors.add('Unexpected VCs in the Delegation VC: ${unexpectedVcs.join(', ')}');
-      }
-    }
+    _validateDelegationCoverage(
+      delegationMap,
+      externalHolderVcIdsMap,
+      errors,
+    );
 
     // Third pass: verify holder binding for all non-delegation VCs
     for (final vc in vp.verifiableCredential) {
@@ -183,5 +111,125 @@ class HolderBindingVerifier implements VpVerifier {
     return errors.isEmpty
         ? VerificationResult.ok()
         : VerificationResult.invalid(errors: errors);
+  }
+
+  /// First pass: collects delegation VCs and tracks external holder VCs
+  void _collectDelegationsAndExternalHolders(
+    ParsedVerifiablePresentation vp,
+    String vpHolderDid,
+    Map<String, Set<String>> delegationMap,
+    Map<String, List<String>> externalHolderVcIdsMap,
+    List<String> errors,
+  ) {
+    for (final vc in vp.verifiableCredential) {
+      if (vc is! LdVcDataModelV1) {
+        continue;
+      }
+      
+      final isDelegation = vc.type.contains(_delegationVcType);
+      
+      if (isDelegation) {
+        _processDelegationVc(vc, vpHolderDid, delegationMap, errors);
+      } else {
+        _trackExternalHolderVc(vc, vpHolderDid, externalHolderVcIdsMap);
+      }
+    }
+  }
+
+  /// Processes a delegation VC and updates the delegation map
+  void _processDelegationVc(
+    LdVcDataModelV1 vc,
+    String vpHolderDid,
+    Map<String, Set<String>> delegationMap,
+    List<String> errors,
+  ) {
+    // The issuer of the delegation VC is the delegator (original credential holder)
+    final delegatorDid = vc.issuer.id.toString();
+    
+    // Verify delegation VC holder matches VP holder
+    final delegationHolderId = vc.holder?.id.toString();
+    if (delegationHolderId != vpHolderDid) {
+      errors.add(
+        'Delegation VC ${vc.id} holder $delegationHolderId does not match VP holder $vpHolderDid',
+      );
+      // Still track this delegation to avoid cascading "missing delegation" errors
+      delegationMap[delegatorDid] = <String>{};
+      return;
+    }
+    
+    // Get the delegated credentials list from credentialSubject
+    final subject = vc.credentialSubject.isNotEmpty 
+        ? vc.credentialSubject.first 
+        : <String, dynamic>{};
+    
+    final delegationLevel = subject['delegationLevel'] as String? ?? 'restricted';
+    
+    // For 'full' delegation, all credentials from this delegator are allowed
+    if (delegationLevel == 'full') {
+      delegationMap[delegatorDid] = {}; // Empty set means all credentials allowed
+    } else if (delegationLevel == 'restricted') {
+      // For 'restricted' delegation, collect specific credential IDs
+      final credentialsList = subject['credentials'] as List<dynamic>? ?? [];
+      final authorizedIds = credentialsList
+          .whereType<Map<String, dynamic>>()
+          .map((cred) => cred['id'] as String?)
+          .whereType<String>()
+          .toSet();
+      
+      delegationMap[delegatorDid] = authorizedIds;
+    } else {
+      errors.add('Invalid delegation level: $delegationLevel');
+      // Still track this delegation to avoid cascading "missing delegation" errors
+      delegationMap[delegatorDid] = <String>{};
+    }
+  }
+
+  /// Tracks VCs with external holders (holder != VP holder)
+  void _trackExternalHolderVc(
+    LdVcDataModelV1 vc,
+    String vpHolderDid,
+    Map<String, List<String>> externalHolderVcIdsMap,
+  ) {
+    // Only track if VC has explicit holder field
+    final vcHolderDid = vc.holder?.id.toString();
+    if (vcHolderDid != null && vcHolderDid != vpHolderDid) {
+      final vcId = vc.id?.toString() ?? '<unknown-vc>';
+      externalHolderVcIdsMap
+          .putIfAbsent(vcHolderDid, () => [])
+          .add(vcId);
+    }
+  }
+
+  /// Second pass: validates all external holder VCs have corresponding delegation VCs
+  void _validateDelegationCoverage(
+    Map<String, Set<String>> delegationMap,
+    Map<String, List<String>> externalHolderVcIdsMap,
+    List<String> errors,
+  ) {
+    for (final externalHolderDid in externalHolderVcIdsMap.keys) {
+      final vcIds = externalHolderVcIdsMap[externalHolderDid]!;
+      final delegatedIds = delegationMap[externalHolderDid];
+
+      if (delegatedIds == null) {
+        errors.add('Missing delegation VC from: $externalHolderDid');
+        continue;
+      }
+
+      // Full delegation (empty set) allows all credentials
+      if (delegatedIds.isEmpty) {
+        continue;
+      }
+
+      // Restricted delegation - verify all VCs are in the authorized list
+      final missedVcs = vcIds.where((vcId) => !delegatedIds.contains(vcId)).toList();
+      if (missedVcs.isNotEmpty) {
+        errors.add('Missing delegation VC IDs: ${missedVcs.join(', ')}');
+      }
+
+      final unexpectedVcs = delegatedIds.where((vcId) => !vcIds.contains(vcId)).toList();
+      if (unexpectedVcs.isNotEmpty) {
+        errors.add('Unexpected VCs in the Delegation VC: ${unexpectedVcs.join(', ')}');
+      }
+    }
   }
 }
