@@ -1,15 +1,20 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
 
+import '../../did/did_resolver.dart';
 import '../../did/did_verifier.dart';
 import '../../did/public_key_utils.dart';
 import '../../digest_utils.dart';
+import '../../exceptions/json_ld_exception.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import 'embedded_proof_suite.dart';
+import 'proof_validation_utils.dart';
 
 /// Base class for Data Integrity proof verifiers.
 abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
@@ -26,12 +31,16 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
   /// Optional challenge value.
   final String? challenge;
 
+  /// Optional custom DID resolver for offline/test verification.
+  final DidResolver? didResolver;
+
   /// Creates a new BaseDataIntegrityVerifier.
   BaseDataIntegrityVerifier({
     required this.issuerDid,
     this.getNow = DateTime.now,
     this.domain,
     this.challenge,
+    this.didResolver,
     super.customDocumentLoader,
   });
 
@@ -50,58 +59,107 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
   @override
   Future<VerificationResult> verify(Map<String, dynamic> document,
       {DateTime Function() getNow = DateTime.now}) async {
-    final copy = Map.of(document);
-    final proof = copy.remove('proof');
-
-    final validationResult = _validateProofStructure(proof);
-    if (!validationResult.isValid) {
-      return validationResult;
-    }
-
-    final expiryResult = _validateExpiry(proof, getNow());
-    if (!expiryResult.isValid) {
-      return expiryResult;
-    }
-
-    // Subclasses handle cryptosuite-specific validation
-    final cryptosuiteValidationResult =
-        await validateCryptosuite(document, proof);
-    if (!cryptosuiteValidationResult.isValid) {
-      return cryptosuiteValidationResult;
-    }
-
-    final Uri verificationMethod;
     try {
-      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
-    } catch (e) {
+      final copy = Map.of(document);
+      final proof = copy.remove('proof');
+
+      final validationResult = _validateProofStructure(proof);
+      if (!validationResult.isValid) {
+        return validationResult;
+      }
+
+      final expiryResult = _validateExpiry(proof, getNow());
+      if (!expiryResult.isValid) {
+        return expiryResult;
+      }
+
+      // Subclasses handle cryptosuite-specific validation
+      final cryptosuiteValidationResult =
+          await validateCryptosuite(document, proof);
+      if (!cryptosuiteValidationResult.isValid) {
+        return cryptosuiteValidationResult;
+      }
+
+      final Uri verificationMethod;
+      try {
+        verificationMethod = Uri.parse(proof['verificationMethod'] as String);
+      } catch (e) {
+        return VerificationResult.invalid(
+          errors: ['invalid or missing proof.verificationMethod'],
+        );
+      }
+
+      final vmDid = verificationMethod.toString().split('#').first;
+      if (vmDid != issuerDid) {
+        return VerificationResult.invalid(
+          errors: ['issuer DID does not match proof.verificationMethod DID'],
+        );
+      }
+
+      final originalProofValue = proof.remove(proofValueField);
+      if (originalProofValue == null) {
+        return VerificationResult.invalid(
+          errors: ['missing $proofValueField'],
+        );
+      }
+
+      // Prepare proof for verification (subclasses handle cryptosuite-specific preparation)
+      final proofForVerification = prepareProofForVerification(proof, document);
+
+      final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
+
+      final Uint8List hash;
+      try {
+        hash = await computeSignatureHash(
+            proofForVerification, copy, cacheLoadDocument);
+      } on RemoteContextLoadException catch (e) {
+        return VerificationResult.invalid(
+          errors: [
+            'Failed to load remote context: ${e.failedUri}',
+            'Cause: ${e.cause}',
+          ],
+        );
+      } on JsonLdException catch (e) {
+        return VerificationResult.invalid(
+          errors: [
+            'JSON-LD processing failed: ${e.operation}',
+            'Details: ${e.message}',
+            if (e.cause != null) 'Cause: ${e.cause}',
+          ],
+        );
+      } catch (e) {
+        final errorStr = e.toString();
+        if (errorStr.contains('loading remote context failed')) {
+          return VerificationResult.invalid(
+            errors: [
+              'Failed to load remote context',
+              'Cause: $errorStr',
+            ],
+          );
+        }
+        rethrow;
+      }
+
+      final isValid = await verifySignature(
+          originalProofValue as String, issuerDid, verificationMethod, hash);
+
+      if (!isValid) {
+        return VerificationResult.invalid(
+          errors: ['signature invalid'],
+        );
+      }
+
+      return VerificationResult.ok();
+    } on JsonLdException catch (e) {
       return VerificationResult.invalid(
-        errors: ['invalid or missing proof.verificationMethod'],
+        errors: [
+          'Verification failed: ${e.message}',
+          if (e.operation != null) 'Operation: ${e.operation}',
+          if (e.failedUri != null) 'Failed URI: ${e.failedUri}',
+          if (e.cause != null) 'Cause: ${e.cause}',
+        ],
       );
     }
-
-    final originalProofValue = proof.remove(proofValueField);
-    if (originalProofValue == null) {
-      return VerificationResult.invalid(
-        errors: ['missing $proofValueField'],
-      );
-    }
-
-    // Prepare proof for verification (subclasses handle cryptosuite-specific preparation)
-    final proofForVerification = prepareProofForVerification(proof, document);
-
-    final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-    final hash = await computeSignatureHash(
-        proofForVerification, copy, cacheLoadDocument);
-    final isValid = await verifySignature(
-        originalProofValue as String, issuerDid, verificationMethod, hash);
-
-    if (!isValid) {
-      return VerificationResult.invalid(
-        errors: ['signature invalid'],
-      );
-    }
-
-    return VerificationResult.ok();
   }
 
   /// Computes the signature hash from proof and document.
@@ -127,10 +185,13 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    if (proof['type'] != expectedProofType) {
-      return VerificationResult.invalid(
-        errors: ['invalid proof type, expected $expectedProofType'],
-      );
+    final typeValidation = ProofValidationUtils.validateProofTypeStructure(
+      proof,
+      expectedProofType,
+    );
+
+    if (!typeValidation.isValid) {
+      return typeValidation;
     }
 
     final cryptosuite = proof['cryptosuite'];
@@ -231,8 +292,9 @@ Future<bool> verifyDataIntegritySignature(
   String issuerDid,
   Uri verificationMethod,
   Uint8List hash,
-  String cryptosuite,
-) async {
+  String cryptosuite, {
+  DidResolver? didResolver,
+}) async {
   final signature = multiBaseToUint8List(proofValue);
 
   final expectedSchemes = cryptosuiteToScheme[cryptosuite];
@@ -252,6 +314,7 @@ Future<bool> verifyDataIntegritySignature(
     algorithm: expectedScheme,
     kid: verificationMethod.toString(),
     issuerDid: issuerDid,
+    didResolver: didResolver,
   );
   return verifier.verify(hash, signature);
 }
@@ -276,7 +339,40 @@ LibDocumentLoader _cacheLoadDocument(
         return Future.value(RemoteDocument(document: custom));
       }
 
-      return loadDocument(url, options);
+      try {
+        return await loadDocument(url, options);
+      } on SocketException catch (e) {
+        throw RemoteContextLoadException(
+          uri: url,
+          cause: 'Network error: ${e.message}',
+        );
+      } on HttpException catch (e) {
+        throw RemoteContextLoadException(
+          uri: url,
+          cause: 'HTTP error: ${e.message}',
+        );
+      } on TimeoutException catch (e) {
+        throw RemoteContextLoadException(
+          uri: url,
+          cause: 'Timeout: ${e.message ?? "Request timed out"}',
+        );
+      } on FormatException catch (e) {
+        throw RemoteContextLoadException(
+          uri: url,
+          cause: 'Invalid JSON response: ${e.message}',
+        );
+      } catch (e) {
+        if (e.toString().contains('loading remote context failed')) {
+          throw RemoteContextLoadException(
+            uri: url,
+            cause: e.toString(),
+          );
+        }
+        throw RemoteContextLoadException(
+          uri: url,
+          cause: e,
+        );
+      }
     };
 
 /// Creates a cached document loader.

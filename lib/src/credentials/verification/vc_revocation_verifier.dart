@@ -17,13 +17,22 @@ class RevocationList2020Verifier implements VcVerifier {
   /// Custom document loader for loading external resources.
   final DocumentLoader? customDocumentLoader;
 
-  /// Creates a new [RevocationList2020Verifier] with optional fetch function and document loader.
+  /// Custom DID resolver (currently unused by this verifier).
+  ///
+  /// Included for API consistency with other verifiers.
+  final DidResolver? didResolver;
+
+  /// Creates a new [RevocationList2020Verifier] with optional fetch function, document loader,
+  /// and DID resolver.
   ///
   /// If [fetchStatusListCredential] is not provided, the verifier will use
   /// [customDocumentLoader] or the default document loader to fetch status lists.
+  ///
+  /// The [didResolver] parameter is currently unused but included for API consistency.
   RevocationList2020Verifier({
     this.fetchStatusListCredential,
     this.customDocumentLoader,
+    this.didResolver,
   });
 
   static const _gZipDecoder = GZipDecoder();
@@ -125,6 +134,10 @@ class RevocationList2020Verifier implements VcVerifier {
 /// This function normalizes the `credentialStatus` field from all supported
 /// credential models and returns a list of [RevocationList2020Status] entries
 /// found in the VC.
+///
+/// Note: DoS protection via credentialStatus count validation is enforced at
+/// the parsing level (max 5 items for V2 data models). V1 models use a single
+/// credentialStatus object, so no additional validation is needed here.
 ///
 /// Returns an empty list if no valid entries are found.
 List getCredentialStatusFromVc(ParsedVerifiableCredential vc) {

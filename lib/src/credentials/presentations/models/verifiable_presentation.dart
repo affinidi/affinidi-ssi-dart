@@ -1,4 +1,5 @@
 import '../../models/doc_with_embedded_proof.dart';
+import '../../models/field_types/context.dart';
 import '../../models/field_types/holder.dart';
 import '../../models/parsed_vc.dart';
 
@@ -12,7 +13,7 @@ import '../../models/parsed_vc.dart';
 abstract interface class VerifiablePresentation
     implements DocWithEmbeddedProof {
   /// The context that defines the schema for this presentation.
-  List<String> get context;
+  JsonLdContext get context;
 
   /// The unique identifier for this presentation.
   Uri? get id;

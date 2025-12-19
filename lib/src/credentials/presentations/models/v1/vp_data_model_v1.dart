@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
+import '../../../models/field_types/context.dart';
 import '../vc_parse_present.dart';
 
 part './mutable_vp_data_model_v1.dart';
@@ -27,7 +28,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   ///
   /// Typically includes 'https://www.w3.org/2018/credentials/v1'.
   @override
-  final UnmodifiableListView<String> context;
+  final JsonLdContext context;
 
   /// The optional identifier for this presentation.
   @override
@@ -57,7 +58,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
 
-    json[_P.context.key] = context;
+    json[_P.context.key] = context.toJson();
     json[_P.id.key] = id?.toString();
     json[_P.type.key] = type.toList();
     json[_P.holder.key] = holder.toJson();
@@ -71,18 +72,16 @@ class VpDataModelV1 implements VerifiablePresentation {
   /// Validates the essential Verifiable Presentation properties (`context`, `type`).
   ///
   /// Ensures [context] is not empty and starts with [dmV1ContextUrl],
-  /// and that [type] is not empty.
+  /// and that [type] is not empty and MUST contain 'VerifiablePresentation'.
+  ///
+  /// Also validates that all verifiable credentials are compatible with V1 presentations:
+  /// - JWT VCs are supported
+  /// - JSON-LD VCs (V1) are supported
+  /// - SD-JWT VCs are NOT supported (use V2 presentations for SD-JWT VCs)
   ///
   /// Throws [SsiException] if validation fails. Returns `true` if valid.
   bool validate() {
-    if (context.isEmpty) {
-      throw SsiException(
-        message: '`${_P.context.key}` property is mandatory',
-        code: SsiExceptionType.invalidJson.code,
-      );
-    }
-
-    if (context.first != dmV1ContextUrl) {
+    if (context.firstUri.toString() != dmV1ContextUrl) {
       throw SsiException(
         message:
             'The first URI of `${_P.context.key}` property should always be $dmV1ContextUrl',
@@ -97,7 +96,55 @@ class VpDataModelV1 implements VerifiablePresentation {
       );
     }
 
+    final hasVerifiablePresentation = type.any(
+      (t) => t.trim() == 'VerifiablePresentation',
+    );
+
+    if (!hasVerifiablePresentation) {
+      throw SsiException(
+        message:
+            '`${_P.type.key}` MUST include the value "VerifiablePresentation" per VC Data Model v1.1.',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    if (proof.length > 1) {
+      throw SsiException(
+        message: 'Multiple proofs are not supported',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
+    // Validate credential compatibility with V1 presentations
+    _validateCredentialCompatibility();
+
     return true;
+  }
+
+  /// Validates that all credentials in this V1 presentation are compatible.
+  ///
+  /// V1 presentations support:
+  /// - JWT VCs (JwtVcDataModelV1)
+  /// - JSON-LD VCs (LdVcDataModelV1)
+  ///
+  /// V1 presentations do NOT support:
+  /// - SD-JWT VCs (SdJwtDataModelV2) - these require V2 presentation context
+  ///   and enveloping per W3C VC Data Model v2.0
+  ///
+  /// Throws [SsiException] if incompatible credentials are found.
+  void _validateCredentialCompatibility() {
+    for (final credential in verifiableCredential) {
+      // Check for SD-JWT VC
+      if (credential.runtimeType.toString() == 'SdJwtDataModelV2') {
+        throw SsiException(
+          message:
+              'SD-JWT VCs (SdJwtDataModelV2) are not compatible with V1 presentations. '
+              'SD-JWT VCs require V2 presentation context and must be enveloped per W3C VC Data Model v2.0. '
+              'Use V2 presentations (VpDataModelV2) for SD-JWT VCs, or use JWT VCs (JwtVcDataModelV1) with V1 presentations.',
+          code: SsiExceptionType.invalidVC.code,
+        );
+      }
+    }
   }
 
   /// Creates a [VpDataModelV1] instance.
@@ -108,14 +155,13 @@ class VpDataModelV1 implements VerifiablePresentation {
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
   VpDataModelV1({
-    required List<String> context,
+    required this.context,
     this.id,
     required Set<String> type,
     required this.holder,
     required List<ParsedVerifiableCredential> verifiableCredential,
     required List<EmbeddedProof> proof,
-  })  : context = UnmodifiableListView(context),
-        type = UnmodifiableSetView(type),
+  })  : type = UnmodifiableSetView(type),
         verifiableCredential = UnmodifiableListView(verifiableCredential),
         proof = UnmodifiableListView(proof) {
     validate();
@@ -128,7 +174,7 @@ class VpDataModelV1 implements VerifiablePresentation {
   factory VpDataModelV1.fromJson(dynamic input) {
     final json = jsonToMap(input);
 
-    final context = getStringList(json, _P.context.key, mandatory: true);
+    final context = JsonLdContext.fromJson(json[_P.context.key]);
 
     final id = getUri(json, _P.id.key);
     final type = getStringList(

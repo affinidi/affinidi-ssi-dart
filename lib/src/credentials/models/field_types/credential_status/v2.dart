@@ -10,7 +10,7 @@ abstract interface class _CredentialStatusV2Interface
   /// Converts this status to a JSON-serializable map.
   Map<String, dynamic> toJson() {
     return cleanEmpty({
-      'id': id.toString(),
+      'id': id?.toString(),
       'type': type,
       ...Map<String, dynamic>.fromEntries(entries)
     });
@@ -102,13 +102,13 @@ class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
 /// );
 /// ```
 interface class CredentialStatusV2 extends _CredentialStatusV2Interface {
-  /// The URL of the schema including domain and filename.
+  /// The optional URL identifier for the credential status object (VCDM v2.0).
   @override
   final Uri? id;
 
-  /// The schema type of validator used.
+  /// The type of status mechanism used.
   ///
-  /// Usually 'JsonSchemaValidator2018' for JSON Schema validation.
+  /// This is required and expresses the credential status type.
   @override
   final String type;
 

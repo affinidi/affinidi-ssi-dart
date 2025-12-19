@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 
+import '../../did/did_resolver.dart';
 import '../../did/did_signer.dart';
 import '../../did/did_verifier.dart';
+import '../../did/public_key_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
@@ -102,7 +104,8 @@ final class JwtDm1Suite
 
   @override
   Future<bool> verifyIntegrity(JwtVcDataModelV1 input,
-      {DateTime Function() getNow = DateTime.now}) async {
+      {DateTime Function() getNow = DateTime.now,
+      DidResolver? didResolver}) async {
     final segments = input.serialized.split('.');
 
     if (segments.length != 3) {
@@ -115,7 +118,8 @@ final class JwtDm1Suite
     var now = getNow();
     final exp = input.jws.payload['exp'];
     if (exp != null &&
-        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000))) {
+        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000,
+            isUtc: true))) {
       return false;
     }
 
@@ -134,13 +138,26 @@ final class JwtDm1Suite
     final did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
 
     //TODO(FTL-20735) add discovery
-    final algorithm = SignatureScheme.ecdsa_secp256k1_sha256;
+    final algorithm =
+        SignatureScheme.fromAlg(input.jws.header['alg'] as String);
 
     final verifier = await DidVerifier.create(
       algorithm: algorithm,
       kid: decodedHeader['kid'] as String?,
       issuerDid: did.toString(),
+      didResolver: didResolver,
     );
+
+    // Validate header JWK if present (defense-in-depth)
+    final headerJwk = decodedHeader['jwk'];
+    if (headerJwk != null) {
+      if (!areJwksEqual(headerJwk as Map<String, dynamic>, verifier.jwk)) {
+        throw SsiException(
+          message: 'Header JWK does not match the public key from DID document',
+          code: SsiExceptionType.invalidVC.code,
+        );
+      }
+    }
 
     return verifier.verify(toSign, base64UrlNoPadDecode(encodedSignature));
   }

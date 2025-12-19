@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../did/did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/doc_with_embedded_proof.dart';
@@ -58,7 +59,8 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
     if (!data.containsKey(proofKey)) return false;
 
     final context = data[contextKey];
-    return (context is List) && context.contains(contextUrl);
+    return (context is List) && context.contains(contextUrl) ||
+        (context is String) && context == contextUrl;
   }
 
   /// Checks if the given [input] can be parsed.
@@ -127,10 +129,12 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   /// Verifies the cryptographic integrity of the [input] credential.
   ///
   /// Optionally accepts [getNow] to provide a custom "now" time for expiry and validity
+  /// and [didResolver] for custom DID resolution.
   Future<bool> verifyIntegrity(Model input,
-      {DateTime Function() getNow = DateTime.now}) async {
+      {DateTime Function() getNow = DateTime.now,
+      DidResolver? didResolver}) async {
     final document = input.toJson();
-    final proofSuite = _getDocumentProofVerifier(document);
+    final proofSuite = _getDocumentProofVerifier(document, didResolver);
 
     if (proofSuite == null) {
       return false;
@@ -142,18 +146,32 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   }
 
   EmbeddedProofVerifier? _getDocumentProofVerifier(
-      Map<String, dynamic> document) {
+      Map<String, dynamic> document, DidResolver? didResolver) {
     final proof = document[proofKey];
     if (proof == null || proof is! Map<String, dynamic>) {
       return null;
     }
 
     final proofType = proof['type'] as String?;
-    if (proofType == null) {
+    if (proofType == null || proofType.isEmpty) {
       return null;
     }
 
     final issuerDid = Issuer.uri(document[issuerKey]).id.toString();
+
+    final vm = proof['verificationMethod'] as String?;
+    if (vm == null) {
+      return null;
+    }
+    final vmDid = vm.split('#').first;
+    if (vmDid != issuerDid) {
+      throw SsiException(
+        message:
+            'Issuer mismatch: issuer DID and proof.verificationMethod DID differ',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
+
     final loader = customDocumentLoader ?? _noOpLoader;
     switch (proofType) {
       case 'DataIntegrityProof':
@@ -163,21 +181,25 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
             return DataIntegrityEcdsaRdfcVerifier(
               issuerDid: issuerDid,
               customDocumentLoader: loader,
+              didResolver: didResolver,
             );
           case JcsUtils.ecdsaJcs2019:
             return DataIntegrityEcdsaJcsVerifier(
               verifierDid: issuerDid,
               customDocumentLoader: loader,
+              didResolver: didResolver,
             );
           case 'eddsa-rdfc-2022':
             return DataIntegrityEddsaRdfcVerifier(
               issuerDid: issuerDid,
               customDocumentLoader: loader,
+              didResolver: didResolver,
             );
           case JcsUtils.eddsaJcs2022:
             return DataIntegrityEddsaJcsVerifier(
               verifierDid: issuerDid,
               customDocumentLoader: loader,
+              didResolver: didResolver,
             );
           default:
             return null;
@@ -186,6 +208,7 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
         return Secp256k1Signature2019Verifier(
           issuerDid: issuerDid,
           customDocumentLoader: loader,
+          didResolver: didResolver,
         );
       default:
         return null;

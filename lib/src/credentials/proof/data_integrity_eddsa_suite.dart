@@ -7,9 +7,11 @@ import '../../did/public_key_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
+import '../../utility.dart';
 import 'base_data_integrity_verifier.dart';
 import 'base_jcs_generator.dart';
 import 'base_jcs_verifier.dart';
+import 'data_integrity_context_util.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 
@@ -56,6 +58,9 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
+    final nonce = randomId();
+    // Validate credential @context contains Data Integrity or VC v2 context
+    DataIntegrityContextUtil.validate(document);
     final proof = {
       '@context': _dataIntegrityContext,
       'type': _dataIntegrityType,
@@ -66,6 +71,7 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
       'expires': expires?.toIso8601String(),
       'challenge': challenge,
       'domain': domain,
+      'nonce': nonce,
     };
 
     document.remove('proof');
@@ -88,6 +94,7 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
       expires: expires,
       challenge: challenge,
       domain: domain,
+      nonce: nonce,
     );
   }
 
@@ -126,12 +133,14 @@ class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityRdfcEddsaVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -169,6 +178,7 @@ class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
       verificationMethod,
       hash,
       _eddsaCryptosuite,
+      didResolver: didResolver,
     );
   }
 }
@@ -184,12 +194,14 @@ class DataIntegrityEddsaRdfcVerifier extends BaseDataIntegrityVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEddsaRdfcVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -227,6 +239,7 @@ class DataIntegrityEddsaRdfcVerifier extends BaseDataIntegrityVerifier {
       verificationMethod,
       hash,
       _eddsaCryptosuite,
+      didResolver: didResolver,
     );
   }
 }
@@ -282,12 +295,14 @@ class DataIntegrityEddsaJcsVerifier extends BaseJcsVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEddsaJcsVerifier({
     required super.verifierDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override

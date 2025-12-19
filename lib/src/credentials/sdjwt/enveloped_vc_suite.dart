@@ -1,3 +1,4 @@
+import '../../did/did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../models/parsed_vc.dart';
@@ -98,7 +99,8 @@ final class EnvelopedVcDm2Suite
 
   @override
   Future<bool> verifyIntegrity(ParsedVerifiableCredential<String> input,
-      {DateTime Function() getNow = DateTime.now}) async {
+      {DateTime Function() getNow = DateTime.now,
+      DidResolver? didResolver}) async {
     throw SsiException(
       message: 'Call verification on ${VcSuites.getVcSuite(input).runtimeType}',
       code: SsiExceptionType.unsupportedEnvelopeVCOperation.code,

@@ -1,11 +1,13 @@
 import 'package:selective_disclosure_jwt/selective_disclosure_jwt.dart';
 
+import '../../did/did_resolver.dart';
 import '../../did/did_signer.dart';
+import '../../did/public_key_utils.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
-import '../models/sdjwt_signer_adapter.dart';
 import '../models/parsed_vc.dart';
+import '../models/sdjwt_signer_adapter.dart';
 import '../models/v2/vc_data_model_v2.dart';
 import '../parsers/sdjwt_parser.dart';
 import '../suites/vc_suite.dart';
@@ -113,8 +115,28 @@ final class SdJwtDm2Suite
     }
 
     final jwtClaims = <String, dynamic>{};
+
+    final validUntil = payload.remove(VcDataModelV2Key.validUntil.key);
+    if (validUntil != null) {
+      jwtClaims['exp'] =
+          (DateTime.parse(validUntil as String).millisecondsSinceEpoch / 1000)
+              .floor();
+    }
+
+    final validFrom = payload.remove(VcDataModelV2Key.validFrom.key);
+    if (validFrom != null) {
+      jwtClaims['nbf'] =
+          (DateTime.parse(validFrom as String).millisecondsSinceEpoch / 1000)
+              .floor();
+    }
+
+    jwtClaims['iat'] = (DateTime.now().millisecondsSinceEpoch / 1000).floor();
     jwtClaims.addAll(payload);
+
     disclosureFrame ??= _getDefaultDisclosureFrame(payload);
+
+    // Validate that mandatory claims are not made selectively disclosable
+    _validateMandatoryClaims(disclosureFrame, payload);
 
     final jwtSigner = _createSdJwtSigner(signer);
     final handler = SdJwtHandlerV1();
@@ -142,17 +164,27 @@ final class SdJwtDm2Suite
   /// Verifies the cryptographic integrity of the credential.
   ///
   /// [input] - The SD-JWT credential to verify.
+  /// [didResolver] - Optional custom DID resolver for offline/test verification.
   ///
   /// Returns true if the credential's signature is valid, false otherwise.
   @override
   Future<bool> verifyIntegrity(SdJwtDataModelV2 input,
-      {DateTime Function() getNow = DateTime.now}) async {
+      {DateTime Function() getNow = DateTime.now,
+      DidResolver? didResolver}) async {
     final algorithm =
         SignatureScheme.fromAlg(input.sdJwt.header['alg'] as String);
     var now = getNow();
     final exp = input.sdJwt.payload['exp'];
     if (exp != null &&
-        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000))) {
+        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000,
+            isUtc: true))) {
+      return false;
+    }
+
+    final nbf = input.sdJwt.payload['nbf'];
+    if (nbf != null &&
+        now.isBefore(DateTime.fromMillisecondsSinceEpoch((nbf as int) * 1000,
+            isUtc: true))) {
       return false;
     }
 
@@ -160,7 +192,19 @@ final class SdJwtDm2Suite
       algorithm: algorithm,
       kid: input.sdJwt.header['kid'] as String?,
       issuerDid: input.issuer.id.toString(),
+      didResolver: didResolver,
     );
+
+    // Validate header JWK if present (defense-in-depth)
+    final headerJwk = input.sdJwt.header['jwk'];
+    if (headerJwk != null) {
+      if (!areJwksEqual(headerJwk as Map<String, dynamic>, verifier.jwk)) {
+        throw SsiException(
+          message: 'Header JWK does not match the public key from DID document',
+          code: SsiExceptionType.invalidVC.code,
+        );
+      }
+    }
 
     final SdJwt(:bool? isVerified) = SdJwtHandlerV1().verify(
       sdJwt: input.sdJwt,
@@ -193,6 +237,73 @@ final class SdJwtDm2Suite
   }
 }
 
+/// Validates that mandatory claims are not made selectively disclosable.
+///
+/// According to W3C VC Data Model v2 specification for SD-JWT credentials,
+/// certain fields MUST be disclosed by default and MUST NOT be selectively disclosable:
+/// - @context
+/// - type
+/// - credentialSchema (if present)
+/// - credentialStatus (if present)
+/// - issuer
+///
+/// [disclosureFrame] - The disclosure frame to validate.
+/// [payload] - The credential payload.
+///
+/// Throws [SsiException] if any mandatory claim is found in the disclosure frame.
+void _validateMandatoryClaims(
+    Map<String, dynamic> disclosureFrame, Map<String, dynamic> payload) {
+  // List of mandatory top-level claims that must not be selectively disclosable
+  final mandatoryClaims = ['@context', 'type', 'issuer'];
+
+  // Optional mandatory claims (only mandatory if present in the credential)
+  final optionalMandatoryClaims = ['credentialSchema', 'credentialStatus'];
+
+  // Check top-level _sd array
+  if (disclosureFrame.containsKey('_sd')) {
+    final sdArray = disclosureFrame['_sd'];
+    if (sdArray is List) {
+      // Check for mandatory claims in top-level _sd
+      for (final claim in mandatoryClaims) {
+        if (sdArray.contains(claim)) {
+          throw SsiException(
+            message:
+                'Mandatory claim "$claim" MUST NOT be selectively disclosable',
+            code: SsiExceptionType.invalidVC.code,
+          );
+        }
+      }
+
+      // Check for optional mandatory claims (only if they exist in payload)
+      for (final claim in optionalMandatoryClaims) {
+        if (payload.containsKey(claim) && sdArray.contains(claim)) {
+          throw SsiException(
+            message:
+                'Mandatory claim "$claim" MUST NOT be selectively disclosable when present',
+            code: SsiExceptionType.invalidVC.code,
+          );
+        }
+      }
+    }
+  }
+
+  // Check nested objects for mandatory claims
+  // credentialSchema and credentialStatus must not have any fields selectively disclosed
+  for (final mandatoryField in optionalMandatoryClaims) {
+    if (disclosureFrame.containsKey(mandatoryField) &&
+        payload.containsKey(mandatoryField)) {
+      final fieldFrame = disclosureFrame[mandatoryField];
+      if (fieldFrame is Map<String, dynamic> && fieldFrame.containsKey('_sd')) {
+        throw SsiException(
+          message:
+              'Fields within mandatory claim "$mandatoryField" MUST NOT be selectively disclosable',
+          code: SsiExceptionType.invalidVC.code,
+        );
+      }
+    }
+  }
+}
+
 /// Creates an SD-JWT signer from a DID signer.
 ///
 /// [signer] - The DID signer to wrap.
@@ -200,6 +311,33 @@ final class SdJwtDm2Suite
 /// Returns a Signer implementation for SD-JWT operations.
 Signer _createSdJwtSigner(DidSigner signer) {
   return SdJwtSignerAdapter(signer);
+}
+
+/// Converts JWT standard claims back to VC Data Model v2 format.
+///
+/// [claims] - The JWT claims to convert.
+///
+/// Returns a map with JWT claims converted to VC format.
+Map<String, dynamic> _convertJwtClaimsToVc(Map<String, dynamic> claims) {
+  final vcClaims = Map<String, dynamic>.from(claims);
+
+  final exp = vcClaims.remove('exp');
+  if (exp != null) {
+    vcClaims[VcDataModelV2Key.validUntil.key] =
+        DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000, isUtc: true)
+            .toIso8601String();
+  }
+
+  final nbf = vcClaims.remove('nbf');
+  if (nbf != null) {
+    vcClaims[VcDataModelV2Key.validFrom.key] =
+        DateTime.fromMillisecondsSinceEpoch((nbf as int) * 1000, isUtc: true)
+            .toIso8601String();
+  }
+
+  vcClaims.remove('iat');
+
+  return vcClaims;
 }
 
 /// A [VcDataModelV2] backed by an SD-JWT credential structure.
@@ -213,7 +351,8 @@ class SdJwtDataModelV2 extends VcDataModelV2
 
   /// Creates an [SdJwtDataModelV2] from a parsed [SdJwt] object.
   SdJwtDataModelV2.fromSdJwt(this.sdJwt)
-      : super.clone(VcDataModelV2.fromJson(sdJwt.claims));
+      : super.clone(
+            VcDataModelV2.fromJson(_convertJwtClaimsToVc(sdJwt.claims)));
 
   @override
   String get serialized => sdJwt.serialized;

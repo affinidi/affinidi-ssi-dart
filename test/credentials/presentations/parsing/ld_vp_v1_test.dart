@@ -17,7 +17,7 @@ void main() async {
       expect(v1Vp, isNotNull);
       expect(v1Vp.serialized, isNotNull);
       expect(v1Vp.serialized, isA<String>());
-      expect(dmV1ContextUrl, isIn(v1Vp.context));
+      expect(dmV1ContextUrl, isIn(v1Vp.context.firstUri.toString()));
       expect(v1Vp.holder, isNotNull);
       expect(v1Vp.proof, isNotEmpty);
       expect(v1Vp.verifiableCredential.length, 2);

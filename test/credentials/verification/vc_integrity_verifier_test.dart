@@ -53,6 +53,17 @@ void main() {
       expect(result.warnings, <String>[]);
     });
 
+    test('Should pass verification for jwt dm v1 with Ed25519 signature',
+        () async {
+      final verifier = VcIntegrityVerifier();
+      var data = VerifiableCredentialDataFixtures
+          .jwtCredentialDataModelV11WithEd25519Alg;
+      final verifiableCredential = UniversalParser.parse(data);
+      var result = await verifier.verify(verifiableCredential);
+
+      expect(result.isValid, true);
+    });
+
     test('Should pass verification for sdjwt', () async {
       final verifier = VcIntegrityVerifier();
       var data = VerifiableCredentialDataFixtures.sdJwtWithValidSig;

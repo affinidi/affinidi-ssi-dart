@@ -1,3 +1,4 @@
+export 'context.dart';
 export 'credential_schema.dart';
 export 'credential_status/v1.dart';
 export 'credential_status/v2.dart';

@@ -4,12 +4,15 @@ import 'dart:typed_data';
 import 'package:json_ld_processor/json_ld_processor.dart';
 import 'package:pointycastle/api.dart';
 
+import '../../did/did_resolver.dart';
 import '../../did/did_verifier.dart';
+import '../../exceptions/json_ld_exception.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
 import 'embedded_proof_suite.dart';
+import 'proof_validation_utils.dart';
 
 /// Base class for SECP256K1 signature verifiers.
 abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
@@ -26,12 +29,16 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
   /// Optional challenge value.
   final String? challenge;
 
+  /// Optional custom DID resolver for offline/test verification.
+  final DidResolver? didResolver;
+
   /// Creates a new BaseSecp256k1Verifier.
   BaseSecp256k1Verifier({
     required this.issuerDid,
     this.getNow = DateTime.now,
     this.domain,
     this.challenge,
+    this.didResolver,
     super.customDocumentLoader,
   });
 
@@ -47,49 +54,96 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
   @override
   Future<VerificationResult> verify(Map<String, dynamic> document,
       {DateTime Function() getNow = DateTime.now}) async {
-    final copy = Map.of(document);
-    final proof = copy.remove('proof');
-
-    final validationResult = _validateProofStructure(proof);
-    if (!validationResult.isValid) {
-      return validationResult;
-    }
-
-    final expiryResult = _validateExpiry(proof, getNow());
-    if (!expiryResult.isValid) {
-      return expiryResult;
-    }
-
-    final Uri verificationMethod;
     try {
-      verificationMethod = Uri.parse(proof['verificationMethod'] as String);
-    } catch (e) {
+      final copy = Map.of(document);
+      final proof = copy.remove('proof');
+
+      final validationResult = _validateProofStructure(proof);
+      if (!validationResult.isValid) {
+        return validationResult;
+      }
+
+      final proofPurposeValidation = _validateProofPurpose(document, proof);
+      if (!proofPurposeValidation.isValid) {
+        return proofPurposeValidation;
+      }
+
+      final expiryResult = _validateExpiry(proof, getNow());
+      if (!expiryResult.isValid) {
+        return expiryResult;
+      }
+
+      final Uri verificationMethod;
+      try {
+        verificationMethod = Uri.parse(proof['verificationMethod'] as String);
+      } catch (e) {
+        return VerificationResult.invalid(
+          errors: ['invalid or missing proof.verificationMethod'],
+        );
+      }
+
+      final originalProofValue = proof.remove(proofValueField);
+      if (originalProofValue == null) {
+        return VerificationResult.invalid(
+          errors: ['missing $proofValueField'],
+        );
+      }
+
+      proof['@context'] = contextUrl;
+
+      final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
+
+      final Uint8List hash;
+      try {
+        hash = await computeSignatureHash(proof, copy, cacheLoadDocument);
+      } on RemoteContextLoadException catch (e) {
+        return VerificationResult.invalid(
+          errors: [
+            'Failed to load remote context: ${e.failedUri}',
+            'Cause: ${e.cause}',
+          ],
+        );
+      } on JsonLdException catch (e) {
+        return VerificationResult.invalid(
+          errors: [
+            'JSON-LD processing failed: ${e.operation}',
+            'Details: ${e.message}',
+            if (e.cause != null) 'Cause: ${e.cause}',
+          ],
+        );
+      } catch (e) {
+        final errorStr = e.toString();
+        if (errorStr.contains('loading remote context failed')) {
+          return VerificationResult.invalid(
+            errors: [
+              'Failed to load remote context',
+              'Cause: $errorStr',
+            ],
+          );
+        }
+        rethrow;
+      }
+
+      final isValid = await verifySignature(
+          originalProofValue as String, issuerDid, verificationMethod, hash);
+
+      if (!isValid) {
+        return VerificationResult.invalid(
+          errors: ['signature invalid'],
+        );
+      }
+
+      return VerificationResult.ok();
+    } on JsonLdException catch (e) {
       return VerificationResult.invalid(
-        errors: ['invalid or missing proof.verificationMethod'],
+        errors: [
+          'Verification failed: ${e.message}',
+          if (e.operation != null) 'Operation: ${e.operation}',
+          if (e.failedUri != null) 'Failed URI: ${e.failedUri}',
+          if (e.cause != null) 'Cause: ${e.cause}',
+        ],
       );
     }
-
-    final originalProofValue = proof.remove(proofValueField);
-    if (originalProofValue == null) {
-      return VerificationResult.invalid(
-        errors: ['missing $proofValueField'],
-      );
-    }
-
-    proof['@context'] = contextUrl;
-
-    final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-    final hash = await computeSignatureHash(proof, copy, cacheLoadDocument);
-    final isValid = await verifySignature(
-        originalProofValue as String, issuerDid, verificationMethod, hash);
-
-    if (!isValid) {
-      return VerificationResult.invalid(
-        errors: ['signature invalid'],
-      );
-    }
-
-    return VerificationResult.ok();
   }
 
   /// Computes the signature hash from proof and document.
@@ -115,13 +169,20 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
       );
     }
 
-    if (proof['type'] != expectedProofType) {
-      return VerificationResult.invalid(
-        errors: ['invalid proof type, expected $expectedProofType'],
-      );
-    }
+    return ProofValidationUtils.validateProofTypeStructure(
+      proof,
+      expectedProofType,
+    );
+  }
 
-    return VerificationResult.ok();
+  VerificationResult _validateProofPurpose(
+      Map<String, dynamic> document, Map<String, dynamic> proof) {
+    final actualProofPurpose = proof['proofPurpose'];
+    final docType = document['type'];
+    return ProofValidationUtils.validateProofPurpose(
+      actualProofPurpose,
+      docType,
+    );
   }
 
   VerificationResult _validateExpiry(Map<String, dynamic> proof, DateTime now) {
@@ -140,40 +201,59 @@ Future<Uint8List> computeVcHash(
   Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
       documentLoader,
 ) async {
-  final normalizedProof = await JsonLdProcessor.normalize(
-    proof,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
-  );
-  final proofDigest = Digest('SHA-256').process(
-    utf8.encode(normalizedProof),
-  );
+  try {
+    final normalizedProof = await JsonLdProcessor.normalize(
+      proof,
+      options: JsonLdOptions(
+        safeMode: true,
+        documentLoader: documentLoader,
+      ),
+    );
+    final proofDigest = Digest('SHA-256').process(
+      utf8.encode(normalizedProof),
+    );
 
-  final normalizedContent = await JsonLdProcessor.normalize(
-    unsignedCredential,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
-  );
+    // 4
+    final normalizedContent = await JsonLdProcessor.normalize(
+      unsignedCredential,
+      options: JsonLdOptions(
+        safeMode: true,
+        documentLoader: documentLoader,
+      ),
+    );
 
-  final contentDigest = Digest('SHA-256').process(
-    utf8.encode(normalizedContent),
-  );
+    final contentDigest = Digest('SHA-256').process(
+      utf8.encode(normalizedContent),
+    );
 
-  final payloadToSign = Uint8List.fromList(proofDigest + contentDigest);
-  return payloadToSign;
+    final payloadToSign = Uint8List.fromList(proofDigest + contentDigest);
+    return payloadToSign;
+  } on JsonLdError catch (e) {
+    throw JsonLdException(
+      message: 'JSON-LD normalization failed',
+      operation: 'compute_hash',
+      cause: e.message,
+    );
+  } catch (e) {
+    if (e is JsonLdException) {
+      rethrow;
+    }
+    throw JsonLdException(
+      message: 'Unexpected error during hash computation',
+      operation: 'compute_hash',
+      cause: e,
+    );
+  }
 }
 
 /// Verifies a JWS signature.
 Future<bool> verifyJws(
-  String jws,
-  String issuerDid,
-  Uri verificationMethod, // expected kid / verification method DID URL
-  Uint8List payloadToSign, // canonicalized UTF-8 bytes of the JSON-LD document
-) async {
+    String jws,
+    String issuerDid,
+    Uri verificationMethod, // expected kid / verification method DID URL
+    Uint8List
+        payloadToSign, // canonicalized UTF-8 bytes of the JSON-LD document
+    {DidResolver? didResolver}) async {
   // 1) Parse JWS compact or RFC7797 detached (header..signature)
   String encodedHeader;
   String? encodedPayloadFromJws; // only present in 3-part JWS
@@ -286,9 +366,10 @@ Future<bool> verifyJws(
     algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
     kid: verificationMethod.toString(),
     issuerDid: issuerDid,
+    didResolver: didResolver,
   );
 
-  // 9) Verify: try as-is, then if fails and signature looks like DER, convert to r||s and retry
+  // 9) Verify: try as-is first (works for raw P1363 format)
   bool ok = false;
   try {
     ok = verifier.verify(signingInput, signature);
@@ -299,24 +380,18 @@ Future<bool> verifyJws(
     // ignore; we'll try conversion path below
   }
 
-  // If signature length is DER (starts with 0x30) or variable-length and not 64, try DER->P1363
-  if (signature.length != 64 && signature.isNotEmpty && signature[0] == 0x30) {
+  // If raw verification failed and signature looks like DER (starts with 0x30), convert to P1363 and retry
+  if (!ok && signature.isNotEmpty && signature[0] == 0x30) {
     try {
       final p1363 = _derToP1363(signature, 32); // 32-byte coords for secp256k1
       ok = verifier.verify(signingInput, p1363);
       return ok;
     } catch (e) {
-      // fall through
+      // DER conversion or verification failed, fall through to return false
     }
   }
 
-  // If signature is 64 bytes, verification was already attempted above; if it fails, return false.
-  if (signature.length == 64) {
-    // already tried as-is above, so failing here means verification failed
-    return false;
-  }
-
-  // If we reach here, verification failed
+  // If we reach here, all verification attempts failed
   return false;
 }
 

@@ -3,14 +3,17 @@ import 'dart:typed_data';
 import 'package:json_ld_processor/json_ld_processor.dart';
 
 import '../../did/did_signer.dart';
+import '../../did/did_verifier.dart';
 import '../../did/public_key_utils.dart';
 import '../../did/universal_did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
+import '../../utility.dart';
 import 'base_data_integrity_verifier.dart';
 import 'base_jcs_generator.dart';
 import 'base_jcs_verifier.dart';
+import 'data_integrity_context_util.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 import 'jcs_utils.dart';
@@ -55,9 +58,15 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
   }
 
   /// Generates an [EmbeddedProof] for the given [document].
+  ///
+  /// A unique nonce is automatically generated for each proof.
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
+    final nonce = randomId();
+
+    // Validate credential @context contains Data Integrity or VC v2 context
+    DataIntegrityContextUtil.validate(document);
     final proof = {
       '@context': _dataIntegrityContext,
       'type': _dataIntegrityType,
@@ -68,6 +77,7 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
       'expires': expires?.toIso8601String(),
       'challenge': challenge,
       'domain': domain,
+      'nonce': nonce,
     };
 
     document.remove('proof');
@@ -90,6 +100,7 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
       expires: expires,
       challenge: challenge,
       domain: domain,
+      nonce: nonce,
     );
   }
 
@@ -128,12 +139,14 @@ class DataIntegrityEcdsaVerifier extends BaseDataIntegrityVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEcdsaVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -186,12 +199,14 @@ class DataIntegrityEcdsaRdfcVerifier extends BaseDataIntegrityVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEcdsaRdfcVerifier({
     required super.issuerDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -223,13 +238,48 @@ class DataIntegrityEcdsaRdfcVerifier extends BaseDataIntegrityVerifier {
     Uri verificationMethod,
     Uint8List hash,
   ) async {
-    return verifyDataIntegritySignature(
-      proofValue,
-      issuerDid,
-      verificationMethod,
-      hash,
-      _ecdsaCryptosuite,
+    // For ecdsa-rdfc-2019, we need to dynamically determine the signature scheme
+    // by examining the verification method since it supports both P-256 and P-384
+    final signatureScheme =
+        await _getSignatureSchemeFromDid(verificationMethod);
+
+    final signature = multiBaseToUint8List(proofValue);
+
+    final verifier = await DidVerifier.create(
+      algorithm: signatureScheme,
+      kid: verificationMethod.toString(),
+      issuerDid: issuerDid,
+      didResolver: didResolver,
     );
+    return verifier.verify(hash, signature);
+  }
+
+  /// Determines the signature scheme from the verification method.
+  Future<SignatureScheme> _getSignatureSchemeFromDid(
+      Uri verificationMethod) async {
+    // Resolve the DID to get the verification method
+    final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
+    final didDocument = await resolver.resolveDid(issuerDid);
+
+    // Find the verification method in the DID document
+    final vm = didDocument.verificationMethod
+        .where((vm) =>
+            vm.id == verificationMethod.toString() ||
+            vm.id.endsWith('#${verificationMethod.toString().split('#').last}'))
+        .firstOrNull;
+
+    if (vm == null) {
+      throw SsiException(
+        message:
+            'Verification method $verificationMethod not found in DID document',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
+    }
+
+    // Get the JWK and determine the signature scheme
+    final jwk = vm.asJwk();
+    final jwkMap = jwk.toJson();
+    return getEcdsaSignatureScheme(jwkMap);
   }
 }
 
@@ -284,12 +334,14 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
   /// [getNow]: Optional time supplier (defaults to `DateTime.now`).
   /// [domain]: Optional expected domain(s).
   /// [challenge]: Optional expected challenge string.
+  /// [didResolver]: Optional custom DID resolver for offline/test verification.
   DataIntegrityEcdsaJcsVerifier({
     required super.verifierDid,
     super.getNow,
     super.domain,
     super.challenge,
     super.customDocumentLoader,
+    super.didResolver,
   });
 
   @override
@@ -342,8 +394,8 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
   Future<SignatureScheme> _getSignatureSchemeFromDid(
       Uri verificationMethod) async {
     // Resolve the DID to get the verification method
-    final didDocument =
-        await UniversalDIDResolver.defaultResolver.resolveDid(issuerDid);
+    final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
+    final didDocument = await resolver.resolveDid(issuerDid);
 
     // Find the verification method in the DID document
     final vm = didDocument.verificationMethod

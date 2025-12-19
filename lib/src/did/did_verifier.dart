@@ -26,6 +26,11 @@ class DidVerifier implements Verifier {
   /// The JSON Web Key (JWK) containing the public key information.
   final Map<String, dynamic> _jwk;
 
+  /// Gets the JWK used by this verifier.
+  ///
+  /// Returns an unmodifiable copy of the JWK containing the public key information.
+  Map<String, dynamic> get jwk => Map.unmodifiable(_jwk);
+
   /// Creates a [DidVerifier] instance with the specified algorithm, key ID, and JWK.
   DidVerifier._(this._algorithm, this._kId, this._jwk);
 

@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import '../../did/did_signer.dart';
 import '../../types.dart';
+import '../../utility.dart';
+import 'data_integrity_context_util.dart';
 import 'embedded_proof.dart';
 import 'embedded_proof_suite.dart';
 import 'jcs_utils.dart';
@@ -47,9 +49,12 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
   HashingAlgorithm get hashingAlgorithm;
 
   /// Generates an [EmbeddedProof] for the given [document].
+  ///
+  /// A unique nonce is automatically generated for each proof.
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     final created = DateTime.now();
+    final nonce = randomId();
     final proof = JcsUtils.createBaseProofConfiguration(
       cryptosuite: cryptosuite,
       created: created,
@@ -58,6 +63,7 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
       expires: expires,
       challenge: challenge,
       domain: domain,
+      nonce: nonce,
     );
 
     final additionalProperties = <String, dynamic>{};
@@ -65,6 +71,8 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     // Set proof context to document context if present
     final documentContext = document['@context'];
     if (documentContext != null) {
+      // Validate Data Integrity context presence (VC v2 or data-integrity context)
+      DataIntegrityContextUtil.validate(document);
       proof['@context'] = documentContext;
       additionalProperties['@context'] = documentContext;
     }
@@ -84,17 +92,17 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     final signature = await computeSignature(hash, signer);
 
     return EmbeddedProof(
-      type: JcsUtils.dataIntegrityType,
-      cryptosuite: cryptosuite,
-      created: created,
-      verificationMethod: signer.keyId,
-      proofPurpose: proofPurpose?.value,
-      proofValue: signature,
-      expires: expires,
-      challenge: challenge,
-      domain: domain,
-      additionalProperties: additionalProperties,
-    );
+        type: JcsUtils.dataIntegrityType,
+        cryptosuite: cryptosuite,
+        created: created,
+        verificationMethod: signer.keyId,
+        proofPurpose: proofPurpose?.value,
+        proofValue: signature,
+        expires: expires,
+        challenge: challenge,
+        domain: domain,
+        nonce: nonce,
+        additionalProperties: additionalProperties);
   }
 
   /// Computes the signature for the given hash.

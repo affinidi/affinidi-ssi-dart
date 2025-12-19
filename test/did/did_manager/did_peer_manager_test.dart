@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -80,7 +81,7 @@ void main() {
         // Add service endpoint
         final serviceEndpoint = ServiceEndpoint(
           id: '#service-1',
-          type: 'DIDCommMessaging',
+          type: const StringServiceType('DIDCommMessaging'),
           serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
         );
         await manager.addServiceEndpoint(serviceEndpoint);
@@ -114,7 +115,7 @@ void main() {
         // Add service endpoint
         final serviceEndpoint = ServiceEndpoint(
           id: '#service-1',
-          type: 'DIDCommMessaging',
+          type: const StringServiceType('DIDCommMessaging'),
           serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
         );
         await manager.addServiceEndpoint(serviceEndpoint);
@@ -146,7 +147,8 @@ void main() {
         // Verify service endpoint
         expect(didDocument.service, hasLength(1));
         expect(didDocument.service[0].id, '#service-1');
-        expect(didDocument.service[0].type, 'DIDCommMessaging');
+        expect(didDocument.service[0].type,
+            const StringServiceType('DIDCommMessaging'));
         expect((didDocument.service[0].serviceEndpoint as StringEndpoint).url,
             'https://example.com/endpoint');
 
@@ -219,14 +221,14 @@ void main() {
 
         final endpoint1 = ServiceEndpoint(
           id: '#service-1',
-          type: 'MessagingService',
+          type: const StringServiceType('MessagingService'),
           serviceEndpoint:
               const StringEndpoint('https://example.com/messaging'),
         );
 
         final endpoint2 = ServiceEndpoint(
           id: '#service-2',
-          type: 'CredentialService',
+          type: const StringServiceType('CredentialService'),
           serviceEndpoint: const MapEndpoint({
             'uri': 'https://example.com/credentials',
             'accept': ['application/json'],
@@ -255,7 +257,7 @@ void main() {
 
         final endpoint = ServiceEndpoint(
           id: '#service-to-remove',
-          type: 'TestService',
+          type: const StringServiceType('TestService'),
           serviceEndpoint: const StringEndpoint('https://example.com'),
         );
 
@@ -285,7 +287,7 @@ void main() {
 
         final endpoint = ServiceEndpoint(
           id: '#duplicate-service',
-          type: 'TestService',
+          type: const StringServiceType('TestService'),
           serviceEndpoint: const StringEndpoint('https://example.com'),
         );
 
@@ -607,7 +609,10 @@ void main() {
 
         // Generate a simple credential using this signer and assert proof.verificationMethod is fully-qualified
         final unsignedCredential = MutableVcDataModelV1(
-          context: ['https://www.w3.org/2018/credentials/v1'],
+          context: MutableJsonLdContext.fromJson([
+            'https://www.w3.org/2018/credentials/v1',
+            'https://w3id.org/security/data-integrity/v2'
+          ]),
           id: Uri.parse('uuid:test-normalization'),
           type: {'VerifiableCredential'},
           credentialSubject: [
@@ -760,7 +765,7 @@ void main() {
         // Add service endpoint
         final serviceEndpoint = ServiceEndpoint(
           id: '#service-1',
-          type: 'DIDCommMessaging',
+          type: const StringServiceType('DIDCommMessaging'),
           serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
         );
         await manager.addServiceEndpoint(serviceEndpoint);

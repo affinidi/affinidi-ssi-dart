@@ -26,6 +26,9 @@ class EmbeddedProofSuiteCreateOptions {
   /// A challenge to prevent replay attacks.
   final String? challenge;
 
+  /// A nonce to prevent replay attacks.
+  final String? nonce;
+
   /// The purpose of embedded proof.
   final ProofPurpose? proofPurpose;
 
@@ -39,6 +42,7 @@ class EmbeddedProofSuiteCreateOptions {
   /// [expires] - Specify expiry of proof.
   /// [domain] - Specify one or more security domains in which the proof is meant to be used.
   /// [challenge] - Specify challenge for domain in proof.
+  /// [nonce] - Specify nonce to prevent replay attacks (auto-generated if not provided).
   EmbeddedProofSuiteCreateOptions({
     this.customDocumentLoader = _noOpLoader,
     this.proofPurpose = ProofPurpose.assertionMethod,
@@ -46,6 +50,7 @@ class EmbeddedProofSuiteCreateOptions {
     this.domain,
     this.challenge,
     this.proofValueMultiBase = MultiBase.base58bitcoin,
+    this.nonce,
   });
 }
 

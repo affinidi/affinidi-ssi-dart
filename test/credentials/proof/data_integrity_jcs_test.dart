@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
+import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -96,9 +97,9 @@ void main() {
       final doc = DidKey.generateDocument(keyPair.publicKey);
 
       final credential = MutableVcDataModelV2(
-        context: [
+        context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/ns/credentials/v2',
-        ],
+        ]),
         type: {'VerifiableCredential'},
         credentialSubject: [
           MutableCredentialSubject({'id': 'did:example:subject'})
@@ -125,6 +126,7 @@ void main() {
 
       // Verify the proofValue uses expected prefix
       expect(proof.proofValue, startsWith(expectedPrefix));
+      expect(proof.nonce, isNotNull);
 
       // Verify the credential
       final verifier = DataIntegrityEddsaJcsVerifier(
@@ -157,6 +159,26 @@ void main() {
           seedStart: 5,
         );
       }
+    });
+
+    test(
+        'Verifier rejects when verifierDid mismatches proof.verificationMethod DID',
+        () async {
+      final json =
+          Map<String, dynamic>.from(JcsTestVectors.ecdsaJcs2019TestVector);
+      // expect((json['proof'] as Map<String, dynamic>)['verificationMethod'], startsWith(json['issuer'] as String));
+
+      final wrongIssuerDid = 'did:example:someone-else';
+      final verifier =
+          DataIntegrityEcdsaJcsVerifier(verifierDid: wrongIssuerDid);
+
+      final result = await verifier.verify(json);
+
+      expect(result.isValid, isFalse);
+      expect(
+        result.errors.join(' ').toLowerCase(),
+        contains('issuer did does not match'),
+      );
     });
   });
 }
