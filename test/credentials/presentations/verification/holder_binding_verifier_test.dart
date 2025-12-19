@@ -24,7 +24,7 @@ void main() async {
       expect(result.isValid, false);
       expect(result.errors.length, 1);
       expect(result.errors.first,
-          'VC claimid:2b249d9d93f38e3a holder did:key:zQ3shjgjhNvjBGseaMQW9fKHMUtmf9oDU8LQNPa1Sxf79MJnf does not match VP holder did:key:zQ3shU4NCP9HmcHa4HNkwJzWgW7LepocEcCgHvgDfeLqggoVf');
+          'Missing delegation VC from: did:key:zQ3shjgjhNvjBGseaMQW9fKHMUtmf9oDU8LQNPa1Sxf79MJnf');
     });
 
     test(
@@ -61,6 +61,106 @@ void main() async {
       expect(result.errors.length, 1);
       expect(result.errors.first,
           'VC claimid:2b249d9d93f38e3a has no valid credentialSubject IDs');
+    });
+
+    // Delegation tests
+    test('should succeed with full delegation', () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v1VpWithFullDelegationVC);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('should succeed with restricted delegation', () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v1VpWithRestrictedDelegationVC);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('should succeed with multiple delegations', () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures
+              .v1VpWithMultiDelegationRestricted);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('should succeed with mixed delegation levels', () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures
+              .v1VpWithMultiDelegationMixed);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('should fail when delegation VC is missing for external holder',
+        () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures
+              .v1VpWithMissingDelegationVC);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, false);
+      expect(result.errors.length, 1);
+      expect(
+          result.errors.first, contains('Missing delegation VC from:'));
+    });
+
+    test('should fail when delegation level is invalid', () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures
+              .v1VpWithInvalidDelegationLevel);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, false);
+      expect(result.errors.length, 1);
+      expect(result.errors.first, contains('Invalid delegation level:'));
+    });
+
+    test(
+        'should fail when delegation VC has unexpected credentials in restricted mode',
+        () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures
+              .v1VpWithUnexpectedDelegatedVC);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, false);
+      expect(result.errors.length, 1);
+      expect(
+          result.errors.first, contains('Unexpected VCs in the Delegation VC:'));
+    });
+
+    test('should fail when delegation VC holder does not match VP holder',
+        () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures
+              .v1VpWithInvalidDelegationHolder);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, false);
+      expect(result.errors.length, 1);
+      expect(result.errors.first,
+          contains('Delegation VC delegation-extra holder did:key:anotherholder does not match VP holder'));
+    });
+
+    test('should succeed when VC has no holder field but has delegation',
+        () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v2VpWithMissingHolder);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
     });
   });
 }
