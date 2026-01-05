@@ -25,7 +25,7 @@ class HolderBindingVerifier implements VpVerifier {
         // Extract credential IDs from the delegation's credentialSubject.credentials array
         final subjects = vc.credentialSubject;
         for (final subject in subjects) {
-          final credentials = subject.additionalProperties['credentials'];
+          final credentials = subject['credentials'];
           if (credentials is List) {
             for (final cred in credentials) {
               if (cred is Map && cred['id'] is String) {
