@@ -18,11 +18,9 @@ class HolderBindingVerifier implements VpVerifier {
     final vpHolderDid = vp.holder.id.toString();
     final errors = <String>[];
 
-    // Pass 1: Collect all delegated credential IDs from DelegationCredentials
     final delegatedCredentialIds = <String>{};
     for (final vc in vp.verifiableCredential) {
       if (vc is LdVcDataModelV1 && vc.type.contains('DelegationCredential')) {
-        // Extract credential IDs from the delegation's credentialSubject.credentials array
         final subjects = vc.credentialSubject;
         for (final subject in subjects) {
           final credentials = subject['credentials'];
@@ -37,20 +35,17 @@ class HolderBindingVerifier implements VpVerifier {
       }
     }
 
-    // Pass 2: Check holder binding for non-delegation credentials
     for (final vc in vp.verifiableCredential) {
       if (vc is! LdVcDataModelV1) {
         continue;
       }
 
-      // Skip DelegationCredentials - they are handled by DelegationVcVerifier
       if (vc.type.contains('DelegationCredential')) {
         continue;
       }
 
       final vcId = vc.id?.toString() ?? '<unknown-vc>';
       
-      // Skip credentials that are listed as delegated in a DelegationCredential
       if (delegatedCredentialIds.contains(vcId)) {
         continue;
       }

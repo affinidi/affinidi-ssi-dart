@@ -62,5 +62,44 @@ void main() async {
       expect(result.errors.first,
           'VC claimid:2b249d9d93f38e3a has no valid credentialSubject IDs');
     });
+
+    test('should skip DelegationCredentials themselves', () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v1VpWithRestrictedDelegationVC);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('should skip VCs that are referenced in DelegationCredential.credentials array',
+        () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v1VpWithRestrictedDelegationVC);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('should handle multiple delegations correctly', () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v1VpWithMultiDelegationRestricted);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, true);
+      expect(result.errors, isEmpty);
+    });
+
+    test('should fail if VC is not delegated and holder does not match',
+        () async {
+      final verifier = HolderBindingVerifier();
+      final vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v1VpWithMissingDelegationVC);
+      final result = await verifier.verify(vp);
+      expect(result.isValid, false);
+      expect(result.errors.length, greaterThan(0));
+      expect(result.errors.first, contains('does not match VP holder'));
+    });
   });
 }
