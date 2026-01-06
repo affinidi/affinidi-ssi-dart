@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-01-06
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.2.1`](#ssi---v321)
+
+---
+
+#### `ssi` - `v3.2.1`
+
+ - **FIX**: skip holder binding check for delegated credentials in HolderBindingVerifier (#234).
+
+## 3.2.1
+
+ - **FIX**: skip holder binding check for delegated credentials in HolderBindingVerifier (#234).
+
+
 ## 2025-12-12
 
 ### Changes
