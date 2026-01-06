@@ -72,7 +72,8 @@ void main() async {
       expect(result.errors, isEmpty);
     });
 
-    test('should skip VCs that are referenced in DelegationCredential.credentials array',
+    test(
+        'should skip VCs that are referenced in DelegationCredential.credentials array',
         () async {
       final verifier = HolderBindingVerifier();
       final vp = UniversalPresentationParser.parse(

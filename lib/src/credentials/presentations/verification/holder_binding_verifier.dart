@@ -45,7 +45,7 @@ class HolderBindingVerifier implements VpVerifier {
       }
 
       final vcId = vc.id?.toString() ?? '<unknown-vc>';
-      
+
       if (delegatedCredentialIds.contains(vcId)) {
         continue;
       }
