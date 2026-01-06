@@ -3,22 +3,53 @@ import '../../../../ssi.dart';
 /// Verifies that all VCs inside a Verifiable Presentation (VP)
 /// are bound to the VP holder.
 ///
+/// This verifier checks basic holder binding. Delegation scenarios are handled
+/// by [DelegationVcVerifier] which runs before this verifier.
+///
 /// Rules:
 /// - Prefer `vc.holder.id` as the credential holder.
 /// - If `vc.holder` does not exist, fallback to all `credentialSubject.[i].id`.
-/// - The credential holder (or one of the subject IDs) must match the VP holder.
+/// - The credential holder (or one of the subject IDs) should match the VP holder.
 /// - If no holder or subject IDs exist, mark as invalid.
+/// - DelegationCredentials are skipped (handled by DelegationVcVerifier).
 class HolderBindingVerifier implements VpVerifier {
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation vp) async {
     final vpHolderDid = vp.holder.id.toString();
     final errors = <String>[];
 
+    final delegatedCredentialIds = <String>{};
+    for (final vc in vp.verifiableCredential) {
+      if (vc is LdVcDataModelV1 && vc.type.contains('DelegationCredential')) {
+        final subjects = vc.credentialSubject;
+        for (final subject in subjects) {
+          final credentials = subject['credentials'];
+          if (credentials is List) {
+            for (final cred in credentials) {
+              if (cred is Map && cred['id'] is String) {
+                delegatedCredentialIds.add(cred['id'] as String);
+              }
+            }
+          }
+        }
+      }
+    }
+
     for (final vc in vp.verifiableCredential) {
       if (vc is! LdVcDataModelV1) {
         continue;
       }
+
+      if (vc.type.contains('DelegationCredential')) {
+        continue;
+      }
+
       final vcId = vc.id?.toString() ?? '<unknown-vc>';
+
+      if (delegatedCredentialIds.contains(vcId)) {
+        continue;
+      }
+
       final holderId = vc.holder?.id.toString();
 
       if (holderId != null && holderId.isNotEmpty) {
