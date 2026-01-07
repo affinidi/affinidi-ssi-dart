@@ -9,6 +9,7 @@ import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
 import '../../util/base64_util.dart';
+import '../../util/jwt_util.dart';
 import '../credentials.dart';
 
 part 'jwt_data_model_v1.dart';
@@ -76,28 +77,15 @@ final class JwtDm1Suite
       );
     }
 
-    final (header, payload) =
-        JwtVcDataModelV1.vcToJws(unsignedData.toJson(), signer);
-
-    final encodedHeader = base64UrlNoPadEncode(
-      utf8.encode(jsonEncode(header)),
-    );
-    final encodedPayload = base64UrlNoPadEncode(
-      utf8.encode(jsonEncode(payload)),
-    );
-
-    final toSign = ascii.encode('$encodedHeader.$encodedPayload');
-
-    final signature = base64UrlNoPadEncode(
-      await signer.sign(toSign),
-    );
-
-    final serialized = '$encodedHeader.$encodedPayload.$signature';
+    final jwtUtil = JwtUtil(signer);
+    final header = jwtUtil.header;
+    final payload = JwtVcDataModelV1.vcToJws(unsignedData.toJson(), signer);
+    final result = await jwtUtil.signJwt(payload);
     final jws = Jws(
         header: header,
         payload: payload,
-        signature: signature,
-        serialized: serialized);
+        signature: result['signature']!,
+        serialized: result['serialized']!);
 
     return JwtVcDataModelV1.fromJws(jws);
   }
