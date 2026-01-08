@@ -84,8 +84,8 @@ final class JwtDm1Suite
     final jws = Jws(
         header: header,
         payload: payload,
-        signature: result['signature']!,
-        serialized: result['serialized']!);
+        signature: result.signature,
+        serialized: result.serialized);
 
     return JwtVcDataModelV1.fromJws(jws);
   }
