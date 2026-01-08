@@ -78,9 +78,9 @@ final class JwtDm1Suite
     }
 
     final jwtUtil = JwtUtil(signer);
-    final header = jwtUtil.header;
-    final payload = JwtVcDataModelV1.vcToJws(unsignedData.toJson(), signer);
-    final result = await jwtUtil.signJwt(payload);
+    final (header, payload) =
+        JwtVcDataModelV1.vcToJws(unsignedData.toJson(), signer);
+    final result = await jwtUtil.signJwt(header, payload);
     final jws = Jws(
         header: header,
         payload: payload,

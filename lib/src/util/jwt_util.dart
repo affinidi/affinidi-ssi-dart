@@ -5,20 +5,14 @@ import 'base64_util.dart';
 
 /// Utility class for handling JWT operations.
 class JwtUtil {
-  DidSigner _signer;
-  Map<String, dynamic> header;
+  final DidSigner _signer;
 
   /// Creates a JwtUtil instance with the given [signer].
-  JwtUtil(DidSigner signer)
-      : _signer = signer,
-        header = {
-          'alg': signer.signatureScheme.alg,
-          'kid': signer.keyId,
-          'typ': 'JWT',
-        };
+  JwtUtil(DidSigner signer) : _signer = signer;
 
-  /// Signs a JWT with the given [payload].
-  Future<Map<String, String>> signJwt(Map<String, dynamic> payload) async {
+  /// Signs a JWT with the given [header] and [payload].
+  Future<Map<String, String>> signJwt(
+      Map<String, dynamic> header, Map<String, dynamic> payload) async {
     final encodedHeader = base64UrlNoPadEncode(
       utf8.encode(jsonEncode(header)),
     );
@@ -37,12 +31,3 @@ class JwtUtil {
     };
   }
 }
-
-
-    // final header = <String, dynamic>{
-    //   'alg': signer.signatureScheme.alg,
-    //   'kid': signer.keyId,
-    //   'typ': 'JWT',
-    // };
-    // payload['iss'] = issuerId;
-

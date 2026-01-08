@@ -22,11 +22,17 @@ class JwtVcDataModelV1 extends VcDataModelV1
   /// Converts a VC JSON object to a pair of JWT header and payload.
   ///
   /// This prepares the data for signing as a JWT.
-  static Map<String, dynamic> vcToJws(
+  static (Map<String, dynamic> header, Map<String, dynamic> payload) vcToJws(
     Map<String, dynamic> json,
     DidSigner signer,
   ) {
     final payload = <String, dynamic>{};
+    final header = <String, dynamic>{
+      'alg': signer.signatureScheme.alg,
+      'kid': signer.keyId,
+      'typ': 'JWT',
+    };
+
     final exp = json.remove(_VC1.expirationDate.key);
     if (exp != null) {
       payload['exp'] =
@@ -53,7 +59,7 @@ class JwtVcDataModelV1 extends VcDataModelV1
 
     payload['vc'] = json;
 
-    return payload;
+    return (header, payload);
   }
 
   /// Converts a JWT payload back into a VC JSON object.
