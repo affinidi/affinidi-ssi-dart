@@ -34,6 +34,7 @@ export 'src/key_pair/public_key.dart';
 export 'src/key_pair/secp256k1_key_pair.dart';
 export 'src/types.dart';
 export 'src/util/jcs_util.dart';
+export 'src/util/jwt_util.dart';
 export 'src/wallet/bip32_ed25519_wallet.dart';
 export 'src/wallet/bip32_wallet.dart';
 export 'src/wallet/persistent_wallet.dart';
