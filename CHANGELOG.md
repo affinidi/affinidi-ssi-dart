@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-01-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.3.0`](#ssi---v330)
+
+---
+
+#### `ssi` - `v3.3.0`
+
+ - **FEAT**: jwt util helper class (#235).
+
+## 3.3.0
+
+ - **FEAT**: jwt util helper class (#235).
+
+
 ## 2026-01-06
 
 ### Changes
