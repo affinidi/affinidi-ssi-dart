@@ -83,7 +83,10 @@ void main() {
       // The verification fails with integrity_verification_failed because our simple
       // document loader doesn't provide all the necessary context information.
       // This is expected and doesn't indicate a problem with the document loader functionality.
-      expect(result.errors, contains('integrity_verification_failed'));
+      expect(
+          result.errors[0],
+          contains(
+              'integrity_verification_failed'));
     });
 
     test('should use cached verifiers', () async {

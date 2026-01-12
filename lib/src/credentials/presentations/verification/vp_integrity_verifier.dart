@@ -44,7 +44,9 @@ class VpIntegrityVerifier implements VpVerifier {
     if (!integrityValid) {
       return Future.value(
         VerificationResult.invalid(
-          errors: [SsiExceptionType.failedIntegrityVerification.code],
+          errors: [
+            '${SsiExceptionType.failedIntegrityVerification.code} for VP id: ${data.id}'
+          ],
         ),
       );
     }

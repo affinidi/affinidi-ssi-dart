@@ -108,16 +108,19 @@ final class UniversalPresentationVerifier {
       warnings.addAll(verificationResult.warnings);
     }
 
-    final vcVerifier = UniversalVerifier(
-        customDocumentLoader: customDocumentLoader,
-        didResolver: didResolver,
-        customVerifiers: customVclVerifiers);
+    // Verify VCs only if VP verified successfully
+    if (errors.isEmpty) {
+      final vcVerifier = UniversalVerifier(
+          customDocumentLoader: customDocumentLoader,
+          didResolver: didResolver,
+          customVerifiers: customVclVerifiers);
 
-    // Verify each credential using the UniversalVerifier
-    for (final credential in vp.verifiableCredential) {
-      final vcVerificationResult = await vcVerifier.verify(credential);
-      errors.addAll(vcVerificationResult.errors);
-      warnings.addAll(vcVerificationResult.warnings);
+      // Verify each credential using the UniversalVerifier
+      for (final credential in vp.verifiableCredential) {
+        final vcVerificationResult = await vcVerifier.verify(credential);
+        errors.addAll(vcVerificationResult.errors);
+        warnings.addAll(vcVerificationResult.warnings);
+      }
     }
 
     return VerificationResult.fromFindings(
