@@ -80,7 +80,9 @@ class DelegationVcVerifier implements VpVerifier {
 
       if (delegationLevel != 'restricted' && delegationLevel != 'full') {
         isValidDelegationCheck = false;
-        delegationErrors.add('Invalid delegation level: $delegationLevel');
+        delegationErrors
+            .add('Invalid delegation level: $delegationLevel for VC '
+                '${delegationCredentialBySigner.id}');
         continue;
       }
 
