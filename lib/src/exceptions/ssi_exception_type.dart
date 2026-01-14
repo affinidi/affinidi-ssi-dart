@@ -36,6 +36,9 @@ enum SsiExceptionType {
   /// The vc is invalid
   invalidVC(code: 'invalid_vc'),
 
+  /// The vc is revoked
+  revokedVC(code: 'revoked_vc'),
+
   /// The JSON-LD @context for issuance/verification is invalid or missing required entries
   invalidContext(code: 'invalid_context'),
 
