@@ -38,8 +38,7 @@ void main() {
       expect(
           result.errors,
           contains(
-              '${SsiExceptionType.invalidVC.code} for status urn:uuid:revocation-list-0'));
-
+              '${SsiExceptionType.revokedVC.code} ${parsed.id} for status urn:uuid:revocation-list-0'));
       expect(result.warnings, isEmpty);
     });
 
@@ -81,7 +80,7 @@ void main() {
       expect(
         result.errors,
         contains(
-            '${SsiExceptionType.failedToFetchRevocationList.code} for status urn:uuid:revocation-list-0: Exception: Invalid URL scheme'),
+            '${SsiExceptionType.failedToFetchRevocationList.code} for VC ${parsed.id} status urn:uuid:revocation-list-0: Exception: Invalid URL scheme'),
       );
       expect(result.warnings, isEmpty);
     });
@@ -102,7 +101,7 @@ void main() {
       expect(
         result.errors,
         contains(
-            '${SsiExceptionType.invalidVC.code} for status urn:uuid:revocation-list-0'),
+            '${SsiExceptionType.invalidVC.code} ${parsed.id} for status urn:uuid:revocation-list-0'),
       );
       expect(result.warnings, isEmpty);
     });
@@ -122,7 +121,7 @@ void main() {
       expect(
         result.errors,
         contains(
-            '${SsiExceptionType.failedToFetchRevocationList.code} for status urn:uuid:revocation-list-0: Exception: Network error'),
+            '${SsiExceptionType.failedToFetchRevocationList.code} for VC ${parsed.id} status urn:uuid:revocation-list-0: Exception: Network error'),
       );
       expect(result.warnings, isEmpty);
     });
@@ -146,7 +145,7 @@ void main() {
       expect(
         result.errors,
         contains(
-            '${SsiExceptionType.invalidEncoding.code} for status urn:uuid:revocation-list-0'),
+            '${SsiExceptionType.invalidEncoding.code} for VC ${parsed.id} status urn:uuid:revocation-list-0'),
       );
       expect(result.warnings, isEmpty);
     });
@@ -167,7 +166,7 @@ void main() {
       expect(
         result.errors,
         contains(
-            '${SsiExceptionType.revocationIndexOutOfBounds.code} for status urn:uuid:revocation-list-0'),
+            '${SsiExceptionType.revocationIndexOutOfBounds.code} for VC ${parsed.id} status urn:uuid:revocation-list-0'),
       );
       expect(result.warnings, isEmpty);
     });
@@ -208,7 +207,7 @@ void main() {
       expect(
           result.errors,
           contains(
-              '${SsiExceptionType.invalidVC.code} for status urn:uuid:revocation-list-1'));
+              '${SsiExceptionType.revokedVC.code} ${vc.id} for status urn:uuid:revocation-list-1'));
       expect(result.warnings, isEmpty);
     });
 

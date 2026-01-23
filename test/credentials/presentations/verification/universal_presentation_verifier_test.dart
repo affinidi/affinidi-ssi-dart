@@ -53,7 +53,10 @@ void main() async {
           .verify(v1Vp);
 
       expect(verificationStatus.errors.length, 1);
-      expect(verificationStatus.errors, ['integrity_verification_failed']);
+      expect(
+          verificationStatus.errors[0]
+              .contains('integrity_verification_failed'),
+          isTrue);
       expect(verificationStatus.warnings.length, 0);
       expect(verificationStatus.isValid, false);
     });

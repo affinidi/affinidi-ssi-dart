@@ -94,7 +94,10 @@ void main() {
           VerifiablePresentationDataFixtures.v1VpWithInvalidDelegationLevel);
       final result = await verifier.verify(vp);
       expect(result.isValid, false);
-      expect(result.errors, contains('Invalid delegation level: wrong-level'));
+      expect(
+          result.errors,
+          contains(
+              'Invalid delegation level: wrong-level for VC delegation-invalid'));
     });
 
     test(

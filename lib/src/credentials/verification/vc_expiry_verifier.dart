@@ -30,14 +30,16 @@ class VcExpiryVerifier implements VcVerifier {
     if (validFrom != null && now.isBefore(validFrom)) {
       return Future.value(
         VerificationResult.invalid(
-          errors: ['vc is not yet valid, validFrom: "$validFrom"'],
+          errors: ['vc ${data.id} is not yet valid, validFrom: "$validFrom"'],
         ),
       );
     }
     if (validUntil != null && now.isAfter(validUntil)) {
       return Future.value(
         VerificationResult.invalid(
-          errors: ['vc is no longer valid, validUntil: "$validUntil"'],
+          errors: [
+            'vc ${data.id} is no longer valid, validUntil: "$validUntil"'
+          ],
         ),
       );
     }

@@ -83,7 +83,9 @@ class VcIntegrityVerifier implements VcVerifier {
     if (!integrityValid) {
       return Future.value(
         VerificationResult.invalid(
-          errors: [SsiExceptionType.failedIntegrityVerification.code],
+          errors: [
+            '${SsiExceptionType.failedIntegrityVerification.code} for VC ${data.id}',
+          ],
         ),
       );
     }

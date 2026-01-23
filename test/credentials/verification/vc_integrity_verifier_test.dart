@@ -48,8 +48,8 @@ void main() {
       var result = await verifier.verify(verifiableCredential);
 
       expect(result.isValid, false);
-      expect(
-          result.errors, [SsiExceptionType.failedIntegrityVerification.code]);
+      expect(result.errors[0],
+          contains(SsiExceptionType.failedIntegrityVerification.code));
       expect(result.warnings, <String>[]);
     });
 

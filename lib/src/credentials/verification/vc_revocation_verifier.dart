@@ -71,8 +71,8 @@ class RevocationList2020Verifier implements VcVerifier {
       final index = int.tryParse(status.revocationListIndex);
 
       if (listUri == null || index == null) {
-        errors
-            .add('${SsiExceptionType.invalidVC.code} for status ${status.id}');
+        errors.add(
+            '${SsiExceptionType.invalidVC.code} ${vc.id} for status ${status.id}');
         continue;
       }
 
@@ -83,14 +83,14 @@ class RevocationList2020Verifier implements VcVerifier {
             revocationDocument;
       } catch (e) {
         errors.add(
-            '${SsiExceptionType.failedToFetchRevocationList.code} for status ${status.id}: $e');
+            '${SsiExceptionType.failedToFetchRevocationList.code} for VC ${vc.id} status ${status.id}: $e');
         continue;
       }
 
       final encodedList = statusListVc['credentialSubject']?['encodedList'];
       if (encodedList == null || encodedList is! String) {
-        errors
-            .add('${SsiExceptionType.invalidVC.code} for status ${status.id}');
+        errors.add(
+            '${SsiExceptionType.invalidVC.code} ${vc.id} for status ${status.id}');
         continue;
       }
 
@@ -101,7 +101,7 @@ class RevocationList2020Verifier implements VcVerifier {
         bitstring = Uint8List.fromList(_gZipDecoder.decodeBytes(compressed));
       } catch (_) {
         errors.add(
-            '${SsiExceptionType.invalidEncoding.code} for status ${status.id}');
+            '${SsiExceptionType.invalidEncoding.code} for VC ${vc.id} status ${status.id}');
         continue;
       }
 
@@ -110,7 +110,7 @@ class RevocationList2020Verifier implements VcVerifier {
 
       if (byteIndex >= bitstring.length) {
         errors.add(
-            '${SsiExceptionType.revocationIndexOutOfBounds.code} for status ${status.id}');
+            '${SsiExceptionType.revocationIndexOutOfBounds.code} for VC ${vc.id} status ${status.id}');
         continue;
       }
 
@@ -118,8 +118,8 @@ class RevocationList2020Verifier implements VcVerifier {
       final isRevoked = (byte & (1 << bitOffset)) != 0;
 
       if (isRevoked) {
-        errors
-            .add('${SsiExceptionType.invalidVC.code} for status ${status.id}');
+        errors.add(
+            '${SsiExceptionType.revokedVC.code} ${vc.id} for status ${status.id}');
       }
     }
 

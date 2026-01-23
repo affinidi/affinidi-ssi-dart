@@ -187,7 +187,7 @@ void main() {
       expect(
         result.errors,
         contains(
-          '${SsiExceptionType.invalidVC.code} for status urn:uuid:revocation-list-0',
+          '${SsiExceptionType.revokedVC.code} ${parsed.id} for status urn:uuid:revocation-list-0',
         ),
       );
     });
