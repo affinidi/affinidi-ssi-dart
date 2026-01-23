@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-01-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.4.0`](#ssi---v340)
+
+---
+
+#### `ssi` - `v3.4.0`
+
+ - **FEAT**: improve verification error message (#236).
+
+## 3.4.0
+
+ - **FEAT**: improve verification error message (#236).
+
+
 ## 2026-01-09
 
 ### Changes
