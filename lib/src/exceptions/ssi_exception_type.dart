@@ -30,6 +30,9 @@ enum SsiExceptionType {
   /// The did:web or document is invalid
   invalidDidWeb(code: 'invalid_did_web'),
 
+  /// The did:webvh or document is invalid
+  invalidDidWebVh(code: 'invalid_did_webvh'),
+
   /// The did:key is invalid
   invalidDidKey(code: 'invalid_did_key'),
 
