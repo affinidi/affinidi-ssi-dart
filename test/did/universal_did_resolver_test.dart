@@ -51,6 +51,94 @@ void main() {
       });
     });
 
+    group('using did:webvh,', () {
+      test('it resolves successfully', () async {
+        // cargo run --package didwebvh-rs:0.1.17 --example resolve
+        // "did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs" > diddoc.json
+
+        // https://identity.foundation/didwebvh-implementations/implementations/affinidi-didwebvh-rs/did.jsonl
+
+        // DID Document:
+        // {
+        //   "@context": [
+        //     "https://www.w3.org/ns/did/v1"
+        //   ],
+        //   "assertionMethod": [
+        //     "did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"
+        //   ],
+        //   "authentication": [
+        //     "did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"
+        //   ],
+        //   "id": "did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs",
+        //   "keyAgreement": [
+        //     "did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"
+        //   ],
+        //   "service": [
+        //     {
+        //       "@context": "https://identity.foundation/linked-vp/contexts/v1",
+        //       "id": "did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#whois",
+        //       "serviceEndpoint": "https://identity.foundation/didwebvh-implementations/implementations/affinidi-didwebvh-rs/whois.vp",
+        //       "type": "LinkedVerifiablePresentation"
+        //     },
+        //     {
+        //       "id": "did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#files",
+        //       "serviceEndpoint": "https://identity.foundation/didwebvh-implementations/implementations/affinidi-didwebvh-rs/",
+        //       "type": "relativeRef"
+        //     }
+        //   ],
+        //   "verificationMethod": [
+        //     {
+        //       "controller": "did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs",
+        //       "id": "did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0",
+        //       "publicKeyMultibase": "z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV",
+        //       "type": "Multikey"
+        //     }
+        //   ]
+        // }
+
+        // WebVH Metadata:
+        // {
+        //   "versionId": "2-QmUCFFYYGBJhzZqyouAtvRJ7ULdd8FqSUvwb61FPTMH1Aj",
+        //   "versionTime": "2025-07-13T23:44:37Z",
+        //   "created": "2025-07-13T23:43:58Z",
+        //   "updated": "2025-07-13T23:44:37Z",
+        //   "scid": "Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai",
+        //   "portable": true,
+        //   "deactivated": false,
+        //   "witness": {
+        //     "threshold": 3,
+        //     "witnesses": [
+        //       {
+        //         "id": "did:key:z6Mkih1iaNrtSYkynhqsVBCsetmGpv1YnANyzGZHzZSZJeG1"
+        //       },
+        //       {
+        //         "id": "did:key:z6MkqmMLmWAMs357diZ4wYJMEVwEsPjau8X5BktJNTRtTWEv"
+        //       },
+        //       {
+        //         "id": "did:key:z6MkoWf85ozvizXJUqfb3CrzXTDVYRQkkhHDa29GErDivZ7U"
+        //       },
+        //       {
+        //         "id": "did:key:z6MkknMS6hC8bWwpHFax1uBkHYzjd4qyaQJB3es12d12mTYH"
+        //       }
+        //     ]
+        //   },
+        //   "watchers": [
+        //     "https://watcher1.affinidi.com/"
+        //   ]
+        // }
+
+        final did =
+            'did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs';
+        final String didDocumentWithControllerWebvh =
+            '{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"service":[{"@context":"https://identity.foundation/linked-vp/contexts/v1","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#whois","serviceEndpoint":"https://identity.foundation/didwebvh-implementations/implementations/affinidi-didwebvh-rs/whois.vp","type":"LinkedVerifiablePresentation"},{"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#files","serviceEndpoint":"https://identity.foundation/didwebvh-implementations/implementations/affinidi-didwebvh-rs/","type":"relativeRef"}],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]}';
+
+        final expectedDidDoc = jsonDecode(didDocumentWithControllerWebvh);
+        final resolvedDidDoc =
+            await UniversalDIDResolver.defaultResolver.resolveDid(did);
+        expect(resolvedDidDoc.toJson()['id'], expectedDidDoc['id']);
+      });
+    });
+
     group('using resolver address', () {
       test('it throws unable to resolve did when resolverAddress null',
           () async {

@@ -1,7 +1,9 @@
+// ignore_for_file: avoid_print, public_member_api_docs
+
 import 'package:http/http.dart' as http;
 
-import '../exceptions/ssi_exception.dart';
-import '../exceptions/ssi_exception_type.dart';
+import '../../ssi.dart';
+import 'did_webvh_reference/webvh_url_x.dart';
 
 /// WebVhUrl Class to handle Url parsing and components
 class DidWebVhUrl {
@@ -120,6 +122,41 @@ class DidWebVhUrl {
       throw SsiException(
         message: 'Failed to fetch DIDWebVH JSON Log file for ${toDid()}: $e',
         code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+  }
+
+  static Future<DidDocument> resolve(
+    String didToResolve,
+  ) async {
+    // Reference implementation for interface demo
+    if (!didToResolve.startsWith('did:webvh')) {
+      throw SsiException(
+        message: '`$didToResolve` is not did:webvh DID',
+        code: SsiExceptionType.invalidDidWeb.code,
+      );
+    }
+
+    try {
+      // reference implementation
+      final parseDidUrl = WebvhUrlX.parseDidUrl(didToResolve).getHttpUrl();
+      print('parsedJsonLogFileUrl(Ref): $parseDidUrl');
+
+      // Axiom implementation
+      final parsedJsonLogFileUrl =
+          DidWebVhUrl.fromDid(didToResolve).toJsonLogFileUrl();
+      print('parsedJsonLogFileUrl(Axiom): $parsedJsonLogFileUrl');
+
+      // todo! replace with implementation
+      final String resultJson =
+          '{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"service":[{"@context":"https://identity.foundation/linked-vp/contexts/v1","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#whois","serviceEndpoint":"https://identity.foundation/didwebvh-implementations/implementations/affinidi-didwebvh-rs/whois.vp","type":"LinkedVerifiablePresentation"},{"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#files","serviceEndpoint":"https://identity.foundation/didwebvh-implementations/implementations/affinidi-didwebvh-rs/","type":"relativeRef"}],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]}';
+
+      return DidDocument.fromJson(resultJson);
+    } catch (e) {
+      if (e is SsiException) rethrow;
+      throw SsiException(
+        message: 'Failed to fetch DID Web document for $didToResolve: $e',
+        code: SsiExceptionType.invalidDidWeb.code,
       );
     }
   }

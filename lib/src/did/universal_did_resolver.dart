@@ -10,6 +10,7 @@ import 'did_key.dart';
 import 'did_peer.dart';
 import 'did_resolver.dart';
 import 'did_web.dart';
+import 'did_webvh.dart';
 
 /// A class for resolving multiple DID methods.
 class UniversalDIDResolver implements DidResolver {
@@ -70,6 +71,9 @@ class UniversalDIDResolver implements DidResolver {
       return DidKey.resolve(did);
     } else if (did.startsWith('did:peer')) {
       return DidPeer.resolve(did);
+    } else if (did.startsWith('did:webvh')) {
+      // did:webvh should be checked first before did:web to avoid conflict
+      return DidWebVhUrl.resolve(did);
     } else if (did.startsWith('did:web')) {
       return DidWeb.resolve(did);
     } else {
