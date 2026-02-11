@@ -239,12 +239,12 @@ void main() {
       final json = {
         'versionId': '42-QmHash123',
         'versionTime': '2024-04-05T07:32:58Z',
-        'parameters': {},
+        'parameters': <dynamic, dynamic>{},
         'state': {
           "@context": ["https://www.w3.org/ns/did/v1"],
           'id': 'did:webvh:scid:example.com',
         },
-        'proof': [],
+        'proof': <Map<String, dynamic>>[],
       };
 
       final entry = DidWebVhLogEntry.fromJson(json);
@@ -263,7 +263,7 @@ void main() {
           "@context": ["https://www.w3.org/ns/did/v1"],
           'id': 'did:webvh:scid:example.com',
         },
-        'proof': [],
+        'proof': <Map<String, dynamic>>[],
       };
 
       final entry = DidWebVhLogEntry.fromJson(json);
@@ -297,7 +297,7 @@ void main() {
           "@context": ["https://www.w3.org/ns/did/v1"],
           'id': 'did:webvh:scid:example.com',
         },
-        'proof': [],
+        'proof': <Map<String, dynamic>>[],
       };
 
       final entry = DidWebVhLogEntry.fromJson(json);
@@ -322,7 +322,7 @@ void main() {
           "@context": ["https://www.w3.org/ns/did/v1"],
           'id': 'did:webvh:scid:example.com',
         },
-        'proof': [],
+        'proof': <Map<String, dynamic>>[],
       };
 
       final entry = DidWebVhLogEntry.fromJson(json);
@@ -337,9 +337,9 @@ void main() {
       final json = {
         'versionId': '1-QmHash',
         'versionTime': '2024-04-05T07:32:58Z',
-        'parameters': {},
+        'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": ["https://www.w3.org/ns/did/v1"],
+          "@context": <String>["https://www.w3.org/ns/did/v1"],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': [
@@ -358,12 +358,12 @@ void main() {
     test('should throw error when versionId is missing', () {
       final json = {
         'versionTime': '2024-04-05T07:32:58Z',
-        'parameters': {},
+        'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": ["https://www.w3.org/ns/did/v1"],
+          "@context": <String>["https://www.w3.org/ns/did/v1"],
           'id': 'did:webvh:scid:example.com',
         },
-        'proof': [],
+        'proof': <Map<String, dynamic>>[],
       };
 
       expect(
@@ -375,12 +375,12 @@ void main() {
     test('should throw error when versionTime is missing', () {
       final json = {
         'versionId': '1-QmHash',
-        'parameters': {},
+        'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": ["https://www.w3.org/ns/did/v1"],
+          "@context": <String>["https://www.w3.org/ns/did/v1"],
           'id': 'did:webvh:scid:example.com',
         },
-        'proof': [],
+        'proof': <Map<String, dynamic>>[],
       };
 
       expect(
@@ -394,10 +394,10 @@ void main() {
         'versionId': '1-QmHash',
         'versionTime': '2024-04-05T07:32:58Z',
         'state': {
-          "@context": ["https://www.w3.org/ns/did/v1"],
+          "@context": <String>["https://www.w3.org/ns/did/v1"],
           'id': 'did:webvh:scid:example.com',
         },
-        'proof': [],
+        'proof': <Map<String, dynamic>>[],
       };
 
       expect(
@@ -410,8 +410,8 @@ void main() {
       final json = {
         'versionId': '1-QmHash',
         'versionTime': '2024-04-05T07:32:58Z',
-        'parameters': {},
-        'proof': [],
+        'parameters': <dynamic, dynamic>{},
+        'proof': <Map<String, dynamic>>[],
       };
 
       expect(
@@ -424,9 +424,9 @@ void main() {
       final json = {
         'versionId': '1-QmHash',
         'versionTime': '2024-04-05T07:32:58Z',
-        'parameters': {},
+        'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": ["https://www.w3.org/ns/did/v1"],
+          "@context": <String>["https://www.w3.org/ns/did/v1"],
           'id': 'did:webvh:scid:example.com',
         },
       };
