@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:ssi/src/did/did_webvh.dart';
@@ -41,8 +43,6 @@ void main() {
     test('should parse did:webvh with query parameter versionTime', () {
       final url = DidWebVhUrl.fromDid(
           'did:webvh:scid123:example.com?versionTime=2023-01-01T00:00:00Z');
-      // ignore: avoid_print
-      // print(url.uri.queryParameters);
       expect(url.scid, equals('scid123'));
       expect(url.uri.queryParameters['versionTime'],
           equals('2023-01-01T00:00:00Z'));
@@ -101,8 +101,6 @@ void main() {
     test('should convert URL back to DID string', () {
       const originalDid = 'did:webvh:scid123:example.com';
       final url = DidWebVhUrl.fromDid(originalDid);
-      // ignore: avoid_print
-      print(url.toDid());
 
       expect(url.toDid(), equals(originalDid));
     });
@@ -224,7 +222,7 @@ void main() {
       final entry = DidWebVhLogEntry.fromJson(json);
 
       expect(entry.versionId, equals('1-QmHash123'));
-      expect(entry.versionTime, equals('2024-04-05T07:32:58Z'));
+      expect(entry.versionTime, equals(DateTime.parse('2024-04-05T07:32:58Z')));
       expect(entry.parameters.method, equals('did:webvh:1.0'));
       expect(entry.parameters.scid, equals('QmScid123'));
       expect(entry.parameters.updateKeys, equals(['z6MkKey1', 'z6MkKey2']));
@@ -436,6 +434,50 @@ void main() {
         throwsA(isA<TypeError>()),
       );
     });
+
+    test('should throw SsiException when versionTime has invalid format', () {
+      final json = {
+        'versionId': '1-QmHash',
+        'versionTime': 'invalid-datetime-format',
+        'parameters': <dynamic, dynamic>{},
+        'state': {
+          "@context": <String>["https://www.w3.org/ns/did/v1"],
+          'id': 'did:webvh:scid:example.com',
+        },
+        'proof': <Map<String, dynamic>>[],
+      };
+
+      expect(
+        () => DidWebVhLogEntry.fromJson(json),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Error parsing versionTime'),
+        )),
+      );
+    });
+
+    test('should throw SsiException when versionTime is missing timezone', () {
+      final json = {
+        'versionId': '1-QmHash',
+        'versionTime': '2024-04-05T07:32:58',
+        'parameters': <dynamic, dynamic>{},
+        'state': {
+          "@context": <String>["https://www.w3.org/ns/did/v1"],
+          'id': 'did:webvh:scid:example.com',
+        },
+        'proof': <Map<String, dynamic>>[],
+      };
+
+      expect(
+        () => DidWebVhLogEntry.fromJson(json),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Error parsing versionTime'),
+        )),
+      );
+    });
   });
 
   group('DidWebVhLog', () {
@@ -479,8 +521,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(2));
-      expect(log.entries[0].versionTime, equals('2024-04-05T07:32:58Z'));
-      expect(log.entries[1].versionTime, equals('2024-04-05T08:00:00Z'));
+      expect(
+          log.entries[0].versionTime, DateTime.parse('2024-04-05T07:32:58Z'));
+      expect(
+          log.entries[1].versionTime, DateTime.parse('2024-04-05T08:00:00Z'));
     });
 
     test('should parse log with complete parameters', () {
@@ -523,9 +567,12 @@ void main() {
 
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-      expect(log.entries[0].versionTime, equals('2024-01-01T00:00:00Z'));
-      expect(log.entries[1].versionTime, equals('2024-02-01T00:00:00Z'));
-      expect(log.entries[2].versionTime, equals('2024-03-01T00:00:00Z'));
+      expect(
+          log.entries[0].versionTime, DateTime.parse('2024-01-01T00:00:00Z'));
+      expect(
+          log.entries[1].versionTime, DateTime.parse('2024-02-01T00:00:00Z'));
+      expect(
+          log.entries[2].versionTime, DateTime.parse('2024-03-01T00:00:00Z'));
     });
 
     test('should parse empty JSON Lines as empty log', () {
@@ -547,8 +594,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(2));
-      expect(log.entries[0].versionTime, equals('2024-04-05T07:32:58Z'));
-      expect(log.entries[1].versionTime, equals('2024-04-05T08:00:00Z'));
+      expect(
+          log.entries[0].versionTime, DateTime.parse('2024-04-05T07:32:58Z'));
+      expect(
+          log.entries[1].versionTime, DateTime.parse('2024-04-05T08:00:00Z'));
     });
   });
 
@@ -562,9 +611,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(2));
-      expect(log.entries[0].versionTime, equals('2025-07-13T23:43:58Z'));
-      expect(log.entries[1].versionTime, equals('2025-07-13T23:44:37Z'));
-
+      expect(
+          log.entries[0].versionTime, DateTime.parse('2025-07-13T23:43:58Z'));
+      expect(
+          log.entries[1].versionTime, DateTime.parse('2025-07-13T23:44:37Z'));
       log.verify(null);
     });
 
@@ -576,8 +626,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(2));
-      expect(log.entries[0].versionTime, equals('2026-02-02T13:39:29Z'));
-      expect(log.entries[1].versionTime, equals('2026-02-02T13:39:30Z'));
+      expect(
+          log.entries[0].versionTime, DateTime.parse('2026-02-02T13:39:29Z'));
+      expect(
+          log.entries[1].versionTime, DateTime.parse('2026-02-02T13:39:30Z'));
 
       log.verify(null);
     });

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 import '../../ssi.dart';
 import '../digest_utils.dart';
@@ -147,7 +148,7 @@ class DidWebVhLogEntry {
   ///
   /// The time MUST be before or equal to when the DID will be retrieved.
   /// MUST be greater than the previous entry's time.
-  final String versionTime;
+  final DateTime versionTime;
 
   /// DID processing parameters that control generation and verification.
   ///
@@ -185,23 +186,44 @@ class DidWebVhLogEntry {
   ///
   /// Throws [TypeError] if required fields are missing or have incorrect types.
   factory DidWebVhLogEntry.fromJson(Map<String, dynamic> json) {
-    return DidWebVhLogEntry(
-      versionId: json['versionId'] as String,
-      versionTime: json['versionTime'] as String,
-      parameters: DidWebVhLogEntryParameters.fromJson(
-          Map<String, dynamic>.from(json['parameters'] as Map)),
-      state: DidDocument.fromJson(json['state'] as Map<String, dynamic>),
-      proof: (json['proof'] as List)
-          .map((e) => e as Map<String, dynamic>)
-          .toList(),
-    );
+    try {
+      final entryVersiontime = DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'')
+          .parseUTC(json['versionTime'] as String);
+      return DidWebVhLogEntry(
+        versionId: json['versionId'] as String,
+        versionTime: entryVersiontime,
+        parameters: DidWebVhLogEntryParameters.fromJson(
+            Map<String, dynamic>.from(json['parameters'] as Map)),
+        state: DidDocument.fromJson(json['state'] as Map<String, dynamic>),
+        proof: (json['proof'] as List)
+            .map((e) => e as Map<String, dynamic>)
+            .toList(),
+      );
+    } on FormatException catch (e) {
+      throw SsiException(
+          message:
+              'Error parsing versionTime in entry with versionId ${json['versionId'] as String}. versionTime \'${json['versionTime'] as String}\' must be ISO8601 formatted string. ',
+          code: SsiExceptionType.invalidDidWebVh.code,
+          originalMessage: e.message);
+    } on Exception catch (e) {
+      throw SsiException(
+          message:
+              'Error parsing log entry with versionId ${json['versionId'] as String}. Ensure all required fields are present and correctly formatted.',
+          code: SsiExceptionType.invalidDidWebVh.code,
+          originalMessage: e.toString());
+    }
+  }
+
+  Map<String, Object> buildMapFromEntryWithVersionIdAndStrippedProof(
+      String newVersionId) {
+    return _buildMapFromEntryWithVersionIdAndStrippedProof(newVersionId);
   }
 
   Map<String, Object> _buildMapFromEntryWithVersionIdAndStrippedProof(
       String newVersionId) {
     return {
       'versionId': newVersionId,
-      'versionTime': versionTime,
+      'versionTime': DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'').format(versionTime),
       'parameters': {
         if (parameters.method != null) 'method': parameters.method!,
         if (parameters.scid != null) 'scid': parameters.scid!,
@@ -299,8 +321,8 @@ class DidWebVhLog {
       DidWebVhLogEntry? previousEntry, int versionNum) {
     if (previousEntry != null) {
       try {
-        final prevTime = DateTime.parse(previousEntry.versionTime);
-        final currTime = DateTime.parse(currentEntry.versionTime);
+        final prevTime = previousEntry.versionTime;
+        final currTime = currentEntry.versionTime;
         if (!currTime.isAfter(prevTime)) {
           throw SsiException(
             message:
@@ -310,12 +332,6 @@ class DidWebVhLog {
         }
       } on SsiException {
         rethrow;
-      } on FormatException catch (e) {
-        throw SsiException(
-            message:
-                'versionTime \'${currentEntry.versionTime}\' must be ISO8601 formatted string. Error parsing versionTime in entry $versionNum',
-            code: SsiExceptionType.invalidDidWebVh.code,
-            originalMessage: e.message);
       }
     }
   }
@@ -374,7 +390,7 @@ class DidWebVhLog {
         // Find last entry at or before targetTime
         verifyUpToIndex = -1;
         for (int i = 0; i < entries.length; i++) {
-          final entryTime = DateTime.parse(entries[i].versionTime);
+          final entryTime = entries[i].versionTime;
           if (entryTime.isAfter(targetTime)) {
             break;
           }
