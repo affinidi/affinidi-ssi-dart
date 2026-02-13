@@ -6,7 +6,7 @@ void main(List<String> arguments) {
   final parser = ArgParser();
 
   final resolveParser = ArgParser()
-    ..addFlag('url-only', help: 'Show URLs without downloading');
+    ..addFlag('verify', help: 'Run verification checks');
 
   parser.addCommand('resolve', resolveParser);
   parser.addFlag('help', abbr: 'h', help: 'Show help');
@@ -27,11 +27,11 @@ void main(List<String> arguments) {
     }
 
     final input = args.rest[0];
-    final urlOnly = args['url-only'] as bool;
+    final verify = args['verify'] as bool;
     final isFile = input.endsWith('.jsonl') || File(input).existsSync();
 
     if (isFile) {
-      resolveLocalFile(input);
+      resolveLocalFile(input, verify: verify);
     } else if (input.startsWith('did:webvh:')) {
       print("Not implemented");
     } else {
