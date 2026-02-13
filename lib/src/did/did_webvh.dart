@@ -628,13 +628,13 @@ class DidWebVhLog {
     );
 
     Uint8List encodeVarint(int value) {
-      const _maxIntegerJS = 9007199254740991;
+      const maxIntegerJS = 9007199254740991;
       // Ensure that the value is within JavaScript's safe integer range.
-      if (value < 0 || value >= _maxIntegerJS) {
+      if (value < 0 || value >= maxIntegerJS) {
         throw ArgumentError.value(
           value,
           'value',
-          'must be a non-negative integer less than $_maxIntegerJS',
+          'must be a non-negative integer less than $maxIntegerJS',
         );
       }
 

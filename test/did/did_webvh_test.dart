@@ -239,7 +239,7 @@ void main() {
         'versionTime': '2024-04-05T07:32:58Z',
         'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": ["https://www.w3.org/ns/did/v1"],
+          '@context': ['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': <Map<String, dynamic>>[],
@@ -258,7 +258,7 @@ void main() {
           'method': 'did:webvh:1.0',
         },
         'state': {
-          "@context": ["https://www.w3.org/ns/did/v1"],
+          '@context': ['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': <Map<String, dynamic>>[],
@@ -292,7 +292,7 @@ void main() {
           },
         },
         'state': {
-          "@context": ["https://www.w3.org/ns/did/v1"],
+          '@context': ['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': <Map<String, dynamic>>[],
@@ -317,7 +317,7 @@ void main() {
           ],
         },
         'state': {
-          "@context": ["https://www.w3.org/ns/did/v1"],
+          '@context': ['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': <Map<String, dynamic>>[],
@@ -337,7 +337,7 @@ void main() {
         'versionTime': '2024-04-05T07:32:58Z',
         'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": <String>["https://www.w3.org/ns/did/v1"],
+          '@context': <String>['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': [
@@ -358,7 +358,7 @@ void main() {
         'versionTime': '2024-04-05T07:32:58Z',
         'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": <String>["https://www.w3.org/ns/did/v1"],
+          '@context': <String>['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': <Map<String, dynamic>>[],
@@ -375,7 +375,7 @@ void main() {
         'versionId': '1-QmHash',
         'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": <String>["https://www.w3.org/ns/did/v1"],
+          '@context': <String>['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': <Map<String, dynamic>>[],
@@ -392,7 +392,7 @@ void main() {
         'versionId': '1-QmHash',
         'versionTime': '2024-04-05T07:32:58Z',
         'state': {
-          "@context": <String>["https://www.w3.org/ns/did/v1"],
+          '@context': <String>['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': <Map<String, dynamic>>[],
@@ -424,7 +424,7 @@ void main() {
         'versionTime': '2024-04-05T07:32:58Z',
         'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": <String>["https://www.w3.org/ns/did/v1"],
+          '@context': <String>['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
       };
@@ -441,7 +441,7 @@ void main() {
         'versionTime': 'invalid-datetime-format',
         'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": <String>["https://www.w3.org/ns/did/v1"],
+          '@context': <String>['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': <Map<String, dynamic>>[],
@@ -463,7 +463,7 @@ void main() {
         'versionTime': '2024-04-05T07:32:58',
         'parameters': <dynamic, dynamic>{},
         'state': {
-          "@context": <String>["https://www.w3.org/ns/did/v1"],
+          '@context': <String>['https://www.w3.org/ns/did/v1'],
           'id': 'did:webvh:scid:example.com',
         },
         'proof': <Map<String, dynamic>>[],

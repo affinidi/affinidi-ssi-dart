@@ -13,12 +13,11 @@ class JsonLdException extends SsiException {
   final String? operation;
 
   JsonLdException({
-    required String message,
+    required super.message,
     this.failedUri,
     this.cause,
     this.operation,
   }) : super(
-          message: message,
           code: SsiExceptionType.jsonLdProcessing.code,
         );
 

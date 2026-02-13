@@ -1,0 +1,16 @@
+name: didwebvh
+description: A sample command-line application with basic argument parsing.
+
+publish_to: "none"
+
+environment:
+  sdk: ^3.8.0
+
+# Add regular dependencies here.
+dependencies:
+  args: ^2.7.0
+  ssi:
+    path: ../../../
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6

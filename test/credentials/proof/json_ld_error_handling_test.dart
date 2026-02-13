@@ -87,7 +87,7 @@ void main() {
             // Simulate network failure for non-cached contexts
             // The cached contexts will be handled by the library's internal cache
             if (!uri.toString().contains('www.w3.org/2018/credentials/v1')) {
-              throw SocketException('Connection refused');
+              throw const SocketException('Connection refused');
             }
             return null; // Let cached contexts load normally
           },
@@ -135,7 +135,7 @@ void main() {
           customDocumentLoader: (Uri uri) async {
             // Simulate HTTP 404 for non-cached contexts
             if (!uri.toString().contains('www.w3.org/2018/credentials/v1')) {
-              throw HttpException('Not Found');
+              throw const HttpException('Not Found');
             }
             return null;
           },
@@ -226,7 +226,7 @@ void main() {
           customDocumentLoader: (Uri uri) async {
             // Simulate invalid JSON for non-cached contexts
             if (!uri.toString().contains('www.w3.org/2018/credentials/v1')) {
-              throw FormatException('Invalid JSON');
+              throw const FormatException('Invalid JSON');
             }
             return null;
           },
@@ -274,7 +274,7 @@ void main() {
               'did:key:zDnaerx9CtfPJ7PZ4sL8SsSZfYmfB7FS6VTbNc3fHnEEVHg4X',
           customDocumentLoader: (Uri uri) async {
             if (uri.toString().contains('example.com')) {
-              throw SocketException('Network unreachable');
+              throw const SocketException('Network unreachable');
             }
             return null;
           },
@@ -371,10 +371,10 @@ void main() {
           issuerDid: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK',
           customDocumentLoader: (Uri uri) async {
             if (uri.toString() == failedUri) {
-              throw SocketException('Connection refused');
+              throw const SocketException('Connection refused');
             }
             if (!uri.toString().contains('www.w3.org/2018/credentials/v1')) {
-              throw SocketException('Connection refused');
+              throw const SocketException('Connection refused');
             }
             return null;
           },
@@ -419,7 +419,7 @@ void main() {
         final verifier = Secp256k1Signature2019Verifier(
           issuerDid: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK',
           customDocumentLoader: (Uri uri) async {
-            throw SocketException(errorMessage);
+            throw const SocketException(errorMessage);
           },
         );
 
