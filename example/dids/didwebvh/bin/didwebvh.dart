@@ -33,7 +33,7 @@ void main(List<String> arguments) {
     if (isFile) {
       resolveLocalFile(input);
     } else if (input.startsWith('did:webvh:')) {
-      resolveRemoteDid(input, urlOnly: urlOnly);
+      print("Not implemented");
     } else {
       print('Error: must be a .jsonl file or did:webvh:... DID');
     }

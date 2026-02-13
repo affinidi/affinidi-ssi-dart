@@ -21,15 +21,3 @@ void resolveLocalFile(String path) {
     print('  $e');
   }
 }
-
-void resolveRemoteDid(String did, {bool urlOnly = false}) {
-  final didUrl = DidWebVhUrl.fromDid(did);
-
-  if (urlOnly) {
-    print('Log: ${didUrl.toJsonLogFileUrl()}');
-    print('Doc: ${didUrl.toJsonLogFileUrl().replaceAll('.jsonl', '.json')}');
-  } else {
-    print('Remote resolve not implemented yet');
-    print('SCID: ${didUrl.scid}');
-  }
-}
