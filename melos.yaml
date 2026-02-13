@@ -1,10 +1,11 @@
 name: ssi
 packages:
   - .
+  - example/dids/didwebvh
 scripts:
   test:
     name: test
     description: "test with coverage"
     run: dart run coverage:test_with_coverage
-    exec: 
+    exec:
       concurrency: 1
