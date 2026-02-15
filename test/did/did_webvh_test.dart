@@ -4,69 +4,71 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:ssi/src/did/did_webvh.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('DidWebVhUrl.fromDid', () {
+  group('DidWebVh.parse', () {
     test('should parse valid did:webvh with SCID and domain', () {
-      final url = DidWebVhUrl.fromDid('did:webvh:scid123:example.com');
+      print("Running test: should parse valid did:webvh with SCID and domain");
+      final didWebVh1 = DidWebVh.parse('did:webvh:scid123:example.com');
 
-      expect(url.scid, equals('scid123'));
-      expect(url.uri.host, equals('example.com'));
-      expect(url.uri.scheme, equals('https'));
+      expect(didWebVh1.scid, equals('scid123'));
+      expect(didWebVh1.httpsUrl.host, equals('example.com'));
+      expect(didWebVh1.scheme, equals('did'));
     });
 
     test('should parse did:webvh with path', () {
-      final url = DidWebVhUrl.fromDid('did:webvh:scid456:example.com:api:v1');
+      final didWebVh1 = DidWebVh.parse('did:webvh:scid456:example.com:api:v1');
 
-      expect(url.scid, equals('scid456'));
-      expect(url.uri.host, equals('example.com'));
-      expect(url.uri.path, contains('/api/v1'));
+      expect(didWebVh1.scid, equals('scid456'));
+      expect(didWebVh1.httpsUrl.host, equals('example.com'));
+      expect(didWebVh1.httpsUrl.path, contains('/api/v1'));
     });
 
     test('should parse did:webvh with encoded port', () {
-      final url = DidWebVhUrl.fromDid('did:webvh:scid789:example.com%3A8080');
+      final didWebVh1 = DidWebVh.parse('did:webvh:scid789:example.com%3A8080');
 
-      expect(url.scid, equals('scid789'));
-      expect(url.uri.host, equals('example.com'));
-      expect(url.uri.port, equals(8080));
+      expect(didWebVh1.scid, equals('scid789'));
+      expect(didWebVh1.httpsUrl.host, equals('example.com'));
+      expect(didWebVh1.httpsUrl.port, equals(8080));
     });
 
     test('should parse did:webvh with query parameter versionId', () {
-      final url =
-          DidWebVhUrl.fromDid('did:webvh:scid123:example.com?versionId=v1');
+      final didWebVh1 =
+          DidWebVh.parse('did:webvh:scid123:example.com?versionId=v1');
 
-      expect(url.scid, equals('scid123'));
-      expect(url.uri.queryParameters['versionId'], equals('v1'));
+      expect(didWebVh1.scid, equals('scid123'));
+      expect(didWebVh1.httpsUrl.queryParameters['versionId'], equals('v1'));
     });
 
     test('should parse did:webvh with query parameter versionTime', () {
-      final url = DidWebVhUrl.fromDid(
+      final didWebVh1 = DidWebVh.parse(
           'did:webvh:scid123:example.com?versionTime=2023-01-01T00:00:00Z');
-      expect(url.scid, equals('scid123'));
-      expect(url.uri.queryParameters['versionTime'],
+      expect(didWebVh1.scid, equals('scid123'));
+      expect(didWebVh1.httpsUrl.queryParameters['versionTime'],
           equals('2023-01-01T00:00:00Z'));
     });
 
     test('should parse did:webvh with query parameter versionNumber', () {
-      final url =
-          DidWebVhUrl.fromDid('did:webvh:scid123:example.com?versionNumber=2');
+      final didWebVh1 =
+          DidWebVh.parse('did:webvh:scid123:example.com?versionNumber=2');
 
-      expect(url.scid, equals('scid123'));
-      expect(url.uri.queryParameters['versionNumber'], equals('2'));
+      expect(didWebVh1.scid, equals('scid123'));
+      expect(didWebVh1.httpsUrl.queryParameters['versionNumber'], equals('2'));
     });
 
     test('should parse did:webvh with fragment', () {
-      final url =
-          DidWebVhUrl.fromDid('did:webvh:scid123:example.com#some_fragment');
+      final didWebVh1 =
+          DidWebVh.parse('did:webvh:scid123:example.com#some_fragment');
 
-      expect(url.scid, equals('scid123'));
-      expect(url.uri.fragment, equals('some_fragment'));
+      expect(didWebVh1.scid, equals('scid123'));
+      expect(didWebVh1.httpsUrl.fragment, equals('some_fragment'));
     });
 
     test('should throw exception for unsupported DID method', () {
       expect(
-        () => DidWebVhUrl.fromDid('did:web:example.com'),
+        () => DidWebVh.parse('did:web:example.com'),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -78,7 +80,7 @@ void main() {
     test('should throw exception when multiple version query params provided',
         () {
       expect(
-        () => DidWebVhUrl.fromDid(
+        () => DidWebVh.parse(
             'did:webvh:scid123:example.com?versionId=v1&versionNumber=2'),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -89,66 +91,66 @@ void main() {
     });
 
     test('should handle did:webvh with complex path', () {
-      final url =
-          DidWebVhUrl.fromDid('did:webvh:scid:example.com:path:to:resource');
+      final url = DidWebVh.parse('did:webvh:scid:example.com:path:to:resource');
 
       expect(url.scid, equals('scid'));
-      expect(url.uri.path, contains('/path/to/resource'));
+      expect(url.httpsUrl.path, contains('/path/to/resource'));
     });
   });
 
-  group('DidWebVhUrl.toDid', () {
+  group('DidWebVh.toString', () {
     test('should convert URL back to DID string', () {
-      const originalDid = 'did:webvh:scid123:example.com';
-      final url = DidWebVhUrl.fromDid(originalDid);
+      const originalDidString = 'did:webvh:scid123:example.com';
+      final didWebVh1 = DidWebVh.parse(originalDidString);
 
-      expect(url.toDid(), equals(originalDid));
+      expect(didWebVh1.toString(), equals(originalDidString));
     });
 
     test('should preserve port in DID conversion', () {
-      const originalDid = 'did:webvh:scid789:example.com%3A8080';
-      final url = DidWebVhUrl.fromDid(originalDid);
+      const originalDidString = 'did:webvh:scid789:example.com%3A8080';
+      final didWebVh1 = DidWebVh.parse(originalDidString);
 
-      expect(url.toDid(), equals(originalDid));
+      expect(didWebVh1.toString(), equals(originalDidString));
     });
 
     test('should preserve path in DID conversion', () {
-      const originalDid = 'did:webvh:scid456:example.com:api:v1';
-      final url = DidWebVhUrl.fromDid(originalDid);
+      const originalDidString = 'did:webvh:scid456:example.com:api:v1';
+      final didWebVh1 = DidWebVh.parse(originalDidString);
 
-      expect(url.toDid(), equals(originalDid));
+      expect(didWebVh1.toString(), equals(originalDidString));
     });
   });
 
-  group('DidWebVhUrl.toJsonLogFileUrl', () {
+  group('DidWebVh.jsonLogFileHttpsUrlString', () {
     test('should generate URL with .well-known for root path', () {
-      final url = DidWebVhUrl.fromDid('did:webvh:scid123:example.com');
+      final didWebVh1 = DidWebVh.parse('did:webvh:scid123:example.com');
 
-      expect(url.toJsonLogFileUrl(),
+      expect(didWebVh1.jsonLogFileHttpsUrlString,
           equals('https://example.com/.well-known/did.jsonl'));
     });
 
     test('should generate URL with custom path', () {
-      final url = DidWebVhUrl.fromDid('did:webvh:scid123:example.com:api');
+      final didWebVh1 = DidWebVh.parse('did:webvh:scid123:example.com:api');
 
-      expect(url.toJsonLogFileUrl(),
+      expect(didWebVh1.jsonLogFileHttpsUrlString,
           contains('https://example.com/api/did.jsonl'));
     });
 
     test('should preserve port in JSON log URL', () {
-      final url = DidWebVhUrl.fromDid('did:webvh:scid789:example.com%3A8080');
+      final didWebVh1 = DidWebVh.parse('did:webvh:scid789:example.com%3A8080');
 
-      expect(url.toJsonLogFileUrl(), contains('https://example.com:8080'));
-      expect(url.toJsonLogFileUrl(), endsWith('/did.jsonl'));
+      expect(didWebVh1.jsonLogFileHttpsUrlString,
+          contains('https://example.com:8080'));
+      expect(didWebVh1.jsonLogFileHttpsUrlString, endsWith('/did.jsonl'));
     });
   });
 
-  group('DidWebVhUrl.downloadJsonLogFile', () {
+  group('DidWebVh.downloadJsonLogFile', () {
     test('should throw SsiException on network error', () async {
       final mockClient = MockClient((request) async {
         return http.Response('mock log data', 300);
       });
-      final url = DidWebVhUrl.fromDid(
+      final url = DidWebVh.parse(
           'did:webvh:scid123:invalid-domain-that-does-not-exist.com');
 
       expect(
@@ -165,7 +167,7 @@ void main() {
       final mockClient = MockClient((request) async {
         throw http.ClientException('Failed to connect');
       });
-      final url = DidWebVhUrl.fromDid(
+      final url = DidWebVh.parse(
           'did:webvh:scid123:invalid-domain-that-does-not-exist.com');
 
       expect(
@@ -178,19 +180,19 @@ void main() {
     });
   });
 
-  group('DidWebVhUrl edge cases', () {
+  group('DidWebVh edge cases', () {
     test('should handle minimum valid DID', () {
-      final url = DidWebVhUrl.fromDid('did:webvh:s:e.c');
+      final url = DidWebVh.parse('did:webvh:s:e.c');
 
       expect(url.scid, equals('s'));
-      expect(url.uri.host, equals('e.c'));
+      expect(url.httpsUrl.host, equals('e.c'));
     });
 
     test('should handle %2B encoding', () {
       final url =
-          DidWebVhUrl.fromDid('did:webvh:scid:example.com:path%2Bwith%2Bplus');
+          DidWebVh.parse('did:webvh:scid:example.com:path%2Bwith%2Bplus');
 
-      expect(url.uri.path, contains('/'));
+      expect(url.httpsUrl.path, contains('/'));
     });
   });
 
@@ -449,10 +451,10 @@ void main() {
 
       expect(
         () => DidWebVhLogEntry.fromJson(json),
-        throwsA(isA<SsiException>().having(
+        throwsA(isA<SsiDidResolutionException>().having(
           (e) => e.toString(),
           'message',
-          contains('Error parsing versionTime'),
+          contains('Invalid DID WebVh Log Entry versionTime format.'),
         )),
       );
     });
@@ -471,10 +473,10 @@ void main() {
 
       expect(
         () => DidWebVhLogEntry.fromJson(json),
-        throwsA(isA<SsiException>().having(
+        throwsA(isA<SsiDidResolutionException>().having(
           (e) => e.toString(),
           'message',
-          contains('Error parsing versionTime'),
+          contains('Invalid DID WebVh Log Entry versionTime format.'),
         )),
       );
     });
@@ -521,10 +523,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(2));
-      expect(
-          log.entries[0].versionTime, DateTime.parse('2024-04-05T07:32:58Z'));
-      expect(
-          log.entries[1].versionTime, DateTime.parse('2024-04-05T08:00:00Z'));
+      expect(log.entries[0].versionTime,
+          equals(DateTime.parse('2024-04-05T07:32:58Z')));
+      expect(log.entries[1].versionTime,
+          equals(DateTime.parse('2024-04-05T08:00:00Z')));
     });
 
     test('should parse log with complete parameters', () {
@@ -567,12 +569,12 @@ void main() {
 
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-      expect(
-          log.entries[0].versionTime, DateTime.parse('2024-01-01T00:00:00Z'));
-      expect(
-          log.entries[1].versionTime, DateTime.parse('2024-02-01T00:00:00Z'));
-      expect(
-          log.entries[2].versionTime, DateTime.parse('2024-03-01T00:00:00Z'));
+      expect(log.entries[0].versionTime,
+          equals(DateTime.parse('2024-01-01T00:00:00Z')));
+      expect(log.entries[1].versionTime,
+          equals(DateTime.parse('2024-02-01T00:00:00Z')));
+      expect(log.entries[2].versionTime,
+          equals(DateTime.parse('2024-03-01T00:00:00Z')));
     });
 
     test('should parse empty JSON Lines as empty log', () {
@@ -594,11 +596,184 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(2));
-      expect(
-          log.entries[0].versionTime, DateTime.parse('2024-04-05T07:32:58Z'));
-      expect(
-          log.entries[1].versionTime, DateTime.parse('2024-04-05T08:00:00Z'));
+      expect(log.entries[0].versionTime,
+          equals(DateTime.parse('2024-04-05T07:32:58Z')));
+      expect(log.entries[1].versionTime,
+          equals(DateTime.parse('2024-04-05T08:00:00Z')));
     });
+
+    test(
+        'should throw SsiException when verify is called with unsupported webvh version',
+        () {
+      final jsonLines = '''
+{"versionId":"1-QmHash","versionTime":"2024-04-05T07:32:58Z","parameters":{"method":"did:webvh:2.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context": ["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify(),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Only did:webvh:1.0 method is supported'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when verify is called with non-sequential version numbers',
+        () {
+      final jsonLines = '''
+{"versionId":"1-QmVPmCDEjUSaENdG1yxk9NgY7igSwqwHzk2cYNVxZr1QPr","versionTime":"2025-07-13T23:43:58Z","parameters":{"method":"did:webvh:1.0","scid":"Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai","updateKeys":["z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","z6MkuyEmpLCctNgEuz53V1tbLfLXdE3HBVjg1ReNwk3UDunz"],"portable":true,"nextKeyHashes":["QmZZmfw1J2Addwy5JSAobLEjvy5dVSNj1bxpfsaebseSwx","QmWZKGATFXYRPdmhpaJcGPBMo9S6iEaDzbBJN4w4wxvhmg","QmVYgnhRF6n9P2b5vw6E2sDBBVWhYHuQ8L37yDDDtMkr1S"],"witness":{"threshold":3,"witnesses":[{"id":"did:key:z6Mkih1iaNrtSYkynhqsVBCsetmGpv1YnANyzGZHzZSZJeG1"},{"id":"did:key:z6MkqmMLmWAMs357diZ4wYJMEVwEsPjau8X5BktJNTRtTWEv"},{"id":"did:key:z6MkoWf85ozvizXJUqfb3CrzXTDVYRQkkhHDa29GErDivZ7U"},{"id":"did:key:z6MkknMS6hC8bWwpHFax1uBkHYzjd4qyaQJB3es12d12mTYH"}]},"watchers":["https://watcher1.affinidi.com/"],"ttl":300},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:43:58Z","verificationMethod":"did:key:z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME#z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","proofPurpose":"assertionMethod","proofValue":"z2A5qRuCf83hz2KPJJ7nydCgumfBujPjKbHemqWQMNmy6UWcshbx6sA5XB4RctvbCeLp1vFRKcbnxjs7k3iEEomsj"}]}
+{"versionId":"3-QmUCFFYYGBJhzZqyouAtvRJ7ULdd8FqSUvwb61FPTMH1Aj","versionTime":"2025-07-13T23:44:37Z","parameters":{"updateKeys":["z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7"],"nextKeyHashes":["QmfEfCsT5jfUc7YVHXXTTns3iB8PZyV9EZmuMRdeGxUmy8","QmXD1PK9KTmKz8roHfBkUFLS3h4Ha6NsrBVgdE8ARKWYyj","QmWNN2LiGANCwzBVf7r5ghB846wjCwSUtt6hsA16fSBLpW"],"ttl":60},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:44:37Z","verificationMethod":"did:key:z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7#z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7","proofPurpose":"assertionMethod","proofValue":"z3XG4m5mHcJLhdWCw9rxaGKf8u55rbhKfUDVkrQTQAyZ5NuC8fiKsrxh8BJ8fuQMQ3bkPkSuV2mYp2aYTc1WhxwyE"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify(),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Invalid version number sequence'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when verify is called with non-sequential version numbers',
+        () {
+      final jsonLines = '''
+{"versionId":"0-QmVPmCDEjUSaENdG1yxk9NgY7igSwqwHzk2cYNVxZr1QPr","versionTime":"2025-07-13T23:43:58Z","parameters":{"method":"did:webvh:1.0","scid":"Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai","updateKeys":["z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","z6MkuyEmpLCctNgEuz53V1tbLfLXdE3HBVjg1ReNwk3UDunz"],"portable":true,"nextKeyHashes":["QmZZmfw1J2Addwy5JSAobLEjvy5dVSNj1bxpfsaebseSwx","QmWZKGATFXYRPdmhpaJcGPBMo9S6iEaDzbBJN4w4wxvhmg","QmVYgnhRF6n9P2b5vw6E2sDBBVWhYHuQ8L37yDDDtMkr1S"],"witness":{"threshold":3,"witnesses":[{"id":"did:key:z6Mkih1iaNrtSYkynhqsVBCsetmGpv1YnANyzGZHzZSZJeG1"},{"id":"did:key:z6MkqmMLmWAMs357diZ4wYJMEVwEsPjau8X5BktJNTRtTWEv"},{"id":"did:key:z6MkoWf85ozvizXJUqfb3CrzXTDVYRQkkhHDa29GErDivZ7U"},{"id":"did:key:z6MkknMS6hC8bWwpHFax1uBkHYzjd4qyaQJB3es12d12mTYH"}]},"watchers":["https://watcher1.affinidi.com/"],"ttl":300},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:43:58Z","verificationMethod":"did:key:z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME#z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","proofPurpose":"assertionMethod","proofValue":"z2A5qRuCf83hz2KPJJ7nydCgumfBujPjKbHemqWQMNmy6UWcshbx6sA5XB4RctvbCeLp1vFRKcbnxjs7k3iEEomsj"}]}
+{"versionId":"3-QmUCFFYYGBJhzZqyouAtvRJ7ULdd8FqSUvwb61FPTMH1Aj","versionTime":"2025-07-13T23:44:37Z","parameters":{"updateKeys":["z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7"],"nextKeyHashes":["QmfEfCsT5jfUc7YVHXXTTns3iB8PZyV9EZmuMRdeGxUmy8","QmXD1PK9KTmKz8roHfBkUFLS3h4Ha6NsrBVgdE8ARKWYyj","QmWNN2LiGANCwzBVf7r5ghB846wjCwSUtt6hsA16fSBLpW"],"ttl":60},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:44:37Z","verificationMethod":"did:key:z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7#z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7","proofPurpose":"assertionMethod","proofValue":"z3XG4m5mHcJLhdWCw9rxaGKf8u55rbhKfUDVkrQTQAyZ5NuC8fiKsrxh8BJ8fuQMQ3bkPkSuV2mYp2aYTc1WhxwyE"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify(),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Invalid version number sequence'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when verify is called with non-sequential version numbers',
+        () {
+      final jsonLines = '''
+{"versionId":"1-QmVPmCDEjUSaENdG1yxk9NgY7igSwqwHzk2cYNVxZr1QPr","versionTime":"2025-07-13T23:43:58Z","parameters":{"method":"did:webvh:1.0","scid":"Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai","updateKeys":["z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","z6MkuyEmpLCctNgEuz53V1tbLfLXdE3HBVjg1ReNwk3UDunz"],"portable":true,"nextKeyHashes":["QmZZmfw1J2Addwy5JSAobLEjvy5dVSNj1bxpfsaebseSwx","QmWZKGATFXYRPdmhpaJcGPBMo9S6iEaDzbBJN4w4wxvhmg","QmVYgnhRF6n9P2b5vw6E2sDBBVWhYHuQ8L37yDDDtMkr1S"],"witness":{"threshold":3,"witnesses":[{"id":"did:key:z6Mkih1iaNrtSYkynhqsVBCsetmGpv1YnANyzGZHzZSZJeG1"},{"id":"did:key:z6MkqmMLmWAMs357diZ4wYJMEVwEsPjau8X5BktJNTRtTWEv"},{"id":"did:key:z6MkoWf85ozvizXJUqfb3CrzXTDVYRQkkhHDa29GErDivZ7U"},{"id":"did:key:z6MkknMS6hC8bWwpHFax1uBkHYzjd4qyaQJB3es12d12mTYH"}]},"watchers":["https://watcher1.affinidi.com/"],"ttl":300},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:43:58Z","verificationMethod":"did:key:z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME#z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","proofPurpose":"assertionMethod","proofValue":"z2A5qRuCf83hz2KPJJ7nydCgumfBujPjKbHemqWQMNmy6UWcshbx6sA5XB4RctvbCeLp1vFRKcbnxjs7k3iEEomsj"}]}
+{"versionId":"0-QmUCFFYYGBJhzZqyouAtvRJ7ULdd8FqSUvwb61FPTMH1Aj","versionTime":"2025-07-13T23:44:37Z","parameters":{"updateKeys":["z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7"],"nextKeyHashes":["QmfEfCsT5jfUc7YVHXXTTns3iB8PZyV9EZmuMRdeGxUmy8","QmXD1PK9KTmKz8roHfBkUFLS3h4Ha6NsrBVgdE8ARKWYyj","QmWNN2LiGANCwzBVf7r5ghB846wjCwSUtt6hsA16fSBLpW"],"ttl":60},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:44:37Z","verificationMethod":"did:key:z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7#z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7","proofPurpose":"assertionMethod","proofValue":"z3XG4m5mHcJLhdWCw9rxaGKf8u55rbhKfUDVkrQTQAyZ5NuC8fiKsrxh8BJ8fuQMQ3bkPkSuV2mYp2aYTc1WhxwyE"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify(),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Invalid version number sequence'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when verify is called with non-sequential version numbers',
+        () {
+      final jsonLines = '''
+{"versionId":"1-QmVPmCDEjUSaENdG1yxk9NgY7igSwqwHzk2cYNVxZr1QPr","versionTime":"2025-07-13T23:43:58Z","parameters":{"method":"did:webvh:1.0","scid":"Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai","updateKeys":["z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","z6MkuyEmpLCctNgEuz53V1tbLfLXdE3HBVjg1ReNwk3UDunz"],"portable":true,"nextKeyHashes":["QmZZmfw1J2Addwy5JSAobLEjvy5dVSNj1bxpfsaebseSwx","QmWZKGATFXYRPdmhpaJcGPBMo9S6iEaDzbBJN4w4wxvhmg","QmVYgnhRF6n9P2b5vw6E2sDBBVWhYHuQ8L37yDDDtMkr1S"],"witness":{"threshold":3,"witnesses":[{"id":"did:key:z6Mkih1iaNrtSYkynhqsVBCsetmGpv1YnANyzGZHzZSZJeG1"},{"id":"did:key:z6MkqmMLmWAMs357diZ4wYJMEVwEsPjau8X5BktJNTRtTWEv"},{"id":"did:key:z6MkoWf85ozvizXJUqfb3CrzXTDVYRQkkhHDa29GErDivZ7U"},{"id":"did:key:z6MkknMS6hC8bWwpHFax1uBkHYzjd4qyaQJB3es12d12mTYH"}]},"watchers":["https://watcher1.affinidi.com/"],"ttl":300},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:43:58Z","verificationMethod":"did:key:z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME#z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","proofPurpose":"assertionMethod","proofValue":"z2A5qRuCf83hz2KPJJ7nydCgumfBujPjKbHemqWQMNmy6UWcshbx6sA5XB4RctvbCeLp1vFRKcbnxjs7k3iEEomsj"}]}
+{"versionId":"1-QmUCFFYYGBJhzZqyouAtvRJ7ULdd8FqSUvwb61FPTMH1Aj","versionTime":"2025-07-13T23:44:37Z","parameters":{"updateKeys":["z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7"],"nextKeyHashes":["QmfEfCsT5jfUc7YVHXXTTns3iB8PZyV9EZmuMRdeGxUmy8","QmXD1PK9KTmKz8roHfBkUFLS3h4Ha6NsrBVgdE8ARKWYyj","QmWNN2LiGANCwzBVf7r5ghB846wjCwSUtt6hsA16fSBLpW"],"ttl":60},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:44:37Z","verificationMethod":"did:key:z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7#z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7","proofPurpose":"assertionMethod","proofValue":"z3XG4m5mHcJLhdWCw9rxaGKf8u55rbhKfUDVkrQTQAyZ5NuC8fiKsrxh8BJ8fuQMQ3bkPkSuV2mYp2aYTc1WhxwyE"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify(),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Invalid version number sequence'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when verify is called with non-ascending versionTime values',
+        () {
+      final jsonLines = '''
+{"versionId":"1-QmVPmCDEjUSaENdG1yxk9NgY7igSwqwHzk2cYNVxZr1QPr","versionTime":"2025-07-13T23:43:58Z","parameters":{"method":"did:webvh:1.0","scid":"Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai","updateKeys":["z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","z6MkuyEmpLCctNgEuz53V1tbLfLXdE3HBVjg1ReNwk3UDunz"],"portable":true,"nextKeyHashes":["QmZZmfw1J2Addwy5JSAobLEjvy5dVSNj1bxpfsaebseSwx","QmWZKGATFXYRPdmhpaJcGPBMo9S6iEaDzbBJN4w4wxvhmg","QmVYgnhRF6n9P2b5vw6E2sDBBVWhYHuQ8L37yDDDtMkr1S"],"witness":{"threshold":3,"witnesses":[{"id":"did:key:z6Mkih1iaNrtSYkynhqsVBCsetmGpv1YnANyzGZHzZSZJeG1"},{"id":"did:key:z6MkqmMLmWAMs357diZ4wYJMEVwEsPjau8X5BktJNTRtTWEv"},{"id":"did:key:z6MkoWf85ozvizXJUqfb3CrzXTDVYRQkkhHDa29GErDivZ7U"},{"id":"did:key:z6MkknMS6hC8bWwpHFax1uBkHYzjd4qyaQJB3es12d12mTYH"}]},"watchers":["https://watcher1.affinidi.com/"],"ttl":300},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:43:58Z","verificationMethod":"did:key:z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME#z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME","proofPurpose":"assertionMethod","proofValue":"z2A5qRuCf83hz2KPJJ7nydCgumfBujPjKbHemqWQMNmy6UWcshbx6sA5XB4RctvbCeLp1vFRKcbnxjs7k3iEEomsj"}]}
+{"versionId":"2-QmUCFFYYGBJhzZqyouAtvRJ7ULdd8FqSUvwb61FPTMH1Aj","versionTime":"2025-07-13T22:44:37Z","parameters":{"updateKeys":["z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7"],"nextKeyHashes":["QmfEfCsT5jfUc7YVHXXTTns3iB8PZyV9EZmuMRdeGxUmy8","QmXD1PK9KTmKz8roHfBkUFLS3h4Ha6NsrBVgdE8ARKWYyj","QmWNN2LiGANCwzBVf7r5ghB846wjCwSUtt6hsA16fSBLpW"],"ttl":60},"state":{"@context":["https://www.w3.org/ns/did/v1"],"assertionMethod":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"authentication":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","keyAgreement":["did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0"],"verificationMethod":[{"controller":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs","id":"did:webvh:Qmd1FCL9Vj2vJ433UDfC9MBstK6W6QWSQvYyeNn8va2fai:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs#key-0","publicKeyMultibase":"z6MkmCx6AZNHKfJLZtdtWsPMWx26foZ8B6orqVqHwUEFsEWV","type":"Multikey"}]},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","created":"2025-07-13T23:44:37Z","verificationMethod":"did:key:z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7#z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7","proofPurpose":"assertionMethod","proofValue":"z3XG4m5mHcJLhdWCw9rxaGKf8u55rbhKfUDVkrQTQAyZ5NuC8fiKsrxh8BJ8fuQMQ3bkPkSuV2mYp2aYTc1WhxwyE"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify(),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Version timestamps must be strictly ascending'),
+        )),
+      );
+    });
+
+// TODO: add more tests for other validation rules in verify()
+
+//TODO: add test: _mustBeNoUpdateAfterDeactivation - when deactivation is not the last version in log,
+//throw SsiException with message "Deactivation must be the last version in log"
+
+// TODO: add test: _entryHashMustMatchWithHashOfEntryContent - when entry hash does not match with hash of entry content,
+//throw SsiException with message "Entry hash does not match with hash of entry content at version {versionId}"
+// This test may be (really not sure, did not think thoroughly) implemented by modifying the fromJsonLines method to accept an optional parameter that allows us to
+//inject an invalid hash for a specific versionId, and then calling verify() should throw the expected exception.
+// or maybe just move the check to the end of all rules in verify
+
+// TODO: add test: _parameterMethodMustExistInFirstVersion - when method parameter is missing in the first version of the log,
+// throw SsiException with message "Method parameter must exist in the first version of the log"
+
+// TODO: add test: _parameterScidMustExistInFirstVersion - when scid parameter is missing in the first version of the log,
+// throw SsiException with message "Scid parameter must exist in the first version of the log"
+
+// TODO:_parameterUpdateKeysMustExistInFirstVersion - when updateKeys parameter is missing in the first version of the log,
+// throw SsiException with message "updateKeys parameter must exist in the first version of the log"
+
+// TODO: add test: _scidMustMatchWithHashOfFirstEntry - when scid parameter does not match with hash of the first entry,
+// throw SsiException with message "Scid parameter must match with hash of the first entry"
+
+// TODO: add test: _parameterScidCannotExistInLaterVersions - when scid parameter exists in any version of the log other than the first version,
+// throw SsiException with message "Scid parameter cannot exist in versions of the log other than the first version"
+
+// TODO: add test: _parameterPortableCannotBeTrueInLaterVersions - when portable parameter is true in any version of the log other than the first version,
+// throw SsiException with message "Portable parameter cannot be true in versions of the log other than the first version"
+
+////
+////
+////
+    ///. query params tests: versionId, versionTime, versionNumber
+
+// TODO: add test: when versionId is provided in query params, log must be verified until that version
+// and document with that versionId must be returned,
+
+// TODO: add test: when versionId is provided in query params, log must be verified until that version,
+//and if that version is not found, throw SsiException with message "Version ID not found in log"
+
+// TODO: add test: when versionId is provided in query params, log must be verified until that version,
+//and if that version is found but invalid, throw SsiException with message "Log is invalid at version {versionId}"
+
+// TODO: add test: when versionTime is provided in query params, log must be verified until that versionTime,
+//last document with versionTime <= provided versionTime must be returned, if no document with versionTime <= provided versionTime is found,
+//throw SsiException with message "No version found in log with versionTime <= {versionTime}",
+
+// TODO: add test: when versionNumber is provided in query params, log must be verified until that versionNumber,
+// document with versionNumber == provided versionNumber must be returned,
+
+//TODO: add test: when versionNumber is provided in query params, log must be verified until that versionNumber,
+// if no document with versionNumber == provided versionNumber is found, throw SsiException with
+// message "No version found in log with versionNumber == {versionNumber}"
   });
 
   group('temp tests', () {
@@ -611,10 +786,11 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(2));
-      expect(
-          log.entries[0].versionTime, DateTime.parse('2025-07-13T23:43:58Z'));
-      expect(
-          log.entries[1].versionTime, DateTime.parse('2025-07-13T23:44:37Z'));
+      expect(log.entries[0].versionTime,
+          equals(DateTime.parse('2025-07-13T23:43:58Z')));
+      expect(log.entries[1].versionTime,
+          equals(DateTime.parse('2025-07-13T23:44:37Z')));
+
       log.verify(null);
     });
 
@@ -626,12 +802,33 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(2));
-      expect(
-          log.entries[0].versionTime, DateTime.parse('2026-02-02T13:39:29Z'));
-      expect(
-          log.entries[1].versionTime, DateTime.parse('2026-02-02T13:39:30Z'));
+      expect(log.entries[0].versionTime,
+          equals(DateTime.parse('2026-02-02T13:39:29Z')));
+      expect(log.entries[1].versionTime,
+          equals(DateTime.parse('2026-02-02T13:39:30Z')));
 
       log.verify(null);
+    });
+
+    test('temp test 3 - get did from web and verify', () async {
+      final did1 =
+          'did:webvh:scid123:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:add-did-webvh:example:dids:didwebvh';
+      // final did2 =
+      //     'did:webvh:scid123:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs';
+      final uu = Uri.parse(did1);
+      print('scheme: ${uu.scheme}');
+      print('port: ${uu.port}');
+      print('host: ${uu.host}');
+      print('path: ${uu.path}');
+      print('query: ${uu.query}');
+
+      // final url = DidWebVhUrl.fromDid(did2);
+      // final resp = await url.downloadJsonLogFile();
+      // // https://identity.foundation/didwebvh-implementations/implementations/affinidi-didwebvh-rs/did.jsonl
+      // // ignore: avoid_print
+      // print(resp.body);
+      // final log = DidWebVhLog.fromJsonLines(resp.body);
+      // log.verify(null);
     });
   });
 }

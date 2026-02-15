@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../ssi.dart';
 import '../digest_utils.dart';
+import 'did.dart';
 
 /// Parameters for a DID WebVH log entry that control DID processing and verification.
 ///
@@ -186,37 +187,48 @@ class DidWebVhLogEntry {
   ///
   /// Throws [TypeError] if required fields are missing or have incorrect types.
   factory DidWebVhLogEntry.fromJson(Map<String, dynamic> json) {
-    try {
-      final entryVersiontime = DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'')
-          .parseUTC(json['versionTime'] as String);
-      return DidWebVhLogEntry(
-        versionId: json['versionId'] as String,
-        versionTime: entryVersiontime,
-        parameters: DidWebVhLogEntryParameters.fromJson(
-            Map<String, dynamic>.from(json['parameters'] as Map)),
-        state: DidDocument.fromJson(json['state'] as Map<String, dynamic>),
-        proof: (json['proof'] as List)
-            .map((e) => e as Map<String, dynamic>)
-            .toList(),
-      );
-    } on FormatException catch (e) {
-      throw SsiException(
+    final entryVersionId = json['versionId'] as String;
+    final entryVersionIdParts = entryVersionId.split('-');
+    late DateTime entryVersionTime;
+    if (entryVersionIdParts.length != 2 ||
+        int.tryParse(entryVersionIdParts[0]) == null ||
+        entryVersionIdParts[1].isEmpty) {
+      throw SsiDidResolutionException(
           message:
-              'Error parsing versionTime in entry with versionId ${json['versionId'] as String}. versionTime \'${json['versionTime'] as String}\' must be ISO8601 formatted string. ',
+              'DID WebVh Log Entry versionId must start with a number, have a dash and a entry hash part',
           code: SsiExceptionType.invalidDidWebVh.code,
-          originalMessage: e.message);
-    } on Exception catch (e) {
-      throw SsiException(
-          message:
-              'Error parsing log entry with versionId ${json['versionId'] as String}. Ensure all required fields are present and correctly formatted.',
-          code: SsiExceptionType.invalidDidWebVh.code,
-          originalMessage: e.toString());
+          resolutionMetadata: {
+            'error': 'invalidDid',
+            'message':
+                'DID WebVh Log Entry versionId must start with a number, have a dash and a entry hash part',
+          });
     }
-  }
+    try {
+      entryVersionTime = DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'')
+          .parseUTC(json['versionTime'] as String);
+    } on FormatException catch (e) {
+      throw SsiDidResolutionException(
+          message:
+              'Invalid DID WebVh Log Entry versionTime format. versionTime must be in ISO8601 format (e.g., "2024-04-05T07:32:58Z") in entry with versionId $entryVersionId',
+          code: SsiExceptionType.invalidDidWebVh.code,
+          originalMessage: e.message,
+          resolutionMetadata: {
+            'error': 'invalidDid',
+            'message':
+                'Invalid DID WebVh Log Entry versionTime format. versionTime must be in ISO8601 format (e.g., "2024-04-05T07:32:58Z") in entry with versionId $entryVersionId',
+          });
+    }
 
-  Map<String, Object> buildMapFromEntryWithVersionIdAndStrippedProof(
-      String newVersionId) {
-    return _buildMapFromEntryWithVersionIdAndStrippedProof(newVersionId);
+    return DidWebVhLogEntry(
+      versionId: entryVersionId,
+      versionTime: entryVersionTime,
+      parameters: DidWebVhLogEntryParameters.fromJson(
+          Map<String, dynamic>.from(json['parameters'] as Map)),
+      state: DidDocument.fromJson(json['state'] as Map<String, dynamic>),
+      proof: (json['proof'] as List)
+          .map((e) => e as Map<String, dynamic>)
+          .toList(),
+    );
   }
 
   Map<String, Object> _buildMapFromEntryWithVersionIdAndStrippedProof(
@@ -243,8 +255,57 @@ class DidWebVhLogEntry {
 
   /// Extracts the version number from the versionId.
   ///
-  /// The versionId format is "{versionNumber}-{entryHash}".
+  /// The version number is a sequential integer that starts at 1 for the first
+  /// log entry and increments by 1 for each subsequent entry. It allows tracking
+  /// the chronological evolution of the DID Document.
+  ///
+  /// The versionId format is `"{versionNumber}-{entryHash}"`, and this getter
+  /// extracts and parses the portion before the dash as an integer.
+  ///
+  /// Version numbering rules:
+  /// - First entry must have version number 1
+  /// - Each subsequent entry increments by exactly 1
+  /// - No gaps or skips are allowed in the sequence
+  ///
+  /// Returns the version number as an integer.
+  ///
+  /// Example:
+  /// ```dart
+  /// final entry = DidWebVhLogEntry.fromJson({
+  ///   'versionId': '5-z123abc456def',
+  ///   ...
+  /// });
+  /// print(entry.versionNumber); // 5
+  /// print(entry.versionId);     // "5-z123abc456def"
+  /// ```
+  ///
+  /// See also:
+  /// - [entryHash] - Extracts the cryptographic hash from versionId
+  /// - [DidWebVhLog._verifyVersionNumberSequencing] - Validates sequential ordering
   int get versionNumber => int.parse(versionId.split('-').first);
+
+  /// Extracts the entry hash from the versionId.
+  ///
+  /// The entry hash is the cryptographic hash (multihash-encoded, base58-btc) of
+  /// the canonicalized log entry content. It provides integrity verification for
+  /// the entry by allowing validators to recompute the hash and compare it.
+  ///
+  /// The versionId format is `"{versionNumber}-{entryHash}"`, and this getter
+  /// returns the portion after the dash.
+  ///
+  /// Returns the entry hash as a multibase base58-btc encoded string (z-prefix).
+  ///
+  /// Example:
+  /// ```dart
+  /// final entry = DidWebVhLogEntry.fromJson({...});
+  /// print(entry.versionId); // "1-z123abc456def"
+  /// print(entry.entryHash);  // "z123abc456def"
+  /// ```
+  ///
+  /// See also:
+  /// - [versionNumber] - Extracts the numeric version from versionId
+  /// - [DidWebVhLog._entryHashMustMatchWithHashOfEntryContent] - Validates this hash
+  String get entryHash => versionId.split('-').last;
 }
 
 /// The DID Log file containing all versions of a DID.
@@ -320,18 +381,19 @@ class DidWebVhLog {
   void _verifyTimestampOrdering(DidWebVhLogEntry currentEntry,
       DidWebVhLogEntry? previousEntry, int versionNum) {
     if (previousEntry != null) {
-      try {
-        final prevTime = previousEntry.versionTime;
-        final currTime = currentEntry.versionTime;
-        if (!currTime.isAfter(prevTime)) {
-          throw SsiException(
-            message:
+      final prevTime = previousEntry.versionTime;
+      final currTime = currentEntry.versionTime;
+      if (!currTime.isAfter(prevTime)) {
+        throw SsiDidResolutionException(
+          message:
+              'Version timestamps must be strictly ascending. Entry $versionNum has invalid timestamp',
+          code: SsiExceptionType.invalidDidWebVh.code,
+          resolutionMetadata: {
+            'error': 'invalidDid',
+            'message':
                 'Version timestamps must be strictly ascending. Entry $versionNum has invalid timestamp',
-            code: SsiExceptionType.invalidDidWebVh.code,
-          );
-        }
-      } on SsiException {
-        rethrow;
+          },
+        );
       }
     }
   }
@@ -345,15 +407,14 @@ class DidWebVhLog {
   /// - Multiple version parameters are provided
   /// - The specified version is not found in the log
   /// - No entries exist at or before the specified versionTime
-  int _determineVerificationBoundary(Map<String, dynamic>? resolutionMetadata) {
+  int _determineVerificationBoundary(DidResolutionOptions? resolutionOptions) {
     int verifyUpToIndex = entries.length - 1;
 
-    if (resolutionMetadata != null) {
+    if (resolutionOptions != null) {
       // Check that only one version parameter is provided
       final versionParams = ['versionId', 'versionNumber', 'versionTime'];
-      final providedParams = versionParams
-          .where((p) => resolutionMetadata.containsKey(p))
-          .toList();
+      final providedParams =
+          versionParams.where((p) => resolutionOptions.containsKey(p)).toList();
 
       if (providedParams.length > 1) {
         throw SsiException(
@@ -363,8 +424,8 @@ class DidWebVhLog {
         );
       }
 
-      if (resolutionMetadata.containsKey('versionId')) {
-        final targetVersionId = resolutionMetadata['versionId'] as String;
+      if (resolutionOptions.containsKey('versionId')) {
+        final targetVersionId = resolutionOptions['versionId'] as String;
         final index = entries.indexWhere((e) => e.versionId == targetVersionId);
         if (index == -1) {
           throw SsiException(
@@ -373,8 +434,8 @@ class DidWebVhLog {
           );
         }
         verifyUpToIndex = index;
-      } else if (resolutionMetadata.containsKey('versionNumber')) {
-        final targetVersionNum = resolutionMetadata['versionNumber'] as int;
+      } else if (resolutionOptions.containsKey('versionNumber')) {
+        final targetVersionNum = resolutionOptions['versionNumber'] as int;
         final index =
             entries.indexWhere((e) => e.versionNumber == targetVersionNum);
         if (index == -1) {
@@ -384,9 +445,9 @@ class DidWebVhLog {
           );
         }
         verifyUpToIndex = index;
-      } else if (resolutionMetadata.containsKey('versionTime')) {
+      } else if (resolutionOptions.containsKey('versionTime')) {
         final targetTime =
-            DateTime.parse(resolutionMetadata['versionTime'] as String);
+            DateTime.parse(resolutionOptions['versionTime'] as String);
         // Find last entry at or before targetTime
         verifyUpToIndex = -1;
         for (int i = 0; i < entries.length; i++) {
@@ -399,7 +460,7 @@ class DidWebVhLog {
         if (verifyUpToIndex == -1) {
           throw SsiException(
             message:
-                'No entries found at or before versionTime ${resolutionMetadata['versionTime']}',
+                'No entries found at or before versionTime ${resolutionOptions['versionTime']}',
             code: SsiExceptionType.invalidDidWebVh.code,
           );
         }
@@ -683,16 +744,7 @@ class DidWebVhLog {
   /// Throws [SsiException] if the calculated entryHash doesn't match the versionId.
   void _entryHashMustMatchWithHashOfEntryContent(
       DidWebVhLogEntry entry, DidWebVhLogEntry? prevEntry) {
-    // Extract expected entryHash from versionId (format: "{versionNumber}-{entryHash}")
-    final versionIdParts = entry.versionId.split('-');
-    if (versionIdParts.length < 2) {
-      throw SsiException(
-        message:
-            'Invalid versionId format: ${entry.versionId}. Expected format: "{versionNumber}-{entryHash}"',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-    final expectedEntryHash = versionIdParts.sublist(1).join('-');
+    final expectedEntryHash = entry.entryHash;
 
     // Create a map representation of the entry without the proof field
     final entryWithoutProof =
@@ -737,12 +789,14 @@ class DidWebVhLog {
   /// - Pre-rotation constraints (if active, nextKeyHashes and updateKeys must be present)
   /// - Portable flag constraints (can only be set to true in first entry)
   /// - Deactivation rules (no further updates after deactivation)
+  /// - SCID calculation
   ///
   /// Note: This method performs structural and logical validation but does NOT verify:
   /// - Cryptographic signatures (Data Integrity proofs)
   /// - EntryHash values in versionId
   /// - Witness signatures
-  /// - SCID calculation
+  /// - key pre-rotation
+  ///
   ///
   /// Returns `true` if all validations pass.
   ///
@@ -765,7 +819,8 @@ class DidWebVhLog {
   /// log.verify({'versionTime': '2024-04-05T10:00:00Z'});
   /// ```
   ///
-  bool verify([Map<String, dynamic>? resolutionMetadata]) {
+  (DidDocument, DidDocumentMetadata?, DidResolutionMetadata?) verify(
+      [DidResolutionOptions? resolutionOptions]) {
     if (entries.isEmpty) {
       throw SsiException(
         message: 'DID log is empty',
@@ -774,7 +829,7 @@ class DidWebVhLog {
     }
 
     // Determine verification boundary
-    int verifyUpToIndex = _determineVerificationBoundary(resolutionMetadata);
+    int verifyUpToIndex = _determineVerificationBoundary(resolutionOptions);
 
     // Track active parameters for inheritance
     DidWebVhLogEntryParameters activeParameters = DidWebVhLogEntryParameters();
@@ -782,6 +837,7 @@ class DidWebVhLog {
     bool preRotationActive = false;
     bool isDeactivated = false;
     bool witnessActive = false;
+    DidDocument? resolvedDidDoc = null;
 
     for (int i = 0; i <= verifyUpToIndex; i++) {
       final entry = entries[i];
@@ -839,7 +895,7 @@ class DidWebVhLog {
 
         // Pre-rotation constraints
         if (preRotationActive) {
-          // TODO - Add validation that nextKeyHashes are valid hashes of the updateKeys in the log entry's state
+          // TODO - Add validation for pre-rotation key constraints
         }
 
         if (witnessActive) {
@@ -858,36 +914,156 @@ class DidWebVhLog {
       // Update prerotation active status
       preRotationActive = activeParameters.nextKeyHashes != null &&
           activeParameters.nextKeyHashes!.isNotEmpty;
+
+      // Update resolved DID Document after processing this entry
+      resolvedDidDoc = entry.state;
+    }
+    if (resolvedDidDoc == null) {
+      throw SsiDidResolutionException(
+        message:
+            'Failed to resolve DID Document from log entries - no valid entries found according to query parameters',
+        code: SsiExceptionType.invalidDidWebVh.code,
+        resolutionMetadata: {
+          'error': 'invalidDid',
+          'message':
+              'Failed to resolve DID Document from log entries - no valid entries found according to query parameters',
+        },
+      );
     }
 
-    return true;
+    return (resolvedDidDoc, null, null);
   }
 }
 
-/// WebVhUrl Class to handle Url parsing and components
-class DidWebVhUrl {
-  /// Self Certifying IDentifier (SCID)
-  final String scid;
+/// DidWebVh Class to handle Url parsing and components
+class DidWebVh extends Did {
+  DidWebVh._(String scheme, String method, String methodSpecificId)
+      : super(
+            scheme: scheme, method: method, methodSpecificId: methodSpecificId);
 
-  /// Uri in this DidWebVhUrl
-  final Uri uri;
-
-  DidWebVhUrl._(
-    this.scid,
-    this.uri,
-  );
-
-  /// Creates a WebVhUrl from a DID string
-  factory DidWebVhUrl.fromDid(String did) {
-    final String methodPrefix = 'did:webvh:';
-    if (!did.startsWith(methodPrefix)) {
+  /// Creates a [DidWebVh] instance from a DID string.
+  ///
+  /// Parses a DID string and validates that it conforms to the did:webvh specification.
+  /// The DID must use the 'webvh' method and have a valid method-specific identifier
+  /// that includes a SCID and an HTTPS URL location.
+  ///
+  /// The method-specific identifier format is: `{scid}:{domain}[:path...]`
+  ///
+  /// Example DID formats:
+  /// - `did:webvh:z6Mk...ABC:example.com`
+  /// - `did:webvh:z6Mk...ABC:example.com:path:to:resource`
+  /// - `did:webvh:z6Mk...ABC:example.com?versionId=1-hash`
+  ///
+  /// Parameters:
+  /// - [didString]: A string representation of a did:webvh DID
+  ///
+  /// Returns a [DidWebVh] instance with parsed components.
+  ///
+  /// Throws [FormatException] if the DID string is not a valid URI format.
+  ///
+  /// Throws [SsiException] if:
+  /// - The DID method is not 'webvh'
+  /// - The method-specific identifier cannot be parsed
+  /// - The HTTPS URL or SCID extraction fails
+  ///
+  /// Example:
+  /// ```dart
+  /// final did = DidWebVh.parse('did:webvh:z6Mk...ABC:example.com');
+  /// print(did.scid); // 'z6Mk...ABC'
+  /// print(did.httpsUrl); // 'https://example.com'
+  /// ```
+  ///
+  factory DidWebVh.parse(String didString) {
+    final did = Did.parse(didString);
+    if (did.method != 'webvh') {
       throw SsiException(
-          message: 'Unsupported DID method. Did must start with $methodPrefix',
+          message: 'Unsupported DID method. Expected method: webvh',
           code: SsiExceptionType.invalidDidWebVh.code);
     }
-    final String methodSpecificId = did.replaceFirst(methodPrefix, '');
-    final [scid, ...urlParts] = methodSpecificId.split(':');
 
+    final String methodSpecificId = did.methodSpecificId;
+    getScidFromMethodSpecificId(methodSpecificId);
+    getHttpsUrlFromMethodSpecificId(methodSpecificId);
+
+    return DidWebVh._(did.scheme, did.method, did.methodSpecificId);
+  }
+
+  /// The Self-Certifying Identifier (SCID) component of the DID WebVH.
+  ///
+  /// The SCID is the first component of the method-specific identifier and is a
+  /// cryptographic hash of the DID's inception event. It provides a self-certifying
+  /// identifier that ensures the DID's integrity.
+  ///
+  /// Example:
+  /// ```dart
+  /// final did = DidWebVh.fromDidString('did:webvh:z6Mk...ABC:example.com');
+  /// print(did.scid); // 'z6Mk...ABC'
+  /// ```
+  String get scid {
+    return getScidFromMethodSpecificId(super.methodSpecificId);
+  }
+
+  @override
+  Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
+      resolveDid([DidResolutionOptions? options]) async {
+    final nnOptions = options ?? {};
+    final http.Response response = await downloadJsonLogFile();
+    final didWebVhLog1 = DidWebVhLog.fromJsonLines(response.body);
+    httpsUrl.queryParameters.entries.forEach((entry) {
+      if (!nnOptions.keys.contains(entry.key)) {
+        nnOptions[entry.key] = entry.value;
+      }
+    });
+    final (doc, dm, rm) = didWebVhLog1.verify(nnOptions);
+    return (doc, dm, rm);
+  }
+
+  /// The HTTPS URL derived from the DID WebVH method-specific identifier.
+  ///
+  /// Converts the DID's method-specific identifier (excluding the SCID) into an HTTPS URL
+  /// where the DID document log file is hosted. This URL is used to retrieve the DID log.
+  ///
+  /// The conversion follows these rules:
+  /// - Colons (:) are converted to slashes (/)
+  /// - %3A is decoded to colon (:)
+  /// - %2B is decoded to slash (/)
+  /// - Query parameters and fragments are preserved
+  ///
+  /// Example:
+  /// ```dart
+  /// final did = DidWebVh.fromDidString('did:webvh:z6Mk...ABC:example.com:path');
+  /// print(did.httpsUrl); // https://example.com/path
+  /// ```
+  Uri get httpsUrl {
+    return getHttpsUrlFromMethodSpecificId(super.methodSpecificId);
+  }
+
+  /// Extracts and converts the HTTPS URL from a DID WebVH method-specific identifier.
+  ///
+  /// This static method parses the method-specific identifier, removes the SCID component,
+  /// and converts the remaining parts into an HTTPS URL according to the WebVH specification.
+  ///
+  /// The conversion process:
+  /// 1. Splits the method-specific identifier by colons
+  /// 2. Removes the first part (SCID)
+  /// 3. Converts remaining parts to URL format
+  /// 4. Applies decoding rules (%3A → :, %2B → /)
+  /// 5. Validates query parameters
+  ///
+  /// Parameters:
+  /// - [methodSpecificId]: The method-specific identifier from a did:webvh DID
+  ///
+  /// Returns the HTTPS URI where the DID log is hosted.
+  ///
+  /// Throws [SsiException] if multiple version query parameters are provided.
+  ///
+  /// Example:
+  /// ```dart
+  /// final url = DidWebVh.getHttpsUrlFromMethodSpecificId('z6Mk...ABC:example.com:path');
+  /// print(url); // https://example.com/path
+  /// ```
+  static Uri getHttpsUrlFromMethodSpecificId(String methodSpecificId) {
+    final [scid, ...urlParts] = methodSpecificId.split(':');
     String urlString = urlParts.join(':');
 
     String? fragment;
@@ -927,30 +1103,49 @@ class DidWebVhUrl {
           code: SsiExceptionType.invalidDidWebVh.code);
     }
 
-    return DidWebVhUrl._(
-      scid,
-      didUrl,
-    );
+    return didUrl;
   }
 
-  /// Converts this DidWebVhUrl back to a DID string
-  String toDid() {
-    var urlAsString = uri.toString();
-    urlAsString = urlAsString.replaceFirst(
-        uri.authority, uri.authority.replaceAll(':', '%3A'));
-    urlAsString = urlAsString.replaceFirst(uri.scheme, '');
-    urlAsString = urlAsString.substring(3);
-    urlAsString = urlAsString.replaceAll('/', ':');
-    return 'did:webvh:$scid:$urlAsString';
+  /// Extracts the SCID (Self-Certifying Identifier) from a method-specific identifier.
+  ///
+  /// The SCID is always the first component of the method-specific identifier,
+  /// before the first colon. It is a cryptographic hash that certifies the
+  /// authenticity of the DID's inception event.
+  ///
+  /// Parameters:
+  /// - [methodSpecificId]: The method-specific identifier from a did:webvh DID
+  ///
+  /// Returns the SCID component as a string.
+  ///
+  /// Example:
+  /// ```dart
+  /// final scid = DidWebVh.getScidFromMethodSpecificId('z6Mk...ABC:example.com:path');
+  /// print(scid); // 'z6Mk...ABC'
+  /// ```
+  static String getScidFromMethodSpecificId(String methodSpecificId) {
+    final [scid, ..._] = methodSpecificId.split(':');
+    return scid;
   }
 
-  /// Converts this DidWebVhUrl to a URL string pointing to its JSON log file
-  String toJsonLogFileUrl() {
-    var urlAsString = uri.toString();
-    if (uri.hasEmptyPath) {
-      urlAsString = '$urlAsString/.well-known';
-    }
-    return '$urlAsString/did.jsonl';
+  /// The full HTTPS URL to the DID WebVH JSON log file.
+  ///
+  /// Constructs the complete URL where the DID log file (did.jsonl) is hosted.
+  /// If the HTTPS URL has an empty path, `/.well-known` is inserted before `/did.jsonl`
+  /// according to the WebVH specification.
+  ///
+  /// URL construction rules:
+  /// - If path is empty: `https://example.com/.well-known/did.jsonl`
+  /// - If path exists: `https://example.com/path/did.jsonl`
+  ///
+  /// Returns a string representation of the URL.
+  ///
+  /// Example:
+  /// ```dart
+  /// final did = DidWebVh.fromDidString('did:webvh:z6Mk...ABC:example.com');
+  /// print(did.jsonLogFileHttpsUrlString); // 'https://example.com/.well-known/did.jsonl'
+  /// ```
+  String get jsonLogFileHttpsUrlString {
+    return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/did.jsonl';
   }
 
   /// Downloads the JSON log file from the URL represented by this DidWebVhUrl
@@ -958,7 +1153,7 @@ class DidWebVhUrl {
     client ??= http.Client();
     try {
       var res = await client
-          .get(Uri.parse(toJsonLogFileUrl()))
+          .get(Uri.parse(jsonLogFileHttpsUrlString))
           .timeout(const Duration(seconds: 30), onTimeout: () {
         return http.Response('Timeout', 408);
       });
@@ -967,10 +1162,10 @@ class DidWebVhUrl {
         return res;
       } else {
         throw SsiException(
-          message: 'Failed to fetch DIDWebVH JSON Log file for ${toDid()}',
+          message: 'Failed to fetch DIDWebVH JSON Log file for ${toString()}',
           code: SsiExceptionType.invalidDidWebVh.code,
           originalMessage:
-              'HTTP status code: ${res.statusCode} for URL: ${toJsonLogFileUrl()}',
+              'HTTP status code: ${res.statusCode} for URL: ${jsonLogFileHttpsUrlString}',
         );
       }
     } catch (e) {
@@ -979,7 +1174,7 @@ class DidWebVhUrl {
 
       // Handle any HTTP errors (connection refused, timeouts, etc.)
       throw SsiException(
-        message: 'Failed to fetch DIDWebVH JSON Log file for ${toDid()}: $e',
+        message: 'Failed to fetch DIDWebVH JSON Log file for ${toString()}: $e',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
