@@ -532,6 +532,60 @@ class DidWebVhLog {
     }
   }
 
+  /// Validates Pre-rotation constraints for nextKeyHashes and updateKeys as per spec.
+  ///
+  /// - When pre-rotation is active (nextKeyHashes is non-empty):
+  ///   - All multikeys in updateKeys in the current entry must have their hash present in the previous entry's nextKeyHashes.
+  ///   - nextKeyHashes must be present and non-null in the current entry.
+  ///   - If nextKeyHashes is set to empty array, pre-rotation is deactivated for subsequent entries.
+  ///
+  /// Throws [SsiException] if any constraint is violated.
+  void _validatePreRotationConstraints(
+    DidWebVhLogEntry? prevEntry,
+    DidWebVhLogEntry currentEntry,
+    DidWebVhLogEntryParameters? prevActiveParams,
+    DidWebVhLogEntryParameters activeParams,
+    int versionNum,
+  ) {
+    // Pre-rotation is only relevant for entries after the first
+    if (prevEntry == null || prevActiveParams == null) return;
+
+    final prevNextKeyHashes = prevActiveParams.nextKeyHashes ?? [];
+    final updateKeys = activeParams.updateKeys ?? [];
+    final nextKeyHashes = activeParams.nextKeyHashes;
+
+    // 1. nextKeyHashes must be present in the current entry (while pre-rotation is active)
+    if (nextKeyHashes == null) {
+      throw SsiException(
+        message:
+            'Pre-rotation active: nextKeyHashes must be present in entry $versionNum',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    // 2. All updateKeys in the current entry must have their hash in prevNextKeyHashes
+    for (final multikey in updateKeys) {
+      final hash = base58BitcoinEncode(_multiHashSha256(multikey));
+      if (!prevNextKeyHashes.contains(hash)) {
+        throw SsiException(
+          message:
+              'Pre-rotation: updateKey $multikey in entry $versionNum is not present as a hash in previous entry\'s nextKeyHashes',
+          code: SsiExceptionType.invalidDidWebVh.code,
+        );
+      }
+    }
+
+    // 3. nextKeyHashes must be an array (may be empty to deactivate pre-rotation)
+    if (nextKeyHashes is! List<String>) {
+      throw SsiException(
+        message:
+            'Pre-rotation: nextKeyHashes must be a list of strings in entry $versionNum',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+    // If nextKeyHashes is empty, pre-rotation is deactivated for subsequent entries (no error here)
+  }
+
   /// Verifies that the SCID matches the hash of the first log entry.
   ///
   /// The SCID (Self-Certifying Identifier) is calculated as the SHA-256 hash
@@ -784,15 +838,15 @@ class DidWebVhLog {
       activeParameters = DidWebVhLogEntryParameters(
         method: prevActiveParams?.method ?? params.method,
         scid: prevActiveParams?.scid ?? params.scid,
-        updateKeys: prevActiveParams?.updateKeys ?? params.updateKeys,
+        updateKeys: params.updateKeys ?? prevActiveParams?.updateKeys,
         nextKeyHashes:
-            prevActiveParams?.nextKeyHashes ?? (params.nextKeyHashes ?? []),
-        witness: prevActiveParams?.witness ?? (params.witness ?? {}),
-        watchers: prevActiveParams?.watchers ?? (params.watchers ?? []),
-        portable: prevActiveParams?.portable ?? (params.portable ?? false),
+            params.nextKeyHashes ?? prevActiveParams?.nextKeyHashes ?? [],
+        witness: params.witness ?? prevActiveParams?.witness ?? {},
+        watchers: params.watchers ?? prevActiveParams?.watchers ?? [],
+        portable: params.portable ?? prevActiveParams?.portable ?? false,
         deactivated:
-            prevActiveParams?.deactivated ?? (params.deactivated ?? false),
-        ttl: prevActiveParams?.ttl ?? (params.ttl ?? 3600),
+            params.deactivated ?? prevActiveParams?.deactivated ?? false,
+        ttl: params.ttl ?? prevActiveParams?.ttl ?? 3600,
       );
       // Apply validations applicable to all entries
 
@@ -831,59 +885,6 @@ class DidWebVhLog {
             versionNum,
           );
         }
-  /// Validates Pre-rotation constraints for nextKeyHashes and updateKeys as per spec.
-  ///
-  /// - When pre-rotation is active (nextKeyHashes is non-empty):
-  ///   - All multikeys in updateKeys in the current entry must have their hash present in the previous entry's nextKeyHashes.
-  ///   - nextKeyHashes must be present and non-null in the current entry.
-  ///   - If nextKeyHashes is set to empty array, pre-rotation is deactivated for subsequent entries.
-  ///
-  /// Throws [SsiException] if any constraint is violated.
-  void _validatePreRotationConstraints(
-    DidWebVhLogEntry? prevEntry,
-    DidWebVhLogEntry currentEntry,
-    DidWebVhLogEntryParameters? prevActiveParams,
-    DidWebVhLogEntryParameters activeParams,
-    int versionNum,
-  ) {
-    // Pre-rotation is only relevant for entries after the first
-    if (prevEntry == null || prevActiveParams == null) return;
-
-    final prevNextKeyHashes = prevActiveParams.nextKeyHashes ?? [];
-    final updateKeys = activeParams.updateKeys ?? [];
-    final nextKeyHashes = activeParams.nextKeyHashes;
-
-    // 1. nextKeyHashes must be present in the current entry (while pre-rotation is active)
-    if (nextKeyHashes == null) {
-      throw SsiException(
-        message:
-            'Pre-rotation active: nextKeyHashes must be present in entry $versionNum',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-
-    // 2. All updateKeys in the current entry must have their hash in prevNextKeyHashes
-    for (final multikey in updateKeys) {
-      final hash = base58BitcoinEncode(_multiHashSha256(multikey));
-      if (!prevNextKeyHashes.contains(hash)) {
-        throw SsiException(
-          message:
-              'Pre-rotation: updateKey $multikey in entry $versionNum is not present as a hash in previous entry\'s nextKeyHashes',
-          code: SsiExceptionType.invalidDidWebVh.code,
-        );
-      }
-    }
-
-    // 3. nextKeyHashes must be an array (may be empty to deactivate pre-rotation)
-    if (nextKeyHashes is! List<String>) {
-      throw SsiException(
-        message:
-            'Pre-rotation: nextKeyHashes must be a list of strings in entry $versionNum',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-    // If nextKeyHashes is empty, pre-rotation is deactivated for subsequent entries (no error here)
-  }
 
         if (witnessActive) {
           // TODO - Add validation that witness signatures are present and valid for this entry
