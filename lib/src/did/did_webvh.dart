@@ -836,8 +836,8 @@ class DidWebVhLog {
 
       // set active parameters
       activeParameters = DidWebVhLogEntryParameters(
-        method: prevActiveParams?.method ?? params.method,
-        scid: prevActiveParams?.scid ?? params.scid,
+        method: params.method ?? prevActiveParams?.method,
+        scid: params.scid ?? prevActiveParams?.scid,
         updateKeys: params.updateKeys ?? prevActiveParams?.updateKeys,
         nextKeyHashes:
             params.nextKeyHashes ?? prevActiveParams?.nextKeyHashes ?? [],
