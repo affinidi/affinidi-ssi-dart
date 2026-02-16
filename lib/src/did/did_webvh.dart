@@ -854,17 +854,16 @@ class DidWebVhLog {
 
       // set active parameters
       activeParameters = DidWebVhLogEntryParameters(
-        method: prevActiveParams?.method ?? params.method,
-        scid: prevActiveParams?.scid ?? params.scid,
-        updateKeys: prevActiveParams?.updateKeys ?? params.updateKeys,
+        method: params.method ?? prevActiveParams?.method,
+        scid: params.scid ?? prevActiveParams?.scid,
+        updateKeys: params.updateKeys ?? prevActiveParams?.updateKeys,
         nextKeyHashes:
-            prevActiveParams?.nextKeyHashes ?? (params.nextKeyHashes ?? []),
-        witness: prevActiveParams?.witness ?? (params.witness ?? {}),
-        watchers: prevActiveParams?.watchers ?? (params.watchers ?? []),
-        portable: prevActiveParams?.portable ?? (params.portable ?? false),
-        deactivated:
-            prevActiveParams?.deactivated ?? (params.deactivated ?? false),
-        ttl: prevActiveParams?.ttl ?? (params.ttl ?? 3600),
+            params.nextKeyHashes ?? prevActiveParams?.nextKeyHashes ?? [],
+        witness: params.witness ?? prevActiveParams?.witness ?? {},
+        watchers: params.watchers  ?? prevActiveParams?.watchers ?? [],
+        portable: params.portable ?? prevActiveParams?.portable ??  false,
+        deactivated: params.deactivated ?? prevActiveParams?.deactivated ?? false,
+        ttl: params.ttl ?? prevActiveParams?.ttl ?? 3600,
       );
       // Apply validations applicable to all entries
 
