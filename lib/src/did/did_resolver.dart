@@ -17,11 +17,9 @@ abstract interface class DidResolver {
   /// - The DID is invalid
   /// - The resolution fails
   Future<DidDocument> resolveDid(String did
-  //,[DidResolutionOptions? options]
-  );
+      //,[DidResolutionOptions? options]
+      );
 }
-
-
 
 /// Metadata about a DID Document.
 ///
@@ -90,7 +88,8 @@ abstract interface class DidResolverV2 {
   /// - The DID is invalid
   /// - The resolution fails
   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)> resolve(
-      String did, [DidResolutionOptions? options]);
+      String did,
+      [DidResolutionOptions? options]);
 
   /// Resolves a DID to its representation (document stream) for the given [did].
   ///

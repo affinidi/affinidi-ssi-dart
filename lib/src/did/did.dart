@@ -27,15 +27,15 @@ import '../../ssi.dart';
 /// ```dart
 /// // Parse a DID string
 /// final did = DidX.parse('did:example:123456789abcdefghi');
-/// 
+///
 /// // Access components
 /// print(did.scheme); // 'did'
 /// print(did.method); // 'example'
 /// print(did.methodSpecificId); // '123456789abcdefghi'
-/// 
+///
 /// // Convert back to string
 /// print(did.toString()); // 'did:example:123456789abcdefghi'
-/// 
+///
 /// // DIDs with query parameters
 /// final didWithQuery = DidX.parse('did:web:example.com?versionId=1');
 /// print(didWithQuery.methodSpecificId); // 'example.com?versionId=1'
@@ -101,10 +101,10 @@ class DidX {
   /// ```dart
   /// // Simple DID
   /// final did = DidX.parse('did:web:example.com');
-  /// 
+  ///
   /// // DID with path components
   /// final didWithPath = DidX.parse('did:webvh:z6Mk:example.com:path');
-  /// 
+  ///
   /// // DID with query parameters
   /// final didWithQuery = DidX.parse('did:web:example.com?service=hub');
   /// ```
@@ -323,7 +323,7 @@ class DidX {
 /// ```dart
 /// class DidWeb extends Did {
 ///   @override
-///   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)> 
+///   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
 ///       resolveDid(DidResolutionOptions? options) async {
 ///     // Implementation for resolving did:web
 ///   }
@@ -619,15 +619,15 @@ class Did implements Uri {
   ///   DidWeb({required super.scheme, required super.method, required super.methodSpecificId});
   ///
   ///   @override
-  ///   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)> 
+  ///   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
   ///       resolveDid([DidResolutionOptions? options]) async {
   ///     // Convert did:web:example.com to https://example.com/.well-known/did.json
   ///     final url = _convertDidToUrl();
-  ///     
+  ///
   ///     // Fetch the DID Document
   ///     final response = await http.get(url);
   ///     final doc = DidDocument.fromJson(jsonDecode(response.body));
-  ///     
+  ///
   ///     // Return with metadata
   ///     return (doc, null, {'contentType': 'application/did+json'});
   ///   }
@@ -639,7 +639,7 @@ class Did implements Uri {
   /// ```dart
   /// final did = DidWeb.parse('did:web:example.com');
   /// final (document, docMetadata, resolutionMetadata) = await did.resolveDid();
-  /// 
+  ///
   /// print('DID ID: ${document.id}');
   /// print('Verification Methods: ${document.verificationMethod?.length}');
   /// if (docMetadata?['deactivated'] == true) {
@@ -651,8 +651,8 @@ class Did implements Uri {
   /// - [DidDocument] - The structure of a DID Document
   /// - [DidResolutionOptions] - Options for controlling resolution
   /// - W3C DID Resolution Specification: https://w3c-ccg.github.io/did-resolution/
-  Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)> resolveDid(
-      [DidResolutionOptions? options]) async {
+  Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
+      resolveDid([DidResolutionOptions? options]) async {
     throw UnimplementedError(
         'resolveDid() is not implemented in the base Did class. '
         'DID resolution must be implemented by method-specific subclasses.');
@@ -691,8 +691,8 @@ class Did implements Uri {
   /// treats them as part of the method-specific identifier, not as a separate
   /// component.
   @override
-  String get fragment =>
-      throw UnimplementedError('DIDs do not have a separate fragment component');
+  String get fragment => throw UnimplementedError(
+      'DIDs do not have a separate fragment component');
 
   /// Throws [UnimplementedError] - DIDs do not use slash-separated paths.
   ///
@@ -713,8 +713,8 @@ class Did implements Uri {
 
   /// Throws [UnimplementedError] - DIDs do not have a separate fragment component.
   @override
-  bool get hasFragment =>
-      throw UnimplementedError('DIDs do not have a separate fragment component');
+  bool get hasFragment => throw UnimplementedError(
+      'DIDs do not have a separate fragment component');
 
   /// Throws [UnimplementedError] - DIDs do not have a port number.
   @override
@@ -803,8 +803,7 @@ class Did implements Uri {
 
   /// Throws [UnimplementedError] - DIDs do not have a port number.
   @override
-  int get port =>
-      throw UnimplementedError('DIDs do not have a port component');
+  int get port => throw UnimplementedError('DIDs do not have a port component');
 
   /// Throws [UnimplementedError] - DIDs do not have a separate query string.
   ///
@@ -935,7 +934,7 @@ class Did implements Uri {
   /// final did1 = Did.parse('did:web:example.com');
   /// final did2 = Did.parse('did:web:example.com');
   /// final did3 = Did.parse('did:web:Example.com'); // Different case
-  /// 
+  ///
   /// print(did1 == did2); // true (identical strings)
   /// print(did1 == did3); // false (different case in identifier)
   /// print(did1 == 'did:web:example.com'); // false (different type)

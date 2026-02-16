@@ -860,9 +860,10 @@ class DidWebVhLog {
         nextKeyHashes:
             params.nextKeyHashes ?? prevActiveParams?.nextKeyHashes ?? [],
         witness: params.witness ?? prevActiveParams?.witness ?? {},
-        watchers: params.watchers  ?? prevActiveParams?.watchers ?? [],
-        portable: params.portable ?? prevActiveParams?.portable ??  false,
-        deactivated: params.deactivated ?? prevActiveParams?.deactivated ?? false,
+        watchers: params.watchers ?? prevActiveParams?.watchers ?? [],
+        portable: params.portable ?? prevActiveParams?.portable ?? false,
+        deactivated:
+            params.deactivated ?? prevActiveParams?.deactivated ?? false,
         ttl: params.ttl ?? prevActiveParams?.ttl ?? 3600,
       );
       // Apply validations applicable to all entries
