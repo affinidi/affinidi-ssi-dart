@@ -813,22 +813,12 @@ void main() {
     test('temp test 3 - get did from web and verify', () async {
       final did1 =
           'did:webvh:scid123:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:add-did-webvh:example:dids:didwebvh';
-      // final did2 =
-      //     'did:webvh:scid123:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs';
-      final uu = Uri.parse(did1);
-      print('scheme: ${uu.scheme}');
-      print('port: ${uu.port}');
-      print('host: ${uu.host}');
-      print('path: ${uu.path}');
-      print('query: ${uu.query}');
-
-      // final url = DidWebVhUrl.fromDid(did2);
-      // final resp = await url.downloadJsonLogFile();
-      // // https://identity.foundation/didwebvh-implementations/implementations/affinidi-didwebvh-rs/did.jsonl
-      // // ignore: avoid_print
-      // print(resp.body);
-      // final log = DidWebVhLog.fromJsonLines(resp.body);
-      // log.verify(null);
+      
+      final didwebvh = DidWebVh.parse(did1);
+      final (didDoc,didDocMeta,didResMeta)=await didwebvh.resolveDid();
+      print('didDoc: ${didDoc.toString()}');
+      print('didDocMeta: ${didDocMeta.toString()}');
+      print('didResMeta: ${didResMeta.toString()}');
     });
   });
 }
