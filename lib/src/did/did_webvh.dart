@@ -827,7 +827,8 @@ class DidWebVhLog {
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
-
+    bool skipHashAndProofVerification =
+        resolutionOptions?['skipHashAndProofVerification'] == true;
     // Determine verification boundary
     int verifyUpToIndex = _determineVerificationBoundary(resolutionOptions);
 
@@ -877,7 +878,6 @@ class DidWebVhLog {
       //     Permitted Data Integrity cryptosuites: eddsa-jcs-2022 [DI-EDDSA-V1.0]
       _parameterMethodMustBeVersion1(activeParameters);
       _mustBeNoUpdateAfterDeactivation(isDeactivated, versionNum);
-      _entryHashMustMatchWithHashOfEntryContent(entry, prevEntry);
 
       // Apply first entry validations
       if (isFirstEntry) {
@@ -901,6 +901,11 @@ class DidWebVhLog {
         if (witnessActive) {
           // TODO - Add validation that witness signatures are present and valid for this entry
         }
+      }
+
+      if (!skipHashAndProofVerification) {
+        _entryHashMustMatchWithHashOfEntryContent(entry, prevEntry);
+        // TODO - Add verification of data integrity proof signatures
       }
 
       // Update deactivation status
