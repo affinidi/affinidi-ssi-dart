@@ -231,7 +231,7 @@ class DidWebVhLogEntry {
     );
   }
 
-  Map<String, Object> _buildMapFromEntryWithVersionIdAndStrippedProof(
+  Map<String, Object> buildMapFromEntryWithVersionIdAndStrippedProof(
       String newVersionId) {
     return {
       'versionId': newVersionId,
@@ -649,7 +649,7 @@ class DidWebVhLog {
     final String expectedScid = firstEntry.parameters.scid!;
     // Create a map representation of the first entry without the proof field
     final entryWithoutProof =
-        firstEntry._buildMapFromEntryWithVersionIdAndStrippedProof('{SCID}');
+        firstEntry.buildMapFromEntryWithVersionIdAndStrippedProof('{SCID}');
 
     // Canonicalize using JCS and replace scid value with {SCID}
     final canonicalized = JcsUtil.canonicalize(entryWithoutProof)
@@ -681,6 +681,7 @@ class DidWebVhLog {
   /// - [message]: The message string to hash
   ///
   /// Returns the multihash-encoded bytes.
+  /// FIXME: Build a generic multihash encoding function that can support different hash algorithms in a different module/file.
   Uint8List _multiHashSha256(String message) {
     // Hash using SHA-256
     final hash = DigestUtils.getDigest(
@@ -748,7 +749,7 @@ class DidWebVhLog {
 
     // Create a map representation of the entry without the proof field
     final entryWithoutProof =
-        entry._buildMapFromEntryWithVersionIdAndStrippedProof(
+        entry.buildMapFromEntryWithVersionIdAndStrippedProof(
             prevEntry?.versionId ?? entry.parameters.scid!);
 
     // Canonicalize using JCS
@@ -769,66 +770,236 @@ class DidWebVhLog {
     }
   }
 
+  /// Validates the cryptographic Data Integrity proof on a log entry.
+  ///
+  /// This method performs comprehensive verification of the Data Integrity proof
+  /// according to the W3C Data Integrity specification and did:webvh:1.0 requirements.
+  /// The verification ensures that the log entry was signed by an authorized key
+  /// and that the signature is cryptographically valid.
+  ///
+  /// ## Verification Process
+  ///
+  /// 1. **Proof Structure Validation**
+  ///    - Verifies that at least one proof exists in the entry
+  ///    - Validates required proof fields: cryptosuite, verificationMethod, proofValue
+  ///
+  /// 2. **Cryptosuite Validation**
+  ///    - Ensures the cryptosuite is `eddsa-jcs-2022`
+  ///    - This is the only cryptosuite permitted by did:webvh:1.0
+  ///
+  /// 3. **Signature Verification**
+  ///    - Uses [DataIntegrityEddsaJcsVerifier] to verify the EdDSA signature
+  ///    - Validates against the canonicalized entry content
+  ///    - Extracts the DID key from the verificationMethod
+  ///
+  /// 4. **Key Authorization**
+  ///    - Extracts the public key from the verificationMethod (did:key format)
+  ///    - Validates that the signing key is in the active updateKeys list
+  ///    - Can be skipped by setting `skipActiveUpdateKeysCheck: true` in options
+  ///
+  /// ## Parameters
+  ///
+  /// - [entry]: The log entry containing the proof to verify
+  /// - [activeUpdateKeys]: List of authorized multibase-encoded public keys
+  /// - [options]: Resolution options that may contain:
+  ///   - `skipActiveUpdateKeysCheck`: If true, skips validation that signing key is in updateKeys
+  ///
+  /// ## Exceptions
+  ///
+  /// Throws [SsiException] if:
+  /// - The proof is missing or empty
+  /// - Required proof fields are missing (cryptosuite, verificationMethod, proofValue)
+  /// - The cryptosuite is not `eddsa-jcs-2022`
+  /// - The signing key is not in the authorized updateKeys list (unless skipped)
+  ///
+  /// Throws [SsiDidResolutionException] if:
+  /// - The cryptographic signature verification fails
+  /// - The verifier returns validation errors
+  ///
+  /// ## Future Improvements
+  ///
+  /// - Support for multiple proofs per entry (currently only first proof is verified)
+  /// - Support for additional cryptosuites when older spec versions are implemented
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final entry = entries[0];
+  /// final updateKeys = ['z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME'];
+  /// await _proofMustBeValid(entry, updateKeys, {});
+  /// ```
+  ///
+  /// See also:
+  /// - [verify] - Main verification method that calls this
+  /// - [DataIntegrityEddsaJcsVerifier] - The underlying signature verifier
+  Future<void> _proofMustBeValid(
+    DidWebVhLogEntry entry,
+    List<String> activeUpdateKeys,
+    // DidWebVhLogEntryParameters activeParameters,
+    DidResolutionOptions options,
+  ) async {
+    // 1. Validate proof structure
+    if (entry.proof.isEmpty) {
+      throw SsiException(
+        message: 'Missing proof in log entry version ${entry.versionNumber}',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+    // TODO: With the implementation of multiple proofs, we may want to loop through all proofs
+    // and verify them instead of just taking the first proof. For now, we will just take the
+    // first proof and verify it.
+    final proof = entry.proof.first;
+    final documentToVerify =
+        entry.buildMapFromEntryWithVersionIdAndStrippedProof(entry.versionId);
+
+    documentToVerify['proof'] = proof;
+    final verificationMethod = proof['verificationMethod'] as String?;
+    final verifierDidKey = verificationMethod!.contains('#')
+        ? verificationMethod.split('#').first
+        : verificationMethod;
+
+    if (proof['cryptosuite'] == null ||
+        proof['verificationMethod'] == null ||
+        proof['proofValue'] == null) {
+      throw SsiException(
+        message:
+            'Missing required fields (cryptosuite, verificationMethod, proofValue) in proof',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    // TODO: When we add older spec version resolution support, we will need to check the cryptosuite value
+    // and use the appropriate verifier for that spec version. For now, we will just check that the cryptosuite
+    // is eddsa-jcs-2022 as that is the only supported cryptosuite in did:webvh:1.0 spec.
+    if (proof['cryptosuite'] != 'eddsa-jcs-2022') {
+      throw SsiException(
+        message:
+            'Unsupported cryptosuite: ${proof['cryptosuite']}. Expected eddsa-jcs-2022 as per DID WebVH specification.',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+    // TODO: Map can be extended to check if key does not exist or key maps to null value
+    if (proof['verificationMethod'] == null || proof['proofValue'] == null) {
+      throw SsiException(
+        message: 'Missing verificationMethod or proofValue in proof',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    // Use the Data Integrity verifier
+    final verifier = DataIntegrityEddsaJcsVerifier(
+      verifierDid: verifierDidKey,
+    );
+
+    final result = await verifier.verify(documentToVerify);
+    final isValid = result.isValid;
+
+    if (!isValid) {
+      throw SsiDidResolutionException(
+        message:
+            'Signature verification failed for entry version ${entry.versionNumber}',
+        code: SsiExceptionType.invalidDidWebVh.code,
+        resolutionMetadata: {
+          'error': 'invalidDidWebVh',
+          'message':
+              'Signature verification failed for entry version ${entry.versionNumber}',
+          'problemDetails': result.errors
+        },
+      );
+    }
+
+    // // 11. Validate that signing key is in updateKeys
+    final publicKeyMultibase = verifierDidKey.replaceAll('did:key:', '');
+
+    final skipActiveUpdateKeysCheck =
+        options['skipActiveUpdateKeysCheck'] as bool? ?? false;
+
+    if (!skipActiveUpdateKeysCheck) {
+      if (!activeUpdateKeys.contains(publicKeyMultibase)) {
+        throw SsiException(
+          message:
+              'Signing key $publicKeyMultibase is not in authorized updateKeys list',
+          code: SsiExceptionType.invalidDidWebVh.code,
+        );
+      }
+    }
+  }
+
   /// Verifies the integrity and validity of the DID log up to a specified version.
   ///
   /// This method validates the log entries according to the webvh specification,
-  /// with optional verification boundaries specified through [resolutionMetadata].
+  /// with optional verification boundaries specified through [resolutionOptions].
   ///
-  /// The [resolutionMetadata] parameter supports the following version specifiers:
+  /// The [resolutionOptions] parameter supports the following version specifiers:
   /// - `versionId`: Verifies up to and including the entry with this versionId (e.g., "3-QmHash123")
   /// - `versionNumber`: Verifies up to and including this version number (e.g., 5)
   /// - `versionTime`: Verifies up to the last entry at or before this timestamp (e.g., "2024-04-05T10:00:00Z")
   /// - Only ONE of these parameters should be provided
   /// - If none provided, verifies the entire log
   ///
-  /// Performs comprehensive validation including:
+  /// ## Validations Performed
+  ///
+  /// This method performs comprehensive validation including:
+  ///
+  /// **Structural Validation:**
   /// - Version number sequencing (must start at 1 and increment by 1)
   /// - Timestamp ordering (must be strictly ascending)
   /// - First entry requirements (must contain method, scid, and updateKeys)
   /// - Parameter inheritance rules (missing parameters inherit from previous entries)
-  /// - Pre-rotation constraints (if active, nextKeyHashes and updateKeys must be present)
   /// - Portable flag constraints (can only be set to true in first entry)
   /// - Deactivation rules (no further updates after deactivation)
-  /// - SCID calculation
   ///
-  /// Note: This method performs structural and logical validation but does NOT verify:
-  /// - Cryptographic signatures (Data Integrity proofs)
+  /// **Cryptographic Verification:**
+  /// - SCID calculation and validation
   /// - EntryHash values in versionId
+  /// - **Data Integrity proofs (cryptographic signatures)**
+  /// - Verification that signing keys are in the active updateKeys list
+  ///
+  /// **Not Yet Implemented:**
   /// - Witness signatures
-  /// - key pre-rotation
+  /// - Pre-rotation key constraints
   ///
+  /// ## Returns
   ///
-  /// Returns `true` if all validations pass.
+  /// Returns a tuple containing:
+  /// - [DidDocument]: The resolved DID Document at the specified version
+  /// - [DidDocumentMetadata]: Metadata about the DID Document (null for now)
+  /// - [DidResolutionMetadata]: Metadata about the resolution process (null for now)
   ///
-  /// Throws [SsiException] with detailed error message if any validation fails.
+  /// ## Exceptions
   ///
-  /// Example:
+  /// Throws [SsiException] or [SsiDidResolutionException] with detailed error message if any validation fails.
+  ///
+  /// ## Example
+  ///
   /// ```dart
   /// final log = DidWebVhLog.fromJsonLines(jsonLines);
   ///
-  /// // Verify entire log
-  /// log.verify();
+  /// // Verify entire log (async)
+  /// final (didDoc, docMeta, resolutionMeta) = await log.verify();
   ///
   /// // Verify up to version 5
-  /// log.verify({'versionNumber': 5});
+  /// final result = await log.verify({'versionNumber': 5});
   ///
   /// // Verify up to specific versionId
-  /// log.verify({'versionId': '3-QmHash123'});
+  /// await log.verify({'versionId': '3-QmHash123'});
   ///
   /// // Verify up to specific timestamp
-  /// log.verify({'versionTime': '2024-04-05T10:00:00Z'});
+  /// await log.verify({'versionTime': '2024-04-05T10:00:00Z'});
   /// ```
   ///
-  (DidDocument, DidDocumentMetadata?, DidResolutionMetadata?) verify(
-      [DidResolutionOptions? resolutionOptions]) {
+  Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)> verify(
+      [DidResolutionOptions? resolutionOptions]) async {
     if (entries.isEmpty) {
       throw SsiException(
         message: 'DID log is empty',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
+
     bool skipHashAndProofVerification =
         resolutionOptions?['skipHashAndProofVerification'] == true;
+
     // Determine verification boundary
     int verifyUpToIndex = _determineVerificationBoundary(resolutionOptions);
 
@@ -903,9 +1074,21 @@ class DidWebVhLog {
         }
       }
 
-      if (!skipHashAndProofVerification) {
+      // Verify hash and proof of the entry after all structural and parameter validations
+      // have passed to ensure the entry is well-formed before attempting cryptographic verification
+      if (skipHashAndProofVerification != true) {
         _entryHashMustMatchWithHashOfEntryContent(entry, prevEntry);
-        // TODO - Add verification of data integrity proof signatures
+
+        final activeUpdateKeys = isFirstEntry
+            ? activeParameters.updateKeys!
+            : (preRotationActive
+                ? activeParameters.updateKeys!
+                : prevActiveParams!.updateKeys!);
+        await _proofMustBeValid(
+          entry,
+          activeUpdateKeys,
+          resolutionOptions ?? {},
+        );
       }
 
       // Update deactivation status
@@ -1019,7 +1202,7 @@ class DidWebVh extends Did {
         nnOptions[entry.key] = entry.value;
       }
     });
-    final (doc, dm, rm) = didWebVhLog1.verify(nnOptions);
+    final (doc, dm, rm) = await didWebVhLog1.verify(nnOptions);
     return (doc, dm, rm);
   }
 
