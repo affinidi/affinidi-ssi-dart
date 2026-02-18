@@ -1,0 +1,37 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/multikey/v1"
+  ],
+  "id": "did:web:affinidi.github.io:didwebvh:bob-rotated-auth",
+  "alsoKnownAs": [
+    "did:webvh:QmZxjVaN7RF2jBPCy84PMokhUya1CY7YMw79HE1hyU7UX2:affinidi.github.io:didwebvh:bob-rotated-auth"
+  ],
+  "verificationMethod": [
+    {
+      "id": "did:web:affinidi.github.io:didwebvh:bob-rotated-auth#auth-2",
+      "type": "Multikey",
+      "controller": "did:web:affinidi.github.io:didwebvh:bob-rotated-auth",
+      "publicKeyMultibase": "z6Mks7797TvarhVs3LrUZKR4rJfTssZb8PoDyG1guLmcgDVG"
+    }
+  ],
+  "authentication": [
+    "did:web:affinidi.github.io:didwebvh:bob-rotated-auth#auth-2"
+  ],
+  "assertionMethod": [
+    "did:web:affinidi.github.io:didwebvh:bob-rotated-auth#auth-2"
+  ],
+  "service": [
+    {
+      "id": "#files",
+      "type": "relativeRef",
+      "serviceEndpoint": "https://affinidi.github.io/didwebvh/bob-rotated-auth/"
+    },
+    {
+      "@context": "https://identity.foundation/linked-vp/contexts/v1",
+      "id": "#whois",
+      "type": "LinkedVerifiablePresentation",
+      "serviceEndpoint": "https://affinidi.github.io/didwebvh/bob-rotated-auth/whois.vp"
+    }
+  ]
+}
