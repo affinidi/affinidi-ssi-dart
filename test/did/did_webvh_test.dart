@@ -945,11 +945,14 @@ void main() {
 
     test('temp test 3 - get did from web and verify', () async {
       final did1 =
-          'did:webvh:scid123:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:add-did-webvh:example:dids:didwebvh';
+          'did:webvh:scid123:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:add-did-webvh:example:dids:didwebvh:domain-example';
+
+      
       // final did2 =
       //     'did:webvh:scid123:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs';
 
       final didwebvh = DidWebVh.parse(did1);
+      print('did url: ${didwebvh.jsonLogFileHttpsUrlString}');
       final (didDoc, didDocMeta, didResMeta) = await didwebvh.resolveDid();
       print('didDoc: ${didDoc.toString()}');
       print('didDocMeta: ${didDocMeta.toString()}');
