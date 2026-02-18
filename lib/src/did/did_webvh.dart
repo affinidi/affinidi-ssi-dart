@@ -617,7 +617,7 @@ class DidWebVhLog {
   ///   - If nextKeyHashes is set to empty array, pre-rotation is deactivated for subsequent entries.
   ///
   /// Throws [SsiException] if any constraint is violated.
-  void _validatePreRotationConstraints(
+  void _keyPreRotationConstraintsMustBeValid(
     DidWebVhLogEntry prevEntry,
     DidWebVhLogEntry currentEntry,
     // DidWebVhLogEntryParameters? prevActiveParams,
@@ -1065,9 +1065,14 @@ class DidWebVhLog {
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
-
-    bool skipHashAndProofVerification =
-        resolutionOptions?['skipHashAndProofVerification'] == true;
+    bool skipHashEntryVerification =
+        resolutionOptions?['skipHashEntryVerification'] == true;
+    bool skipProofVerification =
+        resolutionOptions?['skipProofVerification'] == true;
+    bool skipKeyPreRotationVerification =
+        resolutionOptions?['skipKeyPreRotationVerification'] == true;
+    bool skipWitnessVerification =
+        resolutionOptions?['skipWitnessVerification'] == true;
 
     // Determine verification boundary
     int verifyUpToIndex = _determineVerificationBoundary(resolutionOptions);
@@ -1135,32 +1140,40 @@ class DidWebVhLog {
 
         // Pre-rotation constraints
         if (preRotationActive) {
-          _validatePreRotationConstraints(
-            prevEntry!,
-            entry,
-            // FIXME: We do not need active params
-            // prevActiveParams,
-            // activeParameters,
-            // FIXME: We can get the version number from entry.versionNumber, so we don't need to pass it as an argument
-            //versionNum,
-          );
+          if (!skipKeyPreRotationVerification) {
+            _keyPreRotationConstraintsMustBeValid(
+              prevEntry!,
+              entry,
+              // FIXME: We do not need active params
+              // prevActiveParams,
+              // activeParameters,
+              // FIXME: We can get the version number from entry.versionNumber, so we don't need to pass it as an argument
+              //versionNum,
+            );
+          }
         }
 
         if (witnessActive) {
-          // TODO - Add validation that witness signatures are present and valid for this entry
+          if (!skipWitnessVerification) {
+            // TODO - Add validation that witness signatures are present and valid for this entry
+          }
         }
       }
 
+      // Apply validations applicable to all entries
       // Verify hash and proof of the entry after all structural and parameter validations
       // have passed to ensure the entry is well-formed before attempting cryptographic verification
-      if (skipHashAndProofVerification != true) {
-        _entryHashMustMatchWithHashOfEntryContent(entry, prevEntry);
 
-        final activeUpdateKeys = isFirstEntry
-            ? activeParameters.updateKeys!
-            : (preRotationActive
-                ? activeParameters.updateKeys!
-                : prevActiveParams!.updateKeys!);
+      if (!skipHashEntryVerification) {
+        _entryHashMustMatchWithHashOfEntryContent(entry, prevEntry);
+      }
+
+      final activeUpdateKeys = isFirstEntry
+          ? activeParameters.updateKeys!
+          : (preRotationActive
+              ? activeParameters.updateKeys!
+              : prevActiveParams!.updateKeys!);
+      if (!skipProofVerification) {
         await _proofMustBeValid(
           entry,
           activeUpdateKeys,

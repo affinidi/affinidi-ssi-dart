@@ -632,7 +632,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expectLater(
-        log.verify({'skipHashAndProofVerification': true}),
+        log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -672,7 +672,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -692,7 +692,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -712,7 +712,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -733,7 +733,8 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(
+            {'skipHashEntryVerification': true, 'skipProofVerification': true}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -774,7 +775,7 @@ void main() {
       // Note: _parameterMethodMustBeVersion1 is called before _parameterMethodMustExistInFirstVersion
       // So when method is null, the version check fails first
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -793,7 +794,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -812,7 +813,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -831,7 +832,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -851,7 +852,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -873,7 +874,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'skipHashAndProofVerification': true}),
+        () => log.verify(),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
