@@ -609,6 +609,75 @@ class DidWebVhLog {
     }
   }
 
+  /// Validates Pre-rotation constraints for nextKeyHashes and updateKeys as per spec.
+  ///
+  /// - When pre-rotation is active (nextKeyHashes is non-empty):
+  ///   - All multikeys in updateKeys in the current entry must have their hash present in the previous entry's nextKeyHashes.
+  ///   - nextKeyHashes must be present and non-null in the current entry.
+  ///   - If nextKeyHashes is set to empty array, pre-rotation is deactivated for subsequent entries.
+  ///
+  /// Throws [SsiException] if any constraint is violated.
+  void _validatePreRotationConstraints(
+    DidWebVhLogEntry prevEntry,
+    DidWebVhLogEntry currentEntry,
+    // DidWebVhLogEntryParameters? prevActiveParams,
+    // DidWebVhLogEntryParameters activeParams,
+    //FIXME: removing this argument since we can get the version number from currentEntry.versionNumber
+    //int versionNum,
+  ) {
+    // Pre-rotation is only relevant for entries after the first
+    // FIXME: REVIEW: We already checked that this is not the first entry before calling this method,
+    //so this check is technically redundant, but it adds clarity that pre-rotation constraints
+    //only apply when there is a previous entry to compare against.
+    // if (prevEntry == null || prevActiveParams == null) return;
+
+    // final prevNextKeyHashes = prevActiveParams.nextKeyHashes ?? [];
+    // final updateKeys = activeParams.updateKeys ?? [];
+    // final nextKeyHashes = activeParams.nextKeyHashes;
+
+    // 1. nextKeyHashes must be present in the current entry (while pre-rotation is active)
+    if (currentEntry.parameters.nextKeyHashes == null) {
+      throw SsiException(
+        message:
+            'Pre-rotation active: nextKeyHashes must be present in entry ${currentEntry.versionNumber}',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+    // FIXME: Review update key must be present as well
+    if (currentEntry.parameters.updateKeys == null) {
+      throw SsiException(
+        message:
+            'Pre-rotation active: updateKeys must be present in entry ${currentEntry.versionNumber}',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+    final prevEntrysNextKeyHashes = prevEntry.parameters.nextKeyHashes!;
+    // 2. All updateKeys in the current entry must have their hash in prevNextKeyHashes
+    for (final multikey in currentEntry.parameters.updateKeys!) {
+      // According to webvh spec v 1.0, the hash algorithm for nextKeyHashes is always SHA-256 multihash, so we can directly compute the hash here.
+      final hash = base58BitcoinEncode(_multiHashSha256(multikey));
+      if (!prevEntrysNextKeyHashes.contains(hash)) {
+        throw SsiException(
+          message:
+              'Pre-rotation: updateKey $multikey in entry ${currentEntry.versionNumber} is not present as a hash in previous entry\'s nextKeyHashes',
+          code: SsiExceptionType.invalidDidWebVh.code,
+        );
+      }
+    }
+
+    // FIXME: REVIEW: nextKeyHashes type is fixed at parse time.
+    // We may need to remove this one.
+    // 3. nextKeyHashes must be an array (may be empty to deactivate pre-rotation)
+    // if (nextKeyHashes is! List<String>) {
+    //   throw SsiException(
+    //     message:
+    //         'Pre-rotation: nextKeyHashes must be a list of strings in entry ${currentEntry.versionNumber}',
+    //     code: SsiExceptionType.invalidDidWebVh.code,
+    //   );
+    // }
+    // If nextKeyHashes is empty, pre-rotation is deactivated for subsequent entries (no error here)
+  }
+
   /// Verifies that the SCID matches the hash of the first log entry.
   ///
   /// The SCID (Self-Certifying Identifier) is calculated as the SHA-256 hash
@@ -1066,7 +1135,15 @@ class DidWebVhLog {
 
         // Pre-rotation constraints
         if (preRotationActive) {
-          // TODO - Add validation for pre-rotation key constraints
+          _validatePreRotationConstraints(
+            prevEntry!,
+            entry,
+            // FIXME: We do not need active params
+            // prevActiveParams,
+            // activeParameters,
+            // FIXME: We can get the version number from entry.versionNumber, so we don't need to pass it as an argument
+            //versionNum,
+          );
         }
 
         if (witnessActive) {
