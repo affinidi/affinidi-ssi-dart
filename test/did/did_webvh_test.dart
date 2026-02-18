@@ -813,9 +813,9 @@ void main() {
     test('temp test 3 - get did from web and verify', () async {
       final did1 =
           'did:webvh:scid123:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:add-did-webvh:example:dids:didwebvh';
-      
+
       final didwebvh = DidWebVh.parse(did1);
-      final (didDoc,didDocMeta,didResMeta)=await didwebvh.resolveDid();
+      final (didDoc, didDocMeta, didResMeta) = await didwebvh.resolveDid();
       print('didDoc: ${didDoc.toString()}');
       print('didDocMeta: ${didDocMeta.toString()}');
       print('didResMeta: ${didResMeta.toString()}');
