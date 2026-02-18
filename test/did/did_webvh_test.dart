@@ -721,34 +721,167 @@ void main() {
       );
     });
 
-// TODO: add more tests for other validation rules in verify()
+    test(
+        'should throw SsiException when deactivation is not the last version in log',
+        () {
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+{"versionId": "2-Qmch9MxPayzKtkoUsQSi8ihgDGbFDvGZF2RYuGyfEq6fcE", "versionTime": "2026-02-02T13:39:30Z", "parameters": {"deactivated": true}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:30Z", "proofPurpose": "assertionMethod", "proofValue": "z53xk9p2Rub2eYs8jR65quHFJgH21HjPqJyRuKsQXEtyZKmXFzPsRSFS4otQXgcNTyjvv7F2YnN5Z6CuuM8J6RaXk"}]}
+{"versionId": "3-QmSomeHash", "versionTime": "2026-02-02T13:39:31Z", "parameters": {}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof"}]}
+''';
 
-//TODO: add test: _mustBeNoUpdateAfterDeactivation - when deactivation is not the last version in log,
-//throw SsiException with message "Deactivation must be the last version in log"
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-// TODO: add test: _entryHashMustMatchWithHashOfEntryContent - when entry hash does not match with hash of entry content,
-//throw SsiException with message "Entry hash does not match with hash of entry content at version {versionId}"
-// This test may be (really not sure, did not think thoroughly) implemented by modifying the fromJsonLines method to accept an optional parameter that allows us to
-//inject an invalid hash for a specific versionId, and then calling verify() should throw the expected exception.
-// or maybe just move the check to the end of all rules in verify
+      expect(
+        () => log.verify({'skipHashAndProofVerification': true}),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('No updates allowed after deactivation'),
+        )),
+      );
+    });
 
-// TODO: add test: _parameterMethodMustExistInFirstVersion - when method parameter is missing in the first version of the log,
-// throw SsiException with message "Method parameter must exist in the first version of the log"
+    test(
+        'should throw SsiException when entry hash does not match with hash of entry content',
+        () {
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+{"versionId": "2-QmInvalidHashThatDoesNotMatch", "versionTime": "2026-02-02T13:39:30Z", "parameters": {}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:30Z", "proofPurpose": "assertionMethod", "proofValue": "z53xk9p2Rub2eYs8jR65quHFJgH21HjPqJyRuKsQXEtyZKmXFzPsRSFS4otQXgcNTyjvv7F2YnN5Z6CuuM8J6RaXk"}]}
+''';
 
-// TODO: add test: _parameterScidMustExistInFirstVersion - when scid parameter is missing in the first version of the log,
-// throw SsiException with message "Scid parameter must exist in the first version of the log"
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-// TODO:_parameterUpdateKeysMustExistInFirstVersion - when updateKeys parameter is missing in the first version of the log,
-// throw SsiException with message "updateKeys parameter must exist in the first version of the log"
+      expect(
+        () => log.verify(),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('EntryHash verification failed'),
+        )),
+      );
+    });
 
-// TODO: add test: _scidMustMatchWithHashOfFirstEntry - when scid parameter does not match with hash of the first entry,
-// throw SsiException with message "Scid parameter must match with hash of the first entry"
+    test(
+        'should throw SsiException when method parameter is missing in the first version',
+        () {
+      final jsonLines = '''
+{"versionId": "1-QmHash1", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"scid": "QmScid123", "updateKeys": ["z6MkKey1"]}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmScid123:example.com"}, "proof": []}
+''';
 
-// TODO: add test: _parameterScidCannotExistInLaterVersions - when scid parameter exists in any version of the log other than the first version,
-// throw SsiException with message "Scid parameter cannot exist in versions of the log other than the first version"
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-// TODO: add test: _parameterPortableCannotBeTrueInLaterVersions - when portable parameter is true in any version of the log other than the first version,
-// throw SsiException with message "Portable parameter cannot be true in versions of the log other than the first version"
+      // Note: _parameterMethodMustBeVersion1 is called before _parameterMethodMustExistInFirstVersion
+      // So when method is null, the version check fails first
+      expect(
+        () => log.verify({'skipHashAndProofVerification': true}),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Only did:webvh:1.0 method is supported'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when scid parameter is missing in the first version',
+        () {
+      final jsonLines = '''
+{"versionId": "1-QmHash1", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"method": "did:webvh:1.0", "updateKeys": ["z6MkKey1"]}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:example.com"}, "proof": []}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify({'skipHashAndProofVerification': true}),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('First log entry must contain "scid" parameter'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when updateKeys parameter is missing in the first version',
+        () {
+      final jsonLines = '''
+{"versionId": "1-QmHash1", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"method": "did:webvh:1.0", "scid": "QmScid123"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmScid123:example.com"}, "proof": []}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify({'skipHashAndProofVerification': true}),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('First log entry must contain "updateKeys" parameter'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when scid parameter does not match with hash of first entry',
+        () {
+      final jsonLines = '''
+{"versionId": "1-QmHash1", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"method": "did:webvh:1.0", "scid": "QmWrongScidThatDoesNotMatch", "updateKeys": ["z6MkKey1"]}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmWrongScidThatDoesNotMatch:example.com"}, "proof": []}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify({'skipHashAndProofVerification': true}),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('SCID verification failed'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when scid parameter exists in later versions',
+        () {
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+{"versionId": "2-QmHash2", "versionTime": "2026-02-02T13:39:30Z", "parameters": {"scid": "QmShouldNotBeHere"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify({'skipHashAndProofVerification': true}),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('SCID parameter must only appear in first log entry'),
+        )),
+      );
+    });
+
+    test(
+        'should throw SsiException when portable parameter is true in later versions',
+        () {
+      // First entry without portable parameter (defaults to false)
+      // Second entry tries to set portable to true (not allowed)
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+{"versionId": "2-QmHash2", "versionTime": "2026-02-02T13:39:30Z", "parameters": {"portable": true}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify({'skipHashAndProofVerification': true}),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains(
+              'Portable parameter can only be set to true in the first entry'),
+        )),
+      );
+    });
 
 ////
 ////
