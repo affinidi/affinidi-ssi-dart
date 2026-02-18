@@ -2,7 +2,7 @@ name: Deploy static webvh to Pages
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "add-did-webvh"]
   workflow_dispatch:
 
 permissions:
