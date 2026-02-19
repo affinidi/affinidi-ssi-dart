@@ -1471,7 +1471,7 @@ void main() {
 
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-      final (didDoc, _, _) = await log.verify();
+      final (didDoc, _, _) = await log.verify({});
 
       // Check that #whois service was added
       final whoisService = didDoc.service.firstWhere(
@@ -1494,7 +1494,7 @@ void main() {
 
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-      final (didDoc, _, _) = await log.verify();
+      final (didDoc, _, _) = await log.verify({});
 
       // Check that #files service was added
       final filesService = didDoc.service.firstWhere(
