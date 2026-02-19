@@ -1333,19 +1333,203 @@ void main() {
       );
     });
 
-// TODO: Add test: _proofMustBeValid must throw exception if cryptosuite, verificationMethod, or proofValue or verificationMethod is missing from proof.
+    test('_proofMustBeValid throws if cryptosuite is missing from proof', () {
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+''';
 
-// TODO: Add test: _proofMustBeValid must throw exception if cryptosuite is not supported.
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-// TODO: Add test: _proofMustBeValid must throw exception if Signing key $publicKeyMultibase is not in authorized updateKeys list
+      expect(
+        () => log.verify({
+          'skipHashEntryVerification': true,
+          'skipScidVerification': true,
+        }),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Missing required fields'),
+        )),
+      );
+    });
 
-// TODO: Add test: _proofMustBeValid must throw exception if signature verification fails.
+    test('_proofMustBeValid throws if verificationMethod is missing from proof',
+        () {
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+''';
 
-// TODO: Add test: _addDefaultServicesToDidDocument must add #whois service if not existing.
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-// TODO: Add test: _addDefaultServicesToDidDocument must add #files service if not existing.
+      expect(
+        () => log.verify({
+          'skipHashEntryVerification': true,
+          'skipScidVerification': true,
+        }),
+        throwsA(isA<TypeError>()),
+      );
+    });
 
-// TODO: Add test: _addDefaultServicesToDidDocument must not add any new services if default services exist.
+    test('_proofMustBeValid throws if proofValue is missing from proof', () {
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify({
+          'skipHashEntryVerification': true,
+          'skipScidVerification': true,
+        }),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Missing required fields'),
+        )),
+      );
+    });
+
+    test('_proofMustBeValid throws if cryptosuite is not supported', () {
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "unsupported-cryptosuite", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify({
+          'skipHashEntryVerification': true,
+          'skipScidVerification': true,
+        }),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Unsupported cryptosuite'),
+        )),
+      );
+    });
+
+    test(
+        '_proofMustBeValid throws if signing key is not in authorized updateKeys list',
+        () {
+      // The verificationMethod uses z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV
+      // but updateKeys only contains z6MkDifferentKeyNotInUpdateKeys
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkDifferentKeyNotInUpdateKeys"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify({
+          'skipHashEntryVerification': true,
+          'skipScidVerification': true,
+          'skipProofVerification': true,
+        }),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('is not in authorized updateKeys list'),
+        )),
+      );
+    });
+
+    test('_proofMustBeValid throws if signature verification fails', () {
+      // Valid structure but proofValue is tampered (last char changed from 6 to 7)
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH7"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      expect(
+        () => log.verify({
+          'skipHashEntryVerification': true,
+          'skipScidVerification': true,
+        }),
+        throwsA(isA<SsiDidResolutionException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Signature verification failed'),
+        )),
+      );
+    });
+
+    test('_addDefaultServicesToDidDocument adds #whois service if not existing',
+        () async {
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      final (didDoc, _, _) = await log.verify();
+
+      // Check that #whois service was added
+      final whoisService = didDoc.service.firstWhere(
+        (s) => s.id == '#whois',
+        orElse: () => throw Exception('#whois service not found'),
+      );
+
+      expect(whoisService.type.toString(),
+          contains('LinkedVerifiablePresentation'));
+      final endpoint = whoisService.serviceEndpoint as StringEndpoint;
+      expect(
+          endpoint.url, equals('https://domain.example/.well-known/whois.vp'));
+    });
+
+    test('_addDefaultServicesToDidDocument adds #files service if not existing',
+        () async {
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      final (didDoc, _, _) = await log.verify();
+
+      // Check that #files service was added
+      final filesService = didDoc.service.firstWhere(
+        (s) => s.id == '#files',
+        orElse: () => throw Exception('#files service not found'),
+      );
+
+      expect(filesService.type.toString(), contains('relativeRef'));
+      final endpoint = filesService.serviceEndpoint as StringEndpoint;
+      expect(endpoint.url, equals('https://domain.example'));
+    });
+
+    test(
+        '_addDefaultServicesToDidDocument does not add duplicates if default services exist',
+        () async {
+      // DID document already includes #whois and #files services
+      final jsonLines = '''
+{"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example", "service": [{"id": "#whois", "type": "LinkedVerifiablePresentation", "serviceEndpoint": "https://custom.example/whois.vp"}, {"id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example#files", "type": "relativeRef", "serviceEndpoint": "https://custom.example"}]}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
+''';
+
+      final log = DidWebVhLog.fromJsonLines(jsonLines);
+
+      final (didDoc, _, _) = await log.verify({
+        'skipHashEntryVerification': true,
+        'skipScidVerification': true,
+        'skipAllProofRelatedVerification': true,
+      });
+
+      // Verify that only 2 services exist (no duplicates were added)
+      expect(didDoc.service.length, equals(2));
+
+      // Verify the services are the original ones
+      final whoisService = didDoc.service.firstWhere((s) => s.id == '#whois');
+      final whoisEndpoint = whoisService.serviceEndpoint as StringEndpoint;
+      expect(whoisEndpoint.url, equals('https://custom.example/whois.vp'));
+
+      final filesService = didDoc.service.firstWhere((s) =>
+          s.id ==
+          'did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example#files');
+      final filesEndpoint = filesService.serviceEndpoint as StringEndpoint;
+      expect(filesEndpoint.url, equals('https://custom.example'));
+    });
   });
 
   group('temp tests', () {
