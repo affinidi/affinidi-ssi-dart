@@ -2,7 +2,7 @@ import 'package:ssi/src/did/did_webvh.dart';
 
 Future<void> main() async {
   final did =
-      'did:webvh:QmcwgCTuXndkHhsp6yA2s5MhTf5hP4VGZ6S3b6hzsTiiCK:mabdelsamei.com';
+      'did:webvh:QmXi6hYqAUBKevKkUAbETFa6LKjvCSnuxdS1icQtiR4SAi:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:alice-with-witness';
   final parsedDid = DidWebVh.parse(did);
   print('Parsed DID: $parsedDid');
   final doc = await parsedDid.resolveDid();
