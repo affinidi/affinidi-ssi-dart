@@ -1,0 +1,37 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/multikey/v1"
+  ],
+  "id": "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:alice",
+  "alsoKnownAs": [
+    "did:webvh:QmPfxBijWPBC2WToutSkJ4JcCPL3CtyPewdq4TcsgTgBBN:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:alice"
+  ],
+  "verificationMethod": [
+    {
+      "id": "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:alice#auth-1",
+      "type": "Multikey",
+      "controller": "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:alice",
+      "publicKeyMultibase": "z6Mkrjx4vHCAVeYwQCXPm3dFHaGNn2G38UX4EcQp4Sj5Dpti"
+    }
+  ],
+  "authentication": [
+    "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:alice#auth-1"
+  ],
+  "assertionMethod": [
+    "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:alice#auth-1"
+  ],
+  "service": [
+    {
+      "id": "#files",
+      "type": "relativeRef",
+      "serviceEndpoint": "https://raw.githubusercontent.com/affinidi/affinidi-ssi-dart/refs/heads/main/example/dids/didwebvh/alice/"
+    },
+    {
+      "@context": "https://identity.foundation/linked-vp/contexts/v1",
+      "id": "#whois",
+      "type": "LinkedVerifiablePresentation",
+      "serviceEndpoint": "https://raw.githubusercontent.com/affinidi/affinidi-ssi-dart/refs/heads/main/example/dids/didwebvh/alice/whois.vp"
+    }
+  ]
+}
