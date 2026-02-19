@@ -957,11 +957,8 @@ class DidWebVhLog {
         entry.buildMapFromEntryWithVersionIdAndStrippedProof(entry.versionId);
 
     documentToVerify['proof'] = proof;
-    final verificationMethod = proof['verificationMethod'] as String?;
-    final verifierDidKey = verificationMethod!.contains('#')
-        ? verificationMethod.split('#').first
-        : verificationMethod;
 
+    // Validate required proof fields before using them
     if (proof['cryptosuite'] == null ||
         proof['verificationMethod'] == null ||
         proof['proofValue'] == null ||
@@ -972,6 +969,11 @@ class DidWebVhLog {
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
+
+    final verificationMethod = proof['verificationMethod'] as String;
+    final verifierDidKey = verificationMethod.contains('#')
+        ? verificationMethod.split('#').first
+        : verificationMethod;
 
     // TODO: When we add older spec version resolution support, we will need to check the cryptosuite value
     // and use the appropriate verifier for that spec version. For now, we will just check that the cryptosuite
