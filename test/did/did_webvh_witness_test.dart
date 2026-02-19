@@ -267,7 +267,7 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: [],
-        witnessConfig: {'threshold': 0, 'witnesses': []},
+        witnessConfig: {'threshold': 0, 'witnesses': <Map<String, dynamic>>[]},
       );
 
       expect(result.isValid, isTrue);
@@ -712,7 +712,7 @@ void main() {
         witnessProofs: [],
         witnessConfig: {
           'threshold': 0,
-          'witnesses': [],
+          'witnesses': <Map<String, dynamic>>[],
         },
       );
 
@@ -931,7 +931,7 @@ void main() {
         witnessProofs: [],
         witnessConfig: {
           'threshold': 0,
-          'witnesses': [],
+          'witnesses': <Map<String, dynamic>>[],
         },
       );
 
@@ -955,7 +955,7 @@ void main() {
         entry: entry,
         witnessProofs: [],
         witnessConfig: {
-          'witnesses': [],
+          'witnesses': <Map<String, dynamic>>[],
         },
       );
 
