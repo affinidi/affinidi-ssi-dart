@@ -109,12 +109,8 @@ class DidWebVhWitness {
   }
 }
 
-/// Verifier for DID:WebVH witness proofs per the v1.0 specification.
+/// Verifies DID:WebVH witness proofs per the v1.0 specification.
 ///
-/// Features:
-/// - Validates `eddsa-jcs-2022` cryptosuite with `assertionMethod` purpose
-/// - Enforces `did:key` format for witness DIDs
-/// - Implements "later proofs" rule: proof for versionId N satisfies entries 1-N///
 /// Core Features:
 /// - Validates `eddsa-jcs-2022` cryptosuite with `assertionMethod` purpose
 /// - Enforces `did:key` format for witness DIDs
@@ -135,12 +131,15 @@ class DidWebVhWitness {
 class DidWebVhWitnessVerifier {
   /// Verifies witness proofs for a log entry against the witness configuration.
   ///
-  /// Steps:
-  /// 1. Extracts threshold and authorized witness DIDs from config
-  /// 2. Collects applicable proofs using "later proofs" rule
-  /// 3. Validates each proof (cryptosuite, purpose, witness authorization)
-  /// 4. Verifies proof signatures using DataIntegrityEddsaJcsVerifier
-  /// 5. Returns success if valid proofs meet or exceed threshold
+  /// Verification Process:
+  /// 1. Validates witness configuration (threshold must be non-negative)
+  /// 2. Extracts threshold and authorized witness DIDs from config
+  /// 3. Collects applicable proofs using "later proofs" rule
+  /// 4. Validates each proof (cryptosuite, purpose, witness authorization)
+  /// 5. Verifies cryptographic signatures using [DataIntegrityEddsaJcsVerifier]
+  /// 6. Returns success if valid proofs meet or exceed threshold
+  ///
+  /// Throws [SsiException] if threshold is negative.
   ///
   /// Optimization: Exits early once threshold is satisfied.
   Future<WitnessVerificationResult> verify({
@@ -148,13 +147,14 @@ class DidWebVhWitnessVerifier {
     required List<DidWebVhWitness> witnessProofs,
     required Map<String, dynamic> witnessConfig,
   }) async {
+    // Extract witness configuration
     final threshold = witnessConfig['threshold'] as int? ?? 0;
     final witnessesArray = witnessConfig['witnesses'] as List<dynamic>? ?? [];
     final authorizedWitnessDids = witnessesArray
         .map((w) => (w as Map<String, dynamic>)['id'] as String)
         .toSet();
 
-    // Validate threshold is not negative
+    // Validate threshold
     if (threshold < 0) {
       throw SsiException(
         message: 'Invalid witness configuration: threshold cannot be negative (got $threshold)',
@@ -181,12 +181,14 @@ class DidWebVhWitnessVerifier {
       );
     }
 
+    // Initialize verification state
     int validCount = 0;
     final validWitnessDids = <String>{};
     final entryVersionNumber = entry.versionNumber;
     final applicableProofs = <_ProofWithVersionId>[];
 
-    // "Later proofs" rule: proof for versionId N can satisfy entries 1-N
+    // Collect applicable proofs using "later proofs" rule:
+    // A proof for versionId N can satisfy entries 1 through N
     for (final witnessEntry in witnessProofs) {
       final proofVersionNumber = _parseVersionNumber(witnessEntry.versionId);
       if (proofVersionNumber >= entryVersionNumber) {
@@ -199,32 +201,39 @@ class DidWebVhWitnessVerifier {
       }
     }
 
+    // Verify each applicable proof
     for (final proofWithVersion in applicableProofs) {
       final proofMap = proofWithVersion.proof;
 
+      // Validate cryptosuite
       if (proofMap['cryptosuite'] != 'eddsa-jcs-2022') {
         continue;
       }
+
+      // Validate proof purpose
       if (proofMap['proofPurpose'] != 'assertionMethod') {
         continue;
       }
 
+      // Extract verification method
       final verificationMethod = proofMap['verificationMethod'] as String?;
       if (verificationMethod == null) {
         continue;
       }
 
+      // Extract and validate witness DID
       final witnessDid = verificationMethod.split('#').first;
       if (!witnessDid.startsWith('did:key:')) {
-        continue;
+        continue; // Only did:key witnesses are allowed
       }
       if (!authorizedWitnessDids.contains(witnessDid)) {
-        continue;
+        continue; // Witness not authorized for this entry
       }
       if (validWitnessDids.contains(witnessDid)) {
-        continue;
+        continue; // Already counted this witness (prevent duplicates)
       }
 
+      // Verify cryptographic signature
       try {
         final isValid = await _verifyProofSignature(
           signedVersionId: proofWithVersion.signedVersionId,
@@ -237,15 +246,17 @@ class DidWebVhWitnessVerifier {
           validWitnessDids.add(witnessDid);
         }
       } catch (e) {
-        continue; // Ignore proofs that fail verification
+        // Ignore proofs that fail verification
+        continue;
       }
 
-      // Early exit optimization: stop once we have enough valid proofs
+      // Early exit: stop once threshold is satisfied
       if (validCount >= threshold) {
         break;
       }
     }
 
+    // Determine verification result
     final isValid = validCount >= threshold;
 
     if (isValid) {
@@ -268,26 +279,28 @@ class DidWebVhWitnessVerifier {
 
   /// Verifies the cryptographic signature of a witness proof.
   ///
-  /// IMPORTANT: Creates a deep copy of the proof map because
-  /// [DataIntegrityEddsaJcsVerifier.verify] modifies the proof in-place
-  /// by extracting and removing the 'proofValue' field during verification.
+  /// CRITICAL: This method creates a deep copy of [proofMap] before verification
+  /// because [DataIntegrityEddsaJcsVerifier.verify] modifies the proof in-place
+  /// by extracting and removing the `proofValue` field. Without the deep copy,
+  /// the original proof would be mutated and subsequent verification attempts
+  /// would fail.
   ///
-  /// This prevents the original proof from being mutated, which would cause
-  /// subsequent verification attempts to fail.
-  ///
-  /// Returns `true` if the signature is valid, `false` otherwise.
+  /// Returns `true` if the signature is valid, `false` otherwise (including
+  /// when verification throws an exception).
   Future<bool> _verifyProofSignature({
     required String signedVersionId,
     required Map<String, dynamic> proofMap,
     required String witnessDid,
   }) async {
     try {
-      // CRITICAL: Must deep copy to prevent mutation by the verifier
+      // Create deep copy to prevent mutation
       final proofMapCopy = Map<String, dynamic>.from(proofMap);
       final documentToVerify = {
         'versionId': signedVersionId,
         'proof': proofMapCopy
       };
+
+      // Verify signature using witness DID
       final verifier = DataIntegrityEddsaJcsVerifier(
         verifierDid: witnessDid,
       );
@@ -295,11 +308,16 @@ class DidWebVhWitnessVerifier {
       final result = await verifier.verify(documentToVerify);
       return result.isValid;
     } catch (e) {
+      // Treat exceptions as invalid signatures
       return false;
     }
   }
 
-  /// Parses version number from versionId (format: "N-QmHash...").
+  /// Parses the version number from a versionId string.
+  ///
+  /// The versionId format is "N-QmHash..." where N is the version number.
+  ///
+  /// Throws [SsiException] if the format is invalid or N is not a valid integer.
   int _parseVersionNumber(String versionId) {
     final dashIndex = versionId.indexOf('-');
     if (dashIndex == -1) {
@@ -320,19 +338,33 @@ class DidWebVhWitnessVerifier {
     }
   }
 
-  /// Fetches witness data for a DID from the well-known witness URI.
+  /// Fetches witness proofs from the well-known witness URI.
+  ///
+  /// The witness file is located at:
+  /// `https://<domain>/.well-known/did-webvh/<scid>/witness.json`
+  ///
+  /// Returns a list of [DidWebVhWitness] entries from the witness file.
+  ///
+  /// Throws [SsiException] if:
+  /// - Network request fails
+  /// - Response is not valid JSON
+  /// - JSON is not an array
+  /// - Witness entries are malformed
   static Future<List<DidWebVhWitness>> fetchWitnesses(DidWebVh did,
       [http.Client? client]) async {
     final witnessUrl = did.witnessUrl;
 
     try {
+      // Download witness file
       final data = await downloadDocument(
         Uri.parse(witnessUrl),
         client: client,
       );
 
+      // Parse JSON
       final json = jsonDecode(data);
 
+      // Validate JSON structure
       if (json is! List) {
         throw SsiException(
           message:
@@ -341,6 +373,7 @@ class DidWebVhWitnessVerifier {
         );
       }
 
+      // Parse witness entries
       return json
           .map((e) => DidWebVhWitness.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -354,8 +387,15 @@ class DidWebVhWitnessVerifier {
   }
 }
 
+/// Internal helper class to associate a proof with the versionId it signed.
+///
+/// Used to implement the "later proofs" rule where a proof for versionId N
+/// can satisfy verification for entries 1 through N.
 class _ProofWithVersionId {
+  /// The proof object from the witness entry.
   final Map<String, dynamic> proof;
+
+  /// The versionId that this proof actually signed.
   final String signedVersionId;
 
   _ProofWithVersionId({
