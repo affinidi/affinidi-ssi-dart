@@ -50,21 +50,6 @@
       }
     },
     {
-      "keyId": "auth-2",
-      "role": "didcomm-authentication",
-      "kty": "OKP",
-      "crv": "Ed25519",
-      "publicJwk": {
-        "x": "u_4-wtAAhhZLegeiqZiHTQNVgrShtw-2zNJ_x9VvfJ8"
-      },
-      "privateJwk": {
-        "d": "mNw-dHBQZ52b1OJPfBbzVCN5_ALgHrf2uUJrSSfS7Yg"
-      },
-      "derived": {
-        "publicKeyMultibase": "z6Mks7797TvarhVs3LrUZKR4rJfTssZb8PoDyG1guLmcgDVG"
-      }
-    },
-    {
       "keyId": "update-2",
       "role": "didwebvh-update",
       "kty": "OKP",
@@ -86,14 +71,14 @@
       "kty": "OKP",
       "crv": "Ed25519",
       "publicJwk": {
-        "x": "5u5AFL0KPtRQH99u7agLbtie18XTOFdTxblygHHYn0g"
+        "x": "g6CEVa2-5azFh0M9QATFYkpRVOq000oevJt_5FqEPc4"
       },
       "privateJwk": {
-        "d": "lU46FVP2VwuoR-qH16w6AO7jy-JgJwwT1q4hWdSLtHs"
+        "d": "Tcbgrdd8695StTdX8SkbgC-P-rOCpo59KkgBd8iwxYA"
       },
       "derived": {
-        "publicKeyMultibase": "z6MkuziXStDsqcHLrE6mCX7PtFVMZAjbaHe1i2iy2fbBmzsq",
-        "publicKeyHash": "QmeCa9xuJLdSdj8Z1fJcgnMM2t2a3dpSbV2DfGu3GXxHLw"
+        "publicKeyMultibase": "z6MkoK5R5FqhjEo8LqmSXagQvS8DqGAYmUhfQjuQNJknf6Wh",
+        "publicKeyHash": "QmdRnCos2fN7ce78uoLNwUQuHyvE738yp4JqYnDUXMdsGq"
       }
     }
   ]

@@ -1,27 +1,27 @@
 [
   {
-    "versionId": "2-QmdVWyo6DUKrbzHN1CKg1jmpMTp5AEU3cU9c15C1vvCjFk",
+    "versionId": "2-QmZkQBpwrj61d76LNGWYBa1yLgsBvGxfZjfUbRuSQCac7n",
     "proof": [
       {
         "type": "DataIntegrityProof",
         "cryptosuite": "eddsa-jcs-2022",
-        "created": "2026-02-19T11:20:58Z",
-        "verificationMethod": "did:key:z6MkfBumPxXkW5EnwRTt3DfSBRN4xGbUKCM5mC7578kzLNUG#z6MkfBumPxXkW5EnwRTt3DfSBRN4xGbUKCM5mC7578kzLNUG",
+        "created": "2026-02-19T15:51:53Z",
+        "verificationMethod": "did:key:z6Mkv5e1JjPgkM9MT2jZh8B5su4oXJVmNpRUpnpEdThCQ5j2#z6Mkv5e1JjPgkM9MT2jZh8B5su4oXJVmNpRUpnpEdThCQ5j2",
         "proofPurpose": "assertionMethod",
-        "proofValue": "z65cTjkuuiNTcNH6SnHvhaLHciWRpjb3sE4xN5ek6jRBbLVLumM97jvDLKYWMr4x7sZ8tn2feQ6Tk67KAijG3Amko"
+        "proofValue": "z2qStuDtbDKjnBFG4tAmnGWyNr36yzRU8SHCYzDvUJ1Pi5Aak6Cjk7v6JN2jZLV4FmpZ8EhCpCYb1cwuUyhuPWdaR"
       }
     ]
   },
   {
-    "versionId": "3-QmZV44oKmiTiizDoZz1ppFWW2qqmfffp4S8bc1BkJsEDGw",
+    "versionId": "3-QmR4LvgzckUP1yWH8ASzDniuvXsaf8ziyaiZZATfdzcamW",
     "proof": [
       {
         "type": "DataIntegrityProof",
         "cryptosuite": "eddsa-jcs-2022",
-        "created": "2026-02-19T11:21:49Z",
-        "verificationMethod": "did:key:z6MkfBumPxXkW5EnwRTt3DfSBRN4xGbUKCM5mC7578kzLNUG#z6MkfBumPxXkW5EnwRTt3DfSBRN4xGbUKCM5mC7578kzLNUG",
+        "created": "2026-02-19T15:51:53Z",
+        "verificationMethod": "did:key:z6Mkv5e1JjPgkM9MT2jZh8B5su4oXJVmNpRUpnpEdThCQ5j2#z6Mkv5e1JjPgkM9MT2jZh8B5su4oXJVmNpRUpnpEdThCQ5j2",
         "proofPurpose": "assertionMethod",
-        "proofValue": "z5faGjqEYgW1nseBv7HkQhqpKKZAoGkd5pNh3gRspKAKL63gxFPkPVG2FDn9uvs1RxEERkDMHP9in5Dte8bY9FGg6"
+        "proofValue": "z3xBir4wmXZSCKCCcajHPxiDCQrrvQ2ps2X2QnSuhfpAUbezHE2DyKSaJhKCVhMosAyyCUEZcrYf5jPHbagjAJXAE"
       }
     ]
   }
