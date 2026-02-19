@@ -1599,4 +1599,30 @@ class DidWebVh extends Did {
       client: client,
     );
   }
+
+  /// Parses the version number from a versionId string.
+  ///
+  /// The versionId format is "N-QmHash..." where N is the version number.
+  ///
+  /// Throws [SsiException] if the format is invalid or N is not a valid integer.
+  static int getVersionNumberFromVersionId(String versionId) {
+    final parts = versionId.split('-');
+    if (parts.length < 2) {
+      throw SsiException(
+        message: 'Invalid versionId format (missing dash): $versionId',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    final versionNumber = int.tryParse(parts.first);
+    if (versionNumber == null) {
+      throw SsiException(
+        message:
+            'Invalid version number in versionId (not an integer): $versionId',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    return versionNumber;
+  }
 }

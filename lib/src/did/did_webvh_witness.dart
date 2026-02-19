@@ -189,7 +189,8 @@ class DidWebVhWitnessVerifier {
     // Collect applicable proofs using "later proofs" rule:
     // A proof for versionId N can satisfy entries 1 through N
     for (final witnessEntry in witnessProofs) {
-      final proofVersionNumber = _parseVersionNumber(witnessEntry.versionId);
+      final proofVersionNumber =
+          DidWebVh.getVersionNumberFromVersionId(witnessEntry.versionId);
       if (proofVersionNumber >= entry.versionNumber) {
         for (final proof in witnessEntry.proof) {
           applicableProofs.add(_ProofWithVersionId(
@@ -309,31 +310,6 @@ class DidWebVhWitnessVerifier {
     } catch (e) {
       // Treat exceptions as invalid signatures
       return false;
-    }
-  }
-
-  /// Parses the version number from a versionId string.
-  ///
-  /// The versionId format is "N-QmHash..." where N is the version number.
-  ///
-  /// Throws [SsiException] if the format is invalid or N is not a valid integer.
-  int _parseVersionNumber(String versionId) {
-    final dashIndex = versionId.indexOf('-');
-    if (dashIndex == -1) {
-      throw SsiException(
-        message: 'Invalid versionId format (missing dash): $versionId',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-    final numberPart = versionId.substring(0, dashIndex);
-    try {
-      return int.parse(numberPart);
-    } on FormatException {
-      throw SsiException(
-        message:
-            'Invalid version number in versionId (not an integer): $versionId',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
     }
   }
 
