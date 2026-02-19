@@ -5,14 +5,14 @@
   ],
   "id": "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth",
   "alsoKnownAs": [
-    "did:webvh:QmaMTXeDKaKjmFM6Q2HieoaxSN2M8x1AgFsry5BHUQ8YZs:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth"
+    "did:webvh:QmTCsSL1Tkv7MFBbL9KvCEEmy9LdePBvBPfoNY4NudvxqL:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth"
   ],
   "verificationMethod": [
     {
       "id": "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth#auth-2",
       "type": "Multikey",
       "controller": "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth",
-      "publicKeyMultibase": "z6MkhGw56XTQPpoSWyZEyhUd9fgjsahgj4BvNSVfQ5fcSLR7"
+      "publicKeyMultibase": "z6Mkn9CweBSTLg9bPGGugSgvUrg1zX4GQm7NAC2dyfVnrPgK"
     }
   ],
   "authentication": [
