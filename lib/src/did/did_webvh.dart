@@ -1402,26 +1402,24 @@ class DidWebVhLog {
       witnessingActive = activeParameters.witness!.isNotEmpty;
 
       if (witnessingActive && !prevWitnessingActive) {
-          witnessRequiringVersions.add({
-            'versionId': entry.versionId,
-            'activeWitness': jsonDecode(jsonEncode(activeParameters.witness))
-                as Map<String, dynamic>
-          });
-        }
-        else if(witnessingActive && prevWitnessingActive) {
-          witnessRequiringVersions.add({
-            'versionId': entry.versionId,
-            'activeWitness': jsonDecode(jsonEncode(prevActiveParams!.witness))
-                as Map<String, dynamic>
-          });
-        }
-        else if (!witnessingActive && prevWitnessingActive) {
-          witnessRequiringVersions.add({
-            'versionId': entry.versionId,
-            'activeWitness': jsonDecode(jsonEncode(prevActiveParams!.witness))
-                as Map<String, dynamic>
-          });
-        }
+        witnessRequiringVersions.add({
+          'versionId': entry.versionId,
+          'activeWitness': jsonDecode(jsonEncode(activeParameters.witness))
+              as Map<String, dynamic>
+        });
+      } else if (witnessingActive && prevWitnessingActive) {
+        witnessRequiringVersions.add({
+          'versionId': entry.versionId,
+          'activeWitness': jsonDecode(jsonEncode(prevActiveParams!.witness))
+              as Map<String, dynamic>
+        });
+      } else if (!witnessingActive && prevWitnessingActive) {
+        witnessRequiringVersions.add({
+          'versionId': entry.versionId,
+          'activeWitness': jsonDecode(jsonEncode(prevActiveParams!.witness))
+              as Map<String, dynamic>
+        });
+      }
 
       // Update prerotation active status
       preRotationActive = activeParameters.nextKeyHashes != null &&
@@ -1565,8 +1563,7 @@ class DidWebVh extends Did {
   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
       resolveDid([DidResolutionOptions? options]) async {
     final nnOptions = options ?? {};
-    final jsonLines = await downloadJsonLogFile();
-    final didWebVhLog1 = DidWebVhLog.fromJsonLines(jsonLines);
+    final didWebVhLog1 = await downloadWebVhLog();
     httpsUrl.queryParameters.entries.forEach((entry) {
       if (!nnOptions.keys.contains(entry.key)) {
         nnOptions[entry.key] = entry.value;
@@ -1720,11 +1717,12 @@ class DidWebVh extends Did {
   /// Downloads the JSON Lines log file from the URL represented by this DidWebVhUrl.
   ///
   /// Returns the raw response body as a string for JSON Lines parsing.
-  Future<String> downloadJsonLogFile([http.Client? client]) async {
-    return downloadDocument(
+  Future<DidWebVhLog> downloadWebVhLog([http.Client? client]) async {
+    var jsonLogFile = await downloadDocument(
       Uri.parse(jsonLogFileHttpsUrlString),
       client: client,
     );
+    return DidWebVhLog.fromJsonLines(jsonLogFile);
   }
 
   /// Parses the version number from a versionId string.

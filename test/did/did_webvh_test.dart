@@ -144,7 +144,7 @@ void main() {
     });
   });
 
-  group('DidWebVh.downloadJsonLogFile', () {
+  group('DidWebVh.downloadWebVhLog', () {
     test('should throw SsiException on network error', () async {
       final mockClient = MockClient((request) async {
         return http.Response('mock log data', 300);
@@ -153,7 +153,7 @@ void main() {
           'did:webvh:scid123:invalid-domain-that-does-not-exist.com');
 
       expect(
-        () => url.downloadJsonLogFile(mockClient),
+        () => url.downloadWebVhLog(mockClient),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -170,7 +170,7 @@ void main() {
           'did:webvh:scid123:invalid-domain-that-does-not-exist.com');
 
       expect(
-          () => url.downloadJsonLogFile(mockClient),
+          () => url.downloadWebVhLog(mockClient),
           throwsA(isA<SsiException>().having(
             (e) => e.toString(),
             'message',
