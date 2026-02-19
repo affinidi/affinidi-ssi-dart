@@ -8,6 +8,49 @@ import 'package:intl/intl.dart';
 import '../../ssi.dart';
 import '../digest_utils.dart';
 import 'did.dart';
+import 'did_webvh_witness.dart';
+
+/// Downloads a document from the specified URL and returns the response body.
+///
+/// Performs an HTTP GET request with appropriate headers for JSON content
+/// and returns the raw response body as a string.
+///
+/// Parameters:
+/// - [url]: The URI to fetch the document from
+/// - [client]: Optional HTTP client for connection reuse or testing
+/// - [timeout]: Request timeout duration (default: 30 seconds)
+///
+/// Returns the response body as a string.
+///
+/// Throws [SsiException] if:
+/// - The response status code is not 2xx
+/// - A network error, timeout, or other HTTP error occurs
+Future<String> downloadDocument(
+  Uri url, {
+  http.Client? client,
+  Duration timeout = const Duration(seconds: 30),
+}) async {
+  client ??= http.Client();
+  try {
+    final response = await client.get(url, headers: {
+      'Accept': 'application/json, application/jsonl'
+    }).timeout(timeout);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.body;
+    }
+    throw SsiException(
+      message: 'HTTP ${response.statusCode} error fetching $url',
+      code: SsiExceptionType.invalidDidWebVh.code,
+    );
+  } on SsiException {
+    rethrow;
+  } catch (e) {
+    throw SsiException(
+      message: 'Failed to fetch $url: $e',
+      code: SsiExceptionType.invalidDidWebVh.code,
+    );
+  }
+}
 
 /// Parameters for a DID WebVH log entry that control DID processing and verification.
 ///
@@ -1159,7 +1202,7 @@ class DidWebVhLog {
     bool preRotationActive = false;
     bool isDeactivated = false;
     bool witnessingActive = false;
-    DidDocument? resolvedDidDoc = null;
+    DidDocument? resolvedDidDoc;
     List<Map<String, dynamic>> witnessRequiringVersions = [];
 
     for (int i = 0; i <= verifyUpToIndex; i++) {
@@ -1269,9 +1312,6 @@ class DidWebVhLog {
       // Update resolved DID Document after processing this entry
       resolvedDidDoc = entry.state;
     }
-    if (!skipWitnessVerification) {
-      // TODO - Add validation that witness signatures are present and valid for this entry
-    }
 
     if (resolvedDidDoc == null) {
       throw SsiDidResolutionException(
@@ -1284,6 +1324,35 @@ class DidWebVhLog {
               'Failed to resolve DID Document from log entries - no valid entries found according to query parameters',
         },
       );
+    }
+    if (!skipWitnessVerification && witnessRequiringVersions.isNotEmpty) {
+      final resolvedDidId = resolvedDidDoc.id;
+      final did = DidWebVh.parse(resolvedDidId);
+      final witnessProofs = await DidWebVhWitnessVerifier.fetchWitnesses(did);
+      final verifier = DidWebVhWitnessVerifier();
+
+      for (final witnessReq in witnessRequiringVersions) {
+        final versionId = witnessReq['versionId'] as String;
+        final witnessConfig =
+            witnessReq['activeWitness'] as Map<String, dynamic>;
+
+        // Find the entry with this versionId
+        final entry = entries.firstWhere((e) => e.versionId == versionId);
+
+        final result = await verifier.verify(
+          entry: entry,
+          witnessProofs: witnessProofs,
+          witnessConfig: witnessConfig,
+        );
+
+        if (!result.isValid) {
+          throw SsiException(
+            message: 'Witness verification failed for entry $versionId',
+            code: SsiExceptionType.invalidDidWebVh.code,
+            originalMessage: result.error,
+          );
+        }
+      }
     }
 
     if (!skipDefaultServiceAddition) {
@@ -1370,8 +1439,8 @@ class DidWebVh extends Did {
   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
       resolveDid([DidResolutionOptions? options]) async {
     final nnOptions = options ?? {};
-    final http.Response response = await downloadJsonLogFile();
-    final didWebVhLog1 = DidWebVhLog.fromJsonLines(response.body);
+    final jsonLines = await downloadJsonLogFile();
+    final didWebVhLog1 = DidWebVhLog.fromJsonLines(jsonLines);
     httpsUrl.queryParameters.entries.forEach((entry) {
       if (!nnOptions.keys.contains(entry.key)) {
         nnOptions[entry.key] = entry.value;
@@ -1515,35 +1584,19 @@ class DidWebVh extends Did {
     return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/did.jsonl';
   }
 
-  /// Downloads the JSON log file from the URL represented by this DidWebVhUrl
-  Future<http.Response> downloadJsonLogFile([http.Client? client]) async {
-    client ??= http.Client();
-    try {
-      var res = await client
-          .get(Uri.parse(jsonLogFileHttpsUrlString))
-          .timeout(const Duration(seconds: 30), onTimeout: () {
-        return http.Response('Timeout', 408);
-      });
+  /// The full HTTPS URL to the DID WebVH witness configuration file.
 
-      if (res.statusCode == 200) {
-        return res;
-      } else {
-        throw SsiException(
-          message: 'Failed to fetch DIDWebVH JSON Log file for ${toString()}',
-          code: SsiExceptionType.invalidDidWebVh.code,
-          originalMessage:
-              'HTTP status code: ${res.statusCode} for URL: ${jsonLogFileHttpsUrlString}',
-        );
-      }
-    } catch (e) {
-      // Re-throw if already an SsiException
-      if (e is SsiException) rethrow;
+  String get witnessUrl {
+    return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/did-witness.json';
+  }
 
-      // Handle any HTTP errors (connection refused, timeouts, etc.)
-      throw SsiException(
-        message: 'Failed to fetch DIDWebVH JSON Log file for ${toString()}: $e',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
+  /// Downloads the JSON Lines log file from the URL represented by this DidWebVhUrl.
+  ///
+  /// Returns the raw response body as a string for JSON Lines parsing.
+  Future<String> downloadJsonLogFile([http.Client? client]) async {
+    return downloadDocument(
+      Uri.parse(jsonLogFileHttpsUrlString),
+      client: client,
+    );
   }
 }
