@@ -260,19 +260,30 @@ void main() {
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
     }
 
-    test('should return valid when threshold is 0', () async {
+    test('should return invalid when threshold > number of witnesses',
+        () async {
       final verifier = DidWebVhWitnessVerifier();
       final entry = createMockEntry(2, 'QmHash');
 
-      final result = await verifier.verify(
-        entry: entry,
-        witnessProofs: [],
-        witnessConfig: {'threshold': 0, 'witnesses': <Map<String, dynamic>>[]},
+      expect(
+        () async => await verifier.verify(
+          entry: entry,
+          witnessProofs: [],
+          witnessConfig: {
+            'threshold': 2,
+            'witnesses': [
+              {'id': 'did:key:z6MkWitness1'}
+            ]
+          },
+        ),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('threshold (2) exceeds number of witnesses (1)'),
+          ),
+        ),
       );
-
-      expect(result.isValid, isTrue);
-      expect(result.validCount, equals(0));
-      expect(result.threshold, equals(0));
     });
 
     test('should return invalid when no proofs and threshold > 0', () async {
@@ -546,17 +557,19 @@ void main() {
         entry: entry,
         witnessProofs: witnessProofs,
         witnessConfig: {
-          'threshold': 2,
+          'threshold': 1,
           'witnesses': [
             {'id': 'did:key:z6MkWitness1'},
           ],
         },
       );
 
-      // Even though witness1 has proofs in multiple entries,
-      // it should only count once
-      expect(result.isValid, isFalse);
-      expect(result.threshold, equals(2));
+      // Note: This test uses fake proofValues that fail cryptographic verification.
+      // With real signatures, the deduplication logic would ensure witness1
+      // is only counted once despite having proofs in multiple entries.
+      expect(result.isValid, isFalse); // Fails due to invalid signatures
+      expect(result.threshold, equals(1));
+      expect(result.validCount, equals(0)); // No valid proofs
     });
 
     test('should handle missing verificationMethod', () async {
@@ -593,19 +606,26 @@ void main() {
       expect(result.validCount, equals(0));
     });
 
-    test('should handle empty witness config gracefully', () async {
+    test('should throw on empty witness config (threshold defaults to 0)',
+        () async {
       final verifier = DidWebVhWitnessVerifier();
       final entry = createMockEntry(2, 'QmHash');
 
-      final result = await verifier.verify(
-        entry: entry,
-        witnessProofs: [],
-        witnessConfig: {},
+      // Empty config means threshold defaults to 0, which is invalid per spec
+      expect(
+        () async => await verifier.verify(
+          entry: entry,
+          witnessProofs: [],
+          witnessConfig: {},
+        ),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('threshold must be at least 1'),
+          ),
+        ),
       );
-
-      // Empty config means threshold defaults to 0
-      expect(result.isValid, isTrue);
-      expect(result.threshold, equals(0));
     });
   });
 
@@ -711,13 +731,16 @@ void main() {
         entry: entry,
         witnessProofs: [],
         witnessConfig: {
-          'threshold': 0,
-          'witnesses': <Map<String, dynamic>>[],
+          'threshold': 1,
+          'witnesses': [
+            {'id': 'did:key:z6MkWitness1'}
+          ],
         },
       );
 
-      expect(result.isValid, isTrue);
-      expect(result.validCount, equals(result.threshold));
+      expect(result.isValid, isFalse); // No proofs provided, so fails
+      expect(result.validCount, equals(0));
+      expect(result.threshold, equals(1));
     });
 
     test('should reject when exactly one proof short of threshold', () async {
@@ -930,8 +953,10 @@ void main() {
         entry: entry,
         witnessProofs: [],
         witnessConfig: {
-          'threshold': 0,
-          'witnesses': <Map<String, dynamic>>[],
+          'threshold': 1,
+          'witnesses': [
+            {'id': 'did:key:z6MkWitness1'}
+          ],
         },
       );
 
@@ -947,35 +972,49 @@ void main() {
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
     }
 
-    test('should handle null threshold gracefully', () async {
+    test('should throw on null threshold (defaults to 0)', () async {
       final verifier = DidWebVhWitnessVerifier();
       final entry = createMockEntry(2, 'QmHash');
 
-      final result = await verifier.verify(
-        entry: entry,
-        witnessProofs: [],
-        witnessConfig: {
-          'witnesses': <Map<String, dynamic>>[],
-        },
+      // Null threshold defaults to 0, which is invalid per spec
+      expect(
+        () async => await verifier.verify(
+          entry: entry,
+          witnessProofs: [],
+          witnessConfig: {
+            'witnesses': <Map<String, dynamic>>[],
+          },
+        ),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('threshold must be at least 1'),
+          ),
+        ),
       );
-
-      expect(result.isValid, isTrue);
-      expect(result.threshold, equals(0));
     });
 
-    test('should handle empty witnessConfig gracefully', () async {
+    test('should throw on empty witnessConfig (threshold defaults to 0)',
+        () async {
       final verifier = DidWebVhWitnessVerifier();
       final entry = createMockEntry(2, 'QmHash');
 
-      final result = await verifier.verify(
-        entry: entry,
-        witnessProofs: [],
-        witnessConfig: {},
+      // Empty config defaults threshold to 0, which is invalid per spec
+      expect(
+        () async => await verifier.verify(
+          entry: entry,
+          witnessProofs: [],
+          witnessConfig: {},
+        ),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('threshold must be at least 1'),
+          ),
+        ),
       );
-
-      expect(result.isValid, isTrue);
-      expect(result.threshold, equals(0));
-      expect(result.validCount, equals(0));
     });
 
     test('should throw on negative threshold', () async {
@@ -997,25 +1036,33 @@ void main() {
           isA<SsiException>().having(
             (e) => e.message,
             'message',
-            contains('threshold cannot be negative'),
+            contains('threshold must be at least 1'),
           ),
         ),
       );
     });
 
-    test('should handle null witnesses array gracefully', () async {
+    test('should throw on threshold < 1 with null witnesses array', () async {
       final verifier = DidWebVhWitnessVerifier();
       final entry = createMockEntry(2, 'QmHash');
 
-      final result = await verifier.verify(
-        entry: entry,
-        witnessProofs: [],
-        witnessConfig: {
-          'threshold': 0,
-        },
+      // threshold=0 is invalid per spec
+      expect(
+        () async => await verifier.verify(
+          entry: entry,
+          witnessProofs: [],
+          witnessConfig: {
+            'threshold': 0,
+          },
+        ),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('threshold must be at least 1'),
+          ),
+        ),
       );
-
-      expect(result.isValid, isTrue);
     });
 
     test('should handle case-sensitive DID comparison', () async {

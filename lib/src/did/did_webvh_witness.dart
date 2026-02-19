@@ -154,21 +154,20 @@ class DidWebVhWitnessVerifier {
         .map((w) => (w as Map<String, dynamic>)['id'] as String)
         .toSet();
 
-    // Validate threshold
-    if (threshold < 0) {
+    // Threshold MUST be between 1 and the number of items in the witnesses array
+    if (threshold < 1) {
       throw SsiException(
         message:
-            'Invalid witness configuration: threshold cannot be negative (got $threshold)',
+            'Invalid witness configuration: threshold must be at least 1 (got $threshold)',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
 
-    // Fast path: if threshold is 0, automatically succeed
-    if (threshold == 0) {
-      return WitnessVerificationResult.success(
-        validCount: 0,
-        threshold: threshold,
-        validWitnessDids: const {},
+    if (threshold > authorizedWitnessDids.length) {
+      throw SsiException(
+        message:
+            'Invalid witness configuration: threshold ($threshold) exceeds number of witnesses (${authorizedWitnessDids.length})',
+        code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
 
