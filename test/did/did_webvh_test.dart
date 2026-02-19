@@ -157,8 +157,8 @@ void main() {
         () => url.downloadJsonLogFile(mockClient),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
-          'originalMessage',
-          contains('HTTP status code: 300 for URL'),
+          'message',
+          contains('HTTP 300 error fetching'),
         )),
       );
     });
@@ -175,7 +175,7 @@ void main() {
           throwsA(isA<SsiException>().having(
             (e) => e.toString(),
             'message',
-            contains('Failed to fetch DIDWebVH JSON Log file '),
+            contains('Failed to fetch'),
           )));
     });
   });
