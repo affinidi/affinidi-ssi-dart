@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "created": "2026-02-18T11:33:11.554Z",
+  "keys": [
+    {
+      "keyId": "update-1",
+      "role": "didwebvh-update",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "publicJwk": {
+        "x": "_6AGZ7EDK_qpUZe88XKlrhv-xnwn_0snbN5aV3w63Hc"
+      },
+      "privateJwk": {
+        "d": "ZUOl5AYjr46qgZe5v4DUa1I6-39W1_nNItjTmaJmcvw"
+      },
+      "derived": {
+        "publicKeyMultibase": "z6Mkwf7Y1AL9BXF5z2N7mRTBvz6HYcvBiTLM49ruPPQkFCKQ",
+        "publicKeyHash": "QmREHb8ApQuH1AekPFUgC1V9SK1pN8oDLLpHFWtQXjvard"
+      }
+    },
+    {
+      "keyId": "update-next-1",
+      "role": "didwebvh-prerotation-next",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "publicJwk": {
+        "x": "uZdV2u6BP-VVQJzeYM7FSSDxu1rJMqD0y_m9gkWifFc"
+      },
+      "privateJwk": {
+        "d": "zfZAh7dCEvMEqSIdHmWRmIc4clkZm2XoOpeaDyxGgcw"
+      },
+      "derived": {
+        "publicKeyMultibase": "z6MkrwjK1avfXXfCXVExDPoqYxecqeAuhM9tNAv1qK5eYQE2",
+        "publicKeyHash": "QmPL4x6otkEgHUZDbzFnDPjqBxYSjyVoAgzVawdA5DB2tm"
+      }
+    },
+    {
+      "keyId": "auth-1",
+      "role": "didcomm-authentication",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "publicJwk": {
+        "x": "tpLKQ91Kdn5m6hx9xB9A9HK4GzqwXJspeMuQQiZClHM"
+      },
+      "privateJwk": {
+        "d": "LBwKolgwuDQwCPoUIcYOwv9YPlJnwWTCAVzTIhhZ68Q"
+      },
+      "derived": {
+        "publicKeyMultibase": "z6Mkrjx4vHCAVeYwQCXPm3dFHaGNn2G38UX4EcQp4Sj5Dpti"
+      }
+    },
+    {
+      "keyId": "witness-1",
+      "role": "didwebvh-witness",
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "publicJwk": {
+        "x": "Cu0LhX5hgUxutXoGYiJkAiHpbAUfpWrUc5ZGlT23DEk"
+      },
+      "privateJwk": {
+        "d": "i5s_O4ZBiG1bNJ1-t7FmnO4lrybsU6hCz_lAv2NT4_E"
+      },
+      "derived": {
+        "publicKeyMultibase": "z6MkfBumPxXkW5EnwRTt3DfSBRN4xGbUKCM5mC7578kzLNUG",
+        "did": "did:key:z6MkfBumPxXkW5EnwRTt3DfSBRN4xGbUKCM5mC7578kzLNUG"
+      }
+    }
+  ]
+}
