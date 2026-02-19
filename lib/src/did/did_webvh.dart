@@ -1586,7 +1586,7 @@ class DidWebVh extends Did {
 
   /// The full HTTPS URL to the DID WebVH witness configuration file.
 
-  String get witnessUrl {
+  String get witnessUrlString {
     return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/did-witness.json';
   }
 

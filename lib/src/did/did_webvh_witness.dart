@@ -352,12 +352,10 @@ class DidWebVhWitnessVerifier {
   /// - Witness entries are malformed
   static Future<List<DidWebVhWitness>> fetchWitnesses(DidWebVh did,
       [http.Client? client]) async {
-    final witnessUrl = did.witnessUrl;
-
     try {
       // Download witness file
       final data = await downloadDocument(
-        Uri.parse(witnessUrl),
+        Uri.parse(did.witnessUrlString),
         client: client,
       );
 
@@ -380,7 +378,8 @@ class DidWebVhWitnessVerifier {
     } catch (e) {
       if (e is SsiException) rethrow;
       throw SsiException(
-        message: 'Failed to fetch DIDWebVH Witness from $witnessUrl: $e',
+        message:
+            'Failed to fetch DIDWebVH Witness from ${did.witnessUrlString}: $e',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }

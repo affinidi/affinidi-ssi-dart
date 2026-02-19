@@ -866,25 +866,25 @@ void main() {
   group('Witness URL construction', () {
     test('should construct URL for simple domain', () {
       final did = DidWebVh.parse('did:webvh:QmScid:example.com');
-      expect(did.witnessUrl,
+      expect(did.witnessUrlString,
           equals('https://example.com/.well-known/did-witness.json'));
     });
 
     test('should construct URL for domain with port', () {
       final did = DidWebVh.parse('did:webvh:QmScid:example.com%3A8080');
-      expect(did.witnessUrl,
+      expect(did.witnessUrlString,
           equals('https://example.com:8080/.well-known/did-witness.json'));
     });
 
     test('should construct URL for domain with path', () {
       final did = DidWebVh.parse('did:webvh:QmScid:example.com:users:alice');
-      expect(did.witnessUrl,
+      expect(did.witnessUrlString,
           equals('https://example.com/users/alice/did-witness.json'));
     });
 
     test('should construct URL for complex path', () {
       final did = DidWebVh.parse('did:webvh:QmScid:example.com:a:b:c:d:e');
-      expect(did.witnessUrl,
+      expect(did.witnessUrlString,
           equals('https://example.com/a/b/c/d/e/did-witness.json'));
     });
   });
