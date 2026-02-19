@@ -192,7 +192,19 @@ class DidWebVhLogEntry {
   ///
   /// The time MUST be before or equal to when the DID will be retrieved.
   /// MUST be greater than the previous entry's time.
-  final DateTime versionTime;
+  /// ISO 8601 timestamp string as it appeared in the log entry.
+  ///
+  /// Kept verbatim to avoid reformatting (e.g., preserving fractional seconds,
+  /// offsets, or comma/period separators).
+  final String versionTime;
+
+  /// Parsed UTC instant for comparisons/ordering.
+  ///
+  /// ISO 8601 allows omitting a timezone designator. For ordering, this
+  /// implementation assumes such values are in UTC.
+  late final DateTime versionTimeUtc =
+      _parseIso8601ToUtcAssumingUtcIfNoZone(versionTime);
+
 
   /// DID processing parameters that control generation and verification.
   ///
@@ -232,7 +244,7 @@ class DidWebVhLogEntry {
   factory DidWebVhLogEntry.fromJson(Map<String, dynamic> json) {
     final entryVersionId = json['versionId'] as String;
     final entryVersionIdParts = entryVersionId.split('-');
-    late DateTime entryVersionTime;
+    late String entryVersionTime;
     if (entryVersionIdParts.length != 2 ||
         int.tryParse(entryVersionIdParts[0]) == null ||
         entryVersionIdParts[1].isEmpty) {
@@ -247,8 +259,9 @@ class DidWebVhLogEntry {
           });
     }
     try {
-      entryVersionTime = DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'')
-          .parseUTC(json['versionTime'] as String);
+      entryVersionTime = json['versionTime'] as String;
+      // Validate ISO 8601 without changing the original string format.
+      _parseIso8601ToUtcAssumingUtcIfNoZone(entryVersionTime);
     } on FormatException catch (e) {
       throw SsiDidResolutionException(
           message:
@@ -278,7 +291,7 @@ class DidWebVhLogEntry {
       String newVersionId) {
     return {
       'versionId': newVersionId,
-      'versionTime': DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'').format(versionTime),
+      'versionTime': versionTime,
       'parameters': {
         if (parameters.method != null) 'method': parameters.method!,
         if (parameters.scid != null) 'scid': parameters.scid!,
@@ -349,6 +362,26 @@ class DidWebVhLogEntry {
   /// - [versionNumber] - Extracts the numeric version from versionId
   /// - [DidWebVhLog._entryHashMustMatchWithHashOfEntryContent] - Validates this hash
   String get entryHash => versionId.split('-').last;
+  static final RegExp _tzDesignator = RegExp(r'(Z|[+-]\d{2}:\d{2})$');
+
+  static DateTime _parseIso8601ToUtcAssumingUtcIfNoZone(String input) {
+    final dt = DateTime.parse(input);
+    // If no explicit timezone designator is present, ISO 8601 permits it.
+    // For ordering/comparisons we treat such timestamps as UTC.
+    if (!_tzDesignator.hasMatch(input)) {
+      return DateTime.utc(
+        dt.year,
+        dt.month,
+        dt.day,
+        dt.hour,
+        dt.minute,
+        dt.second,
+        dt.millisecond,
+        dt.microsecond,
+      );
+    }
+    return dt.toUtc();
+  }
 }
 
 /// The DID Log file containing all versions of a DID.
@@ -424,8 +457,8 @@ class DidWebVhLog {
   void _verifyTimestampOrdering(DidWebVhLogEntry currentEntry,
       DidWebVhLogEntry? previousEntry, int versionNum) {
     if (previousEntry != null) {
-      final prevTime = previousEntry.versionTime;
-      final currTime = currentEntry.versionTime;
+      final prevTime = previousEntry.versionTimeUtc;
+      final currTime = currentEntry.versionTimeUtc;
       if (!currTime.isAfter(prevTime)) {
         throw SsiDidResolutionException(
           message:
@@ -489,12 +522,11 @@ class DidWebVhLog {
         }
         verifyUpToIndex = index;
       } else if (resolutionOptions.containsKey('versionTime')) {
-        final targetTime =
-            DateTime.parse(resolutionOptions['versionTime'] as String);
+        final targetTime = DidWebVhLogEntry._parseIso8601ToUtcAssumingUtcIfNoZone(resolutionOptions['versionTime'] as String);
         // Find last entry at or before targetTime
         verifyUpToIndex = -1;
         for (int i = 0; i < entries.length; i++) {
-          final entryTime = entries[i].versionTime;
+          final entryTime = entries[i].versionTimeUtc;
           if (entryTime.isAfter(targetTime)) {
             break;
           }
