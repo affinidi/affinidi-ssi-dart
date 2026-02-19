@@ -963,6 +963,21 @@ void main() {
       expect(result.threshold, equals(0));
     });
 
+    test('should handle empty witnessConfig gracefully', () async {
+      final verifier = DidWebVhWitnessVerifier();
+      final entry = createMockEntry(2, 'QmHash');
+
+      final result = await verifier.verify(
+        entry: entry,
+        witnessProofs: [],
+        witnessConfig: {},
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.threshold, equals(0));
+      expect(result.validCount, equals(0));
+    });
+
     test('should throw on negative threshold', () async {
       final verifier = DidWebVhWitnessVerifier();
       final entry = createMockEntry(2, 'QmHash');

@@ -157,7 +157,8 @@ class DidWebVhWitnessVerifier {
     // Validate threshold
     if (threshold < 0) {
       throw SsiException(
-        message: 'Invalid witness configuration: threshold cannot be negative (got $threshold)',
+        message:
+            'Invalid witness configuration: threshold cannot be negative (got $threshold)',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
@@ -183,15 +184,14 @@ class DidWebVhWitnessVerifier {
 
     // Initialize verification state
     int validCount = 0;
-    final validWitnessDids = <String>{};
-    final entryVersionNumber = entry.versionNumber;
+    final validatedWitnesses = <String>{};
     final applicableProofs = <_ProofWithVersionId>[];
 
     // Collect applicable proofs using "later proofs" rule:
     // A proof for versionId N can satisfy entries 1 through N
     for (final witnessEntry in witnessProofs) {
       final proofVersionNumber = _parseVersionNumber(witnessEntry.versionId);
-      if (proofVersionNumber >= entryVersionNumber) {
+      if (proofVersionNumber >= entry.versionNumber) {
         for (final proof in witnessEntry.proof) {
           applicableProofs.add(_ProofWithVersionId(
             proof: proof,
@@ -229,8 +229,8 @@ class DidWebVhWitnessVerifier {
       if (!authorizedWitnessDids.contains(witnessDid)) {
         continue; // Witness not authorized for this entry
       }
-      if (validWitnessDids.contains(witnessDid)) {
-        continue; // Already counted this witness (prevent duplicates)
+      if (validatedWitnesses.contains(witnessDid)) {
+        continue; // Already validated this witness (prevent duplicates)
       }
 
       // Verify cryptographic signature
@@ -243,7 +243,7 @@ class DidWebVhWitnessVerifier {
 
         if (isValid) {
           validCount++;
-          validWitnessDids.add(witnessDid);
+          validatedWitnesses.add(witnessDid);
         }
       } catch (e) {
         // Ignore proofs that fail verification
@@ -263,13 +263,13 @@ class DidWebVhWitnessVerifier {
       return WitnessVerificationResult.success(
         validCount: validCount,
         threshold: threshold,
-        validWitnessDids: validWitnessDids,
+        validWitnessDids: validatedWitnesses,
       );
     } else {
       return WitnessVerificationResult.failure(
         validCount: validCount,
         threshold: threshold,
-        validWitnessDids: validWitnessDids,
+        validWitnessDids: validatedWitnesses,
         error: 'Insufficient witness proofs for versionId ${entry.versionId}. '
             'Required: $threshold, Valid: $validCount, '
             'Authorized witnesses: ${authorizedWitnessDids.length}',
