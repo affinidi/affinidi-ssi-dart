@@ -1147,6 +1147,8 @@ class DidWebVhLog {
         resolutionOptions?['skipWitnessVerification'] == true;
     bool skipScidVerification =
         resolutionOptions?['skipScidVerification'] == true;
+    bool skipDefaultServiceAddition =
+        resolutionOptions?['skipDefaultServiceAddition'] == true;
 
     // Determine verification boundary
     int verifyUpToIndex = _determineVerificationBoundary(resolutionOptions);
@@ -1284,11 +1286,13 @@ class DidWebVhLog {
       );
     }
 
-    // Add implicit services into the resolved DID Document based on the method parameters and spec requirements
-    resolvedDidDoc = _addDefaultServicesToDidDocument(
-      resolvedDidDoc,
-      activeParameters,
-    );
+    if (!skipDefaultServiceAddition) {
+      // Add implicit services into the resolved DID Document based on the method parameters and spec requirements
+      resolvedDidDoc = _addDefaultServicesToDidDocument(
+        resolvedDidDoc,
+        activeParameters,
+      );
+    }
 
     return (resolvedDidDoc, null, null);
   }
