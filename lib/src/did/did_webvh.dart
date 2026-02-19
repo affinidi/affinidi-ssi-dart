@@ -421,8 +421,23 @@ class DidWebVhLog {
   /// Throws [SsiException] if:
   /// - Timestamps are not in ascending order
   /// - Timestamp format is invalid (not ISO8601)
-  void _verifyTimestampOrdering(DidWebVhLogEntry currentEntry,
-      DidWebVhLogEntry? previousEntry, int versionNum) {
+  void _verifyTimestampOrdering(
+      DidWebVhLogEntry currentEntry,
+      DidWebVhLogEntry? previousEntry,
+      int versionNum,
+      DateTime resolutionTime) {
+    if (currentEntry.versionTime.isAfter(resolutionTime)) {
+      throw SsiDidResolutionException(
+        message:
+            'Version timestamp ${currentEntry.versionTime.toIso8601String()} is after the resolution time ${resolutionTime.toIso8601String()}',
+        code: SsiExceptionType.invalidDidWebVh.code,
+        resolutionMetadata: {
+          'error': 'invalidDid',
+          'message':
+              'Version timestamp ${currentEntry.versionTime.toIso8601String()} is after the resolution time ${resolutionTime.toIso8601String()}',
+        },
+      );
+    }
     if (previousEntry != null) {
       final prevTime = previousEntry.versionTime;
       final currTime = currentEntry.versionTime;
@@ -950,10 +965,10 @@ class DidWebVhLog {
     if (proof['cryptosuite'] == null ||
         proof['verificationMethod'] == null ||
         proof['proofValue'] == null ||
-        proof['verificationMethod'] == null) {
+        proof['proofPurpose'] == null) {
       throw SsiException(
         message:
-            'Missing required fields (cryptosuite, verificationMethod, proofValue, verificationMethod) in proof',
+            'Missing required fields (cryptosuite, verificationMethod, proofValue, proofPurpose) in proof',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
@@ -965,6 +980,14 @@ class DidWebVhLog {
       throw SsiException(
         message:
             'Unsupported cryptosuite: ${proof['cryptosuite']}. Expected eddsa-jcs-2022 as per DID WebVH specification.',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    if (proof['proofPurpose'] != 'assertionMethod') {
+      throw SsiException(
+        message:
+            'proofPurpose ${proof['proofPurpose']} is not valid. Expected assertionMethod as per DID WebVH specification.',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
@@ -1109,6 +1132,83 @@ class DidWebVhLog {
     });
   }
 
+  /// Validates that the resolved DID Document's ID matches the resolving DID string.
+  ///
+  /// This method performs a critical security check to ensure that the DID Document
+  /// resolved from the log entries contains a `DID Document.id` field that exactly
+  /// matches the DID string being resolved. This validation prevents potential
+  /// attacks where a malicious DID log could serve a DID Document for a different DID.
+  ///
+  /// ## Validation Process
+  ///
+  /// 1. Extracts the `id` field from the resolved DID Document
+  /// 2. Compares it with the original resolving DID string (case-sensitive)
+  /// 3. Throws an exception if they don't match exactly
+  ///
+  /// ## Security Implications
+  ///
+  /// This check is essential for DID resolution security. Without it, a compromised
+  /// server could:
+  /// - Serve a DID Document for a different DID
+  /// - Redirect resolution to an attacker-controlled DID
+  /// - Perform subtle DID substitution attacks
+  ///
+  /// By enforcing this match, we ensure that the resolved DID Document is
+  /// authoritative for the specific DID being resolved, as required by the
+  /// W3C DID Core specification.
+  ///
+  /// ## Parameters
+  ///
+  /// - [resolvedDidDoc]: The DID Document that was resolved from the log entries
+  /// - [resolvingDidString]: The original DID string that was being resolved
+  ///
+  /// ## Exceptions
+  ///
+  /// Throws [SsiDidResolutionException] if:
+  /// - The DID Document's `id` field doesn't match the resolving DID string
+  /// - This includes any differences in:
+  ///   - SCID component
+  ///   - Domain component
+  ///   - Path components
+  ///   - Query parameters (if present in the DID string)
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final resolvedDoc = await log.verify(options);
+  /// final resolvingDid = 'did:webvh:QmScid123:example.com';
+  ///
+  /// // This will pass if IDs match
+  /// _validateResolvedDidDocument(resolvedDoc, resolvingDid);
+  ///
+  /// // This will throw if the resolved doc has a different ID
+  /// // e.g., resolvedDoc.id = 'did:webvh:QmDifferent:example.com'
+  /// ```
+  ///
+  ///
+  /// "The value of the `id` property MUST be a string that conforms to the rules
+  /// in § 3.1 DID Syntax. The DID subject is denoted by the `id` property at
+  /// the top level of a DID document."
+  ///
+  /// See also:
+  /// - [verify] - Main verification method that calls this
+  /// - [resolveDid] - DID resolution entry point
+  void _validateResolvedDidDocument(
+      DidDocument resolvedDidDoc, String resolvingDidString) {
+    if (resolvedDidDoc.id != resolvingDidString) {
+      throw SsiDidResolutionException(
+        message:
+            'Resolved DID Document ID ${resolvedDidDoc.id} does not match the resolving DID string $resolvingDidString',
+        code: SsiExceptionType.invalidDidWebVh.code,
+        resolutionMetadata: {
+          'error': 'invalidDidDocument',
+          'message':
+              'Resolved DID Document ID ${resolvedDidDoc.id} does not match the resolving DID string $resolvingDidString',
+        },
+      );
+    }
+  }
+
   /// Verifies the integrity and validity of the DID log up to a specified version.
   ///
   /// This method validates the log entries according to the webvh specification,
@@ -1173,7 +1273,7 @@ class DidWebVhLog {
   /// ```
   ///
   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)> verify(
-      [DidResolutionOptions? resolutionOptions]) async {
+      DidResolutionOptions resolutionOptions) async {
     if (entries.isEmpty) {
       throw SsiException(
         message: 'DID log is empty',
@@ -1181,17 +1281,19 @@ class DidWebVhLog {
       );
     }
     bool skipHashEntryVerification =
-        resolutionOptions?['skipHashEntryVerification'] == true;
+        resolutionOptions['skipHashEntryVerification'] == true;
     bool skipAllProofRelatedVerification =
-        resolutionOptions?['skipAllProofRelatedVerification'] == true;
+        resolutionOptions['skipAllProofRelatedVerification'] == true;
     bool skipKeyPreRotationVerification =
-        resolutionOptions?['skipKeyPreRotationVerification'] == true;
+        resolutionOptions['skipKeyPreRotationVerification'] == true;
     bool skipWitnessVerification =
-        resolutionOptions?['skipWitnessVerification'] == true;
+        resolutionOptions['skipWitnessVerification'] == true;
     bool skipScidVerification =
-        resolutionOptions?['skipScidVerification'] == true;
+        resolutionOptions['skipScidVerification'] == true;
     bool skipDefaultServiceAddition =
-        resolutionOptions?['skipDefaultServiceAddition'] == true;
+        resolutionOptions['skipDefaultServiceAddition'] == true;
+    bool skipDidDocumentValidation =
+        resolutionOptions['skipDidDocumentValidation'] == true;
 
     // Determine verification boundary
     int verifyUpToIndex = _determineVerificationBoundary(resolutionOptions);
@@ -1202,8 +1304,10 @@ class DidWebVhLog {
     bool preRotationActive = false;
     bool isDeactivated = false;
     bool witnessingActive = false;
+    bool prevWitnessingActive = false;
     DidDocument? resolvedDidDoc;
     List<Map<String, dynamic>> witnessRequiringVersions = [];
+    DateTime resolutionTime = DateTime.now().toUtc();
 
     for (int i = 0; i <= verifyUpToIndex; i++) {
       final entry = entries[i];
@@ -1213,7 +1317,7 @@ class DidWebVhLog {
       final versionNum = entry.versionNumber;
 
       _verifyVersionNumberSequencing(versionNum, i + 1);
-      _verifyTimestampOrdering(entry, prevEntry, versionNum);
+      _verifyTimestampOrdering(entry, prevEntry, versionNum, resolutionTime);
 
       final params = entry.parameters;
       final prevActiveParams = isFirstEntry ? null : activeParameters;
@@ -1266,14 +1370,6 @@ class DidWebVhLog {
             _keyPreRotationConstraintsMustBeValid(prevEntry!, entry);
           }
         }
-
-        if (witnessingActive) {
-          witnessRequiringVersions.add({
-            'versionId': entry.versionId,
-            'activeWitness': jsonDecode(jsonEncode(prevActiveParams!.witness))
-                as Map<String, dynamic>
-          });
-        }
       }
 
       // Apply validations applicable to all entries
@@ -1302,8 +1398,30 @@ class DidWebVhLog {
         isDeactivated = true;
       }
       // Update witness active status
-      witnessingActive = activeParameters.witness != null &&
-          activeParameters.witness!.isNotEmpty;
+      prevWitnessingActive = witnessingActive;
+      witnessingActive = activeParameters.witness!.isNotEmpty;
+
+      if (witnessingActive && !prevWitnessingActive) {
+          witnessRequiringVersions.add({
+            'versionId': entry.versionId,
+            'activeWitness': jsonDecode(jsonEncode(activeParameters.witness))
+                as Map<String, dynamic>
+          });
+        }
+        else if(witnessingActive && prevWitnessingActive) {
+          witnessRequiringVersions.add({
+            'versionId': entry.versionId,
+            'activeWitness': jsonDecode(jsonEncode(prevActiveParams!.witness))
+                as Map<String, dynamic>
+          });
+        }
+        else if (!witnessingActive && prevWitnessingActive) {
+          witnessRequiringVersions.add({
+            'versionId': entry.versionId,
+            'activeWitness': jsonDecode(jsonEncode(prevActiveParams!.witness))
+                as Map<String, dynamic>
+          });
+        }
 
       // Update prerotation active status
       preRotationActive = activeParameters.nextKeyHashes != null &&
@@ -1325,6 +1443,14 @@ class DidWebVhLog {
         },
       );
     }
+    if (!skipDidDocumentValidation) {
+      // Structural validation is already done while parsing.
+      // This check is Document id check to ensure the resolved document is for the correct DID and not a different DID.
+      String resolvingDidString =
+          resolutionOptions['resolvingDidString'] as String;
+      _validateResolvedDidDocument(resolvedDidDoc, resolvingDidString);
+    }
+
     if (!skipWitnessVerification && witnessRequiringVersions.isNotEmpty) {
       final resolvedDidId = resolvedDidDoc.id;
       final did = DidWebVh.parse(resolvedDidId);
@@ -1446,6 +1572,7 @@ class DidWebVh extends Did {
         nnOptions[entry.key] = entry.value;
       }
     });
+    nnOptions['resolvingDidString'] = toString();
     final (doc, dm, rm) = await didWebVhLog1.verify(nnOptions);
     return (doc, dm, rm);
   }

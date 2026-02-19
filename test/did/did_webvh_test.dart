@@ -10,7 +10,6 @@ import 'package:test/test.dart';
 void main() {
   group('DidWebVh.parse', () {
     test('should parse valid did:webvh with SCID and domain', () {
-      print("Running test: should parse valid did:webvh with SCID and domain");
       final didWebVh1 = DidWebVh.parse('did:webvh:scid123:example.com');
 
       expect(didWebVh1.scid, equals('scid123'));
@@ -612,7 +611,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expectLater(
-        log.verify(),
+        log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -632,7 +631,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expectLater(
-        log.verify(),
+        log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -652,7 +651,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -672,7 +671,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -692,7 +691,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -712,7 +711,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -754,7 +753,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -775,7 +774,7 @@ void main() {
       // Note: _parameterMethodMustBeVersion1 is called before _parameterMethodMustExistInFirstVersion
       // So when method is null, the version check fails first
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -794,7 +793,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -813,7 +812,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -832,7 +831,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -852,7 +851,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -874,7 +873,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(),
+        () => log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -899,7 +898,7 @@ void main() {
       expect(log.entries[1].parameters.updateKeys,
           contains('z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7'));
 
-      expect(() => log.verify(null), returnsNormally);
+      expect(() => log.verify({}), returnsNormally);
     });
 
     test('should parse log with nextKeyHashes in parameters', () {
@@ -1087,7 +1086,8 @@ void main() {
         () => log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
-          'skipScidVerification': true
+          'skipScidVerification': true,
+          'skipDidDocumentValidation': true,
         }),
         returnsNormally,
       );
@@ -1169,7 +1169,7 @@ void main() {
       expect(entry2NextKeyHashes,
           contains('QmfEfCsT5jfUc7YVHXXTTns3iB8PZyV9EZmuMRdeGxUmy8'));
 
-      expect(() => log.verify(null), returnsNormally);
+      expect(() => log.verify({}), returnsNormally);
     });
 
     test(
@@ -1189,6 +1189,7 @@ void main() {
         log.verify({
           'versionId': '2-Qmch9MxPayzKtkoUsQSi8ihgDGbFDvGZF2RYuGyfEq6fcE',
           'skipHashEntryVerification': true,
+          'skipDidDocumentValidation': true,
           'skipProofVerification': true,
         }).then((result) {
           final (didDoc, _, _) = result;
@@ -1255,6 +1256,7 @@ void main() {
         log.verify({
           'versionTime': '2026-02-02T13:39:30Z',
           'skipHashEntryVerification': true,
+          'skipDidDocumentValidation': true,
           'skipProofVerification': true,
         }).then((result) {
           final (didDoc, _, _) = result;
@@ -1305,6 +1307,7 @@ void main() {
         log.verify({
           'versionNumber': 2,
           'skipHashEntryVerification': true,
+          'skipDidDocumentValidation': true,
           'skipProofVerification': true,
         }).then((result) {
           final (didDoc, _, _) = result;
@@ -1363,7 +1366,9 @@ void main() {
       expect(log.entries[1].versionTime,
           equals(DateTime.parse('2025-07-13T23:44:37Z')));
 
-      await log.verify(null);
+      await log.verify({
+          'skipDidDocumentValidation': true,
+      });
     });
 
     test('temp test 2 - verify jsonlines from python script', () async {
@@ -1379,7 +1384,9 @@ void main() {
       expect(log.entries[1].versionTime,
           equals(DateTime.parse('2026-02-02T13:39:30Z')));
 
-      await log.verify(null);
+      await log.verify({
+          'skipDidDocumentValidation': true,
+      });
     });
 
     test('temp test 3 - get did from web and verify', () async {
@@ -1390,11 +1397,13 @@ void main() {
       //     'did:webvh:scid123:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs';
 
       final didwebvh = DidWebVh.parse(did1);
-      print('did url: ${didwebvh.jsonLogFileHttpsUrlString}');
-      final (didDoc, didDocMeta, didResMeta) = await didwebvh.resolveDid();
-      print('didDoc: ${didDoc.toString()}');
-      print('didDocMeta: ${didDocMeta.toString()}');
-      print('didResMeta: ${didResMeta.toString()}');
+      final (didDoc, didDocMeta, didResMeta) = await didwebvh.resolveDid({
+          'skipDidDocumentValidation': true,
+      });
+      // print('did url: ${didwebvh.jsonLogFileHttpsUrlString}');
+      // print('didDoc: ${didDoc.toString()}');
+      // print('didDocMeta: ${didDocMeta.toString()}');
+      // print('didResMeta: ${didResMeta.toString()}');
     });
   });
 }
