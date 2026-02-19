@@ -1,0 +1,37 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/did/v1",
+    "https://w3id.org/security/multikey/v1"
+  ],
+  "id": "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth",
+  "alsoKnownAs": [
+    "did:webvh:Qma747rDiR3JPbzh3Etu9GSkUeLYnLb8KiQKvLsjc65vGg:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth"
+  ],
+  "verificationMethod": [
+    {
+      "id": "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth#auth-2",
+      "type": "Multikey",
+      "controller": "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth",
+      "publicKeyMultibase": "z6Mks7797TvarhVs3LrUZKR4rJfTssZb8PoDyG1guLmcgDVG"
+    }
+  ],
+  "authentication": [
+    "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth#auth-2"
+  ],
+  "assertionMethod": [
+    "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-rotated-auth#auth-2"
+  ],
+  "service": [
+    {
+      "id": "#files",
+      "type": "relativeRef",
+      "serviceEndpoint": "https://raw.githubusercontent.com/affinidi/affinidi-ssi-dart/refs/heads/main/example/dids/didwebvh/bob-rotated-auth/"
+    },
+    {
+      "@context": "https://identity.foundation/linked-vp/contexts/v1",
+      "id": "#whois",
+      "type": "LinkedVerifiablePresentation",
+      "serviceEndpoint": "https://raw.githubusercontent.com/affinidi/affinidi-ssi-dart/refs/heads/main/example/dids/didwebvh/bob-rotated-auth/whois.vp"
+    }
+  ]
+}
