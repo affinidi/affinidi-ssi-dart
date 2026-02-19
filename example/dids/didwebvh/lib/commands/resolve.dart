@@ -2,7 +2,43 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:ssi/ssi.dart';
 
-void resolveLocalFile(String path, {bool verify = false}) {
+Future<void> resolveDid(String didString, {bool verify = true}) async {
+  try {
+    final didWebVh = DidWebVh.parse(didString);
+    final (doc, docMetadata, resolutionMetadata) = await didWebVh.resolveDid(
+      verify
+          ? null
+          : {
+              'skipHashEntryVerification': true,
+              'skipProofVerification': true,
+              'skipKeyPreRotationVerification': true,
+              'skipWitnessVerification': true,
+              'skipScidVerification': true,
+            },
+    );
+    if (!verify) {
+      print('Verification skipped');
+    } else {
+      print('Verification passed');
+    }
+    printDidDocument(doc);
+    if (docMetadata != null && docMetadata.isNotEmpty) {
+      printJson('Document Metadata', docMetadata);
+    }
+    if (resolutionMetadata != null && resolutionMetadata.isNotEmpty) {
+      printJson('Resolution Metadata', resolutionMetadata);
+    }
+  } on SsiException catch (e) {
+    print('Resolution failed');
+    printSsiException(e);
+  } catch (e) {
+    print('Error: $e');
+  }
+}
+
+// Resolve a local .jsonl file containing DID webvh log entries.
+// We use low  level API' here to demonstrate verify and loading from file.
+void resolveLocalFile(String path, {bool verify = true}) {
   final file = File(path);
 
   if (!file.existsSync()) {
@@ -20,16 +56,28 @@ void resolveLocalFile(String path, {bool verify = false}) {
     }
 
     final lastEntry = log.entries.last;
-    print('DID Document:');
-    print(JsonEncoder.withIndent('  ').convert(lastEntry.state.toJson()));
+    printDidDocument(lastEntry.state);
   } on SsiException catch (e) {
     print('Verification failed');
-    print('  Error: ${e.message}');
-    print('  Code: ${e.code}');
-    if (e.originalMessage != null) {
-      print('  Details: ${e.originalMessage}');
-    }
+    printSsiException(e);
   } catch (e) {
     print('Error: $e');
+  }
+}
+
+void printJson(String label, Map<String, dynamic> json) {
+  print('$label:');
+  print(JsonEncoder.withIndent('  ').convert(json));
+}
+
+void printDidDocument(DidDocument doc) {
+  printJson('DID Document', doc.toJson());
+}
+
+void printSsiException(SsiException e) {
+  print('  Error: ${e.message}');
+  print('  Code: ${e.code}');
+  if (e.originalMessage != null) {
+    print('  Details: ${e.originalMessage}');
   }
 }
