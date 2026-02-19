@@ -1366,7 +1366,11 @@ void main() {
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
         }),
-        throwsA(isA<TypeError>()),
+        throwsA(isA<SsiException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Missing required fields'),
+        )),
       );
     });
 
