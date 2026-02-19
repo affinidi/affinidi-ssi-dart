@@ -986,7 +986,7 @@ void main() {
       expect(
         () => log.verify({
           'skipHashEntryVerification': true,
-          'skipProofVerification': true,
+          'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
@@ -1011,7 +1011,7 @@ void main() {
       expect(
         () => log.verify({
           'skipHashEntryVerification': true,
-          'skipProofVerification': true,
+          'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
@@ -1036,7 +1036,7 @@ void main() {
       expect(
         () => log.verify({
           'skipHashEntryVerification': true,
-          'skipProofVerification': true,
+          'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
@@ -1061,7 +1061,7 @@ void main() {
       expect(
         () => log.verify({
           'skipHashEntryVerification': true,
-          'skipProofVerification': true,
+          'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
@@ -1086,7 +1086,7 @@ void main() {
       expect(
         () => log.verify({
           'skipHashEntryVerification': true,
-          'skipProofVerification': true,
+          'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
         }),
         returnsNormally,
@@ -1106,7 +1106,7 @@ void main() {
       expect(
         () => log.verify({
           'skipHashEntryVerification': true,
-          'skipProofVerification': true,
+          'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
@@ -1134,7 +1134,7 @@ void main() {
       expect(
         () => log.verify({
           'skipHashEntryVerification': true,
-          'skipProofVerification': true,
+          'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
@@ -1332,6 +1332,20 @@ void main() {
         )),
       );
     });
+
+// TODO: Add test: _proofMustBeValid must throw exception if cryptosuite, verificationMethod, or proofValue or verificationMethod is missing from proof.
+
+// TODO: Add test: _proofMustBeValid must throw exception if cryptosuite is not supported.
+
+// TODO: Add test: _proofMustBeValid must throw exception if Signing key $publicKeyMultibase is not in authorized updateKeys list
+
+// TODO: Add test: _proofMustBeValid must throw exception if signature verification fails.
+
+// TODO: Add test: _addDefaultServicesToDidDocument must add #whois service if not existing.
+
+// TODO: Add test: _addDefaultServicesToDidDocument must add #files service if not existing.
+
+// TODO: Add test: _addDefaultServicesToDidDocument must not add any new services if default services exist.
   });
 
   group('temp tests', () {

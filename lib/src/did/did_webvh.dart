@@ -877,9 +877,13 @@ class DidWebVhLog {
   Future<void> _proofMustBeValid(
     DidWebVhLogEntry entry,
     List<String> activeUpdateKeys,
-    // DidWebVhLogEntryParameters activeParameters,
     DidResolutionOptions options,
   ) async {
+    bool skipProofVerification = options['skipProofVerification'] == true;
+
+    final skipActiveUpdateKeysCheck =
+        options['skipActiveUpdateKeysCheck'] == true;
+
     // 1. Validate proof structure
     if (entry.proof.isEmpty) {
       throw SsiException(
@@ -902,10 +906,11 @@ class DidWebVhLog {
 
     if (proof['cryptosuite'] == null ||
         proof['verificationMethod'] == null ||
-        proof['proofValue'] == null) {
+        proof['proofValue'] == null ||
+        proof['verificationMethod'] == null) {
       throw SsiException(
         message:
-            'Missing required fields (cryptosuite, verificationMethod, proofValue) in proof',
+            'Missing required fields (cryptosuite, verificationMethod, proofValue, verificationMethod) in proof',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
@@ -920,41 +925,9 @@ class DidWebVhLog {
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
-    // TODO: Map can be extended to check if key does not exist or key maps to null value
-    if (proof['verificationMethod'] == null || proof['proofValue'] == null) {
-      throw SsiException(
-        message: 'Missing verificationMethod or proofValue in proof',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-
-    // Use the Data Integrity verifier
-    final verifier = DataIntegrityEddsaJcsVerifier(
-      verifierDid: verifierDidKey,
-    );
-
-    final result = await verifier.verify(documentToVerify);
-    final isValid = result.isValid;
-
-    if (!isValid) {
-      throw SsiDidResolutionException(
-        message:
-            'Signature verification failed for entry version ${entry.versionNumber}',
-        code: SsiExceptionType.invalidDidWebVh.code,
-        resolutionMetadata: {
-          'error': 'invalidDidWebVh',
-          'message':
-              'Signature verification failed for entry version ${entry.versionNumber}',
-          'problemDetails': result.errors
-        },
-      );
-    }
 
     // // 11. Validate that signing key is in updateKeys
     final publicKeyMultibase = verifierDidKey.replaceAll('did:key:', '');
-
-    final skipActiveUpdateKeysCheck =
-        options['skipActiveUpdateKeysCheck'] as bool? ?? false;
 
     if (!skipActiveUpdateKeysCheck) {
       if (!activeUpdateKeys.contains(publicKeyMultibase)) {
@@ -965,6 +938,132 @@ class DidWebVhLog {
         );
       }
     }
+
+    if (!skipProofVerification) {
+      // Use the Data Integrity verifier
+      final verifier = DataIntegrityEddsaJcsVerifier(
+        verifierDid: verifierDidKey,
+      );
+
+      final result = await verifier.verify(documentToVerify);
+      final isValid = result.isValid;
+      if (!isValid) {
+        throw SsiDidResolutionException(
+          message:
+              'Signature verification failed for entry version ${entry.versionNumber}',
+          code: SsiExceptionType.invalidDidWebVh.code,
+          resolutionMetadata: {
+            'error': 'invalidDidWebVh',
+            'message':
+                'Signature verification failed for entry version ${entry.versionNumber}',
+            'problemDetails': result.errors
+          },
+        );
+      }
+    }
+  }
+
+  /// Adds missing default services to a DID Document as per the DID WebVH specification.
+  ///
+  /// This method ensures that implicit services defined by the did:webvh specification
+  /// are added to the resolved DID Document if they are not already present. These
+  /// services provide important metadata and discovery endpoints for the DID.
+  ///
+  /// ## Default Services Added
+  ///
+  /// 1. **DIDWebVH Service** (id: `{did}#whois`)
+  ///    - Type: "DIDWebVH"
+  ///    - ServiceEndpoint: HTTPS URL where the DID document log is hosted
+  ///    - Purpose: Allows discovery of the authoritative source for the DID document
+  ///
+  /// 2. **Watcher Services** (id: `{did}#watcher-{index}`)
+  ///    - Type: "DIDWebVHWatcher"
+  ///    - ServiceEndpoint: Watcher URL from the parameters
+  ///    - Purpose: Provides references to watcher services monitoring this DID
+  ///    - Only added if watchers are defined in active parameters
+  ///
+  /// ## Service Deduplication
+  ///
+  /// The method checks if services with the same ID already exist in the DID Document
+  /// and only adds services that are missing. This ensures that explicit services
+  /// in the DID Document take precedence over implicit defaults.
+  ///
+  /// ## Parameters
+  ///
+  /// - [didDoc]: The DID Document to which services should be added
+  /// - [activeParameters]: The active parameters containing watcher URLs and SCID
+  ///
+  /// ## Returns
+  ///
+  /// A new [DidDocument] instance with default services added (if missing).
+  /// The original document is not modified.
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// final didDoc = entry.state;
+  /// final params = DidWebVhLogEntryParameters(
+  ///   scid: 'QmScid123',
+  ///   watchers: ['https://watcher1.example.com', 'https://watcher2.example.com'],
+  /// );
+  /// final enrichedDoc = _addDefaultServicesToDidDocument(didDoc, params);
+  /// // enrichedDoc now includes #whois and #watcher-0, #watcher-1 services
+  /// ```
+  ///
+  /// See also:
+  /// - [verify] - Main verification method that calls this
+  /// - [ServiceEndpoint] - The service endpoint structure
+  DidDocument _addDefaultServicesToDidDocument(
+    DidDocument didDoc,
+    DidWebVhLogEntryParameters activeParameters,
+  ) {
+    final did = didDoc.id;
+    final existingServices = didDoc.service;
+    final newServices = <ServiceEndpoint>[];
+
+    // Add existing services
+    newServices.addAll(existingServices);
+
+    // Helper to check if a service ID already exists
+    bool serviceExists(String id) {
+      return existingServices.any((s) => s.id == id);
+    }
+
+    final didWebVh = DidWebVh.parse(did);
+
+    // 1. Add DIDWebVH service (whois) if not present
+    final whoisIds = ['$did#whois', '#whois'];
+    if (!serviceExists(whoisIds[0]) && !serviceExists(whoisIds[1])) {
+      // Construct the HTTPS URL from the DID
+      // final httpsUrl = didWebVh.jsonLogFileHttpsUrlString;
+
+      newServices.add(ServiceEndpoint(
+        /// FIXME: @context is missing here, but it is required by the spec.
+        /// We will need to add it in the future when we have a better understanding
+        /// of how to handle @context in this implementation.
+        ///
+        id: '#whois',
+        type: StringServiceType('LinkedVerifiablePresentation'),
+        serviceEndpoint: StringEndpoint(didWebVh.whoIsHttpsUrlString),
+      ));
+    }
+
+    // 2. Add files services if watchers are defined
+    final filesId = '$did#files';
+    if (!serviceExists(filesId)) {
+      newServices.add(ServiceEndpoint(
+        id: '#files',
+        type: StringServiceType('relativeRef'),
+        serviceEndpoint: StringEndpoint(didWebVh.httpsUrl.toString()),
+      ));
+    }
+
+    // Return a new DID Document with updated services
+    // We need to create a new instance to avoid mutating the original
+    return DidDocument.fromJson({
+      ...didDoc.toJson(),
+      'service': newServices.map((s) => s.toJson()).toList(),
+    });
   }
 
   /// Verifies the integrity and validity of the DID log up to a specified version.
@@ -1040,8 +1139,8 @@ class DidWebVhLog {
     }
     bool skipHashEntryVerification =
         resolutionOptions?['skipHashEntryVerification'] == true;
-    bool skipProofVerification =
-        resolutionOptions?['skipProofVerification'] == true;
+    bool skipAllProofRelatedVerification =
+        resolutionOptions?['skipAllProofRelatedVerification'] == true;
     bool skipKeyPreRotationVerification =
         resolutionOptions?['skipKeyPreRotationVerification'] == true;
     bool skipWitnessVerification =
@@ -1145,7 +1244,7 @@ class DidWebVhLog {
           : (preRotationActive
               ? activeParameters.updateKeys!
               : prevActiveParams!.updateKeys!);
-      if (!skipProofVerification) {
+      if (!skipAllProofRelatedVerification) {
         await _proofMustBeValid(
           entry,
           activeUpdateKeys,
@@ -1184,6 +1283,12 @@ class DidWebVhLog {
         },
       );
     }
+
+    // Add implicit services into the resolved DID Document based on the method parameters and spec requirements
+    resolvedDidDoc = _addDefaultServicesToDidDocument(
+      resolvedDidDoc,
+      activeParameters,
+    );
 
     return (resolvedDidDoc, null, null);
   }
@@ -1290,6 +1395,10 @@ class DidWebVh extends Did {
   /// ```
   Uri get httpsUrl {
     return getHttpsUrlFromMethodSpecificId(super.methodSpecificId);
+  }
+
+  String get whoIsHttpsUrlString {
+    return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/whois.vp';
   }
 
   /// Extracts and converts the HTTPS URL from a DID WebVH method-specific identifier.
