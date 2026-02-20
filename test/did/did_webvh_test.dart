@@ -2,7 +2,6 @@
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:ssi/src/did/did_webvh.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 

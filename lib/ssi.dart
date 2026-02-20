@@ -18,6 +18,7 @@ export 'src/did/did_resolver.dart';
 export 'src/did/did_signer.dart';
 export 'src/did/did_verifier.dart';
 export 'src/did/did_web.dart';
+export 'src/did/did_webvh.dart';
 export 'src/did/public_key_utils.dart';
 export 'src/did/stores/did_store_interface.dart';
 export 'src/did/stores/in_memory_did_store.dart';
