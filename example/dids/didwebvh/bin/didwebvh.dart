@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:args/args.dart';
-import 'package:didwebvh/commands/resolve.dart';
+import 'package:didwebvh_example/commands/resolve.dart';
 
 Future<void> main(List<String> arguments) async {
   final parser = ArgParser();
