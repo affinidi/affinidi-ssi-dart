@@ -1603,8 +1603,20 @@ class DidWebVh extends Did {
     return getHttpsUrlFromMethodSpecificId(super.methodSpecificId);
   }
 
+  // The base HTTPS URL without query parameters or fragments.
+  Uri get baseHttpsUrl {
+    // Rebuild from components so query + fragment are guaranteed gone.
+    return Uri(
+      scheme: httpsUrl.scheme,
+      userInfo: httpsUrl.userInfo,
+      host: httpsUrl.host,
+      port: httpsUrl.hasPort ? httpsUrl.port : 0, // 0 == “no explicit port”
+      path: httpsUrl.path, // keep whatever path you had (can be empty or '/')
+    );
+  }
+
   String get whoIsHttpsUrlString {
-    return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/whois.vp';
+    return '${baseHttpsUrl.toString()}${baseHttpsUrl.hasEmptyPath ? '/.well-known' : ''}/whois.vp';
   }
 
   /// Extracts and converts the HTTPS URL from a DID WebVH method-specific identifier.
@@ -1714,13 +1726,13 @@ class DidWebVh extends Did {
   /// print(did.jsonLogFileHttpsUrlString); // 'https://example.com/.well-known/did.jsonl'
   /// ```
   String get jsonLogFileHttpsUrlString {
-    return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/did.jsonl';
+    return '${baseHttpsUrl.toString()}${baseHttpsUrl.hasEmptyPath ? '/.well-known' : ''}/did.jsonl';
   }
 
   /// The full HTTPS URL to the DID WebVH witness configuration file.
 
   String get witnessUrlString {
-    return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/did-witness.json';
+    return '${baseHttpsUrl.toString()}${baseHttpsUrl.hasEmptyPath ? '/.well-known' : ''}/did-witness.json';
   }
 
   /// Downloads the JSON Lines log file from the URL represented by this DidWebVhUrl.
