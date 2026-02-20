@@ -29,7 +29,7 @@ dev_dependencies:
   aws_signature_v4: ^0.6.4
   coverage: ^1.11.1
   dart_flutter_team_lints: ^3.2.1
-  melos: ^6.3.2
+  melos: ^7.4.0
   shared_aws_api: ^2.0.2
   test: ^1.24.0
 
@@ -43,3 +43,14 @@ command:
     changelogCommitBodies:
       include: true
       onlyBreaking: false
+
+melos:
+  name: ssi
+  useRootAsPackage: true
+  scripts:
+    test:
+      name: test
+      description: "test with coverage"
+      run: dart run coverage:test_with_coverage
+      exec:
+        concurrency: 1
