@@ -790,13 +790,13 @@ class DidWebVhLog {
     );
 
     Uint8List encodeVarint(int value) {
-      const _maxIntegerJS = 9007199254740991;
+      const maxIntegerJS = 9007199254740991;
       // Ensure that the value is within JavaScript's safe integer range.
-      if (value < 0 || value >= _maxIntegerJS) {
+      if (value < 0 || value >= maxIntegerJS) {
         throw ArgumentError.value(
           value,
           'value',
-          'must be a non-negative integer less than $_maxIntegerJS',
+          'must be a non-negative integer less than $maxIntegerJS',
         );
       }
 
@@ -1111,7 +1111,7 @@ class DidWebVhLog {
         /// of how to handle @context in this implementation.
         ///
         id: '#whois',
-        type: StringServiceType('LinkedVerifiablePresentation'),
+        type: const StringServiceType('LinkedVerifiablePresentation'),
         serviceEndpoint: StringEndpoint(didWebVh.whoIsHttpsUrlString),
       ));
     }
@@ -1121,7 +1121,7 @@ class DidWebVhLog {
     if (!serviceExists(filesId)) {
       newServices.add(ServiceEndpoint(
         id: '#files',
-        type: StringServiceType('relativeRef'),
+        type: const StringServiceType('relativeRef'),
         serviceEndpoint: StringEndpoint(didWebVh.httpsUrl.toString()),
       ));
     }
@@ -1573,11 +1573,11 @@ class DidWebVh extends Did {
       resolveDid([DidResolutionOptions? options]) async {
     final nnOptions = options ?? {};
     final didWebVhLog1 = await downloadWebVhLog();
-    httpsUrl.queryParameters.entries.forEach((entry) {
+    for (var entry in httpsUrl.queryParameters.entries) {
       if (!nnOptions.keys.contains(entry.key)) {
         nnOptions[entry.key] = entry.value;
       }
-    });
+    }
     nnOptions['resolvingDidString'] = toString();
     final (doc, dm, rm) = await didWebVhLog1.verify(nnOptions);
     return (doc, dm, rm);
