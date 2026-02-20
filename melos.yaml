@@ -31,6 +31,5 @@ scripts:
     noSelect: true
     packageFilters:
       private: false
-      diff: origin/main
       ignore:
         - "*_example*"
