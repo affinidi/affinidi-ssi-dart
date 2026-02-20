@@ -48,9 +48,33 @@ melos:
   name: ssi
   useRootAsPackage: true
   scripts:
+    fix:
+      exec: dart fix --apply
+      concurrency: 4
+      failFast: true
+      noSelect: true
+      packageFilters:
+        includePrivatePackages: false
+        diff: origin/main
+    analyze:
+      exec: dart analyze .
+      concurrency: 4
+      failFast: true
+      noSelect: true
+      packageFilters:
+        includePrivatePackages: false
+        diff: origin/main
     test:
-      name: test
-      description: "test with coverage"
-      run: dart run coverage:test_with_coverage
-      exec:
-        concurrency: 1
+      run: |
+        melos run test-dart
+    test-dart:
+      description: Run tests in each dart package
+      exec: dart run coverage:test_with_coverage
+      dirExists: test
+      concurrency: 4
+      failFast: true
+      noSelect: true
+      packageFilters:
+        private: false
+        ignore:
+          - "*_example*"
