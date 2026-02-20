@@ -1,6 +1,7 @@
 {
   "version": 1,
   "created": "2026-02-18T11:33:11.554Z",
+  "description": "Pregenerated secret for demo purposes only. DO NOT USE IN PRODUCTION.",
   "keys": [
     {
       "keyId": "update-1",
