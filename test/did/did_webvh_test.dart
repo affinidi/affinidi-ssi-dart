@@ -610,8 +610,8 @@ void main() {
 
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-      expectLater(
-        log.verify({}),
+      expect(
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -630,8 +630,8 @@ void main() {
 
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-      expectLater(
-        log.verify({}),
+      expect(
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -651,7 +651,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -671,7 +671,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -691,7 +691,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -711,7 +711,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -732,7 +732,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify(
+        () async => await log.verify(
             {'skipHashEntryVerification': true, 'skipProofVerification': true}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -753,7 +753,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -774,7 +774,7 @@ void main() {
       // Note: _parameterMethodMustBeVersion1 is called before _parameterMethodMustExistInFirstVersion
       // So when method is null, the version check fails first
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -793,7 +793,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -812,7 +812,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -831,7 +831,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -851,7 +851,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -873,7 +873,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({}),
+        () async => await log.verify({}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -898,7 +898,7 @@ void main() {
       expect(log.entries[1].parameters.updateKeys,
           contains('z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7'));
 
-      expect(() => log.verify({}), returnsNormally);
+      expect(() async => await log.verify({}), returnsNormally);
     });
 
     test('should parse log with nextKeyHashes in parameters', () {
@@ -1058,7 +1058,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
@@ -1083,7 +1083,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
           'skipScidVerification': true,
@@ -1104,7 +1104,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
@@ -1132,7 +1132,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
           'skipScidVerification': true
@@ -1169,12 +1169,12 @@ void main() {
       expect(entry2NextKeyHashes,
           contains('QmfEfCsT5jfUc7YVHXXTTns3iB8PZyV9EZmuMRdeGxUmy8'));
 
-      expect(() => log.verify({}), returnsNormally);
+      expect(() async => await log.verify({}), returnsNormally);
     });
 
     test(
         'should verify log up to specific versionId and return document with that versionId',
-        () {
+        () async {
       final jsonLines = '''
 {"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
 {"versionId": "2-Qmch9MxPayzKtkoUsQSi8ihgDGbFDvGZF2RYuGyfEq6fcE", "versionTime": "2026-02-02T13:39:30Z", "parameters": {}, "state": {"@context": ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/multikey/v1", "https://identity.foundation/.well-known/did-configuration/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example", "authentication": ["did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example#z6MkqswfEZyUVEhq16WFeTPYhyPCr5iBt7SbqyyUHjEZQd7F"], "assertionMethod": ["did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example#z6MkqswfEZyUVEhq16WFeTPYhyPCr5iBt7SbqyyUHjEZQd7F"], "verificationMethod": [{"id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example#z6MkqswfEZyUVEhq16WFeTPYhyPCr5iBt7SbqyyUHjEZQd7F", "controller": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example", "type": "Multikey", "publicKeyMultibase": "z6MkqswfEZyUVEhq16WFeTPYhyPCr5iBt7SbqyyUHjEZQd7F"}], "service": [{"id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example#domain", "type": "LinkedDomains", "serviceEndpoint": "https://domain.example"}]}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:30Z", "proofPurpose": "assertionMethod", "proofValue": "z53xk9p2Rub2eYs8jR65quHFJgH21HjPqJyRuKsQXEtyZKmXFzPsRSFS4otQXgcNTyjvv7F2YnN5Z6CuuM8J6RaXk"}]}
@@ -1185,19 +1185,14 @@ void main() {
 
       expect(log.entries.length, equals(3));
 
-      expectLater(
-        log.verify({
-          'versionId': '2-Qmch9MxPayzKtkoUsQSi8ihgDGbFDvGZF2RYuGyfEq6fcE',
-          'skipHashEntryVerification': true,
-          'skipDidDocumentValidation': true,
-          'skipProofVerification': true,
-        }).then((result) {
-          final (didDoc, _, _) = result;
-          expect(didDoc.service[0].id, contains('#domain'));
-          expect(didDoc.service[0].id, isNot(contains('#service3')));
-        }),
-        completes,
-      );
+      final (didDoc, _, _) = await log.verify({
+        'versionId': '2-Qmch9MxPayzKtkoUsQSi8ihgDGbFDvGZF2RYuGyfEq6fcE',
+        'skipHashEntryVerification': true,
+        'skipDidDocumentValidation': true,
+        'skipProofVerification': true,
+      });
+      expect(didDoc.service[0].id, contains('#domain'));
+      expect(didDoc.service[0].id, isNot(contains('#service3')));
     });
 
     test('should throw SsiException when versionId is not found in log', () {
@@ -1209,7 +1204,8 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'versionId': '99-QmNonExistentVersionId'}),
+        () async =>
+            await log.verify({'versionId': '99-QmNonExistentVersionId'}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -1230,7 +1226,8 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'versionId': '2-QmInvalidHashForVersion2'}),
+        () async =>
+            await log.verify({'versionId': '2-QmInvalidHashForVersion2'}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -1241,7 +1238,7 @@ void main() {
 
     test(
         'should verify log up to specific versionTime and return last document at or before that time',
-        () {
+        () async {
       final jsonLines = '''
 {"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
 {"versionId": "2-Qmch9MxPayzKtkoUsQSi8ihgDGbFDvGZF2RYuGyfEq6fcE", "versionTime": "2026-02-02T13:39:30Z", "parameters": {}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example", "service": [{"id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example#service2", "type": "Service2", "serviceEndpoint": "https://service2.example"}]}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:30Z", "proofPurpose": "assertionMethod", "proofValue": "z53xk9p2Rub2eYs8jR65quHFJgH21HjPqJyRuKsQXEtyZKmXFzPsRSFS4otQXgcNTyjvv7F2YnN5Z6CuuM8J6RaXk"}]}
@@ -1251,19 +1248,13 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(3));
-
-      expectLater(
-        log.verify({
-          'versionTime': '2026-02-02T13:39:30Z',
-          'skipHashEntryVerification': true,
-          'skipDidDocumentValidation': true,
-          'skipProofVerification': true,
-        }).then((result) {
-          final (didDoc, _, _) = result;
-          expect(didDoc.service[0].id, contains('#service2'));
-        }),
-        completes,
-      );
+      final (didDoc, _, _) = await log.verify({
+        'versionTime': '2026-02-02T13:39:30Z',
+        'skipHashEntryVerification': true,
+        'skipDidDocumentValidation': true,
+        'skipProofVerification': true,
+      });
+      expect(didDoc.service[0].id, contains('#service2'));
     });
 
     test(
@@ -1277,7 +1268,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'versionTime': '2026-02-02T13:39:28Z',
           'skipHashEntryVerification': true,
           'skipProofVerification': true,
@@ -1292,7 +1283,7 @@ void main() {
 
     test(
         'should verify log up to specific versionNumber and return document with that versionNumber',
-        () {
+        () async {
       final jsonLines = '''
 {"versionId": "1-QmQWAdDpS6vJJcVNciAd2tSZh6gR4cGYTmbxWtupq19Mi4", "versionTime": "2026-02-02T13:39:29Z", "parameters": {"updateKeys": ["z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV"], "method": "did:webvh:1.0", "scid": "QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7"}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example"}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:29Z", "proofPurpose": "assertionMethod", "proofValue": "z3fjSjWbV8eaFMvBFmtyaJUBgenNrqXCXF8S1nAtCXcUpT37ZGrhDTSNfEAJbNsLSJ561vxvxA9LNVhgMjZmotkH6"}]}
 {"versionId": "2-Qmch9MxPayzKtkoUsQSi8ihgDGbFDvGZF2RYuGyfEq6fcE", "versionTime": "2026-02-02T13:39:30Z", "parameters": {}, "state": {"@context": ["https://www.w3.org/ns/did/v1"], "id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example", "service": [{"id": "did:webvh:QmePoeHMWNAGxwjuJ1VjBV2aqtY997KA2T8CREReLocWu7:domain.example#service2", "type": "Service2", "serviceEndpoint": "https://service2.example"}]}, "proof": [{"type": "DataIntegrityProof", "cryptosuite": "eddsa-jcs-2022", "verificationMethod": "did:key:z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV#z6MkpEndPpqQXExnJsQqHpc71Bq3L844c2BJGw9sA4bqGRaV", "created": "2026-02-02T13:39:30Z", "proofPurpose": "assertionMethod", "proofValue": "z53xk9p2Rub2eYs8jR65quHFJgH21HjPqJyRuKsQXEtyZKmXFzPsRSFS4otQXgcNTyjvv7F2YnN5Z6CuuM8J6RaXk"}]}
@@ -1302,19 +1293,13 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(log.entries.length, equals(3));
-
-      expectLater(
-        log.verify({
-          'versionNumber': 2,
-          'skipHashEntryVerification': true,
-          'skipDidDocumentValidation': true,
-          'skipProofVerification': true,
-        }).then((result) {
-          final (didDoc, _, _) = result;
-          expect(didDoc.service[0].id, contains('#service2'));
-        }),
-        completes,
-      );
+      final (didDoc, _, _) = await log.verify({
+        'versionNumber': 2,
+        'skipHashEntryVerification': true,
+        'skipDidDocumentValidation': true,
+        'skipProofVerification': true,
+      });
+      expect(didDoc.service[0].id, contains('#service2'));
     });
 
     test('should throw SsiException when versionNumber is not found in log',
@@ -1327,7 +1312,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({'versionNumber': 99}),
+        () async => await log.verify({'versionNumber': 99}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -1344,7 +1329,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
         }),
@@ -1365,7 +1350,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
         }),
@@ -1385,7 +1370,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
         }),
@@ -1405,7 +1390,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
         }),
@@ -1429,7 +1414,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
           'skipProofVerification': true,
@@ -1451,7 +1436,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () => log.verify({
+        () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
         }),
@@ -1554,9 +1539,11 @@ void main() {
       expect(log.entries[1].versionTime,
           equals(DateTime.parse('2025-07-13T23:44:37Z')));
 
-      await log.verify({
-          'skipDidDocumentValidation': true,
-      });
+      expect(
+          () async => await log.verify({
+                'skipDidDocumentValidation': true,
+              }),
+          returnsNormally);
     });
 
     test('temp test 2 - verify jsonlines from python script', () async {
@@ -1572,9 +1559,11 @@ void main() {
       expect(log.entries[1].versionTime,
           equals(DateTime.parse('2026-02-02T13:39:30Z')));
 
-      await log.verify({
-          'skipDidDocumentValidation': true,
-      });
+      expect(
+          () async => await log.verify({
+                'skipDidDocumentValidation': true,
+              }),
+          returnsNormally);
     });
 
     test('temp test 3 - get did from web and verify', () async {
@@ -1586,12 +1575,12 @@ void main() {
 
       final didwebvh = DidWebVh.parse(did1);
       final (didDoc, didDocMeta, didResMeta) = await didwebvh.resolveDid({
-          'skipDidDocumentValidation': true,
+        'skipDidDocumentValidation': true,
       });
-      // print('did url: ${didwebvh.jsonLogFileHttpsUrlString}');
-      // print('didDoc: ${didDoc.toString()}');
-      // print('didDocMeta: ${didDocMeta.toString()}');
-      // print('didResMeta: ${didResMeta.toString()}');
+      print('did url: ${didwebvh.jsonLogFileHttpsUrlString}');
+      print('didDoc: ${didDoc.toString()}');
+      print('didDocMeta: ${didDocMeta.toString()}');
+      print('didResMeta: ${didResMeta.toString()}');
     });
   });
 }
