@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print
 
-import 'package:ssi/src/credentials/models/field_types/context.dart';
 import 'package:ssi/ssi.dart';
 
 void main() {
