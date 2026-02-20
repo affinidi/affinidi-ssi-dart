@@ -6,7 +6,6 @@ publish_to: "none"
 environment:
   sdk: ^3.8.0
 
-# Add regular dependencies here.
 dependencies:
   args: ^2.7.0
   ssi:
