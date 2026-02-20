@@ -1195,21 +1195,22 @@ class DidWebVhLog {
   /// See also:
   /// - [verify] - Main verification method that calls this
   /// - [resolveDid] - DID resolution entry point
-  void _validateResolvedDidDocument(
-      DidDocument resolvedDidDoc, String resolvingDidString) {
-    if (resolvedDidDoc.id != resolvingDidString) {
-      throw SsiDidResolutionException(
-        message:
-            'Resolved DID Document ID ${resolvedDidDoc.id} does not match the resolving DID string $resolvingDidString',
-        code: SsiExceptionType.invalidDidWebVh.code,
-        resolutionMetadata: {
-          'error': 'invalidDidDocument',
-          'message':
-              'Resolved DID Document ID ${resolvedDidDoc.id} does not match the resolving DID string $resolvingDidString',
-        },
-      );
-    }
-  }
+  /// FIXME: This validation is closed for now.
+  // void _validateResolvedDidDocument(
+  //     DidDocument resolvedDidDoc, String resolvingDidString) {
+  //   if (resolvedDidDoc.id != resolvingDidString) {
+  //     throw SsiDidResolutionException(
+  //       message:
+  //           'Resolved DID Document ID ${resolvedDidDoc.id} does not match the resolving DID string $resolvingDidString',
+  //       code: SsiExceptionType.invalidDidWebVh.code,
+  //       resolutionMetadata: {
+  //         'error': 'invalidDidDocument',
+  //         'message':
+  //             'Resolved DID Document ID ${resolvedDidDoc.id} does not match the resolving DID string $resolvingDidString',
+  //       },
+  //     );
+  //   }
+  // }
 
   /// Verifies the integrity and validity of the DID log up to a specified version.
   ///
@@ -1391,7 +1392,7 @@ class DidWebVhLog {
         await _proofMustBeValid(
           entry,
           activeUpdateKeys,
-          resolutionOptions ?? {},
+          resolutionOptions,
         );
       }
 
@@ -1446,11 +1447,11 @@ class DidWebVhLog {
     if (!skipDidDocumentValidation) {
       // Structural validation is already done while parsing.
       // This check is Document id check to ensure the resolved document is for the correct DID and not a different DID.
-      // FIXME: This check has issues. Closed for now. For example, if the resolving DID string has query parameters 
-      //but the resolved document ID does not include those query parameters, 
-      //this check will fail even though the resolved document may be correct for the base DID. 
-      //We may need to enhance this validation logic to account for such cases, potentially by parsing 
-      //the resolving DID string and comparing only the relevant components (e.g., method, SCID, domain) 
+      // FIXME: This check has issues. Closed for now. For example, if the resolving DID string has query parameters
+      //but the resolved document ID does not include those query parameters,
+      //this check will fail even though the resolved document may be correct for the base DID.
+      //We may need to enhance this validation logic to account for such cases, potentially by parsing
+      //the resolving DID string and comparing only the relevant components (e.g., method, SCID, domain)
       //rather than doing a strict string match.
       // String resolvingDidString =
       //     resolutionOptions['resolvingDidString'] as String;
