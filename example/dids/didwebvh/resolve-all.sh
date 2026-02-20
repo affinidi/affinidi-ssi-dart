@@ -21,3 +21,7 @@ echo "=== bob-invalid-scid: INVALID - SCID does not match hash of first entry ==
 
 echo "=== bob-tampered: INVALID - entry hash mismatch (tampered versionId) ==="
 ./didwebvh.sh resolve did:webvh:QmUaJLRY8S3tNaGuCNz1DwWo7nthfRmuFQYB18LMGgu4Lq:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob-tampered
+
+
+echo "=== Incorrect versionTime: INVALID - versionTime is the same in 2 records ==="
+./didwebvh.sh did:webvh:QmVJ5nUYb9iugnUz4yDfbe8UFbhmnsvS2EAzSpSfPScRAn:opsecid.github.io
