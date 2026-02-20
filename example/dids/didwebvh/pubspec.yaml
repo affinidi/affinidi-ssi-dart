@@ -1,4 +1,4 @@
-name: didwebvh
+name: didwebvh_example
 description: A sample command-line application with basic argument parsing.
 
 publish_to: "none"
