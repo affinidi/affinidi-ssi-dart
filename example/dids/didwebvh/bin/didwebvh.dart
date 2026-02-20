@@ -31,7 +31,7 @@ Future<void> main(List<String> arguments) async {
     final isFile = input.endsWith('.jsonl') || File(input).existsSync();
 
     if (isFile) {
-      resolveLocalFile(input, verify: verify);
+      await resolveLocalFile(input, verify: verify);
     } else if (input.startsWith('did:webvh:')) {
       await resolveDid(input, verify: verify);
     } else {

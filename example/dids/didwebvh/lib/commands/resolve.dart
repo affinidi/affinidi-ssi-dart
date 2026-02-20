@@ -38,7 +38,7 @@ Future<void> resolveDid(String didString, {bool verify = true}) async {
 
 // Resolve a local .jsonl file containing DID webvh log entries.
 // We use low  level API' here to demonstrate verify and loading from file.
-void resolveLocalFile(String path, {bool verify = true}) {
+Future<void> resolveLocalFile(String path, {bool verify = true}) async {
   final file = File(path);
 
   if (!file.existsSync()) {
@@ -50,8 +50,10 @@ void resolveLocalFile(String path, {bool verify = true}) {
     final content = file.readAsStringSync();
     final log = DidWebVhLog.fromJsonLines(content);
 
-    if (verify) {
-      log.verify();
+    await log.verify(verify ? {} : _skipVerificationOptions);
+    if (!verify) {
+      print('Verification skipped');
+    } else {
       print('Verification passed');
     }
 
@@ -64,6 +66,14 @@ void resolveLocalFile(String path, {bool verify = true}) {
     print('Error: $e');
   }
 }
+
+final _skipVerificationOptions = {
+  'skipHashEntryVerification': true,
+  'skipProofVerification': true,
+  'skipKeyPreRotationVerification': true,
+  'skipWitnessVerification': true,
+  'skipScidVerification': true,
+};
 
 void printJson(String label, Map<String, dynamic> json) {
   print('$label:');
