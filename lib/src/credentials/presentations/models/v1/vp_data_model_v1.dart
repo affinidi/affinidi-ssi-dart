@@ -2,7 +2,6 @@ import 'dart:collection';
 
 import '../../../../../ssi.dart';
 import '../../../../util/json_util.dart';
-import '../../../models/field_types/context.dart';
 import '../vc_parse_present.dart';
 
 part './mutable_vp_data_model_v1.dart';

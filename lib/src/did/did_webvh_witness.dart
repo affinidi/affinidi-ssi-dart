@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../ssi.dart';
-import 'did_webvh.dart';
 
 /// Result of witness verification for a DID:WebVH log entry.
 class WitnessVerificationResult {

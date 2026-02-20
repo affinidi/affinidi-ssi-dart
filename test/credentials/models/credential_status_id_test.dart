@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:ssi/ssi.dart';
+import 'package:test/test.dart';
 
 /// Tests to verify that credentialStatus.id field follows VCDM specifications:
 /// - VCDM v1.1: id is REQUIRED
