@@ -71,14 +71,14 @@
       "kty": "OKP",
       "crv": "Ed25519",
       "publicJwk": {
-        "x": "g6CEVa2-5azFh0M9QATFYkpRVOq000oevJt_5FqEPc4"
+        "x": "ufpATN-NKymT9i-_9fuzsjLwgrENM8zfYC7urI3xwow"
       },
       "privateJwk": {
-        "d": "Tcbgrdd8695StTdX8SkbgC-P-rOCpo59KkgBd8iwxYA"
+        "d": "NC9Elm9nwYgG9c64uP5KJXeiZqo0IhMgnoans8VU--c"
       },
       "derived": {
-        "publicKeyMultibase": "z6MkoK5R5FqhjEo8LqmSXagQvS8DqGAYmUhfQjuQNJknf6Wh",
-        "publicKeyHash": "QmdRnCos2fN7ce78uoLNwUQuHyvE738yp4JqYnDUXMdsGq"
+        "publicKeyMultibase": "z6MkryEnwosu7FWe8G8Hcs4RTDa7Gmh2JYXidbTAkjxCP8EX",
+        "publicKeyHash": "QmUN5KW33mcfagjEQsM2ot1pWMP1WM76wZ81rw82kqtCRX"
       }
     }
   ]

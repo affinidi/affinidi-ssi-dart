@@ -55,13 +55,13 @@
       "kty": "OKP",
       "crv": "Ed25519",
       "publicJwk": {
-        "x": "Ke3MdLliYkH125nmHGAwq21q9kAA-SLwxmW5T60o0Ho"
+        "x": "cj2IYooXRzBBuX5fZwUNcHBdHeVwS2aOM1KkNjaJcHg"
       },
       "privateJwk": {
-        "d": "SbHcrSjnWRkbbPKXLXh_xWiuAc3gPop35fZ7ff_Xtx4"
+        "d": "P-I-OkG2220kCG67yInUlfiB-pVb8P2ai0-TZzOp3dA"
       },
       "derived": {
-        "publicKeyMultibase": "z6MkhGw56XTQPpoSWyZEyhUd9fgjsahgj4BvNSVfQ5fcSLR7"
+        "publicKeyMultibase": "z6Mkn9CweBSTLg9bPGGugSgvUrg1zX4GQm7NAC2dyfVnrPgK"
       }
     }
   ]

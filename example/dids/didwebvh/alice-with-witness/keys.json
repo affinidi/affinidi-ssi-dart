@@ -55,14 +55,14 @@
       "kty": "OKP",
       "crv": "Ed25519",
       "publicJwk": {
-        "x": "6DELQQApiB0a3xpSMVlSgZD27mz4B5ijx5q4lwcNE90"
+        "x": "XOjjOf7ntyJ50entfhxLXrw_iwWfxkyFUmxG4RtIm_s"
       },
       "privateJwk": {
-        "d": "O7XHmaJtRQzmmpKrtUkokLLs6_nq2WfaXeOOcrr0Kgs"
+        "d": "-V1ElX-FPuXUuZvK7ccO73SAyKmEWVh74VDcUkL4rig"
       },
       "derived": {
-        "publicKeyMultibase": "z6Mkv5e1JjPgkM9MT2jZh8B5su4oXJVmNpRUpnpEdThCQ5j2",
-        "did": "did:key:z6Mkv5e1JjPgkM9MT2jZh8B5su4oXJVmNpRUpnpEdThCQ5j2"
+        "publicKeyMultibase": "z6MkkhwX9isyzEg9fpcpi8XX6QBb5RoPXctNUFKYXTj8KpFt",
+        "did": "did:key:z6MkkhwX9isyzEg9fpcpi8XX6QBb5RoPXctNUFKYXTj8KpFt"
       }
     }
   ]
