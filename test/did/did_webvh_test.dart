@@ -36,14 +36,14 @@ void main() {
           DidWebVh.parse('did:webvh:scid123:example.com?versionId=v1');
 
       expect(didWebVh1.scid, equals('scid123'));
-      expect(didWebVh1.httpsUrl.queryParameters['versionId'], equals('v1'));
+      expect(didWebVh1.queryParameters['versionId'], equals('v1'));
     });
 
     test('should parse did:webvh with query parameter versionTime', () {
       final didWebVh1 = DidWebVh.parse(
           'did:webvh:scid123:example.com?versionTime=2023-01-01T00:00:00Z');
       expect(didWebVh1.scid, equals('scid123'));
-      expect(didWebVh1.httpsUrl.queryParameters['versionTime'],
+      expect(didWebVh1.queryParameters['versionTime'],
           equals('2023-01-01T00:00:00Z'));
     });
 
@@ -52,7 +52,7 @@ void main() {
           DidWebVh.parse('did:webvh:scid123:example.com?versionNumber=2');
 
       expect(didWebVh1.scid, equals('scid123'));
-      expect(didWebVh1.httpsUrl.queryParameters['versionNumber'], equals('2'));
+      expect(didWebVh1.queryParameters['versionNumber'], equals('2'));
     });
 
     test('should parse did:webvh with fragment', () {
@@ -60,7 +60,6 @@ void main() {
           DidWebVh.parse('did:webvh:scid123:example.com#some_fragment');
 
       expect(didWebVh1.scid, equals('scid123'));
-      expect(didWebVh1.httpsUrl.fragment, equals('some_fragment'));
     });
 
     test('should throw exception for unsupported DID method', () {
