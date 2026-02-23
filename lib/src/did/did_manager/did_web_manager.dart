@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../key_pair/public_key.dart';
@@ -5,6 +7,7 @@ import '../../types.dart';
 import '../../utility.dart';
 import '../did_document/did_document.dart';
 import '../did_web.dart';
+import 'add_verification_method_result.dart';
 import 'did_manager.dart';
 import 'verification_relationship.dart';
 
@@ -76,6 +79,86 @@ class DidWebManager extends DidManager {
       publicKeys: verificationMethodPublicKeys,
       relationships: relationships,
       serviceEndpoints: service.toList(),
+    );
+  }
+
+  @override
+  @protected
+  Future<AddVerificationMethodResult> internalAddVerificationMethod(
+      String walletKeyId, {
+        required PublicKey publicKey,
+        required Set<VerificationRelationship> relationships,
+      }) async {
+    final createdRelationships = <VerificationRelationship, String>{};
+    String? primaryVmId;
+
+    // If no relationships are specified, create one VM not attached to any purpose.
+    if (relationships.isEmpty) {
+      final vmId = await buildVerificationMethodId(publicKey);
+      await store.setMapping(vmId, walletKeyId);
+      return AddVerificationMethodResult(
+        verificationMethodId: vmId,
+        relationships: const {},
+      );
+    }
+
+    // Define a fixed order for processing relationships to ensure consistent
+    // DID document generation.
+    const processingOrder = [
+      VerificationRelationship.authentication,
+      VerificationRelationship.keyAgreement,
+      VerificationRelationship.capabilityInvocation,
+      VerificationRelationship.capabilityDelegation,
+      VerificationRelationship.assertionMethod,
+    ];
+
+    final orderedRelationships =
+    processingOrder.where((r) => relationships.contains(r));
+
+    for (final relationship in orderedRelationships) {
+      final String vmId;
+      // Special handling for keyAgreement with Ed25519 keys:
+      // derive X25519 key for key agreement
+      if (relationship == VerificationRelationship.keyAgreement &&
+          publicKey.type == KeyType.ed25519) {
+        final x25519PublicKeyBytes =
+        ed25519PublicToX25519Public(publicKey.bytes);
+        final keyAgreementPublicKey =
+        PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
+        vmId = await buildVerificationMethodId(keyAgreementPublicKey);
+      } else {
+        vmId = await buildVerificationMethodId(publicKey);
+      }
+
+      await addVerificationMethodFromPublicKey(
+        publicKey,
+        verificationMethodId: vmId,
+      );
+      primaryVmId ??= vmId;
+
+      switch (relationship) {
+        case VerificationRelationship.authentication:
+          await addAuthentication(vmId);
+          break;
+        case VerificationRelationship.assertionMethod:
+          await addAssertionMethod(vmId);
+          break;
+        case VerificationRelationship.capabilityInvocation:
+          await addCapabilityInvocation(vmId);
+          break;
+        case VerificationRelationship.capabilityDelegation:
+          await addCapabilityDelegation(vmId);
+          break;
+        case VerificationRelationship.keyAgreement:
+          await addKeyAgreement(vmId);
+          break;
+      }
+      createdRelationships[relationship] = vmId;
+    }
+
+    return AddVerificationMethodResult(
+      verificationMethodId: primaryVmId!,
+      relationships: createdRelationships,
     );
   }
 }
