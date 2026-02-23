@@ -352,5 +352,224 @@ void main() {
         expect(didKeyPair.didDocument!.id, 'did:web:example.com');
       });
     });
+
+    group('Mixed key types - DID document structure', () {
+      test(
+          'should produce correct DID document with ed25519 (auth), p256 (keyAgreement), secp256k1 (assertion)',
+          () async {
+        // --- Arrange: generate 3 keys of different types ---
+        final authKey = await wallet.generateKey(
+            keyId: 'auth-ed25519', keyType: KeyType.ed25519);
+        final kaKey =
+            await wallet.generateKey(keyId: 'ka-p256', keyType: KeyType.p256);
+        final assertKey = await wallet.generateKey(
+            keyId: 'assert-secp256k1', keyType: KeyType.secp256k1);
+
+        // --- Act: add each key with its dedicated relationship ---
+        final authResult = await manager.addVerificationMethod(
+          authKey.id,
+          relationships: {VerificationRelationship.authentication},
+        );
+        final kaResult = await manager.addVerificationMethod(
+          kaKey.id,
+          relationships: {VerificationRelationship.keyAgreement},
+        );
+        final assertResult = await manager.addVerificationMethod(
+          assertKey.id,
+          relationships: {VerificationRelationship.assertionMethod},
+        );
+
+        final doc = await manager.getDidDocument();
+
+        // --- Assert: top-level DID ---
+        expect(doc.id, 'did:web:example.com');
+
+        // --- Assert: verificationMethod array has exactly 3 entries ---
+        expect(doc.verificationMethod.length, 3);
+
+        // --- Assert: each VM has correct structure ---
+        // VM 1: ed25519 authentication key
+        final authVm = doc.verificationMethod[0];
+        expect(authVm.id, authResult.verificationMethodId);
+        expect(authVm.id, 'did:web:example.com#key-1');
+        expect(authVm.controller, 'did:web:example.com');
+        expect(authVm.type, 'Multikey');
+        expect(authVm, isA<VerificationMethodMultibase>());
+        final authMultibase =
+            (authVm as VerificationMethodMultibase).publicKeyMultibase;
+        // ed25519 multibase starts with z6Mk
+        expect(authMultibase, startsWith('z6Mk'));
+
+        // VM 2: p256 keyAgreement key
+        final kaVm = doc.verificationMethod[1];
+        expect(kaVm.id, kaResult.verificationMethodId);
+        expect(kaVm.id, 'did:web:example.com#key-2');
+        expect(kaVm.controller, 'did:web:example.com');
+        expect(kaVm.type, 'Multikey');
+        expect(kaVm, isA<VerificationMethodMultibase>());
+        final kaMultibase =
+            (kaVm as VerificationMethodMultibase).publicKeyMultibase;
+        // p256 multibase starts with zDn
+        expect(kaMultibase, startsWith('zDn'));
+
+        // VM 3: secp256k1 assertionMethod key
+        final assertVm = doc.verificationMethod[2];
+        expect(assertVm.id, assertResult.verificationMethodId);
+        expect(assertVm.id, 'did:web:example.com#key-3');
+        expect(assertVm.controller, 'did:web:example.com');
+        expect(assertVm.type, 'Multikey');
+        expect(assertVm, isA<VerificationMethodMultibase>());
+        final assertMultibase =
+            (assertVm as VerificationMethodMultibase).publicKeyMultibase;
+        // secp256k1 multibase starts with zQ3s
+        expect(assertMultibase, startsWith('zQ3s'));
+
+        // --- Assert: authentication references only the ed25519 key ---
+        expect(doc.authentication.length, 1);
+        expect(doc.authentication.first.id, 'did:web:example.com#key-1');
+
+        // --- Assert: keyAgreement references only the p256 key ---
+        expect(doc.keyAgreement.length, 1);
+        expect(doc.keyAgreement.first.id, 'did:web:example.com#key-2');
+
+        // --- Assert: assertionMethod references only the secp256k1 key ---
+        expect(doc.assertionMethod.length, 1);
+        expect(doc.assertionMethod.first.id, 'did:web:example.com#key-3');
+
+        // --- Assert: unused relationship arrays are empty ---
+        expect(doc.capabilityInvocation, isEmpty);
+        expect(doc.capabilityDelegation, isEmpty);
+      });
+
+      test(
+          'DID document JSON structure matches expected format with mixed key types',
+          () async {
+        // Arrange
+        final authKey = await wallet.generateKey(
+            keyId: 'auth-ed', keyType: KeyType.ed25519);
+        final kaKey =
+            await wallet.generateKey(keyId: 'ka-p', keyType: KeyType.p256);
+        final assertKey = await wallet.generateKey(
+            keyId: 'assert-s', keyType: KeyType.secp256k1);
+
+        await manager.addVerificationMethod(
+          authKey.id,
+          relationships: {VerificationRelationship.authentication},
+        );
+        await manager.addVerificationMethod(
+          kaKey.id,
+          relationships: {VerificationRelationship.keyAgreement},
+        );
+        await manager.addVerificationMethod(
+          assertKey.id,
+          relationships: {VerificationRelationship.assertionMethod},
+        );
+
+        final doc = await manager.getDidDocument();
+        final json = doc.toJson();
+
+        // --- Assert: JSON structure ---
+        expect(json['id'], 'did:web:example.com');
+        expect(json['@context'], contains('https://www.w3.org/ns/did/v1'));
+        expect(json['@context'],
+            contains('https://w3id.org/security/multikey/v1'));
+
+        // verificationMethod array
+        final vms = json['verificationMethod'] as List;
+        expect(vms.length, 3);
+
+        // VM 1: ed25519
+        expect(vms[0]['id'], 'did:web:example.com#key-1');
+        expect(vms[0]['controller'], 'did:web:example.com');
+        expect(vms[0]['type'], 'Multikey');
+        expect((vms[0]['publicKeyMultibase'] as String), startsWith('z6Mk'));
+
+        // VM 2: p256
+        expect(vms[1]['id'], 'did:web:example.com#key-2');
+        expect(vms[1]['controller'], 'did:web:example.com');
+        expect(vms[1]['type'], 'Multikey');
+        expect((vms[1]['publicKeyMultibase'] as String), startsWith('zDn'));
+
+        // VM 3: secp256k1
+        expect(vms[2]['id'], 'did:web:example.com#key-3');
+        expect(vms[2]['controller'], 'did:web:example.com');
+        expect(vms[2]['type'], 'Multikey');
+        expect((vms[2]['publicKeyMultibase'] as String), startsWith('zQ3s'));
+
+        // relationship arrays reference the correct VM IDs
+        expect(json['authentication'], ['did:web:example.com#key-1']);
+        expect(json['keyAgreement'], ['did:web:example.com#key-2']);
+        expect(json['assertionMethod'], ['did:web:example.com#key-3']);
+      });
+
+      test(
+          'should handle ed25519 key used for both authentication and keyAgreement (auto X25519 derivation)',
+          () async {
+        // When ed25519 is used for keyAgreement, DidWebManager derives an X25519 key
+        final edKey = await wallet.generateKey(
+            keyId: 'ed-dual', keyType: KeyType.ed25519);
+
+        await manager.addVerificationMethod(
+          edKey.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.keyAgreement,
+          },
+        );
+
+        final doc = await manager.getDidDocument();
+
+        // Should have 2 VMs: one ed25519 (auth) + one derived x25519 (keyAgreement)
+        expect(doc.verificationMethod.length, 2);
+
+        // Auth VM: ed25519 → multibase starts with z6Mk
+        final authVm = doc.verificationMethod[0];
+        expect(authVm.id, 'did:web:example.com#key-1');
+        expect((authVm as VerificationMethodMultibase).publicKeyMultibase,
+            startsWith('z6Mk'));
+
+        // KeyAgreement VM: derived x25519 → multibase starts with z6LS
+        final kaVm = doc.verificationMethod[1];
+        expect(kaVm.id, 'did:web:example.com#key-2');
+        expect((kaVm as VerificationMethodMultibase).publicKeyMultibase,
+            startsWith('z6LS'));
+
+        // Relationship references
+        expect(doc.authentication.length, 1);
+        expect(doc.authentication.first.id, 'did:web:example.com#key-1');
+        expect(doc.keyAgreement.length, 1);
+        expect(doc.keyAgreement.first.id, 'did:web:example.com#key-2');
+      });
+
+      test('signing works with each key type in a mixed-key document',
+          () async {
+        final authKey = await wallet.generateKey(
+            keyId: 'sign-ed', keyType: KeyType.ed25519);
+        final assertKey = await wallet.generateKey(
+            keyId: 'sign-secp', keyType: KeyType.secp256k1);
+
+        await manager.addVerificationMethod(
+          authKey.id,
+          relationships: {VerificationRelationship.authentication},
+        );
+        await manager.addVerificationMethod(
+          assertKey.id,
+          relationships: {VerificationRelationship.assertionMethod},
+        );
+
+        final doc = await manager.getDidDocument();
+        final data = Uint8List.fromList([10, 20, 30, 40, 50]);
+
+        // Sign + verify with ed25519 authentication key
+        final authVmId = doc.authentication.first.id;
+        final authSig = await manager.sign(data, authVmId);
+        expect(await manager.verify(data, authSig, authVmId), isTrue);
+
+        // Sign + verify with secp256k1 assertion key
+        final assertVmId = doc.assertionMethod.first.id;
+        final assertSig = await manager.sign(data, assertVmId);
+        expect(await manager.verify(data, assertSig, assertVmId), isTrue);
+      });
+    });
   });
 }
