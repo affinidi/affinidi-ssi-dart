@@ -28,10 +28,10 @@ import 'verification_relationship.dart';
 /// multiple keys can be added with specific purposes:
 ///
 /// ```dart
-/// await manager.addVerificationMethod('key-1',
+/// await manager.addVerificationMethod('key1',
 ///   relationships: {VerificationRelationship.authentication,
 ///                   VerificationRelationship.assertionMethod});
-/// await manager.addVerificationMethod('key-2',
+/// await manager.addVerificationMethod('key2',
 ///   relationships: {VerificationRelationship.keyAgreement});
 /// ```
 class DidWebManager extends DidManager {
