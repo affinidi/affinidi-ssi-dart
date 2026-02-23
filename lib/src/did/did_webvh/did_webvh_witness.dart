@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../../ssi.dart';
+import '../../../ssi.dart';
 
 /// Result of witness verification for a DID:WebVH log entry.
 class WitnessVerificationResult {
@@ -188,8 +188,8 @@ class DidWebVhWitnessVerifier {
     // Collect applicable proofs using "later proofs" rule:
     // A proof for versionId N can satisfy entries 1 through N
     for (final witnessEntry in witnessProofs) {
-      final proofVersionNumber =
-          DidWebVh.getVersionNumberFromVersionId(witnessEntry.versionId);
+      final (proofVersionNumber, _) =
+          DidWebVhLogEntry.parseVersionId(witnessEntry.versionId);
       if (proofVersionNumber >= entry.versionNumber) {
         for (final proof in witnessEntry.proof) {
           applicableProofs.add(_ProofWithVersionId(
@@ -324,12 +324,12 @@ class DidWebVhWitnessVerifier {
   /// - Response is not valid JSON
   /// - JSON is not an array
   /// - Witness entries are malformed
-  static Future<List<DidWebVhWitness>> fetchWitnesses(DidWebVh did,
+  static Future<List<DidWebVhWitness>> fetchWitnesses(String witnessUrlString,
       [http.Client? client]) async {
     try {
       // Download witness file
       final data = await downloadDocument(
-        Uri.parse(did.witnessUrlString),
+        Uri.parse(witnessUrlString),
         client: client,
       );
 
@@ -352,8 +352,7 @@ class DidWebVhWitnessVerifier {
     } catch (e) {
       if (e is SsiException) rethrow;
       throw SsiException(
-        message:
-            'Failed to fetch DIDWebVH Witness from ${did.witnessUrlString}: $e',
+        message: 'Failed to fetch DIDWebVH Witness from $witnessUrlString: $e',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }

@@ -1,7 +1,8 @@
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:ssi/src/did/did_webvh.dart';
-import 'package:ssi/src/did/did_webvh_witness.dart';
+import 'package:ssi/src/did/did_webvh/did_webvh.dart';
+import 'package:ssi/src/did/did_webvh/did_webvh_log.dart';
+import 'package:ssi/src/did/did_webvh/did_webvh_witness.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:test/test.dart';
 
@@ -165,9 +166,9 @@ void main() {
         return http.Response(witnessJson, 200);
       });
 
-      final did = DidWebVh.parse('did:webvh:QmScid123:example.com');
-      final witnesses =
-          await DidWebVhWitnessVerifier.fetchWitnesses(did, mockClient);
+      final did = DidWebVhUrl.fromUrlString('did:webvh:QmScid123:example.com');
+      final witnesses = await DidWebVhWitnessVerifier.fetchWitnesses(
+          did.witnessUrlString, mockClient);
 
       expect(witnesses.length, equals(1));
       expect(witnesses[0].versionId, equals('3-QmHash123'));
@@ -194,9 +195,9 @@ void main() {
         return http.Response(witnessJson, 200);
       });
 
-      final did = DidWebVh.parse('did:webvh:QmScid123:example.com');
-      final witnesses =
-          await DidWebVhWitnessVerifier.fetchWitnesses(did, mockClient);
+      final did = DidWebVhUrl.fromUrlString('did:webvh:QmScid123:example.com');
+      final witnesses = await DidWebVhWitnessVerifier.fetchWitnesses(
+          did.witnessUrlString, mockClient);
 
       expect(witnesses.length, equals(2));
       expect(witnesses[0].versionId, equals('3-QmHash123'));
@@ -210,10 +211,11 @@ void main() {
         return http.Response('{"versionId": "1-QmHash"}', 200);
       });
 
-      final did = DidWebVh.parse('did:webvh:QmScid123:example.com');
+      final did = DidWebVhUrl.fromUrlString('did:webvh:QmScid123:example.com');
 
       expect(
-        () => DidWebVhWitnessVerifier.fetchWitnesses(did, mockClient),
+        () => DidWebVhWitnessVerifier.fetchWitnesses(
+            did.witnessUrlString, mockClient),
         throwsA(isA<SsiException>().having(
           (e) => e.message,
           'message',
@@ -227,10 +229,11 @@ void main() {
         return http.Response('Not Found', 404);
       });
 
-      final did = DidWebVh.parse('did:webvh:QmScid123:example.com');
+      final did = DidWebVhUrl.fromUrlString('did:webvh:QmScid123:example.com');
 
       expect(
-        () => DidWebVhWitnessVerifier.fetchWitnesses(did, mockClient),
+        () => DidWebVhWitnessVerifier.fetchWitnesses(
+            did.witnessUrlString, mockClient),
         throwsA(isA<SsiException>().having(
           (e) => e.message,
           'message',
@@ -246,8 +249,10 @@ void main() {
         return http.Response('[]', 200);
       });
 
-      final did = DidWebVh.parse('did:webvh:QmScid123:example.com:users:alice');
-      await DidWebVhWitnessVerifier.fetchWitnesses(did, mockClient);
+      final did = DidWebVhUrl.fromUrlString(
+          'did:webvh:QmScid123:example.com:users:alice');
+      await DidWebVhWitnessVerifier.fetchWitnesses(
+          did.witnessUrlString, mockClient);
     });
   });
 
@@ -888,25 +893,28 @@ void main() {
 
   group('Witness URL construction', () {
     test('should construct URL for simple domain', () {
-      final did = DidWebVh.parse('did:webvh:QmScid:example.com');
+      final did = DidWebVhUrl.fromUrlString('did:webvh:QmScid:example.com');
       expect(did.witnessUrlString,
           equals('https://example.com/.well-known/did-witness.json'));
     });
 
     test('should construct URL for domain with port', () {
-      final did = DidWebVh.parse('did:webvh:QmScid:example.com%3A8080');
+      final did =
+          DidWebVhUrl.fromUrlString('did:webvh:QmScid:example.com%3A8080');
       expect(did.witnessUrlString,
           equals('https://example.com:8080/.well-known/did-witness.json'));
     });
 
     test('should construct URL for domain with path', () {
-      final did = DidWebVh.parse('did:webvh:QmScid:example.com:users:alice');
+      final did =
+          DidWebVhUrl.fromUrlString('did:webvh:QmScid:example.com:users:alice');
       expect(did.witnessUrlString,
           equals('https://example.com/users/alice/did-witness.json'));
     });
 
     test('should construct URL for complex path', () {
-      final did = DidWebVh.parse('did:webvh:QmScid:example.com:a:b:c:d:e');
+      final did =
+          DidWebVhUrl.fromUrlString('did:webvh:QmScid:example.com:a:b:c:d:e');
       expect(did.witnessUrlString,
           equals('https://example.com/a/b/c/d/e/did-witness.json'));
     });

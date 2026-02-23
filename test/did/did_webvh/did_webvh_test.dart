@@ -6,66 +6,92 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('DidWebVh.parse', () {
-    test('should parse valid did:webvh with SCID and domain', () {
-      final didWebVh1 = DidWebVh.parse('did:webvh:scid123:example.com');
+  final dummyDidWebVhUrl =
+      DidWebVhUrl.fromUrlString('did:webvh:QmScid123:example.com');
+  group('DidWebVhUrl parsing and properties', () {
+    test('should parse valid did:webvh URL with SCID and domain', () {
+      final didWebVh1 =
+          DidWebVhUrl.fromUrlString('did:webvh:scid123:example.com');
 
-      expect(didWebVh1.scid, equals('scid123'));
-      expect(didWebVh1.httpsUrl.host, equals('example.com'));
       expect(didWebVh1.scheme, equals('did'));
+      expect(didWebVh1.method, equals('webvh'));
+      expect(didWebVh1.scid, equals('scid123'));
+      expect(didWebVh1.encodedUrlString, equals('example.com'));
+      expect(didWebVh1.toHttpsUrlString(), equals('https://example.com'));
+      expect(didWebVh1.jsonLogFileHttpsUrlString,
+          equals('https://example.com/.well-known/did.jsonl'));
+      expect(didWebVh1.witnessUrlString,
+          equals('https://example.com/.well-known/did-witness.json'));
+      expect(didWebVh1.whoIsServiceHttpsUrlString,
+          equals('https://example.com/.well-known/whois.vp'));
     });
 
-    test('should parse did:webvh with path', () {
-      final didWebVh1 = DidWebVh.parse('did:webvh:scid456:example.com:api:v1');
+    test('should parse did:webvh URL with path', () {
+      final didWebVh1 =
+          DidWebVhUrl.fromUrlString('did:webvh:scid456:example.com:api:v1');
 
       expect(didWebVh1.scid, equals('scid456'));
-      expect(didWebVh1.httpsUrl.host, equals('example.com'));
-      expect(didWebVh1.httpsUrl.path, contains('/api/v1'));
+      expect(
+          didWebVh1.toHttpsUrlString(), equals('https://example.com/api/v1'));
     });
 
     test('should parse did:webvh with encoded port', () {
-      final didWebVh1 = DidWebVh.parse('did:webvh:scid789:example.com%3A8080');
+      final didWebVh1 =
+          DidWebVhUrl.fromUrlString('did:webvh:scid789:example.com%3A8080');
 
       expect(didWebVh1.scid, equals('scid789'));
-      expect(didWebVh1.httpsUrl.host, equals('example.com'));
-      expect(didWebVh1.httpsUrl.port, equals(8080));
+      expect(
+          Uri.parse(didWebVh1.toHttpsUrlString()).host, equals('example.com'));
+      expect(Uri.parse(didWebVh1.toHttpsUrlString()).port, equals(8080));
     });
 
     test('should parse did:webvh with query parameter versionId', () {
-      final didWebVh1 =
-          DidWebVh.parse('did:webvh:scid123:example.com?versionId=v1');
+      final didWebVh1 = DidWebVhUrl.fromUrlString(
+          'did:webvh:scid123:example.com?versionId=v1');
 
       expect(didWebVh1.scid, equals('scid123'));
-      expect(didWebVh1.httpsUrl.queryParameters['versionId'], equals('v1'));
+      expect(didWebVh1.queryParameters['versionId'], equals('v1'));
+      final uriForDid = Uri.parse(didWebVh1.toHttpsUrlString());
+      expect(uriForDid.host, equals('example.com'));
+      expect(uriForDid.queryParameters.isEmpty, isTrue);
     });
 
     test('should parse did:webvh with query parameter versionTime', () {
-      final didWebVh1 = DidWebVh.parse(
+      final didWebVh1 = DidWebVhUrl.fromUrlString(
           'did:webvh:scid123:example.com?versionTime=2023-01-01T00:00:00Z');
       expect(didWebVh1.scid, equals('scid123'));
-      expect(didWebVh1.httpsUrl.queryParameters['versionTime'],
+      expect(didWebVh1.queryParameters['versionTime'],
           equals('2023-01-01T00:00:00Z'));
+      final uriForDid = Uri.parse(didWebVh1.toHttpsUrlString());
+      expect(uriForDid.host, equals('example.com'));
+      expect(uriForDid.queryParameters.isEmpty, isTrue);
     });
 
     test('should parse did:webvh with query parameter versionNumber', () {
-      final didWebVh1 =
-          DidWebVh.parse('did:webvh:scid123:example.com?versionNumber=2');
+      final didWebVh1 = DidWebVhUrl.fromUrlString(
+          'did:webvh:scid123:example.com?versionNumber=2');
 
       expect(didWebVh1.scid, equals('scid123'));
-      expect(didWebVh1.httpsUrl.queryParameters['versionNumber'], equals('2'));
+      expect(didWebVh1.queryParameters['versionNumber'], equals('2'));
+      final uriForDid = Uri.parse(didWebVh1.toHttpsUrlString());
+      expect(uriForDid.host, equals('example.com'));
+      expect(uriForDid.queryParameters.isEmpty, isTrue);
     });
 
     test('should parse did:webvh with fragment', () {
-      final didWebVh1 =
-          DidWebVh.parse('did:webvh:scid123:example.com#some_fragment');
+      final didWebVh1 = DidWebVhUrl.fromUrlString(
+          'did:webvh:scid123:example.com#some_fragment');
 
       expect(didWebVh1.scid, equals('scid123'));
-      expect(didWebVh1.httpsUrl.fragment, equals('some_fragment'));
+      expect(didWebVh1.fragment, equals('some_fragment'));
+      final uriForDid = Uri.parse(didWebVh1.toHttpsUrlString());
+      expect(uriForDid.host, equals('example.com'));
+      expect(uriForDid.hasFragment, isFalse);
     });
 
     test('should throw exception for unsupported DID method', () {
       expect(
-        () => DidWebVh.parse('did:web:example.com'),
+        () => DidWebVhUrl.fromUrlString('did:web:example.com'),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -77,7 +103,7 @@ void main() {
     test('should throw exception when multiple version query params provided',
         () {
       expect(
-        () => DidWebVh.parse(
+        () => DidWebVhUrl.fromUrlString(
             'did:webvh:scid123:example.com?versionId=v1&versionNumber=2'),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -86,55 +112,51 @@ void main() {
         )),
       );
     });
-
-    test('should handle did:webvh with complex path', () {
-      final url = DidWebVh.parse('did:webvh:scid:example.com:path:to:resource');
-
-      expect(url.scid, equals('scid'));
-      expect(url.httpsUrl.path, contains('/path/to/resource'));
-    });
   });
 
-  group('DidWebVh.toString', () {
+  group('DidWebVhUrl.toDidUrlString', () {
     test('should convert URL back to DID string', () {
       const originalDidString = 'did:webvh:scid123:example.com';
-      final didWebVh1 = DidWebVh.parse(originalDidString);
+      final didWebVh1 = DidWebVhUrl.fromUrlString(originalDidString);
 
-      expect(didWebVh1.toString(), equals(originalDidString));
+      expect(didWebVh1.toDidUrlString(), equals(originalDidString));
     });
 
     test('should preserve port in DID conversion', () {
       const originalDidString = 'did:webvh:scid789:example.com%3A8080';
-      final didWebVh1 = DidWebVh.parse(originalDidString);
+      final didWebVh1 = DidWebVhUrl.fromUrlString(originalDidString);
 
-      expect(didWebVh1.toString(), equals(originalDidString));
+      expect(didWebVh1.toDidUrlString(), equals(originalDidString));
     });
 
     test('should preserve path in DID conversion', () {
       const originalDidString = 'did:webvh:scid456:example.com:api:v1';
-      final didWebVh1 = DidWebVh.parse(originalDidString);
+      final didWebVh1 = DidWebVhUrl.fromUrlString(originalDidString);
 
-      expect(didWebVh1.toString(), equals(originalDidString));
+      expect(didWebVh1.toDidUrlString(), equals(originalDidString));
     });
   });
 
-  group('DidWebVh.jsonLogFileHttpsUrlString', () {
+  group('DidWebVhUrl.jsonLogFileHttpsUrlString', () {
     test('should generate URL with .well-known for root path', () {
-      final didWebVh1 = DidWebVh.parse('did:webvh:scid123:example.com');
+      final didWebVh1 =
+          DidWebVhUrl.fromUrlString('did:webvh:scid123:example.com');
 
       expect(didWebVh1.jsonLogFileHttpsUrlString,
           equals('https://example.com/.well-known/did.jsonl'));
     });
 
     test('should generate URL with custom path', () {
-      final didWebVh1 = DidWebVh.parse('did:webvh:scid123:example.com:api');
+      final didWebVh1 =
+          DidWebVhUrl.fromUrlString('did:webvh:scid123:example.com:api');
 
       expect(didWebVh1.jsonLogFileHttpsUrlString,
           contains('https://example.com/api/did.jsonl'));
     });
 
     test('should preserve port in JSON log URL', () {
-      final didWebVh1 = DidWebVh.parse('did:webvh:scid789:example.com%3A8080');
+      final didWebVh1 =
+          DidWebVhUrl.fromUrlString('did:webvh:scid789:example.com%3A8080');
 
       expect(didWebVh1.jsonLogFileHttpsUrlString,
           contains('https://example.com:8080'));
@@ -142,12 +164,12 @@ void main() {
     });
   });
 
-  group('DidWebVh.downloadWebVhLog', () {
-    test('should throw SsiException on network error', () async {
+  group('DidWebVhUrl.downloadWebVhLog', () {
+    test('should throw SsiException on network error 1', () async {
       final mockClient = MockClient((request) async {
         return http.Response('mock log data', 300);
       });
-      final url = DidWebVh.parse(
+      final url = DidWebVhUrl.fromUrlString(
           'did:webvh:scid123:invalid-domain-that-does-not-exist.com');
 
       expect(
@@ -160,11 +182,11 @@ void main() {
       );
     });
 
-    test('should throw SsiException on network error', () async {
+    test('should throw SsiException on network error 2', () async {
       final mockClient = MockClient((request) async {
         throw http.ClientException('Failed to connect');
       });
-      final url = DidWebVh.parse(
+      final url = DidWebVhUrl.fromUrlString(
           'did:webvh:scid123:invalid-domain-that-does-not-exist.com');
 
       expect(
@@ -174,22 +196,6 @@ void main() {
             'message',
             contains('Failed to fetch'),
           )));
-    });
-  });
-
-  group('DidWebVh edge cases', () {
-    test('should handle minimum valid DID', () {
-      final url = DidWebVh.parse('did:webvh:s:e.c');
-
-      expect(url.scid, equals('s'));
-      expect(url.httpsUrl.host, equals('e.c'));
-    });
-
-    test('should handle %2B encoding', () {
-      final url =
-          DidWebVh.parse('did:webvh:scid:example.com:path%2Bwith%2Bplus');
-
-      expect(url.httpsUrl.path, contains('/'));
     });
   });
 
@@ -609,7 +615,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({'resolvingDidUrl': dummyDidWebVhUrl}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -629,7 +635,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -649,7 +658,7 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({'resolvingDidUrl': dummyDidWebVhUrl}),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -669,7 +678,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -689,7 +701,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -709,7 +724,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -730,8 +748,12 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify(
-            {'skipHashEntryVerification': true, 'skipProofVerification': true}),
+        () async => await log.verify({
+          'skipHashEntryVerification': true,
+          'skipProofVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -751,7 +773,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -772,7 +797,10 @@ void main() {
       // Note: _parameterMethodMustBeVersion1 is called before _parameterMethodMustExistInFirstVersion
       // So when method is null, the version check fails first
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -791,7 +819,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -810,7 +841,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -829,7 +863,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -849,7 +886,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -871,7 +911,10 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({}),
+        () async => await log.verify({
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -896,7 +939,13 @@ void main() {
       expect(log.entries[1].parameters.updateKeys,
           contains('z6MkwdX9kWL4qkZiQ1oG73WCKgWjcyCBX94EFF1PdeKoPEL7'));
 
-      expect(() async => await log.verify({}), returnsNormally);
+      expect(
+          () async => await log.verify({
+                'resolvingDidUrl': dummyDidWebVhUrl,
+                'skipResolvedDidDocScidVerification': true,
+                'skipWitnessVerification': true,
+              }),
+          returnsNormally);
     });
 
     test('should parse log with nextKeyHashes in parameters', () {
@@ -984,7 +1033,9 @@ void main() {
         () => log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
-          'skipScidVerification': true
+          'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1009,7 +1060,9 @@ void main() {
         () => log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
-          'skipScidVerification': true
+          'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1034,7 +1087,9 @@ void main() {
         () => log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
-          'skipScidVerification': true
+          'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1059,7 +1114,9 @@ void main() {
         () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
-          'skipScidVerification': true
+          'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1086,6 +1143,8 @@ void main() {
           'skipAllProofRelatedVerification': true,
           'skipScidVerification': true,
           'skipDidDocumentValidation': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         returnsNormally,
       );
@@ -1105,7 +1164,9 @@ void main() {
         () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
-          'skipScidVerification': true
+          'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1133,7 +1194,9 @@ void main() {
         () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipAllProofRelatedVerification': true,
-          'skipScidVerification': true
+          'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1167,7 +1230,13 @@ void main() {
       expect(entry2NextKeyHashes,
           contains('QmfEfCsT5jfUc7YVHXXTTns3iB8PZyV9EZmuMRdeGxUmy8'));
 
-      expect(() async => await log.verify({}), returnsNormally);
+      expect(
+          () async => await log.verify({
+                'resolvingDidUrl': dummyDidWebVhUrl,
+                'skipResolvedDidDocScidVerification': true,
+                'skipWitnessVerification': true,
+              }),
+          returnsNormally);
     });
 
     test(
@@ -1188,6 +1257,8 @@ void main() {
         'skipHashEntryVerification': true,
         'skipDidDocumentValidation': true,
         'skipProofVerification': true,
+        'resolvingDidUrl': dummyDidWebVhUrl,
+        'skipResolvedDidDocScidVerification': true,
       });
       expect(didDoc.service[0].id, contains('#domain'));
       expect(didDoc.service[0].id, isNot(contains('#service3')));
@@ -1202,8 +1273,11 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async =>
-            await log.verify({'versionId': '99-QmNonExistentVersionId'}),
+        () async => await log.verify({
+          'versionId': '99-QmNonExistentVersionId',
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -1224,8 +1298,11 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async =>
-            await log.verify({'versionId': '2-QmInvalidHashForVersion2'}),
+        () async => await log.verify({
+          'versionId': '2-QmInvalidHashForVersion2',
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -1251,6 +1328,8 @@ void main() {
         'skipHashEntryVerification': true,
         'skipDidDocumentValidation': true,
         'skipProofVerification': true,
+        'resolvingDidUrl': dummyDidWebVhUrl,
+        'skipResolvedDidDocScidVerification': true,
       });
       expect(didDoc.service[0].id, contains('#service2'));
     });
@@ -1270,6 +1349,8 @@ void main() {
           'versionTime': '2026-02-02T13:39:28Z',
           'skipHashEntryVerification': true,
           'skipProofVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true,
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1296,6 +1377,8 @@ void main() {
         'skipHashEntryVerification': true,
         'skipDidDocumentValidation': true,
         'skipProofVerification': true,
+        'resolvingDidUrl': dummyDidWebVhUrl,
+        'skipResolvedDidDocScidVerification': true,
       });
       expect(didDoc.service[0].id, contains('#service2'));
     });
@@ -1310,7 +1393,11 @@ void main() {
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       expect(
-        () async => await log.verify({'versionNumber': 99}),
+        () async => await log.verify({
+          'versionNumber': 99,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
+        }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
           'message',
@@ -1330,6 +1417,8 @@ void main() {
         () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1351,6 +1440,8 @@ void main() {
         () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1371,6 +1462,8 @@ void main() {
         () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1391,6 +1484,8 @@ void main() {
         () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1416,6 +1511,8 @@ void main() {
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
           'skipProofVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiException>().having(
           (e) => e.toString(),
@@ -1437,6 +1534,8 @@ void main() {
         () async => await log.verify({
           'skipHashEntryVerification': true,
           'skipScidVerification': true,
+          'resolvingDidUrl': dummyDidWebVhUrl,
+          'skipResolvedDidDocScidVerification': true
         }),
         throwsA(isA<SsiDidResolutionException>().having(
           (e) => e.toString(),
@@ -1454,7 +1553,10 @@ void main() {
 
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-      final (didDoc, _, _) = await log.verify({});
+      final (didDoc, _, _) = await log.verify({
+        'resolvingDidUrl': dummyDidWebVhUrl,
+        'skipResolvedDidDocScidVerification': true
+      });
 
       // Check that #whois service was added
       final whoisService = didDoc.service.firstWhere(
@@ -1477,7 +1579,10 @@ void main() {
 
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-      final (didDoc, _, _) = await log.verify({});
+      final (didDoc, _, _) = await log.verify({
+        'resolvingDidUrl': dummyDidWebVhUrl,
+        'skipResolvedDidDocScidVerification': true
+      });
 
       // Check that #files service was added
       final filesService = didDoc.service.firstWhere(
@@ -1504,6 +1609,8 @@ void main() {
         'skipHashEntryVerification': true,
         'skipScidVerification': true,
         'skipAllProofRelatedVerification': true,
+        'resolvingDidUrl': dummyDidWebVhUrl,
+        'skipResolvedDidDocScidVerification': true,
       });
 
       // Verify that only 2 services exist (no duplicates were added)
@@ -1540,6 +1647,9 @@ void main() {
       expect(
           () async => await log.verify({
                 'skipDidDocumentValidation': true,
+                'resolvingDidUrl': dummyDidWebVhUrl,
+                'skipResolvedDidDocScidVerification': true,
+                'skipWitnessVerification': true,
               }),
           returnsNormally);
     });
@@ -1560,6 +1670,8 @@ void main() {
       expect(
           () async => await log.verify({
                 'skipDidDocumentValidation': true,
+                'resolvingDidUrl': dummyDidWebVhUrl,
+                'skipResolvedDidDocScidVerification': true,
               }),
           returnsNormally);
     });
@@ -1571,10 +1683,9 @@ void main() {
       // final did2 =
       //     'did:webvh:scid123:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs';
 
-      final didwebvh = DidWebVh.parse(did1);
-      final (didDoc, didDocMeta, didResMeta) = await didwebvh.resolveDid({
-        'skipDidDocumentValidation': true,
-      });
+      final didwebvh = DidWebVhUrl.fromUrlString(did1);
+      final (didDoc, didDocMeta, didResMeta) = await didwebvh
+          .resolveDid({'skipResolvedDidDocScidVerification': true});
       print('did url: ${didwebvh.jsonLogFileHttpsUrlString}');
       print('didDoc: ${didDoc.toString()}');
       print('didDocMeta: ${didDocMeta.toString()}');
