@@ -5,10 +5,8 @@ import 'package:base_codecs/base_codecs.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../../ssi.dart';
-import '../digest_utils.dart';
-import 'did.dart';
-import 'did_webvh_witness.dart';
+import '../../../ssi.dart';
+import '../../digest_utils.dart';
 
 /// Downloads a document from the specified URL and returns the response body.
 ///
@@ -140,6 +138,20 @@ class DidWebVhLogEntryParameters {
   /// - If set to 0, indicates that the DID should not be cached
   final int? ttl;
 
+  /// Creates a [DidWebVhLogEntryParameters] instance with the given DID processing parameters.
+  ///
+  /// All parameters are optional and correspond to fields in a DID WebVH log entry's parameters object.
+  /// See class-level documentation for the meaning and requirements of each parameter.
+  ///
+  /// - [method]: The did:webvh specification version (e.g., "did:webvh:1.0").
+  /// - [scid]: The Self-Certifying Identifier for the DID.
+  /// - [updateKeys]: List of multikey-formatted public keys authorized to update the DID.
+  /// - [nextKeyHashes]: List of hashes for pre-rotated keys.
+  /// - [witness]: Witness configuration object.
+  /// - [watchers]: List of watcher URLs.
+  /// - [portable]: Whether the DID is portable.
+  /// - [deactivated]: Whether the DID is deactivated.
+  /// - [ttl]: Cache time-to-live in seconds.
   DidWebVhLogEntryParameters({
     this.method,
     this.scid,
@@ -152,6 +164,14 @@ class DidWebVhLogEntryParameters {
     this.ttl,
   });
 
+  /// Creates a [DidWebVhLogEntryParameters] instance from a JSON map.
+  ///
+  /// Parses the parameters object from a DID WebVH log entry, converting each field
+  /// to the appropriate Dart type. All fields are optional and will be null if not present.
+  ///
+  /// - [json]: The JSON map containing the parameters.
+  ///
+  /// Returns a [DidWebVhLogEntryParameters] instance populated with values from the JSON.
   factory DidWebVhLogEntryParameters.fromJson(Map<String, dynamic> json) {
     return DidWebVhLogEntryParameters(
       method: json['method'] as String?,
@@ -212,7 +232,7 @@ class DidWebVhLogEntry {
   /// Must use proofPurpose set to "assertionMethod".
   final List<Map<String, dynamic>> proof;
 
-  DidWebVhLogEntry({
+  DidWebVhLogEntry._({
     required this.versionId,
     required this.versionTime,
     required this.parameters,
@@ -231,22 +251,11 @@ class DidWebVhLogEntry {
   /// Throws [TypeError] if required fields are missing or have incorrect types.
   factory DidWebVhLogEntry.fromJson(Map<String, dynamic> json) {
     final entryVersionId = json['versionId'] as String;
-    final entryVersionIdParts = entryVersionId.split('-');
     late DateTime entryVersionTime;
-    if (entryVersionIdParts.length != 2 ||
-        int.tryParse(entryVersionIdParts[0]) == null ||
-        entryVersionIdParts[1].isEmpty) {
-      throw SsiDidResolutionException(
-          message:
-              'DID WebVh Log Entry versionId must start with a number, have a dash and a entry hash part',
-          code: SsiExceptionType.invalidDidWebVh.code,
-          resolutionMetadata: {
-            'error': 'invalidDid',
-            'message':
-                'DID WebVh Log Entry versionId must start with a number, have a dash and a entry hash part',
-          });
-    }
+    final (_, _) = parseVersionId(entryVersionId);
     try {
+      // FIXME: This versionTime format is subject to change based on the final spec. second-fractional digits may be added as an optional component
+      // If the versionTime format changes, this parsing logic will need to be updated accordingly.
       entryVersionTime = DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'')
           .parseUTC(json['versionTime'] as String);
     } on FormatException catch (e) {
@@ -262,7 +271,7 @@ class DidWebVhLogEntry {
           });
     }
 
-    return DidWebVhLogEntry(
+    return DidWebVhLogEntry._(
       versionId: entryVersionId,
       versionTime: entryVersionTime,
       parameters: DidWebVhLogEntryParameters.fromJson(
@@ -274,6 +283,15 @@ class DidWebVhLogEntry {
     );
   }
 
+  /// Builds a map representation of this log entry with a custom versionId and without the proof field.
+  ///
+  /// This is used for canonicalization and hashing, such as when verifying the SCID or entry hash.
+  /// The returned map includes all fields except for the proof, and allows the versionId to be replaced
+  /// with a custom value (e.g., "{SCID}").
+  ///
+  /// - [newVersionId]: The versionId value to use in the returned map (e.g., "{SCID}" or a previous versionId).
+  ///
+  /// Returns a map suitable for canonicalization and hashing.
   Map<String, Object> buildMapFromEntryWithVersionIdAndStrippedProof(
       String newVersionId) {
     return {
@@ -349,6 +367,44 @@ class DidWebVhLogEntry {
   /// - [versionNumber] - Extracts the numeric version from versionId
   /// - [DidWebVhLog._entryHashMustMatchWithHashOfEntryContent] - Validates this hash
   String get entryHash => versionId.split('-').last;
+
+  /// Parses a versionId string into its version number and entry hash components.
+  ///
+  /// The versionId format is `"{versionNumber}-{entryHash}"`, where:
+  /// - versionNumber: a sequential integer (e.g., 1, 2, 3, ...)
+  /// - entryHash: a cryptographic hash string (e.g., multibase base58-btc)
+  ///
+  /// Throws [SsiException] if the format is invalid, the version number is not an integer,
+  /// or the hash part is empty.
+  ///
+  /// Returns a tuple of (versionNumber, versionHash).
+  static (int, String) parseVersionId(String versionId) {
+    final parts = versionId.split('-');
+    if (parts.length < 2) {
+      throw SsiException(
+        message: 'Invalid versionId format (missing dash): $versionId',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    final versionNumber = int.tryParse(parts.first);
+    if (versionNumber == null) {
+      throw SsiException(
+        message:
+            'Invalid version number in versionId (not an integer): $versionId',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+    final versionHash = parts[1];
+    if (versionHash.isEmpty) {
+      throw SsiException(
+        message: 'Invalid versionId format (empty hash part): $versionId',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    return (versionNumber, versionHash);
+  }
 }
 
 /// The DID Log file containing all versions of a DID.
@@ -364,6 +420,9 @@ class DidWebVhLog {
   /// with inherited parameter values unless explicitly overridden.
   final List<DidWebVhLogEntry> entries;
 
+  /// Creates a [DidWebVhLog] with the provided list of entries.
+  ///
+  /// - [entries]: The ordered list of log entries for the DID.
   DidWebVhLog({
     required this.entries,
   });
@@ -1097,7 +1156,7 @@ class DidWebVhLog {
       return existingServices.any((s) => s.id == id);
     }
 
-    final didWebVh = DidWebVh.parse(did);
+    final didWebVh = DidWebVhUrl.fromUrlString(did);
 
     // 1. Add DIDWebVH service (whois) if not present
     final whoisIds = ['$did#whois', '#whois'];
@@ -1112,7 +1171,7 @@ class DidWebVhLog {
         ///
         id: '#whois',
         type: const StringServiceType('LinkedVerifiablePresentation'),
-        serviceEndpoint: StringEndpoint(didWebVh.whoIsHttpsUrlString),
+        serviceEndpoint: StringEndpoint(didWebVh.whoIsServiceHttpsUrlString),
       ));
     }
 
@@ -1122,7 +1181,7 @@ class DidWebVhLog {
       newServices.add(ServiceEndpoint(
         id: '#files',
         type: const StringServiceType('relativeRef'),
-        serviceEndpoint: StringEndpoint(didWebVh.httpsUrl.toString()),
+        serviceEndpoint: StringEndpoint(didWebVh.toHttpsUrlString()),
       ));
     }
 
@@ -1134,83 +1193,44 @@ class DidWebVhLog {
     });
   }
 
-  /// Validates that the resolved DID Document's ID matches the resolving DID string.
+  /// Validates that the SCID in the resolved DID Document matches the resolving DID's SCID.
   ///
-  /// This method performs a critical security check to ensure that the DID Document
-  /// resolved from the log entries contains a `DID Document.id` field that exactly
-  /// matches the DID string being resolved. This validation prevents potential
-  /// attacks where a malicious DID log could serve a DID Document for a different DID.
+  /// This ensures that the resolved document is for the correct DID by comparing the SCID
+  /// (Self-Certifying Identifier) in the DID Document's ID with the resolving DID's SCID.
   ///
-  /// ## Validation Process
+  /// The method attempts to parse the DID Document ID as a did:webvh URL and extract the
+  /// SCID query parameter. If the SCID is present and doesn't match the expected value,
+  /// an exception is thrown.
   ///
-  /// 1. Extracts the `id` field from the resolved DID Document
-  /// 2. Compares it with the original resolving DID string (case-sensitive)
-  /// 3. Throws an exception if they don't match exactly
+  /// Parameters:
+  /// - [didDoc]: The resolved DID Document to validate
+  /// - [expectedScid]: The SCID from the active parameters that should match
   ///
-  /// ## Security Implications
-  ///
-  /// This check is essential for DID resolution security. Without it, a compromised
-  /// server could:
-  /// - Serve a DID Document for a different DID
-  /// - Redirect resolution to an attacker-controlled DID
-  /// - Perform subtle DID substitution attacks
-  ///
-  /// By enforcing this match, we ensure that the resolved DID Document is
-  /// authoritative for the specific DID being resolved, as required by the
-  /// W3C DID Core specification.
-  ///
-  /// ## Parameters
-  ///
-  /// - [resolvedDidDoc]: The DID Document that was resolved from the log entries
-  /// - [resolvingDidString]: The original DID string that was being resolved
-  ///
-  /// ## Exceptions
-  ///
-  /// Throws [SsiDidResolutionException] if:
-  /// - The DID Document's `id` field doesn't match the resolving DID string
-  /// - This includes any differences in:
-  ///   - SCID component
-  ///   - Domain component
-  ///   - Path components
-  ///   - Query parameters (if present in the DID string)
-  ///
-  /// ## Example
-  ///
-  /// ```dart
-  /// final resolvedDoc = await log.verify(options);
-  /// final resolvingDid = 'did:webvh:QmScid123:example.com';
-  ///
-  /// // This will pass if IDs match
-  /// _validateResolvedDidDocument(resolvedDoc, resolvingDid);
-  ///
-  /// // This will throw if the resolved doc has a different ID
-  /// // e.g., resolvedDoc.id = 'did:webvh:QmDifferent:example.com'
-  /// ```
-  ///
-  ///
-  /// "The value of the `id` property MUST be a string that conforms to the rules
-  /// in § 3.1 DID Syntax. The DID subject is denoted by the `id` property at
-  /// the top level of a DID document."
-  ///
-  /// See also:
-  /// - [verify] - Main verification method that calls this
-  /// - [resolveDid] - DID resolution entry point
-  /// FIXME: This validation is closed for now.
-  // void _validateResolvedDidDocument(
-  //     DidDocument resolvedDidDoc, String resolvingDidString) {
-  //   if (resolvedDidDoc.id != resolvingDidString) {
-  //     throw SsiDidResolutionException(
-  //       message:
-  //           'Resolved DID Document ID ${resolvedDidDoc.id} does not match the resolving DID string $resolvingDidString',
-  //       code: SsiExceptionType.invalidDidWebVh.code,
-  //       resolutionMetadata: {
-  //         'error': 'invalidDidDocument',
-  //         'message':
-  //             'Resolved DID Document ID ${resolvedDidDoc.id} does not match the resolving DID string $resolvingDidString',
-  //       },
-  //     );
-  //   }
-  // }
+  /// Throws [SsiException] if the SCID in the DID Document ID doesn't match the expected SCID.
+  void _validateResolvedDidDocScid(DidDocument didDoc, String expectedScid) {
+    try {
+      final didUrl = DidWebVhUrl.fromUrlString(didDoc.id);
+      final docScid = didUrl.scid;
+
+      // Compare the SCID values
+      if (docScid != expectedScid) {
+        throw SsiException(
+          message:
+              'SCID mismatch: DID Document ID contains SCID $docScid but expected $expectedScid',
+          code: SsiExceptionType.invalidDidWebVh.code,
+        );
+      }
+    } on SsiException {
+      rethrow;
+    } catch (e) {
+      // Catch any other unexpected exceptions and wrap them in an SsiException
+      throw SsiException(
+          message:
+              'SCID mismatch: DID Document ID does not contain expected SCID $expectedScid',
+          code: SsiExceptionType.invalidDidWebVh.code,
+          originalMessage: e.toString());
+    }
+  }
 
   /// Verifies the integrity and validity of the DID log up to a specified version.
   ///
@@ -1242,9 +1262,6 @@ class DidWebVhLog {
   /// - **Data Integrity proofs (cryptographic signatures)**
   /// - Verification that signing keys are in the active updateKeys list
   ///
-  /// **Not Yet Implemented:**
-  /// - Witness signatures
-  /// - Pre-rotation key constraints
   ///
   /// ## Returns
   ///
@@ -1295,8 +1312,15 @@ class DidWebVhLog {
         resolutionOptions['skipScidVerification'] == true;
     bool skipDefaultServiceAddition =
         resolutionOptions['skipDefaultServiceAddition'] == true;
-    bool skipDidDocumentValidation =
-        resolutionOptions['skipDidDocumentValidation'] == true;
+    bool skipResolvedDidDocScidVerification =
+        resolutionOptions['skipResolvedDidDocScidVerification'] == true;
+    if (resolutionOptions['resolvingDidUrl'] == null) {
+      throw SsiException(
+        message: 'resolvingDidUrl must be provided in resolution options',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+    DidWebVhUrl resolvingDidUrl = resolutionOptions['resolvingDidUrl']!;
 
     // Determine verification boundary
     int verifyUpToIndex = _determineVerificationBoundary(resolutionOptions);
@@ -1430,6 +1454,11 @@ class DidWebVhLog {
 
       // Update resolved DID Document after processing this entry
       resolvedDidDoc = entry.state;
+
+      // Validate that SCID in resolved DID Document matches active parameters
+      if (!skipResolvedDidDocScidVerification) {
+        _validateResolvedDidDocScid(resolvedDidDoc, resolvingDidUrl.scid);
+      }
     }
 
     if (resolvedDidDoc == null) {
@@ -1444,24 +1473,10 @@ class DidWebVhLog {
         },
       );
     }
-    if (!skipDidDocumentValidation) {
-      // Structural validation is already done while parsing.
-      // This check is Document id check to ensure the resolved document is for the correct DID and not a different DID.
-      // FIXME: This check has issues. Closed for now. For example, if the resolving DID string has query parameters
-      //but the resolved document ID does not include those query parameters,
-      //this check will fail even though the resolved document may be correct for the base DID.
-      //We may need to enhance this validation logic to account for such cases, potentially by parsing
-      //the resolving DID string and comparing only the relevant components (e.g., method, SCID, domain)
-      //rather than doing a strict string match.
-      // String resolvingDidString =
-      //     resolutionOptions['resolvingDidString'] as String;
-      // _validateResolvedDidDocument(resolvedDidDoc, resolvingDidString);
-    }
 
     if (!skipWitnessVerification && witnessRequiringVersions.isNotEmpty) {
-      final resolvedDidId = resolvedDidDoc.id;
-      final did = DidWebVh.parse(resolvedDidId);
-      final witnessProofs = await DidWebVhWitnessVerifier.fetchWitnesses(did);
+      final witnessProofs = await DidWebVhWitnessVerifier.fetchWitnesses(
+          resolvingDidUrl.witnessUrlString);
       final verifier = DidWebVhWitnessVerifier();
 
       for (final witnessReq in witnessRequiringVersions) {
@@ -1497,266 +1512,5 @@ class DidWebVhLog {
     }
 
     return (resolvedDidDoc, null, null);
-  }
-}
-
-/// DidWebVh Class to handle Url parsing and components
-class DidWebVh extends Did {
-  DidWebVh._(String scheme, String method, String methodSpecificId)
-      : super(
-            scheme: scheme, method: method, methodSpecificId: methodSpecificId);
-
-  /// Creates a [DidWebVh] instance from a DID string.
-  ///
-  /// Parses a DID string and validates that it conforms to the did:webvh specification.
-  /// The DID must use the 'webvh' method and have a valid method-specific identifier
-  /// that includes a SCID and an HTTPS URL location.
-  ///
-  /// The method-specific identifier format is: `{scid}:{domain}[:path...]`
-  ///
-  /// Example DID formats:
-  /// - `did:webvh:z6Mk...ABC:example.com`
-  /// - `did:webvh:z6Mk...ABC:example.com:path:to:resource`
-  /// - `did:webvh:z6Mk...ABC:example.com?versionId=1-hash`
-  ///
-  /// Parameters:
-  /// - [didString]: A string representation of a did:webvh DID
-  ///
-  /// Returns a [DidWebVh] instance with parsed components.
-  ///
-  /// Throws [FormatException] if the DID string is not a valid URI format.
-  ///
-  /// Throws [SsiException] if:
-  /// - The DID method is not 'webvh'
-  /// - The method-specific identifier cannot be parsed
-  /// - The HTTPS URL or SCID extraction fails
-  ///
-  /// Example:
-  /// ```dart
-  /// final did = DidWebVh.parse('did:webvh:z6Mk...ABC:example.com');
-  /// print(did.scid); // 'z6Mk...ABC'
-  /// print(did.httpsUrl); // 'https://example.com'
-  /// ```
-  ///
-  factory DidWebVh.parse(String didString) {
-    final did = Did.parse(didString);
-    if (did.method != 'webvh') {
-      throw SsiException(
-          message: 'Unsupported DID method. Expected method: webvh',
-          code: SsiExceptionType.invalidDidWebVh.code);
-    }
-
-    final String methodSpecificId = did.methodSpecificId;
-    getScidFromMethodSpecificId(methodSpecificId);
-    getHttpsUrlFromMethodSpecificId(methodSpecificId);
-
-    return DidWebVh._(did.scheme, did.method, did.methodSpecificId);
-  }
-
-  /// The Self-Certifying Identifier (SCID) component of the DID WebVH.
-  ///
-  /// The SCID is the first component of the method-specific identifier and is a
-  /// cryptographic hash of the DID's inception event. It provides a self-certifying
-  /// identifier that ensures the DID's integrity.
-  ///
-  /// Example:
-  /// ```dart
-  /// final did = DidWebVh.fromDidString('did:webvh:z6Mk...ABC:example.com');
-  /// print(did.scid); // 'z6Mk...ABC'
-  /// ```
-  String get scid {
-    return getScidFromMethodSpecificId(super.methodSpecificId);
-  }
-
-  @override
-  Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
-      resolveDid([DidResolutionOptions? options]) async {
-    final nnOptions = options ?? {};
-    final didWebVhLog1 = await downloadWebVhLog();
-    for (var entry in httpsUrl.queryParameters.entries) {
-      if (!nnOptions.keys.contains(entry.key)) {
-        nnOptions[entry.key] = entry.value;
-      }
-    }
-    nnOptions['resolvingDidString'] = toString();
-    final (doc, dm, rm) = await didWebVhLog1.verify(nnOptions);
-    return (doc, dm, rm);
-  }
-
-  /// The HTTPS URL derived from the DID WebVH method-specific identifier.
-  ///
-  /// Converts the DID's method-specific identifier (excluding the SCID) into an HTTPS URL
-  /// where the DID document log file is hosted. This URL is used to retrieve the DID log.
-  ///
-  /// The conversion follows these rules:
-  /// - Colons (:) are converted to slashes (/)
-  /// - %3A is decoded to colon (:)
-  /// - %2B is decoded to slash (/)
-  /// - Query parameters and fragments are preserved
-  ///
-  /// Example:
-  /// ```dart
-  /// final did = DidWebVh.fromDidString('did:webvh:z6Mk...ABC:example.com:path');
-  /// print(did.httpsUrl); // https://example.com/path
-  /// ```
-  Uri get httpsUrl {
-    return getHttpsUrlFromMethodSpecificId(super.methodSpecificId);
-  }
-
-  String get whoIsHttpsUrlString {
-    return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/whois.vp';
-  }
-
-  /// Extracts and converts the HTTPS URL from a DID WebVH method-specific identifier.
-  ///
-  /// This static method parses the method-specific identifier, removes the SCID component,
-  /// and converts the remaining parts into an HTTPS URL according to the WebVH specification.
-  ///
-  /// The conversion process:
-  /// 1. Splits the method-specific identifier by colons
-  /// 2. Removes the first part (SCID)
-  /// 3. Converts remaining parts to URL format
-  /// 4. Applies decoding rules (%3A → :, %2B → /)
-  /// 5. Validates query parameters
-  ///
-  /// Parameters:
-  /// - [methodSpecificId]: The method-specific identifier from a did:webvh DID
-  ///
-  /// Returns the HTTPS URI where the DID log is hosted.
-  ///
-  /// Throws [SsiException] if multiple version query parameters are provided.
-  ///
-  /// Example:
-  /// ```dart
-  /// final url = DidWebVh.getHttpsUrlFromMethodSpecificId('z6Mk...ABC:example.com:path');
-  /// print(url); // https://example.com/path
-  /// ```
-  static Uri getHttpsUrlFromMethodSpecificId(String methodSpecificId) {
-    final [scid, ...urlParts] = methodSpecificId.split(':');
-    String urlString = urlParts.join(':');
-
-    String? fragment;
-    if (urlString.contains('#')) {
-      [urlString, fragment] = urlString.split('#');
-    }
-
-    String? query;
-    if (urlString.contains('?')) {
-      [urlString, query] = urlString.split('?');
-    }
-
-    urlString = urlString.replaceAll(':', '/');
-    urlString = urlString.replaceAll('%3A', ':');
-    urlString = urlString.replaceAll('%2B', '/');
-    urlString = 'https://$urlString';
-
-    query != null //
-        ? urlString = '$urlString?$query'
-        : urlString = urlString;
-    fragment != null
-        ? urlString = '$urlString#$fragment'
-        : urlString = urlString;
-
-    final didUrl = Uri.parse(urlString);
-
-    /// Only one of versionId, versionTime, or versionNumber is allowed in the query parameters
-    final versionQueryParamCount = didUrl.queryParameters.entries
-        .where((entry) =>
-            ['versionId', 'versionTime', 'versionNumber'].contains(entry.key))
-        .length;
-
-    if (versionQueryParamCount > 1) {
-      throw SsiException(
-          message:
-              'Only one of versionId, versionTime, or versionNumber is allowed in the query parameters',
-          code: SsiExceptionType.invalidDidWebVh.code);
-    }
-
-    return didUrl;
-  }
-
-  /// Extracts the SCID (Self-Certifying Identifier) from a method-specific identifier.
-  ///
-  /// The SCID is always the first component of the method-specific identifier,
-  /// before the first colon. It is a cryptographic hash that certifies the
-  /// authenticity of the DID's inception event.
-  ///
-  /// Parameters:
-  /// - [methodSpecificId]: The method-specific identifier from a did:webvh DID
-  ///
-  /// Returns the SCID component as a string.
-  ///
-  /// Example:
-  /// ```dart
-  /// final scid = DidWebVh.getScidFromMethodSpecificId('z6Mk...ABC:example.com:path');
-  /// print(scid); // 'z6Mk...ABC'
-  /// ```
-  static String getScidFromMethodSpecificId(String methodSpecificId) {
-    final [scid, ..._] = methodSpecificId.split(':');
-    return scid;
-  }
-
-  /// The full HTTPS URL to the DID WebVH JSON log file.
-  ///
-  /// Constructs the complete URL where the DID log file (did.jsonl) is hosted.
-  /// If the HTTPS URL has an empty path, `/.well-known` is inserted before `/did.jsonl`
-  /// according to the WebVH specification.
-  ///
-  /// URL construction rules:
-  /// - If path is empty: `https://example.com/.well-known/did.jsonl`
-  /// - If path exists: `https://example.com/path/did.jsonl`
-  ///
-  /// Returns a string representation of the URL.
-  ///
-  /// Example:
-  /// ```dart
-  /// final did = DidWebVh.fromDidString('did:webvh:z6Mk...ABC:example.com');
-  /// print(did.jsonLogFileHttpsUrlString); // 'https://example.com/.well-known/did.jsonl'
-  /// ```
-  String get jsonLogFileHttpsUrlString {
-    return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/did.jsonl';
-  }
-
-  /// The full HTTPS URL to the DID WebVH witness configuration file.
-
-  String get witnessUrlString {
-    return '${httpsUrl.toString()}${httpsUrl.hasEmptyPath ? '/.well-known' : ''}/did-witness.json';
-  }
-
-  /// Downloads the JSON Lines log file from the URL represented by this DidWebVhUrl.
-  ///
-  /// Returns the raw response body as a string for JSON Lines parsing.
-  Future<DidWebVhLog> downloadWebVhLog([http.Client? client]) async {
-    var jsonLogFile = await downloadDocument(
-      Uri.parse(jsonLogFileHttpsUrlString),
-      client: client,
-    );
-    return DidWebVhLog.fromJsonLines(jsonLogFile);
-  }
-
-  /// Parses the version number from a versionId string.
-  ///
-  /// The versionId format is "N-QmHash..." where N is the version number.
-  ///
-  /// Throws [SsiException] if the format is invalid or N is not a valid integer.
-  static int getVersionNumberFromVersionId(String versionId) {
-    final parts = versionId.split('-');
-    if (parts.length < 2) {
-      throw SsiException(
-        message: 'Invalid versionId format (missing dash): $versionId',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-
-    final versionNumber = int.tryParse(parts.first);
-    if (versionNumber == null) {
-      throw SsiException(
-        message:
-            'Invalid version number in versionId (not an integer): $versionId',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-
-    return versionNumber;
   }
 }
