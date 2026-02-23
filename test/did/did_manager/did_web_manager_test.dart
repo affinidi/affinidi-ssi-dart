@@ -237,5 +237,56 @@ void main() {
         expect(doc.capabilityDelegation, isNotEmpty);
       });
     });
+
+    group('did property', () {
+      test('should return correct did:web DID', () {
+        expect(manager.did, 'did:web:example.com');
+      });
+
+      test('should handle domain with port', () async {
+        final domainWithPort = Uri.parse('https://example.com:3000');
+        final portManager = DidWebManager(
+          store: InMemoryDidStore(),
+          wallet: wallet,
+          domain: domainWithPort,
+        );
+        await portManager.init();
+
+        expect(portManager.did, 'did:web:example.com%3A3000');
+      });
+
+      test('should handle domain with path', () async {
+        final domainWithPath = Uri.parse('https://example.com/user/alice');
+        final pathManager = DidWebManager(
+          store: InMemoryDidStore(),
+          wallet: wallet,
+          domain: domainWithPath,
+        );
+        await pathManager.init();
+
+        expect(pathManager.did, 'did:web:example.com:user:alice');
+      });
+    });
+
+    group('Backward compatibility', () {
+      test(
+          'single key with no explicit relationships behaves like former DidKeyManager usage',
+          () async {
+        final key = await wallet.generateKey(
+            keyId: 'compat-key', keyType: KeyType.ed25519);
+
+        // No explicit relationships - defaults are applied by base class
+        final result = await manager.addVerificationMethod(key.id);
+
+        expect(result.verificationMethodId, isNotEmpty);
+        // Default for ed25519 includes authentication, keyAgreement, etc.
+        expect(result.relationships, isNotEmpty);
+
+        final doc = await manager.getDidDocument();
+        expect(doc.id, 'did:web:example.com');
+        expect(doc.verificationMethod, isNotEmpty);
+        expect(doc.authentication, isNotEmpty);
+      });
+    });
   });
 }
