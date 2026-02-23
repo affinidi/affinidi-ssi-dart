@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-02-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.4.1`](#ssi---v341)
+
+---
+
+#### `ssi` - `v3.4.1`
+
+ - **FIX**: update melos to 7+ ([#255](https://github.com/affinidi/affinidi-ssi-dart/issues/255)).
+
+## 3.4.1
+
+ - **FIX**: update melos to 7+ ([#255](https://github.com/affinidi/affinidi-ssi-dart/issues/255)).
+
+
 ## 2026-01-23
 
 ### Changes
