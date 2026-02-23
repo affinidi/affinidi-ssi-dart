@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -268,6 +270,49 @@ void main() {
       });
     });
 
+    group('Signing and verification', () {
+      test('should sign and verify with authentication key', () async {
+        final key = await wallet.generateKey(
+            keyId: 'sign-key', keyType: KeyType.ed25519);
+
+        await manager.addVerificationMethod(
+          key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+          },
+        );
+
+        final doc = await manager.getDidDocument();
+        final authVmId = doc.authentication.first.id;
+
+        final data = Uint8List.fromList([1, 2, 3, 4, 5]);
+        final signature = await manager.sign(data, authVmId);
+        final verified = await manager.verify(data, signature, authVmId);
+
+        expect(verified, isTrue);
+      });
+
+      test('should get DID signer', () async {
+        final key = await wallet.generateKey(
+            keyId: 'signer-key', keyType: KeyType.ed25519);
+
+        await manager.addVerificationMethod(
+          key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+          },
+        );
+
+        final doc = await manager.getDidDocument();
+        final authVmId = doc.authentication.first.id;
+
+        final signer = await manager.getSigner(authVmId);
+
+        expect(signer.did, 'did:web:example.com');
+        expect(signer.didKeyId, contains('did:web:example.com'));
+      });
+    });
+
     group('Backward compatibility', () {
       test(
           'single key with no explicit relationships behaves like former DidKeyManager usage',
@@ -286,6 +331,25 @@ void main() {
         expect(doc.id, 'did:web:example.com');
         expect(doc.verificationMethod, isNotEmpty);
         expect(doc.authentication, isNotEmpty);
+      });
+    });
+
+    group('Key retrieval', () {
+      test('should retrieve DID key pair', () async {
+        final key = await wallet.generateKey(
+            keyId: 'retrieve-key', keyType: KeyType.ed25519);
+
+        final result = await manager.addVerificationMethod(
+          key.id,
+          relationships: {VerificationRelationship.authentication},
+        );
+
+        final didKeyPair = await manager.getKey(result.verificationMethodId);
+
+        expect(didKeyPair.keyPair.id, key.id);
+        expect(didKeyPair.verificationMethodId, result.verificationMethodId);
+        expect(didKeyPair.didDocument, isNotNull);
+        expect(didKeyPair.didDocument!.id, 'did:web:example.com');
       });
     });
   });
