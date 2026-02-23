@@ -11,15 +11,45 @@ import 'add_verification_method_result.dart';
 import 'did_manager.dart';
 import 'verification_relationship.dart';
 
+/// DID Manager implementation for the did:web method.
+///
+/// This manager handles DID documents that use the did:web method,
+/// supporting both single-key (backward compatible) and multi-key wallets.
+///
+/// ## Single-key usage (backward compatible)
+///
+/// When [addVerificationMethod] is called without explicit relationships,
+/// the base class assigns default relationships based on key type
+/// (same behavior as the former DidKeyManager usage).
+///
+/// ## Multi-key usage
+///
+/// When [addVerificationMethod] is called with explicit relationships,
+/// multiple keys can be added with specific purposes:
+///
+/// ```dart
+/// await manager.addVerificationMethod('key-1',
+///   relationships: {VerificationRelationship.authentication,
+///                   VerificationRelationship.assertionMethod});
+/// await manager.addVerificationMethod('key-2',
+///   relationships: {VerificationRelationship.keyAgreement});
+/// ```
 class DidWebManager extends DidManager {
+  /// The domain URI for this did:web DID.
   final Uri domain;
 
+  /// Creates a new DID Web manager instance.
+  ///
+  /// [store] - The key mapping store to use for managing key relationships.
+  /// [wallet] - The wallet to use for key operations.
+  /// [domain] - The domain for the did:web DID (e.g., Uri.parse('https://example.com')).
   DidWebManager({
     required super.store,
     required super.wallet,
     required this.domain,
   });
 
+  /// The did:web DID string derived from the domain.
   String get did => DidWeb.getDid(domain);
 
   @override
