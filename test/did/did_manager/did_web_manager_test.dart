@@ -138,5 +138,104 @@ void main() {
         expect(authVmId, isNot(kaVmId));
       });
     });
+
+    group('getDidDocument', () {
+      test('should throw when no keys are added', () async {
+        await expectLater(
+          manager.getDidDocument(),
+          throwsA(isA<SsiException>()),
+        );
+      });
+
+      test('should generate single-key did:web document', () async {
+        final key =
+            await wallet.generateKey(keyId: 'key-1', keyType: KeyType.ed25519);
+
+        await manager.addVerificationMethod(key.id);
+
+        final doc = await manager.getDidDocument();
+
+        expect(doc.id, 'did:web:example.com');
+        expect(doc.verificationMethod, isNotEmpty);
+        expect(doc.authentication, isNotEmpty);
+      });
+
+      test(
+          'should generate multi-key did:web document with authentication and keyAgreement',
+          () async {
+        final key1 =
+            await wallet.generateKey(keyId: 'key-1', keyType: KeyType.ed25519);
+        final key2 =
+            await wallet.generateKey(keyId: 'key-2', keyType: KeyType.ed25519);
+
+        await manager.addVerificationMethod(
+          key1.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.assertionMethod,
+          },
+        );
+
+        await manager.addVerificationMethod(
+          key2.id,
+          relationships: {
+            VerificationRelationship.keyAgreement,
+          },
+        );
+
+        final doc = await manager.getDidDocument();
+
+        expect(doc.id, 'did:web:example.com');
+        // Should have at least 2 VMs (auth/assertion + keyAgreement)
+        expect(doc.verificationMethod.length, greaterThanOrEqualTo(2));
+        expect(doc.authentication, isNotEmpty);
+        expect(doc.assertionMethod, isNotEmpty);
+        expect(doc.keyAgreement, isNotEmpty);
+      });
+
+      test('should include service endpoints in document', () async {
+        final key =
+            await wallet.generateKey(keyId: 'key-1', keyType: KeyType.ed25519);
+
+        await manager.addVerificationMethod(key.id);
+        await manager.addServiceEndpoint(ServiceEndpoint(
+          id: '#service-1',
+          type: const StringServiceType('DIDCommMessaging'),
+          serviceEndpoint: const StringEndpoint('https://example.com/didcomm'),
+        ));
+
+        final doc = await manager.getDidDocument();
+
+        expect(doc.service, isNotEmpty);
+        expect(doc.service.first.id, '#service-1');
+      });
+
+      test(
+          'should generate valid DID document with all five relationship types',
+          () async {
+        final key = await wallet.generateKey(
+            keyId: 'all-purpose', keyType: KeyType.ed25519);
+
+        await manager.addVerificationMethod(
+          key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.assertionMethod,
+            VerificationRelationship.keyAgreement,
+            VerificationRelationship.capabilityInvocation,
+            VerificationRelationship.capabilityDelegation,
+          },
+        );
+
+        final doc = await manager.getDidDocument();
+
+        expect(doc.id, 'did:web:example.com');
+        expect(doc.authentication, isNotEmpty);
+        expect(doc.assertionMethod, isNotEmpty);
+        expect(doc.keyAgreement, isNotEmpty);
+        expect(doc.capabilityInvocation, isNotEmpty);
+        expect(doc.capabilityDelegation, isNotEmpty);
+      });
+    });
   });
 }
