@@ -14,7 +14,11 @@ import 'verification_relationship.dart';
 class DidWebManager extends DidManager {
   final Uri domain;
 
-  DidWebManager({required super.store, required super.wallet, required this.domain,});
+  DidWebManager({
+    required super.store,
+    required super.wallet,
+    required this.domain,
+  });
 
   String get did => DidWeb.getDid(domain);
 
@@ -36,7 +40,7 @@ class DidWebManager extends DidManager {
     if (uniqueVmIds.isEmpty) {
       throw SsiException(
         message:
-        'At least one key must be added before creating did:web document',
+            'At least one key must be added before creating did:web document',
         code: SsiExceptionType.invalidDidDocument.code,
       );
     }
@@ -55,7 +59,7 @@ class DidWebManager extends DidManager {
       var publicKey = await wallet.getPublicKey(walletKeyId);
       if (keyAgreement.contains(vmId) && publicKey.type == KeyType.ed25519) {
         final x25519PublicKeyBytes =
-        ed25519PublicToX25519Public(publicKey.bytes);
+            ed25519PublicToX25519Public(publicKey.bytes);
         publicKey =
             PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
       }
@@ -68,9 +72,9 @@ class DidWebManager extends DidManager {
       VerificationRelationship.keyAgreement: keyAgreement.toList(),
       VerificationRelationship.assertionMethod: assertionMethod.toList(),
       VerificationRelationship.capabilityInvocation:
-      capabilityInvocation.toList(),
+          capabilityInvocation.toList(),
       VerificationRelationship.capabilityDelegation:
-      capabilityDelegation.toList(),
+          capabilityDelegation.toList(),
     };
 
     return DidWeb.generateDocument(
@@ -85,10 +89,10 @@ class DidWebManager extends DidManager {
   @override
   @protected
   Future<AddVerificationMethodResult> internalAddVerificationMethod(
-      String walletKeyId, {
-        required PublicKey publicKey,
-        required Set<VerificationRelationship> relationships,
-      }) async {
+    String walletKeyId, {
+    required PublicKey publicKey,
+    required Set<VerificationRelationship> relationships,
+  }) async {
     final createdRelationships = <VerificationRelationship, String>{};
     String? primaryVmId;
 
@@ -113,7 +117,7 @@ class DidWebManager extends DidManager {
     ];
 
     final orderedRelationships =
-    processingOrder.where((r) => relationships.contains(r));
+        processingOrder.where((r) => relationships.contains(r));
 
     for (final relationship in orderedRelationships) {
       final String vmId;
@@ -122,9 +126,9 @@ class DidWebManager extends DidManager {
       if (relationship == VerificationRelationship.keyAgreement &&
           publicKey.type == KeyType.ed25519) {
         final x25519PublicKeyBytes =
-        ed25519PublicToX25519Public(publicKey.bytes);
+            ed25519PublicToX25519Public(publicKey.bytes);
         final keyAgreementPublicKey =
-        PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
+            PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
         vmId = await buildVerificationMethodId(keyAgreementPublicKey);
       } else {
         vmId = await buildVerificationMethodId(publicKey);
