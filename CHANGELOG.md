@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-02-24
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.5.0`](#ssi---v350)
+
+---
+
+#### `ssi` - `v3.5.0`
+
+ - **FEAT**: add did web manager class for multi-key support ([#257](https://github.com/affinidi/affinidi-ssi-dart/issues/257)).
+
+## 3.5.0
+
+ - **FEAT**: add did web manager class for multi-key support ([#257](https://github.com/affinidi/affinidi-ssi-dart/issues/257)).
+
+
 ## 2026-02-23
 
 ### Changes
