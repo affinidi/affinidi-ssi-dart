@@ -515,6 +515,88 @@ class DidWebVhLog {
     }
   }
 
+    String _baseDidFromResolvingDidUrl(DidWebVhUrl url) {
+    // Base DID only (no path/query/fragment)
+    return 'did:${url.method}:${url.methodSpecificId}';
+  }
+
+  String? _extractScidFromDid(String did) {
+    // did:webvh:<scid>:<domain...>
+    final parts = did.split(':');
+    if (parts.length < 4) return null;
+    if (parts[0] != 'did' || parts[1] != 'webvh') return null;
+    return parts[2];
+  }
+
+  bool _didDocHasAlsoKnownAs(DidDocument doc, String did) {
+    final json = doc.toJson();
+    final aka = json['alsoKnownAs'];
+    if (aka is List) {
+      return aka.whereType<String>().contains(did);
+    }
+    return false;
+  }
+
+  void _verifyPortabilityConstraints({
+    required bool portableFromGenesis,
+    required String resolvingDid,
+    required String currentDid,
+    required String? previousDid,
+    required DidWebVhUrl resolvingDidUrl,
+    required DidDocument currentState,
+    required bool isFirstEntry,
+  }) {
+    // If not portable, the DID cannot "move" relative to what we're resolving.
+    if (isFirstEntry) {
+      if (currentDid != resolvingDid && !portableFromGenesis) {
+        throw SsiException(
+          message:
+              'DID appears to have been moved/renamed, but "portable" was not set to true in the first log entry',
+          code: SsiExceptionType.invalidDidWebVh.code,
+        );
+      }
+      return;
+    }
+
+    // No change => nothing to check
+    if (previousDid == null || currentDid == previousDid) return;
+
+    // A change in DID string implies portability must have been enabled at genesis.
+    if (!portableFromGenesis) {
+      throw SsiException(
+        message:
+            'DID was renamed (ported), but "portable" was not set to true in the first log entry',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    // SCID must remain constant across rename
+    final prevScid = _extractScidFromDid(previousDid);
+    final curScid = _extractScidFromDid(currentDid);
+    if (prevScid == null || curScid == null || prevScid != curScid) {
+      throw SsiException(
+        message: 'Invalid DID rename: SCID changed across portability rename',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+    if (curScid != resolvingDidUrl.scid) {
+      throw SsiException(
+        message:
+            'Invalid DID rename: resolved DIDDoc SCID does not match resolving DID SCID',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    // Renamed DIDDoc MUST contain the prior DID in alsoKnownAs
+    if (!_didDocHasAlsoKnownAs(currentState, previousDid)) {
+      throw SsiException(
+        message:
+            'Invalid DID rename: DIDDoc must include prior DID in alsoKnownAs when portability is used',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+  }
+
   /// Determines the index of the last entry to verify based on resolution metadata.
   ///
   /// Returns the index in the entries list up to which verification should be performed.
@@ -1336,6 +1418,9 @@ class DidWebVhLog {
     List<Map<String, dynamic>> witnessRequiringVersions = [];
     DateTime resolutionTime = DateTime.now().toUtc();
 
+    final resolvingDid = _baseDidFromResolvingDidUrl(resolvingDidUrl);
+    final portableFromGenesis = entries.first.parameters.portable == true;
+
     for (int i = 0; i <= verifyUpToIndex; i++) {
       final entry = entries[i];
       final isFirstEntry = i == 0;
@@ -1451,6 +1536,19 @@ class DidWebVhLog {
       // Update prerotation active status
       preRotationActive = activeParameters.nextKeyHashes != null &&
           activeParameters.nextKeyHashes!.isNotEmpty;
+
+      final previousDid = resolvedDidDoc?.id;
+      final currentDid = entry.state.id;
+
+      _verifyPortabilityConstraints(
+        portableFromGenesis: portableFromGenesis,
+        resolvingDid: resolvingDid,
+        currentDid: currentDid,
+        previousDid: previousDid,
+        resolvingDidUrl: resolvingDidUrl,
+        currentState: entry.state,
+        isFirstEntry: isFirstEntry,
+      );
 
       // Update resolved DID Document after processing this entry
       resolvedDidDoc = entry.state;
