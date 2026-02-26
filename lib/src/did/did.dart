@@ -1,4 +1,5 @@
-import '../../ssi.dart';
+import 'did_document/did_document.dart';
+import 'did_resolver.dart';
 
 /// Base class for extended URI functionality.
 ///

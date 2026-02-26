@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../../../ssi.dart';
+import '../../credentials/proof/data_integrity_eddsa_suite.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
+import 'did_webvh_log.dart';
 
 /// Result of witness verification for a DID:WebVH log entry.
 class WitnessVerificationResult {
