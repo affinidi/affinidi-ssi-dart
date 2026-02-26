@@ -92,6 +92,16 @@ void main() {
         expect(parsed.path, '/path');
         expect(parsed.query, 'x=1');
         expect(parsed.fragment, 'frag');
+
+        final didUrl = TestDidUrl(
+          scheme: parsed.scheme,
+          method: parsed.method,
+          methodSpecificId: parsed.methodSpecificId,
+          path: parsed.path,
+          query: parsed.query,
+          fragment: parsed.fragment,
+        );
+        expect(didUrl.queryParameters, {'x': '1'});
       });
     });
 

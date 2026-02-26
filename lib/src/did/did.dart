@@ -35,8 +35,9 @@ abstract class DidUrl {
     this.fragment,
   });
 
-  /// Parses a [DidUrl] from a string.
+  /// Parses a DID URL string and returns its components as a record.
   ///
+  /// Returns a record containing scheme, method, methodSpecificId, path, query, and fragment.
   /// Throws [FormatException] if the string is not a valid DID URL.
   static ({
     String scheme,
