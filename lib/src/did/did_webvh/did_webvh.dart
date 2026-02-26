@@ -48,9 +48,34 @@ class DidWebVhUrl extends DidUrl {
     final scid = didUrl.methodSpecificId.substring(0, colonIndex);
     final encodedUrlString = didUrl.methodSpecificId.substring(colonIndex + 1);
 
-    if (null != InternetAddress.tryParse(encodedUrlString.split(':').first)) {
+    final domainPart = encodedUrlString.split(':').first;
+    final decodedDomainPart = Uri.decodeComponent(domainPart);
+    final decodedHost = decodedDomainPart.split(':').first;
+
+    if (null != InternetAddress.tryParse(domainPart) ||
+        null != InternetAddress.tryParse(decodedDomainPart) ||
+        null != InternetAddress.tryParse(decodedHost)) {
       throw FormatException(
-          'Invalid DID WebVH domain name element  MUST NOT include IP addresses URL: MUST NOT include IP addresses',
+          'Invalid DID WebVH URL: domain MUST NOT be an IP address',
+          didUrlString);
+    }
+
+    // Check for bracketed IPv6 (e.g., [::1])
+    if (domainPart.startsWith('[') || decodedDomainPart.startsWith('[')) {
+      throw FormatException(
+          'Invalid DID WebVH URL: domain MUST NOT be an IPv6 address',
+          didUrlString);
+    }
+
+    if (!decodedHost.contains('.')) {
+      throw FormatException(
+          'Invalid DID WebVH URL: domain must contain at least one dot',
+          didUrlString);
+    }
+
+    if (!RegExp(r'[a-zA-Z0-9]').hasMatch(decodedHost)) {
+      throw FormatException(
+          'Invalid DID WebVH URL: domain must contain at least one alphanumeric character',
           didUrlString);
     }
 

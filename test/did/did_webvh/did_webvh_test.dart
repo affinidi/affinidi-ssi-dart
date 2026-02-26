@@ -113,35 +113,62 @@ void main() {
       );
     });
 
-    test(
-        'should throw FormatException when encodedUrlString contains IPv4 address',
-        () {
-      expect(
-        () => DidWebVhUrl.fromUrlString('did:webvh:scid123:192.168.1.1'),
-        throwsFormatException,
-      );
+    group('IP address validation', () {
+      final invalidIpCases = [
+        ('192.168.1.1', 'IPv4 address'),
+        ('[::1]', 'bracketed IPv6'),
+        ('192.168.1.1%3A8080', 'IPv4 with percent-encoded port'),
+        ('127.0.0.1', 'localhost IPv4'),
+        ('0.0.0.0', 'zero IPv4'),
+        ('2130706433', 'IPv4 in decimal'),
+        ('2130706433%3A8080', 'IPv4 in decimal with percent-encoded port'),
+      ];
+
+      for (final (domain, description) in invalidIpCases) {
+        test('should throw FormatException when domain is $description', () {
+          expect(
+            () => DidWebVhUrl.fromUrlString('did:webvh:scid123:$domain'),
+            throwsFormatException,
+          );
+        });
+      }
     });
 
-    test(
-        'should throw FormatException when encodedUrlString contains IPv6 address',
-        () {
-      expect(
-        () => DidWebVhUrl.fromUrlString(
-            'did:webvh:scid123:2001:0db8:85a3:0000:0000:8a2e:0370:7334'),
-        throwsFormatException,
-      );
+    group('domain format validation', () {
+      final invalidDomainCases = [
+        ('localhost', 'no dot'),
+        ('example', 'single segment without dot'),
+        ('...', 'only dots no alphanumeric'),
+      ];
+
+      for (final (domain, description) in invalidDomainCases) {
+        test('should throw FormatException when domain has $description', () {
+          expect(
+            () => DidWebVhUrl.fromUrlString('did:webvh:scid123:$domain'),
+            throwsFormatException,
+          );
+        });
+      }
     });
 
-    test('should parse valid domain name in encodedUrlString', () {
-      final didWebVh =
-          DidWebVhUrl.fromUrlString('did:webvh:scid123:example.com');
-      expect(didWebVh.encodedUrlString, equals('example.com'));
-    });
+    group('valid domain names', () {
+      final validDomainCases = [
+        ('example.com', 'simple domain'),
+        ('192.168.1.1.example.com', 'domain starting with IP-like pattern'),
+        ('sub.example.com', 'subdomain'),
+        ('example.co.uk', 'multi-part TLD'),
+        ('com.', 'tLD'),
+        ('localhost.', 'localhost with trailing dot'),
+        ('example.com:8080', 'domain with port'),
+      ];
 
-    test('should parse domain name starting with IP-like pattern', () {
-      final didWebVh = DidWebVhUrl.fromUrlString(
-          'did:webvh:scid123:192.168.1.1.example.com');
-      expect(didWebVh.encodedUrlString, equals('192.168.1.1.example.com'));
+      for (final (domain, description) in validDomainCases) {
+        test('should parse $description', () {
+          final didWebVh =
+              DidWebVhUrl.fromUrlString('did:webvh:scid123:$domain');
+          expect(didWebVh.encodedUrlString, equals(domain));
+        });
+      }
     });
   });
 
