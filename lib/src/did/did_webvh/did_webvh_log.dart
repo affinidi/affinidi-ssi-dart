@@ -5,8 +5,9 @@ import 'package:base_codecs/base_codecs.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../../../ssi.dart';
 import '../../digest_utils.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
 
 /// Downloads a document from the specified URL and returns the response body.
 ///

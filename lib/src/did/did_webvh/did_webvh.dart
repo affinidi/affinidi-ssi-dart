@@ -1,7 +1,11 @@
 import 'package:http/http.dart' as http;
 
-import '../../../ssi.dart';
+import '../../exceptions/ssi_exception.dart';
+import '../../exceptions/ssi_exception_type.dart';
 import '../did.dart';
+import '../did_document/did_document.dart';
+import '../did_resolver.dart';
+import 'did_webvh_log.dart';
 
 /// Represents a DID URL for the 'webvh' method, with support for SCID and encoded URL string.
 ///
