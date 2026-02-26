@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../ssi.dart';
 import '../did.dart';
+import 'dart:io';
 
 /// Represents a DID URL for the 'webvh' method, with support for SCID and encoded URL string.
 ///
@@ -46,6 +47,12 @@ class DidWebVhUrl extends DidUrl {
 
     final scid = didUrl.methodSpecificId.substring(0, colonIndex);
     final encodedUrlString = didUrl.methodSpecificId.substring(colonIndex + 1);
+
+    if (null != InternetAddress.tryParse(encodedUrlString.split(':').first)) {
+      throw FormatException(
+          'Invalid DID WebVH domain name element  MUST NOT include IP addresses URL: MUST NOT include IP addresses',
+          didUrlString);
+    }
 
     if (scid.isEmpty) {
       throw FormatException(

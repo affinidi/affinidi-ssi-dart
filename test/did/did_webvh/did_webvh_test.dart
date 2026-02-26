@@ -112,6 +112,37 @@ void main() {
         )),
       );
     });
+
+    test(
+        'should throw FormatException when encodedUrlString contains IPv4 address',
+        () {
+      expect(
+        () => DidWebVhUrl.fromUrlString('did:webvh:scid123:192.168.1.1'),
+        throwsFormatException,
+      );
+    });
+
+    test(
+        'should throw FormatException when encodedUrlString contains IPv6 address',
+        () {
+      expect(
+        () => DidWebVhUrl.fromUrlString(
+            'did:webvh:scid123:2001:0db8:85a3:0000:0000:8a2e:0370:7334'),
+        throwsFormatException,
+      );
+    });
+
+    test('should parse valid domain name in encodedUrlString', () {
+      final didWebVh =
+          DidWebVhUrl.fromUrlString('did:webvh:scid123:example.com');
+      expect(didWebVh.encodedUrlString, equals('example.com'));
+    });
+
+    test('should parse domain name starting with IP-like pattern', () {
+      final didWebVh = DidWebVhUrl.fromUrlString(
+          'did:webvh:scid123:192.168.1.1.example.com');
+      expect(didWebVh.encodedUrlString, equals('192.168.1.1.example.com'));
+    });
   });
 
   group('DidWebVhUrl.toDidUrlString', () {
@@ -591,8 +622,8 @@ void main() {
     test('should handle whitespace-only lines', () {
       final jsonLines = '''
 {"versionId":"1-QmHash","versionTime":"2024-04-05T07:32:58Z","parameters":{"method":"did:webvh:1.0"},"state":{"@context": ["https://www.w3.org/ns/did/v1"],"id":"did:webvh:scid:example.com"},"proof":[]}
-   
-	
+
+
 {"versionId":"2-QmHash","versionTime":"2024-04-05T08:00:00Z","parameters":{},"state":{"@context": ["https://www.w3.org/ns/did/v1"],"id":"did:webvh:scid:example.com"},"proof":[]}
 ''';
 
