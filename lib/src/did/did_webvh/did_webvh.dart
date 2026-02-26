@@ -14,7 +14,7 @@ class DidWebVhUrl extends DidUrl {
   String encodedUrlString;
 
   /// Constructs a [DidWebVhUrl] with the given components.
-  DidWebVhUrl({
+  DidWebVhUrl._({
     required super.scheme,
     required super.method,
     required super.methodSpecificId,
@@ -23,7 +23,7 @@ class DidWebVhUrl extends DidUrl {
     super.path,
     super.query,
     super.fragment,
-  });
+  }) : super.internal();
 
   /// Parses a [DidWebVhUrl] from a string.
   ///
@@ -75,7 +75,7 @@ class DidWebVhUrl extends DidUrl {
           code: SsiExceptionType.invalidDidWebVh.code);
     }
 
-    return DidWebVhUrl(
+    return DidWebVhUrl._(
       scheme: didUrl.scheme,
       method: didUrl.method,
       methodSpecificId: didUrl.methodSpecificId,
