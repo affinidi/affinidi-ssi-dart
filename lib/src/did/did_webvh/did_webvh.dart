@@ -123,7 +123,8 @@ class DidWebVhUrl extends DidUrl {
   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
       resolveDid([DidResolutionOptions? options]) async {
     final nnOptions = options ?? {};
-    final didWebVhLog1 = await downloadWebVhLog();
+    final http.Client? client = nnOptions['httpClient'];
+    final didWebVhLog1 = await downloadWebVhLog(client);
     for (var entry in queryParameters.entries) {
       if (!nnOptions.keys.contains(entry.key)) {
         nnOptions[entry.key] = entry.value;

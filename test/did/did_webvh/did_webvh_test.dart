@@ -1678,7 +1678,7 @@ void main() {
 
     test('temp test 3 - get did from web and verify', () async {
       final did1 =
-          'did:webvh:scid123:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:add-did-webvh:example:dids:didwebvh:domain-example';
+          'did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob';
 
       // final did2 =
       //     'did:webvh:scid123:identity.foundation:didwebvh-implementations:implementations:affinidi-didwebvh-rs';
