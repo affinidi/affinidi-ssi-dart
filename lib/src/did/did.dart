@@ -1,15 +1,11 @@
 import '../../ssi.dart';
-
-/// Base class for extended URI functionality.
-///
-/// This class can be extended to provide additional URI-related utilities.
-abstract class UriX {}
+import 'package:meta/meta.dart';
 
 /// Represents a Decentralized Identifier (DID) URL.
 ///
 /// A DID URL consists of a scheme, method, method-specific-id, and optional path, query, and fragment.
 /// Provides parsing, stringification, and query parameter utilities for DID URLs.
-class DidUrl extends UriX {
+abstract class DidUrl {
   /// The URI scheme, typically 'did'.
   String scheme;
 
@@ -29,7 +25,8 @@ class DidUrl extends UriX {
   String? fragment;
 
   /// Constructs a [DidUrl] with the given components.
-  DidUrl({
+  @protected
+  DidUrl.internal({
     required this.scheme,
     required this.method,
     required this.methodSpecificId,
@@ -38,17 +35,18 @@ class DidUrl extends UriX {
     this.fragment,
   });
 
-  /// Returns the query parameters as a map.
+  /// Parses a DID URL string and returns its components as a record.
   ///
-  /// If [query] is null, returns an empty map.
-  Map<String, String> get queryParameters =>
-      query != null ? Uri.splitQueryString(query!) : {};
-
-  /// Parses a [DidUrl] from a string.
-  ///
+  /// Returns a record containing scheme, method, methodSpecificId, path, query, and fragment.
   /// Throws [FormatException] if the string is not a valid DID URL.
-  factory DidUrl.fromUrlString(String urlString) {
-    // DID URL format: did:method:method-specific-id[/path][?query][#fragment]
+  static ({
+    String scheme,
+    String method,
+    String methodSpecificId,
+    String? path,
+    String? query,
+    String? fragment,
+  }) fromUrlString(String urlString) {
     if (!urlString.startsWith('did:')) {
       throw FormatException(
           'Invalid DID URL: must start with "did:"', urlString);
@@ -103,8 +101,7 @@ class DidUrl extends UriX {
         urlString,
       );
     }
-
-    return DidUrl(
+    return (
       scheme: 'did',
       method: method,
       methodSpecificId: methodSpecificId,
@@ -113,6 +110,12 @@ class DidUrl extends UriX {
       fragment: fragment,
     );
   }
+
+  /// Returns the query parameters as a map.
+  ///
+  /// If [query] is null, returns an empty map.
+  Map<String, String> get queryParameters =>
+      query != null ? Uri.splitQueryString(query!) : {};
 
   /// Returns the base DID string (without path, query, or fragment).
   String toDidString() {
