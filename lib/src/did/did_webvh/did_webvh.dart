@@ -2,7 +2,6 @@ import 'package:http/http.dart' as http;
 
 import '../../../ssi.dart';
 import '../did.dart';
-import 'dart:io';
 
 /// Represents a DID URL for the 'webvh' method, with support for SCID and encoded URL string.
 ///
@@ -31,81 +30,17 @@ class DidWebVhUrl extends DidUrl {
   /// Throws [SsiException] or [FormatException] if the string is not a valid DID WebVH URL.
   factory DidWebVhUrl.fromUrlString(String didUrlString) {
     final didUrl = DidUrl.fromUrlString(didUrlString);
-    if (didUrl.method != 'webvh') {
-      throw SsiException(
-          message: 'Unsupported DID method. Expected method: webvh',
-          code: SsiExceptionType.invalidDidWebVh.code);
-    }
-    final colonIndex = didUrl.methodSpecificId.indexOf(':');
-
-    if (colonIndex == -1) {
-      throw FormatException(
-        'Invalid DID WebVH URL: must contain scid and encodedUrlString separated by a colon. Received: $didUrlString',
-        didUrlString,
-      );
-    }
-
-    final scid = didUrl.methodSpecificId.substring(0, colonIndex);
-    final encodedUrlString = didUrl.methodSpecificId.substring(colonIndex + 1);
-
-    final domainPart = encodedUrlString.split(':').first;
-    final decodedDomainPart = Uri.decodeComponent(domainPart);
-    final decodedHost = decodedDomainPart.split(':').first;
-
-    if (null != InternetAddress.tryParse(domainPart) ||
-        null != InternetAddress.tryParse(decodedDomainPart) ||
-        null != InternetAddress.tryParse(decodedHost)) {
-      throw FormatException(
-          'Invalid DID WebVH URL: domain MUST NOT be an IP address',
-          didUrlString);
-    }
-
-    // Check for bracketed IPv6 (e.g., [::1])
-    if (domainPart.startsWith('[') || decodedDomainPart.startsWith('[')) {
-      throw FormatException(
-          'Invalid DID WebVH URL: domain MUST NOT be an IPv6 address',
-          didUrlString);
-    }
-
-    if (!decodedHost.contains('.')) {
-      throw FormatException(
-          'Invalid DID WebVH URL: domain must contain at least one dot',
-          didUrlString);
-    }
-
-    if (!RegExp(r'[a-zA-Z0-9]').hasMatch(decodedHost)) {
-      throw FormatException(
-          'Invalid DID WebVH URL: domain must contain at least one alphanumeric character',
-          didUrlString);
-    }
-
-    if (scid.isEmpty) {
-      throw FormatException(
-          'Invalid DID WebVH URL: scid cannot be empty', didUrlString);
-    }
-    if (encodedUrlString.isEmpty) {
-      throw FormatException(
-        'Invalid DID WebVH URL: encodedUrlString cannot be empty',
-        didUrlString,
-      );
-    }
-
-    final versionQueryParamCount = Uri(
-      host: 'placeholder',
-      query: didUrl.query,
-    )
-        .queryParameters
-        .entries
-        .where((entry) =>
-            ['versionId', 'versionTime', 'versionNumber'].contains(entry.key))
-        .length;
-
-    if (versionQueryParamCount > 1) {
-      throw SsiException(
-          message:
-              'Only one of versionId, versionTime, or versionNumber is allowed in the query parameters',
-          code: SsiExceptionType.invalidDidWebVh.code);
-    }
+    
+    _validateMethod(didUrl.method);
+    
+    final (scid, encodedUrlString) = _validateMethodSpecificId(
+      didUrl.methodSpecificId,
+      didUrlString,
+    );
+    
+    _validateScidAndEncodedUrl(scid, encodedUrlString, didUrlString);
+    _validateDomain(encodedUrlString, didUrlString);
+    _validateVersionQueryParameters(didUrl.query, didUrlString);
 
     return DidWebVhUrl._(
       scheme: didUrl.scheme,
@@ -117,17 +52,6 @@ class DidWebVhUrl extends DidUrl {
       query: didUrl.query,
       fragment: didUrl.fragment,
     );
-  }
-
-  /// Converts the encoded URL string to an HTTPS URL.
-  String toHttpsUrlString() {
-    String urlString = encodedUrlString;
-
-    urlString = urlString.replaceAll(':', '/');
-    urlString = urlString.replaceAll('%3A', ':');
-    urlString = 'https://$urlString';
-
-    return urlString;
   }
 
   /// Returns the HTTPS URL for the JSON log file associated with this DID WebVH URL.
@@ -176,5 +100,120 @@ class DidWebVhUrl extends DidUrl {
       client: client,
     );
     return DidWebVhLog.fromJsonLines(jsonLogFile);
+  }
+
+  /// Converts the encoded URL string to an HTTPS URL.
+  String toHttpsUrlString() {
+    return parseHttpsUrlStringFromEncodedUrlString(encodedUrlString);
+  }
+
+  /// Converts an encoded URL string to an HTTPS URL.
+  ///
+  /// Replaces colons with slashes (except for percent-encoded ":" "%3A" port separators)
+  /// and prepends `https://`.
+  ///
+  /// Example: `"example.com%3A8080:path"` → `"https://example.com:8080/path"`
+  static String parseHttpsUrlStringFromEncodedUrlString(
+      String encodedUrlString) {
+    String urlString = encodedUrlString;
+
+    urlString = urlString.replaceAll(':', '/');
+    urlString = urlString.replaceAll('%3A', ':');
+    urlString = 'https://$urlString';
+
+    return urlString;
+  }
+
+  /// Validates that the DID method is 'webvh'.
+  ///
+  /// Throws [SsiException] if the method is not 'webvh'.
+  static void _validateMethod(String method) {
+    if (method != 'webvh') {
+      throw SsiException(
+          message: 'Unsupported DID method. Expected method: webvh',
+          code: SsiExceptionType.invalidDidWebVh.code);
+    }
+  }
+
+  /// Validates and parses the method-specific ID into SCID and encoded URL string.
+  ///
+  /// Returns a tuple of (scid, encodedUrlString).
+  /// Throws [FormatException] if the method-specific ID is invalid.
+  static (String, String) _validateMethodSpecificId(
+      String methodSpecificId, String didUrlString) {
+    final colonIndex = methodSpecificId.indexOf(':');
+
+    if (colonIndex == -1) {
+      throw FormatException(
+        'Invalid DID WebVH URL: must contain scid and encodedUrlString separated by a colon. Received: $didUrlString',
+        didUrlString,
+      );
+    }
+
+    final scid = methodSpecificId.substring(0, colonIndex);
+    final encodedUrlString = methodSpecificId.substring(colonIndex + 1);
+
+    return (scid, encodedUrlString);
+  }
+
+  /// Validates that SCID and encoded URL string are not empty.
+  ///
+  /// Throws [FormatException] if either is empty.
+  static void _validateScidAndEncodedUrl(
+      String scid, String encodedUrlString, String didUrlString) {
+    if (scid.isEmpty) {
+      throw FormatException(
+          'Invalid DID WebVH URL: scid cannot be empty', didUrlString);
+    }
+    if (encodedUrlString.isEmpty) {
+      throw FormatException(
+        'Invalid DID WebVH URL: encodedUrlString cannot be empty',
+        didUrlString,
+      );
+    }
+  }
+
+  /// Validates that only one version query parameter is present.
+  ///
+  /// Throws [SsiException] if multiple version parameters are present.
+  static void _validateVersionQueryParameters(
+      String? query, String didUrlString) {
+    final versionQueryParamCount = Uri(
+      host: 'placeholder',
+      query: query,
+    )
+        .queryParameters
+        .entries
+        .where((entry) =>
+            ['versionId', 'versionTime', 'versionNumber'].contains(entry.key))
+        .length;
+
+    if (versionQueryParamCount > 1) {
+      throw SsiException(
+          message:
+              'Only one of versionId, versionTime, or versionNumber is allowed in the query parameters',
+          code: SsiExceptionType.invalidDidWebVh.code);
+    }
+  }
+
+  /// Validates the domain part of an encoded URL string.
+  ///
+  /// Throws [FormatException] if the domain is invalid.
+  static void _validateDomain(String encodedUrlString, String didUrlString) {
+    final uriForCheck =
+        Uri.parse(parseHttpsUrlStringFromEncodedUrlString(encodedUrlString));
+
+    final cond1 = RegExp(r'[a-zA-Z]').hasMatch(uriForCheck.host);
+    final cond2 = uriForCheck.host.contains('.');
+    final cond3 = !uriForCheck.host.contains('[') &&
+        !uriForCheck.host.contains(']') &&
+        !uriForCheck.host.contains(':');
+
+    if (!cond1 || !cond2 || !cond3) {
+      throw FormatException(
+        'Invalid DID WebVH URL: not a valid domain name that contains at least one dot and at least one letter, and must not contain brackets or colons. Received: $didUrlString',
+        didUrlString,
+      );
+    }
   }
 }

@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:ssi/ssi.dart';
@@ -1734,7 +1732,7 @@ void main() {
           returnsNormally);
     });
 
-    test('temp test 3 - get did from web and verify', () async {
+    test('should resolve DID from GitHub repo and verify structure', () async {
       final did1 =
           'did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob';
 
@@ -1744,10 +1742,11 @@ void main() {
       final didwebvh = DidWebVhUrl.fromUrlString(did1);
       final (didDoc, didDocMeta, didResMeta) = await didwebvh
           .resolveDid({'skipResolvedDidDocScidVerification': true});
-      print('did url: ${didwebvh.jsonLogFileHttpsUrlString}');
-      print('didDoc: ${didDoc.toString()}');
-      print('didDocMeta: ${didDocMeta.toString()}');
-      print('didResMeta: ${didResMeta.toString()}');
+      expect(didwebvh.jsonLogFileHttpsUrlString,
+          'https://raw.githubusercontent.com/affinidi/affinidi-ssi-dart/refs/heads/main/example/dids/didwebvh/bob/did.jsonl');
+      expect(didDoc.id, equals(did1));
+      expect(didDoc.verificationMethod, isNotEmpty);
+      expect(didDoc.verificationMethod.first.type, 'Multikey');
     });
   });
 }
