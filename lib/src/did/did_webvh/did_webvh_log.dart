@@ -1232,6 +1232,27 @@ class DidWebVhLog {
     }
   }
 
+  /// Validates that a DID document can only be ported when the portable flag is set to true.
+  ///
+  /// This method ensures that any attempt to port a DID document adheres to the
+  /// portability constraint, preventing unauthorized or invalid port operations.
+  ///
+  /// Throws an exception if the DID document is attempted to be ported without
+  /// the portable flag being explicitly enabled.
+  void _didDocCanBePortedOnlyWhenPortableIsTrue(
+      DidDocument prevResolvedDoc,
+      DidDocument currentResolvedDoc,
+      DidWebVhLogEntryParameters activeParameters) {
+    if (prevResolvedDoc.id != currentResolvedDoc.id &&
+        activeParameters.portable != true) {
+      throw SsiException(
+        message:
+            'DID Document ID changed from ${prevResolvedDoc.id} to ${currentResolvedDoc.id} but active portable parameter is not set to true',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+  }
+
   /// Verifies the integrity and validity of the DID log up to a specified version.
   ///
   /// This method validates the log entries according to the webvh specification,
@@ -1314,6 +1335,8 @@ class DidWebVhLog {
         resolutionOptions['skipDefaultServiceAddition'] == true;
     bool skipResolvedDidDocScidVerification =
         resolutionOptions['skipResolvedDidDocScidVerification'] == true;
+    bool skipDidDocPortabilityVerification =
+        resolutionOptions['skipDidDocPortabilityVerification'] == true;
     if (resolutionOptions['resolvingDidUrl'] == null) {
       throw SsiException(
         message: 'resolvingDidUrl must be provided in resolution options',
@@ -1455,9 +1478,17 @@ class DidWebVhLog {
       // Update resolved DID Document after processing this entry
       resolvedDidDoc = entry.state;
 
+      // checks related to resolvedDoc
       // Validate that SCID in resolved DID Document matches active parameters
       if (!skipResolvedDidDocScidVerification) {
         _validateResolvedDidDocScid(resolvedDidDoc, resolvingDidUrl.scid);
+      }
+      // Validate that DID Document can only be ported when portable flag is true
+      if (!isFirstEntry) {
+        if (skipDidDocPortabilityVerification) {
+          _didDocCanBePortedOnlyWhenPortableIsTrue(
+              prevEntry!.state, resolvedDidDoc, activeParameters);
+        }
       }
     }
 
