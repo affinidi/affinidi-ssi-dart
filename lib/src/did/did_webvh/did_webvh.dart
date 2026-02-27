@@ -30,14 +30,14 @@ class DidWebVhUrl extends DidUrl {
   /// Throws [SsiException] or [FormatException] if the string is not a valid DID WebVH URL.
   factory DidWebVhUrl.fromUrlString(String didUrlString) {
     final didUrl = DidUrl.fromUrlString(didUrlString);
-    
+
     _validateMethod(didUrl.method);
-    
+
     final (scid, encodedUrlString) = _validateMethodSpecificId(
       didUrl.methodSpecificId,
       didUrlString,
     );
-    
+
     _validateScidAndEncodedUrl(scid, encodedUrlString, didUrlString);
     _validateDomain(encodedUrlString, didUrlString);
     _validateVersionQueryParameters(didUrl.query, didUrlString);
