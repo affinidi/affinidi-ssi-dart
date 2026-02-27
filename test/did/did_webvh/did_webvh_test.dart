@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:ssi/ssi.dart';
@@ -111,6 +109,64 @@ void main() {
           contains('Only one of versionId, versionTime, or versionNumber'),
         )),
       );
+    });
+
+    group('IP address validation', () {
+      final invalidIpCases = [
+        ('192.168.1.1', 'IPv4 address'),
+        ('[::1]', 'bracketed IPv6'),
+        ('192.168.1.1%3A8080', 'IPv4 with percent-encoded port'),
+        ('127.0.0.1', 'localhost IPv4'),
+        ('0.0.0.0', 'zero IPv4'),
+        ('2130706433', 'IPv4 in decimal'),
+        ('2130706433%3A8080', 'IPv4 in decimal with percent-encoded port'),
+      ];
+
+      for (final (domain, description) in invalidIpCases) {
+        test('should throw FormatException when domain is $description', () {
+          expect(
+            () => DidWebVhUrl.fromUrlString('did:webvh:scid123:$domain'),
+            throwsFormatException,
+          );
+        });
+      }
+    });
+
+    group('domain format validation', () {
+      final invalidDomainCases = [
+        ('localhost', 'no dot'),
+        ('example', 'single segment without dot'),
+        ('...', 'only dots no alphanumeric'),
+      ];
+
+      for (final (domain, description) in invalidDomainCases) {
+        test('should throw FormatException when domain has $description', () {
+          expect(
+            () => DidWebVhUrl.fromUrlString('did:webvh:scid123:$domain'),
+            throwsFormatException,
+          );
+        });
+      }
+    });
+
+    group('valid domain names', () {
+      final validDomainCases = [
+        ('example.com', 'simple domain'),
+        ('192.168.1.1.example.com', 'domain starting with IP-like pattern'),
+        ('sub.example.com', 'subdomain'),
+        ('example.co.uk', 'multi-part TLD'),
+        ('com.', 'tLD'),
+        ('localhost.', 'localhost with trailing dot'),
+        ('example.com:8080', 'domain with port'),
+      ];
+
+      for (final (domain, description) in validDomainCases) {
+        test('should parse $description', () {
+          final didWebVh =
+              DidWebVhUrl.fromUrlString('did:webvh:scid123:$domain');
+          expect(didWebVh.encodedUrlString, equals(domain));
+        });
+      }
     });
   });
 
@@ -591,8 +647,8 @@ void main() {
     test('should handle whitespace-only lines', () {
       final jsonLines = '''
 {"versionId":"1-QmHash","versionTime":"2024-04-05T07:32:58Z","parameters":{"method":"did:webvh:1.0"},"state":{"@context": ["https://www.w3.org/ns/did/v1"],"id":"did:webvh:scid:example.com"},"proof":[]}
-   
-	
+
+
 {"versionId":"2-QmHash","versionTime":"2024-04-05T08:00:00Z","parameters":{},"state":{"@context": ["https://www.w3.org/ns/did/v1"],"id":"did:webvh:scid:example.com"},"proof":[]}
 ''';
 
@@ -1676,7 +1732,7 @@ void main() {
           returnsNormally);
     });
 
-    test('temp test 3 - get did from web and verify', () async {
+    test('should resolve DID from GitHub repo and verify structure', () async {
       final did1 =
           'did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob';
 
@@ -1686,10 +1742,11 @@ void main() {
       final didwebvh = DidWebVhUrl.fromUrlString(did1);
       final (didDoc, didDocMeta, didResMeta) = await didwebvh
           .resolveDid({'skipResolvedDidDocScidVerification': true});
-      print('did url: ${didwebvh.jsonLogFileHttpsUrlString}');
-      print('didDoc: ${didDoc.toString()}');
-      print('didDocMeta: ${didDocMeta.toString()}');
-      print('didResMeta: ${didResMeta.toString()}');
+      expect(didwebvh.jsonLogFileHttpsUrlString,
+          'https://raw.githubusercontent.com/affinidi/affinidi-ssi-dart/refs/heads/main/example/dids/didwebvh/bob/did.jsonl');
+      expect(didDoc.id, equals(did1));
+      expect(didDoc.verificationMethod, isNotEmpty);
+      expect(didDoc.verificationMethod.first.type, 'Multikey');
     });
   });
 }
