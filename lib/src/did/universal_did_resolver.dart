@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../ssi.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import 'did_document/index.dart';
@@ -70,6 +71,9 @@ class UniversalDIDResolver implements DidResolver {
       return DidKey.resolve(did);
     } else if (did.startsWith('did:peer')) {
       return DidPeer.resolve(did);
+    } else if (did.startsWith('did:webvh')) {
+      final (didDoc, _, _) = await DidWebVhUrl.fromUrlString(did).resolveDid();
+      return didDoc;
     } else if (did.startsWith('did:web')) {
       return DidWeb.resolve(did);
     } else {
