@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: ssi
-dependency_overrides:
-  ssi:
-    path: ../../..
