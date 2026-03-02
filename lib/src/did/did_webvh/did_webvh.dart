@@ -33,7 +33,7 @@ class DidWebVhUrl extends DidUrl {
 
     _validateMethod(didUrl.method);
 
-    final (scid, encodedUrlString) = _validateMethodSpecificId(
+    final (scid, encodedUrlString) = _parseMethodSpecificId(
       didUrl.methodSpecificId,
       didUrlString,
     );
@@ -75,9 +75,8 @@ class DidWebVhUrl extends DidUrl {
   /// Resolves the DID document for this DID WebVH URL.
   ///
   /// Downloads the log file and verifies it, returning the DID document and metadata.
-  @override
   Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
-      resolveDid([DidResolutionOptions? options]) async {
+      resolveDidWithMetadata([DidResolutionOptions? options]) async {
     final nnOptions = options ?? {};
     final http.Client? client = nnOptions['httpClient'];
     final didWebVhLog1 = await downloadWebVhLog(client);
@@ -89,6 +88,22 @@ class DidWebVhUrl extends DidUrl {
     nnOptions['resolvingDidUrl'] = this;
     final (doc, dm, rm) = await didWebVhLog1.verify(nnOptions);
     return (doc, dm, rm);
+  }
+
+  /// Resolves the DID document for this DID.
+  ///
+  /// **Parameters:**
+  /// * `options` - Optional [DidResolutionOptions] to customize the resolution process.
+  ///
+  /// **Returns:**
+  /// A [Future] that resolves to the [DidDocument] for this DID.
+  ///
+  /// **Throws:**
+  /// Any exception thrown by [resolveDidWithMetadata] during the resolution process.
+  @override
+  Future<DidDocument> resolve([DidResolutionOptions? options]) async {
+    final (didDoc, _, _) = await resolveDidWithMetadata(options);
+    return didDoc;
   }
 
   /// Downloads the DID WebVH log file and parses it.
@@ -139,7 +154,7 @@ class DidWebVhUrl extends DidUrl {
   ///
   /// Returns a tuple of (scid, encodedUrlString).
   /// Throws [FormatException] if the method-specific ID is invalid.
-  static (String, String) _validateMethodSpecificId(
+  static (String, String) _parseMethodSpecificId(
       String methodSpecificId, String didUrlString) {
     final colonIndex = methodSpecificId.indexOf(':');
 

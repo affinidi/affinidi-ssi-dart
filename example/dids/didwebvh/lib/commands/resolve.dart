@@ -5,7 +5,8 @@ import 'package:ssi/ssi.dart';
 Future<void> resolveDid(String didString, {bool verify = true}) async {
   try {
     final didWebVh = DidWebVhUrl.fromUrlString(didString);
-    final (doc, docMetadata, resolutionMetadata) = await didWebVh.resolveDid(
+    final (doc, docMetadata, resolutionMetadata) =
+        await didWebVh.resolveDidWithMetadata(
       verify
           ? null
           : {

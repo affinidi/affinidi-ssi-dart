@@ -67,14 +67,13 @@ class UniversalDIDResolver implements DidResolver {
   /// - External resolution is required but no resolverAddress was provided
   @override
   Future<DidDocument> resolveDid(String did) async {
-    if (did.startsWith('did:key')) {
+    if (did.startsWith('did:key:')) {
       return DidKey.resolve(did);
-    } else if (did.startsWith('did:peer')) {
+    } else if (did.startsWith('did:peer:')) {
       return DidPeer.resolve(did);
-    } else if (did.startsWith('did:webvh')) {
-      final (didDoc, _, _) = await DidWebVhUrl.fromUrlString(did).resolveDid();
-      return didDoc;
-    } else if (did.startsWith('did:web')) {
+    } else if (did.startsWith('did:webvh:')) {
+      return await DidWebVhUrl.fromUrlString(did).resolve();
+    } else if (did.startsWith('did:web:')) {
       return DidWeb.resolve(did);
     } else {
       if (resolverAddress == null) {

@@ -1741,7 +1741,7 @@ void main() {
 
       final didwebvh = DidWebVhUrl.fromUrlString(did1);
       final (didDoc, didDocMeta, didResMeta) = await didwebvh
-          .resolveDid({'skipResolvedDidDocScidVerification': true});
+          .resolveDidWithMetadata({'skipResolvedDidDocScidVerification': true});
       expect(didwebvh.jsonLogFileHttpsUrlString,
           'https://raw.githubusercontent.com/affinidi/affinidi-ssi-dart/refs/heads/main/example/dids/didwebvh/bob/did.jsonl');
       expect(didDoc.id, equals(did1));

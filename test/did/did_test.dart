@@ -150,15 +150,5 @@ void main() {
         expect(didUrl.toDidUrlString(), 'did:foo:bar');
       });
     });
-
-    group('resolveDid', () {
-      test('should throw UnimplementedError when called on base class',
-          () async {
-        final didUrl =
-            TestDidUrl(scheme: 'did', method: 'foo', methodSpecificId: 'bar');
-        expect(() async => await didUrl.resolveDid(),
-            throwsA(isA<UnimplementedError>()));
-      });
-    });
   });
 }

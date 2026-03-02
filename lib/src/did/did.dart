@@ -138,11 +138,14 @@ abstract class DidUrl {
     return buffer.toString();
   }
 
-  /// Throws [UnimplementedError].
+  /// Resolves the DID document for this DID.
   ///
-  /// Subclasses should override this to implement DID resolution.
-  Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
-      resolveDid([DidResolutionOptions? options]) async {
+  /// Optionally accepts [DidResolutionOptions] to customize the resolution process.
+  ///
+  /// Returns a [Future] that completes with the resolved [DidDocument].
+  ///
+  /// Throws an exception if the DID cannot be resolved.
+  Future<DidDocument> resolve([DidResolutionOptions? options]) async {
     throw UnimplementedError(
         'resolveDid() is not implemented in the base DidUrl class. '
         'DID resolution must be implemented by method-specific subclasses.');
