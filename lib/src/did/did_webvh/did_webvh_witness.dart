@@ -144,14 +144,12 @@ class DidWebVhWitnessVerifier {
   Future<WitnessVerificationResult> verify({
     required DidWebVhLogEntry entry,
     required List<DidWebVhWitness> witnessProofs,
-    required Map<String, dynamic> witnessConfig,
+    required WitnessParameter witnessConfig,
   }) async {
     // Extract witness configuration
-    final threshold = witnessConfig['threshold'] as int? ?? 0;
-    final witnessesArray = witnessConfig['witnesses'] as List<dynamic>? ?? [];
-    final authorizedWitnessDids = witnessesArray
-        .map((w) => (w as Map<String, dynamic>)['id'] as String)
-        .toSet();
+    final threshold = witnessConfig.threshold ?? 0;
+    final witnessesArray = witnessConfig.witnesses ?? [];
+    final authorizedWitnessDids = witnessesArray.map((w) => w.id).toSet();
 
     // Threshold MUST be between 1 and the number of items in the witnesses array
     if (threshold < 1) {

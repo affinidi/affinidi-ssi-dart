@@ -50,6 +50,261 @@ Future<String> downloadDocument(
   }
 }
 
+final _WebVhDateFormat = DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'');
+
+/// A Data Integrity proof attached to a DID WebVH log entry.
+///
+/// Each log entry carries one or more proofs that cryptographically bind the
+/// entry content to an authorized update key. The proof type MUST be
+/// `"DataIntegrityProof"` and the cryptosuite MUST be `"eddsa-jcs-2022"` as
+/// required by the did:webvh:1.0 specification.
+class DidWebVhLogEntryProof {
+  /// Optional identifier for this proof (URI string).
+  ///
+  /// May be used to reference the proof from external documents. Not required
+  /// by the did:webvh specification.
+  final String? id;
+
+  /// The type of the proof. MUST be `"DataIntegrityProof"`.
+  final String type;
+
+  /// The cryptographic suite used to generate the proof.
+  ///
+  /// MUST be `"eddsa-jcs-2022"` as required by the did:webvh:1.0 specification.
+  /// This suite uses EdDSA signatures over JCS-canonicalized content.
+  ///
+  /// Note: the field name has a typo in the spec (`cyrptosuite` instead of
+  /// `cryptosuite`) and is preserved here for wire-format compatibility.
+  final String cryptosuite;
+
+  /// The purpose of this proof. MUST be `"assertionMethod"`.
+  ///
+  /// Declares the relationship between the signing key and the subject,
+  /// confirming the key is used in its assertionMethod capacity.
+  final String proofPurpose;
+
+  /// The multibase-encoded EdDSA signature bytes.
+  ///
+  /// Contains the base58-btc encoded signature over the JCS-canonicalized
+  /// log entry (with the proof field removed).
+  final String proofValue;
+
+  /// The verification method used to sign the entry.
+  ///
+  /// References the public key that produced the [proofValue]. For did:webvh
+  /// log entries the value is `"assertionMethod"`, which is resolved against
+  /// the active `updateKeys` to confirm the signing key is authorized.
+  final String verificationMethod;
+
+  /// Optional UTC timestamp indicating when the proof was created.
+  ///
+  /// When present, formatted as `"yyyy-MM-ddTHH:mm:ssZ"` (ISO 8601, UTC only).
+  final DateTime? created;
+
+  /// Optional UTC timestamp after which the proof is no longer valid.
+  ///
+  /// When present, formatted as `"yyyy-MM-ddTHH:mm:ssZ"` (ISO 8601, UTC only).
+  /// Resolvers MAY reject proofs whose expiry has passed.
+  final DateTime? expires;
+
+  /// Creates a [DidWebVhLogEntryProof] with the given proof fields.
+  ///
+  /// - [id]: Optional URI identifier for the proof.
+  /// - [type]: Proof type; must be `"DataIntegrityProof"`.
+  /// - [cryptosuite]: Cryptographic suite; must be `"eddsa-jcs-2022"`.
+  /// - [proofPurpose]: Proof purpose; must be `"assertionMethod"`.
+  /// - [proofValue]: Multibase-encoded EdDSA signature.
+  /// - [verificationMethod]: Reference to the signing key.
+  /// - [created]: Optional timestamp when the proof was created.
+  /// - [expires]: Optional timestamp after which the proof expires.
+  DidWebVhLogEntryProof({
+    this.id,
+    required this.type,
+    required this.cryptosuite,
+    required this.proofPurpose,
+    required this.proofValue,
+    required this.verificationMethod,
+    this.created,
+    this.expires,
+  });
+
+  /// Creates a [DidWebVhLogEntryProof] from a JSON map.
+  ///
+  /// Validates that [type] is `"DataIntegrityProof"`, [cryptosuite] is
+  /// `"eddsa-jcs-2022"`, and [verificationMethod] is `"assertionMethod"`.
+  ///
+  /// Throws [SsiException] if any required field has an unexpected value.
+  factory DidWebVhLogEntryProof.fromJson(Map<String, dynamic> json) {
+    final pType = json['type'] as String?;
+    if (pType != 'DataIntegrityProof') {
+      throw SsiException(
+        message: 'Invalid proof type: $pType. Expected "DataIntegrityProof".',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    // TODO: When we add older spec version resolution support, we will need to check the cryptosuite value
+    // and use the appropriate verifier for that spec version. For now, we will just check that the cryptosuite
+    // is eddsa-jcs-2022 as that is the only supported cryptosuite in did:webvh:1.0 spec.
+
+    final pCryptoSuite = json['cryptosuite'] as String?;
+    if (pCryptoSuite != 'eddsa-jcs-2022') {
+      throw SsiException(
+        message:
+            'Invalid cryptosuite: $pCryptoSuite. Expected "eddsa-jcs-2022".',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    final pProofPurpose = json['proofPurpose'] as String?;
+    if (pProofPurpose != 'assertionMethod') {
+      throw SsiException(
+        message:
+            'Invalid proof purpose: $pProofPurpose. Expected "assertionMethod".',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+
+    return DidWebVhLogEntryProof(
+      id: json['id'] as String?,
+      type: pType!,
+      cryptosuite: pCryptoSuite!,
+      proofPurpose: pProofPurpose!,
+      proofValue: json['proofValue'] as String,
+      verificationMethod: json['verificationMethod'] as String,
+      created: json['created'] != null
+          ? _WebVhDateFormat.parse(json['created'] as String)
+          : null,
+      expires: json['expires'] != null
+          ? _WebVhDateFormat.parse(json['expires'] as String)
+          : null,
+    );
+  }
+
+  /// Serializes this proof to a JSON map suitable for inclusion in a log entry.
+  ///
+  /// Optional fields ([id], [created], [expires]) are omitted when null.
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) 'id': id!,
+      'type': type,
+      'cryptosuite': cryptosuite,
+      'proofPurpose': proofPurpose,
+      'proofValue': proofValue,
+      'verificationMethod': verificationMethod,
+      if (created != null) 'created': _WebVhDateFormat.format(created!),
+      if (expires != null) 'expires': _WebVhDateFormat.format(expires!),
+    };
+  }
+}
+
+/// A single witness identified by their DID.
+///
+/// Witnesses are external parties that co-sign DID log entries to provide
+/// additional assurance about the validity of DID updates. When witnessing
+/// is active (configured via [WitnessParameter]), a threshold number of
+/// witnesses from the authorized list must provide proofs for each entry.
+class Witness {
+  /// The DID of this witness (e.g., `"did:key:z6Mk..."`).
+  ///
+  /// Used to look up and verify witness proofs attached to log entries.
+  final String id;
+
+  /// Creates a [Witness] with the given [id].
+  ///
+  /// - [id]: The DID identifying the witness.
+  Witness({
+    required this.id,
+  });
+
+  /// Creates a [Witness] from a JSON map.
+  ///
+  /// Expects a map with an `"id"` key whose value is the witness DID string.
+  ///
+  /// Throws [TypeError] if the `"id"` field is missing or not a string.
+  factory Witness.fromJson(Map<String, dynamic> json) {
+    return Witness(
+      id: json['id'] as String,
+    );
+  }
+
+  /// Serializes this witness to a JSON map.
+  ///
+  /// Returns `{"id": "<did>"}`.
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+    };
+  }
+}
+
+/// Represents a witness parameter used in the DID WebVH log verification process.
+///
+/// This class encapsulates the parameters associated with a witness that validates
+/// the integrity and authenticity of entries in the WebVH (Web Verifiable History) log.
+class WitnessParameter {
+  /// The minimum number of witnesses required to approve a DID log entry update.
+  ///
+  /// When witnessing is active, at least this many witnesses from the [witnesses]
+  /// list must provide valid proofs for the entry to be considered valid.
+  /// A threshold of 0 or null means witnessing is not enforced.
+  final int? threshold;
+
+  /// The list of witnesses authorized to attest to DID log entry updates.
+  ///
+  /// Each witness is identified by their DID. When [threshold] is set, at least
+  /// that many witnesses from this list must sign each log entry for it to be valid.
+  final List<Witness>? witnesses;
+
+  /// A parameter object for witness configuration.
+  ///
+  /// Contains the necessary information to configure and initialize a witness
+  /// in the DID WebVH log system.
+  WitnessParameter({
+    this.threshold,
+    this.witnesses,
+  });
+
+  /// Creates a [WitnessParameter] instance from a JSON map.
+  ///
+  /// The JSON map should contain the necessary fields to construct a valid
+  /// [WitnessParameter] object.
+  ///
+  /// Parameters:
+  ///   * `json`: A map containing the JSON data to deserialize.
+  ///
+  /// Returns:
+  ///   A new [WitnessParameter] instance populated with data from the JSON map.
+  factory WitnessParameter.fromJson(Map<String, dynamic> json) {
+    return WitnessParameter(
+      threshold: json['threshold'] as int?,
+      witnesses: (json['witnesses'] as List<dynamic>?)
+          ?.map((e) => Witness.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  /// Converts this object to a JSON representation.
+  ///
+  /// Returns a [Map] containing the JSON-serializable representation of this object.
+  Map<String, dynamic> toJson() {
+    return {
+      if (threshold != null) 'threshold': threshold,
+      if (witnesses != null)
+        'witnesses': witnesses!.map((w) => w.toJson()).toList(),
+    };
+  }
+
+  /// Returns true if the log contains one or more entries.
+  bool get isNotEmpty =>
+      (witnesses?.isNotEmpty ?? false) || (threshold != null);
+}
+
+/// Parameters for a DID WebVH log entry that control DID processing and verification.
+///
+/// All log entries contain this JSON object defining the DID processing parameters
+/// used by the DID Controller when publishing the current and subsequent log entries.
+
 /// Parameters for a DID WebVH log entry that control DID processing and verification.
 ///
 /// All log entries contain this JSON object defining the DID processing parameters
@@ -104,7 +359,7 @@ class DidWebVhLogEntryParameters {
   /// - If updated from {}, the change is immediately active and the entry MUST be witnessed
   /// - MAY be set to {} to indicate witnesses are not (or no longer) being used
   /// - If witnesses are active when set to {}, that log entry MUST be witnessed
-  final Map<String, dynamic>? witness;
+  final WitnessParameter? witness;
 
   /// array of watcher URLs that monitor and cache the DID's state.
   ///
@@ -182,7 +437,9 @@ class DidWebVhLogEntryParameters {
       nextKeyHashes: (json['nextKeyHashes'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
-      witness: json['witness'] as Map<String, dynamic>?,
+      witness: json['witness'] != null
+          ? WitnessParameter.fromJson(json['witness'] as Map<String, dynamic>)
+          : null,
       watchers: (json['watchers'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
@@ -230,7 +487,7 @@ class DidWebVhLogEntry {
   ///
   /// Signed by a key authorized to update the DIDDoc.
   /// Must use proofPurpose set to "assertionMethod".
-  final List<Map<String, dynamic>> proof;
+  final List<DidWebVhLogEntryProof> proof;
 
   DidWebVhLogEntry._({
     required this.versionId,
@@ -256,19 +513,15 @@ class DidWebVhLogEntry {
     try {
       // FIXME: This versionTime format is subject to change based on the final spec. second-fractional digits may be added as an optional component
       // If the versionTime format changes, this parsing logic will need to be updated accordingly.
-      entryVersionTime = DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'')
-          .parseUTC(json['versionTime'] as String);
+      entryVersionTime =
+          _WebVhDateFormat.parseUTC(json['versionTime'] as String);
     } on FormatException catch (e) {
       throw SsiDidResolutionException(
           message:
               'Invalid DID WebVh Log Entry versionTime format. versionTime must be in ISO8601 format (e.g., "2024-04-05T07:32:58Z") in entry with versionId $entryVersionId',
           code: SsiExceptionType.invalidDidWebVh.code,
           originalMessage: e.message,
-          resolutionMetadata: {
-            'error': 'invalidDid',
-            'message':
-                'Invalid DID WebVh Log Entry versionTime format. versionTime must be in ISO8601 format (e.g., "2024-04-05T07:32:58Z") in entry with versionId $entryVersionId',
-          });
+          resolutionMetadata: DidWebVhResolutionMetadata(problemDetails: ''));
     }
 
     return DidWebVhLogEntry._(
@@ -278,7 +531,7 @@ class DidWebVhLogEntry {
           Map<String, dynamic>.from(json['parameters'] as Map)),
       state: DidDocument.fromJson(json['state'] as Map<String, dynamic>),
       proof: (json['proof'] as List)
-          .map((e) => e as Map<String, dynamic>)
+          .map((e) => DidWebVhLogEntryProof.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
   }
@@ -292,18 +545,25 @@ class DidWebVhLogEntry {
   /// - [newVersionId]: The versionId value to use in the returned map (e.g., "{SCID}" or a previous versionId).
   ///
   /// Returns a map suitable for canonicalization and hashing.
-  Map<String, Object> buildMapFromEntryWithVersionIdAndStrippedProof(
+  Map<String, dynamic> buildMapFromEntryWithVersionIdAndStrippedProof(
       String newVersionId) {
+    final result = toJson();
+    result.remove('proof');
+    result['versionId'] = newVersionId;
+    return result;
+  }
+
+  Map<String, dynamic> toJson() {
     return {
-      'versionId': newVersionId,
-      'versionTime': DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'').format(versionTime),
+      'versionId': versionId,
+      'versionTime': _WebVhDateFormat.format(versionTime),
       'parameters': {
         if (parameters.method != null) 'method': parameters.method!,
         if (parameters.scid != null) 'scid': parameters.scid!,
         if (parameters.updateKeys != null) 'updateKeys': parameters.updateKeys!,
         if (parameters.nextKeyHashes != null)
           'nextKeyHashes': parameters.nextKeyHashes!,
-        if (parameters.witness != null) 'witness': parameters.witness!,
+        if (parameters.witness != null) 'witness': parameters.witness!.toJson(),
         if (parameters.watchers != null) 'watchers': parameters.watchers!,
         if (parameters.portable != null) 'portable': parameters.portable!,
         if (parameters.deactivated != null)
@@ -311,6 +571,7 @@ class DidWebVhLogEntry {
         if (parameters.ttl != null) 'ttl': parameters.ttl!,
       },
       'state': state.toJson(),
+      'proof': proof.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -490,11 +751,7 @@ class DidWebVhLog {
         message:
             'Version timestamp ${currentEntry.versionTime.toIso8601String()} is after the resolution time ${resolutionTime.toIso8601String()}',
         code: SsiExceptionType.invalidDidWebVh.code,
-        resolutionMetadata: {
-          'error': 'invalidDid',
-          'message':
-              'Version timestamp ${currentEntry.versionTime.toIso8601String()} is after the resolution time ${resolutionTime.toIso8601String()}',
-        },
+        resolutionMetadata: DidWebVhResolutionMetadata(problemDetails: ''),
       );
     }
     if (previousEntry != null) {
@@ -505,11 +762,7 @@ class DidWebVhLog {
           message:
               'Version timestamps must be strictly ascending. Entry $versionNum has invalid timestamp',
           code: SsiExceptionType.invalidDidWebVh.code,
-          resolutionMetadata: {
-            'error': 'invalidDid',
-            'message':
-                'Version timestamps must be strictly ascending. Entry $versionNum has invalid timestamp',
-          },
+          resolutionMetadata: DidWebVhResolutionMetadata(problemDetails: ''),
         );
       }
     }
@@ -524,63 +777,60 @@ class DidWebVhLog {
   /// - Multiple version parameters are provided
   /// - The specified version is not found in the log
   /// - No entries exist at or before the specified versionTime
-  int _determineVerificationBoundary(DidResolutionOptions? resolutionOptions) {
+  int _determineVerificationBoundary(
+      DidWebVhResolutionOptions? resolutionOptions) {
     int verifyUpToIndex = entries.length - 1;
 
-    if (resolutionOptions != null) {
-      // Check that only one version parameter is provided
-      final versionParams = ['versionId', 'versionNumber', 'versionTime'];
-      final providedParams =
-          versionParams.where((p) => resolutionOptions.containsKey(p)).toList();
+    var providedParametersCount = 0;
+    resolutionOptions?.versionId != null ? providedParametersCount++ : null;
+    resolutionOptions?.versionNumber != null ? providedParametersCount++ : null;
+    resolutionOptions?.versionTime != null ? providedParametersCount++ : null;
 
-      if (providedParams.length > 1) {
+    if (providedParametersCount > 1) {
+      throw SsiException(
+        message:
+            'Only one of versionId, versionNumber, or versionTime can be specified',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
+    }
+    if (resolutionOptions?.versionId != null) {
+      final targetVersionId = resolutionOptions!.versionId;
+      final index = entries.indexWhere((e) => e.versionId == targetVersionId);
+      if (index == -1) {
         throw SsiException(
-          message:
-              'Only one of versionId, versionNumber, or versionTime can be specified',
+          message: 'versionId $targetVersionId not found in log',
           code: SsiExceptionType.invalidDidWebVh.code,
         );
       }
-
-      if (resolutionOptions.containsKey('versionId')) {
-        final targetVersionId = resolutionOptions['versionId'] as String;
-        final index = entries.indexWhere((e) => e.versionId == targetVersionId);
-        if (index == -1) {
-          throw SsiException(
-            message: 'versionId $targetVersionId not found in log',
-            code: SsiExceptionType.invalidDidWebVh.code,
-          );
+      verifyUpToIndex = index;
+    } else if (resolutionOptions?.versionNumber != null) {
+      final targetVersionNum = resolutionOptions!.versionNumber;
+      final index =
+          entries.indexWhere((e) => e.versionNumber == targetVersionNum);
+      if (index == -1) {
+        throw SsiException(
+          message: 'versionNumber $targetVersionNum not found in log',
+          code: SsiExceptionType.invalidDidWebVh.code,
+        );
+      }
+      verifyUpToIndex = index;
+    } else if (resolutionOptions?.versionTime != null) {
+      final targetTime = resolutionOptions!.versionTime!;
+      // Find last entry at or before targetTime
+      verifyUpToIndex = -1;
+      for (int i = 0; i < entries.length; i++) {
+        final entryTime = entries[i].versionTime;
+        if (entryTime.isAfter(targetTime)) {
+          break;
         }
-        verifyUpToIndex = index;
-      } else if (resolutionOptions.containsKey('versionNumber')) {
-        final targetVersionNum = resolutionOptions['versionNumber'] as int;
-        final index =
-            entries.indexWhere((e) => e.versionNumber == targetVersionNum);
-        if (index == -1) {
-          throw SsiException(
-            message: 'versionNumber $targetVersionNum not found in log',
-            code: SsiExceptionType.invalidDidWebVh.code,
-          );
-        }
-        verifyUpToIndex = index;
-      } else if (resolutionOptions.containsKey('versionTime')) {
-        final targetTime =
-            DateTime.parse(resolutionOptions['versionTime'] as String);
-        // Find last entry at or before targetTime
-        verifyUpToIndex = -1;
-        for (int i = 0; i < entries.length; i++) {
-          final entryTime = entries[i].versionTime;
-          if (entryTime.isAfter(targetTime)) {
-            break;
-          }
-          verifyUpToIndex = i;
-        }
-        if (verifyUpToIndex == -1) {
-          throw SsiException(
-            message:
-                'No entries found at or before versionTime ${resolutionOptions['versionTime']}',
-            code: SsiExceptionType.invalidDidWebVh.code,
-          );
-        }
+        verifyUpToIndex = i;
+      }
+      if (verifyUpToIndex == -1) {
+        throw SsiException(
+          message:
+              'No entries found at or before versionTime ${resolutionOptions.versionTime}',
+          code: SsiExceptionType.invalidDidWebVh.code,
+        );
       }
     }
 
@@ -985,7 +1235,7 @@ class DidWebVhLog {
   /// ```dart
   /// final entry = entries[0];
   /// final updateKeys = ['z6MkrA8fQayUTmk7E6dfY9N865vJcX5ZkQAKkDPGm1TXiXME'];
-  /// await _proofMustBeValid(entry, updateKeys, {});
+  /// await _proofMustBeValid(entry, updateKeys, DidWebVhResolutionOptions());
   /// ```
   ///
   /// See also:
@@ -994,12 +1244,11 @@ class DidWebVhLog {
   Future<void> _proofMustBeValid(
     DidWebVhLogEntry entry,
     List<String> activeUpdateKeys,
-    DidResolutionOptions options,
+    DidWebVhResolutionOptions options,
   ) async {
-    bool skipProofVerification = options['skipProofVerification'] == true;
+    bool skipProofVerification = options.skipProofVerification == true;
 
-    final skipActiveUpdateKeysCheck =
-        options['skipActiveUpdateKeysCheck'] == true;
+    final skipActiveUpdateKeysCheck = options.skipActiveUpdateKeysCheck == true;
 
     // 1. Validate proof structure
     if (entry.proof.isEmpty) {
@@ -1015,46 +1264,19 @@ class DidWebVhLog {
     final documentToVerify =
         entry.buildMapFromEntryWithVersionIdAndStrippedProof(entry.versionId);
 
-    documentToVerify['proof'] = proof;
+    documentToVerify['proof'] = proof.toJson();
 
-    // Validate required proof fields before using them
-    if (proof['cryptosuite'] == null ||
-        proof['verificationMethod'] == null ||
-        proof['proofValue'] == null ||
-        proof['proofPurpose'] == null) {
-      throw SsiException(
-        message:
-            'Missing required fields (cryptosuite, verificationMethod, proofValue, proofPurpose) in proof',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-
-    final verificationMethod = proof['verificationMethod'] as String;
+    // final verificationMethod = proof['verificationMethod'] as String;
+    final verificationMethod = proof.verificationMethod;
     final verifierDidKey = verificationMethod.contains('#')
         ? verificationMethod.split('#').first
         : verificationMethod;
-
-    // TODO: When we add older spec version resolution support, we will need to check the cryptosuite value
-    // and use the appropriate verifier for that spec version. For now, we will just check that the cryptosuite
-    // is eddsa-jcs-2022 as that is the only supported cryptosuite in did:webvh:1.0 spec.
-    if (proof['cryptosuite'] != 'eddsa-jcs-2022') {
-      throw SsiException(
-        message:
-            'Unsupported cryptosuite: ${proof['cryptosuite']}. Expected eddsa-jcs-2022 as per DID WebVH specification.',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-
-    if (proof['proofPurpose'] != 'assertionMethod') {
-      throw SsiException(
-        message:
-            'proofPurpose ${proof['proofPurpose']} is not valid. Expected assertionMethod as per DID WebVH specification.',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
+    // final verifierDidUrl = DidUrl.fromUrlString(proof.verificationMethod);
+    // final verifierDidKey='${verifierDidUrl.scheme}:${verifierDidUrl.method}:${verifierDidUrl.methodSpecificId}';
 
     // // 11. Validate that signing key is in updateKeys
     final publicKeyMultibase = verifierDidKey.replaceAll('did:key:', '');
+    // final publicKeyMultibase = verifierDidUrl.methodSpecificId;
 
     if (!skipActiveUpdateKeysCheck) {
       if (!activeUpdateKeys.contains(publicKeyMultibase)) {
@@ -1079,12 +1301,9 @@ class DidWebVhLog {
           message:
               'Signature verification failed for entry version ${entry.versionNumber}',
           code: SsiExceptionType.invalidDidWebVh.code,
-          resolutionMetadata: {
-            'error': 'invalidDidWebVh',
-            'message':
-                'Signature verification failed for entry version ${entry.versionNumber}',
-            'problemDetails': result.errors
-          },
+          resolutionMetadata: DidWebVhResolutionMetadata(
+            problemDetails: result.errors.toString(),
+          ),
         );
       }
     }
@@ -1256,14 +1475,7 @@ class DidWebVhLog {
   /// Verifies the integrity and validity of the DID log up to a specified version.
   ///
   /// This method validates the log entries according to the webvh specification,
-  /// with optional verification boundaries specified through [resolutionOptions].
-  ///
-  /// The [resolutionOptions] parameter supports the following version specifiers:
-  /// - `versionId`: Verifies up to and including the entry with this versionId (e.g., "3-QmHash123")
-  /// - `versionNumber`: Verifies up to and including this version number (e.g., 5)
-  /// - `versionTime`: Verifies up to the last entry at or before this timestamp (e.g., "2024-04-05T10:00:00Z")
-  /// - Only ONE of these parameters should be provided
-  /// - If none provided, verifies the entire log
+  /// with optional verification boundaries specified through [options].
   ///
   /// ## Validations Performed
   ///
@@ -1288,8 +1500,8 @@ class DidWebVhLog {
   ///
   /// Returns a tuple containing:
   /// - [DidDocument]: The resolved DID Document at the specified version
-  /// - [DidDocumentMetadata]: Metadata about the DID Document (null for now)
-  /// - [DidResolutionMetadata]: Metadata about the resolution process (null for now)
+  /// - [DidWebVhDocumentMetadata]: Metadata about the DID Document (e.g., version number, timestamp)
+  /// - [DidWebVhResolutionMetadata]: Metadata about the resolution process
   ///
   /// ## Exceptions
   ///
@@ -1300,53 +1512,60 @@ class DidWebVhLog {
   /// ```dart
   /// final log = DidWebVhLog.fromJsonLines(jsonLines);
   ///
-  /// // Verify entire log (async)
+  /// // Verify entire log
   /// final (didDoc, docMeta, resolutionMeta) = await log.verify();
   ///
   /// // Verify up to version 5
-  /// final result = await log.verify({'versionNumber': 5});
+  /// final (doc, meta, _) = await log.verify(
+  ///   options: DidWebVhResolutionOptions(versionNumber: 5),
+  /// );
   ///
   /// // Verify up to specific versionId
-  /// await log.verify({'versionId': '3-QmHash123'});
+  /// await log.verify(
+  ///   options: DidWebVhResolutionOptions(versionId: '3-z6Mk...'),
+  /// );
   ///
   /// // Verify up to specific timestamp
-  /// await log.verify({'versionTime': '2024-04-05T10:00:00Z'});
+  /// await log.verify(
+  ///   options: DidWebVhResolutionOptions(
+  ///     versionTime: DateTime.parse('2024-04-05T10:00:00Z'),
+  ///   ),
+  /// );
+  ///
+  /// // Skip certain validations for testing
+  /// await log.verify(
+  ///   options: DidWebVhResolutionOptions(
+  ///     skipProofVerification: true,
+  ///     skipWitnessVerification: true,
+  ///   ),
+  /// );
   /// ```
   ///
-  Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)> verify(
-      DidResolutionOptions resolutionOptions) async {
+  Future<(DidDocument, DidWebVhDocumentMetadata, DidWebVhResolutionMetadata)>
+      verify({DidWebVhResolutionOptions? options}) async {
     if (entries.isEmpty) {
       throw SsiException(
         message: 'DID log is empty',
         code: SsiExceptionType.invalidDidWebVh.code,
       );
     }
-    bool skipHashEntryVerification =
-        resolutionOptions['skipHashEntryVerification'] == true;
+
+    bool skipHashEntryVerification = options?.skipHashEntryVerification == true;
     bool skipAllProofRelatedVerification =
-        resolutionOptions['skipAllProofRelatedVerification'] == true;
+        options?.skipAllProofRelatedVerification == true;
     bool skipKeyPreRotationVerification =
-        resolutionOptions['skipKeyPreRotationVerification'] == true;
-    bool skipWitnessVerification =
-        resolutionOptions['skipWitnessVerification'] == true;
-    bool skipScidVerification =
-        resolutionOptions['skipScidVerification'] == true;
+        options?.skipKeyPreRotationVerification == true;
+    bool skipWitnessVerification = options?.skipWitnessVerification == true;
+    bool skipScidVerification = options?.skipScidVerification == true;
     bool skipDefaultServiceAddition =
-        resolutionOptions['skipDefaultServiceAddition'] == true;
+        options?.skipDefaultServiceAddition == true;
     bool skipResolvedDidDocScidVerification =
-        resolutionOptions['skipResolvedDidDocScidVerification'] == true;
+        options?.skipResolvedDidDocScidVerification == true;
     bool skipDidDocPortabilityVerification =
-        resolutionOptions['skipDidDocPortabilityVerification'] == true;
-    if (resolutionOptions['resolvingDidUrl'] == null) {
-      throw SsiException(
-        message: 'resolvingDidUrl must be provided in resolution options',
-        code: SsiExceptionType.invalidDidWebVh.code,
-      );
-    }
-    DidWebVhUrl resolvingDidUrl = resolutionOptions['resolvingDidUrl']!;
+        options?.skipDidDocPortabilityVerification == true;
 
     // Determine verification boundary
-    int verifyUpToIndex = _determineVerificationBoundary(resolutionOptions);
+    int verifyUpToIndex = _determineVerificationBoundary(options);
 
     // Track active parameters for inheritance
     DidWebVhLogEntryParameters activeParameters = DidWebVhLogEntryParameters();
@@ -1356,7 +1575,8 @@ class DidWebVhLog {
     bool witnessingActive = false;
     bool prevWitnessingActive = false;
     DidDocument? resolvedDidDoc;
-    List<Map<String, dynamic>> witnessRequiringVersions = [];
+    List<({String versionId, WitnessParameter activeWitness})>
+        witnessRequiringVersions = [];
     DateTime resolutionTime = DateTime.now().toUtc();
 
     for (int i = 0; i <= verifyUpToIndex; i++) {
@@ -1379,7 +1599,8 @@ class DidWebVhLog {
         updateKeys: params.updateKeys ?? prevActiveParams?.updateKeys,
         nextKeyHashes:
             params.nextKeyHashes ?? prevActiveParams?.nextKeyHashes ?? [],
-        witness: params.witness ?? prevActiveParams?.witness ?? {},
+        witness:
+            params.witness ?? prevActiveParams?.witness ?? WitnessParameter(),
         watchers: params.watchers ?? prevActiveParams?.watchers ?? [],
         portable: params.portable ?? prevActiveParams?.portable ?? false,
         deactivated:
@@ -1439,7 +1660,7 @@ class DidWebVhLog {
         await _proofMustBeValid(
           entry,
           activeUpdateKeys,
-          resolutionOptions,
+          options!,
         );
       }
 
@@ -1449,26 +1670,26 @@ class DidWebVhLog {
       }
       // Update witness active status
       prevWitnessingActive = witnessingActive;
-      witnessingActive = activeParameters.witness!.isNotEmpty;
+      witnessingActive = activeParameters.witness?.isNotEmpty ?? false;
 
       if (witnessingActive && !prevWitnessingActive) {
-        witnessRequiringVersions.add({
-          'versionId': entry.versionId,
-          'activeWitness': jsonDecode(jsonEncode(activeParameters.witness))
-              as Map<String, dynamic>
-        });
+        // activating now, so we need to verify the new active witness
+        witnessRequiringVersions.add((
+          versionId: entry.versionId,
+          activeWitness: activeParameters.witness!
+        ));
       } else if (witnessingActive && prevWitnessingActive) {
-        witnessRequiringVersions.add({
-          'versionId': entry.versionId,
-          'activeWitness': jsonDecode(jsonEncode(prevActiveParams!.witness))
-              as Map<String, dynamic>
-        });
+        // already active, so we need to verify the last active witness
+        witnessRequiringVersions.add((
+          versionId: entry.versionId,
+          activeWitness: prevActiveParams!.witness!
+        ));
       } else if (!witnessingActive && prevWitnessingActive) {
-        witnessRequiringVersions.add({
-          'versionId': entry.versionId,
-          'activeWitness': jsonDecode(jsonEncode(prevActiveParams!.witness))
-              as Map<String, dynamic>
-        });
+        // deactivating now, so we need to verify the last active state
+        witnessRequiringVersions.add((
+          versionId: entry.versionId,
+          activeWitness: prevActiveParams!.witness!
+        ));
       }
 
       // Update prerotation active status
@@ -1481,7 +1702,8 @@ class DidWebVhLog {
       // checks related to resolvedDoc
       // Validate that SCID in resolved DID Document matches active parameters
       if (!skipResolvedDidDocScidVerification) {
-        _validateResolvedDidDocScid(resolvedDidDoc, resolvingDidUrl.scid);
+        _validateResolvedDidDocScid(
+            resolvedDidDoc, options!.resolvingDidUrl!.scid);
       }
       // Validate that DID Document can only be ported when portable flag is true
       if (!isFirstEntry) {
@@ -1497,23 +1719,20 @@ class DidWebVhLog {
         message:
             'Failed to resolve DID Document from log entries - no valid entries found according to query parameters',
         code: SsiExceptionType.invalidDidWebVh.code,
-        resolutionMetadata: {
-          'error': 'invalidDid',
-          'message':
-              'Failed to resolve DID Document from log entries - no valid entries found according to query parameters',
-        },
+        resolutionMetadata: DidWebVhResolutionMetadata(
+          problemDetails: '',
+        ),
       );
     }
 
     if (!skipWitnessVerification && witnessRequiringVersions.isNotEmpty) {
       final witnessProofs = await DidWebVhWitnessVerifier.fetchWitnesses(
-          resolvingDidUrl.witnessUrlString);
+          options!.resolvingDidUrl!.witnessUrlString);
       final verifier = DidWebVhWitnessVerifier();
 
       for (final witnessReq in witnessRequiringVersions) {
-        final versionId = witnessReq['versionId'] as String;
-        final witnessConfig =
-            witnessReq['activeWitness'] as Map<String, dynamic>;
+        final versionId = witnessReq.versionId;
+        final witnessConfig = witnessReq.activeWitness;
 
         // Find the entry with this versionId
         final entry = entries.firstWhere((e) => e.versionId == versionId);
@@ -1542,6 +1761,14 @@ class DidWebVhLog {
       );
     }
 
-    return (resolvedDidDoc, null, null);
+    return (
+      resolvedDidDoc,
+      DidWebVhDocumentMetadata(
+          scid: activeParameters.scid!,
+          versionId: entries[verifyUpToIndex].versionId,
+          versionNumber: entries[verifyUpToIndex].versionNumber,
+          versionTime: entries[verifyUpToIndex].versionTime),
+      DidWebVhResolutionMetadata()
+    );
   }
 }

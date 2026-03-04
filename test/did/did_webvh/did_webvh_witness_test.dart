@@ -260,7 +260,7 @@ void main() {
     // Helper to create a mock log entry
     DidWebVhLogEntry createMockEntry(int versionNumber, String hash) {
       final jsonLines = '''
-{"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
     }
@@ -274,12 +274,8 @@ void main() {
         () async => await verifier.verify(
           entry: entry,
           witnessProofs: [],
-          witnessConfig: {
-            'threshold': 2,
-            'witnesses': [
-              {'id': 'did:key:z6MkWitness1'}
-            ]
-          },
+          witnessConfig: WitnessParameter(
+              threshold: 2, witnesses: [Witness(id: 'did:key:z6MkWitness1')]),
         ),
         throwsA(
           isA<SsiException>().having(
@@ -298,13 +294,13 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: [],
-        witnessConfig: {
-          'threshold': 2,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
-            {'id': 'did:key:z6MkWitness2'},
+        witnessConfig: WitnessParameter(
+          threshold: 2,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
+            Witness(id: 'did:key:z6MkWitness2'),
           ],
-        },
+        ),
       );
 
       expect(result.isValid, isFalse);
@@ -335,12 +331,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
           ],
-        },
+        ),
       );
 
       expect(result.isValid, isFalse);
@@ -369,12 +365,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
           ],
-        },
+        ),
       );
 
       expect(result.isValid, isFalse);
@@ -403,12 +399,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
           ],
-        },
+        ),
       );
 
       expect(result.isValid, isFalse);
@@ -437,12 +433,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:web:example.com'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:web:example.com'),
           ],
-        },
+        ),
       );
 
       expect(result.isValid, isFalse);
@@ -475,12 +471,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
           ],
-        },
+        ),
       );
 
       // The proof should be applicable (version 5 >= version 2)
@@ -513,12 +509,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
           ],
-        },
+        ),
       );
 
       // The proof should NOT be applicable (version 2 < version 5)
@@ -561,12 +557,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
           ],
-        },
+        ),
       );
 
       // Note: This test uses fake proofValues that fail cryptographic verification.
@@ -599,12 +595,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
           ],
-        },
+        ),
       );
 
       expect(result.isValid, isFalse);
@@ -621,7 +617,7 @@ void main() {
         () async => await verifier.verify(
           entry: entry,
           witnessProofs: [],
-          witnessConfig: {},
+          witnessConfig: WitnessParameter(),
         ),
         throwsA(
           isA<SsiException>().having(
@@ -643,19 +639,19 @@ void main() {
       // This is tested indirectly - the _computeEntriesRequiringWitness
       // method skips the first entry
       final jsonLines = '''
-{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6Mk1#z6Mk1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       // First entry has witness config but should not require witnessing
       expect(log.entries[0].parameters.witness, isNotNull);
-      expect(log.entries[0].parameters.witness!['threshold'], equals(2));
+      expect(log.entries[0].parameters.witness!.threshold!, equals(2));
     });
 
     test('entry inherits witness config from previous entry', () {
       final jsonLines = '''
-{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
@@ -667,63 +663,64 @@ void main() {
 
     test('witness deactivation requires witnessing with previous config', () {
       final jsonLines = '''
-{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"3-QmHash3","versionTime":"2025-01-03T00:00:00Z","parameters":{"witness":{}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"3-QmHash3","versionTime":"2025-01-03T00:00:00Z","parameters":{"witness":{}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       // Entry 3 explicitly sets witness to {} (deactivation)
-      expect(log.entries[2].parameters.witness, equals({}));
+      expect(log.entries[2].parameters.witness!.threshold, isNull);
+      expect(log.entries[2].parameters.witness!.witnesses, isNull);
     });
 
     test('entries after deactivation do not require witnessing', () {
       final jsonLines = '''
-{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{"witness":{}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"3-QmHash3","versionTime":"2025-01-03T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{"witness":{}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"3-QmHash3","versionTime":"2025-01-03T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       // Entry 2 deactivates witnesses
-      expect(log.entries[1].parameters.witness, equals({}));
+      expect(log.entries[1].parameters.witness!.isNotEmpty, isFalse);
       // Entry 3 inherits empty (no witnessing required)
       expect(log.entries[2].parameters.witness, isNull);
     });
 
     test('re-activation requires witnessing', () {
       final jsonLines = '''
-{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{"witness":{}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"3-QmHash3","versionTime":"2025-01-03T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"4-QmHash4","versionTime":"2025-01-04T00:00:00Z","parameters":{"witness":{"threshold":1,"witnesses":[{"id":"did:key:z6Mk3"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{"witness":{}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"3-QmHash3","versionTime":"2025-01-03T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"4-QmHash4","versionTime":"2025-01-04T00:00:00Z","parameters":{"witness":{"threshold":1,"witnesses":[{"id":"did:key:z6Mk3"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       // Entry 4 re-activates witnesses
       expect(log.entries[3].parameters.witness, isNotNull);
-      expect(log.entries[3].parameters.witness!['threshold'], equals(1));
+      expect(log.entries[3].parameters.witness!.threshold!, equals(1));
     });
 
     test('witness config change requires witnessing with new config', () {
       final jsonLines = '''
-{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6MkA"},{"id":"did:key:z6MkB"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
-{"versionId":"3-QmHash3","versionTime":"2025-01-03T00:00:00Z","parameters":{"witness":{"threshold":3,"witnesses":[{"id":"did:key:z6MkC"},{"id":"did:key:z6MkD"},{"id":"did:key:z6MkE"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6MkA"},{"id":"did:key:z6MkB"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"2-QmHash2","versionTime":"2025-01-02T00:00:00Z","parameters":{},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
+{"versionId":"3-QmHash3","versionTime":"2025-01-03T00:00:00Z","parameters":{"witness":{"threshold":3,"witnesses":[{"id":"did:key:z6MkC"},{"id":"did:key:z6MkD"},{"id":"did:key:z6MkE"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       final log = DidWebVhLog.fromJsonLines(jsonLines);
 
       // Entry 1 has config A, B with threshold 2
-      expect(log.entries[0].parameters.witness!['threshold'], equals(2));
+      expect(log.entries[0].parameters.witness!.threshold!, equals(2));
       // Entry 3 changes to config C, D, E with threshold 3
-      expect(log.entries[2].parameters.witness!['threshold'], equals(3));
+      expect(log.entries[2].parameters.witness!.threshold!, equals(3));
     });
   });
 
   group('Complex witness scenarios', () {
     DidWebVhLogEntry createMockEntry(int versionNumber, String hash) {
       final jsonLines = '''
-{"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
     }
@@ -735,12 +732,10 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: [],
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'}
-          ],
-        },
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
+        ),
       );
 
       expect(result.isValid, isFalse); // No proofs provided, so fails
@@ -755,12 +750,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: [],
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
           ],
-        },
+        ),
       );
 
       expect(result.isValid, isFalse);
@@ -804,14 +799,14 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
-            {'id': 'did:key:z6MkWitness2'},
-            {'id': 'did:web:example.com'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
+            Witness(id: 'did:key:z6MkWitness2'),
+            Witness(id: 'did:web:example.com'),
           ],
-        },
+        ),
       );
 
       // Only the first proof should be considered (but signature will fail)
@@ -852,14 +847,14 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkB'},
-            {'id': 'did:key:z6MkC'},
-            {'id': 'did:key:z6MkD'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkB'),
+            Witness(id: 'did:key:z6MkC'),
+            Witness(id: 'did:key:z6MkD'),
           ],
-        },
+        ),
       );
 
       // Only witness B should be valid (signature verification will fail though)
@@ -873,16 +868,16 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: [],
-        witnessConfig: {
-          'threshold': 5,
-          'witnesses': [
-            {'id': 'did:key:z6Mk1'},
-            {'id': 'did:key:z6Mk2'},
-            {'id': 'did:key:z6Mk3'},
-            {'id': 'did:key:z6Mk4'},
-            {'id': 'did:key:z6Mk5'},
+        witnessConfig: WitnessParameter(
+          threshold: 5,
+          witnesses: [
+            Witness(id: 'did:key:z6Mk1'),
+            Witness(id: 'did:key:z6Mk2'),
+            Witness(id: 'did:key:z6Mk3'),
+            Witness(id: 'did:key:z6Mk4'),
+            Witness(id: 'did:key:z6Mk5'),
           ],
-        },
+        ),
       );
 
       expect(result.isValid, isFalse);
@@ -923,7 +918,7 @@ void main() {
   group('Error message validation', () {
     DidWebVhLogEntry createMockEntry(int versionNumber, String hash) {
       final jsonLines = '''
-{"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
     }
@@ -935,14 +930,14 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: [],
-        witnessConfig: {
-          'threshold': 3,
-          'witnesses': [
-            {'id': 'did:key:z6Mk1'},
-            {'id': 'did:key:z6Mk2'},
-            {'id': 'did:key:z6Mk3'},
+        witnessConfig: WitnessParameter(
+          threshold: 3,
+          witnesses: [
+            Witness(id: 'did:key:z6Mk1'),
+            Witness(id: 'did:key:z6Mk2'),
+            Witness(id: 'did:key:z6Mk3'),
           ],
-        },
+        ),
       );
 
       expect(
@@ -960,12 +955,10 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: [],
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'}
-          ],
-        },
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
+        ),
       );
 
       expect(result.validWitnessDids, isEmpty);
@@ -975,7 +968,7 @@ void main() {
   group('Edge cases', () {
     DidWebVhLogEntry createMockEntry(int versionNumber, String hash) {
       final jsonLines = '''
-{"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof"}]}
+{"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
     }
@@ -989,9 +982,9 @@ void main() {
         () async => await verifier.verify(
           entry: entry,
           witnessProofs: [],
-          witnessConfig: {
-            'witnesses': <Map<String, dynamic>>[],
-          },
+          witnessConfig: WitnessParameter(
+            witnesses: [],
+          ),
         ),
         throwsA(
           isA<SsiException>().having(
@@ -1013,7 +1006,7 @@ void main() {
         () async => await verifier.verify(
           entry: entry,
           witnessProofs: [],
-          witnessConfig: {},
+          witnessConfig: WitnessParameter(),
         ),
         throwsA(
           isA<SsiException>().having(
@@ -1033,12 +1026,10 @@ void main() {
         () async => await verifier.verify(
           entry: entry,
           witnessProofs: [],
-          witnessConfig: {
-            'threshold': -1,
-            'witnesses': [
-              {'id': 'did:key:z6MkWitness1'}
-            ],
-          },
+          witnessConfig: WitnessParameter(
+            threshold: -1,
+            witnesses: [Witness(id: 'did:key:z6MkWitness1')],
+          ),
         ),
         throwsA(
           isA<SsiException>().having(
@@ -1059,9 +1050,9 @@ void main() {
         () async => await verifier.verify(
           entry: entry,
           witnessProofs: [],
-          witnessConfig: {
-            'threshold': 0,
-          },
+          witnessConfig: WitnessParameter(
+            threshold: 0,
+          ),
         ),
         throwsA(
           isA<SsiException>().having(
@@ -1096,12 +1087,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'}, // lowercase z
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'), // lowercase z
           ],
-        },
+        ),
       );
 
       // Should not match due to case difference
@@ -1132,12 +1123,12 @@ void main() {
       final result = await verifier.verify(
         entry: entry,
         witnessProofs: witnessProofs,
-        witnessConfig: {
-          'threshold': 1,
-          'witnesses': [
-            {'id': 'did:key:z6MkWitness1'},
+        witnessConfig: WitnessParameter(
+          threshold: 1,
+          witnesses: [
+            Witness(id: 'did:key:z6MkWitness1'),
           ],
-        },
+        ),
       );
 
       // Should process proof normally despite extra fields

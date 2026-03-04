@@ -5,17 +5,16 @@ import 'package:ssi/ssi.dart';
 Future<void> resolveDid(String didString, {bool verify = true}) async {
   try {
     final didWebVh = DidWebVhUrl.fromUrlString(didString);
-    final (doc, docMetadata, resolutionMetadata) =
-        await didWebVh.resolveDidWithMetadata(
-      verify
+    final (doc, docMetadata, _) = await didWebVh.resolveDidWithMetadata(
+      options: verify
           ? null
-          : {
-              'skipHashEntryVerification': true,
-              'skipProofVerification': true,
-              'skipKeyPreRotationVerification': true,
-              'skipWitnessVerification': true,
-              'skipScidVerification': true,
-            },
+          : DidWebVhResolutionOptions(
+              skipHashEntryVerification: true,
+              skipProofVerification: true,
+              skipKeyPreRotationVerification: true,
+              skipWitnessVerification: true,
+              skipScidVerification: true,
+            ),
     );
     if (!verify) {
       print('Verification skipped');
@@ -23,12 +22,8 @@ Future<void> resolveDid(String didString, {bool verify = true}) async {
       print('Verification passed');
     }
     printDidDocument(doc);
-    if (docMetadata != null && docMetadata.isNotEmpty) {
-      printJson('Document Metadata', docMetadata);
-    }
-    if (resolutionMetadata != null && resolutionMetadata.isNotEmpty) {
-      printJson('Resolution Metadata', resolutionMetadata);
-    }
+    printJson('Document Metadata',
+        (docMetadata as DidWebVhDocumentMetadata).toJson());
   } on SsiException catch (e) {
     print('Resolution failed');
     printSsiException(e);
@@ -51,7 +46,9 @@ Future<void> resolveLocalFile(String path, {bool verify = true}) async {
     final content = file.readAsStringSync();
     final log = DidWebVhLog.fromJsonLines(content);
 
-    await log.verify(verify ? {} : _skipVerificationOptions);
+    await log.verify(
+        options:
+            verify ? DidWebVhResolutionOptions() : _skipVerificationOptions);
     if (!verify) {
       print('Verification skipped');
     } else {
@@ -68,13 +65,13 @@ Future<void> resolveLocalFile(String path, {bool verify = true}) async {
   }
 }
 
-final _skipVerificationOptions = {
-  'skipHashEntryVerification': true,
-  'skipProofVerification': true,
-  'skipKeyPreRotationVerification': true,
-  'skipWitnessVerification': true,
-  'skipScidVerification': true,
-};
+final _skipVerificationOptions = DidWebVhResolutionOptions(
+  skipHashEntryVerification: true,
+  skipProofVerification: true,
+  skipKeyPreRotationVerification: true,
+  skipWitnessVerification: true,
+  skipScidVerification: true,
+);
 
 void printJson(String label, Map<String, dynamic> json) {
   print('$label:');

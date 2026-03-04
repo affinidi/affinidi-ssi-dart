@@ -1,5 +1,6 @@
-import '../../ssi.dart';
 import 'package:meta/meta.dart';
+
+import '../../ssi.dart';
 
 /// Represents a Decentralized Identifier (DID) URL.
 ///
@@ -138,16 +139,42 @@ abstract class DidUrl {
     return buffer.toString();
   }
 
-  /// Resolves the DID document for this DID.
+  /// Resolves the DID and returns the associated DID document.
   ///
-  /// Optionally accepts [DidResolutionOptions] to customize the resolution process.
+  /// This method resolves the DID identifier to retrieve its corresponding
+  /// DID document, which contains public keys, service endpoints, and other
+  /// metadata associated with this DID.
   ///
-  /// Returns a [Future] that completes with the resolved [DidDocument].
+  /// Parameters:
+  ///   - [options]: Optional [DidResolutionOptions] to customize the resolution
+  ///     behavior, such as specifying a particular DID method or resolver.
   ///
-  /// Throws an exception if the DID cannot be resolved.
-  Future<DidDocument> resolve([DidResolutionOptions? options]) async {
-    throw UnimplementedError(
-        'resolveDid() is not implemented in the base DidUrl class. '
-        'DID resolution must be implemented by method-specific subclasses.');
-  }
+  /// Returns:
+  ///   A [Future] that completes with the resolved [DidDocument], or throws
+  ///   an exception if resolution fails.
+  ///
+  /// Throws:
+  ///   - May throw exceptions if the DID is invalid or resolution services
+  ///     are unavailable.
+  Future<DidDocument> resolveDid({DidResolutionOptions? options});
 }
+
+/// Configuration options for DID resolution operations.
+///
+/// This abstract class serves as a base for defining various options
+/// and parameters that can be passed to DID resolution methods.
+/// Implementations should extend this class to provide specific
+/// resolution behavior and customization.
+abstract class DidResolutionOptions {}
+
+/// Metadata associated with the DID resolution process.
+///
+/// This abstract class serves as a base for representing metadata
+/// that is returned alongside DID resolution results.
+abstract class DidResolutionMetadata {}
+
+/// Metadata associated with a DID document.
+///
+/// This abstract class serves as a base for storing and managing metadata
+/// that accompanies a DID (Decentralized Identifier) document.
+abstract class DidDocumentMetadata {}

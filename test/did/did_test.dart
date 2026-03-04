@@ -1,4 +1,5 @@
 import 'package:ssi/src/did/did.dart';
+import 'package:ssi/src/did/did_document/did_document.dart';
 import 'package:test/test.dart';
 
 class TestDidUrl extends DidUrl {
@@ -17,6 +18,11 @@ class TestDidUrl extends DidUrl {
           query: query,
           fragment: fragment,
         );
+
+  @override
+  Future<DidDocument> resolveDid({DidResolutionOptions? options}) {
+    throw UnimplementedError();
+  }
 }
 
 void main() {

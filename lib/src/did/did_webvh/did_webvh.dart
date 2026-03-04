@@ -3,6 +3,144 @@ import 'package:http/http.dart' as http;
 import '../../../ssi.dart';
 import '../did.dart';
 
+/// Options for resolving a DID with the 'did:webvh' method.
+///
+/// This class extends [DidResolutionOptions] to provide configuration
+/// specific to the WebVH DID resolution process.
+class DidWebVhResolutionOptions extends DidResolutionOptions {
+  /// The DID URL being resolved. Used for validation and metadata.
+  DidWebVhUrl? resolvingDidUrl;
+
+  /// Specific version ID to resolve (format: "versionNumber-entryHash").
+  String? versionId;
+
+  /// Specific timestamp to resolve. Returns the last version at or before this time.
+  DateTime? versionTime;
+
+  /// Specific version number to resolve (e.g., 1, 2, 3).
+  int? versionNumber;
+
+  /// Custom HTTP client for network requests. If null, a default client is used.
+  http.Client? httpClient;
+
+  /// If true, skips verification that entry hashes match the canonicalized entry content.
+  bool? skipHashEntryVerification;
+
+  /// If true, skips all proof-related verifications including signatures and key authorization.
+  bool? skipAllProofRelatedVerification;
+
+  /// If true, skips validation of key pre-rotation constraints.
+  bool? skipKeyPreRotationVerification;
+
+  /// If true, skips witness proof verification for entries requiring witnesses.
+  bool? skipWitnessVerification;
+
+  /// If true, skips verification that the SCID matches the hash of the first entry.
+  bool? skipScidVerification;
+
+  /// If true, skips adding default services (#whois, #files) to the resolved DID Document.
+  bool? skipDefaultServiceAddition;
+
+  /// If true, skips validation that the SCID in the resolved DID Document matches active parameters.
+  bool? skipResolvedDidDocScidVerification;
+
+  /// If true, skips validation of DID Document portability constraints.
+  bool? skipDidDocPortabilityVerification;
+
+  /// If true, skips cryptographic proof signature verification.
+  bool? skipProofVerification;
+
+  /// If true, skips checking that signing keys are in the active updateKeys list.
+  bool? skipActiveUpdateKeysCheck;
+
+  /// Configuration options for resolving DID WebVH identifiers.
+  ///
+  /// This class specifies the parameters used when resolving a DID WebVH,
+  /// including network preferences and other resolution-related settings.
+  DidWebVhResolutionOptions({
+    this.resolvingDidUrl,
+    this.versionId,
+    this.versionTime,
+    this.versionNumber,
+    this.httpClient,
+    this.skipHashEntryVerification,
+    this.skipAllProofRelatedVerification,
+    this.skipKeyPreRotationVerification,
+    this.skipWitnessVerification,
+    this.skipScidVerification,
+    this.skipDefaultServiceAddition,
+    this.skipResolvedDidDocScidVerification,
+    this.skipDidDocPortabilityVerification,
+    this.skipProofVerification,
+    this.skipActiveUpdateKeysCheck,
+  });
+}
+
+/// Metadata associated with the resolution of a DID WebVH document.
+///
+/// This class extends [DidResolutionMetadata] and provides metadata specific
+/// to the WebVH DID method resolution process.
+class DidWebVhResolutionMetadata extends DidResolutionMetadata {
+  /// Optional details about any problems encountered during DID WebVH processing.
+  ///
+  /// This field may contain error messages or additional information about
+  /// issues that occurred when validating or resolving the DID.
+  String? problemDetails;
+
+  /// Creates a new instance of [DidWebVhResolutionMetadata].
+  ///
+  /// This constructor initializes the resolution metadata for a DID WebVH resolution result.
+  DidWebVhResolutionMetadata({
+    this.problemDetails,
+  });
+}
+
+/// Metadata for a DID WebVH document.
+///
+/// This class extends [DidDocumentMetadata] and represents metadata specific to
+/// DID documents that use the WebVH (Web Verifiable Hash) method.
+class DidWebVhDocumentMetadata extends DidDocumentMetadata {
+  /// The Self-Certifying Identifier (SCID) for this DID.
+  ///
+  /// A hash of the DID's inception event that serves as a cryptographic
+  /// commitment to the initial state of the DID.
+  String? scid;
+
+  /// The version identifier of the resolved DID Document.
+  ///
+  /// Format: "versionNumber-entryHash" (e.g., "3-z6Mk...")
+  String? versionId;
+
+  /// The timestamp when this version of the DID Document was created.
+  ///
+  /// Represented as a UTC DateTime value.
+  DateTime? versionTime;
+
+  /// The sequential version number of the resolved DID Document.
+  ///
+  /// Starts at 1 for the first entry and increments by 1 for each subsequent version.
+  int? versionNumber;
+
+  /// Creates a new instance of [DidWebVhDocumentMetadata].
+  ///
+  /// This constructor initializes a DID WebVH document metadata object with the provided parameters.
+  DidWebVhDocumentMetadata({
+    this.scid,
+    this.versionId,
+    this.versionTime,
+    this.versionNumber,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'scid': scid,
+      'versionId': versionId,
+      'versionTime': versionTime?.toIso8601String(),
+      'versionNumber': versionNumber,
+    };
+  }
+}
+
 /// Represents a DID URL for the 'webvh' method, with support for SCID and encoded URL string.
 ///
 /// Provides parsing, validation, conversion to HTTPS URLs, and resolution of DID documents.
@@ -54,6 +192,36 @@ class DidWebVhUrl extends DidUrl {
     );
   }
 
+  /// Resolves a DID WebVH URL string and returns the DID Document.
+  ///
+  /// This is a convenience method that combines parsing and resolution in one call.
+  /// It parses the DID string, downloads and verifies the log file, and returns
+  /// the resolved DID Document.
+  ///
+  /// **Parameters:**
+  /// * `didUrlString` - The DID WebVH URL string to resolve (e.g., "did:webvh:scid:example.com")
+  /// * `options` - Optional [DidWebVhResolutionOptions] to customize the resolution process
+  ///
+  /// **Returns:**
+  /// A [Future] that resolves to the [DidDocument] for the specified DID.
+  ///
+  /// **Throws:**
+  /// * [FormatException] if the DID string is malformed
+  /// * [SsiException] if resolution or verification fails
+  ///
+  /// **Example:**
+  /// ```dart
+  /// final didDoc = await DidWebVhUrl.resolve('did:webvh:z123:example.com');
+  /// print(didDoc.id);
+  /// ```
+  static Future<DidDocument> resolve(
+    String didUrlString, {
+    DidWebVhResolutionOptions? options,
+  }) async {
+    final didWebVhUrl = DidWebVhUrl.fromUrlString(didUrlString);
+    return didWebVhUrl.resolveDid(options: options);
+  }
+
   /// Returns the HTTPS URL for the JSON log file associated with this DID WebVH URL.
   String get jsonLogFileHttpsUrlString {
     final hasEmptyPath = Uri.parse(toHttpsUrlString()).hasEmptyPath;
@@ -75,25 +243,28 @@ class DidWebVhUrl extends DidUrl {
   /// Resolves the DID document for this DID WebVH URL.
   ///
   /// Downloads the log file and verifies it, returning the DID document and metadata.
-  Future<(DidDocument, DidDocumentMetadata?, DidResolutionMetadata?)>
-      resolveDidWithMetadata([DidResolutionOptions? options]) async {
-    final nnOptions = options ?? {};
-    final http.Client? client = nnOptions['httpClient'];
-    final didWebVhLog1 = await downloadWebVhLog(client);
-    for (var entry in queryParameters.entries) {
-      if (!nnOptions.keys.contains(entry.key)) {
-        nnOptions[entry.key] = entry.value;
-      }
-    }
-    nnOptions['resolvingDidUrl'] = this;
-    final (doc, dm, rm) = await didWebVhLog1.verify(nnOptions);
-    return (doc, dm, rm);
+  Future<(DidDocument, DidDocumentMetadata, DidResolutionMetadata)>
+      resolveDidWithMetadata({DidWebVhResolutionOptions? options}) async {
+    final nnOptions = options ?? DidWebVhResolutionOptions();
+    nnOptions.resolvingDidUrl = this;
+
+    final didWebVhLog1 = await downloadWebVhLog(client: nnOptions.httpClient);
+    nnOptions.versionId = nnOptions.versionId ?? queryParameters['versionId'];
+    nnOptions.versionTime = nnOptions.versionTime ??
+        (queryParameters['versionTime'] != null
+            ? DateTime.parse(queryParameters['versionTime']!)
+            : null);
+    nnOptions.versionNumber = nnOptions.versionNumber ??
+        (queryParameters['versionNumber'] != null
+            ? int.parse(queryParameters['versionNumber']!)
+            : null);
+    return didWebVhLog1.verify(options: nnOptions);
   }
 
   /// Resolves the DID document for this DID.
   ///
   /// **Parameters:**
-  /// * `options` - Optional [DidResolutionOptions] to customize the resolution process.
+  /// * `options` - Optional [DidWebVhResolutionOptions] to customize the resolution process.
   ///
   /// **Returns:**
   /// A [Future] that resolves to the [DidDocument] for this DID.
@@ -101,15 +272,16 @@ class DidWebVhUrl extends DidUrl {
   /// **Throws:**
   /// Any exception thrown by [resolveDidWithMetadata] during the resolution process.
   @override
-  Future<DidDocument> resolve([DidResolutionOptions? options]) async {
-    final (didDoc, _, _) = await resolveDidWithMetadata(options);
+  Future<DidDocument> resolveDid({DidResolutionOptions? options}) async {
+    final (didDoc, _, _) = await resolveDidWithMetadata(
+        options: options as DidWebVhResolutionOptions?);
     return didDoc;
   }
 
   /// Downloads the DID WebVH log file and parses it.
   ///
   /// Optionally accepts an [http.Client] for network requests.
-  Future<DidWebVhLog> downloadWebVhLog([http.Client? client]) async {
+  Future<DidWebVhLog> downloadWebVhLog({http.Client? client}) async {
     var jsonLogFile = await downloadDocument(
       Uri.parse(jsonLogFileHttpsUrlString),
       client: client,

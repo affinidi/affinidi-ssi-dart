@@ -72,7 +72,7 @@ class UniversalDIDResolver implements DidResolver {
     } else if (did.startsWith('did:peer:')) {
       return DidPeer.resolve(did);
     } else if (did.startsWith('did:webvh:')) {
-      return await DidWebVhUrl.fromUrlString(did).resolve();
+      return DidWebVhUrl.resolve(did);
     } else if (did.startsWith('did:web:')) {
       return DidWeb.resolve(did);
     } else {

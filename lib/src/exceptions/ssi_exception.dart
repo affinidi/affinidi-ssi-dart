@@ -1,4 +1,4 @@
-import '../../ssi.dart';
+import '../did/did.dart';
 
 /// Represents an SSI exception.
 class SsiException implements Exception {
