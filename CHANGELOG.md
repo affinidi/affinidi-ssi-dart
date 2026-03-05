@@ -21,11 +21,11 @@ Packages with other changes:
 
 #### `ssi` - `v3.6.0`
 
- - **FEAT**: Add did:webvh resolution based on v1.0 log & witness verification
+ - **FEAT**: Add did:webvh resolution based on v1.0 log & witness verification ([#252](https://github.com/affinidi/affinidi-ssi-dart/issues/252)).
 
 ## 3.6.0
 
- - **FEAT**: Add did:webvh resolution based on v1.0 log & witness verification
+ - **FEAT**: Add did:webvh resolution based on v1.0 log & witness verification .
  - **FEAT**: Full support for resolving `did:webvh` identifiers (v1.0).
  - **FEAT**: HTTPS transformation logic for `did:webvh`, including `/.well-known` handling.
  - **FEAT**: JSON Lines (`did.jsonl`) parsing and latest-state DID Document resolution.
