@@ -1,9 +1,12 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 
 import 'package:ssi/src/did/did_resolver.dart';
 import 'package:ssi/src/did/universal_did_resolver.dart';
 import 'package:ssi/src/exceptions/ssi_exception.dart';
 import 'package:ssi/src/exceptions/ssi_exception_type.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../fixtures/did_document_fixtures.dart';
@@ -20,6 +23,61 @@ void main() {
         final resolvedDidDocument =
             await UniversalDIDResolver.defaultResolver.resolveDid(did);
         expect(resolvedDidDocument.toJson(), expectedDidDoc);
+      });
+    });
+
+    group('using did:webvh', () {
+      test('it resolves successfully', () async {
+        final String expectedDidDocAsString = '''
+{
+    "@context": [
+        "https://www.w3.org/ns/did/v1",
+        "https://w3id.org/security/multikey/v1"
+    ],
+    "id": "did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob",
+    "alsoKnownAs": [
+        "did:web:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob"
+    ],
+    "verificationMethod": [
+        {
+            "id": "did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob#auth-1",
+            "type": "Multikey",
+            "controller": "did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob",
+            "publicKeyMultibase": "z6MkqjUwiNU7cpVoAznWiNg3XT8GNbEHbzf5yqCq8rYFvVYm"
+        }
+    ],
+    "authentication": [
+        "did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob#auth-1"
+    ],
+    "assertionMethod": [
+        "did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob#auth-1"
+    ],
+    "service": [
+        {
+            "id": "#whois",
+            "type": "LinkedVerifiablePresentation",
+            "serviceEndpoint": "https://raw.githubusercontent.com/affinidi/affinidi-ssi-dart/refs/heads/main/example/dids/didwebvh/bob/whois.vp"
+        },
+        {
+            "id": "#files",
+            "type": "relativeRef",
+            "serviceEndpoint": "https://raw.githubusercontent.com/affinidi/affinidi-ssi-dart/refs/heads/main/example/dids/didwebvh/bob"
+        }
+    ]
+}
+''';
+        final did =
+            'did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob';
+
+        final expectedDidDocCanon =
+            JcsUtil.canonicalize(jsonDecode(expectedDidDocAsString));
+
+        final resolvedDidDoc =
+            await UniversalDIDResolver.defaultResolver.resolveDid(did);
+        final resolvedDidDocCanon =
+            JcsUtil.canonicalize(resolvedDidDoc.toJson());
+
+        expect(resolvedDidDocCanon, expectedDidDocCanon);
       });
     });
 

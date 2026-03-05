@@ -45,6 +45,8 @@ The package supports the following DID methods to prove control of an entity's d
 
 - **did:web** - relies on Domain Name System (DNS) and HTTPS to prove control of an identity through domain name ownership.
 
+- **did:webvh** - an enhancement of the existing **did:web** DID method that adds **Verifiable History** through a cryptographically linked chain of all DID Document versions, containing digital signatures from authorised controllers. Currently, only [resolution](https://identity.foundation/didwebvh/v1.0/#read-resolve) is supported.
+
 Each DID method provides different ways to store and manage DID documents containing information associated with the DID, such as service endpoints and public keys for encrypting and verifying data.
 
 Refer to [this example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/universal_did_resolver.dart) to resolve a DID Document using one of the supported methods.
