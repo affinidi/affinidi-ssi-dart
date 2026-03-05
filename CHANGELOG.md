@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-03-05
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.6.0`](#ssi---v360)
+
+---
+
+#### `ssi` - `v3.6.0`
+
+ - **FEAT**: Add did:webvh resolution based on v1.0 log & witness verification ([#252](https://github.com/affinidi/affinidi-ssi-dart/issues/252)).
+
+## 3.6.0
+
+ - **FEAT**: Add did:webvh resolution based on v1.0 log & witness verification ([#252](https://github.com/affinidi/affinidi-ssi-dart/issues/252)).
+
+
 ## 2026-02-24
 
 ### Changes
