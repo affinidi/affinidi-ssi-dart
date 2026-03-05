@@ -49,7 +49,7 @@ Packages with other changes:
 ### What This Release Provides
 This minor release introduces full WebVH v1.0 DID resolution support, including strict log chain validation, witness enforcement, and historical DID state resolution.
 
-- Complete `did:webvh:1.0` resolution support.
+- Complete `did:webvh` v1.0 resolution support.
 - Cryptographically verified DID history log chaining.
 - Strict enforcement of WebVH integrity and authorization model.
 - Witness threshold validation compliant with the v1.0 specification.
