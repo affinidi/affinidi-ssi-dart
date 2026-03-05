@@ -25,7 +25,40 @@ Packages with other changes:
 
 ## 3.6.0
 
- - **FEAT**: Add did:webvh resolution based on v1.0 log & witness verification ([#252](https://github.com/affinidi/affinidi-ssi-dart/issues/252)).
+ - **FEAT**: Add did:webvh resolution based on v1.0 log & witness verification .
+ - **FEAT**: Full support for resolving `did:webvh` identifiers (v1.0).
+ - **FEAT**: HTTPS transformation logic for `did:webvh`, including `/.well-known` handling.
+ - **FEAT**: JSON Lines (`did.jsonl`) parsing and latest-state DID Document resolution.
+ - **FEAT**: Injection of implicit `#files` and `#whois` services per WebVH v1.0 specification.
+ - **FEAT**: Historical DID resolution via `versionId`, `versionTime`, and `versionNumber` query parameters.
+ - **FEAT**: Witness validation via `did-witness.json`, including threshold enforcement and proof verification.
+ - **FEAT**: Support for `did:webvh:1.0` specification version enforcement.
+
+ - **SECURITY**: Strict WebVH log integrity validation:
+  - Enforced `versionId` format (`<versionNumber>-<hash>`).
+  - Monotonic version sequencing and chronological `versionTime` validation.
+  - SCID presence and hash verification (required in first entry, forbidden thereafter).
+  - Entry hash chaining verification against computed digest.
+  - Data Integrity proof verification (`eddsa-jcs-2022`, `assertionMethod`).
+  - Signer authorization enforced via `updateKeys`.
+  - Pre-rotation rules enforced (`nextKeyHashes` → `updateKeys`).
+  - Deactivation enforcement (`deactivated=true` blocks further updates).
+  - Prevention of duplicate witness approvals.
+  - Support for "later proofs satisfy earlier entries" rule.
+
+### What This Release Provides
+This minor release introduces full WebVH v1.0 DID resolution support, including strict log chain validation, witness enforcement, and historical DID state resolution.
+
+- Complete `did:webvh` v1.0 resolution support.
+- Cryptographically verified DID history log chaining.
+- Strict enforcement of WebVH integrity and authorization model.
+- Witness threshold validation compliant with the v1.0 specification.
+- Deterministic historical DID state resolution.
+- Improved interoperability with WebVH-compliant ecosystems.
+
+### Additional Resources
+
+- [The did:webvh DID Method v1.0](https://identity.foundation/didwebvh/v1.0/)
 
 
 ## 2026-02-24
