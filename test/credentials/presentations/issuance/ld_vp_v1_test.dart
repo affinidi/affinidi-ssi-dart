@@ -39,6 +39,17 @@ void main() async {
           dmV1ContextUrl, isIn(issuedPresentation.context.firstUri.toString()));
       expect(issuedPresentation.holder, isNotNull);
       expect(issuedPresentation.proof, isNotEmpty);
+
+      // ivan's changes
+      // ---------------------------------
+      final result =
+          await UniversalPresentationVerifier().verify(issuedPresentation);
+      expect(
+        result.isValid,
+        true,
+        reason: 'The issued presentation should be valid',
+      );
+      // ---------------------------------
     });
 
     // TODO: Add failure tests once validations are added to issuance.
