@@ -324,11 +324,25 @@ abstract class DidManager {
   Future<String> buildVerificationMethodId(PublicKey publicKey);
 
   // TODO: Update after the did_store is refactored, so only the fragment is used
-  /// Gets the stored wallet key ID that corresponds to the provided verification method ID
+  /// Gets the stored wallet key ID that corresponds to the provided verification method ID.
+  ///
+  /// When [verificationMethodId] is a fully qualified DID URL (e.g.
+  /// `did:peer:xyz#key-1`), this method first tries an exact match and then
+  /// falls back to the fragment (`#key-1`). The fragment fallback is only
+  /// allowed when the DID base matches this manager's own DID. This prevents
+  /// a foreign DID URL (e.g. `did:example:mallory#key-2`) from resolving to
+  /// a local wallet key via fragment-only matching.
   Future<String?> getWalletKeyId(String verificationMethodId) async {
     if (_cacheVerificationMethodIdToWalletKeyId
         .containsKey(verificationMethodId)) {
       return _cacheVerificationMethodIdToWalletKeyId[verificationMethodId];
+    }
+
+    // Reject fragment-only fallback for foreign DID URLs.
+    final didBase = verificationMethodId.split('#').first;
+    if (didBase.startsWith('did:')) {
+      final ownDid = (await getDidDocument()).id;
+      if (didBase != ownDid) return null;
     }
 
     if (_cacheVerificationMethodIdToWalletKeyId
