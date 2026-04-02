@@ -10,10 +10,10 @@ import '../../types.dart';
 import '../../utility.dart';
 import '../did_document/did_document.dart';
 import '../did_web.dart';
+import '../public_key_utils.dart';
 import 'add_verification_method_result.dart';
 import 'did_manager.dart';
 import 'verification_relationship.dart';
-import '../public_key_utils.dart';
 
 /// DID Manager implementation for the did:web method.
 ///
