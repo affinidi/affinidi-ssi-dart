@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 
 import '../../exceptions/ssi_exception.dart';
@@ -10,6 +13,7 @@ import '../did_web.dart';
 import 'add_verification_method_result.dart';
 import 'did_manager.dart';
 import 'verification_relationship.dart';
+import '../public_key_utils.dart';
 
 /// DID Manager implementation for the did:web method.
 ///
@@ -54,12 +58,16 @@ class DidWebManager extends DidManager {
 
   @override
   Future<String> buildVerificationMethodId(PublicKey publicKey) async {
-    // For did:web, use wallet key ID as the fragment for deterministic
-    // and human-readable verification method IDs.
-    // Format: did:web:example.com#<walletKeyId>
-    final verificationMethods = await store.verificationMethodIds;
-    final keyIndex = verificationMethods.length + 1;
-    return '$did#key-$keyIndex';
+    // Compute the JWK Thumbprint (RFC 7638) of the public key.
+    // Build canonical JWK with only required members in lexicographic order,
+    // SHA-256 hash it, then base64url-encode (no padding).
+    final jwk = keyToJwk(publicKey);
+    final sortedKeys = jwk.keys.toList()..sort();
+    final canonical =
+        '{${sortedKeys.map((k) => '"$k":"${jwk[k]}"').join(',')}}'; 
+    final digest = sha256.convert(utf8.encode(canonical));
+    final thumbprint = base64Url.encode(digest.bytes).replaceAll('=', '');
+    return '$did#$thumbprint';
   }
 
   @override
