@@ -1,3 +1,4 @@
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 
 import '../../exceptions/ssi_exception.dart';
@@ -54,12 +55,15 @@ class DidWebManager extends DidManager {
 
   @override
   Future<String> buildVerificationMethodId(PublicKey publicKey) async {
-    // For did:web, use wallet key ID as the fragment for deterministic
-    // and human-readable verification method IDs.
-    // Format: did:web:example.com#<walletKeyId>
-    final verificationMethods = await store.verificationMethodIds;
-    final keyIndex = verificationMethods.length + 1;
-    return '$did#key-$keyIndex';
+    // Use the first 8 bytes of the SHA-256 hash of the public key bytes as
+    // the VM fragment. This is stable, collision-resistant, and immune to
+    // the index-shift bug that occurred when keys were removed and re-added.
+    final hashBytes = sha256.convert(publicKey.bytes).bytes;
+    final fragment = hashBytes
+        .take(8)
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
+    return '$did#$fragment';
   }
 
   @override
