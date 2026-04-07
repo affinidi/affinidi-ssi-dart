@@ -620,7 +620,6 @@ void main() {
         final doc = await manager.getDidDocument();
         final json = doc.toJson();
 
-        // --- DID ---
         expect(doc.id, 'did:web:example.com');
 
         // --- verificationMethod ---
@@ -630,21 +629,20 @@ void main() {
         // Total: 2 distinct VMs.
         expect(doc.verificationMethod.length, 2);
 
-        final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
-        expect(vm1.id, res1.verificationMethodId);
-        expect(vm1.controller, 'did:web:example.com');
-        expect(vm1.type, 'Multikey');
-        expect(vm1.publicKeyMultibase, startsWith('z6Mk')); // ed25519
+        for (var i = 0; i < 2; i++) {
+          final vm = doc.verificationMethod[0] as VerificationMethodMultibase;
+          expect(vm.id, res1.verificationMethodId);
+          expect(vm.controller, 'did:web:example.com');
+          expect(vm.type, 'Multikey');
+          expect(vm.publicKeyMultibase, startsWith('z6Mk')); // ed25519
+        }
 
-        final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
-        expect(vm2.id, res2.verificationMethodId);
-        expect(vm2.controller, 'did:web:example.com');
-        expect(vm2.type, 'Multikey');
-        expect(vm2.publicKeyMultibase, startsWith('z6Mk')); // ed25519
-
-        // key1 and key2 have different thumbprints (different key material)
-        expect(vm1.id, isNot(vm2.id));
-        expect(vm1.publicKeyMultibase, isNot(vm2.publicKeyMultibase));
+        // key1 and key2 are different keys
+        final vm1mb = (doc.verificationMethod[0] as VerificationMethodMultibase)
+            .publicKeyMultibase;
+        final vm2mb = (doc.verificationMethod[1] as VerificationMethodMultibase)
+            .publicKeyMultibase;
+        expect(vm1mb, isNot(vm2mb));
 
         // --- authentication: key1 thumbprint + key2 thumbprint ---
         expect(doc.authentication.length, 2);
@@ -660,7 +658,6 @@ void main() {
           res2.verificationMethodId,
         ]);
 
-        // --- unused relationships are empty ---
         expect(doc.keyAgreement, isEmpty);
         expect(doc.capabilityInvocation, isEmpty);
         expect(doc.capabilityDelegation, isEmpty);
@@ -688,7 +685,6 @@ void main() {
         final doc = await manager.getDidDocument();
         final json = doc.toJson();
 
-        // --- DID ---
         expect(doc.id, 'did:web:example.com');
 
         // --- verificationMethod ---
@@ -711,6 +707,16 @@ void main() {
 
         // --- authentication: all 3 thumbprints ---
         expect(doc.authentication.length, 3);
+        // Different wallet keys have different public material
+        final mb1 = (doc.verificationMethod[0] as VerificationMethodMultibase)
+            .publicKeyMultibase;
+        final mb2 = (doc.verificationMethod[1] as VerificationMethodMultibase)
+            .publicKeyMultibase;
+        final mb3 = (doc.verificationMethod[2] as VerificationMethodMultibase)
+            .publicKeyMultibase;
+        expect({mb1, mb2, mb3}.length, 3); // all distinct
+
+        // authentication: all 3 keys
         expect(json['authentication'], [
           results[0].verificationMethodId,
           results[1].verificationMethodId,
@@ -725,7 +731,6 @@ void main() {
           results[2].verificationMethodId,
         ]);
 
-        // --- unused relationships ---
         expect(doc.assertionMethod, isEmpty);
         expect(doc.capabilityInvocation, isEmpty);
         expect(doc.capabilityDelegation, isEmpty);
@@ -761,18 +766,19 @@ void main() {
         // 2 distinct keys → 2 distinct VMs.
         expect(doc.verificationMethod.length, 2);
 
-        final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
-        expect(vm1.id, res1.verificationMethodId);
-        expect(vm1.type, 'Multikey');
-        expect(vm1.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
+        final expectedIds = [res1.verificationMethodId, res2.verificationMethodId];
+        for (var i = 0; i < 2; i++) {
+          final vm = doc.verificationMethod[i] as VerificationMethodMultibase;
+          expect(vm.id, expectedIds[i]);
+          expect(vm.type, 'Multikey');
+          expect(vm.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
+        }
 
-        final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
-        expect(vm2.id, res2.verificationMethodId);
-        expect(vm2.type, 'Multikey');
-        expect(vm2.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
-
-        expect(vm1.id, isNot(vm2.id));
-        expect(vm1.publicKeyMultibase, isNot(vm2.publicKeyMultibase));
+        final vm1mb = (doc.verificationMethod[0] as VerificationMethodMultibase)
+            .publicKeyMultibase;
+        final vm2mb = (doc.verificationMethod[1] as VerificationMethodMultibase)
+            .publicKeyMultibase;
+        expect(vm1mb, isNot(vm2mb));
 
         // --- capabilityInvocation: both key thumbprints ---
         expect(doc.capabilityInvocation.length, 2);
@@ -788,7 +794,6 @@ void main() {
           res2.verificationMethodId,
         ]);
 
-        // --- unused ---
         expect(doc.authentication, isEmpty);
         expect(doc.keyAgreement, isEmpty);
         expect(doc.capabilityDelegation, isEmpty);
@@ -846,7 +851,6 @@ void main() {
         expect(doc.assertionMethod.length, 3);
         expect(json['assertionMethod'], thumbprints);
 
-        // --- unused ---
         expect(doc.capabilityInvocation, isEmpty);
         expect(doc.capabilityDelegation, isEmpty);
       });
@@ -882,7 +886,6 @@ void main() {
         final doc = await manager.getDidDocument();
         final json = doc.toJson();
 
-        // --- DID ---
         expect(doc.id, 'did:web:example.com');
 
         // --- verificationMethod ---
@@ -920,7 +923,6 @@ void main() {
           p256Res.verificationMethodId,
         ]);
 
-        // --- unused ---
         expect(doc.keyAgreement, isEmpty);
         expect(doc.capabilityInvocation, isEmpty);
         expect(doc.capabilityDelegation, isEmpty);
@@ -1001,7 +1003,6 @@ void main() {
         final doc = await manager.getDidDocument();
         final json = doc.toJson();
 
-        // --- DID ---
         expect(doc.id, 'did:web:example.com');
 
         // --- verificationMethod ---
@@ -1062,7 +1063,6 @@ void main() {
         expect(doc.assertionMethod.length, 3);
         expect(json['assertionMethod'], [edAuthVmId, p256VmId, secpVmId]);
 
-        // --- unused ---
         expect(doc.capabilityInvocation, isEmpty);
         expect(doc.capabilityDelegation, isEmpty);
       });
@@ -1126,6 +1126,198 @@ void main() {
         expect(doc.capabilityInvocation, isEmpty);
         expect(doc.capabilityDelegation, isEmpty);
       });
+    });
+
+    // ================================================================
+    // One-to-one key → VM mapping tests
+    // ================================================================
+    group('One-to-one key to VM mapping', () {
+      test(
+        '1 ed25519 key with {auth, assertion, capInvoke, capDelegate} → 1 VM, all 4 arrays reference it',
+        () async {
+          final key = await wallet.generateKey(
+              keyId: 'ed-4rel', keyType: KeyType.ed25519);
+          final result = await manager.addVerificationMethod(
+            key.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.assertionMethod,
+              VerificationRelationship.capabilityInvocation,
+              VerificationRelationship.capabilityDelegation,
+            },
+          );
+          final vmId = result.verificationMethodId;
+          final doc = await manager.getDidDocument();
+          expect(doc.verificationMethod.length, 1);
+          expect(doc.verificationMethod.first.id, vmId);
+          expect(doc.authentication.first.id, vmId);
+          expect(doc.assertionMethod.first.id, vmId);
+          expect(doc.capabilityInvocation.first.id, vmId);
+          expect(doc.capabilityDelegation.first.id, vmId);
+          expect(doc.keyAgreement, isEmpty);
+        },
+      );
+
+      test(
+        '1 p256 key with {auth, keyAgreement} → 1 VM, both arrays reference same VM',
+        () async {
+          final key = await wallet.generateKey(
+              keyId: 'p256-2rel', keyType: KeyType.p256);
+          final result = await manager.addVerificationMethod(
+            key.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.keyAgreement,
+            },
+          );
+          final vmId = result.verificationMethodId;
+          final doc = await manager.getDidDocument();
+          expect(doc.verificationMethod.length, 1);
+          expect(doc.verificationMethod.first.id, vmId);
+          expect(doc.authentication.first.id, vmId);
+          expect(doc.keyAgreement.first.id, vmId);
+        },
+      );
+
+      test(
+        'ed25519 key with all 5 relationships → exactly 2 VMs: ed25519 + derived X25519',
+        () async {
+          final key = await wallet.generateKey(
+              keyId: 'ed-all5', keyType: KeyType.ed25519);
+          final result = await manager.addVerificationMethod(
+            key.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.assertionMethod,
+              VerificationRelationship.keyAgreement,
+              VerificationRelationship.capabilityInvocation,
+              VerificationRelationship.capabilityDelegation,
+            },
+          );
+
+          final primaryVmId = result.verificationMethodId;
+          final kaVmId =
+              result.relationships[VerificationRelationship.keyAgreement]!;
+
+          // IDs should be 43-char base64url JWK thumbprints (RFC 7638)
+          final thumbprintPattern =
+              RegExp(r'^did:web:example\.com#[A-Za-z0-9_-]{43}$');
+          expect(primaryVmId, matches(thumbprintPattern));
+          expect(kaVmId, matches(thumbprintPattern));
+          expect(primaryVmId, isNot(kaVmId));
+
+          // All other relationships map to the primary VM
+          expect(
+              result.relationships[VerificationRelationship.authentication],
+              primaryVmId);
+          expect(
+              result.relationships[VerificationRelationship.assertionMethod],
+              primaryVmId);
+          expect(
+              result
+                  .relationships[VerificationRelationship.capabilityInvocation],
+              primaryVmId);
+          expect(
+              result
+                  .relationships[VerificationRelationship.capabilityDelegation],
+              primaryVmId);
+
+          final doc = await manager.getDidDocument();
+          expect(doc.verificationMethod.length, 2);
+
+          final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
+          expect(vm1.id, primaryVmId);
+          expect(vm1.publicKeyMultibase, startsWith('z6Mk')); // ed25519
+
+          final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
+          expect(vm2.id, kaVmId);
+          expect(vm2.publicKeyMultibase, startsWith('z6LS')); // x25519
+
+          // non-keyAgreement arrays all reference the primary VM
+          expect(doc.authentication.first.id, primaryVmId);
+          expect(doc.assertionMethod.first.id, primaryVmId);
+          expect(doc.capabilityInvocation.first.id, primaryVmId);
+          expect(doc.capabilityDelegation.first.id, primaryVmId);
+          // keyAgreement references the derived X25519
+          expect(doc.keyAgreement.first.id, kaVmId);
+        },
+      );
+
+      test(
+        'sign+verify still works after one-to-one fix: ed25519 key with auth+keyAgreement',
+        () async {
+          final key = await wallet.generateKey(
+              keyId: 'ed-sign', keyType: KeyType.ed25519);
+          final result = await manager.addVerificationMethod(
+            key.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.keyAgreement,
+            },
+          );
+
+          final authVmId =
+              result.relationships[VerificationRelationship.authentication]!;
+          final data = Uint8List.fromList([1, 2, 3, 4, 5]);
+          final sig = await manager.sign(data, authVmId);
+          expect(await manager.verify(data, sig, authVmId), isTrue);
+        },
+      );
+
+      test(
+        'ed25519 default relationships (all 5) produce exactly 2 VMs: ed25519 + derived X25519',
+        () async {
+          final key = await wallet.generateKey(
+              keyId: 'ed-default', keyType: KeyType.ed25519);
+
+          // No explicit relationships — defaults applied by base class:
+          // {auth, assertion, keyAgreement, capInvoke, capDelegate}
+          final result = await manager.addVerificationMethod(key.id);
+
+          final primaryVmId = result.verificationMethodId;
+          final kaVmId =
+              result.relationships[VerificationRelationship.keyAgreement]!;
+
+          // IDs should be 43-char base64url JWK thumbprints (RFC 7638)
+          final thumbprintPattern =
+              RegExp(r'^did:web:example\.com#[A-Za-z0-9_-]{43}$');
+          expect(primaryVmId, matches(thumbprintPattern));
+          expect(kaVmId, matches(thumbprintPattern));
+          expect(primaryVmId, isNot(kaVmId));
+
+          // All other relationships map to the primary VM
+          for (final rel in [
+            VerificationRelationship.authentication,
+            VerificationRelationship.assertionMethod,
+            VerificationRelationship.capabilityInvocation,
+            VerificationRelationship.capabilityDelegation,
+          ]) {
+            expect(result.relationships[rel], primaryVmId);
+          }
+
+          final doc = await manager.getDidDocument();
+
+          // Exactly 2 VMs: ed25519 + x25519
+          expect(doc.verificationMethod.length, 2);
+
+          final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
+          expect(vm1.id, primaryVmId);
+          expect(vm1.publicKeyMultibase, startsWith('z6Mk')); // ed25519
+
+          final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
+          expect(vm2.id, kaVmId);
+          expect(vm2.publicKeyMultibase, startsWith('z6LS')); // x25519
+
+          // All non-keyAgreement arrays reference the primary VM
+          final json = doc.toJson();
+          expect(json['authentication'], [primaryVmId]);
+          expect(json['assertionMethod'], [primaryVmId]);
+          expect(json['capabilityInvocation'], [primaryVmId]);
+          expect(json['capabilityDelegation'], [primaryVmId]);
+          // keyAgreement references the derived X25519
+          expect(json['keyAgreement'], [kaVmId]);
+        },
+      );
     });
   });
 }
