@@ -474,20 +474,17 @@ void main() {
         expect(document.authentication.length, 1);
       });
 
-      test('should create separate verification methods for each purpose',
+      test('should create ONE verification method shared across purposes',
           () async {
-        // Arrange
         final key = await wallet.generateKey(
             keyId: 'multi-purpose-key', keyType: KeyType.p256);
 
-        // Act
         final result =
             await manager.addVerificationMethod(key.id, relationships: {
           VerificationRelationship.authentication,
           VerificationRelationship.assertionMethod,
         });
 
-        // Assert
         final authVmId =
             result.relationships[VerificationRelationship.authentication];
         final assertVmId =
@@ -495,23 +492,27 @@ void main() {
 
         expect(authVmId, isNotNull);
         expect(assertVmId, isNotNull);
-        expect(authVmId, isNot(equals(assertVmId)),
-            reason: 'Each purpose should have a unique verification method ID');
+        // One-to-one: same VM for both purposes
+        expect(authVmId, equals(assertVmId),
+            reason: 'Both purposes should share one verification method ID');
 
         final storeAuth = await store.authentication;
         final storeAssert = await store.assertionMethod;
 
         expect(storeAuth, [authVmId]);
-        expect(storeAssert, [assertVmId]);
+        expect(storeAssert, [authVmId]); // same VM ID
 
         final allVmIds = await store.verificationMethodIds;
-        expect(allVmIds, hasLength(2));
-        expect(allVmIds, containsAll([authVmId, assertVmId]));
+        expect(allVmIds, hasLength(1)); // just 1 VM
+        expect(allVmIds, contains(authVmId));
 
         final doc = await manager.getDidDocument();
-        expect(doc.authentication.first.id, '${doc.id}$authVmId');
-        expect(doc.assertionMethod.first.id, '${doc.id}$assertVmId');
-        expect(doc.verificationMethod, hasLength(2));
+        // With 1 VM, did:peer:0 is generated — VM IDs are fully qualified.
+        expect(doc.verificationMethod, hasLength(1));
+        expect(doc.authentication, hasLength(1));
+        expect(doc.assertionMethod, hasLength(1));
+        // The important check: auth and assertion reference the SAME VM.
+        expect(doc.authentication.first.id, doc.assertionMethod.first.id);
       });
 
       test('should maintain verification method order across manager instances',
@@ -840,6 +841,63 @@ void main() {
         // Verify resolution and content
         final resolvedDoc = DidPeer.resolve(didDocument.id);
         expect(resolvedDoc.toJson(), didDocument.toJson());
+      });
+    });
+
+    // ================================================================
+    // One-to-one key → VM mapping tests
+    // ================================================================
+    group('One-to-one key to VM mapping', () {
+      test(
+          '1 p256 key with {auth, assertion, capInvoke} → 1 VM shared across all',
+          () async {
+        final key =
+            await wallet.generateKey(keyId: 'p256-3rel', keyType: KeyType.p256);
+        final result = await manager.addVerificationMethod(
+          key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.assertionMethod,
+            VerificationRelationship.capabilityInvocation,
+          },
+        );
+
+        // All relationships map to the same VM
+        final vmId = result.verificationMethodId;
+        expect(result.relationships[VerificationRelationship.authentication],
+            vmId);
+        expect(result.relationships[VerificationRelationship.assertionMethod],
+            vmId);
+        expect(
+            result.relationships[VerificationRelationship.capabilityInvocation],
+            vmId);
+
+        final allVmIds = await store.verificationMethodIds;
+        expect(allVmIds, hasLength(1));
+      });
+
+      test(
+          'ed25519 key with {auth, keyAgreement} → 2 VMs: ed25519 + derived X25519',
+          () async {
+        final key = await wallet.generateKey(
+            keyId: 'ed-2rel', keyType: KeyType.ed25519);
+        final result = await manager.addVerificationMethod(
+          key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.keyAgreement,
+          },
+        );
+
+        final authVmId =
+            result.relationships[VerificationRelationship.authentication]!;
+        final kaVmId =
+            result.relationships[VerificationRelationship.keyAgreement]!;
+        expect(authVmId, isNot(kaVmId)); // ed25519 vs X25519 = different VMs
+        expect(result.verificationMethodId, authVmId); // primary is ed25519
+
+        final allVmIds = await store.verificationMethodIds;
+        expect(allVmIds, hasLength(2));
       });
     });
   });
