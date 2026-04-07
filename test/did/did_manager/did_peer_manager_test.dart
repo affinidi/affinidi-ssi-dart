@@ -128,14 +128,16 @@ void main() {
 
         // Verify verification methods
         expect(didDocument.verificationMethod, hasLength(2));
-        expect(didDocument.verificationMethod[0].id, '#key-1');
+        expect(didDocument.verificationMethod[0].id, '${didDocument.id}#key-1');
         expect(didDocument.verificationMethod[0].type, 'Multikey');
-        expect(didDocument.verificationMethod[1].id, '#key-2');
+        expect(didDocument.verificationMethod[1].id, '${didDocument.id}#key-2');
         expect(didDocument.verificationMethod[1].type, 'Multikey');
 
         // Verify verification relationships
-        expect(didDocument.authentication.map((e) => e.id), ['#key-1']);
-        expect(didDocument.keyAgreement.map((e) => e.id), ['#key-2']);
+        expect(didDocument.authentication.map((e) => e.id).toList(),
+            ['${didDocument.id}#key-1']);
+        expect(didDocument.keyAgreement.map((e) => e.id).toList(),
+            ['${didDocument.id}#key-2']);
 
         // Cross-check: get key agreement id from doc and retrieve keypair from manager
         final keyAgreementId = didDocument.keyAgreement.first.id;
@@ -205,8 +207,14 @@ void main() {
         expect(document.id, startsWith('did:peer:2'));
         expect(document.verificationMethod.length, 3);
         expect(document.authentication.length, 3);
-        expect(document.authentication.map((ref) => ref.id).toList(),
-            containsAll([vmId1, vmId2, vmId3]));
+        expect(
+          document.authentication.map((ref) => ref.id).toList(),
+          containsAll([
+            '${document.id}$vmId1',
+            '${document.id}$vmId2',
+            '${document.id}$vmId3',
+          ]),
+        );
       });
     });
 
@@ -405,14 +413,25 @@ void main() {
         // Assert
         expect(document.id, startsWith('did:peer:2'));
         expect(
-            document.authentication.any((ref) => ref.id == vmIds[0]), isTrue);
-        expect(document.keyAgreement.any((ref) => ref.id == vmIds[1]), isTrue);
-        expect(document.capabilityInvocation.any((ref) => ref.id == vmIds[2]),
-            isTrue);
-        expect(document.capabilityDelegation.any((ref) => ref.id == vmIds[3]),
+            document.authentication
+                .any((ref) => ref.id == '${document.id}${vmIds[0]}'),
             isTrue);
         expect(
-            document.assertionMethod.any((ref) => ref.id == vmIds[4]), isTrue);
+            document.keyAgreement
+                .any((ref) => ref.id == '${document.id}${vmIds[1]}'),
+            isTrue);
+        expect(
+            document.capabilityInvocation
+                .any((ref) => ref.id == '${document.id}${vmIds[2]}'),
+            isTrue);
+        expect(
+            document.capabilityDelegation
+                .any((ref) => ref.id == '${document.id}${vmIds[3]}'),
+            isTrue);
+        expect(
+            document.assertionMethod
+                .any((ref) => ref.id == '${document.id}${vmIds[4]}'),
+            isTrue);
       });
 
       test('should remove verification method purposes', () async {
@@ -524,11 +543,15 @@ void main() {
         final doc1 = await manager.getDidDocument();
         expect(doc1.id, startsWith('did:peer:2'));
         expect(doc1.verificationMethod, hasLength(3));
-        expect(doc1.verificationMethod.map((vm) => vm.id).toList(),
-            [authVmId1, kaVmId1, authVmId2]);
+        expect(doc1.verificationMethod.map((vm) => vm.id).toList(), [
+          '${doc1.id}$authVmId1',
+          '${doc1.id}$kaVmId1',
+          '${doc1.id}$authVmId2'
+        ]);
         expect(doc1.authentication.map((ref) => ref.id).toList(),
-            [authVmId1, authVmId2]);
-        expect(doc1.keyAgreement.map((ref) => ref.id).toList(), [kaVmId1]);
+            ['${doc1.id}$authVmId1', '${doc1.id}$authVmId2']);
+        expect(doc1.keyAgreement.map((ref) => ref.id).toList(),
+            ['${doc1.id}$kaVmId1']);
 
         // Compare resolved doc with originally created doc
         final resolvedDoc1 = DidPeer.resolve(doc1.id);
