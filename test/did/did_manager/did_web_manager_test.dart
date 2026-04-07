@@ -96,14 +96,19 @@ void main() {
             await manager.addVerificationMethod(key3.id, relationships: {});
 
         // IDs should be 43-char base64url JWK thumbprints (RFC 7638)
-        final thumbprintPattern = RegExp(r'^did:web:example\.com#[A-Za-z0-9_-]{43}$');
+        final thumbprintPattern =
+            RegExp(r'^did:web:example\.com#[A-Za-z0-9_-]{43}$');
         expect(res1.verificationMethodId, matches(thumbprintPattern));
         expect(res2.verificationMethodId, matches(thumbprintPattern));
         expect(res3.verificationMethodId, matches(thumbprintPattern));
 
         // All three keys are distinct → distinct thumbprints
         expect(
-          {res1.verificationMethodId, res2.verificationMethodId, res3.verificationMethodId}.length,
+          {
+            res1.verificationMethodId,
+            res2.verificationMethodId,
+            res3.verificationMethodId
+          }.length,
           3,
         );
       });
@@ -531,14 +536,16 @@ void main() {
 
         // Auth VM: ed25519 → multibase starts with z6Mk
         final authVm = doc.verificationMethod[0];
-        final authVmId = result.relationships[VerificationRelationship.authentication];
+        final authVmId =
+            result.relationships[VerificationRelationship.authentication];
         expect(authVm.id, authVmId);
         expect((authVm as VerificationMethodMultibase).publicKeyMultibase,
             startsWith('z6Mk'));
 
         // KeyAgreement VM: derived x25519 → multibase starts with z6LS
         final kaVm = doc.verificationMethod[1];
-        final kaVmId = result.relationships[VerificationRelationship.keyAgreement];
+        final kaVmId =
+            result.relationships[VerificationRelationship.keyAgreement];
         expect(kaVm.id, kaVmId);
         expect((kaVm as VerificationMethodMultibase).publicKeyMultibase,
             startsWith('z6LS'));
@@ -1008,26 +1015,39 @@ void main() {
         expect(doc.verificationMethod.length, 4);
 
         // Get the relationship-specific VM IDs
-        final edAuthVmId = edRes.relationships[VerificationRelationship.authentication]!;
-        final edKaVmId = edRes.relationships[VerificationRelationship.keyAgreement]!;
-        final edAssertVmId = edRes.relationships[VerificationRelationship.assertionMethod]!;
-        expect(edAuthVmId, edAssertVmId); // auth and assert share same ed25519 thumbprint
-        expect(edAuthVmId, isNot(edKaVmId)); // keyAgreement uses x25519 thumbprint
+        final edAuthVmId =
+            edRes.relationships[VerificationRelationship.authentication]!;
+        final edKaVmId =
+            edRes.relationships[VerificationRelationship.keyAgreement]!;
+        final edAssertVmId =
+            edRes.relationships[VerificationRelationship.assertionMethod]!;
+        expect(edAuthVmId,
+            edAssertVmId); // auth and assert share same ed25519 thumbprint
+        expect(
+            edAuthVmId, isNot(edKaVmId)); // keyAgreement uses x25519 thumbprint
 
         final p256VmId = p256Res.verificationMethodId;
         final secpVmId = secpRes.verificationMethodId;
 
         // Verify VM key material
-        final edVm = doc.verificationMethod.firstWhere((vm) => vm.id == edAuthVmId) as VerificationMethodMultibase;
+        final edVm =
+            doc.verificationMethod.firstWhere((vm) => vm.id == edAuthVmId)
+                as VerificationMethodMultibase;
         expect(edVm.publicKeyMultibase, startsWith('z6Mk')); // ed25519
 
-        final kaVm = doc.verificationMethod.firstWhere((vm) => vm.id == edKaVmId) as VerificationMethodMultibase;
+        final kaVm =
+            doc.verificationMethod.firstWhere((vm) => vm.id == edKaVmId)
+                as VerificationMethodMultibase;
         expect(kaVm.publicKeyMultibase, startsWith('z6LS')); // x25519 derived
 
-        final p256Vm = doc.verificationMethod.firstWhere((vm) => vm.id == p256VmId) as VerificationMethodMultibase;
+        final p256Vm =
+            doc.verificationMethod.firstWhere((vm) => vm.id == p256VmId)
+                as VerificationMethodMultibase;
         expect(p256Vm.publicKeyMultibase, startsWith('zDn')); // p256
 
-        final secpVm = doc.verificationMethod.firstWhere((vm) => vm.id == secpVmId) as VerificationMethodMultibase;
+        final secpVm =
+            doc.verificationMethod.firstWhere((vm) => vm.id == secpVmId)
+                as VerificationMethodMultibase;
         expect(secpVm.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
 
         // --- authentication: ed25519 thumbprint, p256 thumbprint, secp256k1 thumbprint ---
