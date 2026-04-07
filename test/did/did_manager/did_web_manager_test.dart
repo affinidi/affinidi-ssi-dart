@@ -79,7 +79,8 @@ void main() {
         expect(result.relationships, isEmpty);
       });
 
-      test('should maintain sequential key IDs', () async {
+      test('should produce unique, stable JWK thumbprint IDs for each key',
+          () async {
         final key1 =
             await wallet.generateKey(keyId: 'k1', keyType: KeyType.p256);
         final key2 =
@@ -94,9 +95,22 @@ void main() {
         final res3 =
             await manager.addVerificationMethod(key3.id, relationships: {});
 
-        expect(res1.verificationMethodId, 'did:web:example.com#key-1');
-        expect(res2.verificationMethodId, 'did:web:example.com#key-2');
-        expect(res3.verificationMethodId, 'did:web:example.com#key-3');
+        // IDs should be 43-char base64url JWK thumbprints (RFC 7638)
+        final thumbprintPattern =
+            RegExp(r'^did:web:example\.com#[A-Za-z0-9_-]{43}$');
+        expect(res1.verificationMethodId, matches(thumbprintPattern));
+        expect(res2.verificationMethodId, matches(thumbprintPattern));
+        expect(res3.verificationMethodId, matches(thumbprintPattern));
+
+        // All three keys are distinct → distinct thumbprints
+        expect(
+          {
+            res1.verificationMethodId,
+            res2.verificationMethodId,
+            res3.verificationMethodId
+          }.length,
+          3,
+        );
       });
 
       test('should support secp256k1 keys', () async {
@@ -391,7 +405,6 @@ void main() {
         // VM 1: ed25519 authentication key
         final authVm = doc.verificationMethod[0];
         expect(authVm.id, authResult.verificationMethodId);
-        expect(authVm.id, 'did:web:example.com#key-1');
         expect(authVm.controller, 'did:web:example.com');
         expect(authVm.type, 'Multikey');
         expect(authVm, isA<VerificationMethodMultibase>());
@@ -403,7 +416,6 @@ void main() {
         // VM 2: p256 keyAgreement key
         final kaVm = doc.verificationMethod[1];
         expect(kaVm.id, kaResult.verificationMethodId);
-        expect(kaVm.id, 'did:web:example.com#key-2');
         expect(kaVm.controller, 'did:web:example.com');
         expect(kaVm.type, 'Multikey');
         expect(kaVm, isA<VerificationMethodMultibase>());
@@ -415,7 +427,6 @@ void main() {
         // VM 3: secp256k1 assertionMethod key
         final assertVm = doc.verificationMethod[2];
         expect(assertVm.id, assertResult.verificationMethodId);
-        expect(assertVm.id, 'did:web:example.com#key-3');
         expect(assertVm.controller, 'did:web:example.com');
         expect(assertVm.type, 'Multikey');
         expect(assertVm, isA<VerificationMethodMultibase>());
@@ -426,15 +437,15 @@ void main() {
 
         // --- Assert: authentication references only the ed25519 key ---
         expect(doc.authentication.length, 1);
-        expect(doc.authentication.first.id, 'did:web:example.com#key-1');
+        expect(doc.authentication.first.id, authResult.verificationMethodId);
 
         // --- Assert: keyAgreement references only the p256 key ---
         expect(doc.keyAgreement.length, 1);
-        expect(doc.keyAgreement.first.id, 'did:web:example.com#key-2');
+        expect(doc.keyAgreement.first.id, kaResult.verificationMethodId);
 
         // --- Assert: assertionMethod references only the secp256k1 key ---
         expect(doc.assertionMethod.length, 1);
-        expect(doc.assertionMethod.first.id, 'did:web:example.com#key-3');
+        expect(doc.assertionMethod.first.id, assertResult.verificationMethodId);
 
         // --- Assert: unused relationship arrays are empty ---
         expect(doc.capabilityInvocation, isEmpty);
@@ -452,15 +463,15 @@ void main() {
         final assertKey = await wallet.generateKey(
             keyId: 'assert-s', keyType: KeyType.secp256k1);
 
-        await manager.addVerificationMethod(
+        final authResult = await manager.addVerificationMethod(
           authKey.id,
           relationships: {VerificationRelationship.authentication},
         );
-        await manager.addVerificationMethod(
+        final kaResult = await manager.addVerificationMethod(
           kaKey.id,
           relationships: {VerificationRelationship.keyAgreement},
         );
-        await manager.addVerificationMethod(
+        final assertResult = await manager.addVerificationMethod(
           assertKey.id,
           relationships: {VerificationRelationship.assertionMethod},
         );
@@ -479,27 +490,27 @@ void main() {
         expect(vms.length, 3);
 
         // VM 1: ed25519
-        expect(vms[0]['id'], 'did:web:example.com#key-1');
+        expect(vms[0]['id'], authResult.verificationMethodId);
         expect(vms[0]['controller'], 'did:web:example.com');
         expect(vms[0]['type'], 'Multikey');
         expect((vms[0]['publicKeyMultibase'] as String), startsWith('z6Mk'));
 
         // VM 2: p256
-        expect(vms[1]['id'], 'did:web:example.com#key-2');
+        expect(vms[1]['id'], kaResult.verificationMethodId);
         expect(vms[1]['controller'], 'did:web:example.com');
         expect(vms[1]['type'], 'Multikey');
         expect((vms[1]['publicKeyMultibase'] as String), startsWith('zDn'));
 
         // VM 3: secp256k1
-        expect(vms[2]['id'], 'did:web:example.com#key-3');
+        expect(vms[2]['id'], assertResult.verificationMethodId);
         expect(vms[2]['controller'], 'did:web:example.com');
         expect(vms[2]['type'], 'Multikey');
         expect((vms[2]['publicKeyMultibase'] as String), startsWith('zQ3s'));
 
         // relationship arrays reference the correct VM IDs
-        expect(json['authentication'], ['did:web:example.com#key-1']);
-        expect(json['keyAgreement'], ['did:web:example.com#key-2']);
-        expect(json['assertionMethod'], ['did:web:example.com#key-3']);
+        expect(json['authentication'], [authResult.verificationMethodId]);
+        expect(json['keyAgreement'], [kaResult.verificationMethodId]);
+        expect(json['assertionMethod'], [assertResult.verificationMethodId]);
       });
 
       test(
@@ -509,7 +520,7 @@ void main() {
         final edKey = await wallet.generateKey(
             keyId: 'ed-dual', keyType: KeyType.ed25519);
 
-        await manager.addVerificationMethod(
+        final result = await manager.addVerificationMethod(
           edKey.id,
           relationships: {
             VerificationRelationship.authentication,
@@ -520,25 +531,33 @@ void main() {
         final doc = await manager.getDidDocument();
 
         // Should have 2 VMs: one ed25519 (auth) + one derived x25519 (keyAgreement)
+        // They have distinct thumbprints because ed25519 and x25519 have different public key bytes.
         expect(doc.verificationMethod.length, 2);
 
         // Auth VM: ed25519 → multibase starts with z6Mk
         final authVm = doc.verificationMethod[0];
-        expect(authVm.id, 'did:web:example.com#key-1');
+        final authVmId =
+            result.relationships[VerificationRelationship.authentication];
+        expect(authVm.id, authVmId);
         expect((authVm as VerificationMethodMultibase).publicKeyMultibase,
             startsWith('z6Mk'));
 
         // KeyAgreement VM: derived x25519 → multibase starts with z6LS
         final kaVm = doc.verificationMethod[1];
-        expect(kaVm.id, 'did:web:example.com#key-2');
+        final kaVmId =
+            result.relationships[VerificationRelationship.keyAgreement];
+        expect(kaVm.id, kaVmId);
         expect((kaVm as VerificationMethodMultibase).publicKeyMultibase,
             startsWith('z6LS'));
 
+        // Auth and keyAgreement have different VM IDs (different keys → different thumbprints)
+        expect(authVmId, isNot(kaVmId));
+
         // Relationship references
         expect(doc.authentication.length, 1);
-        expect(doc.authentication.first.id, 'did:web:example.com#key-1');
+        expect(doc.authentication.first.id, authVmId);
         expect(doc.keyAgreement.length, 1);
-        expect(doc.keyAgreement.first.id, 'did:web:example.com#key-2');
+        expect(doc.keyAgreement.first.id, kaVmId);
       });
 
       test('signing works with each key type in a mixed-key document',
@@ -583,14 +602,14 @@ void main() {
         final key2 =
             await wallet.generateKey(keyId: 'ed-2', keyType: KeyType.ed25519);
 
-        await manager.addVerificationMethod(
+        final res1 = await manager.addVerificationMethod(
           key1.id,
           relationships: {
             VerificationRelationship.authentication,
             VerificationRelationship.assertionMethod,
           },
         );
-        await manager.addVerificationMethod(
+        final res2 = await manager.addVerificationMethod(
           key2.id,
           relationships: {
             VerificationRelationship.authentication,
@@ -605,49 +624,40 @@ void main() {
         expect(doc.id, 'did:web:example.com');
 
         // --- verificationMethod ---
-        // Each key with {authentication, assertionMethod} creates 2 VMs
-        // (one per relationship), so 2 keys × 2 relationships = 4 VMs.
-        // key1 → #key-1 (authentication), #key-2 (assertionMethod)
-        // key2 → #key-3 (authentication), #key-4 (assertionMethod)
-        expect(doc.verificationMethod.length, 4);
+        // With JWK thumbprints: same key → same fragment regardless of relationship.
+        // key1 → one thumbprint (used for both authentication + assertionMethod)
+        // key2 → one thumbprint (used for both authentication + assertionMethod)
+        // Total: 2 distinct VMs.
+        expect(doc.verificationMethod.length, 2);
 
-        for (var i = 0; i < 4; i++) {
-          final vm = doc.verificationMethod[i] as VerificationMethodMultibase;
-          expect(vm.id, 'did:web:example.com#key-${i + 1}');
-          expect(vm.controller, 'did:web:example.com');
-          expect(vm.type, 'Multikey');
-          expect(vm.publicKeyMultibase, startsWith('z6Mk')); // ed25519
-        }
+        final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
+        expect(vm1.id, res1.verificationMethodId);
+        expect(vm1.controller, 'did:web:example.com');
+        expect(vm1.type, 'Multikey');
+        expect(vm1.publicKeyMultibase, startsWith('z6Mk')); // ed25519
 
-        // key1 VMs (#key-1 and #key-2) share the same public key material
-        final vm1mb = (doc.verificationMethod[0] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        final vm2mb = (doc.verificationMethod[1] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        expect(vm1mb, vm2mb);
+        final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
+        expect(vm2.id, res2.verificationMethodId);
+        expect(vm2.controller, 'did:web:example.com');
+        expect(vm2.type, 'Multikey');
+        expect(vm2.publicKeyMultibase, startsWith('z6Mk')); // ed25519
 
-        // key2 VMs (#key-3 and #key-4) share the same public key material
-        final vm3mb = (doc.verificationMethod[2] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        final vm4mb = (doc.verificationMethod[3] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        expect(vm3mb, vm4mb);
+        // key1 and key2 have different thumbprints (different key material)
+        expect(vm1.id, isNot(vm2.id));
+        expect(vm1.publicKeyMultibase, isNot(vm2.publicKeyMultibase));
 
-        // key1 and key2 are different keys
-        expect(vm1mb, isNot(vm3mb));
-
-        // --- authentication: #key-1 (key1) + #key-3 (key2) ---
+        // --- authentication: key1 thumbprint + key2 thumbprint ---
         expect(doc.authentication.length, 2);
         expect(json['authentication'], [
-          'did:web:example.com#key-1',
-          'did:web:example.com#key-3',
+          res1.verificationMethodId,
+          res2.verificationMethodId,
         ]);
 
-        // --- assertionMethod: #key-2 (key1) + #key-4 (key2) ---
+        // --- assertionMethod: same thumbprints (same VMs, different relationship) ---
         expect(doc.assertionMethod.length, 2);
         expect(json['assertionMethod'], [
-          'did:web:example.com#key-2',
-          'did:web:example.com#key-4',
+          res1.verificationMethodId,
+          res2.verificationMethodId,
         ]);
 
         // --- unused relationships are empty ---
@@ -664,14 +674,15 @@ void main() {
         final key3 =
             await wallet.generateKey(keyId: 'p-3', keyType: KeyType.p256);
 
+        final results = <AddVerificationMethodResult>[];
         for (final key in [key1, key2, key3]) {
-          await manager.addVerificationMethod(
+          results.add(await manager.addVerificationMethod(
             key.id,
             relationships: {
               VerificationRelationship.authentication,
               VerificationRelationship.keyAgreement,
             },
-          );
+          ));
         }
 
         final doc = await manager.getDidDocument();
@@ -681,55 +692,37 @@ void main() {
         expect(doc.id, 'did:web:example.com');
 
         // --- verificationMethod ---
-        // Each p256 key with {authentication, keyAgreement} creates 2 VMs
-        // (one per relationship), so 3 keys × 2 relationships = 6 VMs.
-        // key1 → #key-1 (authentication), #key-2 (keyAgreement)
-        // key2 → #key-3 (authentication), #key-4 (keyAgreement)
-        // key3 → #key-5 (authentication), #key-6 (keyAgreement)
-        expect(doc.verificationMethod.length, 6);
+        // With JWK thumbprints, p256 has no X25519 derivation → same thumbprint
+        // for both authentication and keyAgreement within the same key.
+        // 3 distinct keys → 3 distinct VMs.
+        expect(doc.verificationMethod.length, 3);
 
-        for (var i = 0; i < 6; i++) {
+        for (var i = 0; i < 3; i++) {
           final vm = doc.verificationMethod[i] as VerificationMethodMultibase;
-          expect(vm.id, 'did:web:example.com#key-${i + 1}');
+          expect(vm.id, results[i].verificationMethodId);
           expect(vm.controller, 'did:web:example.com');
           expect(vm.type, 'Multikey');
           expect(vm.publicKeyMultibase, startsWith('zDn')); // p256
         }
 
-        // Pairs share the same public key material (same wallet key)
-        for (var pairStart in [0, 2, 4]) {
-          final mbA =
-              (doc.verificationMethod[pairStart] as VerificationMethodMultibase)
-                  .publicKeyMultibase;
-          final mbB = (doc.verificationMethod[pairStart + 1]
-                  as VerificationMethodMultibase)
-              .publicKeyMultibase;
-          expect(mbA, mbB);
-        }
+        // Different wallet keys have different public material and different thumbprints
+        final ids = results.map((r) => r.verificationMethodId).toSet();
+        expect(ids.length, 3); // all distinct
 
-        // Different wallet keys have different public material
-        final mb1 = (doc.verificationMethod[0] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        final mb3 = (doc.verificationMethod[2] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        final mb5 = (doc.verificationMethod[4] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        expect({mb1, mb3, mb5}.length, 3); // all distinct
-
-        // --- authentication: #key-1, #key-3, #key-5 ---
+        // --- authentication: all 3 thumbprints ---
         expect(doc.authentication.length, 3);
         expect(json['authentication'], [
-          'did:web:example.com#key-1',
-          'did:web:example.com#key-3',
-          'did:web:example.com#key-5',
+          results[0].verificationMethodId,
+          results[1].verificationMethodId,
+          results[2].verificationMethodId,
         ]);
 
-        // --- keyAgreement: #key-2, #key-4, #key-6 ---
+        // --- keyAgreement: same 3 thumbprints (no derivation for p256) ---
         expect(doc.keyAgreement.length, 3);
         expect(json['keyAgreement'], [
-          'did:web:example.com#key-2',
-          'did:web:example.com#key-4',
-          'did:web:example.com#key-6',
+          results[0].verificationMethodId,
+          results[1].verificationMethodId,
+          results[2].verificationMethodId,
         ]);
 
         // --- unused relationships ---
@@ -745,14 +738,14 @@ void main() {
         final key2 = await wallet.generateKey(
             keyId: 'secp-2', keyType: KeyType.secp256k1);
 
-        await manager.addVerificationMethod(
+        final res1 = await manager.addVerificationMethod(
           key1.id,
           relationships: {
             VerificationRelationship.assertionMethod,
             VerificationRelationship.capabilityInvocation,
           },
         );
-        await manager.addVerificationMethod(
+        final res2 = await manager.addVerificationMethod(
           key2.id,
           relationships: {
             VerificationRelationship.assertionMethod,
@@ -764,45 +757,35 @@ void main() {
         final json = doc.toJson();
 
         // --- verificationMethod ---
-        // 2 keys × 2 relationships = 4 VMs
-        // key1 → #key-1 (capabilityInvocation), #key-2 (assertionMethod)
-        // key2 → #key-3 (capabilityInvocation), #key-4 (assertionMethod)
-        // Note: processingOrder is auth, keyAgreement, capInvoke, capDelegate, assertion
-        expect(doc.verificationMethod.length, 4);
+        // With JWK thumbprints: same key → same fragment regardless of relationship.
+        // 2 distinct keys → 2 distinct VMs.
+        expect(doc.verificationMethod.length, 2);
 
-        for (var i = 0; i < 4; i++) {
-          final vm = doc.verificationMethod[i] as VerificationMethodMultibase;
-          expect(vm.id, 'did:web:example.com#key-${i + 1}');
-          expect(vm.type, 'Multikey');
-          expect(vm.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
-        }
+        final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
+        expect(vm1.id, res1.verificationMethodId);
+        expect(vm1.type, 'Multikey');
+        expect(vm1.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
 
-        // key1 pair shares same material, key2 pair shares same material
-        final vm1mb = (doc.verificationMethod[0] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        final vm2mb = (doc.verificationMethod[1] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        expect(vm1mb, vm2mb);
+        final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
+        expect(vm2.id, res2.verificationMethodId);
+        expect(vm2.type, 'Multikey');
+        expect(vm2.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
 
-        final vm3mb = (doc.verificationMethod[2] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        final vm4mb = (doc.verificationMethod[3] as VerificationMethodMultibase)
-            .publicKeyMultibase;
-        expect(vm3mb, vm4mb);
-        expect(vm1mb, isNot(vm3mb));
+        expect(vm1.id, isNot(vm2.id));
+        expect(vm1.publicKeyMultibase, isNot(vm2.publicKeyMultibase));
 
-        // --- capabilityInvocation: #key-1, #key-3 ---
+        // --- capabilityInvocation: both key thumbprints ---
         expect(doc.capabilityInvocation.length, 2);
         expect(json['capabilityInvocation'], [
-          'did:web:example.com#key-1',
-          'did:web:example.com#key-3',
+          res1.verificationMethodId,
+          res2.verificationMethodId,
         ]);
 
-        // --- assertionMethod: #key-2, #key-4 ---
+        // --- assertionMethod: same thumbprints ---
         expect(doc.assertionMethod.length, 2);
         expect(json['assertionMethod'], [
-          'did:web:example.com#key-2',
-          'did:web:example.com#key-4',
+          res1.verificationMethodId,
+          res2.verificationMethodId,
         ]);
 
         // --- unused ---
@@ -827,53 +810,41 @@ void main() {
           VerificationRelationship.keyAgreement,
         };
 
+        final results = <AddVerificationMethodResult>[];
         for (final key in [key1, key2, key3]) {
-          await manager.addVerificationMethod(
+          results.add(await manager.addVerificationMethod(
             key.id,
             relationships: allRelationships,
-          );
+          ));
         }
 
         final doc = await manager.getDidDocument();
         final json = doc.toJson();
 
         // --- verificationMethod ---
-        // 3 keys × 3 relationships = 9 VMs
-        // processingOrder: authentication, keyAgreement, ..., assertionMethod
-        // key1 → #key-1 (auth), #key-2 (keyAgreement), #key-3 (assertion)
-        // key2 → #key-4 (auth), #key-5 (keyAgreement), #key-6 (assertion)
-        // key3 → #key-7 (auth), #key-8 (keyAgreement), #key-9 (assertion)
-        expect(doc.verificationMethod.length, 9);
-        for (var i = 0; i < 9; i++) {
+        // With JWK thumbprints, secp256k1 has no X25519 derivation → same thumbprint
+        // for all relationships within the same key. 3 distinct keys → 3 distinct VMs.
+        expect(doc.verificationMethod.length, 3);
+        for (var i = 0; i < 3; i++) {
           final vm = doc.verificationMethod[i] as VerificationMethodMultibase;
-          expect(vm.id, 'did:web:example.com#key-${i + 1}');
+          expect(vm.id, results[i].verificationMethodId);
           expect(vm.type, 'Multikey');
           expect(vm.publicKeyMultibase, startsWith('zQ3s'));
         }
 
-        // --- authentication: #key-1, #key-4, #key-7 ---
+        final thumbprints = results.map((r) => r.verificationMethodId).toList();
+
+        // --- authentication: all 3 thumbprints ---
         expect(doc.authentication.length, 3);
-        expect(json['authentication'], [
-          'did:web:example.com#key-1',
-          'did:web:example.com#key-4',
-          'did:web:example.com#key-7',
-        ]);
+        expect(json['authentication'], thumbprints);
 
-        // --- keyAgreement: #key-2, #key-5, #key-8 ---
+        // --- keyAgreement: same thumbprints ---
         expect(doc.keyAgreement.length, 3);
-        expect(json['keyAgreement'], [
-          'did:web:example.com#key-2',
-          'did:web:example.com#key-5',
-          'did:web:example.com#key-8',
-        ]);
+        expect(json['keyAgreement'], thumbprints);
 
-        // --- assertionMethod: #key-3, #key-6, #key-9 ---
+        // --- assertionMethod: same thumbprints ---
         expect(doc.assertionMethod.length, 3);
-        expect(json['assertionMethod'], [
-          'did:web:example.com#key-3',
-          'did:web:example.com#key-6',
-          'did:web:example.com#key-9',
-        ]);
+        expect(json['assertionMethod'], thumbprints);
 
         // --- unused ---
         expect(doc.capabilityInvocation, isEmpty);
@@ -893,14 +864,14 @@ void main() {
         final p256Key =
             await wallet.generateKey(keyId: 'p256-auth', keyType: KeyType.p256);
 
-        await manager.addVerificationMethod(
+        final edRes = await manager.addVerificationMethod(
           edKey.id,
           relationships: {
             VerificationRelationship.authentication,
             VerificationRelationship.assertionMethod,
           },
         );
-        await manager.addVerificationMethod(
+        final p256Res = await manager.addVerificationMethod(
           p256Key.id,
           relationships: {
             VerificationRelationship.authentication,
@@ -915,51 +886,38 @@ void main() {
         expect(doc.id, 'did:web:example.com');
 
         // --- verificationMethod ---
-        // 2 keys × 2 relationships = 4 VMs
-        // ed25519 → #key-1 (auth), #key-2 (assertion)
-        // p256    → #key-3 (auth), #key-4 (assertion)
-        expect(doc.verificationMethod.length, 4);
+        // With JWK thumbprints: same key → same fragment regardless of relationship.
+        // 2 distinct keys → 2 distinct VMs.
+        expect(doc.verificationMethod.length, 2);
 
-        // VM 1: ed25519 (authentication)
+        // VM 1: ed25519
         final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
-        expect(vm1.id, 'did:web:example.com#key-1');
+        expect(vm1.id, edRes.verificationMethodId);
         expect(vm1.controller, 'did:web:example.com');
         expect(vm1.type, 'Multikey');
         expect(vm1.publicKeyMultibase, startsWith('z6Mk')); // ed25519
 
-        // VM 2: ed25519 (assertionMethod) — same key material as VM 1
+        // VM 2: p256
         final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
-        expect(vm2.id, 'did:web:example.com#key-2');
+        expect(vm2.id, p256Res.verificationMethodId);
+        expect(vm2.controller, 'did:web:example.com');
         expect(vm2.type, 'Multikey');
-        expect(vm2.publicKeyMultibase, startsWith('z6Mk')); // ed25519
-        expect(vm2.publicKeyMultibase, vm1.publicKeyMultibase);
+        expect(vm2.publicKeyMultibase, startsWith('zDn')); // p256
 
-        // VM 3: p256 (authentication)
-        final vm3 = doc.verificationMethod[2] as VerificationMethodMultibase;
-        expect(vm3.id, 'did:web:example.com#key-3');
-        expect(vm3.controller, 'did:web:example.com');
-        expect(vm3.type, 'Multikey');
-        expect(vm3.publicKeyMultibase, startsWith('zDn')); // p256
+        expect(vm1.id, isNot(vm2.id));
 
-        // VM 4: p256 (assertionMethod) — same key material as VM 3
-        final vm4 = doc.verificationMethod[3] as VerificationMethodMultibase;
-        expect(vm4.id, 'did:web:example.com#key-4');
-        expect(vm4.type, 'Multikey');
-        expect(vm4.publicKeyMultibase, startsWith('zDn')); // p256
-        expect(vm4.publicKeyMultibase, vm3.publicKeyMultibase);
-
-        // --- authentication: #key-1 (ed25519) + #key-3 (p256) ---
+        // --- authentication: ed25519 thumbprint + p256 thumbprint ---
         expect(doc.authentication.length, 2);
         expect(json['authentication'], [
-          'did:web:example.com#key-1',
-          'did:web:example.com#key-3',
+          edRes.verificationMethodId,
+          p256Res.verificationMethodId,
         ]);
 
-        // --- assertionMethod: #key-2 (ed25519) + #key-4 (p256) ---
+        // --- assertionMethod: same thumbprints ---
         expect(doc.assertionMethod.length, 2);
         expect(json['assertionMethod'], [
-          'did:web:example.com#key-2',
-          'did:web:example.com#key-4',
+          edRes.verificationMethodId,
+          p256Res.verificationMethodId,
         ]);
 
         // --- unused ---
@@ -969,18 +927,18 @@ void main() {
       });
 
       test('2 keys (ed25519 + secp256k1): both with keyAgreement', () async {
-        // ed25519 used for keyAgreement → derives X25519 automatically
+        // ed25519 used for keyAgreement → derives X25519 automatically → distinct thumbprint
         // secp256k1 used for keyAgreement → stays secp256k1
         final edKey =
             await wallet.generateKey(keyId: 'ed-ka', keyType: KeyType.ed25519);
         final secpKey = await wallet.generateKey(
             keyId: 'secp-ka', keyType: KeyType.secp256k1);
 
-        await manager.addVerificationMethod(
+        final edRes = await manager.addVerificationMethod(
           edKey.id,
           relationships: {VerificationRelationship.keyAgreement},
         );
-        await manager.addVerificationMethod(
+        final secpRes = await manager.addVerificationMethod(
           secpKey.id,
           relationships: {VerificationRelationship.keyAgreement},
         );
@@ -993,21 +951,21 @@ void main() {
 
         // VM 1: derived x25519 from ed25519 (because only keyAgreement was requested)
         final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
-        expect(vm1.id, 'did:web:example.com#key-1');
+        expect(vm1.id, edRes.verificationMethodId);
         expect(vm1.type, 'Multikey');
         expect(vm1.publicKeyMultibase, startsWith('z6LS')); // x25519
 
         // VM 2: secp256k1 (used directly for keyAgreement)
         final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
-        expect(vm2.id, 'did:web:example.com#key-2');
+        expect(vm2.id, secpRes.verificationMethodId);
         expect(vm2.type, 'Multikey');
         expect(vm2.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
 
         // --- keyAgreement: both ---
         expect(doc.keyAgreement.length, 2);
         expect(json['keyAgreement'], [
-          'did:web:example.com#key-1',
-          'did:web:example.com#key-2',
+          edRes.verificationMethodId,
+          secpRes.verificationMethodId,
         ]);
 
         // --- unused ---
@@ -1033,11 +991,11 @@ void main() {
           VerificationRelationship.keyAgreement,
         };
 
-        await manager.addVerificationMethod(edKey.id,
+        final edRes = await manager.addVerificationMethod(edKey.id,
             relationships: allRelationships);
-        await manager.addVerificationMethod(p256Key.id,
+        final p256Res = await manager.addVerificationMethod(p256Key.id,
             relationships: allRelationships);
-        await manager.addVerificationMethod(secpKey.id,
+        final secpRes = await manager.addVerificationMethod(secpKey.id,
             relationships: allRelationships);
 
         final doc = await manager.getDidDocument();
@@ -1047,104 +1005,62 @@ void main() {
         expect(doc.id, 'did:web:example.com');
 
         // --- verificationMethod ---
-        // processingOrder: authentication, keyAgreement, ..., assertionMethod
-        //
-        // ed25519 key:
-        //   #key-1 (auth, ed25519)
-        //   #key-2 (keyAgreement, x25519 — derived from ed25519)
-        //   #key-3 (assertion, ed25519)
-        // p256 key:
-        //   #key-4 (auth, p256)
-        //   #key-5 (keyAgreement, p256)
-        //   #key-6 (assertion, p256)
-        // secp256k1 key:
-        //   #key-7 (auth, secp256k1)
-        //   #key-8 (keyAgreement, secp256k1)
-        //   #key-9 (assertion, secp256k1)
-        expect(doc.verificationMethod.length, 9);
+        // ed25519 with {auth, keyAgreement (→x25519), assertion}:
+        //   auth + assertion share the ed25519 thumbprint (same publicKey)
+        //   keyAgreement gets the x25519-derived thumbprint (different publicKey bytes)
+        //   → 2 distinct VMs for ed25519 (ed25519 + x25519)
+        // p256 with {auth, keyAgreement, assertion}: all share 1 thumbprint → 1 VM
+        // secp256k1 with {auth, keyAgreement, assertion}: all share 1 thumbprint → 1 VM
+        // Total: 4 VMs
+        expect(doc.verificationMethod.length, 4);
 
-        // VM 1: ed25519 (authentication)
-        final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
-        expect(vm1.id, 'did:web:example.com#key-1');
-        expect(vm1.type, 'Multikey');
-        expect(vm1.publicKeyMultibase, startsWith('z6Mk')); // ed25519
+        // Get the relationship-specific VM IDs
+        final edAuthVmId =
+            edRes.relationships[VerificationRelationship.authentication]!;
+        final edKaVmId =
+            edRes.relationships[VerificationRelationship.keyAgreement]!;
+        final edAssertVmId =
+            edRes.relationships[VerificationRelationship.assertionMethod]!;
+        expect(edAuthVmId,
+            edAssertVmId); // auth and assert share same ed25519 thumbprint
+        expect(
+            edAuthVmId, isNot(edKaVmId)); // keyAgreement uses x25519 thumbprint
 
-        // VM 2: x25519 (keyAgreement — derived from ed25519)
-        final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
-        expect(vm2.id, 'did:web:example.com#key-2');
-        expect(vm2.type, 'Multikey');
-        expect(vm2.publicKeyMultibase, startsWith('z6LS')); // x25519
+        final p256VmId = p256Res.verificationMethodId;
+        final secpVmId = secpRes.verificationMethodId;
 
-        // VM 3: ed25519 (assertionMethod)
-        final vm3 = doc.verificationMethod[2] as VerificationMethodMultibase;
-        expect(vm3.id, 'did:web:example.com#key-3');
-        expect(vm3.type, 'Multikey');
-        expect(vm3.publicKeyMultibase, startsWith('z6Mk')); // ed25519
-        expect(vm3.publicKeyMultibase, vm1.publicKeyMultibase); // same key
+        // Verify VM key material
+        final edVm =
+            doc.verificationMethod.firstWhere((vm) => vm.id == edAuthVmId)
+                as VerificationMethodMultibase;
+        expect(edVm.publicKeyMultibase, startsWith('z6Mk')); // ed25519
 
-        // VM 4: p256 (authentication)
-        final vm4 = doc.verificationMethod[3] as VerificationMethodMultibase;
-        expect(vm4.id, 'did:web:example.com#key-4');
-        expect(vm4.type, 'Multikey');
-        expect(vm4.publicKeyMultibase, startsWith('zDn')); // p256
+        final kaVm =
+            doc.verificationMethod.firstWhere((vm) => vm.id == edKaVmId)
+                as VerificationMethodMultibase;
+        expect(kaVm.publicKeyMultibase, startsWith('z6LS')); // x25519 derived
 
-        // VM 5: p256 (keyAgreement)
-        final vm5 = doc.verificationMethod[4] as VerificationMethodMultibase;
-        expect(vm5.id, 'did:web:example.com#key-5');
-        expect(vm5.type, 'Multikey');
-        expect(vm5.publicKeyMultibase, startsWith('zDn')); // p256
-        expect(vm5.publicKeyMultibase, vm4.publicKeyMultibase); // same key
+        final p256Vm =
+            doc.verificationMethod.firstWhere((vm) => vm.id == p256VmId)
+                as VerificationMethodMultibase;
+        expect(p256Vm.publicKeyMultibase, startsWith('zDn')); // p256
 
-        // VM 6: p256 (assertionMethod)
-        final vm6 = doc.verificationMethod[5] as VerificationMethodMultibase;
-        expect(vm6.id, 'did:web:example.com#key-6');
-        expect(vm6.type, 'Multikey');
-        expect(vm6.publicKeyMultibase, startsWith('zDn')); // p256
-        expect(vm6.publicKeyMultibase, vm4.publicKeyMultibase); // same key
+        final secpVm =
+            doc.verificationMethod.firstWhere((vm) => vm.id == secpVmId)
+                as VerificationMethodMultibase;
+        expect(secpVm.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
 
-        // VM 7: secp256k1 (authentication)
-        final vm7 = doc.verificationMethod[6] as VerificationMethodMultibase;
-        expect(vm7.id, 'did:web:example.com#key-7');
-        expect(vm7.type, 'Multikey');
-        expect(vm7.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
-
-        // VM 8: secp256k1 (keyAgreement)
-        final vm8 = doc.verificationMethod[7] as VerificationMethodMultibase;
-        expect(vm8.id, 'did:web:example.com#key-8');
-        expect(vm8.type, 'Multikey');
-        expect(vm8.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
-        expect(vm8.publicKeyMultibase, vm7.publicKeyMultibase); // same key
-
-        // VM 9: secp256k1 (assertionMethod)
-        final vm9 = doc.verificationMethod[8] as VerificationMethodMultibase;
-        expect(vm9.id, 'did:web:example.com#key-9');
-        expect(vm9.type, 'Multikey');
-        expect(vm9.publicKeyMultibase, startsWith('zQ3s')); // secp256k1
-        expect(vm9.publicKeyMultibase, vm7.publicKeyMultibase); // same key
-
-        // --- authentication: #key-1 (ed25519), #key-4 (p256), #key-7 (secp256k1) ---
+        // --- authentication: ed25519 thumbprint, p256 thumbprint, secp256k1 thumbprint ---
         expect(doc.authentication.length, 3);
-        expect(json['authentication'], [
-          'did:web:example.com#key-1',
-          'did:web:example.com#key-4',
-          'did:web:example.com#key-7',
-        ]);
+        expect(json['authentication'], [edAuthVmId, p256VmId, secpVmId]);
 
-        // --- keyAgreement: #key-2 (x25519), #key-5 (p256), #key-8 (secp256k1) ---
+        // --- keyAgreement: x25519 (derived), p256, secp256k1 ---
         expect(doc.keyAgreement.length, 3);
-        expect(json['keyAgreement'], [
-          'did:web:example.com#key-2',
-          'did:web:example.com#key-5',
-          'did:web:example.com#key-8',
-        ]);
+        expect(json['keyAgreement'], [edKaVmId, p256VmId, secpVmId]);
 
-        // --- assertionMethod: #key-3 (ed25519), #key-6 (p256), #key-9 (secp256k1) ---
+        // --- assertionMethod: ed25519 thumbprint (same as auth), p256, secp256k1 ---
         expect(doc.assertionMethod.length, 3);
-        expect(json['assertionMethod'], [
-          'did:web:example.com#key-3',
-          'did:web:example.com#key-6',
-          'did:web:example.com#key-9',
-        ]);
+        expect(json['assertionMethod'], [edAuthVmId, p256VmId, secpVmId]);
 
         // --- unused ---
         expect(doc.capabilityInvocation, isEmpty);
@@ -1160,11 +1076,12 @@ void main() {
         final secpKey = await wallet.generateKey(
             keyId: 'secp-a', keyType: KeyType.secp256k1);
 
+        final results = <AddVerificationMethodResult>[];
         for (final key in [edKey, p256Key, secpKey]) {
-          await manager.addVerificationMethod(
+          results.add(await manager.addVerificationMethod(
             key.id,
             relationships: {VerificationRelationship.authentication},
-          );
+          ));
         }
 
         final doc = await manager.getDidDocument();
@@ -1175,28 +1092,32 @@ void main() {
 
         // VM 1: ed25519
         final vm1 = doc.verificationMethod[0] as VerificationMethodMultibase;
-        expect(vm1.id, 'did:web:example.com#key-1');
+        expect(vm1.id, results[0].verificationMethodId);
         expect(vm1.type, 'Multikey');
         expect(vm1.publicKeyMultibase, startsWith('z6Mk'));
 
         // VM 2: p256
         final vm2 = doc.verificationMethod[1] as VerificationMethodMultibase;
-        expect(vm2.id, 'did:web:example.com#key-2');
+        expect(vm2.id, results[1].verificationMethodId);
         expect(vm2.type, 'Multikey');
         expect(vm2.publicKeyMultibase, startsWith('zDn'));
 
         // VM 3: secp256k1
         final vm3 = doc.verificationMethod[2] as VerificationMethodMultibase;
-        expect(vm3.id, 'did:web:example.com#key-3');
+        expect(vm3.id, results[2].verificationMethodId);
         expect(vm3.type, 'Multikey');
         expect(vm3.publicKeyMultibase, startsWith('zQ3s'));
 
-        // --- authentication: all 3 ---
+        // All IDs are distinct
+        final ids = results.map((r) => r.verificationMethodId).toSet();
+        expect(ids.length, 3);
+
+        // --- authentication: all 3 thumbprints ---
         expect(doc.authentication.length, 3);
         expect(json['authentication'], [
-          'did:web:example.com#key-1',
-          'did:web:example.com#key-2',
-          'did:web:example.com#key-3',
+          results[0].verificationMethodId,
+          results[1].verificationMethodId,
+          results[2].verificationMethodId,
         ]);
 
         // --- everything else empty ---
