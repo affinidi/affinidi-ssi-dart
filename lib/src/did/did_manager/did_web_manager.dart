@@ -64,7 +64,7 @@ class DidWebManager extends DidManager {
     final jwk = keyToJwk(publicKey);
     final sortedKeys = jwk.keys.toList()..sort();
     final canonical =
-        '{${sortedKeys.map((k) => '"$k":"${jwk[k]}"').join(',')}}'; 
+        '{${sortedKeys.map((k) => '"$k":"${jwk[k]}"').join(',')}}';
     final digest = sha256.convert(utf8.encode(canonical));
     final thumbprint = base64Url.encode(digest.bytes).replaceAll('=', '');
     return '$did#$thumbprint';
