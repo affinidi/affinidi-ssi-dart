@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-04-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.6.1`](#ssi---v361)
+
+---
+
+#### `ssi` - `v3.6.1`
+
+ - **FIX**: broken example link for did signer ([#276](https://github.com/affinidi/affinidi-ssi-dart/issues/276)).
+
+## 3.6.1
+
+ - **FIX**: broken example link for did signer ([#276](https://github.com/affinidi/affinidi-ssi-dart/issues/276)).
+
+
 ## 2026-03-05
 
 ### Changes
