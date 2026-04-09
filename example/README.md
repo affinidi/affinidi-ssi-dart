@@ -17,7 +17,7 @@ Resolve the DID Document from one of the [supported methods](https://github.com/
 
 ### 3. Create a DID Signer
 
-Create a DID signer using the BIP32 wallet - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/did/did_signer.dart).
+Create a DID signer using the BIP32 wallet - [view example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/did/did_signer.dart).
 
 <hr />
 
