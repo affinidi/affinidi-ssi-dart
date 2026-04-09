@@ -58,7 +58,7 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     final proof = JcsUtils.createBaseProofConfiguration(
       cryptosuite: cryptosuite,
       created: created,
-      verificationMethod: signer.keyId,
+      verificationMethod: signer.didKeyId,
       proofPurpose: proofPurpose?.value,
       expires: expires,
       challenge: challenge,
@@ -95,7 +95,7 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
         type: JcsUtils.dataIntegrityType,
         cryptosuite: cryptosuite,
         created: created,
-        verificationMethod: signer.keyId,
+        verificationMethod: signer.didKeyId,
         proofPurpose: proofPurpose?.value,
         proofValue: signature,
         expires: expires,
