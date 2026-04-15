@@ -366,6 +366,7 @@ Map<String, dynamic> cleanEmpty(Map<String, dynamic> input) {
   final entries = input.entries.where((entry) => switch (entry.value) {
         null => false,
         List a => a.isNotEmpty,
+        Map m => m.isNotEmpty,
         _ => true
       });
 
