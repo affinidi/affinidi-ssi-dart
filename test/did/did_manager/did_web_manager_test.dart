@@ -766,7 +766,10 @@ void main() {
         // 2 distinct keys → 2 distinct VMs.
         expect(doc.verificationMethod.length, 2);
 
-        final expectedIds = [res1.verificationMethodId, res2.verificationMethodId];
+        final expectedIds = [
+          res1.verificationMethodId,
+          res2.verificationMethodId
+        ];
         for (var i = 0; i < 2; i++) {
           final vm = doc.verificationMethod[i] as VerificationMethodMultibase;
           expect(vm.id, expectedIds[i]);
@@ -1207,11 +1210,9 @@ void main() {
           expect(primaryVmId, isNot(kaVmId));
 
           // All other relationships map to the primary VM
-          expect(
-              result.relationships[VerificationRelationship.authentication],
+          expect(result.relationships[VerificationRelationship.authentication],
               primaryVmId);
-          expect(
-              result.relationships[VerificationRelationship.assertionMethod],
+          expect(result.relationships[VerificationRelationship.assertionMethod],
               primaryVmId);
           expect(
               result
