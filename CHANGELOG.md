@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-04-17
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.6.2`](#ssi---v362)
+
+---
+
+#### `ssi` - `v3.6.2`
+
+ - **FIX**: remove empty objects in cleanempty method ([#278](https://github.com/affinidi/affinidi-ssi-dart/issues/278)).
+
+## 3.6.2
+
+ - **FIX**: remove empty objects in cleanempty method ([#278](https://github.com/affinidi/affinidi-ssi-dart/issues/278)).
+
+
 ## 2026-04-09
 
 ### Changes
