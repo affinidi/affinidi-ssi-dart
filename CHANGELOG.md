@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v3.7.0`](#ssi---v370)
+
+---
+
+#### `ssi` - `v3.7.0`
+
+ - **FEAT**: enhance DID Manager with multi-key support for `did:peer:2` and `did:web` methods ([#274](https://github.com/affinidi/affinidi-ssi-dart/issues/274)).
+
+## 3.7.0
+
+ - **FEAT**: enhance DID Manager with multi-key support for `did:peer:2` and `did:web` methods ([#274](https://github.com/affinidi/affinidi-ssi-dart/issues/274)).
+
+
+## 2026-04-17
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v3.6.2`](#ssi---v362)
 
 ---
