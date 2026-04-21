@@ -152,9 +152,15 @@ DidDocument _resolveDidPeer0(String did) {
 
   var keyPart = did.substring(11);
 
+  // did:peer:0 is equivalent to did:key per spec.
+  // Convert to did:key so the resolved document uses did:key as its id,
+  // matching what the Rust mediator expects.
+  // final didKeyId = 'did:key:z$keyPart';
+  final didKeyId = did;
+
   // ed25519
   if (keyPart.startsWith('6Mk')) {
-    return _buildEDDoc(multikeyContext, did, keyPart);
+    return _buildEDDoc(multikeyContext, didKeyId, keyPart);
   }
 
   final forSigning = keyPart.startsWith('Dn') || // p256
@@ -162,13 +168,17 @@ DidDocument _resolveDidPeer0(String did) {
       keyPart.startsWith('82') || // p384
       keyPart.startsWith('2J9'); // p521
 
-  // x25519
-  final forKeyAgreement = keyPart.startsWith('6LS');
+  // x25519 and EC curves (p256, p384, p521) support ECDH key agreement.
+  // secp256k1 is excluded as it is signing-only per DIDComm spec.
+  final forKeyAgreement = keyPart.startsWith('6LS') || // x25519
+      keyPart.startsWith('Dn') || // p256
+      keyPart.startsWith('82') || // p384
+      keyPart.startsWith('2J9'); // p521
 
   if (forSigning || forKeyAgreement) {
     return _buildSimpleDoc(
       multikeyContext,
-      did,
+      didKeyId,
       keyPart,
       forSigning: forSigning,
       forKeyAgreement: forKeyAgreement,

@@ -188,7 +188,52 @@ class DidPeerManager extends DidManager {
 
     // For did:peer:0, the resolution logic is simple and handles key derivation.
     if (DidPeer.determineType(did) == DidPeerType.peer0) {
-      return DidPeer.resolve(did);
+      final doc = DidPeer.resolve(did);
+
+      // did:peer:0 resolves to a did:key document where VM IDs use the
+      // multibase key as fragment (e.g. #zDnaem...), but the store
+      // has sequential #key-N IDs. Replace the old mappings with the
+      // resolved multibase IDs so lookups by the new IDs succeed.
+      // For peer:0, all VMs originate from a single wallet key.
+      final walletKeyId = await getWalletKeyId(uniqueVmIds.first);
+      if (walletKeyId != null) {
+        // Remove the old sequential IDs and add resolved multibase IDs.
+        for (final oldId in uniqueVmIds) {
+          await store.removeMapping(oldId);
+        }
+        for (var i = 0; i < doc.verificationMethod.length; i++) {
+          final resolvedFragment =
+              '#${doc.verificationMethod[i].id.split('#').last}';
+          await store.setMapping(resolvedFragment, walletKeyId);
+        }
+
+        // Update cached relationship lists to use resolved multibase IDs
+        // so that callers (e.g. getSigner(authentication.first)) get IDs
+        // that match the document.
+        await clearVerificationMethodReferences();
+        for (final vmId
+            in doc.authentication.map((v) => '#${v.id.split('#').last}')) {
+          await addAuthentication(vmId);
+        }
+        for (final vmId
+            in doc.keyAgreement.map((v) => '#${v.id.split('#').last}')) {
+          await addKeyAgreement(vmId);
+        }
+        for (final vmId
+            in doc.assertionMethod.map((v) => '#${v.id.split('#').last}')) {
+          await addAssertionMethod(vmId);
+        }
+        for (final vmId in doc.capabilityInvocation
+            .map((v) => '#${v.id.split('#').last}')) {
+          await addCapabilityInvocation(vmId);
+        }
+        for (final vmId in doc.capabilityDelegation
+            .map((v) => '#${v.id.split('#').last}')) {
+          await addCapabilityDelegation(vmId);
+        }
+      }
+
+      return doc;
     }
 
     // For did:peer:2, build the document from state to preserve vmIds.
