@@ -181,8 +181,8 @@ void main() {
 
       // Verify verification methods are created correctly
       expect(doc.verificationMethod.length, 2);
-      expect(doc.verificationMethod[0].id, '${doc.id}#key-1');
-      expect(doc.verificationMethod[1].id, '${doc.id}#key-2');
+      expect(doc.verificationMethod[0].id, '#key-1');
+      expect(doc.verificationMethod[1].id, '#key-2');
     });
 
     test(
@@ -319,7 +319,7 @@ void main() {
       for (final vm in verificationMethods) {
         expect(vm.type, 'Multikey');
         expect(vm.controller, actualDid);
-        expect(vm.id, startsWith('$actualDid#key-'));
+        expect(vm.id, startsWith('#key-'));
       }
 
       // Assert authentication, assertionMethod, keyAgreement
@@ -328,8 +328,8 @@ void main() {
       final keyAgreementIds =
           resolvedDidDocument.keyAgreement.map((vm) => vm.id).toList();
       // By construction, last two keys are authentication/assertion, first two are keyAgreement
-      expect(authenticationIds, ['$actualDid#key-1']);
-      expect(keyAgreementIds, ['$actualDid#key-2']);
+      expect(authenticationIds, ['#key-1']);
+      expect(keyAgreementIds, ['#key-2']);
 
       // Assert capabilityDelegation and capabilityInvocation are empty
       expect(resolvedDidDocument.assertionMethod, isEmpty);

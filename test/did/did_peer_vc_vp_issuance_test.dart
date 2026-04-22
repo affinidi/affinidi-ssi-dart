@@ -38,15 +38,14 @@ void main() {
       expect(didDocument.id, startsWith('did:peer:2'));
 
       // Use first authentication key as signer
-      final authVmId =
-          didDocument.authentication.first.id; // e.g. 'did:peer:2...#key-1'
+      final authVmId = didDocument.authentication.first.id; // e.g. '#key-1'
       final walletKeyId = await manager.getWalletKeyId(authVmId);
       expect(walletKeyId, isNotNull);
       final keyPair = await wallet.getKeyPair(walletKeyId!);
 
       final signer = DidSigner(
         did: didDocument.id,
-        didKeyId: authVmId,
+        didKeyId: '${didDocument.id}$authVmId',
         keyPair: keyPair,
         signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
       );
@@ -89,7 +88,7 @@ void main() {
 
       final signer = DidSigner(
         did: didDocument.id,
-        didKeyId: authVmId,
+        didKeyId: '${didDocument.id}$authVmId',
         keyPair: keyPair,
         signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
       );
