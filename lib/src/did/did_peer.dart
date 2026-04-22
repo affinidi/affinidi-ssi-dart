@@ -235,7 +235,7 @@ DidDocument _resolveDidPeer2(String did) {
       case 'I':
       case 'D':
         keyIndex++;
-        final kid = '$did#key-$keyIndex';
+        final kid = '#key-$keyIndex';
         final verification = VerificationMethodMultibase(
           id: kid,
           controller: did,
@@ -466,17 +466,12 @@ class DidPeer {
       'https://w3id.org/security/multikey/v1'
     ];
 
-    // Expands a fragment-only ID (e.g. '#key-1') to fully-qualified form
-    // (e.g. 'did:peer:2...#key-1'). Already-absolute IDs are left unchanged.
-    String toFullId(String id) => id.startsWith('#') ? '$did$id' : id;
-    List<String> toFullIds(List<String>? ids) =>
-        ids?.map(toFullId).toList() ?? [];
-
     final vms = <EmbeddedVerificationMethod>[];
     for (var i = 0; i < verificationMethodIds.length; i++) {
+      final vmId = verificationMethodIds[i];
       final pubKey = publicKeys[i];
       vms.add(VerificationMethodMultibase(
-        id: toFullId(verificationMethodIds[i]),
+        id: vmId,
         controller: did,
         type: 'Multikey',
         publicKeyMultibase: toMultiBase(toMultikey(pubKey.bytes, pubKey.type)),
@@ -488,15 +483,14 @@ class DidPeer {
       id: did,
       verificationMethod: vms,
       authentication:
-          toFullIds(relationships[VerificationRelationship.authentication]),
-      keyAgreement:
-          toFullIds(relationships[VerificationRelationship.keyAgreement]),
+          relationships[VerificationRelationship.authentication] ?? [],
+      keyAgreement: relationships[VerificationRelationship.keyAgreement] ?? [],
       assertionMethod:
-          toFullIds(relationships[VerificationRelationship.assertionMethod]),
-      capabilityInvocation: toFullIds(
-          relationships[VerificationRelationship.capabilityInvocation]),
-      capabilityDelegation: toFullIds(
-          relationships[VerificationRelationship.capabilityDelegation]),
+          relationships[VerificationRelationship.assertionMethod] ?? [],
+      capabilityInvocation:
+          relationships[VerificationRelationship.capabilityInvocation] ?? [],
+      capabilityDelegation:
+          relationships[VerificationRelationship.capabilityDelegation] ?? [],
       service: serviceEndpoints,
     );
   }

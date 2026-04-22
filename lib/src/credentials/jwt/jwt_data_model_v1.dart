@@ -29,7 +29,7 @@ class JwtVcDataModelV1 extends VcDataModelV1
     final payload = <String, dynamic>{};
     final header = <String, dynamic>{
       'alg': signer.signatureScheme.alg,
-      'kid': signer.didKeyId,
+      'kid': signer.keyId,
       'typ': 'JWT',
     };
 
@@ -45,12 +45,7 @@ class JwtVcDataModelV1 extends VcDataModelV1
           (DateTime.parse(nbf as String).millisecondsSinceEpoch / 1000).floor();
     }
 
-    final rawIssuer = json.remove(_VC1.issuer.key);
-    if (rawIssuer is Map<String, dynamic>) {
-      payload['iss'] = rawIssuer['id'] as String? ?? signer.did;
-    } else {
-      payload['iss'] = rawIssuer ?? signer.did;
-    }
+    payload['iss'] = json.remove(_VC1.issuer.key);
 
     final id = json.remove(_VC1.id.key);
     if (id != null) {
