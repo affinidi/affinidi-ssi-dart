@@ -33,10 +33,7 @@ class DidPeerManager extends DidManager {
     required PublicKey publicKey,
     required Set<VerificationRelationship> relationships,
   }) async {
-    final createdRelationships = <VerificationRelationship, String>{};
-    String? primaryVmId;
-
-    // If no relationships are specified, create one VM not attached to any purpose.
+    // ── Empty relationships: one unattached VM ──
     if (relationships.isEmpty) {
       final vmId = await buildVerificationMethodId(publicKey);
       await store.setMapping(vmId, walletKeyId);
@@ -46,8 +43,27 @@ class DidPeerManager extends DidManager {
       );
     }
 
-    // Define a fixed order for processing relationships to ensure consistent
-    // DID generation, as the order of elements in a did:peer:2 DID is significant.
+    final createdRelationships = <VerificationRelationship, String>{};
+
+    // Skip primary VM only when sole relationship is keyAgreement on ed25519.
+    final needsPrimaryVm = !(relationships.length == 1 &&
+        relationships.first == VerificationRelationship.keyAgreement &&
+        publicKey.type == KeyType.ed25519);
+
+    // Build PRIMARY VM id once.
+    String? primaryVmId;
+    if (needsPrimaryVm) {
+      primaryVmId = await buildVerificationMethodId(publicKey);
+      await addVerificationMethodFromPublicKey(
+        publicKey,
+        verificationMethodId: primaryVmId,
+      );
+    }
+
+    // Build DERIVED X25519 VM lazily.
+    String? derivedVmId;
+
+    // Fixed processing order — significant for did:peer:2 DID string generation.
     const processingOrder = [
       VerificationRelationship.authentication,
       VerificationRelationship.keyAgreement,
@@ -56,51 +72,44 @@ class DidPeerManager extends DidManager {
       VerificationRelationship.assertionMethod,
     ];
 
-    final orderedRelationships =
-        processingOrder.where((r) => relationships.contains(r));
-
-    for (final relationship in orderedRelationships) {
-      final String vmId;
-      // Special handling for keyAgreement with Ed25519 keys
+    for (final relationship
+        in processingOrder.where((r) => relationships.contains(r))) {
       if (relationship == VerificationRelationship.keyAgreement &&
           publicKey.type == KeyType.ed25519) {
-        final x25519PublicKeyBytes =
-            ed25519PublicToX25519Public(publicKey.bytes);
-        final keyAgreementPublicKey =
-            PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
-        vmId = await buildVerificationMethodId(keyAgreementPublicKey);
+        if (derivedVmId == null) {
+          final x25519Bytes = ed25519PublicToX25519Public(publicKey.bytes);
+          final x25519Key =
+              PublicKey(publicKey.id, x25519Bytes, KeyType.x25519);
+          derivedVmId = await buildVerificationMethodId(x25519Key);
+          await addVerificationMethodFromPublicKey(
+            x25519Key,
+            verificationMethodId: derivedVmId,
+          );
+        }
+        await addKeyAgreement(derivedVmId);
+        createdRelationships[relationship] = derivedVmId;
       } else {
-        vmId = await buildVerificationMethodId(publicKey);
+        switch (relationship) {
+          case VerificationRelationship.authentication:
+            await addAuthentication(primaryVmId!);
+          case VerificationRelationship.assertionMethod:
+            await addAssertionMethod(primaryVmId!);
+          case VerificationRelationship.capabilityInvocation:
+            await addCapabilityInvocation(primaryVmId!);
+          case VerificationRelationship.capabilityDelegation:
+            await addCapabilityDelegation(primaryVmId!);
+          case VerificationRelationship.keyAgreement:
+            await addKeyAgreement(primaryVmId!);
+        }
+        createdRelationships[relationship] = primaryVmId;
       }
-
-      await addVerificationMethodFromPublicKey(
-        publicKey,
-        verificationMethodId: vmId,
-      );
-      primaryVmId ??= vmId;
-
-      switch (relationship) {
-        case VerificationRelationship.authentication:
-          await addAuthentication(vmId);
-          break;
-        case VerificationRelationship.assertionMethod:
-          await addAssertionMethod(vmId);
-          break;
-        case VerificationRelationship.capabilityInvocation:
-          await addCapabilityInvocation(vmId);
-          break;
-        case VerificationRelationship.capabilityDelegation:
-          await addCapabilityDelegation(vmId);
-          break;
-        case VerificationRelationship.keyAgreement:
-          await addKeyAgreement(vmId);
-          break;
-      }
-      createdRelationships[relationship] = vmId;
     }
 
+    // At least one VM must have been created: either the primary or the derived.
+    assert(primaryVmId != null || derivedVmId != null);
+
     return AddVerificationMethodResult(
-      verificationMethodId: primaryVmId!,
+      verificationMethodId: primaryVmId ?? derivedVmId!,
       relationships: createdRelationships,
     );
   }
@@ -122,7 +131,16 @@ class DidPeerManager extends DidManager {
     // Get all verification method IDs in their creation order.
     final uniqueVmIds = await store.verificationMethodIds;
 
-    // Create a list of public keys for each unique verification method.
+    // Create a list of public keys for each unique verification method,
+    // converting Ed25519 to X25519 for keyAgreement VMs.
+    //
+    // NOTE: `wallet.getPublicKey()` always returns the **original** key type
+    // stored in the wallet (e.g. ed25519), even for VMs that were created with
+    // a derived X25519 public key in `internalAddVerificationMethod`. For
+    // derived keyAgreement VMs this means the conversion below re-derives the
+    // X25519 key — the result is identical because `ed25519PublicToX25519Public`
+    // is a deterministic pure function. This is intentional and ensures the DID
+    // document always contains the correct X25519 multibase encoding.
     final verificationMethodsPubKeys = <PublicKey>[];
     for (final vmId in uniqueVmIds) {
       final walletKeyId = await getWalletKeyId(vmId);
@@ -170,7 +188,52 @@ class DidPeerManager extends DidManager {
 
     // For did:peer:0, the resolution logic is simple and handles key derivation.
     if (DidPeer.determineType(did) == DidPeerType.peer0) {
-      return DidPeer.resolve(did);
+      final doc = DidPeer.resolve(did);
+
+      // did:peer:0 resolves to a did:key document where VM IDs use the
+      // multibase key as fragment (e.g. #zDnaem...), but the store
+      // has sequential #key-N IDs. Replace the old mappings with the
+      // resolved multibase IDs so lookups by the new IDs succeed.
+      // For peer:0, all VMs originate from a single wallet key.
+      final walletKeyId = await getWalletKeyId(uniqueVmIds.first);
+      if (walletKeyId != null) {
+        // Remove the old sequential IDs and add resolved multibase IDs.
+        for (final oldId in uniqueVmIds) {
+          await store.removeMapping(oldId);
+        }
+        for (var i = 0; i < doc.verificationMethod.length; i++) {
+          final resolvedFragment =
+              '#${doc.verificationMethod[i].id.split('#').last}';
+          await store.setMapping(resolvedFragment, walletKeyId);
+        }
+
+        // Update cached relationship lists to use resolved multibase IDs
+        // so that callers (e.g. getSigner(authentication.first)) get IDs
+        // that match the document.
+        await clearVerificationMethodReferences();
+        for (final vmId
+            in doc.authentication.map((v) => '#${v.id.split('#').last}')) {
+          await addAuthentication(vmId);
+        }
+        for (final vmId
+            in doc.keyAgreement.map((v) => '#${v.id.split('#').last}')) {
+          await addKeyAgreement(vmId);
+        }
+        for (final vmId
+            in doc.assertionMethod.map((v) => '#${v.id.split('#').last}')) {
+          await addAssertionMethod(vmId);
+        }
+        for (final vmId in doc.capabilityInvocation
+            .map((v) => '#${v.id.split('#').last}')) {
+          await addCapabilityInvocation(vmId);
+        }
+        for (final vmId in doc.capabilityDelegation
+            .map((v) => '#${v.id.split('#').last}')) {
+          await addCapabilityDelegation(vmId);
+        }
+      }
+
+      return doc;
     }
 
     // For did:peer:2, build the document from state to preserve vmIds.
