@@ -423,10 +423,12 @@ class DidPeer {
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
 
-    final indexToPurpose = <int, VerificationRelationship>{};
+    // A single VM can serve multiple purposes in did:peer:2.
+    // Each purpose is encoded as a separate segment with its own prefix.
+    final indexToPurposes = <int, List<VerificationRelationship>>{};
     for (final entry in rels.entries) {
       for (final index in entry.value) {
-        indexToPurpose[index] = entry.key;
+        (indexToPurposes[index] ??= []).add(entry.key);
       }
     }
 
@@ -445,12 +447,14 @@ class DidPeer {
 
     var keyStr = '';
     for (var i = 0; i < verificationMethods.length; i++) {
-      final purpose = indexToPurpose[i];
-      if (purpose != null) {
-        final prefix = getPrefixForRelationship(purpose);
+      final purposes = indexToPurposes[i];
+      if (purposes != null) {
         final keyMultibase = toMultiBase(toMultikey(
             verificationMethods[i].bytes, verificationMethods[i].type));
-        keyStr += '.${prefix.value}$keyMultibase';
+        for (final purpose in purposes) {
+          final prefix = getPrefixForRelationship(purpose);
+          keyStr += '.${prefix.value}$keyMultibase';
+        }
       }
     }
 
