@@ -47,7 +47,7 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
         '@context': _securityContext,
         'type': _signatureType,
         'created': created.toIso8601String(),
-        'verificationMethod': signer.keyId,
+        'verificationMethod': signer.didKeyId,
         'proofPurpose': proofPurpose?.value,
         'expires': expires?.toIso8601String(),
         'challenge': challenge,
@@ -67,7 +67,7 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
       return EcdsaSecp256k1Signature2019Proof(
           type: 'EcdsaSecp256k1Signature2019',
           created: created,
-          verificationMethod: signer.keyId,
+          verificationMethod: signer.didKeyId,
           proofPurpose: proofPurpose?.value,
           jws: jws,
           expires: expires,

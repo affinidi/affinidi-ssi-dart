@@ -16,6 +16,7 @@ void main() {
       manager = DidPeerManager(
         store: store,
         wallet: wallet,
+        preferredNumalgo: DidPeerType.peer0,
       );
       await manager.init();
     });
@@ -128,14 +129,16 @@ void main() {
 
         // Verify verification methods
         expect(didDocument.verificationMethod, hasLength(2));
-        expect(didDocument.verificationMethod[0].id, '#key-1');
+        expect(didDocument.verificationMethod[0].id, '${didDocument.id}#key-1');
         expect(didDocument.verificationMethod[0].type, 'Multikey');
-        expect(didDocument.verificationMethod[1].id, '#key-2');
+        expect(didDocument.verificationMethod[1].id, '${didDocument.id}#key-2');
         expect(didDocument.verificationMethod[1].type, 'Multikey');
 
         // Verify verification relationships
-        expect(didDocument.authentication.map((e) => e.id), ['#key-1']);
-        expect(didDocument.keyAgreement.map((e) => e.id), ['#key-2']);
+        expect(didDocument.authentication.map((e) => e.id).toList(),
+            ['${didDocument.id}#key-1']);
+        expect(didDocument.keyAgreement.map((e) => e.id).toList(),
+            ['${didDocument.id}#key-2']);
 
         // Cross-check: get key agreement id from doc and retrieve keypair from manager
         final keyAgreementId = didDocument.keyAgreement.first.id;
@@ -205,8 +208,14 @@ void main() {
         expect(document.id, startsWith('did:peer:2'));
         expect(document.verificationMethod.length, 3);
         expect(document.authentication.length, 3);
-        expect(document.authentication.map((ref) => ref.id).toList(),
-            containsAll([vmId1, vmId2, vmId3]));
+        expect(
+          document.authentication.map((ref) => ref.id).toList(),
+          containsAll([
+            '${document.id}$vmId1',
+            '${document.id}$vmId2',
+            '${document.id}$vmId3',
+          ]),
+        );
       });
     });
 
@@ -405,14 +414,25 @@ void main() {
         // Assert
         expect(document.id, startsWith('did:peer:2'));
         expect(
-            document.authentication.any((ref) => ref.id == vmIds[0]), isTrue);
-        expect(document.keyAgreement.any((ref) => ref.id == vmIds[1]), isTrue);
-        expect(document.capabilityInvocation.any((ref) => ref.id == vmIds[2]),
-            isTrue);
-        expect(document.capabilityDelegation.any((ref) => ref.id == vmIds[3]),
+            document.authentication
+                .any((ref) => ref.id == '${document.id}${vmIds[0]}'),
             isTrue);
         expect(
-            document.assertionMethod.any((ref) => ref.id == vmIds[4]), isTrue);
+            document.keyAgreement
+                .any((ref) => ref.id == '${document.id}${vmIds[1]}'),
+            isTrue);
+        expect(
+            document.capabilityInvocation
+                .any((ref) => ref.id == '${document.id}${vmIds[2]}'),
+            isTrue);
+        expect(
+            document.capabilityDelegation
+                .any((ref) => ref.id == '${document.id}${vmIds[3]}'),
+            isTrue);
+        expect(
+            document.assertionMethod
+                .any((ref) => ref.id == '${document.id}${vmIds[4]}'),
+            isTrue);
       });
 
       test('should remove verification method purposes', () async {
@@ -455,20 +475,17 @@ void main() {
         expect(document.authentication.length, 1);
       });
 
-      test('should create separate verification methods for each purpose',
+      test('should create ONE verification method shared across purposes',
           () async {
-        // Arrange
         final key = await wallet.generateKey(
             keyId: 'multi-purpose-key', keyType: KeyType.p256);
 
-        // Act
         final result =
             await manager.addVerificationMethod(key.id, relationships: {
           VerificationRelationship.authentication,
           VerificationRelationship.assertionMethod,
         });
 
-        // Assert
         final authVmId =
             result.relationships[VerificationRelationship.authentication];
         final assertVmId =
@@ -476,23 +493,27 @@ void main() {
 
         expect(authVmId, isNotNull);
         expect(assertVmId, isNotNull);
-        expect(authVmId, isNot(equals(assertVmId)),
-            reason: 'Each purpose should have a unique verification method ID');
+        // One-to-one: same VM for both purposes
+        expect(authVmId, equals(assertVmId),
+            reason: 'Both purposes should share one verification method ID');
 
         final storeAuth = await store.authentication;
         final storeAssert = await store.assertionMethod;
 
         expect(storeAuth, [authVmId]);
-        expect(storeAssert, [assertVmId]);
+        expect(storeAssert, [authVmId]); // same VM ID
 
         final allVmIds = await store.verificationMethodIds;
-        expect(allVmIds, hasLength(2));
-        expect(allVmIds, containsAll([authVmId, assertVmId]));
+        expect(allVmIds, hasLength(1)); // just 1 VM
+        expect(allVmIds, contains(authVmId));
 
         final doc = await manager.getDidDocument();
-        expect(doc.authentication.first.id, authVmId);
-        expect(doc.assertionMethod.first.id, assertVmId);
-        expect(doc.verificationMethod, hasLength(2));
+        // With 1 VM, did:peer:0 is generated — VM IDs are fully qualified.
+        expect(doc.verificationMethod, hasLength(1));
+        expect(doc.authentication, hasLength(1));
+        expect(doc.assertionMethod, hasLength(1));
+        // The important check: auth and assertion reference the SAME VM.
+        expect(doc.authentication.first.id, doc.assertionMethod.first.id);
       });
 
       test('should maintain verification method order across manager instances',
@@ -523,18 +544,23 @@ void main() {
         final doc1 = await manager.getDidDocument();
         expect(doc1.id, startsWith('did:peer:2'));
         expect(doc1.verificationMethod, hasLength(3));
-        expect(doc1.verificationMethod.map((vm) => vm.id).toList(),
-            [authVmId1, kaVmId1, authVmId2]);
+        expect(doc1.verificationMethod.map((vm) => vm.id).toList(), [
+          '${doc1.id}$authVmId1',
+          '${doc1.id}$kaVmId1',
+          '${doc1.id}$authVmId2'
+        ]);
         expect(doc1.authentication.map((ref) => ref.id).toList(),
-            [authVmId1, authVmId2]);
-        expect(doc1.keyAgreement.map((ref) => ref.id).toList(), [kaVmId1]);
+            ['${doc1.id}$authVmId1', '${doc1.id}$authVmId2']);
+        expect(doc1.keyAgreement.map((ref) => ref.id).toList(),
+            ['${doc1.id}$kaVmId1']);
 
         // Compare resolved doc with originally created doc
         final resolvedDoc1 = DidPeer.resolve(doc1.id);
         expect(resolvedDoc1.toJson(), doc1.toJson());
 
         // Arrange: Second manager instance with the same store
-        final manager2 = DidPeerManager(store: store, wallet: wallet);
+        final manager2 = DidPeerManager(
+            store: store, wallet: wallet, preferredNumalgo: DidPeerType.peer0);
         await manager2.init();
 
         // Act: Get document from the second manager
@@ -792,6 +818,7 @@ void main() {
         final manager = DidPeerManager(
           store: store,
           wallet: bip32Wallet,
+          preferredNumalgo: DidPeerType.peer0,
         );
         const derivationPath = "m/44'/0'/0'/0/0";
         final authKey = await bip32Wallet.generateKey(keyId: derivationPath);
@@ -817,6 +844,273 @@ void main() {
         // Verify resolution and content
         final resolvedDoc = DidPeer.resolve(didDocument.id);
         expect(resolvedDoc.toJson(), didDocument.toJson());
+      });
+    });
+
+    // ================================================================
+    // One-to-one key → VM mapping tests
+    // ================================================================
+    group('One-to-one key to VM mapping', () {
+      test(
+          '1 p256 key with {auth, assertion, capInvoke} → 1 VM shared across all',
+          () async {
+        final key =
+            await wallet.generateKey(keyId: 'p256-3rel', keyType: KeyType.p256);
+        final result = await manager.addVerificationMethod(
+          key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.assertionMethod,
+            VerificationRelationship.capabilityInvocation,
+          },
+        );
+
+        // All relationships map to the same VM
+        final vmId = result.verificationMethodId;
+        expect(result.relationships[VerificationRelationship.authentication],
+            vmId);
+        expect(result.relationships[VerificationRelationship.assertionMethod],
+            vmId);
+        expect(
+            result.relationships[VerificationRelationship.capabilityInvocation],
+            vmId);
+
+        final allVmIds = await store.verificationMethodIds;
+        expect(allVmIds, hasLength(1));
+      });
+
+      test(
+          'ed25519 key with {auth, keyAgreement} → 2 VMs: ed25519 + derived X25519',
+          () async {
+        final key = await wallet.generateKey(
+            keyId: 'ed-2rel', keyType: KeyType.ed25519);
+        final result = await manager.addVerificationMethod(
+          key.id,
+          relationships: {
+            VerificationRelationship.authentication,
+            VerificationRelationship.keyAgreement,
+          },
+        );
+
+        final authVmId =
+            result.relationships[VerificationRelationship.authentication]!;
+        final kaVmId =
+            result.relationships[VerificationRelationship.keyAgreement]!;
+        expect(authVmId, isNot(kaVmId)); // ed25519 vs X25519 = different VMs
+        expect(result.verificationMethodId, authVmId); // primary is ed25519
+
+        final allVmIds = await store.verificationMethodIds;
+        expect(allVmIds, hasLength(2));
+      });
+    });
+
+    group('did:peer:2 with single key', () {
+      late DidPeerManager peer2Manager;
+
+      setUp(() async {
+        final keyStore = InMemoryKeyStore();
+        final peer2Wallet = PersistentWallet(keyStore);
+        final peer2Store = InMemoryDidStore();
+        peer2Manager = DidPeerManager(
+          store: peer2Store,
+          wallet: peer2Wallet,
+          preferredNumalgo: DidPeerType.peer2,
+        );
+        await peer2Manager.init();
+        // Share wallet ref for key generation
+        wallet = peer2Wallet;
+      });
+
+      test('ed25519 with default relationships produces did:peer:2 with 2 VMs',
+          () async {
+        final key = await wallet.generateKey(keyType: KeyType.ed25519);
+        await peer2Manager.addVerificationMethod(key.id);
+
+        final didDocument = await peer2Manager.getDidDocument();
+
+        // print('--- peer:2 ed25519 default relationships ---');
+        // print('DID: ${didDocument.id}');
+        // print('VMs: ${didDocument.verificationMethod.length}');
+        // for (final vm in didDocument.verificationMethod) {
+        //   print('  VM: ${vm.id} (type: ${vm.type})');
+        // }
+        // print('auth: ${didDocument.authentication.map((e) => e.id).toList()}');
+        // print('keyAgreement: ${didDocument.keyAgreement.map((e) => e.id).toList()}');
+        // print('assertionMethod: ${didDocument.assertionMethod.map((e) => e.id).toList()}');
+        // print('capabilityInvocation: ${didDocument.capabilityInvocation.map((e) => e.id).toList()}');
+        // print('capabilityDelegation: ${didDocument.capabilityDelegation.map((e) => e.id).toList()}');
+        // print('---');
+
+        expect(didDocument.id, startsWith('did:peer:2'),
+            reason: 'peer2 numalgo should produce did:peer:2');
+        expect(didDocument.verificationMethod, hasLength(2),
+            reason: 'ed25519 + derived X25519 = 2 VMs');
+        expect(didDocument.authentication, hasLength(1),
+            reason: 'ed25519 key should be in authentication');
+        expect(didDocument.assertionMethod, hasLength(1),
+            reason: 'ed25519 key should be in assertionMethod');
+        expect(didDocument.keyAgreement, hasLength(1),
+            reason: 'derived X25519 key should be in keyAgreement');
+        expect(didDocument.capabilityInvocation, hasLength(1),
+            reason: 'ed25519 key should be in capabilityInvocation');
+        expect(didDocument.capabilityDelegation, hasLength(1),
+            reason: 'ed25519 key should be in capabilityDelegation');
+
+        final resolvedDoc = DidPeer.resolve(didDocument.id);
+        expect(resolvedDoc.id, didDocument.id,
+            reason: 'resolved DID should match generated DID');
+      });
+
+      test('p256 with default relationships produces did:peer:2 with 1 VM',
+          () async {
+        final key = await wallet.generateKey(keyType: KeyType.p256);
+        await peer2Manager.addVerificationMethod(key.id);
+
+        final didDocument = await peer2Manager.getDidDocument();
+
+        // print('--- peer:2 p256 default relationships ---');
+        // print('DID: ${didDocument.id}');
+        // print('VMs: ${didDocument.verificationMethod.length}');
+        // for (final vm in didDocument.verificationMethod) {
+        //   print('  VM: ${vm.id} (type: ${vm.type})');
+        // }
+        // print('auth: ${didDocument.authentication.map((e) => e.id).toList()}');
+        // print('keyAgreement: ${didDocument.keyAgreement.map((e) => e.id).toList()}');
+        // print('assertionMethod: ${didDocument.assertionMethod.map((e) => e.id).toList()}');
+        // print('capabilityInvocation: ${didDocument.capabilityInvocation.map((e) => e.id).toList()}');
+        // print('capabilityDelegation: ${didDocument.capabilityDelegation.map((e) => e.id).toList()}');
+        // print('---');
+
+        expect(didDocument.id, startsWith('did:peer:2'),
+            reason: 'peer2 numalgo should produce did:peer:2');
+        expect(didDocument.verificationMethod, hasLength(1),
+            reason: 'p256 uses single VM for all purposes (no derivation)');
+        expect(didDocument.authentication, hasLength(1),
+            reason: 'p256 key should be in authentication');
+        expect(didDocument.assertionMethod, hasLength(1),
+            reason: 'p256 key should be in assertionMethod');
+        expect(didDocument.keyAgreement, hasLength(1),
+            reason: 'p256 supports ECDH, should be in keyAgreement');
+        expect(didDocument.capabilityInvocation, hasLength(1),
+            reason: 'p256 key should be in capabilityInvocation');
+        expect(didDocument.capabilityDelegation, hasLength(1),
+            reason: 'p256 key should be in capabilityDelegation');
+
+        final resolvedDoc = DidPeer.resolve(didDocument.id);
+        expect(resolvedDoc.id, didDocument.id,
+            reason: 'resolved DID should match generated DID');
+      });
+
+      test(
+          'ed25519 with only keyAgreement produces did:peer:2 with 1 VM (x25519)',
+          () async {
+        final key = await wallet.generateKey(keyType: KeyType.ed25519);
+        await peer2Manager.addVerificationMethod(key.id,
+            relationships: {VerificationRelationship.keyAgreement});
+
+        final didDocument = await peer2Manager.getDidDocument();
+
+        // print('--- peer:2 ed25519 keyAgreement only ---');
+        // print('DID: ${didDocument.id}');
+        // print('VMs: ${didDocument.verificationMethod.length}');
+        // for (final vm in didDocument.verificationMethod) {
+        //   print('  VM: ${vm.id} (type: ${vm.type})');
+        // }
+        // print('auth: ${didDocument.authentication.map((e) => e.id).toList()}');
+        // print('keyAgreement: ${didDocument.keyAgreement.map((e) => e.id).toList()}');
+        // print('---');
+
+        expect(didDocument.id, startsWith('did:peer:2'),
+            reason: 'peer2 numalgo should produce did:peer:2');
+        expect(didDocument.verificationMethod, hasLength(1),
+            reason: 'only derived X25519 VM, no ed25519 primary');
+        expect(didDocument.keyAgreement, hasLength(1),
+            reason: 'derived X25519 should be in keyAgreement');
+        expect(didDocument.authentication, isEmpty,
+            reason: 'no authentication requested');
+
+        final resolvedDoc = DidPeer.resolve(didDocument.id);
+        expect(resolvedDoc.toJson(), didDocument.toJson(),
+            reason:
+                'single-purpose peer:2 with 1 VM should resolve identically');
+      });
+    });
+
+    group('did:peer:0 with Ed25519 + keyAgreement derivation', () {
+      test(
+          'ed25519 with default relationships (incl. keyAgreement) produces did:peer:0',
+          () async {
+        final key = await wallet.generateKey(keyType: KeyType.ed25519);
+
+        // Default relationships for ed25519 include keyAgreement,
+        // which creates a derived X25519 VM. The manager should still
+        // collapse this to did:peer:0 (single source key).
+        await manager.addVerificationMethod(key.id);
+
+        final didDocument = await manager.getDidDocument();
+
+        // print('--- peer:0 ed25519 default relationships (incl. keyAgreement) ---');
+        // print('DID: ${didDocument.id}');
+        // print('VMs: ${didDocument.verificationMethod.length}');
+        // for (final vm in didDocument.verificationMethod) {
+        //   print('  VM: ${vm.id} (type: ${vm.type})');
+        // }
+        // print('auth: ${didDocument.authentication.map((e) => e.id).toList()}');
+        // print('keyAgreement: ${didDocument.keyAgreement.map((e) => e.id).toList()}');
+        // print('assertionMethod: ${didDocument.assertionMethod.map((e) => e.id).toList()}');
+        // print('capabilityInvocation: ${didDocument.capabilityInvocation.map((e) => e.id).toList()}');
+        // print('capabilityDelegation: ${didDocument.capabilityDelegation.map((e) => e.id).toList()}');
+        // print('---');
+
+        expect(didDocument.id, startsWith('did:peer:0'),
+            reason:
+                'ed25519 + derived X25519 should collapse to did:peer:0 (single source key)');
+        expect(didDocument.verificationMethod, hasLength(2),
+            reason:
+                'ed25519 did:peer:0 resolves to 2 VMs: ed25519 + derived X25519');
+        expect(didDocument.authentication, hasLength(1),
+            reason: 'ed25519 key should be in authentication');
+        expect(didDocument.assertionMethod, hasLength(1),
+            reason: 'ed25519 key should be in assertionMethod');
+        expect(didDocument.keyAgreement, hasLength(1),
+            reason: 'derived X25519 key should be in keyAgreement');
+        expect(didDocument.capabilityInvocation, hasLength(1),
+            reason: 'ed25519 key should be in capabilityInvocation');
+        expect(didDocument.capabilityDelegation, hasLength(1),
+            reason: 'ed25519 key should be in capabilityDelegation');
+
+        final resolvedDoc = DidPeer.resolve(didDocument.id);
+        expect(resolvedDoc.toJson(), didDocument.toJson(),
+            reason: 'did:peer:0 resolution should produce identical document');
+      });
+
+      test('ed25519 with only keyAgreement produces did:peer:0 with x25519 key',
+          () async {
+        final key = await wallet.generateKey(keyType: KeyType.ed25519);
+
+        await manager.addVerificationMethod(key.id,
+            relationships: {VerificationRelationship.keyAgreement});
+
+        final didDocument = await manager.getDidDocument();
+
+        // print('--- peer:0 ed25519 keyAgreement only ---');
+        // print('DID: ${didDocument.id}');
+        // print('VMs: ${didDocument.verificationMethod.length}');
+        // for (final vm in didDocument.verificationMethod) {
+        //   print('  VM: ${vm.id} (type: ${vm.type})');
+        // }
+        // print('auth: ${didDocument.authentication.map((e) => e.id).toList()}');
+        // print('keyAgreement: ${didDocument.keyAgreement.map((e) => e.id).toList()}');
+        // print('---');
+
+        expect(didDocument.id, startsWith('did:peer:0'),
+            reason: 'single derived X25519 VM should produce did:peer:0');
+        expect(didDocument.verificationMethod, hasLength(1),
+            reason: 'only the derived X25519 VM should be present');
+        expect(didDocument.keyAgreement, hasLength(1),
+            reason: 'X25519 key should be in keyAgreement');
+        expect(didDocument.authentication, isEmpty,
+            reason: 'no authentication requested, X25519 cannot sign');
       });
     });
   });

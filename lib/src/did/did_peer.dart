@@ -152,9 +152,15 @@ DidDocument _resolveDidPeer0(String did) {
 
   var keyPart = did.substring(11);
 
+  // did:peer:0 is equivalent to did:key per spec.
+  // Convert to did:key so the resolved document uses did:key as its id,
+  // matching what the Rust mediator expects.
+  // final didKeyId = 'did:key:z$keyPart';
+  final didKeyId = did;
+
   // ed25519
   if (keyPart.startsWith('6Mk')) {
-    return _buildEDDoc(multikeyContext, did, keyPart);
+    return _buildEDDoc(multikeyContext, didKeyId, keyPart);
   }
 
   final forSigning = keyPart.startsWith('Dn') || // p256
@@ -162,13 +168,17 @@ DidDocument _resolveDidPeer0(String did) {
       keyPart.startsWith('82') || // p384
       keyPart.startsWith('2J9'); // p521
 
-  // x25519
-  final forKeyAgreement = keyPart.startsWith('6LS');
+  // x25519 and EC curves (p256, p384, p521) support ECDH key agreement.
+  // secp256k1 is excluded as it is signing-only per DIDComm spec.
+  final forKeyAgreement = keyPart.startsWith('6LS') || // x25519
+      keyPart.startsWith('Dn') || // p256
+      keyPart.startsWith('82') || // p384
+      keyPart.startsWith('2J9'); // p521
 
   if (forSigning || forKeyAgreement) {
     return _buildSimpleDoc(
       multikeyContext,
-      did,
+      didKeyId,
       keyPart,
       forSigning: forSigning,
       forKeyAgreement: forKeyAgreement,
@@ -235,7 +245,7 @@ DidDocument _resolveDidPeer2(String did) {
       case 'I':
       case 'D':
         keyIndex++;
-        final kid = '#key-$keyIndex';
+        final kid = '$did#key-$keyIndex';
         final verification = VerificationMethodMultibase(
           id: kid,
           controller: did,
@@ -383,6 +393,9 @@ class DidPeer {
   /// [verificationMethods] The list of all public keys in the document.
   /// [relationships] A map defining which keys are used for which purpose.
   /// [serviceEndpoints] - Optional list of service endpoints.
+  /// [preferredNumalgo] - Preferred numalgo. When [DidPeerType.peer0],
+  ///   produces `did:peer:0` if there is a single key and no services.
+  ///   When [DidPeerType.peer2] (default), always produces `did:peer:2`.
   ///
   /// Returns the DID as [String].
   ///
@@ -391,6 +404,7 @@ class DidPeer {
     required List<PublicKey> verificationMethods,
     Map<VerificationRelationship, List<int>>? relationships,
     List<ServiceEndpoint>? serviceEndpoints,
+    DidPeerType preferredNumalgo = DidPeerType.peer2,
   }) {
     if (verificationMethods.isEmpty) {
       throw SsiException(
@@ -402,7 +416,9 @@ class DidPeer {
     final rels = relationships ?? {};
 
     // did:peer:0 is for a single key (equivalent to did:key).
-    final isDid0 = verificationMethods.length == 1 &&
+    // Only used when explicitly preferred AND conditions are met.
+    final isDid0 = preferredNumalgo == DidPeerType.peer0 &&
+        verificationMethods.length == 1 &&
         (serviceEndpoints == null || serviceEndpoints.isEmpty);
 
     if (isDid0) {
@@ -413,10 +429,12 @@ class DidPeer {
       return '${_didTypePrefixes[DidPeerType.peer0]}$multibase';
     }
 
-    final indexToPurpose = <int, VerificationRelationship>{};
+    // A single VM can serve multiple purposes in did:peer:2.
+    // Each purpose is encoded as a separate segment with its own prefix.
+    final indexToPurposes = <int, List<VerificationRelationship>>{};
     for (final entry in rels.entries) {
       for (final index in entry.value) {
-        indexToPurpose[index] = entry.key;
+        (indexToPurposes[index] ??= []).add(entry.key);
       }
     }
 
@@ -435,12 +453,14 @@ class DidPeer {
 
     var keyStr = '';
     for (var i = 0; i < verificationMethods.length; i++) {
-      final purpose = indexToPurpose[i];
-      if (purpose != null) {
-        final prefix = getPrefixForRelationship(purpose);
+      final purposes = indexToPurposes[i];
+      if (purposes != null) {
         final keyMultibase = toMultiBase(toMultikey(
             verificationMethods[i].bytes, verificationMethods[i].type));
-        keyStr += '.${prefix.value}$keyMultibase';
+        for (final purpose in purposes) {
+          final prefix = getPrefixForRelationship(purpose);
+          keyStr += '.${prefix.value}$keyMultibase';
+        }
       }
     }
 
@@ -466,12 +486,17 @@ class DidPeer {
       'https://w3id.org/security/multikey/v1'
     ];
 
+    // Expands a fragment-only ID (e.g. '#key-1') to fully-qualified form
+    // (e.g. 'did:peer:2...#key-1'). Already-absolute IDs are left unchanged.
+    String toFullId(String id) => id.startsWith('#') ? '$did$id' : id;
+    List<String> toFullIds(List<String>? ids) =>
+        ids?.map(toFullId).toList() ?? [];
+
     final vms = <EmbeddedVerificationMethod>[];
     for (var i = 0; i < verificationMethodIds.length; i++) {
-      final vmId = verificationMethodIds[i];
       final pubKey = publicKeys[i];
       vms.add(VerificationMethodMultibase(
-        id: vmId,
+        id: toFullId(verificationMethodIds[i]),
         controller: did,
         type: 'Multikey',
         publicKeyMultibase: toMultiBase(toMultikey(pubKey.bytes, pubKey.type)),
@@ -483,14 +508,15 @@ class DidPeer {
       id: did,
       verificationMethod: vms,
       authentication:
-          relationships[VerificationRelationship.authentication] ?? [],
-      keyAgreement: relationships[VerificationRelationship.keyAgreement] ?? [],
+          toFullIds(relationships[VerificationRelationship.authentication]),
+      keyAgreement:
+          toFullIds(relationships[VerificationRelationship.keyAgreement]),
       assertionMethod:
-          relationships[VerificationRelationship.assertionMethod] ?? [],
-      capabilityInvocation:
-          relationships[VerificationRelationship.capabilityInvocation] ?? [],
-      capabilityDelegation:
-          relationships[VerificationRelationship.capabilityDelegation] ?? [],
+          toFullIds(relationships[VerificationRelationship.assertionMethod]),
+      capabilityInvocation: toFullIds(
+          relationships[VerificationRelationship.capabilityInvocation]),
+      capabilityDelegation: toFullIds(
+          relationships[VerificationRelationship.capabilityDelegation]),
       service: serviceEndpoints,
     );
   }

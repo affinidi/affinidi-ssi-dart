@@ -36,6 +36,7 @@ void main() {
         relationships: {
           VerificationRelationship.authentication: [0]
         },
+        preferredNumalgo: DidPeerType.peer0,
       );
       final doc = DidPeer.resolve(did);
       final actualDid = doc.id;
@@ -60,6 +61,7 @@ void main() {
         relationships: {
           VerificationRelationship.authentication: [0]
         },
+        preferredNumalgo: DidPeerType.peer0,
       );
 
       expect(actualDid, expectedDid);
@@ -181,8 +183,8 @@ void main() {
 
       // Verify verification methods are created correctly
       expect(doc.verificationMethod.length, 2);
-      expect(doc.verificationMethod[0].id, '#key-1');
-      expect(doc.verificationMethod[1].id, '#key-2');
+      expect(doc.verificationMethod[0].id, '${doc.id}#key-1');
+      expect(doc.verificationMethod[1].id, '${doc.id}#key-2');
     });
 
     test(
@@ -319,7 +321,7 @@ void main() {
       for (final vm in verificationMethods) {
         expect(vm.type, 'Multikey');
         expect(vm.controller, actualDid);
-        expect(vm.id, startsWith('#key-'));
+        expect(vm.id, startsWith('$actualDid#key-'));
       }
 
       // Assert authentication, assertionMethod, keyAgreement
@@ -328,8 +330,8 @@ void main() {
       final keyAgreementIds =
           resolvedDidDocument.keyAgreement.map((vm) => vm.id).toList();
       // By construction, last two keys are authentication/assertion, first two are keyAgreement
-      expect(authenticationIds, ['#key-1']);
-      expect(keyAgreementIds, ['#key-2']);
+      expect(authenticationIds, ['$actualDid#key-1']);
+      expect(keyAgreementIds, ['$actualDid#key-2']);
 
       // Assert capabilityDelegation and capabilityInvocation are empty
       expect(resolvedDidDocument.assertionMethod, isEmpty);
@@ -349,7 +351,7 @@ void main() {
         p256KeyPair.publicKey
       ], relationships: {
         VerificationRelationship.authentication: [0],
-      });
+      }, preferredNumalgo: DidPeerType.peer0);
       final doc = DidPeer.resolve(did);
 
       final actualDid = doc.id;
@@ -393,7 +395,7 @@ void main() {
         secp256k1KeyPair.publicKey
       ], relationships: {
         VerificationRelationship.authentication: [0],
-      });
+      }, preferredNumalgo: DidPeerType.peer0);
       final doc = DidPeer.resolve(did);
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
@@ -501,6 +503,7 @@ void main() {
           VerificationRelationship.assertionMethod: [0],
           VerificationRelationship.keyAgreement: [0],
         },
+        preferredNumalgo: DidPeerType.peer0,
       );
 
       // Should still pick numalgo0
@@ -531,7 +534,10 @@ void main() {
     final pubKey = keyPair.publicKey;
 
     final didKey = DidKey.getDid(pubKey);
-    final peer0 = DidPeer.getDid(verificationMethods: [pubKey]);
+    final peer0 = DidPeer.getDid(
+      verificationMethods: [pubKey],
+      preferredNumalgo: DidPeerType.peer0,
+    );
 
     final didKeyDoc = DidKey.resolve(didKey);
     final peerDoc = DidPeer.resolve(peer0);
