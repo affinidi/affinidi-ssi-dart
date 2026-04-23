@@ -559,7 +559,8 @@ void main() {
         expect(resolvedDoc1.toJson(), doc1.toJson());
 
         // Arrange: Second manager instance with the same store
-        final manager2 = DidPeerManager(store: store, wallet: wallet, preferredNumalgo: DidPeerType.peer0);
+        final manager2 = DidPeerManager(
+            store: store, wallet: wallet, preferredNumalgo: DidPeerType.peer0);
         await manager2.init();
 
         // Act: Get document from the second manager
@@ -1080,12 +1081,10 @@ void main() {
 
         final resolvedDoc = DidPeer.resolve(didDocument.id);
         expect(resolvedDoc.toJson(), didDocument.toJson(),
-            reason:
-                'did:peer:0 resolution should produce identical document');
+            reason: 'did:peer:0 resolution should produce identical document');
       });
 
-      test(
-          'ed25519 with only keyAgreement produces did:peer:0 with x25519 key',
+      test('ed25519 with only keyAgreement produces did:peer:0 with x25519 key',
           () async {
         final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
@@ -1105,8 +1104,7 @@ void main() {
         // print('---');
 
         expect(didDocument.id, startsWith('did:peer:0'),
-            reason:
-                'single derived X25519 VM should produce did:peer:0');
+            reason: 'single derived X25519 VM should produce did:peer:0');
         expect(didDocument.verificationMethod, hasLength(1),
             reason: 'only the derived X25519 VM should be present');
         expect(didDocument.keyAgreement, hasLength(1),
