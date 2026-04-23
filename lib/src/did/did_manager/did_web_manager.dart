@@ -75,7 +75,15 @@ class DidWebManager extends DidManager {
       );
     }
 
-    // Build public keys list. Converting Ed25519 to X25519 for keyAgreement VMs
+    // Build public keys list, converting Ed25519 to X25519 for keyAgreement VMs.
+    //
+    // NOTE: `wallet.getPublicKey()` always returns the **original** key type
+    // stored in the wallet (e.g. ed25519), even for VMs that were created with
+    // a derived X25519 public key in `internalAddVerificationMethod`. For
+    // derived keyAgreement VMs this means the conversion below re-derives the
+    // X25519 key — the result is identical because `ed25519PublicToX25519Public`
+    // is a deterministic pure function. This is intentional and ensures the DID
+    // document always contains the correct X25519 multibase encoding.
     final verificationMethodPublicKeys = <PublicKey>[];
     for (final vmId in uniqueVmIds) {
       final walletKeyId = await getWalletKeyId(vmId);
@@ -123,10 +131,7 @@ class DidWebManager extends DidManager {
     required PublicKey publicKey,
     required Set<VerificationRelationship> relationships,
   }) async {
-    final createdRelationships = <VerificationRelationship, String>{};
-    String? primaryVmId;
-
-    // If no relationships are specified, create one VM not attached to any purpose.
+    // ── Empty relationships: one unattached VM ──
     if (relationships.isEmpty) {
       final vmId = await buildVerificationMethodId(publicKey);
       await store.setMapping(vmId, walletKeyId);
@@ -136,8 +141,30 @@ class DidWebManager extends DidManager {
       );
     }
 
-    // Define a fixed order for processing relationships to ensure consistent
-    // DID document generation.
+    final createdRelationships = <VerificationRelationship, String>{};
+
+    // ── Determine whether we need a primary (non-keyAgreement) VM ──
+    // Skip it only when the SOLE relationship is keyAgreement on an ed25519 key
+    // (in that case only the derived X25519 VM is needed).
+    final needsPrimaryVm = !(relationships.length == 1 &&
+        relationships.first == VerificationRelationship.keyAgreement &&
+        publicKey.type == KeyType.ed25519);
+
+    // ── Build the PRIMARY VM id once — reused for all non-keyAgreement
+    //    relationships (and for keyAgreement when the key is not ed25519). ──
+    String? primaryVmId;
+    if (needsPrimaryVm) {
+      primaryVmId = await buildVerificationMethodId(publicKey);
+      await addVerificationMethodFromPublicKey(
+        publicKey,
+        verificationMethodId: primaryVmId,
+      );
+    }
+
+    // ── Build the DERIVED X25519 VM lazily — only for ed25519 + keyAgreement ──
+    String? derivedVmId;
+
+    // Fixed processing order for consistent DID document generation.
     const processingOrder = [
       VerificationRelationship.authentication,
       VerificationRelationship.keyAgreement,
@@ -146,52 +173,45 @@ class DidWebManager extends DidManager {
       VerificationRelationship.assertionMethod,
     ];
 
-    final orderedRelationships =
-        processingOrder.where((r) => relationships.contains(r));
-
-    for (final relationship in orderedRelationships) {
-      final String vmId;
-      // Special handling for keyAgreement with Ed25519 keys:
-      // derive X25519 key for key agreement
+    for (final relationship
+        in processingOrder.where((r) => relationships.contains(r))) {
       if (relationship == VerificationRelationship.keyAgreement &&
           publicKey.type == KeyType.ed25519) {
-        final x25519PublicKeyBytes =
-            ed25519PublicToX25519Public(publicKey.bytes);
-        final keyAgreementPublicKey =
-            PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
-        vmId = await buildVerificationMethodId(keyAgreementPublicKey);
+        // Derive X25519 VM once (lazy).
+        if (derivedVmId == null) {
+          final x25519Bytes = ed25519PublicToX25519Public(publicKey.bytes);
+          final x25519Key =
+              PublicKey(publicKey.id, x25519Bytes, KeyType.x25519);
+          derivedVmId = await buildVerificationMethodId(x25519Key);
+          await addVerificationMethodFromPublicKey(
+            x25519Key,
+            verificationMethodId: derivedVmId,
+          );
+        }
+        await addKeyAgreement(derivedVmId);
+        createdRelationships[relationship] = derivedVmId;
       } else {
-        vmId = await buildVerificationMethodId(publicKey);
+        // All other relationships share the primary VM.
+        switch (relationship) {
+          case VerificationRelationship.authentication:
+            await addAuthentication(primaryVmId!);
+          case VerificationRelationship.assertionMethod:
+            await addAssertionMethod(primaryVmId!);
+          case VerificationRelationship.capabilityInvocation:
+            await addCapabilityInvocation(primaryVmId!);
+          case VerificationRelationship.capabilityDelegation:
+            await addCapabilityDelegation(primaryVmId!);
+          case VerificationRelationship.keyAgreement:
+            await addKeyAgreement(primaryVmId!);
+        }
+        createdRelationships[relationship] = primaryVmId;
       }
-
-      await addVerificationMethodFromPublicKey(
-        publicKey,
-        verificationMethodId: vmId,
-      );
-      primaryVmId ??= vmId;
-
-      switch (relationship) {
-        case VerificationRelationship.authentication:
-          await addAuthentication(vmId);
-          break;
-        case VerificationRelationship.assertionMethod:
-          await addAssertionMethod(vmId);
-          break;
-        case VerificationRelationship.capabilityInvocation:
-          await addCapabilityInvocation(vmId);
-          break;
-        case VerificationRelationship.capabilityDelegation:
-          await addCapabilityDelegation(vmId);
-          break;
-        case VerificationRelationship.keyAgreement:
-          await addKeyAgreement(vmId);
-          break;
-      }
-      createdRelationships[relationship] = vmId;
     }
 
+    assert(primaryVmId != null || derivedVmId != null);
+
     return AddVerificationMethodResult(
-      verificationMethodId: primaryVmId!,
+      verificationMethodId: primaryVmId ?? derivedVmId!,
       relationships: createdRelationships,
     );
   }
