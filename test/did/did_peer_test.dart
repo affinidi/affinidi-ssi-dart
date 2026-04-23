@@ -36,6 +36,7 @@ void main() {
         relationships: {
           VerificationRelationship.authentication: [0]
         },
+        preferredNumalgo: DidPeerType.peer0,
       );
       final doc = DidPeer.resolve(did);
       final actualDid = doc.id;
@@ -60,6 +61,7 @@ void main() {
         relationships: {
           VerificationRelationship.authentication: [0]
         },
+        preferredNumalgo: DidPeerType.peer0,
       );
 
       expect(actualDid, expectedDid);
@@ -349,7 +351,7 @@ void main() {
         p256KeyPair.publicKey
       ], relationships: {
         VerificationRelationship.authentication: [0],
-      });
+      }, preferredNumalgo: DidPeerType.peer0);
       final doc = DidPeer.resolve(did);
 
       final actualDid = doc.id;
@@ -393,7 +395,7 @@ void main() {
         secp256k1KeyPair.publicKey
       ], relationships: {
         VerificationRelationship.authentication: [0],
-      });
+      }, preferredNumalgo: DidPeerType.peer0);
       final doc = DidPeer.resolve(did);
       final actualDid = doc.id;
       final resolvedDidDocument = DidPeer.resolve(actualDid);
@@ -501,6 +503,7 @@ void main() {
           VerificationRelationship.assertionMethod: [0],
           VerificationRelationship.keyAgreement: [0],
         },
+        preferredNumalgo: DidPeerType.peer0,
       );
 
       // Should still pick numalgo0
@@ -531,7 +534,10 @@ void main() {
     final pubKey = keyPair.publicKey;
 
     final didKey = DidKey.getDid(pubKey);
-    final peer0 = DidPeer.getDid(verificationMethods: [pubKey]);
+    final peer0 = DidPeer.getDid(
+      verificationMethods: [pubKey],
+      preferredNumalgo: DidPeerType.peer0,
+    );
 
     final didKeyDoc = DidKey.resolve(didKey);
     final peerDoc = DidPeer.resolve(peer0);

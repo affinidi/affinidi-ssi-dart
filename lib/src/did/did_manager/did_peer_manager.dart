@@ -17,13 +17,22 @@ import 'verification_relationship.dart';
 /// which supports multiple keys with separate authentication and
 /// key agreement purposes, as well as service endpoints.
 class DidPeerManager extends DidManager {
+  /// The preferred numalgo for DID generation.
+  ///
+  /// - [DidPeerType.peer2] (default): always produces `did:peer:2`.
+  /// - [DidPeerType.peer0]: produces `did:peer:0` when possible
+  ///   (single VM, no services); falls back to `did:peer:2` otherwise.
+  final DidPeerType preferredNumalgo;
+
   /// Creates a new DID Peer manager instance.
   ///
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
+  /// [preferredNumalgo] - The preferred numalgo (default: [DidPeerType.peer2]).
   DidPeerManager({
     required super.store,
     required super.wallet,
+    this.preferredNumalgo = DidPeerType.peer2,
   });
 
   @override
@@ -160,14 +169,39 @@ class DidPeerManager extends DidManager {
       verificationMethodsPubKeys.add(publicKey);
     }
 
+    // For did:peer:0, collapse an Ed25519 + derived X25519 pair back to
+    // just the Ed25519 source key. The resolution logic (_buildEDDoc) will
+    // re-derive the X25519 keyAgreement automatically.
+    var vmIdsForDid = uniqueVmIds;
+    var pubKeysForDid = verificationMethodsPubKeys;
+
+    if (preferredNumalgo == DidPeerType.peer0 &&
+        service.isEmpty &&
+        _isEd25519WithDerivedX25519(uniqueVmIds, verificationMethodsPubKeys)) {
+      // Find the Ed25519 source key (not the derived X25519).
+      final ed25519Index = verificationMethodsPubKeys
+          .indexWhere((k) => k.type == KeyType.ed25519);
+      // Retrieve the original Ed25519 public key from the wallet.
+      final walletKeyId = await getWalletKeyId(uniqueVmIds[ed25519Index]);
+      final ed25519Key = await wallet.getPublicKey(walletKeyId!);
+
+      vmIdsForDid = [uniqueVmIds[ed25519Index]];
+      pubKeysForDid = [ed25519Key];
+    }
+
     // Create a map from verification method ID to its index in the list.
     final vmIdToIndex = <String, int>{
-      for (var i = 0; i < uniqueVmIds.length; i++) uniqueVmIds[i]: i
+      for (var i = 0; i < vmIdsForDid.length; i++) vmIdsForDid[i]: i
     };
 
     // For each relationship, create a list of key indices.
+    // VMs not present in vmIdsForDid (e.g. collapsed derived X25519) are
+    // skipped — the resolution logic will reconstruct them.
     List<int> getIndexes(Iterable<String> vmIds) {
-      return vmIds.map((vmId) => vmIdToIndex[vmId]!).toList();
+      return vmIds
+          .where((vmId) => vmIdToIndex.containsKey(vmId))
+          .map((vmId) => vmIdToIndex[vmId]!)
+          .toList();
     }
 
     final relationshipIndexes = {
@@ -181,9 +215,10 @@ class DidPeerManager extends DidManager {
     };
 
     final did = DidPeer.getDid(
-      verificationMethods: verificationMethodsPubKeys,
+      verificationMethods: pubKeysForDid,
       relationships: relationshipIndexes,
       serviceEndpoints: service.toList(),
+      preferredNumalgo: preferredNumalgo,
     );
 
     // For did:peer:0, the resolution logic is simple and handles key derivation.
@@ -264,5 +299,17 @@ class DidPeerManager extends DidManager {
 
     // Verification method IDs are 1-indexed
     return '#key-${verificationMethods.length + 1}';
+  }
+
+  /// Returns `true` when [vmIds]/[pubKeys] represent exactly one Ed25519
+  /// source key and its derived X25519 key — the pattern produced by
+  /// [internalAddVerificationMethod] for Ed25519 + keyAgreement.
+  static bool _isEd25519WithDerivedX25519(
+    List<String> vmIds,
+    List<PublicKey> pubKeys,
+  ) {
+    if (pubKeys.length != 2) return false;
+    final types = pubKeys.map((k) => k.type).toSet();
+    return types.contains(KeyType.ed25519) && types.contains(KeyType.x25519);
   }
 }
