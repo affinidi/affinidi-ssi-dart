@@ -17,13 +17,22 @@ import 'verification_relationship.dart';
 /// which supports multiple keys with separate authentication and
 /// key agreement purposes, as well as service endpoints.
 class DidPeerManager extends DidManager {
+  /// The preferred numalgo for DID generation.
+  ///
+  /// - [DidPeerType.peer2] (default): always produces `did:peer:2`.
+  /// - [DidPeerType.peer0]: produces `did:peer:0` when possible
+  ///   (single VM, no services); falls back to `did:peer:2` otherwise.
+  final DidPeerType preferredNumalgo;
+
   /// Creates a new DID Peer manager instance.
   ///
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
+  /// [preferredNumalgo] - The preferred numalgo (default: [DidPeerType.peer2]).
   DidPeerManager({
     required super.store,
     required super.wallet,
+    this.preferredNumalgo = DidPeerType.peer2,
   });
 
   @override
@@ -166,6 +175,7 @@ class DidPeerManager extends DidManager {
       verificationMethods: verificationMethodsPubKeys,
       relationships: relationshipIndexes,
       serviceEndpoints: service.toList(),
+      preferredNumalgo: preferredNumalgo,
     );
 
     // For did:peer:0, the resolution logic is simple and handles key derivation.
