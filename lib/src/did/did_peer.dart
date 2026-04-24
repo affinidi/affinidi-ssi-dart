@@ -163,7 +163,10 @@ DidDocument _resolveDidPeer0(String did) {
       keyPart.startsWith('2J9'); // p521
 
   // x25519
-  final forKeyAgreement = keyPart.startsWith('6LS');
+  final forKeyAgreement = keyPart.startsWith('6LS') || // x25519
+      keyPart.startsWith('Dn') || // p256
+      keyPart.startsWith('82') || // p384
+      keyPart.startsWith('2J9'); // p521
 
   if (forSigning || forKeyAgreement) {
     return _buildSimpleDoc(
