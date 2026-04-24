@@ -383,6 +383,9 @@ class DidPeer {
   /// [verificationMethods] The list of all public keys in the document.
   /// [relationships] A map defining which keys are used for which purpose.
   /// [serviceEndpoints] - Optional list of service endpoints.
+  /// [preferredNumalgo] - Preferred numalgo. When [DidPeerType.peer0],
+  ///   produces `did:peer:0` if there is a single key and no services.
+  ///   When [DidPeerType.peer2] (default), always produces `did:peer:2`.
   ///
   /// Returns the DID as [String].
   ///
@@ -391,6 +394,7 @@ class DidPeer {
     required List<PublicKey> verificationMethods,
     Map<VerificationRelationship, List<int>>? relationships,
     List<ServiceEndpoint>? serviceEndpoints,
+    DidPeerType preferredNumalgo = DidPeerType.peer2,
   }) {
     if (verificationMethods.isEmpty) {
       throw SsiException(
@@ -402,7 +406,9 @@ class DidPeer {
     final rels = relationships ?? {};
 
     // did:peer:0 is for a single key (equivalent to did:key).
-    final isDid0 = verificationMethods.length == 1 &&
+    // Only used when explicitly preferred AND conditions are met.
+    final isDid0 = preferredNumalgo == DidPeerType.peer0 &&
+        verificationMethods.length == 1 &&
         (serviceEndpoints == null || serviceEndpoints.isEmpty);
 
     if (isDid0) {
