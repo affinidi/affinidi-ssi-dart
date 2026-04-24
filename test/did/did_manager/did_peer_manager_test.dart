@@ -803,6 +803,80 @@ void main() {
         expect(document.id, startsWith('did:peer:2'));
       });
 
+      // -----------------------------------------------------------------
+      // Default-numalgo (peer:2) no-fallback regression tests.
+      //
+      // Pre-PR (b12ef59 / upstream `DidPeer.getDid` without
+      // `preferredNumalgo`) the static encoder auto-picked `did:peer:0`
+      // whenever the input was "1 key + 0 services", regardless of intent.
+      // After flipping the default to `DidPeerType.peer2`, the manager
+      // must produce `did:peer:2` for these minimal shapes too — never
+      // silently fall back to peer:0.
+      // -----------------------------------------------------------------
+      test(
+          'default manager: 1 key + 1 relationship + 0 services -> did:peer:2 (no auto-collapse to peer:0)',
+          () async {
+        final k = await wallet.generateKey(
+            keyId: 'peer2-default-1k1r', keyType: KeyType.p256);
+        await manager.addVerificationMethod(k.id,
+            relationships: {VerificationRelationship.authentication});
+
+        final document = await manager.getDidDocument();
+        expect(document.id, startsWith('did:peer:2'));
+        expect(document.id, isNot(startsWith('did:peer:0')));
+        // The DID must encode the single key under the V (authentication)
+        // prefix — confirms we went through the peer:2 encoder.
+        expect(document.id, contains('.Vz'));
+        expect(document.verificationMethod, hasLength(1));
+        expect(document.verificationMethod[0].id, '${document.id}#key-1');
+        expect(document.authentication, hasLength(1));
+        expect(document.keyAgreement, isEmpty);
+        expect(document.service, isEmpty);
+      });
+
+      test(
+          'default manager: 1 ed25519 key + auth+keyAgreement + 0 services -> did:peer:2 with V and E entries',
+          () async {
+        // This shape would have collapsed to did:peer:0 (with did:key-style
+        // ed25519+derived-x25519 doc) under pre-PR behavior. Under the new
+        // peer:2 default it must stay as did:peer:2 with explicit V and E
+        // entries in the DID and 2 VMs in the document.
+        final k = await wallet.generateKey(
+            keyId: 'peer2-default-ed25519', keyType: KeyType.ed25519);
+        await manager.addVerificationMethod(k.id, relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.keyAgreement,
+        });
+
+        final document = await manager.getDidDocument();
+        expect(document.id, startsWith('did:peer:2'));
+        expect(document.id, contains('.Vz')); // authentication (ed25519)
+        expect(document.id, contains('.Ez')); // keyAgreement (derived x25519)
+        expect(document.verificationMethod, hasLength(2));
+        expect(document.authentication, hasLength(1));
+        expect(document.keyAgreement, hasLength(1));
+        expect(document.service, isEmpty);
+      });
+
+      test(
+          'default manager: 1 key + 0 relationships (key only) -> rejected, not silently peer:0',
+          () async {
+        // Empty relationship set: the key is added to verificationMethod
+        // but not assigned to any purpose. This shape would have been
+        // peer:0-eligible under pre-PR behavior; the manager now requires
+        // at least one relationship and throws — neither does it silently
+        // collapse to a relationships-less did:peer:0 document.
+        final k = await wallet.generateKey(
+            keyId: 'peer2-default-orphan', keyType: KeyType.p256);
+        await manager.addVerificationMethod(k.id, relationships: const {});
+
+        expect(
+          () => manager.getDidDocument(),
+          throwsA(isA<SsiException>().having(
+              (e) => e.code, 'code', SsiExceptionType.invalidDidDocument.code)),
+        );
+      });
+
       test(
           'generates a did:peer:2 document when a service is added, even with one auth key',
           () async {
