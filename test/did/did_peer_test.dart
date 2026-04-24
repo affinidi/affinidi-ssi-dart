@@ -526,6 +526,170 @@ void main() {
       expect(doc.keyAgreement, isNotEmpty);
       expect(doc.keyAgreement.first.id, isNot(equals(authId)));
     });
+
+    // ---------------------------------------------------------------------
+    // Coverage for `_resolveDidPeer0` -> `_buildSimpleDoc` keyAgreement branch.
+    // The function gates `forKeyAgreement` on the multibase prefix of the
+    // single key in the DID:
+    //   '6LS' -> x25519 (keyAgreement only)
+    //   'Dn'  -> p256   (signing + keyAgreement)
+    //   '82'  -> p384   (signing + keyAgreement)
+    //   '2J9' -> p521   (signing + keyAgreement)
+    //   'Q3s' -> secp256k1 (signing only — must NOT have keyAgreement)
+    // ---------------------------------------------------------------------
+
+    test('did:peer:0 with x25519 key resolves to keyAgreement-only doc',
+        () async {
+      // Derive a deterministic x25519 public key from an ed25519 key.
+      final ed25519Seed = Uint8List.fromList(List.generate(32, (i) => i + 7));
+      final edKeyPair =
+          Ed25519KeyPair.fromSeed(ed25519Seed, id: 'x25519-source');
+      final x25519Bytes =
+          ed25519PublicToX25519Public(edKeyPair.publicKey.bytes);
+      final x25519PubKey = PublicKey('x25519-pub', x25519Bytes, KeyType.x25519);
+
+      final did = DidPeer.getDid(
+        verificationMethods: [x25519PubKey],
+        relationships: {
+          VerificationRelationship.keyAgreement: [0],
+        },
+        preferredNumalgo: DidPeerType.peer0,
+      );
+
+      // x25519 multibase encodes with the '6LS' prefix.
+      expect(did, startsWith('did:peer:0z6LS'));
+
+      final doc = DidPeer.resolve(did);
+
+      // keyAgreement-only key: signing-side relationships must be empty.
+      expect(doc.keyAgreement, hasLength(1));
+      expect(doc.authentication, isEmpty);
+      expect(doc.assertionMethod, isEmpty);
+      expect(doc.capabilityInvocation, isEmpty);
+      expect(doc.capabilityDelegation, isEmpty);
+
+      // VM bookkeeping.
+      expect(doc.verificationMethod, hasLength(1));
+      expect(doc.verificationMethod.first.type, 'Multikey');
+      expect(doc.verificationMethod.first.controller, did);
+      expect(doc.keyAgreement.first.id, doc.verificationMethod.first.id);
+    });
+
+    test('did:peer:0 with P256 key includes keyAgreement relationship',
+        () async {
+      // Same key as the existing P256 test, but here we assert keyAgreement.
+      final seed = Uint8List.fromList(List.generate(32, (i) => i));
+      final p256KeyPair = P256KeyPair.fromSeed(seed);
+
+      final did = DidPeer.getDid(
+        verificationMethods: [p256KeyPair.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+        },
+        preferredNumalgo: DidPeerType.peer0,
+      );
+      final doc = DidPeer.resolve(did);
+
+      expect(doc.id, startsWith('did:peer:0zDn'));
+
+      // Both signing-side and keyAgreement must reference the single VM.
+      expect(doc.verificationMethod, hasLength(1));
+      final vmId = doc.verificationMethod.first.id;
+      expect(doc.authentication.first.id, vmId);
+      expect(doc.assertionMethod.first.id, vmId);
+      expect(doc.capabilityInvocation.first.id, vmId);
+      expect(doc.capabilityDelegation.first.id, vmId);
+      expect(doc.keyAgreement, hasLength(1));
+      expect(doc.keyAgreement.first.id, vmId);
+    });
+
+    test(
+        'did:peer:0 with Secp256k1 key has signing relationships only (no keyAgreement)',
+        () async {
+      final seed = Uint8List.fromList(List.generate(32, (i) => 100 + i));
+      final node = BIP32.fromSeed(seed);
+      final secp256k1KeyPair = Secp256k1KeyPair(node: node);
+
+      final did = DidPeer.getDid(
+        verificationMethods: [secp256k1KeyPair.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+        },
+        preferredNumalgo: DidPeerType.peer0,
+      );
+      final doc = DidPeer.resolve(did);
+
+      expect(doc.id, startsWith('did:peer:0zQ3s'));
+
+      // secp256k1 is signing-only: keyAgreement must remain empty.
+      expect(doc.authentication, hasLength(1));
+      expect(doc.assertionMethod, hasLength(1));
+      expect(doc.capabilityInvocation, hasLength(1));
+      expect(doc.capabilityDelegation, hasLength(1));
+      expect(doc.keyAgreement, isEmpty);
+    });
+
+    test(
+        'generateDocument for did:peer:0 with P384 key (signing + keyAgreement)',
+        () async {
+      // P384KeyPair.fromSeed has seed-dependent edge cases on some inputs;
+      // use .generate() since this test only asserts prefix + structure.
+      final (p384KeyPair, _) = P384KeyPair.generate();
+
+      final did = DidPeer.getDid(
+        verificationMethods: [p384KeyPair.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+        },
+        preferredNumalgo: DidPeerType.peer0,
+      );
+      final doc = DidPeer.resolve(did);
+
+      expect(doc.id, startsWith('did:peer:0z82'));
+
+      expect(doc.verificationMethod, hasLength(1));
+      expect(doc.verificationMethod.first.type, 'Multikey');
+      expect(doc.verificationMethod.first.controller, did);
+
+      final vmId = doc.verificationMethod.first.id;
+      expect(doc.authentication.first.id, vmId);
+      expect(doc.assertionMethod.first.id, vmId);
+      expect(doc.capabilityInvocation.first.id, vmId);
+      expect(doc.capabilityDelegation.first.id, vmId);
+      expect(doc.keyAgreement, hasLength(1));
+      expect(doc.keyAgreement.first.id, vmId);
+    });
+
+    test(
+        'generateDocument for did:peer:0 with P521 key (signing + keyAgreement)',
+        () async {
+      // P521KeyPair.fromSeed has seed-dependent edge cases on some inputs;
+      // use .generate() since this test only asserts prefix + structure.
+      final (p521KeyPair, _) = P521KeyPair.generate();
+
+      final did = DidPeer.getDid(
+        verificationMethods: [p521KeyPair.publicKey],
+        relationships: {
+          VerificationRelationship.authentication: [0],
+        },
+        preferredNumalgo: DidPeerType.peer0,
+      );
+      final doc = DidPeer.resolve(did);
+
+      expect(doc.id, startsWith('did:peer:0z2J9'));
+
+      expect(doc.verificationMethod, hasLength(1));
+      expect(doc.verificationMethod.first.type, 'Multikey');
+      expect(doc.verificationMethod.first.controller, did);
+
+      final vmId = doc.verificationMethod.first.id;
+      expect(doc.authentication.first.id, vmId);
+      expect(doc.assertionMethod.first.id, vmId);
+      expect(doc.capabilityInvocation.first.id, vmId);
+      expect(doc.capabilityDelegation.first.id, vmId);
+      expect(doc.keyAgreement, hasLength(1));
+      expect(doc.keyAgreement.first.id, vmId);
+    });
   });
 
   test('did:key and did:peer:0 have equivalent key fragments', () async {
