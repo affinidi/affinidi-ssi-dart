@@ -280,7 +280,10 @@ void main() {
         // Assert
         expect(docBefore.id, startsWith('did:peer:2'));
         expect(docBefore.service.length, 1);
-        expect(docAfter.id, startsWith('did:peer:0'));
+        // With the default `preferredNumalgo: DidPeerType.peer2`, removing
+        // the service endpoint keeps the DID as did:peer:2 (no auto-collapse
+        // to did:peer:0). See PLAN-did-peer-multi-key.md.
+        expect(docAfter.id, startsWith('did:peer:2'));
         expect(docAfter.service.length, 0);
       });
 
@@ -586,8 +589,10 @@ void main() {
         // Assert
         expect(signer.keyId, equals('${signer.did}$vmId'));
         expect(signer.signatureScheme, isNotNull);
-        expect(signer.did,
-            startsWith('did:peer:0')); // Single auth key generates peer:0
+        expect(
+          signer.did,
+          startsWith('did:peer:2'),
+        ); // Default preferredNumalgo is peer2.
       });
 
       test('should specify signature scheme for signer', () async {
@@ -613,12 +618,20 @@ void main() {
       test(
           'normalizes fragment-only verificationMethodId to full DID URL and uses full ID in proofs',
           () async {
+        // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
+        final peer0Manager = DidPeerManager(
+          store: InMemoryDidStore(),
+          wallet: wallet,
+          preferredNumalgo: DidPeerType.peer0,
+        );
+        await peer0Manager.init();
+
         final key = await wallet.generateKey(keyType: KeyType.ed25519);
-        final result = await manager.addVerificationMethod(key.id,
+        final result = await peer0Manager.addVerificationMethod(key.id,
             relationships: {VerificationRelationship.authentication});
         final vmIdFragment = result.verificationMethodId; // e.g. '#key-1'
 
-        final signer = await manager.getSigner(vmIdFragment);
+        final signer = await peer0Manager.getSigner(vmIdFragment);
 
         // signer.keyId should now be fully qualified DID + fragment
         expect(signer.keyId, '${signer.did}$vmIdFragment');
@@ -676,14 +689,22 @@ void main() {
     group('Key retrieval', () {
       test('should retrieve DID key pair', () async {
         // Arrange
+        // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
+        final peer0Manager = DidPeerManager(
+          store: InMemoryDidStore(),
+          wallet: wallet,
+          preferredNumalgo: DidPeerType.peer0,
+        );
+        await peer0Manager.init();
+
         final key = await wallet.generateKey(
             keyId: 'retrieve-key', keyType: KeyType.p256);
-        final result = await manager.addVerificationMethod(key.id,
+        final result = await peer0Manager.addVerificationMethod(key.id,
             relationships: {VerificationRelationship.authentication});
         final vmId = result.verificationMethodId;
 
         // Act
-        final didKeyPair = await manager.getKey(vmId);
+        final didKeyPair = await peer0Manager.getKey(vmId);
 
         // Assert
         expect(didKeyPair.keyPair.id, equals(key.id));
@@ -723,6 +744,14 @@ void main() {
 
     group('DID generation', () {
       test('generates a valid did:peer:0 document', () async {
+        // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
+        final manager = DidPeerManager(
+          store: InMemoryDidStore(),
+          wallet: wallet,
+          preferredNumalgo: DidPeerType.peer0,
+        );
+        await manager.init();
+
         // Generate key
         final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
@@ -812,9 +841,11 @@ void main() {
         final seed = Uint8List(32); // A dummy seed for testing
         final bip32Wallet = Bip32Wallet.fromSeed(seed);
         final store = InMemoryDidStore();
+        // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
         final manager = DidPeerManager(
           store: store,
           wallet: bip32Wallet,
+          preferredNumalgo: DidPeerType.peer0,
         );
         const derivationPath = "m/44'/0'/0'/0/0";
         final authKey = await bip32Wallet.generateKey(keyId: derivationPath);
