@@ -433,4 +433,96 @@ void main() {
       });
     });
   });
+
+  group('JwtVcDataModelV1.vcToJws issuer handling', () {
+    // Builds the minimal VC JSON shape that vcToJws expects
+    Map<String, dynamic> buildVcJson({Object? issuer = _omit}) {
+      final json = <String, dynamic>{
+        '@context': [dmV1ContextUrl],
+        'id': 'urn:uuid:test-credential-vctojws-issuer',
+        'type': ['VerifiableCredential', 'TestCredential'],
+        'issuanceDate': '2023-01-01T12:00:00Z',
+        'credentialSubject': {'id': 'did:example:subject'},
+      };
+      if (!identical(issuer, _omit)) {
+        json['issuer'] = issuer;
+      }
+      return json;
+    }
+
+    test(
+      'Map issuer with id sets payload[iss] to that id',
+      () {
+        final (_, payload) = JwtVcDataModelV1.vcToJws(
+          buildVcJson(issuer: {'id': 'did:example:explicit-map-issuer'}),
+          signer,
+        );
+        expect(payload['iss'], 'did:example:explicit-map-issuer');
+      },
+    );
+
+    test(
+      'Map issuer without id falls back to signer.did',
+      () {
+        final (_, payload) = JwtVcDataModelV1.vcToJws(
+          // Map with metadata but no `id`
+          buildVcJson(issuer: {'name': 'Example Issuer'}),
+          signer,
+        );
+        expect(payload['iss'], signer.did);
+      },
+    );
+
+    test(
+      'Map issuer with non-String id throws',
+      () {
+        // `rawIssuer['id'] as String?` does not tolerate a non-null
+        // wrong-typed value, so vcToJws must surface a TypeError.
+        expect(
+          () => JwtVcDataModelV1.vcToJws(
+            buildVcJson(issuer: {'id': 123}),
+            signer,
+          ),
+          throwsA(isA<TypeError>()),
+        );
+      },
+    );
+
+    test(
+      'String issuer is passed through to payload[iss] verbatim',
+      () {
+        final (_, payload) = JwtVcDataModelV1.vcToJws(
+          buildVcJson(issuer: 'did:example:string-issuer'),
+          signer,
+        );
+        expect(payload['iss'], 'did:example:string-issuer');
+      },
+    );
+
+    test(
+      'Missing issuer field falls back to signer.did',
+      () {
+        final (_, payload) = JwtVcDataModelV1.vcToJws(
+          buildVcJson(),
+          signer,
+        );
+        expect(payload['iss'], signer.did);
+      },
+    );
+
+    test(
+      'Null issuer falls back to signer.did',
+      () {
+        final (_, payload) = JwtVcDataModelV1.vcToJws(
+          buildVcJson(issuer: null),
+          signer,
+        );
+        expect(payload['iss'], signer.did);
+      },
+    );
+  });
 }
+
+/// Sentinel used by `buildVcJson` to distinguish "issuer omitted" from
+/// "issuer explicitly set to null".
+const Object _omit = Object();
