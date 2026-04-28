@@ -6,6 +6,7 @@ import '../../key_pair/public_key.dart';
 import '../../types.dart';
 import '../../utility.dart';
 import '../did_document/did_document.dart';
+import '../did_document/service_endpoint.dart';
 import '../did_peer.dart';
 import 'add_verification_method_result.dart';
 import 'did_manager.dart';
@@ -17,14 +18,67 @@ import 'verification_relationship.dart';
 /// which supports multiple keys with separate authentication and
 /// key agreement purposes, as well as service endpoints.
 class DidPeerManager extends DidManager {
+  /// The preferred numalgo for DID generation.
+  ///
+  /// - [DidPeerType.peer2] (default): always produces `did:peer:2`.
+  /// - [DidPeerType.peer0]: produces `did:peer:0` when possible
+  ///   (single VM, no services); falls back to `did:peer:2` otherwise.
+  final DidPeerType preferredNumalgo;
+
   /// Creates a new DID Peer manager instance.
   ///
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
+  /// [preferredNumalgo] - The preferred numalgo (default: [DidPeerType.peer2]).
+  ///
+  /// When [preferredNumalgo] is [DidPeerType.peer0] this manager enforces
+  /// `did:peer:0` invariants — a single underlying wallet key and no service
+  /// endpoints — by rejecting operations that would violate them. This
+  /// mirrors the behavior of `DidKeyManager`, because `did:peer:0` is, per
+  /// spec, a `did:key`-equivalent encoding (one multibase-encoded key).
   DidPeerManager({
     required super.store,
     required super.wallet,
+    this.preferredNumalgo = DidPeerType.peer2,
   });
+
+  @override
+  Future<AddVerificationMethodResult> addVerificationMethod(
+    String walletKeyId, {
+    Set<VerificationRelationship>? relationships,
+  }) async {
+    if (preferredNumalgo == DidPeerType.peer0) {
+      // Track wallet keys, not VMs: `did:peer:0` encodes exactly one key, but
+      // a single wallet key can legitimately back multiple VMs in the store
+      // (e.g. an Ed25519 key plus its derived X25519 key for keyAgreement).
+      // Allow re-entry for the SAME wallet key (so multi-relationship calls
+      // still work), reject any DIFFERENT wallet key.
+      final existingWalletKeys = <String>{};
+      for (final vmId in await store.verificationMethodIds) {
+        final wid = await getWalletKeyId(vmId);
+        if (wid != null) existingWalletKeys.add(wid);
+      }
+      if (existingWalletKeys.isNotEmpty &&
+          !existingWalletKeys.contains(walletKeyId)) {
+        throw SsiException(
+          message: 'did:peer:0 supports only one wallet key.',
+          code: SsiExceptionType.tooManyVerificationMethods.code,
+        );
+      }
+    }
+    return super
+        .addVerificationMethod(walletKeyId, relationships: relationships);
+  }
+
+  @override
+  Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
+    if (preferredNumalgo == DidPeerType.peer0) {
+      throw UnsupportedError(
+          'Adding service endpoints is not supported for did:peer:0. '
+          'Use DidPeerType.peer2 to attach services.');
+    }
+    return super.addServiceEndpoint(endpoint);
+  }
 
   @override
   @protected
@@ -142,6 +196,35 @@ class DidPeerManager extends DidManager {
       verificationMethodsPubKeys.add(publicKey);
     }
 
+    // ---- did:peer:0 fast path -------------------------------------------
+    // Per spec, `did:peer:0` encodes exactly one key. The manager guards
+    // (`addVerificationMethod`, `addServiceEndpoint`) ensure only one
+    // underlying wallet key was added and no services exist. The store may
+    // still contain a derived x25519 VM alongside the original ed25519 VM
+    // (when keyAgreement was requested for an ed25519 key); we collapse
+    // those down to the single original key here so `_resolveDidPeer0`'s
+    // `_buildEDDoc` can derive the keyAgreement entry the same way
+    // `did:key` does.
+    if (preferredNumalgo == DidPeerType.peer0 && service.isEmpty) {
+      final walletKeyToVm = <String, String>{};
+      for (final vmId in uniqueVmIds) {
+        final wid = await getWalletKeyId(vmId);
+        if (wid != null) walletKeyToVm.putIfAbsent(wid, () => vmId);
+      }
+      if (walletKeyToVm.length == 1) {
+        final walletKeyId = walletKeyToVm.keys.first;
+        final primaryKey = await wallet.getPublicKey(walletKeyId);
+        final did = DidPeer.getDid(
+          verificationMethods: [primaryKey],
+          relationships: const {
+            VerificationRelationship.authentication: [0],
+          },
+          preferredNumalgo: DidPeerType.peer0,
+        );
+        return DidPeer.resolve(did);
+      }
+    }
+
     // Create a map from verification method ID to its index in the list.
     final vmIdToIndex = <String, int>{
       for (var i = 0; i < uniqueVmIds.length; i++) uniqueVmIds[i]: i
@@ -166,6 +249,7 @@ class DidPeerManager extends DidManager {
       verificationMethods: verificationMethodsPubKeys,
       relationships: relationshipIndexes,
       serviceEndpoints: service.toList(),
+      preferredNumalgo: preferredNumalgo,
     );
 
     // For did:peer:0, the resolution logic is simple and handles key derivation.
