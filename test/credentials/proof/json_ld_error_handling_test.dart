@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:ssi/src/exceptions/remote_context_load_exception.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 

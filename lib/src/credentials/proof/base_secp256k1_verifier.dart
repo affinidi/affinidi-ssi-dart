@@ -7,6 +7,7 @@ import 'package:pointycastle/api.dart';
 import '../../did/did_resolver.dart';
 import '../../did/did_verifier.dart';
 import '../../exceptions/json_ld_exception.dart';
+import '../../exceptions/remote_context_load_exception.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
