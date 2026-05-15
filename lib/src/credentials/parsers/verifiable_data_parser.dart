@@ -1,6 +1,3 @@
-/// Base type for decoded verifiable data.
-abstract class DecodedType {}
-
 /// Interface for parsers that decode serialized verifiable data.
 ///
 /// Implementations of this interface provide methods to check if data can be
