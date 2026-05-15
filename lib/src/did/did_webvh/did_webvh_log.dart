@@ -785,9 +785,11 @@ class DidWebVhLog {
     int verifyUpToIndex = entries.length - 1;
 
     var providedParametersCount = 0;
-    resolutionOptions?.versionId != null ? providedParametersCount++ : null;
-    resolutionOptions?.versionNumber != null ? providedParametersCount++ : null;
-    resolutionOptions?.versionTime != null ? providedParametersCount++ : null;
+    if (resolutionOptions != null) {
+      if (resolutionOptions.versionId != null) providedParametersCount++;
+      if (resolutionOptions.versionNumber != null) providedParametersCount++;
+      if (resolutionOptions.versionTime != null) providedParametersCount++;
+    }
 
     if (providedParametersCount > 1) {
       throw SsiException(
