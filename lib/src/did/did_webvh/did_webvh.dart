@@ -131,6 +131,7 @@ class DidWebVhDocumentMetadata extends DidDocumentMetadata {
     this.versionNumber,
   });
 
+  /// Converts this metadata object to a JSON-serializable map.
   Map<String, dynamic> toJson() {
     return {
       'scid': scid,

@@ -296,6 +296,44 @@ void main() {
       expect(entry.proof[0].type, equals('DataIntegrityProof'));
     });
 
+    test('should serialize timestamps as whole-second UTC values', () {
+      final entry = DidWebVhLogEntry.fromJson({
+        'versionId': '1-QmHash123',
+        'versionTime': '2024-04-05T07:32:58Z',
+        'parameters': {
+          'method': 'did:webvh:1.0',
+        },
+        'state': {
+          '@context': ['https://www.w3.org/ns/did/v1'],
+          'id': 'did:webvh:QmScid123:example.com',
+        },
+        'proof': [
+          {
+            'type': 'DataIntegrityProof',
+            'cryptosuite': 'eddsa-jcs-2022',
+            'proofPurpose': 'assertionMethod',
+            'verificationMethod': 'did:key:z6MkKey1',
+            'proofValue': 'z5V1',
+            'created': '2024-04-05T07:32:58Z',
+          }
+        ],
+      });
+
+      final proof = DidWebVhLogEntryProof(
+        type: 'DataIntegrityProof',
+        cryptosuite: 'eddsa-jcs-2022',
+        proofPurpose: 'assertionMethod',
+        proofValue: 'z5V1',
+        verificationMethod: 'did:key:z6MkKey1',
+        created: DateTime.parse('2024-04-05T09:32:58.987+02:00'),
+        expires: DateTime.parse('2024-04-05T10:32:58.456+02:00'),
+      );
+
+      expect(entry.toJson()['versionTime'], equals('2024-04-05T07:32:58Z'));
+      expect(proof.toJson()['created'], equals('2024-04-05T07:32:58Z'));
+      expect(proof.toJson()['expires'], equals('2024-04-05T08:32:58Z'));
+    });
+
     test('should extract version number from versionId', () {
       final json = {
         'versionId': '42-QmHash123',
@@ -551,6 +589,45 @@ void main() {
           'message',
           contains('Invalid DID WebVh Log Entry versionTime format.'),
         )),
+      );
+    });
+
+    test('should throw SsiException when versionTime has fractional seconds',
+        () {
+      final json = {
+        'versionId': '1-QmHash',
+        'versionTime': '2024-04-05T07:32:58.123Z',
+        'parameters': <dynamic, dynamic>{},
+        'state': {
+          '@context': <String>['https://www.w3.org/ns/did/v1'],
+          'id': 'did:webvh:scid:example.com',
+        },
+        'proof': <Map<String, dynamic>>[],
+      };
+
+      expect(
+        () => DidWebVhLogEntry.fromJson(json),
+        throwsA(isA<SsiDidResolutionException>().having(
+          (e) => e.toString(),
+          'message',
+          contains('Invalid DID WebVh Log Entry versionTime format.'),
+        )),
+      );
+    });
+
+    test(
+        'should throw FormatException when proof timestamp has fractional seconds',
+        () {
+      expect(
+        () => DidWebVhLogEntryProof.fromJson({
+          'type': 'DataIntegrityProof',
+          'cryptosuite': 'eddsa-jcs-2022',
+          'proofPurpose': 'assertionMethod',
+          'verificationMethod': 'did:key:z6MkKey1',
+          'proofValue': 'z5V1',
+          'created': '2024-04-05T07:32:58.123Z',
+        }),
+        throwsA(isA<FormatException>()),
       );
     });
   });
