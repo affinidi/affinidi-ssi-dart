@@ -15,6 +15,31 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`ssi` - `v3.9.2`](#ssi---v392)
+
+---
+
+#### `ssi` - `v3.9.2`
+
+ - **FIX**: linting errors for unnecessary_import ([#289](https://github.com/affinidi/affinidi-ssi-dart/issues/289)).
+
+## 3.9.2
+
+ - **FIX**: linting errors for unnecessary_import ([#289](https://github.com/affinidi/affinidi-ssi-dart/issues/289)).
+
+
+## 2026-05-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`ssi` - `v3.9.1`](#ssi---v391)
 
 ---
