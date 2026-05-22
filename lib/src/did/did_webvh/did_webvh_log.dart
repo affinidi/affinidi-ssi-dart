@@ -3,10 +3,10 @@ import 'dart:typed_data';
 
 import 'package:base_codecs/base_codecs.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 
 import '../../../ssi.dart';
 import '../../digest_utils.dart';
+import 'did_webvh_timestamp.dart';
 
 /// Downloads a document from the specified URL and returns the response body.
 ///
@@ -50,7 +50,7 @@ Future<String> downloadDocument(
   }
 }
 
-final _WebVhDateFormat = DateFormat('yyyy-MM-ddTHH:mm:ss\'Z\'');
+final _webVhDateFormat = DidWebVhTimestamp();
 
 /// A Data Integrity proof attached to a DID WebVH log entry.
 ///
@@ -173,10 +173,10 @@ class DidWebVhLogEntryProof {
       proofValue: json['proofValue'] as String,
       verificationMethod: json['verificationMethod'] as String,
       created: json['created'] != null
-          ? _WebVhDateFormat.parse(json['created'] as String)
+          ? _webVhDateFormat.parse(json['created'] as String)
           : null,
       expires: json['expires'] != null
-          ? _WebVhDateFormat.parse(json['expires'] as String)
+          ? _webVhDateFormat.parse(json['expires'] as String)
           : null,
     );
   }
@@ -192,8 +192,8 @@ class DidWebVhLogEntryProof {
       'proofPurpose': proofPurpose,
       'proofValue': proofValue,
       'verificationMethod': verificationMethod,
-      if (created != null) 'created': _WebVhDateFormat.format(created!),
-      if (expires != null) 'expires': _WebVhDateFormat.format(expires!),
+      if (created != null) 'created': _webVhDateFormat.format(created!),
+      if (expires != null) 'expires': _webVhDateFormat.format(expires!),
     };
   }
 }
@@ -513,8 +513,7 @@ class DidWebVhLogEntry {
     try {
       // FIXME: This versionTime format is subject to change based on the final spec. second-fractional digits may be added as an optional component
       // If the versionTime format changes, this parsing logic will need to be updated accordingly.
-      entryVersionTime =
-          _WebVhDateFormat.parseUTC(json['versionTime'] as String);
+      entryVersionTime = _webVhDateFormat.parse(json['versionTime'] as String);
     } on FormatException catch (e) {
       throw SsiDidResolutionException(
           message:
@@ -553,10 +552,14 @@ class DidWebVhLogEntry {
     return result;
   }
 
+  /// Serializes this log entry to a JSON map.
+  ///
+  /// Converts the [DidWebVhLogEntry] object into a JSON-serializable map, including all fields and nested objects.
+  /// The [versionTime] is formatted as an ISO8601 string without fractional seconds.
   Map<String, dynamic> toJson() {
     return {
       'versionId': versionId,
-      'versionTime': _WebVhDateFormat.format(versionTime),
+      'versionTime': _webVhDateFormat.format(versionTime),
       'parameters': {
         if (parameters.method != null) 'method': parameters.method!,
         if (parameters.scid != null) 'scid': parameters.scid!,
@@ -782,9 +785,11 @@ class DidWebVhLog {
     int verifyUpToIndex = entries.length - 1;
 
     var providedParametersCount = 0;
-    resolutionOptions?.versionId != null ? providedParametersCount++ : null;
-    resolutionOptions?.versionNumber != null ? providedParametersCount++ : null;
-    resolutionOptions?.versionTime != null ? providedParametersCount++ : null;
+    if (resolutionOptions != null) {
+      if (resolutionOptions.versionId != null) providedParametersCount++;
+      if (resolutionOptions.versionNumber != null) providedParametersCount++;
+      if (resolutionOptions.versionTime != null) providedParametersCount++;
+    }
 
     if (providedParametersCount > 1) {
       throw SsiException(
