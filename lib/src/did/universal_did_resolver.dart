@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../../ssi.dart';
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import 'did_document/index.dart';
@@ -11,6 +10,7 @@ import 'did_key.dart';
 import 'did_peer.dart';
 import 'did_resolver.dart';
 import 'did_web.dart';
+import 'did_webvh/did_webvh.dart';
 
 /// A class for resolving multiple DID methods.
 class UniversalDIDResolver implements DidResolver {

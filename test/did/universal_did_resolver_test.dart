@@ -2,10 +2,6 @@
 
 import 'dart:convert';
 
-import 'package:ssi/src/did/did_resolver.dart';
-import 'package:ssi/src/did/universal_did_resolver.dart';
-import 'package:ssi/src/exceptions/ssi_exception.dart';
-import 'package:ssi/src/exceptions/ssi_exception_type.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
