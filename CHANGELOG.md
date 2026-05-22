@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-05-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.9.1`](#ssi---v391)
+
+---
+
+#### `ssi` - `v3.9.1`
+
+ - **FIX**: remove intl package dependency ([#286](https://github.com/affinidi/affinidi-ssi-dart/issues/286)).
+
+## 3.9.1
+
+ - **FIX**: remove intl package dependency ([#286](https://github.com/affinidi/affinidi-ssi-dart/issues/286)).
+
+
 ## 2026-04-28
 
 ### Changes
