@@ -280,7 +280,10 @@ void main() {
         // Assert
         expect(docBefore.id, startsWith('did:peer:2'));
         expect(docBefore.service.length, 1);
-        expect(docAfter.id, startsWith('did:peer:0'));
+        // With the default `preferredNumalgo: DidPeerType.peer2`, removing
+        // the service endpoint keeps the DID as did:peer:2 (no auto-collapse
+        // to did:peer:0). See PLAN-did-peer-multi-key.md.
+        expect(docAfter.id, startsWith('did:peer:2'));
         expect(docAfter.service.length, 0);
       });
 
@@ -586,8 +589,10 @@ void main() {
         // Assert
         expect(signer.keyId, equals('${signer.did}$vmId'));
         expect(signer.signatureScheme, isNotNull);
-        expect(signer.did,
-            startsWith('did:peer:0')); // Single auth key generates peer:0
+        expect(
+          signer.did,
+          startsWith('did:peer:2'),
+        ); // Default preferredNumalgo is peer2.
       });
 
       test('should specify signature scheme for signer', () async {
@@ -613,12 +618,20 @@ void main() {
       test(
           'normalizes fragment-only verificationMethodId to full DID URL and uses full ID in proofs',
           () async {
+        // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
+        final peer0Manager = DidPeerManager(
+          store: InMemoryDidStore(),
+          wallet: wallet,
+          preferredNumalgo: DidPeerType.peer0,
+        );
+        await peer0Manager.init();
+
         final key = await wallet.generateKey(keyType: KeyType.ed25519);
-        final result = await manager.addVerificationMethod(key.id,
+        final result = await peer0Manager.addVerificationMethod(key.id,
             relationships: {VerificationRelationship.authentication});
         final vmIdFragment = result.verificationMethodId; // e.g. '#key-1'
 
-        final signer = await manager.getSigner(vmIdFragment);
+        final signer = await peer0Manager.getSigner(vmIdFragment);
 
         // signer.keyId should now be fully qualified DID + fragment
         expect(signer.keyId, '${signer.did}$vmIdFragment');
@@ -676,14 +689,22 @@ void main() {
     group('Key retrieval', () {
       test('should retrieve DID key pair', () async {
         // Arrange
+        // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
+        final peer0Manager = DidPeerManager(
+          store: InMemoryDidStore(),
+          wallet: wallet,
+          preferredNumalgo: DidPeerType.peer0,
+        );
+        await peer0Manager.init();
+
         final key = await wallet.generateKey(
             keyId: 'retrieve-key', keyType: KeyType.p256);
-        final result = await manager.addVerificationMethod(key.id,
+        final result = await peer0Manager.addVerificationMethod(key.id,
             relationships: {VerificationRelationship.authentication});
         final vmId = result.verificationMethodId;
 
         // Act
-        final didKeyPair = await manager.getKey(vmId);
+        final didKeyPair = await peer0Manager.getKey(vmId);
 
         // Assert
         expect(didKeyPair.keyPair.id, equals(key.id));
@@ -723,6 +744,14 @@ void main() {
 
     group('DID generation', () {
       test('generates a valid did:peer:0 document', () async {
+        // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
+        final manager = DidPeerManager(
+          store: InMemoryDidStore(),
+          wallet: wallet,
+          preferredNumalgo: DidPeerType.peer0,
+        );
+        await manager.init();
+
         // Generate key
         final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
@@ -774,6 +803,80 @@ void main() {
         expect(document.id, startsWith('did:peer:2'));
       });
 
+      // -----------------------------------------------------------------
+      // Default-numalgo (peer:2) no-fallback regression tests.
+      //
+      // Pre-PR (b12ef59 / upstream `DidPeer.getDid` without
+      // `preferredNumalgo`) the static encoder auto-picked `did:peer:0`
+      // whenever the input was "1 key + 0 services", regardless of intent.
+      // After flipping the default to `DidPeerType.peer2`, the manager
+      // must produce `did:peer:2` for these minimal shapes too — never
+      // silently fall back to peer:0.
+      // -----------------------------------------------------------------
+      test(
+          'default manager: 1 key + 1 relationship + 0 services -> did:peer:2 (no auto-collapse to peer:0)',
+          () async {
+        final k = await wallet.generateKey(
+            keyId: 'peer2-default-1k1r', keyType: KeyType.p256);
+        await manager.addVerificationMethod(k.id,
+            relationships: {VerificationRelationship.authentication});
+
+        final document = await manager.getDidDocument();
+        expect(document.id, startsWith('did:peer:2'));
+        expect(document.id, isNot(startsWith('did:peer:0')));
+        // The DID must encode the single key under the V (authentication)
+        // prefix — confirms we went through the peer:2 encoder.
+        expect(document.id, contains('.Vz'));
+        expect(document.verificationMethod, hasLength(1));
+        expect(document.verificationMethod[0].id, '${document.id}#key-1');
+        expect(document.authentication, hasLength(1));
+        expect(document.keyAgreement, isEmpty);
+        expect(document.service, isEmpty);
+      });
+
+      test(
+          'default manager: 1 ed25519 key + auth+keyAgreement + 0 services -> did:peer:2 with V and E entries',
+          () async {
+        // This shape would have collapsed to did:peer:0 (with did:key-style
+        // ed25519+derived-x25519 doc) under pre-PR behavior. Under the new
+        // peer:2 default it must stay as did:peer:2 with explicit V and E
+        // entries in the DID and 2 VMs in the document.
+        final k = await wallet.generateKey(
+            keyId: 'peer2-default-ed25519', keyType: KeyType.ed25519);
+        await manager.addVerificationMethod(k.id, relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.keyAgreement,
+        });
+
+        final document = await manager.getDidDocument();
+        expect(document.id, startsWith('did:peer:2'));
+        expect(document.id, contains('.Vz')); // authentication (ed25519)
+        expect(document.id, contains('.Ez')); // keyAgreement (derived x25519)
+        expect(document.verificationMethod, hasLength(2));
+        expect(document.authentication, hasLength(1));
+        expect(document.keyAgreement, hasLength(1));
+        expect(document.service, isEmpty);
+      });
+
+      test(
+          'default manager: 1 key + 0 relationships (key only) -> rejected, not silently peer:0',
+          () async {
+        // Empty relationship set: the key is added to verificationMethod
+        // but not assigned to any purpose. This shape would have been
+        // peer:0-eligible under pre-PR behavior; the manager now requires
+        // at least one relationship and throws — neither does it silently
+        // collapse to a relationships-less did:peer:0 document.
+        final k = await wallet.generateKey(
+            keyId: 'peer2-default-orphan', keyType: KeyType.p256);
+        await manager.addVerificationMethod(k.id, relationships: const {});
+
+        expect(
+          () => manager.getDidDocument(),
+          throwsA(isA<SsiException>().having(
+              (e) => e.code, 'code', SsiExceptionType.invalidDidDocument.code)),
+        );
+      });
+
       test(
           'generates a did:peer:2 document when a service is added, even with one auth key',
           () async {
@@ -812,9 +915,11 @@ void main() {
         final seed = Uint8List(32); // A dummy seed for testing
         final bip32Wallet = Bip32Wallet.fromSeed(seed);
         final store = InMemoryDidStore();
+        // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
         final manager = DidPeerManager(
           store: store,
           wallet: bip32Wallet,
+          preferredNumalgo: DidPeerType.peer0,
         );
         const derivationPath = "m/44'/0'/0'/0/0";
         final authKey = await bip32Wallet.generateKey(keyId: derivationPath);
@@ -840,6 +945,145 @@ void main() {
         // Verify resolution and content
         final resolvedDoc = DidPeer.resolve(didDocument.id);
         expect(resolvedDoc.toJson(), didDocument.toJson());
+      });
+    });
+
+    // -------------------------------------------------------------------
+    // Strict `did:peer:0` semantics: when constructed with
+    // `preferredNumalgo: DidPeerType.peer0`, the manager mirrors
+    // `DidKeyManager` invariants — single underlying wallet key, no service
+    // endpoints — and always produces a `did:peer:0` DID (never silently
+    // downgrades to `did:peer:2`).
+    // -------------------------------------------------------------------
+    group('Strict did:peer:0 semantics (preferredNumalgo: peer0)', () {
+      late DidPeerManager peer0Manager;
+
+      setUp(() async {
+        peer0Manager = DidPeerManager(
+          store: InMemoryDidStore(),
+          wallet: wallet,
+          preferredNumalgo: DidPeerType.peer0,
+        );
+        await peer0Manager.init();
+      });
+
+      test('rejects a second wallet key with tooManyVerificationMethods',
+          () async {
+        final k1 = await wallet.generateKey(
+            keyId: 'peer0-strict-key-1', keyType: KeyType.p256);
+        final k2 = await wallet.generateKey(
+            keyId: 'peer0-strict-key-2', keyType: KeyType.p256);
+
+        await peer0Manager.addVerificationMethod(k1.id,
+            relationships: {VerificationRelationship.authentication});
+
+        expect(
+          () => peer0Manager.addVerificationMethod(k2.id,
+              relationships: {VerificationRelationship.authentication}),
+          throwsA(isA<SsiException>().having((e) => e.code, 'code',
+              SsiExceptionType.tooManyVerificationMethods.code)),
+        );
+      });
+
+      test('allows re-entry for the SAME wallet key (multi-relationship adds)',
+          () async {
+        final k = await wallet.generateKey(
+            keyId: 'peer0-reentry-key', keyType: KeyType.p256);
+
+        // Two separate calls for the same wallet key must not throw.
+        await peer0Manager.addVerificationMethod(k.id,
+            relationships: {VerificationRelationship.authentication});
+        await peer0Manager.addVerificationMethod(k.id,
+            relationships: {VerificationRelationship.assertionMethod});
+
+        // Document still resolves to a peer:0 DID.
+        final doc = await peer0Manager.getDidDocument();
+        expect(doc.id, startsWith('did:peer:0'));
+      });
+
+      test('rejects addServiceEndpoint with UnsupportedError', () async {
+        final k = await wallet.generateKey(
+            keyId: 'peer0-svc-key', keyType: KeyType.p256);
+        await peer0Manager.addVerificationMethod(k.id,
+            relationships: {VerificationRelationship.authentication});
+
+        final endpoint = ServiceEndpoint(
+          id: '#service-1',
+          type: const StringServiceType('DIDCommMessaging'),
+          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+        );
+
+        expect(
+          () => peer0Manager.addServiceEndpoint(endpoint),
+          throwsA(isA<UnsupportedError>()),
+        );
+      });
+
+      test(
+          'getDidDocument with single ed25519 key + keyAgreement still produces did:peer:0 (mirrors did:key)',
+          () async {
+        // Single ed25519 wallet key with auth + keyAgreement: the manager
+        // creates one VM for the ed25519 key plus a derived x25519 VM.
+        // Under strict peer:0 semantics getDidDocument must collapse those
+        // back to a single-key did:peer:0 — same shape DidKeyManager would
+        // produce for the same input.
+        final k = await wallet.generateKey(
+            keyId: 'peer0-ed25519', keyType: KeyType.ed25519);
+        await peer0Manager.addVerificationMethod(k.id, relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.keyAgreement,
+        });
+
+        final doc = await peer0Manager.getDidDocument();
+
+        expect(doc.id, startsWith('did:peer:0z6Mk'));
+        // _buildEDDoc surfaces both the ed25519 verification key and the
+        // derived x25519 keyAgreement key.
+        expect(doc.verificationMethod, hasLength(2));
+        expect(doc.authentication, hasLength(1));
+        expect(doc.keyAgreement, hasLength(1));
+        expect(doc.keyAgreement.first.id,
+            isNot(equals(doc.authentication.first.id)));
+      });
+
+      test(
+          'getDidDocument with single p256 key + multiple relationships produces did:peer:0',
+          () async {
+        // P256 doesn't trigger ed25519→x25519 derivation; a single wallet
+        // key with multiple relationships produces multiple VMs in the
+        // store. The strict peer:0 fast path must still collapse to peer:0.
+        final k = await wallet.generateKey(
+            keyId: 'peer0-p256', keyType: KeyType.p256);
+        await peer0Manager.addVerificationMethod(k.id, relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.assertionMethod,
+        });
+
+        final doc = await peer0Manager.getDidDocument();
+        expect(doc.id, startsWith('did:peer:0zDn'));
+      });
+
+      test('default (peer2) manager still allows multiple keys and services',
+          () async {
+        // Sanity: the strict checks must NOT leak into the default peer2
+        // manager constructed in the outer setUp().
+        final k1 = await wallet.generateKey(
+            keyId: 'peer2-default-1', keyType: KeyType.p256);
+        final k2 = await wallet.generateKey(
+            keyId: 'peer2-default-2', keyType: KeyType.p256);
+
+        await manager.addVerificationMethod(k1.id,
+            relationships: {VerificationRelationship.authentication});
+        await manager.addVerificationMethod(k2.id,
+            relationships: {VerificationRelationship.authentication});
+        await manager.addServiceEndpoint(ServiceEndpoint(
+          id: '#service-default',
+          type: const StringServiceType('DIDCommMessaging'),
+          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+        ));
+
+        final doc = await manager.getDidDocument();
+        expect(doc.id, startsWith('did:peer:2'));
       });
     });
   });
