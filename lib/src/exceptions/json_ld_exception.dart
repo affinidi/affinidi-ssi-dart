@@ -36,16 +36,3 @@ class JsonLdException extends SsiException {
     return buffer.toString();
   }
 }
-
-/// Exception thrown when a remote context fails to load.
-class RemoteContextLoadException extends JsonLdException {
-  RemoteContextLoadException({
-    required Uri uri,
-    required Object cause,
-  }) : super(
-          message: 'Failed to load remote context',
-          failedUri: uri,
-          cause: cause,
-          operation: 'load_remote_context',
-        );
-}

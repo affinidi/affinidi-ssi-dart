@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:json_ld_processor/json_ld_processor.dart';
@@ -10,6 +9,7 @@ import '../../did/did_verifier.dart';
 import '../../did/public_key_utils.dart';
 import '../../digest_utils.dart';
 import '../../exceptions/json_ld_exception.dart';
+import '../../exceptions/remote_context_load_exception.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
 import '../../types.dart';
@@ -341,33 +341,7 @@ LibDocumentLoader _cacheLoadDocument(
 
       try {
         return await loadDocument(url, options);
-      } on SocketException catch (e) {
-        throw RemoteContextLoadException(
-          uri: url,
-          cause: 'Network error: ${e.message}',
-        );
-      } on HttpException catch (e) {
-        throw RemoteContextLoadException(
-          uri: url,
-          cause: 'HTTP error: ${e.message}',
-        );
-      } on TimeoutException catch (e) {
-        throw RemoteContextLoadException(
-          uri: url,
-          cause: 'Timeout: ${e.message ?? "Request timed out"}',
-        );
-      } on FormatException catch (e) {
-        throw RemoteContextLoadException(
-          uri: url,
-          cause: 'Invalid JSON response: ${e.message}',
-        );
       } catch (e) {
-        if (e.toString().contains('loading remote context failed')) {
-          throw RemoteContextLoadException(
-            uri: url,
-            cause: e.toString(),
-          );
-        }
         throw RemoteContextLoadException(
           uri: url,
           cause: e,
