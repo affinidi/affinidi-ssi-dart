@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-06-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.9.3`](#ssi---v393)
+
+---
+
+#### `ssi` - `v3.9.3`
+
+ - **FIX**: cache RevocationList2020 JSON-LD context ([#288](https://github.com/affinidi/affinidi-ssi-dart/issues/288)).
+
+## 3.9.3
+
+ - **FIX**: cache RevocationList2020 JSON-LD context ([#288](https://github.com/affinidi/affinidi-ssi-dart/issues/288)).
+
+
 ## 2026-05-22
 
 ### Changes
