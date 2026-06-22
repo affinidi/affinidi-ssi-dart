@@ -19,7 +19,8 @@ Future<void> main() async {
   // Encode the public key as a Multikey verification method.
   // toMultikey() prepends the 2-byte ML-DSA-44 multicodec prefix (0x9024).
   final multikey = toMultikey(keyPair.publicKey.bytes, KeyType.mldsa44);
-  final publicKeyMultibase = toMultiBase(multikey, base: MultiBase.base58bitcoin);
+  final publicKeyMultibase =
+      toMultiBase(multikey, base: MultiBase.base58bitcoin);
 
   const did = 'did:example:mldsa44-demo';
   final vmId = '$did#key-1';
