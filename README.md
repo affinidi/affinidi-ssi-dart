@@ -59,7 +59,7 @@ This package supports the following key management solutions for securely managi
 
 - **BIP32 ED25519** - adapts the BIP32 standard to work with the ED25519 elliptic curve cryptography. Supports **ed25519** key type only.
 
-- **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports **secp256k1**, **ed25519**, **p256**, **p384**, and **p521** key types.
+- **Persistent Wallet** - A Non-Hierarchical Deterministic wallet that supports **secp256k1**, **ed25519**, **p256**, **p384**, **p521**, and **ml-dsa-44** key types.
 
 Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/wallet) to learn how to create different wallets.
 
@@ -191,6 +191,30 @@ When generating a DID Document with the Dart SSI package using an Ed25519 key, t
 - **X25519** for encryption/ECDH (key agreement) derived from Ed25519 as needed.
 
 The Dart SSI package handles both the key derivation and DID Document construction automatically, so you don't need to convert keys or add verification methods manually. Be aware that it uses the same key material in different forms for signing and encryption operations.
+
+## ML-DSA-44 Post-Quantum Support (Experimental)
+
+> **Experimental (W3C Data Integrity Specification Only):** The W3C Data Integrity cryptosuites for ML-DSA-44 (`mldsa44-jcs-2024` and `mldsa44-rdfc-2024`) follow the [W3C vc-di-quantum-resistant draft](https://w3c.github.io/vc-di-eddsa/). This specification is not yet finalised; key formats, multicodec prefixes, and proof serialisation may change before standardisation.
+>
+> **Note:** The ML-DSA-44 signature algorithm itself (FIPS 204) is NIST-approved and this package provides a proper, certified implementation. The "experimental" designation refers solely to the W3C Data Integrity specification's draft status.
+
+The package includes support for **ML-DSA-44** (CRYSTALS-Dilithium, FIPS 204), a NIST-approved post-quantum digital signature algorithm, through two W3C Data Integrity cryptosuites:
+
+- **`mldsa44-jcs-2024`** — JCS (RFC 8785) canonicalisation. Works entirely offline; no JSON-LD network access required.
+- **`mldsa44-rdfc-2024`** — RDFC (RDF Dataset Canonicalization) canonicalisation. Requires valid JSON-LD contexts.
+
+Key facts:
+
+- **Key type:** `KeyType.mldsa44` in `PersistentWallet` and `MlDsa44KeyPair`
+- **Signature scheme:** `SignatureScheme.mldsa44`
+- **Public key:** 1312 bytes; serialised as a `Multikey` with multicodec prefix `0x9024`
+- **Proof value:** encoded in base64url-no-pad (`u` multibase prefix)
+- **No `keyAgreement` relationship** — ML-DSA is a signature-only algorithm
+- **Proof generators:** `DataIntegrityMldsaJcsGenerator`, `DataIntegrityMldsaRdfcGenerator`
+- **Proof verifiers:** `DataIntegrityMldsaJcsVerifier`, `DataIntegrityMldsaRdfcVerifier`
+
+Refer to the [ML-DSA-44 issue/verify example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/mldsa44_issue_verify.dart) for a working end-to-end demonstration.
+
 
 ## Support & feedback
 

@@ -3,6 +3,30 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-06-22
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.10.0`](#ssi---v3100)
+
+---
+
+#### `ssi` - `v3.10.0`
+
+ - **FEAT**: add ML-DSA-44 (FIPS 204) post-quantum signature support with `mldsa44-jcs-2024` and `mldsa44-rdfc-2024` Data Integrity cryptosuites (experimental).
+
+## 3.10.0
+
+ - **FEAT**: add ML-DSA-44 (FIPS 204) post-quantum signature support with `mldsa44-jcs-2024` and `mldsa44-rdfc-2024` Data Integrity cryptosuites (experimental).
+
 ## 2026-06-09
 
 ### Changes
