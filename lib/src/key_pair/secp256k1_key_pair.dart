@@ -47,7 +47,22 @@ class Secp256k1KeyPair extends KeyPair {
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
     );
-    return _node.sign(digest);
+
+    final singature = _node.sign(digest);
+    final r = singature.sublist(0, 32);
+    final s = singature.sublist(32, 64);
+    // Enforce low S value for signature malleability prevention
+    final halfN = _secp256k1.n >> 1;
+    final sBigInt = BigInt.parse(hex.encode(s), radix: 16);
+    
+    if (sBigInt > halfN) {
+      // If s > N/2, set s = N - s to get the lower value
+      final newS = _secp256k1.n - sBigInt;
+      final newSBytes = hex.decode(newS.toRadixString(16).padLeft(64, '0'));
+      return Uint8List.fromList(List.from(r)..addAll(newSBytes));
+    }
+
+    return singature;
   }
 
   @override
