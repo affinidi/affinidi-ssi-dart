@@ -77,7 +77,7 @@ class DidVerifier implements Verifier {
     final jwk = verificationMethod.asJwk();
     final jwkMap = Map<String, dynamic>.from(jwk.toJson());
 
-    if (!_isAlgorithmCompatibleWithJwk(jwkMap, algorithm.alg ?? '')) {
+    if (!isAlgorithmCompatibleWithJwk(jwkMap, algorithm.alg ?? '')) {
       throw SsiException(
         message:
             'Algorithm ${algorithm.alg} is not compatible with the key type in the verification method',
@@ -90,14 +90,21 @@ class DidVerifier implements Verifier {
 
   @override
   bool isAllowedAlgorithm(String algorithm) {
-    return _isAlgorithmCompatibleWithJwk(_jwk, algorithm);
+    return isAlgorithmCompatibleWithJwk(_jwk, algorithm);
   }
 
-  static bool _isAlgorithmCompatibleWithJwk(
+  /// Tests if an algorithm is compatible with a JWK.
+  ///
+  /// [jwk] - The JSON Web Key to test compatibility with
+  /// [algorithm] - The algorithm name to test (e.g., 'EdDSA', 'Ed25519', 'ES256')
+  ///
+  /// Returns true if the algorithm is compatible with the key type in the JWK.
+  static bool isAlgorithmCompatibleWithJwk(
     Map<String, dynamic> jwk,
     String algorithm,
   ) {
-    if (jwk['kty'] == 'OKP' && jwk['crv'] == 'Ed25519') {
+    if ((jwk['kty'] == 'OKP' && jwk['crv'] == 'Ed25519') ||
+        (jwk['alg'] == 'Ed25519')) {
       return algorithm == 'EdDSA' || algorithm == 'Ed25519';
     }
 
