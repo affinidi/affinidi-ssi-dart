@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 2026-06-30
+## 2026-06-22
 
 ### Changes
 
@@ -11,22 +11,120 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Packages with breaking changes:
 
- - There are no breaking changes in this release.
+ - [`ssi` - `v4.0.0`](#ssi---v400)
 
 Packages with other changes:
 
- - [`ssi` - `v3.9.4`](#ssi---v394)
+ - There are no other changes in this release.
 
 ---
 
-#### `ssi` - `v3.9.4`
+#### `ssi` - `v4.0.0`
 
- - **FIX**: verify did:webvh SCID over the published log entry ([#290](https://github.com/affinidi/affinidi-ssi-dart/issues/290)).
+ - **BREAKING**: `KeyType.mldsa44` and `SignatureScheme.mldsa44` are new enum values; exhaustive `switch` statements over `KeyType` or `SignatureScheme` will fail to compile without a handler for these new values.
+ - **FEAT**: add ML-DSA-44 (FIPS 204) post-quantum signature support with `mldsa44-jcs-2024` and `mldsa44-rdfc-2024` Data Integrity cryptosuites (experimental).
 
-## 3.9.4
+## 4.0.0
 
- - **FIX**: verify did:webvh SCID over the published log entry ([#290](https://github.com/affinidi/affinidi-ssi-dart/issues/290)).
+> Note: This release has breaking changes.
 
+ - **BREAKING**: `KeyType.mldsa44` and `SignatureScheme.mldsa44` are new enum values; exhaustive `switch` statements over `KeyType` or `SignatureScheme` will fail to compile without a handler for these new values.
+ - **FEAT**: add ML-DSA-44 (FIPS 204) post-quantum signature support with `mldsa44-jcs-2024` and `mldsa44-rdfc-2024` Data Integrity cryptosuites (experimental).
+
+### Migration Guide
+
+#### Exhaustive switches over `KeyType`
+
+If you have an exhaustive `switch` expression (or a `switch` statement without a `default`/`_` fallthrough) over `KeyType`, you must add a case for `KeyType.mldsa44`.
+
+**Before (compiles with ssi ≤ 3.x, fails with ssi 4.0.0):**
+
+```dart
+String describeKey(KeyType keyType) => switch (keyType) {
+  KeyType.secp256k1 => 'secp256k1',
+  KeyType.ed25519   => 'Ed25519',
+  KeyType.x25519    => 'X25519',
+  KeyType.p256      => 'P-256',
+  KeyType.p384      => 'P-384',
+  KeyType.p521      => 'P-521',
+  KeyType.rsa       => 'RSA',
+  // KeyType.mldsa44 does not exist in ≤ 3.x — no problem.
+  // In 4.0.0 this switch is no longer exhaustive → compile error.
+};
+```
+
+**After (required for ssi 4.0.0):**
+
+```dart
+String describeKey(KeyType keyType) => switch (keyType) {
+  KeyType.secp256k1 => 'secp256k1',
+  KeyType.ed25519   => 'Ed25519',
+  KeyType.x25519    => 'X25519',
+  KeyType.p256      => 'P-256',
+  KeyType.p384      => 'P-384',
+  KeyType.p521      => 'P-521',
+  KeyType.rsa       => 'RSA',
+  KeyType.mldsa44   => 'ML-DSA-44', // ← add this case
+};
+```
+
+#### Exhaustive switches over `SignatureScheme`
+
+**Before (compiles with ssi ≤ 3.x, fails with ssi 4.0.0):**
+
+```dart
+String describeScheme(SignatureScheme scheme) => switch (scheme) {
+  SignatureScheme.ecdsa_secp256k1_sha256 => 'ES256K',
+  SignatureScheme.ecdsa_p256_sha256      => 'ES256',
+  SignatureScheme.ecdsa_p384_sha384      => 'ES384',
+  SignatureScheme.ecdsa_p521_sha512      => 'ES512',
+  SignatureScheme.ed25519                => 'Ed25519',
+  SignatureScheme.rsa_pkcs1_sha256       => 'RS256',
+  // SignatureScheme.mldsa44 does not exist in ≤ 3.x — no problem.
+  // In 4.0.0 this switch is no longer exhaustive → compile error.
+};
+```
+
+**After (required for ssi 4.0.0):**
+
+```dart
+String describeScheme(SignatureScheme scheme) => switch (scheme) {
+  SignatureScheme.ecdsa_secp256k1_sha256 => 'ES256K',
+  SignatureScheme.ecdsa_p256_sha256      => 'ES256',
+  SignatureScheme.ecdsa_p384_sha384      => 'ES384',
+  SignatureScheme.ecdsa_p521_sha512      => 'ES512',
+  SignatureScheme.ed25519                => 'Ed25519',
+  SignatureScheme.rsa_pkcs1_sha256       => 'RS256',
+  SignatureScheme.mldsa44                => 'ML-DSA-44', // ← add this case
+};
+```
+
+Alternatively, use a catch-all (`_` in a switch expression, `default:` in a switch statement). This compiles today and will continue to compile for any future algorithm additions, at the cost of **losing compile-time exhaustiveness checking** — new unhandled values become runtime errors instead of compile errors:
+
+```dart
+// Switch expression — wildcard arm
+String describeScheme(SignatureScheme scheme) => switch (scheme) {
+  SignatureScheme.ecdsa_secp256k1_sha256 => 'ES256K',
+  SignatureScheme.ecdsa_p256_sha256      => 'ES256',
+  SignatureScheme.ecdsa_p384_sha384      => 'ES384',
+  SignatureScheme.ecdsa_p521_sha512      => 'ES512',
+  SignatureScheme.ed25519                => 'Ed25519',
+  SignatureScheme.rsa_pkcs1_sha256       => 'RS256',
+  _ => throw UnimplementedError('Unsupported scheme: $scheme'),
+};
+
+// Switch statement — default: clause (equivalent)
+switch (scheme) {
+  case SignatureScheme.ecdsa_secp256k1_sha256:
+    // ...
+  case SignatureScheme.ed25519:
+    // ...
+  default:
+    throw UnimplementedError('Unsupported scheme: $scheme');
+}
+```
+
+The explicit per-value `case` approach is strongly preferred because it keeps compile-time safety intact.
 
 ## 2026-06-09
 
