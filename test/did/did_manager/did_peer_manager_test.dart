@@ -1001,7 +1001,7 @@ void main() {
         expect(doc.id, startsWith('did:peer:0'));
       });
 
-      test('rejects addServiceEndpoint with UnsupportedError', () async {
+      test('rejects addServiceEndpoint with SsiException', () async {
         final k = await wallet.generateKey(
             keyId: 'peer0-svc-key', keyType: KeyType.p256);
         await peer0Manager.addVerificationMethod(k.id,
@@ -1015,7 +1015,8 @@ void main() {
 
         expect(
           () => peer0Manager.addServiceEndpoint(endpoint),
-          throwsA(isA<UnsupportedError>()),
+          throwsA(isA<SsiException>().having((e) => e.code, 'code',
+              SsiExceptionType.unsupportedDidOperation.code)),
         );
       });
 

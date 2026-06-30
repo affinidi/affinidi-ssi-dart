@@ -73,9 +73,11 @@ class DidPeerManager extends DidManager {
   @override
   Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
     if (preferredNumalgo == DidPeerType.peer0) {
-      throw UnsupportedError(
-          'Adding service endpoints is not supported for did:peer:0. '
-          'Use DidPeerType.peer2 to attach services.');
+      throw SsiException(
+        message: 'Adding service endpoints is not supported for did:peer:0. '
+            'Use DidPeerType.peer2 to attach services.',
+        code: SsiExceptionType.unsupportedDidOperation.code,
+      );
     }
     return super.addServiceEndpoint(endpoint);
   }
@@ -207,9 +209,14 @@ class DidPeerManager extends DidManager {
     // `did:key` does.
     if (preferredNumalgo == DidPeerType.peer0 && service.isEmpty) {
       final walletKeyToVm = <String, String>{};
-      for (final vmId in uniqueVmIds) {
-        final wid = await getWalletKeyId(vmId);
-        if (wid != null) walletKeyToVm.putIfAbsent(wid, () => vmId);
+      final walletKeyIds = await Future.wait(
+        uniqueVmIds.map(getWalletKeyId),
+      );
+      for (var i = 0; i < uniqueVmIds.length; i++) {
+        final wid = walletKeyIds[i];
+        if (wid != null) {
+          walletKeyToVm.putIfAbsent(wid, () => uniqueVmIds[i]);
+        }
       }
       if (walletKeyToVm.length == 1) {
         final walletKeyId = walletKeyToVm.keys.first;
