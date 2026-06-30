@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-06-30
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.9.4`](#ssi---v394)
+
+---
+
+#### `ssi` - `v3.9.4`
+
+ - **FIX**: verify did:webvh SCID over the published log entry ([#290](https://github.com/affinidi/affinidi-ssi-dart/issues/290)).
+
+## 3.9.4
+
+ - **FIX**: verify did:webvh SCID over the published log entry ([#290](https://github.com/affinidi/affinidi-ssi-dart/issues/290)).
+
+
 ## 2026-06-09
 
 ### Changes
