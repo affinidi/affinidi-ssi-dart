@@ -489,13 +489,25 @@ class DidWebVhLogEntry {
   /// Must use proofPurpose set to "assertionMethod".
   final List<DidWebVhLogEntryProof> proof;
 
+  /// The entry exactly as published in the JSON Lines log.
+  ///
+  /// SCID and entry-hash verification MUST run over the published entry
+  /// (did:webvh 1.0, SCID Generation and Verification: "treat the resulting
+  /// log entry as a string"). Rebuilding the entry from typed fields via
+  /// [toJson] can change the canonical form for any value the typed model does
+  /// not preserve verbatim, such as a single-element `service.type` array that
+  /// collapses to a string, which makes the recomputed hash differ from the
+  /// published SCID.
+  final Map<String, dynamic> _sourceJson;
+
   DidWebVhLogEntry._({
     required this.versionId,
     required this.versionTime,
     required this.parameters,
     required this.state,
     required this.proof,
-  });
+    required Map<String, dynamic> sourceJson,
+  }) : _sourceJson = sourceJson;
 
   /// Creates a [DidWebVhLogEntry] from a JSON object.
   ///
@@ -532,6 +544,7 @@ class DidWebVhLogEntry {
       proof: (json['proof'] as List)
           .map((e) => DidWebVhLogEntryProof.fromJson(e as Map<String, dynamic>))
           .toList(),
+      sourceJson: json,
     );
   }
 
@@ -541,12 +554,15 @@ class DidWebVhLogEntry {
   /// The returned map includes all fields except for the proof, and allows the versionId to be replaced
   /// with a custom value (e.g., "{SCID}").
   ///
+  /// The published JSON ([_sourceJson]) is used rather than the typed [toJson]
+  /// representation so the hash matches the bytes the controller signed.
+  ///
   /// - [newVersionId]: The versionId value to use in the returned map (e.g., "{SCID}" or a previous versionId).
   ///
   /// Returns a map suitable for canonicalization and hashing.
   Map<String, dynamic> buildMapFromEntryWithVersionIdAndStrippedProof(
       String newVersionId) {
-    final result = toJson();
+    final result = jsonDecode(jsonEncode(_sourceJson)) as Map<String, dynamic>;
     result.remove('proof');
     result['versionId'] = newVersionId;
     return result;
