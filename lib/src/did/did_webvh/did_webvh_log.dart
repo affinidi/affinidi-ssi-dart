@@ -493,11 +493,10 @@ class DidWebVhLogEntry {
   ///
   /// SCID and entry-hash verification MUST run over the published entry
   /// (did:webvh 1.0, SCID Generation and Verification: "treat the resulting
-  /// log entry as a string"). Rebuilding the entry from typed fields via
-  /// [toJson] can change the canonical form for any value the typed model does
-  /// not preserve verbatim, such as a single-element `service.type` array that
-  /// collapses to a string, which makes the recomputed hash differ from the
-  /// published SCID.
+  /// log entry as a string"). Rebuilding the entry from the typed fields can
+  /// change the canonical form for any value the typed model does not preserve
+  /// verbatim, such as a single-element `service.type` array that collapses to
+  /// a string, which makes the recomputed hash differ from the published SCID.
   final Map<String, dynamic> _sourceJson;
 
   DidWebVhLogEntry._({
@@ -554,8 +553,8 @@ class DidWebVhLogEntry {
   /// The returned map includes all fields except for the proof, and allows the versionId to be replaced
   /// with a custom value (e.g., "{SCID}").
   ///
-  /// The published JSON ([_sourceJson]) is used rather than the typed [toJson]
-  /// representation so the hash matches the bytes the controller signed.
+  /// The published JSON ([_sourceJson]) is used rather than rebuilding the map
+  /// from the typed fields so the hash matches the bytes the controller signed.
   ///
   /// - [newVersionId]: The versionId value to use in the returned map (e.g., "{SCID}" or a previous versionId).
   ///
@@ -566,32 +565,6 @@ class DidWebVhLogEntry {
     result.remove('proof');
     result['versionId'] = newVersionId;
     return result;
-  }
-
-  /// Serializes this log entry to a JSON map.
-  ///
-  /// Converts the [DidWebVhLogEntry] object into a JSON-serializable map, including all fields and nested objects.
-  /// The [versionTime] is formatted as an ISO8601 string without fractional seconds.
-  Map<String, dynamic> toJson() {
-    return {
-      'versionId': versionId,
-      'versionTime': _webVhDateFormat.format(versionTime),
-      'parameters': {
-        if (parameters.method != null) 'method': parameters.method!,
-        if (parameters.scid != null) 'scid': parameters.scid!,
-        if (parameters.updateKeys != null) 'updateKeys': parameters.updateKeys!,
-        if (parameters.nextKeyHashes != null)
-          'nextKeyHashes': parameters.nextKeyHashes!,
-        if (parameters.witness != null) 'witness': parameters.witness!.toJson(),
-        if (parameters.watchers != null) 'watchers': parameters.watchers!,
-        if (parameters.portable != null) 'portable': parameters.portable!,
-        if (parameters.deactivated != null)
-          'deactivated': parameters.deactivated!,
-        if (parameters.ttl != null) 'ttl': parameters.ttl!,
-      },
-      'state': state.toJson(),
-      'proof': proof.map((e) => e.toJson()).toList(),
-    };
   }
 
   /// Extracts the version number from the versionId.
