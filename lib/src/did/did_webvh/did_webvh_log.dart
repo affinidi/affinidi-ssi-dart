@@ -28,9 +28,13 @@ Future<String> downloadDocument(
   http.Client? client,
   Duration timeout = const Duration(seconds: 30),
 }) async {
-  client ??= http.Client();
+  // Track ownership: a client created here must be closed here so its
+  // keep-alive connections are released. A caller-supplied client is owned by
+  // the caller and must be left open.
+  final ownsClient = client == null;
+  final httpClient = client ?? http.Client();
   try {
-    final response = await client.get(url, headers: {
+    final response = await httpClient.get(url, headers: {
       'Accept': 'application/json, application/jsonl'
     }).timeout(timeout);
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -47,6 +51,10 @@ Future<String> downloadDocument(
       message: 'Failed to fetch $url: $e',
       code: SsiExceptionType.invalidDidWebVh.code,
     );
+  } finally {
+    if (ownsClient) {
+      httpClient.close();
+    }
   }
 }
 
@@ -562,7 +570,9 @@ class DidWebVhLogEntry {
   /// Returns a map suitable for canonicalization and hashing.
   Map<String, dynamic> buildMapFromEntryWithVersionIdAndStrippedProof(
       String newVersionId) {
-    final result = jsonDecode(jsonEncode(_sourceJson)) as Map<String, dynamic>;
+    // A shallow copy is enough: only top-level keys are changed below and the
+    // nested JSON values are never mutated, so [_sourceJson] stays intact.
+    final result = Map<String, dynamic>.from(_sourceJson);
     result.remove('proof');
     result['versionId'] = newVersionId;
     return result;
