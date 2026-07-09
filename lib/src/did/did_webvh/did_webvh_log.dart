@@ -28,9 +28,6 @@ Future<String> downloadDocument(
   http.Client? client,
   Duration timeout = const Duration(seconds: 30),
 }) async {
-  // Track ownership: a client created here must be closed here so its
-  // keep-alive connections are released. A caller-supplied client is owned by
-  // the caller and must be left open.
   final ownsClient = client == null;
   final httpClient = client ?? http.Client();
   try {
@@ -570,8 +567,6 @@ class DidWebVhLogEntry {
   /// Returns a map suitable for canonicalization and hashing.
   Map<String, dynamic> buildMapFromEntryWithVersionIdAndStrippedProof(
       String newVersionId) {
-    // A shallow copy is enough: only top-level keys are changed below and the
-    // nested JSON values are never mutated, so [_sourceJson] stays intact.
     final result = Map<String, dynamic>.from(_sourceJson);
     result.remove('proof');
     result['versionId'] = newVersionId;
