@@ -213,6 +213,18 @@ Key facts:
 - **Proof generators:** `DataIntegrityMldsaJcsGenerator`, `DataIntegrityMldsaRdfcGenerator`
 - **Proof verifiers:** `DataIntegrityMldsaJcsVerifier`, `DataIntegrityMldsaRdfcVerifier`
 
+### Seed guidance for ML-DSA-44 keys
+
+Prefer **`MlDsa44KeyPair.generate()`** (or `PersistentWallet.generateKey` with `KeyType.mldsa44`) for production keys. That draws fresh entropy and persists the key blob.
+
+If you use **`MlDsa44KeyPair.fromSeed`** for deterministic recovery:
+
+- Pass a **new, independent** seed of at least **32 bytes** from a CSPRNG (or another high-entropy secret dedicated to ML-DSA).
+- **Do not** reuse Ed25519, BIP32, or other classical wallet seed bytes. A PQ key derived from the same material as a classical key is still compromised if that classical seed is recovered (including by a cryptographically relevant quantum computer).
+- Deriving ML-DSA from a classical seed does **not** retroactively protect the classical key; it only allows reproducible PQ key management from that seed.
+
+Treat any `fromSeed` input like private key material.
+
 Refer to the [ML-DSA-44 issue/verify example](https://github.com/affinidi/affinidi-ssi-dart/tree/main/example/code_snippets/credentials/vc/mldsa44_issue_verify.dart) for a working end-to-end demonstration.
 
 

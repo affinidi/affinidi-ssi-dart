@@ -37,10 +37,13 @@ const String _hkdfInfo = 'ML-DSA-44 keygen v1';
 ///
 /// ## Security note on deterministic derivation
 ///
-/// [fromSeed] derives a stable ML-DSA-44 keypair from existing key material
-/// via HKDF-SHA256. A PQ key derived from a potentially quantum-vulnerable
-/// classical seed does **not** retroactively protect the classical key; it
-/// only provides reproducible PQ key management.
+/// Prefer [generate] for production keys. [fromSeed] is for reproducible
+/// recovery from a dedicated secret: pass a **new, independent** seed of at
+/// least 32 bytes from a CSPRNG. **Do not** reuse Ed25519, BIP32, or other
+/// classical wallet seed bytes — compromise of that shared material also
+/// compromises the derived ML-DSA key. A PQ key derived from a classical seed
+/// does **not** retroactively protect the classical key; it only provides
+/// reproducible PQ key management.
 class MlDsa44KeyPair extends KeyPair {
   static final _params = DilithiumParams.mlDsa44;
 
@@ -108,9 +111,11 @@ class MlDsa44KeyPair extends KeyPair {
   /// Returns a tuple of `(MlDsa44KeyPair, Uint8List keyBlob)` where `keyBlob`
   /// is the 3872-byte `[sk || pk]` blob suitable for wallet persistence.
   ///
-  /// **Security note:** Deriving a PQ key from a potentially quantum-vulnerable
-  /// classical seed does not retroactively protect the classical key; it only
-  /// provides reproducible PQ key management.
+  /// **Security note:** Prefer [generate] unless you need deterministic
+  /// recovery. Pass a **new, independent** seed (≥32 bytes, CSPRNG). Do **not**
+  /// reuse Ed25519/BIP32/classical wallet seeds — shared seed material couples
+  /// classical and PQ key compromise. Deriving from a classical seed also does
+  /// not retroactively protect that classical key.
   static Future<(MlDsa44KeyPair, Uint8List)> fromSeed(
     Uint8List seed, {
     String? id,
