@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-07-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v3.9.5`](#ssi---v395)
+
+---
+
+#### `ssi` - `v3.9.5`
+
+ - **FIX**: close connection for webhv.
+
+## 3.9.5
+
+ - **FIX**: close connection for webhv.
+
+
 ## 2026-06-30
 
 ### Changes
