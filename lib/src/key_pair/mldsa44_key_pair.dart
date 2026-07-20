@@ -10,14 +10,17 @@ import '../utility.dart';
 import 'key_pair.dart';
 import 'public_key.dart';
 
-/// ML-DSA-44 key-pair sizes (FIPS 204 Table 2, parameter set ML-DSA-44).
-const int _mlDsa44PublicKeyBytes = 1312;
-const int _mlDsa44SecretKeyBytes = 2560;
-const int _mlDsa44SignatureBytes = 2420;
+/// ML-DSA-44 public key length in bytes (FIPS 204 Table 2, parameter set ML-DSA-44).
+const int mlDsa44PublicKeyBytes = 1312;
+
+/// ML-DSA-44 secret (private) key length in bytes (FIPS 204 Table 2, parameter set ML-DSA-44).
+const int mlDsa44SecretKeyBytes = 2560;
+
+/// ML-DSA-44 signature length in bytes (FIPS 204 Table 2, parameter set ML-DSA-44).
+const int mlDsa44SignatureBytes = 2420;
 
 /// Combined blob size stored as `privateKeyBytes` in the wallet: sk (2560) || pk (1312).
-const int _mlDsa44KeyBlobBytes =
-    _mlDsa44SecretKeyBytes + _mlDsa44PublicKeyBytes;
+const int mlDsa44KeyBlobBytes = mlDsa44SecretKeyBytes + mlDsa44PublicKeyBytes;
 
 /// Minimum accepted [MlDsa44KeyPair.fromSeed] seed length in bytes (256 bits).
 ///
@@ -73,9 +76,9 @@ class MlDsa44KeyPair extends KeyPair {
   static (MlDsa44KeyPair, Uint8List) generate({String? id}) {
     final effectiveId = id ?? randomId();
     final (pk, sk) = MlDsa.generateKeyPair(_params);
-    final keyBlob = Uint8List(_mlDsa44KeyBlobBytes)
-      ..setRange(0, _mlDsa44SecretKeyBytes, sk)
-      ..setRange(_mlDsa44SecretKeyBytes, _mlDsa44KeyBlobBytes, pk);
+    final keyBlob = Uint8List(mlDsa44KeyBlobBytes)
+      ..setRange(0, mlDsa44SecretKeyBytes, sk)
+      ..setRange(mlDsa44SecretKeyBytes, mlDsa44KeyBlobBytes, pk);
     return (
       MlDsa44KeyPair._(
           Uint8List.fromList(sk), Uint8List.fromList(pk), effectiveId),
@@ -91,16 +94,16 @@ class MlDsa44KeyPair extends KeyPair {
     Uint8List keyBlob, {
     String? id,
   }) {
-    if (keyBlob.length != _mlDsa44KeyBlobBytes) {
+    if (keyBlob.length != mlDsa44KeyBlobBytes) {
       throw SsiException(
         message:
-            'Invalid ML-DSA-44 key blob length: expected $_mlDsa44KeyBlobBytes bytes (sk||pk), got ${keyBlob.length}',
+            'Invalid ML-DSA-44 key blob length: expected $mlDsa44KeyBlobBytes bytes (sk||pk), got ${keyBlob.length}',
         code: SsiExceptionType.keyPairMissingPrivateKey.code,
       );
     }
     final effectiveId = id ?? randomId();
-    final sk = keyBlob.sublist(0, _mlDsa44SecretKeyBytes);
-    final pk = keyBlob.sublist(_mlDsa44SecretKeyBytes);
+    final sk = keyBlob.sublist(0, mlDsa44SecretKeyBytes);
+    final pk = keyBlob.sublist(mlDsa44SecretKeyBytes);
     return MlDsa44KeyPair._(
         Uint8List.fromList(sk), Uint8List.fromList(pk), effectiveId);
   }
@@ -148,9 +151,9 @@ class MlDsa44KeyPair extends KeyPair {
     final effectiveId = id ?? randomId();
     final xi = await _deriveXi(seed);
     final (pk, sk) = MlDsa.generateKeyPairSeeded(_params, xi);
-    final keyBlob = Uint8List(_mlDsa44KeyBlobBytes)
-      ..setRange(0, _mlDsa44SecretKeyBytes, sk)
-      ..setRange(_mlDsa44SecretKeyBytes, _mlDsa44KeyBlobBytes, pk);
+    final keyBlob = Uint8List(mlDsa44KeyBlobBytes)
+      ..setRange(0, mlDsa44SecretKeyBytes, sk)
+      ..setRange(mlDsa44SecretKeyBytes, mlDsa44KeyBlobBytes, pk);
     return (
       MlDsa44KeyPair._(
           Uint8List.fromList(sk), Uint8List.fromList(pk), effectiveId),
@@ -200,7 +203,7 @@ class MlDsa44KeyPair extends KeyPair {
     Uint8List signature,
     SignatureScheme signatureScheme,
   ) async {
-    if (signature.length != _mlDsa44SignatureBytes) {
+    if (signature.length != mlDsa44SignatureBytes) {
       return false;
     }
     return MlDsa.verify(_publicKey, data, signature, _params);

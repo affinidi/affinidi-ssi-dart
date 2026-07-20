@@ -5,6 +5,7 @@ import 'package:elliptic/elliptic.dart' as elliptic;
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../key_pair/mldsa44_key_pair.dart' show mlDsa44PublicKeyBytes;
 import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
@@ -110,15 +111,15 @@ Map<String, String> multiKeyToJwk(Uint8List multikey) {
   } else if (indicatorHex == '9024') {
     // ML-DSA-44 public key: no standard JWK representation yet.
     // Use an AKP-style JWK per emerging IETF JOSE PQC drafts.
-    if (key.length != 1312) {
+    if (key.length != mlDsa44PublicKeyBytes) {
       throw SsiException(
         message:
-            'Invalid ML-DSA-44 public key length: expected 1312 bytes, got ${key.length}',
+            'Invalid ML-DSA-44 public key length: expected $mlDsa44PublicKeyBytes bytes, got ${key.length}',
         code: SsiExceptionType.invalidKeyType.code,
       );
     }
     jwk['kty'] = 'AKP';
-    jwk['alg'] = 'ML-DSA-44';
+    jwk['alg'] = SignatureScheme.mldsa44.alg!;
     jwk['pub'] = base64UrlNoPadEncode(key);
   } else {
     throw SsiException(
@@ -138,12 +139,12 @@ Map<String, String> keyToJwk(PublicKey publicKey) {
 /// Converts a JWK map to a multikey.
 Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
   // Handle AKP (post-quantum) JWK types first, before checking crv.
-  if (jwk['kty'] == 'AKP' && jwk['alg'] == 'ML-DSA-44') {
+  if (jwk['kty'] == 'AKP' && jwk['alg'] == SignatureScheme.mldsa44.alg) {
     final pubBytes = base64UrlNoPadDecode(jwk['pub'] as String);
-    if (pubBytes.length != 1312) {
+    if (pubBytes.length != mlDsa44PublicKeyBytes) {
       throw SsiException(
         message:
-            'Invalid ML-DSA-44 public key length: expected 1312 bytes, got ${pubBytes.length}',
+            'Invalid ML-DSA-44 public key length: expected $mlDsa44PublicKeyBytes bytes, got ${pubBytes.length}',
         code: SsiExceptionType.invalidKeyType.code,
       );
     }

@@ -9,6 +9,8 @@ import '../../did/public_key_utils.dart';
 import '../../did/universal_did_resolver.dart';
 import '../../exceptions/ssi_exception.dart';
 import '../../exceptions/ssi_exception_type.dart';
+import '../../key_pair/mldsa44_key_pair.dart'
+    show mlDsa44PublicKeyBytes, mlDsa44SignatureBytes;
 import '../../types.dart';
 import '../../utility.dart';
 import 'base_data_integrity_verifier.dart';
@@ -23,12 +25,8 @@ const _mldsaRdfcCryptosuite = 'mldsa44-rdfc-2024';
 const _mldsaJcsCryptosuite = 'mldsa44-jcs-2024';
 const _dataIntegrityContext = 'https://w3id.org/security/data-integrity/v2';
 
-/// Expected sizes for ML-DSA-44 (FIPS 204 Table 2).
-const int _mlDsa44SignatureBytes = 2420;
-const int _mlDsa44PublicKeyBytes = 1312;
-
 /// Multikey prefix bytes for ML-DSA-44 public keys.
-const List<int> _mlDsa44MultikeyPrefix = [0x90, 0x24];
+final List<int> _mlDsa44MultikeyPrefix = MultiKeyIndicator.mldsa44.indicator;
 
 /// Verifies an ML-DSA-44 Data Integrity signature.
 ///
@@ -54,7 +52,7 @@ Future<bool> verifyMldsa44DataIntegritySignature(
   try {
     // Step 1: decode signature.
     final signature = multiBaseToUint8List(proofValue);
-    if (signature.length != _mlDsa44SignatureBytes) {
+    if (signature.length != mlDsa44SignatureBytes) {
       return false;
     }
 
@@ -75,7 +73,7 @@ Future<bool> verifyMldsa44DataIntegritySignature(
 
     // Step 4: extract public key from multikey bytes.
     final multikeyBytes = vm.asMultiKey();
-    if (multikeyBytes.length < 2 + _mlDsa44PublicKeyBytes) {
+    if (multikeyBytes.length < 2 + mlDsa44PublicKeyBytes) {
       return false;
     }
     if (multikeyBytes[0] != _mlDsa44MultikeyPrefix[0] ||
@@ -84,7 +82,7 @@ Future<bool> verifyMldsa44DataIntegritySignature(
       return false;
     }
     final pk = multikeyBytes.sublist(2);
-    if (pk.length != _mlDsa44PublicKeyBytes) {
+    if (pk.length != mlDsa44PublicKeyBytes) {
       return false;
     }
 
