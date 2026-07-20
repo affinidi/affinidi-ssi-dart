@@ -67,6 +67,35 @@ void main() {
         final restored = MlDsa44KeyPair.fromPrivateKey(keyBlob);
         expect(restored.publicKey.bytes, equals(kp.publicKey.bytes));
       });
+
+      test('accepts a seed longer than 32 bytes', () async {
+        final seed = Uint8List.fromList(List.generate(64, (i) => i + 1));
+        final (kp, keyBlob) = await MlDsa44KeyPair.fromSeed(seed);
+        expect(kp.publicKey.bytes.length, 1312);
+        expect(keyBlob.length, 3872);
+      });
+
+      test('throws on seed shorter than 32 bytes', () {
+        final shortSeed = Uint8List.fromList(List.generate(31, (i) => i + 1));
+        expect(
+          () => MlDsa44KeyPair.fromSeed(shortSeed),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test('throws on empty seed', () {
+        expect(
+          () => MlDsa44KeyPair.fromSeed(Uint8List(0)),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test('throws on all-zero seed', () {
+        expect(
+          () => MlDsa44KeyPair.fromSeed(Uint8List(32)),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
     });
 
     group('sign and verify', () {

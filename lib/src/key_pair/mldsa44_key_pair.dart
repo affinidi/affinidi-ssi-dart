@@ -19,6 +19,12 @@ const int _mlDsa44SignatureBytes = 2420;
 const int _mlDsa44KeyBlobBytes =
     _mlDsa44SecretKeyBytes + _mlDsa44PublicKeyBytes;
 
+/// Minimum accepted [MlDsa44KeyPair.fromSeed] seed length in bytes (256 bits).
+///
+/// A shorter seed cannot provide the full security strength expected of the
+/// derived key, so it is rejected rather than silently stretched.
+const int _mlDsa44MinSeedBytes = 32;
+
 /// HKDF derivation constants — **frozen forever** (changing them changes derived keys).
 const String _hkdfSalt = 'ssi-mldsa44';
 const String _hkdfInfo = 'ML-DSA-44 keygen v1';
@@ -116,10 +122,29 @@ class MlDsa44KeyPair extends KeyPair {
   /// reuse Ed25519/BIP32/classical wallet seeds — shared seed material couples
   /// classical and PQ key compromise. Deriving from a classical seed also does
   /// not retroactively protect that classical key.
+  ///
+  /// Throws [ArgumentError] if [seed] is shorter than 32 bytes (insufficient
+  /// entropy) or consists entirely of zero bytes (a likely caller bug such as
+  /// an uninitialized buffer).
   static Future<(MlDsa44KeyPair, Uint8List)> fromSeed(
     Uint8List seed, {
     String? id,
   }) async {
+    if (seed.length < _mlDsa44MinSeedBytes) {
+      throw ArgumentError.value(
+        seed.length,
+        'seed',
+        'ML-DSA-44 seed must be at least $_mlDsa44MinSeedBytes bytes '
+            '(≥256 bits of entropy)',
+      );
+    }
+    if (seed.every((b) => b == 0)) {
+      throw ArgumentError.value(
+        seed,
+        'seed',
+        'ML-DSA-44 seed must not be all-zero bytes',
+      );
+    }
     final effectiveId = id ?? randomId();
     final xi = await _deriveXi(seed);
     final (pk, sk) = MlDsa.generateKeyPairSeeded(_params, xi);
