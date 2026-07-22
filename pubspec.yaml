@@ -58,6 +58,7 @@ melos:
       noSelect: true
       packageFilters:
         includePrivatePackages: false
+        diff: origin/main
     analyze:
       exec: dart analyze .
       concurrency: 4
@@ -65,6 +66,7 @@ melos:
       noSelect: true
       packageFilters:
         includePrivatePackages: false
+        diff: origin/main
     test:
       run: |
         melos run test-dart
