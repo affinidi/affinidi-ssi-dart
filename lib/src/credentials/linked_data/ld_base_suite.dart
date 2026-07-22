@@ -9,6 +9,7 @@ import '../models/verifiable_credential.dart';
 import '../parsers/ld_parser.dart';
 import '../proof/data_integrity_ecdsa_suite.dart';
 import '../proof/data_integrity_eddsa_suite.dart';
+import '../proof/data_integrity_mldsa_suite.dart';
 import '../proof/ecdsa_secp256k1_signature2019_suite.dart';
 import '../proof/embedded_proof_suite.dart'
     show DocumentLoader, EmbeddedProofGenerator, EmbeddedProofVerifier;
@@ -197,6 +198,18 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
             );
           case JcsUtils.eddsaJcs2022:
             return DataIntegrityEddsaJcsVerifier(
+              verifierDid: issuerDid,
+              customDocumentLoader: loader,
+              didResolver: didResolver,
+            );
+          case 'mldsa44-rdfc-2024':
+            return DataIntegrityMldsaRdfcVerifier(
+              issuerDid: issuerDid,
+              customDocumentLoader: loader,
+              didResolver: didResolver,
+            );
+          case 'mldsa44-jcs-2024':
+            return DataIntegrityMldsaJcsVerifier(
               verifierDid: issuerDid,
               customDocumentLoader: loader,
               didResolver: didResolver,

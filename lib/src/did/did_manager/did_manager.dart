@@ -164,6 +164,15 @@ abstract class DidManager {
           VerificationRelationship.capabilityInvocation,
           VerificationRelationship.capabilityDelegation,
         };
+      case KeyType.mldsa44:
+        // ML-DSA-44 is a signature-only algorithm; it MUST NOT be used
+        // for key agreement / ECDH.
+        return {
+          VerificationRelationship.authentication,
+          VerificationRelationship.assertionMethod,
+          VerificationRelationship.capabilityInvocation,
+          VerificationRelationship.capabilityDelegation,
+        };
     }
   }
 
