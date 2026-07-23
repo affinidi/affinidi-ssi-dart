@@ -73,6 +73,46 @@ void main() {
       expect(result.isValid, isTrue);
     });
 
+    // ivan's changes
+    // ---------------------------------
+    test('should issue and verify VP and VC V1', () async {
+      // Create VC with DataIntegrity proof (using ed25519 signer)
+      final dataIntegrityVc =
+          await _issueVcV1WithDataIntegrity(vcSigner, vcSigner.did);
+
+      // Create VC with EcdsaSecp256k1Signature2019 proof (using secp256k1 signer)
+      final secp256k1Vc =
+          await _issueVcV1WithSecp256k1Proof(vpSigner, vpSigner.did);
+
+      // Create VP containing both VCs
+      final vp = MutableVpDataModelV1(
+        context: MutableJsonLdContext.fromJson([dmV1ContextUrl]),
+        id: Uri.parse('uuid:test-vp-multiple-mixed-proofs'),
+        type: {'VerifiablePresentation'},
+        holder: MutableHolder.uri(vpSigner.did),
+        verifiableCredential: [dataIntegrityVc, secp256k1Vc],
+      );
+
+      final vpProofGenerator = Secp256k1Signature2019Generator(
+        signer: vpSigner,
+        proofPurpose: ProofPurpose.authentication,
+      );
+
+      final issuedVp = await LdVpDm1Suite().issue(
+        unsignedData: VpDataModelV1.fromMutable(vp),
+        proofGenerator: vpProofGenerator,
+      );
+
+      expect(issuedVp, isNotNull);
+      expect(issuedVp.verifiableCredential, hasLength(2));
+      expect(issuedVp.proof.first.type, equals('EcdsaSecp256k1Signature2019'));
+
+      // Verify VP
+      final result = await UniversalPresentationVerifier().verify(issuedVp);
+      expect(result.isValid, isTrue);
+    });
+    // ---------------------------------
+
     test(
         'should inject @context into DataIntegrityProof when embedded in VP with different proof type',
         () async {
@@ -263,6 +303,33 @@ Future<LdVcDataModelV2> _issueVcWithDataIntegrity(DidSigner signer) async {
     proofGenerator: proofGenerator,
   );
 }
+
+// ivan's changes
+// ---------------------------------
+Future<LdVcDataModelV1> _issueVcV1WithDataIntegrity(
+    DidSigner signer, String subjectDid) async {
+  final unsignedVc = MutableVcDataModelV1(
+    context: MutableJsonLdContext.fromJson([
+      dmV1ContextUrl,
+      'https://schema.affinidi.com/UserProfileV1-0.jsonld',
+      'https://w3id.org/security/data-integrity/v2',
+    ]),
+    id: Uri.parse('uuid:test-vc-data-integrity'),
+    type: {'VerifiableCredential', 'UserProfile'},
+    issuer: Issuer.uri(signer.did),
+    issuanceDate: DateTime.now().toUtc(),
+    credentialSubject: [
+      MutableCredentialSubject({'id': subjectDid, 'name': 'Alice'}),
+    ],
+  );
+
+  final proofGenerator = DataIntegrityEddsaRdfcGenerator(signer: signer);
+  return await LdVcDm1Suite().issue(
+    unsignedData: VcDataModelV1.fromMutable(unsignedVc),
+    proofGenerator: proofGenerator,
+  );
+}
+// ---------------------------------
 
 Future<LdVcDataModelV2> _issueVcWithSecp256k1Proof(DidSigner signer) async {
   final unsignedVc = MutableVcDataModelV2(
