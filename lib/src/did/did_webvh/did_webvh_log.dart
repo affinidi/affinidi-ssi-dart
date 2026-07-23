@@ -28,9 +28,10 @@ Future<String> downloadDocument(
   http.Client? client,
   Duration timeout = const Duration(seconds: 30),
 }) async {
-  client ??= http.Client();
+  final ownsClient = client == null;
+  final httpClient = client ?? http.Client();
   try {
-    final response = await client.get(url, headers: {
+    final response = await httpClient.get(url, headers: {
       'Accept': 'application/json, application/jsonl'
     }).timeout(timeout);
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -47,6 +48,10 @@ Future<String> downloadDocument(
       message: 'Failed to fetch $url: $e',
       code: SsiExceptionType.invalidDidWebVh.code,
     );
+  } finally {
+    if (ownsClient) {
+      httpClient.close();
+    }
   }
 }
 
@@ -562,7 +567,7 @@ class DidWebVhLogEntry {
   /// Returns a map suitable for canonicalization and hashing.
   Map<String, dynamic> buildMapFromEntryWithVersionIdAndStrippedProof(
       String newVersionId) {
-    final result = jsonDecode(jsonEncode(_sourceJson)) as Map<String, dynamic>;
+    final result = Map<String, dynamic>.from(_sourceJson);
     result.remove('proof');
     result['versionId'] = newVersionId;
     return result;
