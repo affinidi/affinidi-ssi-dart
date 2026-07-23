@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-07-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - [`ssi` - `v5.0.0`](#ssi---v500)
+
+Packages with other changes:
+
+ - There are no other changes in this release.
+
+---
+
+#### `ssi` - `v5.0.0`
+
+ - **BREAKING** **FEAT**: V4 Release ([#295](https://github.com/affinidi/affinidi-ssi-dart/issues/295)).
+
+## 5.0.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: V4 Release ([#295](https://github.com/affinidi/affinidi-ssi-dart/issues/295)).
+
+
 
  - **BREAKING**: `KeyType.mldsa44` and `SignatureScheme.mldsa44` are new enum values; exhaustive `switch` statements over `KeyType` or `SignatureScheme` will fail to compile without a handler for these new values.
  - **FEAT**: add ML-DSA-44 (FIPS 204) post-quantum signature support with `mldsa44-jcs-2024` and `mldsa44-rdfc-2024` Data Integrity cryptosuites (experimental).
