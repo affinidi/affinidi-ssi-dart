@@ -11,6 +11,31 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Packages with breaking changes:
 
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v4.0.1`](#ssi---v401)
+
+---
+
+#### `ssi` - `v4.0.1`
+
+ - **FIX**: v4 tag ([#296](https://github.com/affinidi/affinidi-ssi-dart/issues/296)).
+
+## 4.0.1
+
+ - **FIX**: v4 tag ([#296](https://github.com/affinidi/affinidi-ssi-dart/issues/296)).
+
+
+## 2026-07-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
  - [`ssi` - `v4.0.0`](#ssi---v500)
 
 Packages with other changes:
