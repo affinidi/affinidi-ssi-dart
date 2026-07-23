@@ -11,7 +11,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Packages with breaking changes:
 
- - [`ssi` - `v5.0.0`](#ssi---v500)
+ - [`ssi` - `v4.0.0`](#ssi---v500)
 
 Packages with other changes:
 
@@ -19,11 +19,11 @@ Packages with other changes:
 
 ---
 
-#### `ssi` - `v5.0.0`
+#### `ssi` - `v4.0.0`
 
  - **BREAKING** **FEAT**: V4 Release ([#295](https://github.com/affinidi/affinidi-ssi-dart/issues/295)).
 
-## 5.0.0
+## 4.0.0
 
 > Note: This release has breaking changes.
 
