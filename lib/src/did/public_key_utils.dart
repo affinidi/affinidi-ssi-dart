@@ -5,6 +5,7 @@ import 'package:elliptic/elliptic.dart' as elliptic;
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
+import '../key_pair/mldsa44_key_pair.dart' show mlDsa44PublicKeyBytes;
 import '../key_pair/public_key.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
@@ -107,6 +108,19 @@ Map<String, String> multiKeyToJwk(Uint8List multikey) {
     final pub = c.compressedHexToPublicKey(hex.encode(key));
     jwk['x'] = base64UrlNoPadEncode(encodeBigInt(pub.X));
     jwk['y'] = base64UrlNoPadEncode(encodeBigInt(pub.Y));
+  } else if (indicatorHex == '9024') {
+    // ML-DSA-44 public key: no standard JWK representation yet.
+    // Use an AKP-style JWK per emerging IETF JOSE PQC drafts.
+    if (key.length != mlDsa44PublicKeyBytes) {
+      throw SsiException(
+        message:
+            'Invalid ML-DSA-44 public key length: expected $mlDsa44PublicKeyBytes bytes, got ${key.length}',
+        code: SsiExceptionType.invalidKeyType.code,
+      );
+    }
+    jwk['kty'] = 'AKP';
+    jwk['alg'] = SignatureScheme.mldsa44.alg!;
+    jwk['pub'] = base64UrlNoPadEncode(key);
   } else {
     throw SsiException(
       message: 'Unsupported multicodec indicator 0x$indicatorHex',
@@ -124,6 +138,19 @@ Map<String, String> keyToJwk(PublicKey publicKey) {
 
 /// Converts a JWK map to a multikey.
 Uint8List jwkToMultiKey(Map<String, dynamic> jwk) {
+  // Handle AKP (post-quantum) JWK types first, before checking crv.
+  if (jwk['kty'] == 'AKP' && jwk['alg'] == SignatureScheme.mldsa44.alg) {
+    final pubBytes = base64UrlNoPadDecode(jwk['pub'] as String);
+    if (pubBytes.length != mlDsa44PublicKeyBytes) {
+      throw SsiException(
+        message:
+            'Invalid ML-DSA-44 public key length: expected $mlDsa44PublicKeyBytes bytes, got ${pubBytes.length}',
+        code: SsiExceptionType.invalidKeyType.code,
+      );
+    }
+    return Uint8List.fromList(MultiKeyIndicator.mldsa44.indicator + pubBytes);
+  }
+
   final crv = jwk['crv'];
 
   switch (crv) {
@@ -267,7 +294,11 @@ enum MultiKeyIndicator {
   p384(KeyType.p384, [0x81, 0x24]),
 
   /// Indicator for P-521 keys.
-  p521(KeyType.p521, [0x82, 0x24]);
+  p521(KeyType.p521, [0x82, 0x24]),
+
+  /// Indicator for ML-DSA-44 keys (post-quantum, FIPS 204).
+  /// Multicodec prefix: 0x9024 (per W3C vc-di-quantum-resistant draft).
+  mldsa44(KeyType.mldsa44, [0x90, 0x24]);
 
   /// The indicator bytes for the key type.
   final List<int> indicator;

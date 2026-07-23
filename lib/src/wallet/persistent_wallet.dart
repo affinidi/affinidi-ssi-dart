@@ -95,9 +95,13 @@ class PersistentWallet implements Wallet {
       final (instance, pKeyBytes) = Ed25519KeyPair.generate(id: effectiveKeyId);
       keyPairInstance = instance;
       privateKeyBytes = pKeyBytes;
+    } else if (effectiveKeyType == KeyType.mldsa44) {
+      final (instance, keyBlob) = MlDsa44KeyPair.generate(id: effectiveKeyId);
+      keyPairInstance = instance;
+      privateKeyBytes = keyBlob;
     } else {
       throw ArgumentError(
-          'Unsupported key type for PersistentWallet: $effectiveKeyType. Only secp256k1, ed25519, p256, p384, and p521 are supported.');
+          'Unsupported key type for PersistentWallet: $effectiveKeyType. Only secp256k1, ed25519, p256, p384, p521, and mldsa44 are supported.');
     }
 
     final storedKey =
@@ -188,10 +192,12 @@ class PersistentWallet implements Wallet {
       keyPair = Secp256k1KeyPair.fromPrivateKey(privateKeyBytes);
     } else if (keyType == KeyType.ed25519) {
       keyPair = Ed25519KeyPair.fromPrivateKey(privateKeyBytes);
+    } else if (keyType == KeyType.mldsa44) {
+      keyPair = MlDsa44KeyPair.fromPrivateKey(privateKeyBytes);
     } else {
       throw SsiException(
           message:
-              'Unsupported key type retrieved from KeyStore: $keyType. Only secp256k1, ed25519, p256, p384, and p521 are supported.',
+              'Unsupported key type retrieved from KeyStore: $keyType. Only secp256k1, ed25519, p256, p384, p521, and mldsa44 are supported.',
           code: SsiExceptionType.invalidKeyType.code);
     }
 

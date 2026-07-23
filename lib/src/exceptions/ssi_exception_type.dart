@@ -66,6 +66,10 @@ enum SsiExceptionType {
   /// Too many verification methods
   tooManyVerificationMethods(code: 'too_many_verification_methods'),
 
+  /// The requested operation is not supported for the selected DID
+  /// configuration (e.g. attaching a service endpoint to did:peer:0).
+  unsupportedDidOperation(code: 'unsupported_did_operation'),
+
   /// Invalid key type
   invalidKeyType(code: 'invalid_key_type'),
 

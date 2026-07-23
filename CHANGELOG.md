@@ -3,6 +3,137 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+
+ - **BREAKING**: `KeyType.mldsa44` and `SignatureScheme.mldsa44` are new enum values; exhaustive `switch` statements over `KeyType` or `SignatureScheme` will fail to compile without a handler for these new values.
+ - **FEAT**: add ML-DSA-44 (FIPS 204) post-quantum signature support with `mldsa44-jcs-2024` and `mldsa44-rdfc-2024` Data Integrity cryptosuites (experimental).
+
+### Migration Guide
+
+#### Exhaustive switches over `KeyType`
+
+If you have an exhaustive `switch` expression (or a `switch` statement without a `default`/`_` fallthrough) over `KeyType`, you must add a case for `KeyType.mldsa44`.
+
+**Before (compiles with ssi ≤ 3.x, fails with ssi 4.0.0):**
+
+```dart
+String describeKey(KeyType keyType) => switch (keyType) {
+  KeyType.secp256k1 => 'secp256k1',
+  KeyType.ed25519   => 'Ed25519',
+  KeyType.x25519    => 'X25519',
+  KeyType.p256      => 'P-256',
+  KeyType.p384      => 'P-384',
+  KeyType.p521      => 'P-521',
+  KeyType.rsa       => 'RSA',
+  // KeyType.mldsa44 does not exist in ≤ 3.x — no problem.
+  // In 4.0.0 this switch is no longer exhaustive → compile error.
+};
+```
+
+**After (required for ssi 4.0.0):**
+
+```dart
+String describeKey(KeyType keyType) => switch (keyType) {
+  KeyType.secp256k1 => 'secp256k1',
+  KeyType.ed25519   => 'Ed25519',
+  KeyType.x25519    => 'X25519',
+  KeyType.p256      => 'P-256',
+  KeyType.p384      => 'P-384',
+  KeyType.p521      => 'P-521',
+  KeyType.rsa       => 'RSA',
+  KeyType.mldsa44   => 'ML-DSA-44', // ← add this case
+};
+```
+
+#### Exhaustive switches over `SignatureScheme`
+
+**Before (compiles with ssi ≤ 3.x, fails with ssi 4.0.0):**
+
+```dart
+String describeScheme(SignatureScheme scheme) => switch (scheme) {
+  SignatureScheme.ecdsa_secp256k1_sha256 => 'ES256K',
+  SignatureScheme.ecdsa_p256_sha256      => 'ES256',
+  SignatureScheme.ecdsa_p384_sha384      => 'ES384',
+  SignatureScheme.ecdsa_p521_sha512      => 'ES512',
+  SignatureScheme.ed25519                => 'Ed25519',
+  SignatureScheme.rsa_pkcs1_sha256       => 'RS256',
+  // SignatureScheme.mldsa44 does not exist in ≤ 3.x — no problem.
+  // In 4.0.0 this switch is no longer exhaustive → compile error.
+};
+```
+
+**After (required for ssi 4.0.0):**
+
+```dart
+String describeScheme(SignatureScheme scheme) => switch (scheme) {
+  SignatureScheme.ecdsa_secp256k1_sha256 => 'ES256K',
+  SignatureScheme.ecdsa_p256_sha256      => 'ES256',
+  SignatureScheme.ecdsa_p384_sha384      => 'ES384',
+  SignatureScheme.ecdsa_p521_sha512      => 'ES512',
+  SignatureScheme.ed25519                => 'Ed25519',
+  SignatureScheme.rsa_pkcs1_sha256       => 'RS256',
+  SignatureScheme.mldsa44                => 'ML-DSA-44', // ← add this case
+};
+```
+
+Alternatively, use a catch-all (`_` in a switch expression, `default:` in a switch statement). This compiles today and will continue to compile for any future algorithm additions, at the cost of **losing compile-time exhaustiveness checking** — new unhandled values become runtime errors instead of compile errors:
+
+```dart
+// Switch expression — wildcard arm
+String describeScheme(SignatureScheme scheme) => switch (scheme) {
+  SignatureScheme.ecdsa_secp256k1_sha256 => 'ES256K',
+  SignatureScheme.ecdsa_p256_sha256      => 'ES256',
+  SignatureScheme.ecdsa_p384_sha384      => 'ES384',
+  SignatureScheme.ecdsa_p521_sha512      => 'ES512',
+  SignatureScheme.ed25519                => 'Ed25519',
+  SignatureScheme.rsa_pkcs1_sha256       => 'RS256',
+  _ => throw UnimplementedError('Unsupported scheme: $scheme'),
+};
+
+// Switch statement — default: clause (equivalent)
+switch (scheme) {
+  case SignatureScheme.ecdsa_secp256k1_sha256:
+    // ...
+  case SignatureScheme.ed25519:
+    // ...
+  default:
+    throw UnimplementedError('Unsupported scheme: $scheme');
+}
+```
+
+The explicit per-value `case` approach is strongly preferred because it keeps compile-time safety intact.\
+
+---
+
+BREAKING CHANGE: 
+- introduced `preferredNumalgo` (`did:peer:2` by default)
+- deduplication of Verification Method for `did:peer:0` as per spec(following `did:key` behavior)
+
+This pull request introduces a formal mechanism for selecting the DID peer algorithm ("numalgo") when generating `did:peer` identifiers, providing strict support for both `did:peer:2` (default) and `did:peer:0` semantics. The changes ensure that `did:peer:0` is only produced when explicitly requested and only under its strict invariants (single key, no services), while `did:peer:2` remains the default and supports multiple keys and service endpoints. The update also includes comprehensive tests to verify correct behavior for both modes and prevent unintentional fallback to `did:peer:0`.
+
+**DID Peer Algorithm Selection and Enforcement**
+
+* Added a `preferredNumalgo` parameter to `DidPeerManager`, defaulting to `DidPeerType.peer2`. When set to `DidPeerType.peer0`, the manager enforces strict `did:peer:0` invariants (single wallet key, no service endpoints) and throws exceptions if violated. (`lib/src/did/did_manager/did_peer_manager.dart`)
+* Updated `DidPeer.getDid` to accept a `preferredNumalgo` parameter. Now, `did:peer:0` is only generated if `preferredNumalgo` is set to `peer0` and the input meets the constraints; otherwise, it always produces `did:peer:2`. ([`lib/src/did/did_peer.dart`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_peer.dart))
+
+**Manager and Encoder Logic Updates**
+
+* Modified `DidPeerManager.getDidDocument` to use the new `preferredNumalgo` logic and added a fast path for collapsing to `did:peer:0` when appropriate. ([`lib/src/did/did_manager/did_peer_manager.dart`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_manager/did_peer_manager.dart))
+
+**Test Suite Enhancements**
+
+* Updated and expanded tests to:
+  - Explicitly test both `did:peer:2` (default) and strict `did:peer:0` scenarios
+  - Ensure no silent fallback to `did:peer:0` in the default mode
+  - Verify that strict `did:peer:0` mode rejects multiple keys and service endpoints, but allows multiple relationships for the same key
+  - Add regression tests for pre-PR and post-PR behaviors ([`test/did/did_manager/did_peer_manager_test.dart`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/test/did/did_manager/did_peer_manager_test.dart))
+  - Update sample usage of `DidPeer.getDid` to specify `preferredNumalgo` (`test/did/did_peer_test.dart`)
+
+**Documentation and Imports**
+
+* Improved documentation for the new parameter and updated imports to support the changes. ([`lib/src/did/did_manager/did_peer_manager.dart`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_manager/did_peer_manager.dart), [`lib/src/did/did_peer.dart`](https://github.com/affinidi/affinidi-ssi-dart/blob/main/lib/src/did/did_peer.dart))
+
+These changes make DID peer algorithm selection explicit, robust, and predictable, preventing accidental generation of `did:peer:0` identifiers and aligning with the latest specifications and design plans.
+
 ## 2026-07-15
 
 ### Changes

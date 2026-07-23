@@ -22,6 +22,9 @@ enum KeyType {
 
   /// RSA key type.
   rsa,
+
+  /// ML-DSA-44 key type (post-quantum, FIPS 204).
+  mldsa44,
 }
 
 /// Supported hashing algorithms.
@@ -88,6 +91,14 @@ enum SignatureScheme {
     crv: null,
     keyType: KeyType.rsa,
     hashingAlgorithm: HashingAlgorithm.sha256,
+  ),
+
+  /// ML-DSA-44 post-quantum signature scheme (FIPS 204).
+  mldsa44(
+    alg: 'ML-DSA-44',
+    crv: null,
+    keyType: KeyType.mldsa44,
+    hashingAlgorithm: HashingAlgorithm.sha256,
   );
 
   /// The algorithm identifier.
@@ -139,6 +150,8 @@ const cryptosuiteToScheme = <String, List<SignatureScheme>>{
   ],
   'eddsa-rdfc-2022': [SignatureScheme.ed25519],
   'eddsa-jcs-2022': [SignatureScheme.ed25519],
+  'mldsa44-rdfc-2024': [SignatureScheme.mldsa44],
+  'mldsa44-jcs-2024': [SignatureScheme.mldsa44],
 };
 
 /// Determines the SignatureScheme for ECDSA cryptosuites from a JWK.

@@ -31,6 +31,7 @@ export 'src/exceptions/ssi_exception.dart';
 export 'src/exceptions/ssi_exception_type.dart';
 export 'src/key_pair/ed25519_key_pair.dart';
 export 'src/key_pair/key_pair.dart';
+export 'src/key_pair/mldsa44_key_pair.dart';
 export 'src/key_pair/p256_key_pair.dart';
 export 'src/key_pair/p384_key_pair.dart';
 export 'src/key_pair/p521_key_pair.dart';
