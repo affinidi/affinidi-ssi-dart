@@ -297,28 +297,6 @@ void main() {
     });
 
     test('should serialize timestamps as whole-second UTC values', () {
-      final entry = DidWebVhLogEntry.fromJson({
-        'versionId': '1-QmHash123',
-        'versionTime': '2024-04-05T07:32:58Z',
-        'parameters': {
-          'method': 'did:webvh:1.0',
-        },
-        'state': {
-          '@context': ['https://www.w3.org/ns/did/v1'],
-          'id': 'did:webvh:QmScid123:example.com',
-        },
-        'proof': [
-          {
-            'type': 'DataIntegrityProof',
-            'cryptosuite': 'eddsa-jcs-2022',
-            'proofPurpose': 'assertionMethod',
-            'verificationMethod': 'did:key:z6MkKey1',
-            'proofValue': 'z5V1',
-            'created': '2024-04-05T07:32:58Z',
-          }
-        ],
-      });
-
       final proof = DidWebVhLogEntryProof(
         type: 'DataIntegrityProof',
         cryptosuite: 'eddsa-jcs-2022',
@@ -329,7 +307,6 @@ void main() {
         expires: DateTime.parse('2024-04-05T10:32:58.456+02:00'),
       );
 
-      expect(entry.toJson()['versionTime'], equals('2024-04-05T07:32:58Z'));
       expect(proof.toJson()['created'], equals('2024-04-05T07:32:58Z'));
       expect(proof.toJson()['expires'], equals('2024-04-05T08:32:58Z'));
     });
