@@ -109,6 +109,47 @@ void main() {
       expect(result.isValid, isTrue, reason: result.errors.join(', '));
     });
 
+    test('it issues and verifies an SD-JWT verifiable credential', () async {
+      final keyPair = Secp256k1KeyPair.fromSeed(_seed);
+      final didDocument = DidKey.generateDocument(keyPair.publicKey);
+      final signer = DidSigner(
+        did: didDocument.id,
+        didKeyId: didDocument.verificationMethod.first.id,
+        keyPair: keyPair,
+        signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
+      );
+      final credential = MutableVcDataModelV2(
+        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+        id: Uri.parse('urn:uuid:wasm-sd-jwt-credential'),
+        issuer: Issuer.uri(signer.did),
+        type: {'VerifiableCredential', 'WasmCredential'},
+        validFrom: DateTime.utc(2026),
+        validUntil: DateTime.utc(2027),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'id': 'did:example:holder',
+            'name': 'Wasm Holder',
+          }),
+        ],
+      );
+      final suite = SdJwtDm2Suite();
+
+      final issued = await suite.issue(
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
+      final parsed = suite.parse(issued.serialized);
+
+      expect(issued.serialized, contains('~'));
+      expect(
+        await suite.verifyIntegrity(
+          parsed,
+          getNow: () => DateTime.utc(2026, 6),
+        ),
+        isTrue,
+      );
+    });
+
     final keyPairs = <String, Future<KeyPair> Function()>{
       'secp256k1': () async => Secp256k1KeyPair.fromSeed(_seed),
       'P-256': () async => P256KeyPair.fromSeed(_seed),
