@@ -7,3 +7,14 @@ jobs:
     with:
       flutter-version: "3.41.2"
     secrets: inherit
+  minimum-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.10.0"
+      - run: dart pub get
+      - run: dart analyze .
+      - run: dart test
+  
