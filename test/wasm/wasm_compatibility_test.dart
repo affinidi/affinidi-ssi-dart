@@ -7,6 +7,18 @@ final _seed = Uint8List.fromList(
   List<int>.generate(32, (index) => index + 1),
 );
 final _payload = Uint8List.fromList([1, 2, 3, 4]);
+final _profileContextUri = Uri.parse('https://example.com/profile/v1');
+
+Future<Map<String, dynamic>?> _loadDocument(Uri uri) async {
+  if (uri != _profileContextUri) return null;
+
+  return {
+    '@context': {
+      '@version': 1.1,
+      'name': 'https://schema.org/name',
+    },
+  };
+}
 
 void main() {
   group('When running supported SSI operations in WebAssembly', () {
@@ -20,6 +32,81 @@ void main() {
       expect(didDocument.id.toString(), startsWith('did:key:'));
       expect(await keyPair.verify(_payload, signature), isTrue);
       expect(await keyPair.decrypt(encrypted), _payload);
+    });
+
+    test('it issues and verifies a JWT verifiable credential', () async {
+      final keyPair = Secp256k1KeyPair.fromSeed(_seed);
+      final didDocument = DidKey.generateDocument(keyPair.publicKey);
+      final signer = DidSigner(
+        did: didDocument.id,
+        didKeyId: didDocument.verificationMethod.first.id,
+        keyPair: keyPair,
+        signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
+      );
+      final credential = MutableVcDataModelV1.fromJson({
+        '@context': [dmV1ContextUrl],
+        'id': 'urn:uuid:wasm-jwt-credential',
+        'type': ['VerifiableCredential', 'WasmCredential'],
+        'issuanceDate': '2026-01-01T00:00:00Z',
+        'credentialSubject': {
+          'id': 'did:example:holder',
+          'name': 'Wasm Holder',
+        },
+      })
+        ..issuer = MutableIssuer.uri(signer.did);
+      final suite = JwtDm1Suite();
+
+      final issued = await suite.issue(
+        unsignedData: VcDataModelV1.fromMutable(credential),
+        signer: signer,
+      );
+      final parsed = suite.parse(issued.serialized);
+
+      expect(await suite.verifyIntegrity(parsed), isTrue);
+    });
+
+    test('it issues and verifies a data-integrity credential', () async {
+      final keyPair = P256KeyPair.fromSeed(_seed);
+      final didDocument = DidKey.generateDocument(keyPair.publicKey);
+      final signer = DidSigner(
+        did: didDocument.id,
+        didKeyId: didDocument.verificationMethod.first.id,
+        keyPair: keyPair,
+        signatureScheme: SignatureScheme.ecdsa_p256_sha256,
+      );
+      final credential = MutableVcDataModelV1(
+        context: MutableJsonLdContext.fromJson([
+          dmV1ContextUrl,
+          'https://w3id.org/security/data-integrity/v2',
+          _profileContextUri.toString(),
+        ]),
+        id: Uri.parse('urn:uuid:wasm-data-integrity-credential'),
+        type: {'VerifiableCredential', 'WasmCredential'},
+        credentialSubject: [
+          MutableCredentialSubject({
+            'id': 'did:example:holder',
+            'name': 'Wasm Holder',
+          }),
+        ],
+        issuanceDate: DateTime.utc(2026),
+        issuer: Issuer.uri(signer.did),
+      );
+      final generator = DataIntegrityEcdsaRdfcGenerator(
+        signer: signer,
+        customDocumentLoader: _loadDocument,
+      );
+      final verifier = DataIntegrityEcdsaRdfcVerifier(
+        issuerDid: signer.did,
+        customDocumentLoader: _loadDocument,
+      );
+
+      final issued = await LdVcDm1Suite().issue(
+        unsignedData: VcDataModelV1.fromMutable(credential),
+        proofGenerator: generator,
+      );
+      final result = await verifier.verify(issued.toJson());
+
+      expect(result.isValid, isTrue, reason: result.errors.join(', '));
     });
 
     final keyPairs = <String, Future<KeyPair> Function()>{
