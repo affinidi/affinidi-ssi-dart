@@ -8,9 +8,10 @@ final _seed = Uint8List.fromList(
 );
 final _payload = Uint8List.fromList([1, 2, 3, 4]);
 final _profileContextUri = Uri.parse('https://example.com/profile/v1');
+final _unreachableContextUri = Uri.parse('http://127.0.0.1:1/context');
 
 Future<Map<String, dynamic>?> _loadDocument(Uri uri) async {
-  if (uri != _profileContextUri) return null;
+  if (uri != _profileContextUri && uri != _unreachableContextUri) return null;
 
   return {
     '@context': {
@@ -107,6 +108,51 @@ void main() {
       final result = await verifier.verify(issued.toJson());
 
       expect(result.isValid, isTrue, reason: result.errors.join(', '));
+    });
+
+    test('it reports an unreachable JSON-LD context', () async {
+      final keyPair = Secp256k1KeyPair.fromSeed(_seed);
+      final didDocument = DidKey.generateDocument(keyPair.publicKey);
+      final signer = DidSigner(
+        did: didDocument.id,
+        didKeyId: didDocument.verificationMethod.first.id,
+        keyPair: keyPair,
+        signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
+      );
+      final credential = MutableVcDataModelV1(
+        context: MutableJsonLdContext.fromJson([
+          dmV1ContextUrl,
+          _unreachableContextUri.toString(),
+        ]),
+        id: Uri.parse('urn:uuid:wasm-unreachable-context'),
+        type: {'VerifiableCredential', 'WasmCredential'},
+        credentialSubject: [
+          MutableCredentialSubject({'name': 'Wasm Holder'}),
+        ],
+        issuanceDate: DateTime.utc(2026),
+        issuer: Issuer.uri(signer.did),
+      );
+      final issued = await LdVcDm1Suite().issue(
+        unsignedData: VcDataModelV1.fromMutable(credential),
+        proofGenerator: Secp256k1Signature2019Generator(
+          signer: signer,
+          customDocumentLoader: _loadDocument,
+        ),
+      );
+
+      final result = await Secp256k1Signature2019Verifier(
+        issuerDid: signer.did,
+      ).verify(issued.toJson());
+
+      expect(result.isValid, isFalse);
+      expect(
+        result.errors,
+        contains(startsWith('JSON-LD processing failed')),
+      );
+      expect(
+        result.errors,
+        contains(contains(_unreachableContextUri.toString())),
+      );
     });
 
     test('it issues and verifies an SD-JWT verifiable credential', () async {
