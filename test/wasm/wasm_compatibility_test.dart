@@ -150,6 +150,30 @@ void main() {
       );
     });
 
+    test('it stores and restores a key in an in-memory wallet', () async {
+      final wallet = PersistentWallet(InMemoryKeyStore());
+      const keyId = 'wasm-wallet-key';
+
+      final generated = await wallet.generateKey(
+        keyId: keyId,
+        keyType: KeyType.p256,
+      );
+      final signature = await wallet.sign(_payload, keyId: keyId);
+      wallet.clearCache();
+      final restored = await wallet.getKeyPair(keyId);
+
+      expect(await wallet.hasKey(keyId), isTrue);
+      expect(restored.publicKey.bytes, generated.publicKey.bytes);
+      expect(
+        await wallet.verify(
+          _payload,
+          signature: signature,
+          keyId: keyId,
+        ),
+        isTrue,
+      );
+    });
+
     final keyPairs = <String, Future<KeyPair> Function()>{
       'secp256k1': () async => Secp256k1KeyPair.fromSeed(_seed),
       'P-256': () async => P256KeyPair.fromSeed(_seed),
