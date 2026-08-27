@@ -7,3 +7,14 @@ jobs:
     with:
       flutter-version: "3.41.2"
     secrets: inherit
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.11.0"
+      - run: dart pub get
+      - run: >-
+          dart test --platform chrome --compiler dart2wasm
+          test/wasm/wasm_compatibility_test.dart
