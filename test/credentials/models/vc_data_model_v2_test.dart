@@ -4,19 +4,22 @@ import 'package:test/test.dart';
 void main() {
   group('VcDataModelV2 Tests', () {
     test('should correctly assign context', () {
-      final ctx = MutableJsonLdContext.fromJson(
-          [dmV2ContextUrl, 'https://example.org/context/v2']);
+      final ctx = MutableJsonLdContext.fromJson([
+        dmV2ContextUrl,
+        'https://example.org/context/v2',
+      ]);
       final vc = MutableVcDataModelV2(
-          context: ctx,
-          id: Uri.parse('http://example.edu/credentials/abcde'),
-          type: {'VerifiableCredential', 'ExampleCredentialV2'},
-          issuer: Issuer.uri('did:example:issuerV2'),
-          credentialSubject: [
-            MutableCredentialSubject({
-              'id': 'did:example:subjectV2',
-              'email': 'user@affinidi.com',
-            }),
-          ]);
+        context: ctx,
+        id: Uri.parse('http://example.edu/credentials/abcde'),
+        type: {'VerifiableCredential', 'ExampleCredentialV2'},
+        issuer: Issuer.uri('did:example:issuerV2'),
+        credentialSubject: [
+          MutableCredentialSubject({
+            'id': 'did:example:subjectV2',
+            'email': 'user@affinidi.com',
+          }),
+        ],
+      );
       expect(vc.context, ctx);
     });
 
@@ -28,7 +31,7 @@ void main() {
         type: {'VerifiableCredential'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subjectV2'})
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
       );
       expect(vc.id, id);
@@ -42,7 +45,7 @@ void main() {
         type: type,
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subjectV2'})
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
       );
       expect(vc.type, type);
@@ -56,7 +59,7 @@ void main() {
         type: {'t'},
         issuer: issuer,
         credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subjectV2'})
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
       );
       expect(vc.issuer, issuer);
@@ -72,7 +75,7 @@ void main() {
         issuer: Issuer.uri('did:example:issuerV2'),
         validFrom: vf,
         credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subjectV2'})
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
       );
       expect(vc.validFrom, vf);
@@ -87,7 +90,7 @@ void main() {
         issuer: Issuer.uri('did:example:issuerV2'),
         validUntil: vu,
         credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subjectV2'})
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
       );
       expect(vc.validUntil, vu);
@@ -115,13 +118,15 @@ void main() {
     test('should correctly assign credentialSchema', () {
       final schema = [
         MutableCredentialSchema.build(
-            domain: 'https://example.org/schemas/v2',
-            schema: 'example',
-            type: 'JsonSchemaValidator2018'),
+          domain: 'https://example.org/schemas/v2',
+          schema: 'example',
+          type: 'JsonSchemaValidator2018',
+        ),
         MutableCredentialSchema.build(
-            domain: 'https://example.org/schemas/v2',
-            schema: 'another',
-            type: 'AnotherSchemaValidator'),
+          domain: 'https://example.org/schemas/v2',
+          schema: 'another',
+          type: 'AnotherSchemaValidator',
+        ),
       ];
       final vc = MutableVcDataModelV2(
         context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
@@ -129,7 +134,7 @@ void main() {
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subjectV2'})
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
         credentialSchema: schema,
       );
@@ -148,7 +153,7 @@ void main() {
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subjectV2'})
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
         credentialStatus: [status],
       );
@@ -182,9 +187,7 @@ void main() {
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({
-            'id': 'did:example:subjectV2',
-          })
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
         proof: proofs,
       );
@@ -195,18 +198,14 @@ void main() {
     });
 
     test('should correctly assign refreshService', () {
-      final rs = MutableRefreshServiceV2(
-        type: 'ManualRefreshService2021',
-      );
+      final rs = MutableRefreshServiceV2(type: 'ManualRefreshService2021');
       final vc = MutableVcDataModelV2(
         context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
         id: Uri.parse('id'),
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({
-            'id': 'did:example:subjectV2',
-          })
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
         refreshService: [rs],
       );
@@ -228,9 +227,7 @@ void main() {
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({
-            'id': 'did:example:subjectV2',
-          })
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
         termsOfUse: terms,
       );
@@ -252,7 +249,7 @@ void main() {
         type: {'t'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subjectV2'})
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
         evidence: evidences,
       );
@@ -261,30 +258,36 @@ void main() {
     });
 
     test('toJson() should produce correct map (multiple proofs)', () {
-      final ctx = MutableJsonLdContext.fromJson(
-          [dmV2ContextUrl, 'https://example.org/context/v2']);
+      final ctx = MutableJsonLdContext.fromJson([
+        dmV2ContextUrl,
+        'https://example.org/context/v2',
+      ]);
       final id = Uri.parse('http://example.edu/credentials/abcde');
       final type = ['VerifiableCredential', 'ExampleCredentialV2'];
       final issuer = Issuer.uri('did:example:issuerV2');
       final vf = DateTime.utc(2024, 01, 01, 12, 0, 0);
       final vu = DateTime.utc(2025, 01, 01, 12, 0, 0);
       final subject = [
-        MutableCredentialSubject(
-            {'id': 'did:example:subjectV2', 'email': 'user@affinidi.com'})
+        MutableCredentialSubject({
+          'id': 'did:example:subjectV2',
+          'email': 'user@affinidi.com',
+        }),
       ];
       final schema = [
         MutableCredentialSchema.build(
-            domain: 'https://example.org/schemas/v2',
-            schema: 'example',
-            type: 'JsonSchemaValidator2018'),
+          domain: 'https://example.org/schemas/v2',
+          schema: 'example',
+          type: 'JsonSchemaValidator2018',
+        ),
         MutableCredentialSchema.build(
-            domain: 'https://example.org/schemas/v2',
-            schema: 'another',
-            type: 'AnotherSchemaValidator'),
+          domain: 'https://example.org/schemas/v2',
+          schema: 'another',
+          type: 'AnotherSchemaValidator',
+        ),
       ];
       final status = MutableCredentialStatusV2({
         'id': Uri.parse('https://example.edu/status/v2/1'),
-        'type': 'CredentialStatusList2021'
+        'type': 'CredentialStatusList2021',
       });
       final proofs = [
         EmbeddedProof(
@@ -307,15 +310,17 @@ void main() {
       final rs = MutableRefreshServiceV2(type: 'ManualRefreshService2021');
       final terms = [
         MutableTermsOfUse(
-            id: Uri.parse('https://example.com/tos/v2/1'),
-            type: 'IssuerPolicyV2'),
-        MutableTermsOfUse(type: 'AnotherTermV2')
+          id: Uri.parse('https://example.com/tos/v2/1'),
+          type: 'IssuerPolicyV2',
+        ),
+        MutableTermsOfUse(type: 'AnotherTermV2'),
       ];
       final evidences = [
         MutableEvidence(
-            id: Uri.parse('https://example.edu/evidence/v2/1'),
-            type: 'DocumentVerificationV2'),
-        MutableEvidence(type: 'AnotherEvidenceV2')
+          id: Uri.parse('https://example.edu/evidence/v2/1'),
+          type: 'DocumentVerificationV2',
+        ),
+        MutableEvidence(type: 'AnotherEvidenceV2'),
       ];
       final vc = MutableVcDataModelV2(
         context: ctx,
@@ -349,26 +354,31 @@ void main() {
     });
 
     test('toJson() should produce correct map (single proof)', () {
-      final ctx = MutableJsonLdContext.fromJson(
-          [dmV2ContextUrl, 'https://example.org/context/v2']);
+      final ctx = MutableJsonLdContext.fromJson([
+        dmV2ContextUrl,
+        'https://example.org/context/v2',
+      ]);
       final id = Uri.parse('http://example.edu/credentials/abcde');
       final type = ['VerifiableCredential', 'ExampleCredentialV2'];
       final issuer = Issuer.uri('did:example:issuerV2');
       final vf = DateTime.utc(2024, 01, 01, 12, 0, 0);
       final vu = DateTime.utc(2025, 01, 01, 12, 0, 0);
       final subject = [
-        MutableCredentialSubject(
-            {'id': 'did:example:subjectV2', 'email': 'user@affinidi.com'})
+        MutableCredentialSubject({
+          'id': 'did:example:subjectV2',
+          'email': 'user@affinidi.com',
+        }),
       ];
       final schema = [
         MutableCredentialSchema.build(
-            domain: 'https://example.org/schemas/v2',
-            schema: 'example',
-            type: 'JsonSchemaValidator2018')
+          domain: 'https://example.org/schemas/v2',
+          schema: 'example',
+          type: 'JsonSchemaValidator2018',
+        ),
       ];
       final status = MutableCredentialStatusV2({
         'id': Uri.parse('https://example.edu/status/v2/1'),
-        'type': 'CredentialStatusList2021'
+        'type': 'CredentialStatusList2021',
       });
       final proof = [
         EmbeddedProof(
@@ -378,18 +388,20 @@ void main() {
           proofPurpose: 'assertionMethod',
           proofValue: 'zABC...',
           cryptosuite: 'eddsa-jcs-2022',
-        )
+        ),
       ];
       final rs = MutableRefreshServiceV2(type: 'ManualRefreshService2021');
       final terms = [
         MutableTermsOfUse(
-            id: Uri.parse('https://example.com/tos/v2/1'),
-            type: 'IssuerPolicyV2')
+          id: Uri.parse('https://example.com/tos/v2/1'),
+          type: 'IssuerPolicyV2',
+        ),
       ];
       final evidences = [
         MutableEvidence(
-            id: Uri.parse('https://example.edu/evidence/v2/1'),
-            type: 'DocumentVerificationV2')
+          id: Uri.parse('https://example.edu/evidence/v2/1'),
+          type: 'DocumentVerificationV2',
+        ),
       ];
       final vc = MutableVcDataModelV2(
         context: ctx,
@@ -430,9 +442,7 @@ void main() {
         type: {'t', 'VerifiableCredential'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({
-            'id': 'did:example:subjectV2',
-          })
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
         proof: [
           EmbeddedProof(
@@ -467,7 +477,7 @@ void main() {
           proofPurpose: 'assertionMethod',
           proofValue: 'z',
           cryptosuite: 'eddsa-jcs-2022',
-        )
+        ),
       ];
       final vcOriginal = MutableVcDataModelV2(
         context: ctx,
@@ -475,9 +485,7 @@ void main() {
         type: {'t', 'VerifiableCredential'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          MutableCredentialSubject({
-            'id': 'did:example:subjectV2',
-          })
+          MutableCredentialSubject({'id': 'did:example:subjectV2'}),
         ],
         proof: proof,
       );
@@ -500,7 +508,7 @@ void main() {
         'type': ['VerifiableCredential', 't'],
         'issuer': {'id': 'did:example:issuerV2'},
         'validFrom': DateTime.utc(2024, 01, 01).toIso8601String(),
-        'credentialSubject': {'id': 'did:example:subjectV2'}
+        'credentialSubject': {'id': 'did:example:subjectV2'},
       };
       final parsed = VcDataModelV2.fromJson(map);
       expect([parsed.context.firstUri.toString()], ctx);
@@ -517,8 +525,10 @@ void main() {
 
     test('fromJson() should throw error for invalid JSON structure', () {
       final invalidJson = '{"@context": "invalid"}';
-      expect(() => VcDataModelV2.fromJson(invalidJson as Map<String, dynamic>),
-          throwsA(isA<TypeError>()));
+      expect(
+        () => VcDataModelV2.fromJson(invalidJson as Map<String, dynamic>),
+        throwsA(isA<TypeError>()),
+      );
     });
   });
 
@@ -531,35 +541,46 @@ void main() {
           type: <String>{}, // empty set
           issuer: Issuer.uri('did:example:issuerV2'),
           credentialSubject: [
-            CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+            CredentialSubject.fromJson({'id': 'did:example:subjectV2'}),
           ],
         ),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message.contains('`type` property is mandatory'))),
+        throwsA(
+          predicate(
+            (e) =>
+                e is SsiException &&
+                e.code == SsiExceptionType.invalidJson.code &&
+                e.message.contains('`type` property is mandatory'),
+          ),
+        ),
       );
     });
 
-    test('validate() throws when `VerifiableCredential` is missing in type',
-        () {
-      expect(
-        () => VcDataModelV2(
-          context: JsonLdContext.fromJson([dmV2ContextUrl]),
-          id: Uri.parse('id'),
-          type: {'ExampleCredentialV2'},
-          issuer: Issuer.uri('did:example:issuerV2'),
-          credentialSubject: [
-            CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
-          ],
-        ),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message
-                .contains('MUST include the value "VerifiableCredential"'))),
-      );
-    });
+    test(
+      'validate() throws when `VerifiableCredential` is missing in type',
+      () {
+        expect(
+          () => VcDataModelV2(
+            context: JsonLdContext.fromJson([dmV2ContextUrl]),
+            id: Uri.parse('id'),
+            type: {'ExampleCredentialV2'},
+            issuer: Issuer.uri('did:example:issuerV2'),
+            credentialSubject: [
+              CredentialSubject.fromJson({'id': 'did:example:subjectV2'}),
+            ],
+          ),
+          throwsA(
+            predicate(
+              (e) =>
+                  e is SsiException &&
+                  e.code == SsiExceptionType.invalidJson.code &&
+                  e.message.contains(
+                    'MUST include the value "VerifiableCredential"',
+                  ),
+            ),
+          ),
+        );
+      },
+    );
 
     test('validate() succeeds when `type` contains VerifiableCredential', () {
       final vc = VcDataModelV2(
@@ -568,7 +589,7 @@ void main() {
         type: {'VerifiableCredential', 'ExampleCredentialV2'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+          CredentialSubject.fromJson({'id': 'did:example:subjectV2'}),
         ],
       );
       expect(vc.type.contains('VerifiableCredential'), isTrue);
@@ -577,57 +598,62 @@ void main() {
   });
 
   group('VcDataModelV2 issuer/proof DID cross-check', () {
-    test('fromJson passes when issuer DID matches proof.verificationMethod DID',
-        () {
-      final json = {
-        '@context': [dmV2ContextUrl],
-        'type': ['VerifiableCredential'],
-        'issuer': 'did:example:issuerA', // matches
-        'credentialSubject': {'id': 'did:example:subjectV2'},
-        'proof': {
-          'type': 'DataIntegrityProof',
-          'created': '2024-01-01T00:00:00Z',
-          'verificationMethod': 'did:example:issuerA#keys-1', // matches
-          'proofPurpose': 'assertionMethod',
-          'cryptosuite': 'eddsa-jcs-2022',
-          'proofValue': 'z123',
-        },
-      };
+    test(
+      'fromJson passes when issuer DID matches proof.verificationMethod DID',
+      () {
+        final json = {
+          '@context': [dmV2ContextUrl],
+          'type': ['VerifiableCredential'],
+          'issuer': 'did:example:issuerA', // matches
+          'credentialSubject': {'id': 'did:example:subjectV2'},
+          'proof': {
+            'type': 'DataIntegrityProof',
+            'created': '2024-01-01T00:00:00Z',
+            'verificationMethod': 'did:example:issuerA#keys-1', // matches
+            'proofPurpose': 'assertionMethod',
+            'cryptosuite': 'eddsa-jcs-2022',
+            'proofValue': 'z123',
+          },
+        };
 
-      final vc = VcDataModelV2.fromJson(json);
-      expect(vc.issuer.id.toString(), 'did:example:issuerA');
-      expect(vc.proof, isNotEmpty);
-      expect(vc.proof.first.verificationMethod, 'did:example:issuerA#keys-1');
-    });
+        final vc = VcDataModelV2.fromJson(json);
+        expect(vc.issuer.id.toString(), 'did:example:issuerA');
+        expect(vc.proof, isNotEmpty);
+        expect(vc.proof.first.verificationMethod, 'did:example:issuerA#keys-1');
+      },
+    );
 
     test(
-        'fromJson throws when issuer DID differs from proof.verificationMethod DID',
-        () {
-      final json = {
-        '@context': [dmV2ContextUrl],
-        'type': ['VerifiableCredential'],
-        'issuer': 'did:example:issuerA', // doesn't match
-        'credentialSubject': {'id': 'did:example:subjectV2'},
-        'proof': {
-          'type': 'DataIntegrityProof',
-          'created': '2024-01-01T00:00:00Z',
-          'verificationMethod': 'did:example:issuerB#keys-1', // doesn't match
-          'proofPurpose': 'assertionMethod',
-          'cryptosuite': 'eddsa-jcs-2022',
-          'proofValue': 'z123',
-        },
-      };
+      'fromJson throws when issuer DID differs from proof.verificationMethod DID',
+      () {
+        final json = {
+          '@context': [dmV2ContextUrl],
+          'type': ['VerifiableCredential'],
+          'issuer': 'did:example:issuerA', // doesn't match
+          'credentialSubject': {'id': 'did:example:subjectV2'},
+          'proof': {
+            'type': 'DataIntegrityProof',
+            'created': '2024-01-01T00:00:00Z',
+            'verificationMethod': 'did:example:issuerB#keys-1', // doesn't match
+            'proofPurpose': 'assertionMethod',
+            'cryptosuite': 'eddsa-jcs-2022',
+            'proofValue': 'z123',
+          },
+        };
 
-      expect(
-        () => VcDataModelV2.fromJson(json),
-        throwsA(
-          predicate((e) =>
-              e is SsiException &&
-              e.code == SsiExceptionType.invalidJson.code &&
-              e.message.contains('Issuer mismatch')),
-        ),
-      );
-    });
+        expect(
+          () => VcDataModelV2.fromJson(json),
+          throwsA(
+            predicate(
+              (e) =>
+                  e is SsiException &&
+                  e.code == SsiExceptionType.invalidJson.code &&
+                  e.message.contains('Issuer mismatch'),
+            ),
+          ),
+        );
+      },
+    );
   });
 
   group('VcDataModelV2 Type Validation (VC DM v2)', () {
@@ -639,35 +665,46 @@ void main() {
           type: <String>{}, // empty set
           issuer: Issuer.uri('did:example:issuerV2'),
           credentialSubject: [
-            CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+            CredentialSubject.fromJson({'id': 'did:example:subjectV2'}),
           ],
         ),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message.contains('`type` property is mandatory'))),
+        throwsA(
+          predicate(
+            (e) =>
+                e is SsiException &&
+                e.code == SsiExceptionType.invalidJson.code &&
+                e.message.contains('`type` property is mandatory'),
+          ),
+        ),
       );
     });
 
-    test('validate() throws when `VerifiableCredential` is missing in type',
-        () {
-      expect(
-        () => VcDataModelV2(
-          context: JsonLdContext.fromJson([dmV2ContextUrl]),
-          id: Uri.parse('id'),
-          type: {'ExampleCredentialV2'},
-          issuer: Issuer.uri('did:example:issuerV2'),
-          credentialSubject: [
-            CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
-          ],
-        ),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message
-                .contains('MUST include the value "VerifiableCredential"'))),
-      );
-    });
+    test(
+      'validate() throws when `VerifiableCredential` is missing in type',
+      () {
+        expect(
+          () => VcDataModelV2(
+            context: JsonLdContext.fromJson([dmV2ContextUrl]),
+            id: Uri.parse('id'),
+            type: {'ExampleCredentialV2'},
+            issuer: Issuer.uri('did:example:issuerV2'),
+            credentialSubject: [
+              CredentialSubject.fromJson({'id': 'did:example:subjectV2'}),
+            ],
+          ),
+          throwsA(
+            predicate(
+              (e) =>
+                  e is SsiException &&
+                  e.code == SsiExceptionType.invalidJson.code &&
+                  e.message.contains(
+                    'MUST include the value "VerifiableCredential"',
+                  ),
+            ),
+          ),
+        );
+      },
+    );
 
     test('validate() succeeds when `type` contains VerifiableCredential', () {
       final vc = VcDataModelV2(
@@ -676,7 +713,7 @@ void main() {
         type: {'VerifiableCredential', 'ExampleCredentialV2'},
         issuer: Issuer.uri('did:example:issuerV2'),
         credentialSubject: [
-          CredentialSubject.fromJson({'id': 'did:example:subjectV2'})
+          CredentialSubject.fromJson({'id': 'did:example:subjectV2'}),
         ],
       );
       expect(vc.type.contains('VerifiableCredential'), isTrue);
@@ -744,40 +781,49 @@ void main() {
 
       expect(
         () => VcDataModelV2.fromJson(json),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message.contains('must not exceed 5 items'))),
+        throwsA(
+          predicate(
+            (e) =>
+                e is SsiException &&
+                e.code == SsiExceptionType.invalidJson.code &&
+                e.message.contains('must not exceed 5 items'),
+          ),
+        ),
       );
     });
 
     test(
-        'should throw when MutableVcDataModelV2 credentialStatus exceeds 5 items',
-        () {
-      final statusList = List.generate(
-        7,
-        (i) => {
-          'id': 'https://example.edu/status/v2/$i',
-          'type': 'CredentialStatusList2021',
-        },
-      );
+      'should throw when MutableVcDataModelV2 credentialStatus exceeds 5 items',
+      () {
+        final statusList = List.generate(
+          7,
+          (i) => {
+            'id': 'https://example.edu/status/v2/$i',
+            'type': 'CredentialStatusList2021',
+          },
+        );
 
-      final json = {
-        '@context': [dmV2ContextUrl],
-        'id': 'id',
-        'type': ['VerifiableCredential'],
-        'issuer': {'id': 'did:example:issuerV2'},
-        'credentialSubject': {'id': 'did:example:subjectV2'},
-        'credentialStatus': statusList,
-      };
+        final json = {
+          '@context': [dmV2ContextUrl],
+          'id': 'id',
+          'type': ['VerifiableCredential'],
+          'issuer': {'id': 'did:example:issuerV2'},
+          'credentialSubject': {'id': 'did:example:subjectV2'},
+          'credentialStatus': statusList,
+        };
 
-      expect(
-        () => MutableVcDataModelV2.fromJson(json),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message.contains('must not exceed 5 items'))),
-      );
-    });
+        expect(
+          () => MutableVcDataModelV2.fromJson(json),
+          throwsA(
+            predicate(
+              (e) =>
+                  e is SsiException &&
+                  e.code == SsiExceptionType.invalidJson.code &&
+                  e.message.contains('must not exceed 5 items'),
+            ),
+          ),
+        );
+      },
+    );
   });
 }

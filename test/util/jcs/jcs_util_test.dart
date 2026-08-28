@@ -126,22 +126,34 @@ void main() {
       test('very large numbers near MAX_SAFE_INTEGER', () {
         // JavaScript MAX_SAFE_INTEGER is 9007199254740991
         expect(
-            JcsUtil.canonicalize(9007199254740991), equals('9007199254740991'));
-        expect(JcsUtil.canonicalize(9007199254740992.0),
-            equals('9007199254740992'));
+          JcsUtil.canonicalize(9007199254740991),
+          equals('9007199254740991'),
+        );
+        expect(
+          JcsUtil.canonicalize(9007199254740992.0),
+          equals('9007199254740992'),
+        );
 
         // Very large double values should keep decimal representation
-        expect(JcsUtil.canonicalize(1000000000000000.0),
-            equals('1000000000000000'));
+        expect(
+          JcsUtil.canonicalize(1000000000000000.0),
+          equals('1000000000000000'),
+        );
       });
 
       test('invalid numbers throw errors', () {
-        expect(() => JcsUtil.canonicalize(double.nan),
-            throwsA(isA<SsiException>()));
-        expect(() => JcsUtil.canonicalize(double.infinity),
-            throwsA(isA<SsiException>()));
-        expect(() => JcsUtil.canonicalize(double.negativeInfinity),
-            throwsA(isA<SsiException>()));
+        expect(
+          () => JcsUtil.canonicalize(double.nan),
+          throwsA(isA<SsiException>()),
+        );
+        expect(
+          () => JcsUtil.canonicalize(double.infinity),
+          throwsA(isA<SsiException>()),
+        );
+        expect(
+          () => JcsUtil.canonicalize(double.negativeInfinity),
+          throwsA(isA<SsiException>()),
+        );
       });
 
       test('string escaping', () {
@@ -189,24 +201,28 @@ void main() {
       });
 
       test('mixed type array', () {
-        expect(JcsUtil.canonicalize([1, 'hello', true, null]),
-            equals('[1,"hello",true,null]'));
+        expect(
+          JcsUtil.canonicalize([1, 'hello', true, null]),
+          equals('[1,"hello",true,null]'),
+        );
       });
 
       test('nested arrays', () {
         expect(
-            JcsUtil.canonicalize([
-              [1, 2],
-              [3, 4]
-            ]),
-            equals('[[1,2],[3,4]]'));
+          JcsUtil.canonicalize([
+            [1, 2],
+            [3, 4],
+          ]),
+          equals('[[1,2],[3,4]]'),
+        );
         expect(
-            JcsUtil.canonicalize(<dynamic>[
-              <dynamic>[],
-              <dynamic>[1],
-              <dynamic>[1, 2]
-            ]),
-            equals('[[],[1],[1,2]]'));
+          JcsUtil.canonicalize(<dynamic>[
+            <dynamic>[],
+            <dynamic>[1],
+            <dynamic>[1, 2],
+          ]),
+          equals('[[],[1],[1,2]]'),
+        );
       });
     });
 
@@ -217,52 +233,66 @@ void main() {
 
       test('single property object', () {
         expect(
-            JcsUtil.canonicalize({'key': 'value'}), equals('{"key":"value"}'));
+          JcsUtil.canonicalize({'key': 'value'}),
+          equals('{"key":"value"}'),
+        );
         expect(JcsUtil.canonicalize({'num': 42}), equals('{"num":42}'));
       });
 
       test('multiple property object - key ordering', () {
         // Keys should be sorted lexicographically
         expect(JcsUtil.canonicalize({'b': 2, 'a': 1}), equals('{"a":1,"b":2}'));
-        expect(JcsUtil.canonicalize({'z': 3, 'a': 1, 'm': 2}),
-            equals('{"a":1,"m":2,"z":3}'));
+        expect(
+          JcsUtil.canonicalize({'z': 3, 'a': 1, 'm': 2}),
+          equals('{"a":1,"m":2,"z":3}'),
+        );
       });
 
       test('object with mixed value types', () {
         expect(
-            JcsUtil.canonicalize(
-                {'str': 'hello', 'num': 42, 'bool': true, 'nil': null}),
-            equals('{"bool":true,"nil":null,"num":42,"str":"hello"}'));
+          JcsUtil.canonicalize({
+            'str': 'hello',
+            'num': 42,
+            'bool': true,
+            'nil': null,
+          }),
+          equals('{"bool":true,"nil":null,"num":42,"str":"hello"}'),
+        );
       });
 
       test('nested objects', () {
         expect(
-            JcsUtil.canonicalize({
-              'outer': {'inner': 'value'}
-            }),
-            equals('{"outer":{"inner":"value"}}'));
+          JcsUtil.canonicalize({
+            'outer': {'inner': 'value'},
+          }),
+          equals('{"outer":{"inner":"value"}}'),
+        );
         expect(
-            JcsUtil.canonicalize({
-              'a': {'x': 1},
-              'b': {'y': 2}
-            }),
-            equals('{"a":{"x":1},"b":{"y":2}}'));
+          JcsUtil.canonicalize({
+            'a': {'x': 1},
+            'b': {'y': 2},
+          }),
+          equals('{"a":{"x":1},"b":{"y":2}}'),
+        );
       });
 
       test('object with array values', () {
         expect(
-            JcsUtil.canonicalize({
-              'list': [1, 2, 3],
-              'empty': <dynamic>[]
-            }),
-            equals('{"empty":[],"list":[1,2,3]}'));
+          JcsUtil.canonicalize({
+            'list': [1, 2, 3],
+            'empty': <dynamic>[],
+          }),
+          equals('{"empty":[],"list":[1,2,3]}'),
+        );
       });
 
       test('complex key ordering', () {
         final complex = {'10': 'ten', '2': 'two', '1': 'one', '20': 'twenty'};
         // Should be sorted as strings, not numbers
-        expect(JcsUtil.canonicalize(complex),
-            equals('{"1":"one","10":"ten","2":"two","20":"twenty"}'));
+        expect(
+          JcsUtil.canonicalize(complex),
+          equals('{"1":"one","10":"ten","2":"two","20":"twenty"}'),
+        );
       });
     });
 
@@ -271,28 +301,32 @@ void main() {
         final complex = {
           'level1': {
             'level2': {
-              'level3': {'value': 'deep'}
-            }
-          }
+              'level3': {'value': 'deep'},
+            },
+          },
         };
-        expect(JcsUtil.canonicalize(complex),
-            equals('{"level1":{"level2":{"level3":{"value":"deep"}}}}'));
+        expect(
+          JcsUtil.canonicalize(complex),
+          equals('{"level1":{"level2":{"level3":{"value":"deep"}}}}'),
+        );
       });
 
       test('mixed arrays and objects', () {
         final mixed = {
           'array': [
             {'name': 'first'},
-            {'name': 'second'}
+            {'name': 'second'},
           ],
           'object': {
-            'nested': [1, 2, 3]
-          }
+            'nested': [1, 2, 3],
+          },
         };
         expect(
-            JcsUtil.canonicalize(mixed),
-            equals(
-                '{"array":[{"name":"first"},{"name":"second"}],"object":{"nested":[1,2,3]}}'));
+          JcsUtil.canonicalize(mixed),
+          equals(
+            '{"array":[{"name":"first"},{"name":"second"}],"object":{"nested":[1,2,3]}}',
+          ),
+        );
       });
 
       test('credential-like structure', () {
@@ -301,7 +335,7 @@ void main() {
           'type': ['VerifiableCredential'],
           'issuer': 'did:example:123',
           'credentialSubject': {'id': 'did:example:456', 'name': 'John Doe'},
-          'issuanceDate': '2023-01-01T00:00:00Z'
+          'issuanceDate': '2023-01-01T00:00:00Z',
         };
 
         final expected =
@@ -318,15 +352,21 @@ void main() {
     group('Edge cases', () {
       test('non-string keys in map', () {
         final mapWithIntKeys = <dynamic, dynamic>{1: 'one', 2: 'two'};
-        expect(JcsUtil.canonicalize(mapWithIntKeys),
-            equals('{"1":"one","2":"two"}'));
+        expect(
+          JcsUtil.canonicalize(mapWithIntKeys),
+          equals('{"1":"one","2":"two"}'),
+        );
       });
 
       test('empty strings and whitespace', () {
-        expect(JcsUtil.canonicalize({'': 'empty key'}),
-            equals('{"":"empty key"}'));
-        expect(JcsUtil.canonicalize({' ': 'space key'}),
-            equals('{" ":"space key"}'));
+        expect(
+          JcsUtil.canonicalize({'': 'empty key'}),
+          equals('{"":"empty key"}'),
+        );
+        expect(
+          JcsUtil.canonicalize({' ': 'space key'}),
+          equals('{" ":"space key"}'),
+        );
         expect(JcsUtil.canonicalize({'key': ''}), equals('{"key":""}'));
       });
 
@@ -335,19 +375,25 @@ void main() {
           'key with spaces': 'value1',
           'key-with-dashes': 'value2',
           'key_with_underscores': 'value3',
-          'key.with.dots': 'value4'
+          'key.with.dots': 'value4',
         };
         expect(
-            JcsUtil.canonicalize(special),
-            equals(
-                '{"key with spaces":"value1","key-with-dashes":"value2","key.with.dots":"value4","key_with_underscores":"value3"}'));
+          JcsUtil.canonicalize(special),
+          equals(
+            '{"key with spaces":"value1","key-with-dashes":"value2","key.with.dots":"value4","key_with_underscores":"value3"}',
+          ),
+        );
       });
 
       test('unsupported types throw errors', () {
-        expect(() => JcsUtil.canonicalize(DateTime.now()),
-            throwsA(isA<SsiException>()));
-        expect(() => JcsUtil.canonicalize(RegExp('')),
-            throwsA(isA<SsiException>()));
+        expect(
+          () => JcsUtil.canonicalize(DateTime.now()),
+          throwsA(isA<SsiException>()),
+        );
+        expect(
+          () => JcsUtil.canonicalize(RegExp('')),
+          throwsA(isA<SsiException>()),
+        );
       });
     });
 
@@ -360,10 +406,10 @@ void main() {
             1E30,
             4.50,
             2e-3,
-            0.000000000000000000000000001
+            0.000000000000000000000000001,
           ],
           'string': '\u20ac\$\u000F\u000aA\'"\\',
-          'literals': [null, true, false]
+          'literals': [null, true, false],
         };
 
         final result = JcsUtil.canonicalize(example);
@@ -381,7 +427,7 @@ void main() {
       test('same input produces same output', () {
         final input = {
           'b': [3, 1, 2],
-          'a': {'nested': true}
+          'a': {'nested': true},
         };
         final result1 = JcsUtil.canonicalize(input);
         final result2 = JcsUtil.canonicalize(input);

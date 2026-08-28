@@ -13,36 +13,58 @@ void main() {
       final context = JsonLdContext.fromJson(['https://example.com/context']);
       expect(context.firstUri.toString(), 'https://example.com/context');
       expect(context.toJson(), ['https://example.com/context']);
-      expect(context.hasUrlContext(Uri.parse('https://example.com/context')),
-          isTrue);
+      expect(
+        context.hasUrlContext(Uri.parse('https://example.com/context')),
+        isTrue,
+      );
     });
 
     test('List with string URIs', () {
-      final context = JsonLdContext.fromJson(
-          ['https://example.com/context', 'https://example.com/other']);
+      final context = JsonLdContext.fromJson([
+        'https://example.com/context',
+        'https://example.com/other',
+      ]);
       expect(context.firstUri.toString(), 'https://example.com/context');
-      expect(context.hasUrlContext(Uri.parse('https://example.com/other')),
-          isTrue);
-      expect(context.hasUrlContext(Uri.parse('https://not-in-context.com')),
-          isFalse);
+      expect(
+        context.hasUrlContext(Uri.parse('https://example.com/other')),
+        isTrue,
+      );
+      expect(
+        context.hasUrlContext(Uri.parse('https://not-in-context.com')),
+        isFalse,
+      );
     });
 
-    test('List with first element as a map throws exception (VC compliance)',
-        () {
-      expect(
+    test(
+      'List with first element as a map throws exception (VC compliance)',
+      () {
+        expect(
           () => JsonLdContext.fromJson([
-                {'@vocab': 'https://schema.org/'},
-                'https://example.com/context'
-              ]),
-          throwsA(isA<SsiException>().having((e) => e.message, 'message',
-              contains('first element of @context must be a string URI'))));
-    });
+            {'@vocab': 'https://schema.org/'},
+            'https://example.com/context',
+          ]),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.message,
+              'message',
+              contains('first element of @context must be a string URI'),
+            ),
+          ),
+        );
+      },
+    );
 
     test('Passing top-level map throws exception', () {
       expect(
-          () => JsonLdContext.fromJson({'@vocab': 'https://schema.org/'}),
-          throwsA(isA<SsiException>().having((e) => e.message, 'message',
-              contains('Top-level @context must be a string URI or a list'))));
+        () => JsonLdContext.fromJson({'@vocab': 'https://schema.org/'}),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Top-level @context must be a string URI or a list'),
+          ),
+        ),
+      );
     });
   });
 
@@ -50,21 +72,24 @@ void main() {
     test('Mutable context from list', () {
       final context = MutableJsonLdContext.fromJson([
         'https://example.com/context',
-        {'@vocab': 'https://schema.org/'}
+        {'@vocab': 'https://schema.org/'},
       ]);
       expect(context.firstUri.toString(), 'https://example.com/context');
 
       (context.context as List)[1] = {
         '@vocab': 'https://schema.org/',
-        'age': 'schema:age'
+        'age': 'schema:age',
       };
-      expect((context.context as List)[1],
-          {'@vocab': 'https://schema.org/', 'age': 'schema:age'});
+      expect((context.context as List)[1], {
+        '@vocab': 'https://schema.org/',
+        'age': 'schema:age',
+      });
     });
 
     test('Single string mutable context as list', () {
-      final context =
-          MutableJsonLdContext.fromJson(['https://example.com/context']);
+      final context = MutableJsonLdContext.fromJson([
+        'https://example.com/context',
+      ]);
       expect(context.firstUri.toString(), 'https://example.com/context');
 
       context.context = ['https://example.org/new'];
@@ -74,20 +99,31 @@ void main() {
 
     test('List with first element as map throws exception', () {
       expect(
-          () => MutableJsonLdContext.fromJson([
-                {'@vocab': 'https://schema.org/'},
-                'https://example.com/context'
-              ]),
-          throwsA(isA<SsiException>().having((e) => e.message, 'message',
-              contains('first element of @context must be a string URI'))));
+        () => MutableJsonLdContext.fromJson([
+          {'@vocab': 'https://schema.org/'},
+          'https://example.com/context',
+        ]),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('first element of @context must be a string URI'),
+          ),
+        ),
+      );
     });
 
     test('Passing top-level map throws exception', () {
       expect(
-          () =>
-              MutableJsonLdContext.fromJson({'@vocab': 'https://schema.org/'}),
-          throwsA(isA<SsiException>().having((e) => e.message, 'message',
-              contains('Top-level @context must be a string URI or a list'))));
+        () => MutableJsonLdContext.fromJson({'@vocab': 'https://schema.org/'}),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Top-level @context must be a string URI or a list'),
+          ),
+        ),
+      );
     });
   });
   group('Complex Context Example', () {
@@ -233,7 +269,7 @@ void main() {
       final credential = MutableVcDataModelV2(
         context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/ns/credentials/v2',
-          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld',
         ]),
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
@@ -243,7 +279,7 @@ void main() {
             'Fname': 'Fname',
             'Lname': 'Lame',
             'Age': '22',
-            'Address': 'Eihhornstr'
+            'Address': 'Eihhornstr',
           }),
         ],
         credentialSchema: [
@@ -266,7 +302,8 @@ void main() {
 
       final v2Vp = MutableVpDataModelV2(
         context: MutableJsonLdContext.fromJson(
-            'https://www.w3.org/ns/credentials/v2'),
+          'https://www.w3.org/ns/credentials/v2',
+        ),
         id: Uri.parse('testVpV1Id'),
         type: {'VerifiablePresentation'},
         holder: MutableHolder.uri(signer.did),
@@ -279,12 +316,15 @@ void main() {
       );
 
       final vpToSign = VpDataModelV2.fromMutable(v2Vp);
-      final issuedVp = await LdVpDm2Suite()
-          .issue(unsignedData: vpToSign, proofGenerator: vpProofGenerator);
+      final issuedVp = await LdVpDm2Suite().issue(
+        unsignedData: vpToSign,
+        proofGenerator: vpProofGenerator,
+      );
 
       final issuedVpString = issuedVp.serialized;
-      final verificationStatus = await VpIntegrityVerifier()
-          .verify(UniversalPresentationParser.parse(issuedVpString));
+      final verificationStatus = await VpIntegrityVerifier().verify(
+        UniversalPresentationParser.parse(issuedVpString),
+      );
 
       expect(verificationStatus.isValid, true);
       expect(verificationStatus.errors.length, 0);

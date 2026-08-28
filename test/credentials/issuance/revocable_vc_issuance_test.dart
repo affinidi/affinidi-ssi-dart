@@ -113,8 +113,10 @@ void main() {
       expect(payload['vc'], isNotNull);
       expect(payload['vc']['credentialStatus'], isNotNull);
       expect(payload['vc']['credentialStatus']['revocationListIndex'], '0');
-      expect(payload['vc']['credentialStatus']['type'],
-          'RevocationList2020Status');
+      expect(
+        payload['vc']['credentialStatus']['type'],
+        'RevocationList2020Status',
+      );
     });
 
     test('Revoked credential verification fails after list update', () async {
@@ -132,7 +134,7 @@ void main() {
           'id': 'https://example.org/revocation-list#list',
           'type': 'RevocationList2020',
           'encodedList': encodedList,
-        }
+        },
       };
 
       final unsigned = MutableVcDataModelV1(

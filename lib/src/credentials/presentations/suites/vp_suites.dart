@@ -18,7 +18,7 @@ class VpSuites {
   /// The list of all registered [VerifiablePresentationSuite] implementations.
   static final suites = <VerifiablePresentationSuite>[
     LdVpDm1Suite(),
-    LdVpDm2Suite()
+    LdVpDm2Suite(),
   ];
 
   /// Return the suite that matches [vp]
@@ -29,7 +29,8 @@ class VpSuites {
   ///
   /// Throws [SsiException] if no suite is available for the presentation type.
   static VerifiablePresentationSuite getVpSuite(
-      ParsedVerifiablePresentation vp) {
+    ParsedVerifiablePresentation vp,
+  ) {
     return VpSuites.getVpSuiteWithDocumentLoader(vp, null);
   }
 
@@ -42,7 +43,9 @@ class VpSuites {
   ///
   /// Throws [SsiException] if no suite is available for the presentation type.
   static VerifiablePresentationSuite getVpSuiteWithDocumentLoader(
-      ParsedVerifiablePresentation vp, DocumentLoader? customDocumentLoader) {
+    ParsedVerifiablePresentation vp,
+    DocumentLoader? customDocumentLoader,
+  ) {
     return switch (vp) {
       LdVpDataModelV1() =>
         LdVpDm1Suite(customDocumentLoader: customDocumentLoader)
@@ -51,9 +54,9 @@ class VpSuites {
         LdVpDm2Suite(customDocumentLoader: customDocumentLoader)
             as VerifiablePresentationSuite,
       _ => throw SsiException(
-          message: 'Suite for "${vp.runtimeType}" is not supported',
-          code: SsiExceptionType.other.code,
-        ),
+        message: 'Suite for "${vp.runtimeType}" is not supported',
+        code: SsiExceptionType.other.code,
+      ),
     };
   }
 }

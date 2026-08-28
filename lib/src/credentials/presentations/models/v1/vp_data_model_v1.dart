@@ -62,8 +62,9 @@ class VpDataModelV1 implements VerifiablePresentation {
     json[_P.type.key] = type.toList();
     json[_P.holder.key] = holder.toJson();
     json[_P.proof.key] = encodeListToSingleOrArray(proof);
-    json[_P.verifiableCredential.key] =
-        verifiableCredential.map(presentVC).toList();
+    json[_P.verifiableCredential.key] = verifiableCredential
+        .map(presentVC)
+        .toList();
 
     return cleanEmpty(json);
   }
@@ -160,9 +161,9 @@ class VpDataModelV1 implements VerifiablePresentation {
     required this.holder,
     required List<ParsedVerifiableCredential> verifiableCredential,
     required List<EmbeddedProof> proof,
-  })  : type = UnmodifiableSetView(type),
-        verifiableCredential = UnmodifiableListView(verifiableCredential),
-        proof = UnmodifiableListView(proof) {
+  }) : type = UnmodifiableSetView(type),
+       verifiableCredential = UnmodifiableListView(verifiableCredential),
+       proof = UnmodifiableListView(proof) {
     validate();
   }
 
@@ -185,21 +186,28 @@ class VpDataModelV1 implements VerifiablePresentation {
 
     final holder = Holder.fromJson(json[_P.holder.key]);
 
-    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
-        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+    final proof = parseListOrSingleItem<EmbeddedProof>(
+      json,
+      _P.proof.key,
+      (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final credentials = parseListOrSingleItem<ParsedVerifiableCredential>(
-        json, _P.verifiableCredential.key, parseVC,
-        allowSingleValue: true);
+      json,
+      _P.verifiableCredential.key,
+      parseVC,
+      allowSingleValue: true,
+    );
 
     return VpDataModelV1(
-        context: context,
-        id: id,
-        type: type,
-        proof: proof,
-        holder: holder,
-        verifiableCredential: credentials);
+      context: context,
+      id: id,
+      type: type,
+      proof: proof,
+      holder: holder,
+      verifiableCredential: credentials,
+    );
   }
 
   /// Creates a new [VpDataModelV1] instance as a deep copy of the provided [input].
@@ -207,13 +215,14 @@ class VpDataModelV1 implements VerifiablePresentation {
   /// This constructor initializes a new object with the same values as the
   /// properties of the [input] `VpDataModelV1` instance.
   VpDataModelV1.clone(VpDataModelV1 input)
-      : this(
-            context: input.context,
-            id: input.id,
-            type: input.type,
-            holder: input.holder,
-            verifiableCredential: input.verifiableCredential,
-            proof: input.proof);
+    : this(
+        context: input.context,
+        id: input.id,
+        type: input.type,
+        holder: input.holder,
+        verifiableCredential: input.verifiableCredential,
+        proof: input.proof,
+      );
 
   /// Creates a [VpDataModelV1] instance from a mutable model.
   ///

@@ -56,7 +56,9 @@ class P521KeyPair extends KeyPair {
       if (k > BigInt.zero && k < n) {
         final effectiveId = id ?? randomId();
         return P521KeyPair._(
-            ec.PrivateKey.fromBytes(_p521, candidate), effectiveId);
+          ec.PrivateKey.fromBytes(_p521, candidate),
+          effectiveId,
+        );
       }
 
       // Not in range; derive a new candidate deterministically
@@ -68,18 +70,22 @@ class P521KeyPair extends KeyPair {
     }
 
     throw ArgumentError(
-        'Failed to derive a valid P-521 private key from seed after $maxAttempts attempts');
+      'Failed to derive a valid P-521 private key from seed after $maxAttempts attempts',
+    );
   }
 
   /// Creates a [P521KeyPair] instance from a private key.
   factory P521KeyPair.fromPrivateKey(Uint8List privateKeyBytes, {String? id}) {
     if (privateKeyBytes.length != expectedPrivateKeyLen) {
       throw ArgumentError(
-          'P-521 private key must be $expectedPrivateKeyLen bytes, got \\${privateKeyBytes.length}');
+        'P-521 private key must be $expectedPrivateKeyLen bytes, got \\${privateKeyBytes.length}',
+      );
     }
     final effectiveId = id ?? randomId();
     return P521KeyPair._(
-        ec.PrivateKey.fromBytes(_p521, privateKeyBytes), effectiveId);
+      ec.PrivateKey.fromBytes(_p521, privateKeyBytes),
+      effectiveId,
+    );
   }
 
   @override
@@ -90,7 +96,9 @@ class P521KeyPair extends KeyPair {
 
   @override
   Future<Uint8List> internalSign(
-      Uint8List data, SignatureScheme signatureScheme) async {
+    Uint8List data,
+    SignatureScheme signatureScheme,
+  ) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -100,8 +108,11 @@ class P521KeyPair extends KeyPair {
   }
 
   @override
-  Future<bool> internalVerify(Uint8List data, Uint8List signature,
-      SignatureScheme signatureScheme) async {
+  Future<bool> internalVerify(
+    Uint8List data,
+    Uint8List signature,
+    SignatureScheme signatureScheme,
+  ) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -113,8 +124,8 @@ class P521KeyPair extends KeyPair {
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [
-        SignatureScheme.ecdsa_p521_sha512,
-      ];
+    SignatureScheme.ecdsa_p521_sha512,
+  ];
 
   @override
   SignatureScheme get defaultSignatureScheme =>
@@ -132,8 +143,10 @@ class P521KeyPair extends KeyPair {
   }
 
   @override
-  Future<Uint8List> decrypt(Uint8List ivAndBytes,
-      {Uint8List? publicKey}) async {
+  Future<Uint8List> decrypt(
+    Uint8List ivAndBytes, {
+    Uint8List? publicKey,
+  }) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
     return ecdh_utils.decryptData(
       encryptedPackage: ivAndBytes,
@@ -173,7 +186,8 @@ class P521KeyPair extends KeyPair {
   ecdsa.Signature _fromCompact521(Uint8List compactBytes) {
     if (compactBytes.length != 132) {
       throw ArgumentError(
-          'P-521 compact signature must be 132 bytes, got ${compactBytes.length}');
+        'P-521 compact signature must be 132 bytes, got ${compactBytes.length}',
+      );
     }
 
     // Extract r (first 66 bytes)

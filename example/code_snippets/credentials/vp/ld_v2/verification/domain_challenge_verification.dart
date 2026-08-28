@@ -18,23 +18,29 @@ void main() async {
 
   // Build the unsigned Verifiable Presentation
   final v2Vp = MutableVpDataModelV2(
-      context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-      id: Uri.parse('testVpV2'),
-      type: {'VerifiablePresentation'},
-      holder: MutableHolder.uri(signer.did),
-      verifiableCredential: [ldV2VC]);
+    context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+    id: Uri.parse('testVpV2'),
+    type: {'VerifiablePresentation'},
+    holder: MutableHolder.uri(signer.did),
+    verifiableCredential: [ldV2VC],
+  );
 
   final proofGenerator = Secp256k1Signature2019Generator(
-      signer: signer, domain: ['fun.com'], challenge: 'test-challenge');
+    signer: signer,
+    domain: ['fun.com'],
+    challenge: 'test-challenge',
+  );
 
-// Issue the VP with the proof attached
+  // Issue the VP with the proof attached
   final issuedPresentation = await LdVpDm2Suite().issue(
-      unsignedData: VpDataModelV2.fromMutable(v2Vp),
-      proofGenerator: proofGenerator);
+    unsignedData: VpDataModelV2.fromMutable(v2Vp),
+    proofGenerator: proofGenerator,
+  );
 
   final verificationStatus = await VpDomainChallengeVerifier(
-          domain: ['fun.com'], challenge: 'test-challenge')
-      .verify(issuedPresentation);
+    domain: ['fun.com'],
+    challenge: 'test-challenge',
+  ).verify(issuedPresentation);
 
   // Print results
   print('Is VP valid? ${verificationStatus.isValid}');

@@ -7,8 +7,13 @@ abstract interface class _CredentialSubjectInterface
   Uri? get id;
 
   Map<String, dynamic> toJson() {
-    return cleanEmpty(Map<String, dynamic>.fromEntries(entries.map((e) =>
-        MapEntry(e.key, e.key == 'id' ? e.value?.toString() : e.value))));
+    return cleanEmpty(
+      Map<String, dynamic>.fromEntries(
+        entries.map(
+          (e) => MapEntry(e.key, e.key == 'id' ? e.value?.toString() : e.value),
+        ),
+      ),
+    );
   }
 }
 
@@ -33,9 +38,8 @@ class MutableCredentialSubject extends _CredentialSubjectInterface {
   /// Creates a [MutableCredentialSubject]
   ///
   /// The [claims]- is An assertion made about subject.
-  MutableCredentialSubject(
-    Map<String, dynamic>? claims,
-  ) : _claims = claims ?? {};
+  MutableCredentialSubject(Map<String, dynamic>? claims)
+    : _claims = claims ?? {};
 
   /// Creates a [MutableCredentialSubject] from JSON data.
   factory MutableCredentialSubject.fromJson(Map<String, dynamic> json) {
@@ -89,9 +93,8 @@ class CredentialSubject extends _CredentialSubjectInterface {
 
   final UnmodifiableMapView<String, dynamic> _claims;
 
-  CredentialSubject._(
-    UnmodifiableMapView<String, dynamic>? claims,
-  ) : _claims = claims ?? UnmodifiableMapView<String, dynamic>({});
+  CredentialSubject._(UnmodifiableMapView<String, dynamic>? claims)
+    : _claims = claims ?? UnmodifiableMapView<String, dynamic>({});
 
   /// Creates a [CredentialSubject] from JSON data.
   factory CredentialSubject.fromJson(Map<String, dynamic> json) {

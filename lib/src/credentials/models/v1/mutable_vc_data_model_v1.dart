@@ -108,8 +108,9 @@ class MutableVcDataModelV1 {
     json[_P.holder.key] = holder?.toJson();
     json[_P.issuanceDate.key] = issuanceDate?.toIso8601String();
     json[_P.expirationDate.key] = expirationDate?.toIso8601String();
-    json[_P.credentialSubject.key] =
-        encodeListToSingleOrArray(credentialSubject);
+    json[_P.credentialSubject.key] = encodeListToSingleOrArray(
+      credentialSubject,
+    );
     json[_P.proof.key] = encodeListToSingleOrArray(proof);
     json[_P.credentialStatus.key] = credentialStatus?.toJson();
     json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
@@ -150,13 +151,13 @@ class MutableVcDataModelV1 {
     List<MutableRefreshServiceV1>? refreshService,
     List<MutableTermsOfUse>? termsOfUse,
     List<MutableEvidence>? evidence,
-  })  : credentialSchema = credentialSchema ?? [],
-        credentialSubject = credentialSubject ?? [],
-        type = type ?? {},
-        proof = proof ?? [],
-        refreshService = refreshService ?? [],
-        termsOfUse = termsOfUse ?? [],
-        evidence = evidence ?? [];
+  }) : credentialSchema = credentialSchema ?? [],
+       credentialSubject = credentialSubject ?? [],
+       type = type ?? {},
+       proof = proof ?? [],
+       refreshService = refreshService ?? [],
+       termsOfUse = termsOfUse ?? [],
+       evidence = evidence ?? [];
 
   /// Constructs a [MutableVcDataModelV1] instance from a JSON object.
   ///
@@ -169,28 +170,34 @@ class MutableVcDataModelV1 {
 
     final context = MutableJsonLdContext.fromJson(json[_P.context.key]);
     final id = getUri(json, _P.id.key);
-    final type =
-        getStringList(json, _P.type.key, allowSingleValue: true).toSet();
+    final type = getStringList(
+      json,
+      _P.type.key,
+      allowSingleValue: true,
+    ).toSet();
 
     final issuer = MutableIssuer.fromJson(json[_P.issuer.key]);
 
     final credentialSubject = parseListOrSingleItem<MutableCredentialSubject>(
-        json,
-        _P.credentialSubject.key,
-        (item) =>
-            MutableCredentialSubject.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.credentialSubject.key,
+      (item) => MutableCredentialSubject.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
-    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
-        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+    final proof = parseListOrSingleItem<EmbeddedProof>(
+      json,
+      _P.proof.key,
+      (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final credentialSchema = parseListOrSingleItem<MutableCredentialSchema>(
-        json,
-        _P.credentialSchema.key,
-        (item) =>
-            MutableCredentialSchema.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.credentialSchema.key,
+      (item) => MutableCredentialSchema.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final issuanceDate = getDateTime(json, _P.issuanceDate.key);
     final expirationDate = getDateTime(json, _P.expirationDate.key);
@@ -200,43 +207,47 @@ class MutableVcDataModelV1 {
     MutableCredentialStatusV1? credentialStatus;
     if (json.containsKey(_P.credentialStatus.key)) {
       credentialStatus = MutableCredentialStatusV1.fromJson(
-          json[_P.credentialStatus.key] as Map<String, dynamic>);
+        json[_P.credentialStatus.key] as Map<String, dynamic>,
+      );
     }
 
     final refreshService = parseListOrSingleItem<MutableRefreshServiceV1>(
-        json,
-        _P.refreshService.key,
-        (item) =>
-            MutableRefreshServiceV1.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.refreshService.key,
+      (item) => MutableRefreshServiceV1.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final termsOfUse = parseListOrSingleItem<MutableTermsOfUse>(
-        json,
-        _P.termsOfUse.key,
-        (item) => MutableTermsOfUse.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.termsOfUse.key,
+      (item) => MutableTermsOfUse.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final evidence = parseListOrSingleItem<MutableEvidence>(
-        json,
-        _P.evidence.key,
-        (item) => MutableEvidence.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.evidence.key,
+      (item) => MutableEvidence.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     return MutableVcDataModelV1(
-        context: context,
-        id: id,
-        credentialSubject: credentialSubject,
-        issuer: issuer,
-        type: type,
-        issuanceDate: issuanceDate,
-        credentialSchema: credentialSchema,
-        expirationDate: expirationDate,
-        holder: holder,
-        proof: proof,
-        credentialStatus: credentialStatus,
-        refreshService: refreshService,
-        termsOfUse: termsOfUse,
-        evidence: evidence);
+      context: context,
+      id: id,
+      credentialSubject: credentialSubject,
+      issuer: issuer,
+      type: type,
+      issuanceDate: issuanceDate,
+      credentialSchema: credentialSchema,
+      expirationDate: expirationDate,
+      holder: holder,
+      proof: proof,
+      credentialStatus: credentialStatus,
+      refreshService: refreshService,
+      termsOfUse: termsOfUse,
+      evidence: evidence,
+    );
   }
 }
 
@@ -287,8 +298,7 @@ enum VcDataModelV1Key {
   termsOfUse,
 
   /// Key for the `evidence` property, representing the evidence.
-  evidence,
-  ;
+  evidence;
 
   final String? _key;
 

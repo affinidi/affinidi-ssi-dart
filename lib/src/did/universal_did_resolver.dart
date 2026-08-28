@@ -40,10 +40,12 @@ class UniversalDIDResolver implements DidResolver {
   /// - The resolution fails
   /// FIXME(FTL-20741) should use an URI as input or dedicated Did model
   @Deprecated(
-      'Use UniversalDIDResolver instance with resolveDid() method or defaultResolver instead')
+    'Use UniversalDIDResolver instance with resolveDid() method or defaultResolver instead',
+  )
   static Future<DidDocument> resolve(
     /// The DID to resolve.
     String did, {
+
     /// The URL of a universal resolver service.
     String? resolverAddress,
   }) async {

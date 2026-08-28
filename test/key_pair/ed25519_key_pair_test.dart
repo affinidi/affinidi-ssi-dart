@@ -7,42 +7,52 @@ import 'package:test/test.dart';
 void main() {
   // Generate a random 32-byte seed for Ed25519
   final random = Random.secure();
-  final seed =
-      Uint8List.fromList(List.generate(32, (_) => random.nextInt(256)));
+  final seed = Uint8List.fromList(
+    List.generate(32, (_) => random.nextInt(256)),
+  );
 
   final dataToSign = Uint8List.fromList([1, 2, 3]);
 
   group('Test Ed25519 Key Pair', () {
-    test('Ed25519 key pair should sign data and verify signature (default)',
-        () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
-      final signature = await edKey.sign(dataToSign);
-      final actual = await edKey.verify(dataToSign, signature);
-      expect(actual, isTrue);
-    });
+    test(
+      'Ed25519 key pair should sign data and verify signature (default)',
+      () async {
+        final edKey = Ed25519KeyPair.fromSeed(seed);
+        final signature = await edKey.sign(dataToSign);
+        final actual = await edKey.verify(dataToSign, signature);
+        expect(actual, isTrue);
+      },
+    );
 
     test('Ed25519 key pair should sign data and verify signature', () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
-      final signature = await edKey.sign(dataToSign,
-          signatureScheme: SignatureScheme.ed25519);
-      final actual = await edKey.verify(dataToSign, signature,
-          signatureScheme: SignatureScheme.ed25519);
+      final signature = await edKey.sign(
+        dataToSign,
+        signatureScheme: SignatureScheme.ed25519,
+      );
+      final actual = await edKey.verify(
+        dataToSign,
+        signature,
+        signatureScheme: SignatureScheme.ed25519,
+      );
       expect(actual, isTrue);
     });
 
-    test('Verification should fail if signature is invalid (default)',
-        () async {
-      final edKey = Ed25519KeyPair.fromSeed(seed);
-      final signature = await edKey.sign(dataToSign);
+    test(
+      'Verification should fail if signature is invalid (default)',
+      () async {
+        final edKey = Ed25519KeyPair.fromSeed(seed);
+        final signature = await edKey.sign(dataToSign);
 
-      // Tamper with the signature
-      final invalidSignature = Uint8List.fromList(signature);
-      invalidSignature[0] =
-          invalidSignature[0] ^ 0xFF; // Flip bits in the first byte
+        // Tamper with the signature
+        final invalidSignature = Uint8List.fromList(signature);
+        invalidSignature[0] =
+            invalidSignature[0] ^ 0xFF; // Flip bits in the first byte
 
-      final actual = await edKey.verify(dataToSign, invalidSignature);
-      expect(actual, isFalse);
-    });
+        final actual = await edKey.verify(dataToSign, invalidSignature);
+        expect(actual, isFalse);
+      },
+    );
 
     test('Verification should fail if data is different (default)', () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
@@ -56,13 +66,19 @@ void main() {
 
     test('Verification works across different supported schemes', () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
-      final sigSha = await edKey.sign(dataToSign,
-          signatureScheme: SignatureScheme.ed25519);
+      final sigSha = await edKey.sign(
+        dataToSign,
+        signatureScheme: SignatureScheme.ed25519,
+      );
 
       expect(
-          await edKey.verify(dataToSign, sigSha,
-              signatureScheme: SignatureScheme.ed25519),
-          isTrue);
+        await edKey.verify(
+          dataToSign,
+          sigSha,
+          signatureScheme: SignatureScheme.ed25519,
+        ),
+        isTrue,
+      );
     });
 
     test('Ed25519 key pair properties should be correct', () {

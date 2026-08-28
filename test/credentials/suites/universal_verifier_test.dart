@@ -19,9 +19,7 @@ void main() {
 
     test('should execute custom verifiers and pass', () async {
       final verifier = UniversalVerifier(
-        customVerifiers: [
-          _TestVerifier(VerificationResult.ok()),
-        ],
+        customVerifiers: [_TestVerifier(VerificationResult.ok())],
       );
 
       var result = await verifier.verify(validCredential);
@@ -32,12 +30,8 @@ void main() {
     test('should execute custom verifiers and collect issues', () async {
       final verifier = UniversalVerifier(
         customVerifiers: [
-          _TestVerifier(
-            VerificationResult.ok(warnings: ['warning1']),
-          ),
-          _TestVerifier(
-            VerificationResult.invalid(errors: ['error1']),
-          ),
+          _TestVerifier(VerificationResult.ok(warnings: ['warning1'])),
+          _TestVerifier(VerificationResult.invalid(errors: ['error1'])),
           _TestVerifier(
             VerificationResult.invalid(errors: ['error2', 'error3']),
           ),
@@ -58,11 +52,7 @@ void main() {
         loadedUrls.add(url);
         // Return a basic JSON-LD context
         return {
-          '@context': {
-            '@version': 1.1,
-            'id': '@id',
-            'type': '@type',
-          }
+          '@context': {'@version': 1.1, 'id': '@id', 'type': '@type'},
         };
       }
 
@@ -77,8 +67,11 @@ void main() {
       var result = await verifier.verify(validCredential);
 
       // Verify that the document loader was called
-      expect(loadedUrls.isNotEmpty, true,
-          reason: 'Custom document loader was not called');
+      expect(
+        loadedUrls.isNotEmpty,
+        true,
+        reason: 'Custom document loader was not called',
+      );
 
       // The verification fails with integrity_verification_failed because our simple
       // document loader doesn't provide all the necessary context information.

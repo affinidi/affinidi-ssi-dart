@@ -11,13 +11,13 @@ class TestDidUrl extends DidUrl {
     String? query,
     String? fragment,
   }) : super.internal(
-          scheme: scheme,
-          method: method,
-          methodSpecificId: methodSpecificId,
-          path: path,
-          query: query,
-          fragment: fragment,
-        );
+         scheme: scheme,
+         method: method,
+         methodSpecificId: methodSpecificId,
+         path: path,
+         query: query,
+         fragment: fragment,
+       );
 
   @override
   Future<DidDocument> resolveDid({DidResolutionOptions? options}) {
@@ -46,23 +46,31 @@ void main() {
         expect(didUrl.queryParameters, {'a': '1', 'b': '2'});
       });
 
-      test('should set nullable fields to null when only required provided',
-          () {
-        final didUrl =
-            TestDidUrl(scheme: 'did', method: 'foo', methodSpecificId: 'bar');
-        expect(didUrl.scheme, 'did');
-        expect(didUrl.method, 'foo');
-        expect(didUrl.methodSpecificId, 'bar');
-        expect(didUrl.path, isNull);
-        expect(didUrl.query, isNull);
-        expect(didUrl.fragment, isNull);
-        expect(didUrl.queryParameters, <String, String>{});
-      });
+      test(
+        'should set nullable fields to null when only required provided',
+        () {
+          final didUrl = TestDidUrl(
+            scheme: 'did',
+            method: 'foo',
+            methodSpecificId: 'bar',
+          );
+          expect(didUrl.scheme, 'did');
+          expect(didUrl.method, 'foo');
+          expect(didUrl.methodSpecificId, 'bar');
+          expect(didUrl.path, isNull);
+          expect(didUrl.query, isNull);
+          expect(didUrl.fragment, isNull);
+          expect(didUrl.queryParameters, <String, String>{});
+        },
+      );
     });
 
     test('constructs with only required fields', () {
-      final didUrl =
-          TestDidUrl(scheme: 'did', method: 'foo', methodSpecificId: 'bar');
+      final didUrl = TestDidUrl(
+        scheme: 'did',
+        method: 'foo',
+        methodSpecificId: 'bar',
+      );
       expect(didUrl.scheme, 'did');
       expect(didUrl.method, 'foo');
       expect(didUrl.methodSpecificId, 'bar');
@@ -74,8 +82,11 @@ void main() {
 
     group('queryParameters', () {
       test('should return empty map when query is null', () {
-        final didUrl =
-            TestDidUrl(scheme: 'did', method: 'foo', methodSpecificId: 'bar');
+        final didUrl = TestDidUrl(
+          scheme: 'did',
+          method: 'foo',
+          methodSpecificId: 'bar',
+        );
         expect(didUrl.queryParameters, <String, String>{});
       });
     });
@@ -83,23 +94,32 @@ void main() {
     group('fromUrlString', () {
       test('should throw FormatException when missing did: prefix', () {
         expect(
-            () => DidUrl.fromUrlString('foo:bar:baz'), throwsFormatException);
+          () => DidUrl.fromUrlString('foo:bar:baz'),
+          throwsFormatException,
+        );
       });
 
       test(
-          'should throw FormatException when missing method or methodSpecificId',
-          () {
-        expect(() => DidUrl.fromUrlString('did:'), throwsFormatException);
-        expect(() => DidUrl.fromUrlString('did:method'), throwsFormatException);
-      });
+        'should throw FormatException when missing method or methodSpecificId',
+        () {
+          expect(() => DidUrl.fromUrlString('did:'), throwsFormatException);
+          expect(
+            () => DidUrl.fromUrlString('did:method'),
+            throwsFormatException,
+          );
+        },
+      );
 
       test(
-          'should throw FormatException when method or methodSpecificId is empty',
-          () {
-        expect(() => DidUrl.fromUrlString('did::id'), throwsFormatException);
-        expect(
-            () => DidUrl.fromUrlString('did:method:'), throwsFormatException);
-      });
+        'should throw FormatException when method or methodSpecificId is empty',
+        () {
+          expect(() => DidUrl.fromUrlString('did::id'), throwsFormatException);
+          expect(
+            () => DidUrl.fromUrlString('did:method:'),
+            throwsFormatException,
+          );
+        },
+      );
 
       test('should parse all components when valid url', () {
         final url = 'did:foo:bar/path?x=1#frag';
@@ -151,8 +171,11 @@ void main() {
       });
 
       test('should omit optional parts when null', () {
-        final didUrl =
-            TestDidUrl(scheme: 'did', method: 'foo', methodSpecificId: 'bar');
+        final didUrl = TestDidUrl(
+          scheme: 'did',
+          method: 'foo',
+          methodSpecificId: 'bar',
+        );
         expect(didUrl.toDidUrlString(), 'did:foo:bar');
       });
     });

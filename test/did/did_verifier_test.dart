@@ -36,19 +36,21 @@ void main() {
     final didKey = 'did:key:z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu';
     final kid = 'z6MkmM42vxfqZQsv4ehtTjFFxQ4sQKS2w6WR7emozFAn5cxu';
 
-    test('should correctly handle algorithm support for Ed25519 keys',
-        () async {
-      final verifier = await DidVerifier.create(
-        algorithm: SignatureScheme.ed25519,
-        kid: kid,
-        issuerDid: didKey,
-      );
+    test(
+      'should correctly handle algorithm support for Ed25519 keys',
+      () async {
+        final verifier = await DidVerifier.create(
+          algorithm: SignatureScheme.ed25519,
+          kid: kid,
+          issuerDid: didKey,
+        );
 
-      expect(verifier.isAllowedAlgorithm('EdDSA'), isTrue);
-      expect(verifier.isAllowedAlgorithm('Ed25519'), isTrue);
-      expect(verifier.isAllowedAlgorithm('ES256K'), isFalse);
-      expect(verifier.isAllowedAlgorithm('RS256'), isFalse);
-    });
+        expect(verifier.isAllowedAlgorithm('EdDSA'), isTrue);
+        expect(verifier.isAllowedAlgorithm('Ed25519'), isTrue);
+        expect(verifier.isAllowedAlgorithm('ES256K'), isFalse);
+        expect(verifier.isAllowedAlgorithm('RS256'), isFalse);
+      },
+    );
 
     test('should reject invalid signatures for Ed25519 keys', () async {
       final verifier = await DidVerifier.create(
@@ -60,12 +62,18 @@ void main() {
       final testData = Uint8List.fromList(utf8.encode('Test data'));
       final fakeSignature = Uint8List.fromList(List.filled(64, 0));
 
-      expect(verifier.verify(testData, fakeSignature), isFalse,
-          reason: 'Should reject an obviously fake signature');
+      expect(
+        verifier.verify(testData, fakeSignature),
+        isFalse,
+        reason: 'Should reject an obviously fake signature',
+      );
 
       final anotherFakeSignature = Uint8List.fromList(List.filled(64, 1));
-      expect(verifier.verify(testData, anotherFakeSignature), isFalse,
-          reason: 'Should reject another fake signature');
+      expect(
+        verifier.verify(testData, anotherFakeSignature),
+        isFalse,
+        reason: 'Should reject another fake signature',
+      );
     });
 
     test('algorithm mismatch throws error', () async {
@@ -129,30 +137,35 @@ void main() {
         expect(mockResolver.lastDid, equals(didKey));
       });
 
-      test('should use custom resolver with resolver address (Ivan way)',
-          () async {
-        // IVAN's way: When you need a custom resolver address:
-        // 1. Create a UniversalDIDResolver with the address in constructor
-        const customResolverAddress = 'https://example.com/resolver';
-        final resolver =
-            UniversalDIDResolver(resolverAddress: customResolverAddress);
+      test(
+        'should use custom resolver with resolver address (Ivan way)',
+        () async {
+          // IVAN's way: When you need a custom resolver address:
+          // 1. Create a UniversalDIDResolver with the address in constructor
+          const customResolverAddress = 'https://example.com/resolver';
+          final resolver = UniversalDIDResolver(
+            resolverAddress: customResolverAddress,
+          );
 
-        // 2. Pass that resolver instance to DidVerifier
-        // This demonstrates IVAN's approach - resolver address set once in constructor
-        expect(resolver.resolverAddress, equals(customResolverAddress));
-      });
+          // 2. Pass that resolver instance to DidVerifier
+          // This demonstrates IVAN's approach - resolver address set once in constructor
+          expect(resolver.resolverAddress, equals(customResolverAddress));
+        },
+      );
 
-      test('should work without didResolver parameter (default behavior)',
-          () async {
-        final verifier = await DidVerifier.create(
-          algorithm: SignatureScheme.ed25519,
-          kid: kid,
-          issuerDid: didKey,
-        );
+      test(
+        'should work without didResolver parameter (default behavior)',
+        () async {
+          final verifier = await DidVerifier.create(
+            algorithm: SignatureScheme.ed25519,
+            kid: kid,
+            issuerDid: didKey,
+          );
 
-        expect(verifier.isAllowedAlgorithm('EdDSA'), isTrue);
-        expect(verifier.isAllowedAlgorithm('Ed25519'), isTrue);
-      });
+          expect(verifier.isAllowedAlgorithm('EdDSA'), isTrue);
+          expect(verifier.isAllowedAlgorithm('Ed25519'), isTrue);
+        },
+      );
 
       test('should handle exceptions from custom resolver', () async {
         final failingResolver = _FailingDidResolver();

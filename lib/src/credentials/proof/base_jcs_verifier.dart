@@ -36,10 +36,10 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
     super.didResolver,
     DocumentLoader? customDocumentLoader,
   }) : super(
-          issuerDid: verifierDid,
-          getNow: getNow ?? DateTime.now,
-          customDocumentLoader: customDocumentLoader ?? (uri) async => null,
-        );
+         issuerDid: verifierDid,
+         getNow: getNow ?? DateTime.now,
+         customDocumentLoader: customDocumentLoader ?? (uri) async => null,
+       );
 
   @override
   String get expectedProofType => JcsUtils.dataIntegrityType;
@@ -58,7 +58,7 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   ) async {
     return JcsUtils.computeDataIntegrityJcsHash(
       proof,
@@ -75,8 +75,10 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
     Uint8List hash,
   ) async {
     // Decode JCS signature
-    final signature =
-        JcsUtils.decodeJcsSignature(proofValue, expectedJcsCryptosuite);
+    final signature = JcsUtils.decodeJcsSignature(
+      proofValue,
+      expectedJcsCryptosuite,
+    );
 
     // Get signature scheme (may be static or dynamic depending on cryptosuite)
     final signatureScheme = await getSignatureScheme(verificationMethod);
@@ -121,13 +123,17 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
 
   @override
   Future<VerificationResult> validateCryptosuite(
-      Map<String, dynamic> document, Map<String, dynamic> proof) async {
+    Map<String, dynamic> document,
+    Map<String, dynamic> proof,
+  ) async {
     return _validateJcsContext(document, proof);
   }
 
   @override
   Map<String, dynamic> prepareProofForVerification(
-      Map<String, dynamic> proof, Map<String, dynamic> document) {
+    Map<String, dynamic> proof,
+    Map<String, dynamic> document,
+  ) {
     final proofCopy = Map<String, dynamic>.from(proof);
 
     // Use document context in proof for JCS cryptosuites during verification
@@ -145,14 +151,16 @@ abstract class BaseJcsVerifier extends BaseDataIntegrityVerifier {
   /// "The document context must include all proof context entries at the beginning in the same order"
   /// Reference: https://www.w3.org/TR/vc-di-ecdsa/#verify-proof-ecdsa-jcs-2019
   VerificationResult _validateJcsContext(
-      Map<String, dynamic> document, Map<String, dynamic> proof) {
+    Map<String, dynamic> document,
+    Map<String, dynamic> proof,
+  ) {
     final proofContext = proof['@context'];
     if (proofContext != null) {
       final documentContext = document['@context'];
       if (!_contextStartsWith(documentContext, proofContext)) {
         return VerificationResult.invalid(
           errors: [
-            'Document @context must include all proof @context entries at the beginning in the same order'
+            'Document @context must include all proof @context entries at the beginning in the same order',
           ],
         );
       }

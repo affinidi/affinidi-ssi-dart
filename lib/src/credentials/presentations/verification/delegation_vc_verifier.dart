@@ -36,10 +36,10 @@ class DelegationVcVerifier implements VpVerifier {
       final vcHolderDids = holderDid != null
           ? [holderDid]
           : credential.credentialSubject
-              .map((subject) => subject.id?.toString())
-              .where((id) => id != null)
-              .cast<String>()
-              .toList();
+                .map((subject) => subject.id?.toString())
+                .where((id) => id != null)
+                .cast<String>()
+                .toList();
 
       if (vcHolderDids.isEmpty) {
         continue;
@@ -50,7 +50,8 @@ class DelegationVcVerifier implements VpVerifier {
           if (isDelegation) {
             isValidDelegationCheck = false;
             delegationErrors.add(
-                'Delegation VC ${credential.id} cannot be delegated for: $vpHolderDid');
+              'Delegation VC ${credential.id} cannot be delegated for: $vpHolderDid',
+            );
             continue;
           }
           externalHolderVcIdsMap
@@ -80,9 +81,10 @@ class DelegationVcVerifier implements VpVerifier {
 
       if (delegationLevel != 'restricted' && delegationLevel != 'full') {
         isValidDelegationCheck = false;
-        delegationErrors
-            .add('Invalid delegation level: $delegationLevel for VC '
-                '${delegationCredentialBySigner.id}');
+        delegationErrors.add(
+          'Invalid delegation level: $delegationLevel for VC '
+          '${delegationCredentialBySigner.id}',
+        );
         continue;
       }
 
@@ -96,37 +98,44 @@ class DelegationVcVerifier implements VpVerifier {
           .toList();
 
       final missedVcs = vcIds
-          .where((vcId) => !delegationCredentialIds
-              .map((e) => e.toLowerCase())
-              .contains(vcId.toLowerCase()))
+          .where(
+            (vcId) => !delegationCredentialIds
+                .map((e) => e.toLowerCase())
+                .contains(vcId.toLowerCase()),
+          )
           .toList();
 
       if (missedVcs.isNotEmpty) {
         isValidDelegationCheck = false;
-        delegationErrors
-            .add('Missing delegation VC IDs: ${missedVcs.join(', ')}');
+        delegationErrors.add(
+          'Missing delegation VC IDs: ${missedVcs.join(', ')}',
+        );
       }
 
       final unexpectedVcs = delegationCredentialIds
-          .where((vcId) =>
-              !vcIds.map((e) => e.toLowerCase()).contains(vcId.toLowerCase()))
+          .where(
+            (vcId) =>
+                !vcIds.map((e) => e.toLowerCase()).contains(vcId.toLowerCase()),
+          )
           .toList();
       if (unexpectedVcs.isNotEmpty) {
         isValidDelegationCheck = false;
         delegationErrors.add(
-            'Unexpected VCs in the Delegation VC: ${unexpectedVcs.join(', ')}');
+          'Unexpected VCs in the Delegation VC: ${unexpectedVcs.join(', ')}',
+        );
       }
 
-      final delegationHolderJson =
-          delegationCredentialBySigner.toJson()['holder'];
+      final delegationHolderJson = delegationCredentialBySigner
+          .toJson()['holder'];
       final delegationHolderId = delegationHolderJson is String
           ? delegationHolderJson
           : (delegationHolderJson as Map<String, dynamic>?)?['id'] as String?;
 
       if (delegationHolderId != vpHolderDid) {
         isValidDelegationCheck = false;
-        delegationErrors
-            .add('Invalid delegation VC holder: $delegationHolderId');
+        delegationErrors.add(
+          'Invalid delegation VC holder: $delegationHolderId',
+        );
       }
     }
 

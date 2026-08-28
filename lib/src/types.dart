@@ -142,11 +142,11 @@ enum SignatureScheme {
 const cryptosuiteToScheme = <String, List<SignatureScheme>>{
   'ecdsa-rdfc-2019': [
     SignatureScheme.ecdsa_p256_sha256,
-    SignatureScheme.ecdsa_p384_sha384
+    SignatureScheme.ecdsa_p384_sha384,
   ],
   'ecdsa-jcs-2019': [
     SignatureScheme.ecdsa_p256_sha256,
-    SignatureScheme.ecdsa_p384_sha384
+    SignatureScheme.ecdsa_p384_sha384,
   ],
   'eddsa-rdfc-2022': [SignatureScheme.ed25519],
   'eddsa-jcs-2022': [SignatureScheme.ed25519],
@@ -193,7 +193,7 @@ enum DidPeerType {
   peer0,
 
   /// DID Peer type 2.
-  peer2
+  peer2,
 }
 
 /// Abstract class for JSON objects.
@@ -221,11 +221,9 @@ class VerificationResult {
   ///
   /// [errors] The list of errors.
   /// [warnings] The list of warnings.
-  VerificationResult._({
-    List<String>? errors,
-    List<String>? warnings,
-  })  : warnings = List.unmodifiable(warnings ?? []),
-        errors = List.unmodifiable(errors ?? []);
+  VerificationResult._({List<String>? errors, List<String>? warnings})
+    : warnings = List.unmodifiable(warnings ?? []),
+      errors = List.unmodifiable(errors ?? []);
 
   /// Creates a valid [VerificationResult] with optional warnings.
   ///

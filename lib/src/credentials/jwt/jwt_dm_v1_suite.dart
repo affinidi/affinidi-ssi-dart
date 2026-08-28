@@ -68,8 +68,10 @@ final class JwtDm1Suite
   /// Issues a signed [JwtVcDataModelV1] from a [VcDataModelV1] using a DidSigner.
   ///
   /// Optionally takes options for JWT issuance configuration.
-  Future<JwtVcDataModelV1> issue(
-      {required VcDataModelV1 unsignedData, required DidSigner signer}) async {
+  Future<JwtVcDataModelV1> issue({
+    required VcDataModelV1 unsignedData,
+    required DidSigner signer,
+  }) async {
     if (signer.did != unsignedData.issuer.id.toString()) {
       throw SsiException(
         message: 'Issuer mismatch',
@@ -78,22 +80,27 @@ final class JwtDm1Suite
     }
 
     final jwtUtil = JwtUtil(signer);
-    final (header, payload) =
-        JwtVcDataModelV1.vcToJws(unsignedData.toJson(), signer);
+    final (header, payload) = JwtVcDataModelV1.vcToJws(
+      unsignedData.toJson(),
+      signer,
+    );
     final result = await jwtUtil.signJwt(header, payload);
     final jws = Jws(
-        header: header,
-        payload: payload,
-        signature: result.signature,
-        serialized: result.serialized);
+      header: header,
+      payload: payload,
+      signature: result.signature,
+      serialized: result.serialized,
+    );
 
     return JwtVcDataModelV1.fromJws(jws);
   }
 
   @override
-  Future<bool> verifyIntegrity(JwtVcDataModelV1 input,
-      {DateTime Function() getNow = DateTime.now,
-      DidResolver? didResolver}) async {
+  Future<bool> verifyIntegrity(
+    JwtVcDataModelV1 input, {
+    DateTime Function() getNow = DateTime.now,
+    DidResolver? didResolver,
+  }) async {
     final segments = input.serialized.split('.');
 
     if (segments.length != 3) {
@@ -106,8 +113,9 @@ final class JwtDm1Suite
     var now = getNow();
     final exp = input.jws.payload['exp'];
     if (exp != null &&
-        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000,
-            isUtc: true))) {
+        now.isAfter(
+          DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000, isUtc: true),
+        )) {
       return false;
     }
 
@@ -115,19 +123,18 @@ final class JwtDm1Suite
     final encodedPayload = segments[1];
     final encodedSignature = segments[2];
 
-    final decodedHeader = jsonDecode(
-      utf8.decode(
-        base64UrlNoPadDecode(encodedHeader),
-      ),
-    ) as Map<String, dynamic>;
+    final decodedHeader =
+        jsonDecode(utf8.decode(base64UrlNoPadDecode(encodedHeader)))
+            as Map<String, dynamic>;
 
     final toSign = ascii.encode('$encodedHeader.$encodedPayload');
 
     final did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
 
     //TODO(FTL-20735) add discovery
-    final algorithm =
-        SignatureScheme.fromAlg(input.jws.header['alg'] as String);
+    final algorithm = SignatureScheme.fromAlg(
+      input.jws.header['alg'] as String,
+    );
 
     final verifier = await DidVerifier.create(
       algorithm: algorithm,

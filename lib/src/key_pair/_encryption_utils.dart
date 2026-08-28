@@ -167,8 +167,10 @@ class EncryptionUtils {
 
   /// Removes padding from the input bytes.
   Uint8List _unpad(Uint8List padded) {
-    final unpadded =
-        padded.sublist(0, padded.length - pce.PKCS7Padding().padCount(padded));
+    final unpadded = padded.sublist(
+      0,
+      padded.length - pce.PKCS7Padding().padCount(padded),
+    );
     return unpadded;
   }
 

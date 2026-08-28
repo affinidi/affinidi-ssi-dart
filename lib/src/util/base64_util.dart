@@ -17,9 +17,7 @@ String base64UrlNoPadEncode(Uint8List input) {
 Uint8List base64UrlNoPadDecode(String input) {
   var pad = (4 - (input.length & 3)) & 3;
 
-  return base64Url.decode(
-    input.padRight(input.length + pad, '='),
-  );
+  return base64Url.decode(input.padRight(input.length + pad, '='));
 }
 
 // String addPaddingToBase64(String base64Input) {

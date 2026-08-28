@@ -42,8 +42,10 @@ Future<void> main() async {
 
   // Issue the VP using the V1 suite
   final vpToSign = VpDataModelV1.fromMutable(v1Vp);
-  final issuedVp = await LdVpDm1Suite()
-      .issue(unsignedData: vpToSign, proofGenerator: proofGenerator);
+  final issuedVp = await LdVpDm1Suite().issue(
+    unsignedData: vpToSign,
+    proofGenerator: proofGenerator,
+  );
 
   // Output result
   print('Serialized VP:\n${issuedVp.serialized}');

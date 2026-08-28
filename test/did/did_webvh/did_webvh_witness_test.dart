@@ -18,7 +18,7 @@ void main() {
             'verificationMethod': 'did:key:z6MkWitness1#z6MkWitness1',
             'proofPurpose': 'assertionMethod',
             'proofValue': 'z5signature...',
-          }
+          },
         ],
       };
 
@@ -66,32 +66,34 @@ void main() {
     test('should throw when versionId is missing', () {
       final json = {
         'proof': [
-          {'type': 'DataIntegrityProof'}
+          {'type': 'DataIntegrityProof'},
         ],
       };
 
       expect(
         () => DidWebVhWitness.fromJson(json),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('versionId'),
-        )),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('versionId'),
+          ),
+        ),
       );
     });
 
     test('should throw when proof is missing', () {
-      final json = {
-        'versionId': '3-QmHash123',
-      };
+      final json = {'versionId': '3-QmHash123'};
 
       expect(
         () => DidWebVhWitness.fromJson(json),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('proof'),
-        )),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('proof'),
+          ),
+        ),
       );
     });
 
@@ -161,14 +163,18 @@ void main() {
 ''';
 
       final mockClient = MockClient((request) async {
-        expect(request.url.toString(),
-            equals('https://example.com/.well-known/did-witness.json'));
+        expect(
+          request.url.toString(),
+          equals('https://example.com/.well-known/did-witness.json'),
+        );
         return http.Response(witnessJson, 200);
       });
 
       final did = DidWebVhUrl.fromUrlString('did:webvh:QmScid123:example.com');
       final witnesses = await DidWebVhWitnessVerifier.fetchWitnesses(
-          did.witnessUrlString, mockClient);
+        did.witnessUrlString,
+        mockClient,
+      );
 
       expect(witnesses.length, equals(1));
       expect(witnesses[0].versionId, equals('3-QmHash123'));
@@ -197,7 +203,9 @@ void main() {
 
       final did = DidWebVhUrl.fromUrlString('did:webvh:QmScid123:example.com');
       final witnesses = await DidWebVhWitnessVerifier.fetchWitnesses(
-          did.witnessUrlString, mockClient);
+        did.witnessUrlString,
+        mockClient,
+      );
 
       expect(witnesses.length, equals(2));
       expect(witnesses[0].versionId, equals('3-QmHash123'));
@@ -215,12 +223,16 @@ void main() {
 
       expect(
         () => DidWebVhWitnessVerifier.fetchWitnesses(
-            did.witnessUrlString, mockClient),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('expected array'),
-        )),
+          did.witnessUrlString,
+          mockClient,
+        ),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('expected array'),
+          ),
+        ),
       );
     });
 
@@ -233,59 +245,73 @@ void main() {
 
       expect(
         () => DidWebVhWitnessVerifier.fetchWitnesses(
-            did.witnessUrlString, mockClient),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('404'),
-        )),
+          did.witnessUrlString,
+          mockClient,
+        ),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('404'),
+          ),
+        ),
       );
     });
 
     test('should construct correct witness URL for DID with path', () async {
       final mockClient = MockClient((request) async {
-        expect(request.url.toString(),
-            equals('https://example.com/users/alice/did-witness.json'));
+        expect(
+          request.url.toString(),
+          equals('https://example.com/users/alice/did-witness.json'),
+        );
         return http.Response('[]', 200);
       });
 
       final did = DidWebVhUrl.fromUrlString(
-          'did:webvh:QmScid123:example.com:users:alice');
+        'did:webvh:QmScid123:example.com:users:alice',
+      );
       await DidWebVhWitnessVerifier.fetchWitnesses(
-          did.witnessUrlString, mockClient);
+        did.witnessUrlString,
+        mockClient,
+      );
     });
   });
 
   group('DidWebVhWitnessVerifier.verify', () {
     // Helper to create a mock log entry
     DidWebVhLogEntry createMockEntry(int versionNumber, String hash) {
-      final jsonLines = '''
+      final jsonLines =
+          '''
 {"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
     }
 
-    test('should return invalid when threshold > number of witnesses',
-        () async {
-      final verifier = DidWebVhWitnessVerifier();
-      final entry = createMockEntry(2, 'QmHash');
+    test(
+      'should return invalid when threshold > number of witnesses',
+      () async {
+        final verifier = DidWebVhWitnessVerifier();
+        final entry = createMockEntry(2, 'QmHash');
 
-      expect(
-        () async => await verifier.verify(
-          entry: entry,
-          witnessProofs: [],
-          witnessConfig: WitnessParameter(
-              threshold: 2, witnesses: [Witness(id: 'did:key:z6MkWitness1')]),
-        ),
-        throwsA(
-          isA<SsiException>().having(
-            (e) => e.message,
-            'message',
-            contains('threshold (2) exceeds number of witnesses (1)'),
+        expect(
+          () async => await verifier.verify(
+            entry: entry,
+            witnessProofs: [],
+            witnessConfig: WitnessParameter(
+              threshold: 2,
+              witnesses: [Witness(id: 'did:key:z6MkWitness1')],
+            ),
           ),
-        ),
-      );
-    });
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.message,
+              'message',
+              contains('threshold (2) exceeds number of witnesses (1)'),
+            ),
+          ),
+        );
+      },
+    );
 
     test('should return invalid when no proofs and threshold > 0', () async {
       final verifier = DidWebVhWitnessVerifier();
@@ -323,7 +349,7 @@ void main() {
               'verificationMethod': 'did:key:z6MkWitness1#z6MkWitness1',
               'proofPurpose': 'assertionMethod',
               'proofValue': 'z5sig...',
-            }
+            },
           ],
         }),
       ];
@@ -333,9 +359,7 @@ void main() {
         witnessProofs: witnessProofs,
         witnessConfig: WitnessParameter(
           threshold: 1,
-          witnesses: [
-            Witness(id: 'did:key:z6MkWitness1'),
-          ],
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
         ),
       );
 
@@ -357,7 +381,7 @@ void main() {
               'verificationMethod': 'did:key:z6MkWitness1#z6MkWitness1',
               'proofPurpose': 'authentication',
               'proofValue': 'z5sig...',
-            }
+            },
           ],
         }),
       ];
@@ -367,9 +391,7 @@ void main() {
         witnessProofs: witnessProofs,
         witnessConfig: WitnessParameter(
           threshold: 1,
-          witnesses: [
-            Witness(id: 'did:key:z6MkWitness1'),
-          ],
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
         ),
       );
 
@@ -391,7 +413,7 @@ void main() {
               'verificationMethod': 'did:key:z6MkUnauthorized#z6MkUnauthorized',
               'proofPurpose': 'assertionMethod',
               'proofValue': 'z5sig...',
-            }
+            },
           ],
         }),
       ];
@@ -401,9 +423,7 @@ void main() {
         witnessProofs: witnessProofs,
         witnessConfig: WitnessParameter(
           threshold: 1,
-          witnesses: [
-            Witness(id: 'did:key:z6MkWitness1'),
-          ],
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
         ),
       );
 
@@ -425,7 +445,7 @@ void main() {
               'verificationMethod': 'did:web:example.com#key1',
               'proofPurpose': 'assertionMethod',
               'proofValue': 'z5sig...',
-            }
+            },
           ],
         }),
       ];
@@ -435,9 +455,7 @@ void main() {
         witnessProofs: witnessProofs,
         witnessConfig: WitnessParameter(
           threshold: 1,
-          witnesses: [
-            Witness(id: 'did:web:example.com'),
-          ],
+          witnesses: [Witness(id: 'did:web:example.com')],
         ),
       );
 
@@ -446,44 +464,43 @@ void main() {
     });
 
     test(
-        'should apply later proofs rule - proof for version N covers entry < N',
-        () async {
-      final verifier = DidWebVhWitnessVerifier();
-      // Entry is version 2
-      final entry = createMockEntry(2, 'QmHash2');
+      'should apply later proofs rule - proof for version N covers entry < N',
+      () async {
+        final verifier = DidWebVhWitnessVerifier();
+        // Entry is version 2
+        final entry = createMockEntry(2, 'QmHash2');
 
-      // Proof is for version 5 (later than entry version 2)
-      final witnessProofs = [
-        DidWebVhWitness.fromJson({
-          'versionId': '5-QmHash5',
-          'proof': [
-            {
-              'type': 'DataIntegrityProof',
-              'cryptosuite': 'eddsa-jcs-2022',
-              'verificationMethod': 'did:key:z6MkWitness1#z6MkWitness1',
-              'proofPurpose': 'assertionMethod',
-              'proofValue': 'z5sig...',
-            }
-          ],
-        }),
-      ];
+        // Proof is for version 5 (later than entry version 2)
+        final witnessProofs = [
+          DidWebVhWitness.fromJson({
+            'versionId': '5-QmHash5',
+            'proof': [
+              {
+                'type': 'DataIntegrityProof',
+                'cryptosuite': 'eddsa-jcs-2022',
+                'verificationMethod': 'did:key:z6MkWitness1#z6MkWitness1',
+                'proofPurpose': 'assertionMethod',
+                'proofValue': 'z5sig...',
+              },
+            ],
+          }),
+        ];
 
-      final result = await verifier.verify(
-        entry: entry,
-        witnessProofs: witnessProofs,
-        witnessConfig: WitnessParameter(
-          threshold: 1,
-          witnesses: [
-            Witness(id: 'did:key:z6MkWitness1'),
-          ],
-        ),
-      );
+        final result = await verifier.verify(
+          entry: entry,
+          witnessProofs: witnessProofs,
+          witnessConfig: WitnessParameter(
+            threshold: 1,
+            witnesses: [Witness(id: 'did:key:z6MkWitness1')],
+          ),
+        );
 
-      // The proof should be applicable (version 5 >= version 2)
-      // But signature verification will fail since it's a fake signature
-      // The important thing is that the proof was considered (not skipped due to version)
-      expect(result.validCount, equals(0)); // Signature verification fails
-    });
+        // The proof should be applicable (version 5 >= version 2)
+        // But signature verification will fail since it's a fake signature
+        // The important thing is that the proof was considered (not skipped due to version)
+        expect(result.validCount, equals(0)); // Signature verification fails
+      },
+    );
 
     test('should NOT apply proofs from earlier versions', () async {
       final verifier = DidWebVhWitnessVerifier();
@@ -501,7 +518,7 @@ void main() {
               'verificationMethod': 'did:key:z6MkWitness1#z6MkWitness1',
               'proofPurpose': 'assertionMethod',
               'proofValue': 'z5sig...',
-            }
+            },
           ],
         }),
       ];
@@ -511,9 +528,7 @@ void main() {
         witnessProofs: witnessProofs,
         witnessConfig: WitnessParameter(
           threshold: 1,
-          witnesses: [
-            Witness(id: 'did:key:z6MkWitness1'),
-          ],
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
         ),
       );
 
@@ -537,7 +552,7 @@ void main() {
               'verificationMethod': 'did:key:z6MkWitness1#z6MkWitness1',
               'proofPurpose': 'assertionMethod',
               'proofValue': 'z5sig1...',
-            }
+            },
           ],
         }),
         DidWebVhWitness.fromJson({
@@ -549,7 +564,7 @@ void main() {
               'verificationMethod': 'did:key:z6MkWitness1#z6MkWitness1',
               'proofPurpose': 'assertionMethod',
               'proofValue': 'z5sig2...',
-            }
+            },
           ],
         }),
       ];
@@ -559,9 +574,7 @@ void main() {
         witnessProofs: witnessProofs,
         witnessConfig: WitnessParameter(
           threshold: 1,
-          witnesses: [
-            Witness(id: 'did:key:z6MkWitness1'),
-          ],
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
         ),
       );
 
@@ -587,7 +600,7 @@ void main() {
               'proofPurpose': 'assertionMethod',
               'proofValue': 'z5sig...',
               // Missing verificationMethod
-            }
+            },
           ],
         }),
       ];
@@ -597,9 +610,7 @@ void main() {
         witnessProofs: witnessProofs,
         witnessConfig: WitnessParameter(
           threshold: 1,
-          witnesses: [
-            Witness(id: 'did:key:z6MkWitness1'),
-          ],
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
         ),
       );
 
@@ -607,46 +618,50 @@ void main() {
       expect(result.validCount, equals(0));
     });
 
-    test('should throw on empty witness config (threshold defaults to 0)',
-        () async {
-      final verifier = DidWebVhWitnessVerifier();
-      final entry = createMockEntry(2, 'QmHash');
+    test(
+      'should throw on empty witness config (threshold defaults to 0)',
+      () async {
+        final verifier = DidWebVhWitnessVerifier();
+        final entry = createMockEntry(2, 'QmHash');
 
-      // Empty config means threshold defaults to 0, which is invalid per spec
-      expect(
-        () async => await verifier.verify(
-          entry: entry,
-          witnessProofs: [],
-          witnessConfig: WitnessParameter(),
-        ),
-        throwsA(
-          isA<SsiException>().having(
-            (e) => e.message,
-            'message',
-            contains('threshold must be at least 1'),
+        // Empty config means threshold defaults to 0, which is invalid per spec
+        expect(
+          () async => await verifier.verify(
+            entry: entry,
+            witnessProofs: [],
+            witnessConfig: WitnessParameter(),
           ),
-        ),
-      );
-    });
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.message,
+              'message',
+              contains('threshold must be at least 1'),
+            ),
+          ),
+        );
+      },
+    );
   });
 
   group('Witness requirement computation', () {
     // These tests verify the logic of which entries require witnessing
     // by testing through the verify behavior
 
-    test('first entry never requires witnessing even with witness config',
-        () async {
-      // This is tested indirectly - the _computeEntriesRequiringWitness
-      // method skips the first entry
-      final jsonLines = '''
+    test(
+      'first entry never requires witnessing even with witness config',
+      () async {
+        // This is tested indirectly - the _computeEntriesRequiringWitness
+        // method skips the first entry
+        final jsonLines = '''
 {"versionId":"1-QmHash1","versionTime":"2025-01-01T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"],"witness":{"threshold":2,"witnesses":[{"id":"did:key:z6Mk1"},{"id":"did:key:z6Mk2"}]}},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6Mk1#z6Mk1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
-      final log = DidWebVhLog.fromJsonLines(jsonLines);
+        final log = DidWebVhLog.fromJsonLines(jsonLines);
 
-      // First entry has witness config but should not require witnessing
-      expect(log.entries[0].parameters.witness, isNotNull);
-      expect(log.entries[0].parameters.witness!.threshold!, equals(2));
-    });
+        // First entry has witness config but should not require witnessing
+        expect(log.entries[0].parameters.witness, isNotNull);
+        expect(log.entries[0].parameters.witness!.threshold!, equals(2));
+      },
+    );
 
     test('entry inherits witness config from previous entry', () {
       final jsonLines = '''
@@ -719,7 +734,8 @@ void main() {
 
   group('Complex witness scenarios', () {
     DidWebVhLogEntry createMockEntry(int versionNumber, String hash) {
-      final jsonLines = '''
+      final jsonLines =
+          '''
 {"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
@@ -752,9 +768,7 @@ void main() {
         witnessProofs: [],
         witnessConfig: WitnessParameter(
           threshold: 1,
-          witnesses: [
-            Witness(id: 'did:key:z6MkWitness1'),
-          ],
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
         ),
       );
 
@@ -889,35 +903,47 @@ void main() {
   group('Witness URL construction', () {
     test('should construct URL for simple domain', () {
       final did = DidWebVhUrl.fromUrlString('did:webvh:QmScid:example.com');
-      expect(did.witnessUrlString,
-          equals('https://example.com/.well-known/did-witness.json'));
+      expect(
+        did.witnessUrlString,
+        equals('https://example.com/.well-known/did-witness.json'),
+      );
     });
 
     test('should construct URL for domain with port', () {
-      final did =
-          DidWebVhUrl.fromUrlString('did:webvh:QmScid:example.com%3A8080');
-      expect(did.witnessUrlString,
-          equals('https://example.com:8080/.well-known/did-witness.json'));
+      final did = DidWebVhUrl.fromUrlString(
+        'did:webvh:QmScid:example.com%3A8080',
+      );
+      expect(
+        did.witnessUrlString,
+        equals('https://example.com:8080/.well-known/did-witness.json'),
+      );
     });
 
     test('should construct URL for domain with path', () {
-      final did =
-          DidWebVhUrl.fromUrlString('did:webvh:QmScid:example.com:users:alice');
-      expect(did.witnessUrlString,
-          equals('https://example.com/users/alice/did-witness.json'));
+      final did = DidWebVhUrl.fromUrlString(
+        'did:webvh:QmScid:example.com:users:alice',
+      );
+      expect(
+        did.witnessUrlString,
+        equals('https://example.com/users/alice/did-witness.json'),
+      );
     });
 
     test('should construct URL for complex path', () {
-      final did =
-          DidWebVhUrl.fromUrlString('did:webvh:QmScid:example.com:a:b:c:d:e');
-      expect(did.witnessUrlString,
-          equals('https://example.com/a/b/c/d/e/did-witness.json'));
+      final did = DidWebVhUrl.fromUrlString(
+        'did:webvh:QmScid:example.com:a:b:c:d:e',
+      );
+      expect(
+        did.witnessUrlString,
+        equals('https://example.com/a/b/c/d/e/did-witness.json'),
+      );
     });
   });
 
   group('Error message validation', () {
     DidWebVhLogEntry createMockEntry(int versionNumber, String hash) {
-      final jsonLines = '''
+      final jsonLines =
+          '''
 {"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
@@ -967,7 +993,8 @@ void main() {
 
   group('Edge cases', () {
     DidWebVhLogEntry createMockEntry(int versionNumber, String hash) {
-      final jsonLines = '''
+      final jsonLines =
+          '''
 {"versionId":"$versionNumber-$hash","versionTime":"2025-01-0${versionNumber}T00:00:00Z","parameters":{"method":"did:webvh:1.0","scid":"QmScid123","updateKeys":["z6MkKey1"]},"state":{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:webvh:QmScid123:example.com"},"proof":[{"type":"DataIntegrityProof","cryptosuite":"eddsa-jcs-2022","verificationMethod":"did:key:z6MkKey1#z6MkKey1","proofPurpose":"assertionMethod","proofValue":"z5sig..."}]}
 ''';
       return DidWebVhLog.fromJsonLines(jsonLines).entries[0];
@@ -982,9 +1009,7 @@ void main() {
         () async => await verifier.verify(
           entry: entry,
           witnessProofs: [],
-          witnessConfig: WitnessParameter(
-            witnesses: [],
-          ),
+          witnessConfig: WitnessParameter(witnesses: []),
         ),
         throwsA(
           isA<SsiException>().having(
@@ -996,27 +1021,29 @@ void main() {
       );
     });
 
-    test('should throw on empty witnessConfig (threshold defaults to 0)',
-        () async {
-      final verifier = DidWebVhWitnessVerifier();
-      final entry = createMockEntry(2, 'QmHash');
+    test(
+      'should throw on empty witnessConfig (threshold defaults to 0)',
+      () async {
+        final verifier = DidWebVhWitnessVerifier();
+        final entry = createMockEntry(2, 'QmHash');
 
-      // Empty config defaults threshold to 0, which is invalid per spec
-      expect(
-        () async => await verifier.verify(
-          entry: entry,
-          witnessProofs: [],
-          witnessConfig: WitnessParameter(),
-        ),
-        throwsA(
-          isA<SsiException>().having(
-            (e) => e.message,
-            'message',
-            contains('threshold must be at least 1'),
+        // Empty config defaults threshold to 0, which is invalid per spec
+        expect(
+          () async => await verifier.verify(
+            entry: entry,
+            witnessProofs: [],
+            witnessConfig: WitnessParameter(),
           ),
-        ),
-      );
-    });
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.message,
+              'message',
+              contains('threshold must be at least 1'),
+            ),
+          ),
+        );
+      },
+    );
 
     test('should throw on negative threshold', () async {
       final verifier = DidWebVhWitnessVerifier();
@@ -1050,9 +1077,7 @@ void main() {
         () async => await verifier.verify(
           entry: entry,
           witnessProofs: [],
-          witnessConfig: WitnessParameter(
-            threshold: 0,
-          ),
+          witnessConfig: WitnessParameter(threshold: 0),
         ),
         throwsA(
           isA<SsiException>().having(
@@ -1079,7 +1104,7 @@ void main() {
                   'did:key:Z6MkWitness1#Z6MkWitness1', // Capital Z
               'proofPurpose': 'assertionMethod',
               'proofValue': 'z5sig...',
-            }
+            },
           ],
         }),
       ];
@@ -1115,7 +1140,7 @@ void main() {
               'proofValue': 'z5sig...',
               'created': '2025-01-03T00:00:00Z',
               'extraField': 'should be ignored',
-            }
+            },
           ],
         }),
       ];
@@ -1125,9 +1150,7 @@ void main() {
         witnessProofs: witnessProofs,
         witnessConfig: WitnessParameter(
           threshold: 1,
-          witnesses: [
-            Witness(id: 'did:key:z6MkWitness1'),
-          ],
+          witnesses: [Witness(id: 'did:key:z6MkWitness1')],
         ),
       );
 

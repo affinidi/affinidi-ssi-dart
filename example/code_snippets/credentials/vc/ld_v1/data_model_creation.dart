@@ -7,17 +7,17 @@ void main() {
   final credentialJson = {
     '@context': [
       'https://www.w3.org/2018/credentials/v1',
-      'https://schema.affinidi.io/HITContactsV1R0.jsonld'
+      'https://schema.affinidi.io/HITContactsV1R0.jsonld',
     ],
     'id': 'claimId:02-aaaaaa-aaaaaaaaaaa',
     'type': ['VerifiableCredential', 'HITContacts'],
     'holder': {
-      'id': 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa'
+      'id': 'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa',
     },
     'credentialSubject': {'email': 'user@affinidi.com'},
     'credentialSchema': {
       'id': 'credentialSchemaId',
-      'type': 'credentialSchemaType'
+      'type': 'credentialSchemaType',
     },
     'issuanceDate': '2024-07-16T20:16:05.648',
     'expirationDate': '2024-07-18T20:16:05.648',
@@ -29,8 +29,8 @@ void main() {
       'verificationMethod':
           'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa#aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa',
       'jws':
-          'eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..ee19g6fjm34kb9aG_tGzVyW5-sLq6KvFTBnmOHX3ibBFrikO8xYMp3pCg1SU3gePtSnAVKzyDIfxj1xifGcQHw'
-    }
+          'eyJhbGciOiJFUzI1NksiLCJiNjQiOmZhbHNlLCJjcml0IjpbImI2NCJdfQ..ee19g6fjm34kb9aG_tGzVyW5-sLq6KvFTBnmOHX3ibBFrikO8xYMp3pCg1SU3gePtSnAVKzyDIfxj1xifGcQHw',
+    },
   };
 
   // Parse the VC from JSON
