@@ -12,18 +12,18 @@ Uint8List ed25519PublicToX25519Public(List<int> ed25519Public) {
   final Y = x25519.FieldElement();
   x25519.feFromBytes(Y, ed25519Public);
   final oneMinusY = x25519.FieldElement();
-  x25519.FeOne(oneMinusY);
-  x25519.FeSub(oneMinusY, oneMinusY, Y);
+  x25519.feOne(oneMinusY);
+  x25519.feSub(oneMinusY, oneMinusY, Y);
   x25519.feInvert(oneMinusY, oneMinusY);
 
   final outX = x25519.FieldElement();
-  x25519.FeOne(outX);
-  x25519.FeAdd(outX, outX, Y);
+  x25519.feOne(outX);
+  x25519.feAdd(outX, outX, Y);
 
   x25519.feMul(outX, outX, oneMinusY);
 
   final dst = List.filled(32, 0);
-  x25519.FeToBytes(dst, outX);
+  x25519.feToBytes(dst, outX);
 
   return Uint8List.fromList(dst);
 }

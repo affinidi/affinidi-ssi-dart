@@ -2,7 +2,7 @@ name: ssi
 description: >-
   Affinidi SSI library for Dart provides a comprehensive suite of tools and
   libraries for implementing Self-Sovereign Identity (SSI) solutions.
-version: 1.7.0
+version: 1.7.1
 repository: https://github.com/affinidi/affinidi-ssi-dart
 environment:
   sdk: ^3.6.0
@@ -20,7 +20,7 @@ dependencies:
   json_ld_processor: ^1.0.4
   pointycastle: ^4.0.0
   selective_disclosure_jwt: ^1.0.3
-  x25519: ^0.1.1
+  x25519: ^0.1.2
 
 dev_dependencies:
   aws_kms_api: ^2.0.0
