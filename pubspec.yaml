@@ -13,7 +13,7 @@ dependencies:
   crypto: ^3.0.3
   cryptography: ^2.7.0
   dart_jsonwebtoken: ^3.2.0
-  ecdsa: ^0.1.2
+  ecdsa: ^0.2.0
   ed25519_edwards: ^0.3.1
   ed25519_hd_key: ^2.3.0
   elliptic: ^0.3.11
