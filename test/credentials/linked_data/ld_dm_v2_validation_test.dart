@@ -8,7 +8,8 @@ import 'package:test/test.dart';
 void main() {
   group('LD Credential v2 Validation Tests', () {
     final testSeed = Uint8List.fromList(
-        utf8.encode('test seed for deterministic key generation'));
+      utf8.encode('test seed for deterministic key generation'),
+    );
 
     late DidSigner signer;
     late Secp256k1Signature2019Generator signerAdapter;
@@ -30,7 +31,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
       );
 
@@ -42,8 +43,9 @@ void main() {
 
     test('Throws when context does not include required URL', () {
       final credentialWithWrongContext = MutableVcDataModelV2(
-        context: MutableJsonLdContext.fromJson(
-            ['https://www.w3.org/2018/credentials/v1']),
+        context: MutableJsonLdContext.fromJson([
+          'https://www.w3.org/2018/credentials/v1',
+        ]),
         // Wrong context URL
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
@@ -52,7 +54,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
       );
 
@@ -72,7 +74,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
       );
 
@@ -92,7 +94,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
       );
 
@@ -145,7 +147,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
         proof: [
           EmbeddedProof(
@@ -162,11 +164,13 @@ void main() {
 
       expect(
         () => VcDataModelV2.fromMutable(credentialWithEmptyProofId),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('Proof id cannot be empty'),
-        )),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Proof id cannot be empty'),
+          ),
+        ),
       );
     });
 
@@ -182,7 +186,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
         proof: [
           EmbeddedProof(
@@ -208,11 +212,13 @@ void main() {
 
       expect(
         () => VcDataModelV2.fromMutable(credentialWithDuplicateProofIds),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('Multiple proofs are not supported'),
-        )),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Multiple proofs are not supported'),
+          ),
+        ),
       );
     });
   });

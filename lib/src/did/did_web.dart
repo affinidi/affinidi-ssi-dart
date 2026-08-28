@@ -36,19 +36,23 @@ class DidWeb {
   }) {
     final context = [
       'https://www.w3.org/ns/did/v1',
-      'https://w3id.org/security/multikey/v1'
+      'https://w3id.org/security/multikey/v1',
     ];
 
     final vms = <EmbeddedVerificationMethod>[];
     for (var i = 0; i < verificationMethodIds.length; i++) {
       final vmId = verificationMethodIds[i];
       final pubKey = publicKeys[i];
-      vms.add(VerificationMethodMultibase(
-        id: vmId,
-        controller: did,
-        type: 'Multikey',
-        publicKeyMultibase: toMultiBase(toMultikey(pubKey.bytes, pubKey.type)),
-      ));
+      vms.add(
+        VerificationMethodMultibase(
+          id: vmId,
+          controller: did,
+          type: 'Multikey',
+          publicKeyMultibase: toMultiBase(
+            toMultikey(pubKey.bytes, pubKey.type),
+          ),
+        ),
+      );
     }
 
     return DidDocument.create(
@@ -80,9 +84,7 @@ class DidWeb {
   /// [didToResolve] - The DID to resolve.
   ///
   /// Returns a [DidDocument] object.
-  static Future<DidDocument> resolve(
-    String didToResolve,
-  ) async {
+  static Future<DidDocument> resolve(String didToResolve) async {
     if (!didToResolve.startsWith('did:web')) {
       throw SsiException(
         message: '`$didToResolve` is not did:web DID',
@@ -91,11 +93,16 @@ class DidWeb {
     }
 
     try {
-      var res = await get(didWebToUri(didToResolve),
-              headers: {'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 30), onTimeout: () {
-        return Response('Timeout', 408);
-      });
+      var res =
+          await get(
+            didWebToUri(didToResolve),
+            headers: {'Accept': 'application/json'},
+          ).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              return Response('Timeout', 408);
+            },
+          );
 
       if (res.statusCode == 200) {
         return DidDocument.fromJson(res.body);

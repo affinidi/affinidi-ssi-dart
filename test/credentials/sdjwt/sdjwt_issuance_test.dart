@@ -7,8 +7,9 @@ import '../../test_utils.dart';
 
 void main() {
   group('SD-JWT Issuance Tests', () {
-    final testSeed =
-        Uint8List.fromList(List.generate(32, (index) => index + 1));
+    final testSeed = Uint8List.fromList(
+      List.generate(32, (index) => index + 1),
+    );
 
     late DidSigner signer;
     late SdJwtDm2Suite suite;
@@ -33,18 +34,22 @@ void main() {
               'type': 'BachelorDegree',
               'name': 'Bachelor of Science and Arts',
             },
-          })
+          }),
         ],
       );
 
       final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
 
       expect(issuedCredential, isNotNull);
       expect(issuedCredential.serialized, isNotNull);
       expect(issuedCredential.serialized, isA<String>());
       expect(
-          issuedCredential.serialized, contains('~')); // Contains disclosures
+        issuedCredential.serialized,
+        contains('~'),
+      ); // Contains disclosures
       expect(issuedCredential.issuer.id.toString(), equals(signer.did));
       expect(issuedCredential.type, equals(credential.type));
       expect(issuedCredential.validFrom, equals(credential.validFrom));
@@ -82,7 +87,7 @@ void main() {
               'name': 'Bachelor of Science and Arts',
               'gpa': '3.8',
             },
-          })
+          }),
         ],
       );
 
@@ -121,8 +126,9 @@ void main() {
 
       expect(
         () => suite.issue(
-            unsignedData: VcDataModelV2.fromMutable(invalidCredential),
-            signer: signer),
+          unsignedData: VcDataModelV2.fromMutable(invalidCredential),
+          signer: signer,
+        ),
         throwsA(isA<SsiException>()),
       );
     });

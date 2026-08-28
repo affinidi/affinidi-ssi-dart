@@ -8,7 +8,9 @@ void main() {
     late InMemoryKeyStore keyStore;
     const testKeyId = 'test-key';
     final testStoredKey = StoredKey(
-        keyType: KeyType.p256, privateKeyBytes: Uint8List.fromList([1, 2, 3]));
+      keyType: KeyType.p256,
+      privateKeyBytes: Uint8List.fromList([1, 2, 3]),
+    );
 
     setUp(() {
       keyStore = InMemoryKeyStore();
@@ -23,12 +25,14 @@ void main() {
       expect(retrievedKey.privateKeyBytes, testStoredKey.privateKeyBytes);
     });
 
-    test('contains should return true for existing key, false otherwise',
-        () async {
-      expect(await keyStore.contains(testKeyId), isFalse);
-      await keyStore.set(testKeyId, testStoredKey);
-      expect(await keyStore.contains(testKeyId), isTrue);
-    });
+    test(
+      'contains should return true for existing key, false otherwise',
+      () async {
+        expect(await keyStore.contains(testKeyId), isFalse);
+        await keyStore.set(testKeyId, testStoredKey);
+        expect(await keyStore.contains(testKeyId), isTrue);
+      },
+    );
 
     test('remove should delete the key', () async {
       await keyStore.set(testKeyId, testStoredKey);

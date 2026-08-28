@@ -99,12 +99,13 @@ final class SdJwtDm2Suite
   /// Returns a parsed SD-JWT credential with appropriate signatures and disclosures.
   ///
   /// Throws [SsiException] if the credential is invalid or if signing fails.
-  Future<SdJwtDataModelV2> issue(
-      {required VcDataModelV2 unsignedData,
-      required DidSigner signer,
-      Map<String, dynamic>? disclosureFrame,
-      Hasher<String, String>? hasher,
-      SdPublicKey? holderPublicKey}) async {
+  Future<SdJwtDataModelV2> issue({
+    required VcDataModelV2 unsignedData,
+    required DidSigner signer,
+    Map<String, dynamic>? disclosureFrame,
+    Hasher<String, String>? hasher,
+    SdPublicKey? holderPublicKey,
+  }) async {
     final payload = unsignedData.toJson();
 
     if (signer.did != unsignedData.issuer.id.toString()) {
@@ -152,12 +153,13 @@ final class SdJwtDm2Suite
       return SdJwtDataModelV2.fromSdJwt(await sdJwt);
     } catch (e, stacktrace) {
       Error.throwWithStackTrace(
-          SsiException(
-            message: 'Failed to issue SD-JWT credential: ${e.toString()}',
-            code: SsiExceptionType.invalidVC.code,
-            originalMessage: e.toString(),
-          ),
-          stacktrace);
+        SsiException(
+          message: 'Failed to issue SD-JWT credential: ${e.toString()}',
+          code: SsiExceptionType.invalidVC.code,
+          originalMessage: e.toString(),
+        ),
+        stacktrace,
+      );
     }
   }
 
@@ -168,23 +170,28 @@ final class SdJwtDm2Suite
   ///
   /// Returns true if the credential's signature is valid, false otherwise.
   @override
-  Future<bool> verifyIntegrity(SdJwtDataModelV2 input,
-      {DateTime Function() getNow = DateTime.now,
-      DidResolver? didResolver}) async {
-    final algorithm =
-        SignatureScheme.fromAlg(input.sdJwt.header['alg'] as String);
+  Future<bool> verifyIntegrity(
+    SdJwtDataModelV2 input, {
+    DateTime Function() getNow = DateTime.now,
+    DidResolver? didResolver,
+  }) async {
+    final algorithm = SignatureScheme.fromAlg(
+      input.sdJwt.header['alg'] as String,
+    );
     var now = getNow();
     final exp = input.sdJwt.payload['exp'];
     if (exp != null &&
-        now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000,
-            isUtc: true))) {
+        now.isAfter(
+          DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000, isUtc: true),
+        )) {
       return false;
     }
 
     final nbf = input.sdJwt.payload['nbf'];
     if (nbf != null &&
-        now.isBefore(DateTime.fromMillisecondsSinceEpoch((nbf as int) * 1000,
-            isUtc: true))) {
+        now.isBefore(
+          DateTime.fromMillisecondsSinceEpoch((nbf as int) * 1000, isUtc: true),
+        )) {
       return false;
     }
 
@@ -221,15 +228,14 @@ final class SdJwtDm2Suite
   /// Returns a disclosure frame that makes all credential subject fields
   /// selectively disclosable.
   Map<String, dynamic> _getDefaultDisclosureFrame(
-      Map<String, dynamic> payload) {
+    Map<String, dynamic> payload,
+  ) {
     final credentialSubject = payload['credentialSubject'] as dynamic;
     if (credentialSubject != null &&
         credentialSubject is Map &&
         credentialSubject.isNotEmpty) {
       return {
-        'credentialSubject': {
-          '_sd': credentialSubject.keys.toList(),
-        }
+        'credentialSubject': {'_sd': credentialSubject.keys.toList()},
       };
     } else {
       return {};
@@ -252,7 +258,9 @@ final class SdJwtDm2Suite
 ///
 /// Throws [SsiException] if any mandatory claim is found in the disclosure frame.
 void _validateMandatoryClaims(
-    Map<String, dynamic> disclosureFrame, Map<String, dynamic> payload) {
+  Map<String, dynamic> disclosureFrame,
+  Map<String, dynamic> payload,
+) {
   // List of mandatory top-level claims that must not be selectively disclosable
   final mandatoryClaims = ['@context', 'type', 'issuer'];
 
@@ -324,15 +332,19 @@ Map<String, dynamic> _convertJwtClaimsToVc(Map<String, dynamic> claims) {
   final exp = vcClaims.remove('exp');
   if (exp != null) {
     vcClaims[VcDataModelV2Key.validUntil.key] =
-        DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000, isUtc: true)
-            .toIso8601String();
+        DateTime.fromMillisecondsSinceEpoch(
+          (exp as int) * 1000,
+          isUtc: true,
+        ).toIso8601String();
   }
 
   final nbf = vcClaims.remove('nbf');
   if (nbf != null) {
     vcClaims[VcDataModelV2Key.validFrom.key] =
-        DateTime.fromMillisecondsSinceEpoch((nbf as int) * 1000, isUtc: true)
-            .toIso8601String();
+        DateTime.fromMillisecondsSinceEpoch(
+          (nbf as int) * 1000,
+          isUtc: true,
+        ).toIso8601String();
   }
 
   vcClaims.remove('iat');
@@ -351,8 +363,7 @@ class SdJwtDataModelV2 extends VcDataModelV2
 
   /// Creates an [SdJwtDataModelV2] from a parsed [SdJwt] object.
   SdJwtDataModelV2.fromSdJwt(this.sdJwt)
-      : super.clone(
-            VcDataModelV2.fromJson(_convertJwtClaimsToVc(sdJwt.claims)));
+    : super.clone(VcDataModelV2.fromJson(_convertJwtClaimsToVc(sdJwt.claims)));
 
   @override
   String get serialized => sdJwt.serialized;

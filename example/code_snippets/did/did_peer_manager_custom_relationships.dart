@@ -21,33 +21,33 @@ void main() async {
   print('\nAdding key with only authentication and key agreement...');
   final addKeyResult1 = await didPeerManager.addVerificationMethod(
     ed25519Key.id,
-    relationships: {
-      VerificationRelationship.authentication,
-    },
+    relationships: {VerificationRelationship.authentication},
   );
 
   print('Verification methods added and purposes assigned:');
   print(' - Primary VM ID: ${addKeyResult1.verificationMethodId}');
   print(
-      ' - Authentication VM ID: ${addKeyResult1.relationships[VerificationRelationship.authentication]}');
+    ' - Authentication VM ID: ${addKeyResult1.relationships[VerificationRelationship.authentication]}',
+  );
   print(
-      ' - Key Agreement VM ID: ${addKeyResult1.relationships[VerificationRelationship.keyAgreement]}');
+    ' - Key Agreement VM ID: ${addKeyResult1.relationships[VerificationRelationship.keyAgreement]}',
+  );
   print(' - All assigned relationships: ${addKeyResult1.relationships.keys}');
 
   final ed25519Key2 = await wallet.generateKey(keyType: KeyType.ed25519);
   final addKeyResult2 = await didPeerManager.addVerificationMethod(
     ed25519Key2.id,
-    relationships: {
-      VerificationRelationship.keyAgreement,
-    },
+    relationships: {VerificationRelationship.keyAgreement},
   );
 
   print('Verification methods added and purposes assigned:');
   print(' - Primary VM ID: ${addKeyResult2.verificationMethodId}');
   print(
-      ' - Authentication VM ID: ${addKeyResult2.relationships[VerificationRelationship.authentication]}');
+    ' - Authentication VM ID: ${addKeyResult2.relationships[VerificationRelationship.authentication]}',
+  );
   print(
-      ' - Key Agreement VM ID: ${addKeyResult2.relationships[VerificationRelationship.keyAgreement]}');
+    ' - Key Agreement VM ID: ${addKeyResult2.relationships[VerificationRelationship.keyAgreement]}',
+  );
   print(' - All assigned relationships: ${addKeyResult2.relationships.keys}');
 
   // 4. Get and print the DID Document
@@ -66,5 +66,6 @@ void main() async {
   final originalJson = didDocument.toJson();
 
   print(
-      'Resolved DID Document content matches generated document: ${resolvedJson == originalJson}');
+    'Resolved DID Document content matches generated document: ${resolvedJson == originalJson}',
+  );
 }

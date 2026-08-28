@@ -14,11 +14,8 @@ final class LdVcDm2Suite extends LdBaseSuite<VcDataModelV2, LdVcDataModelV2>
   ///
   /// Optionally accepts a [customDocumentLoader] to use when loading external resources
   /// during verification.
-  LdVcDm2Suite({
-    super.customDocumentLoader,
-  }) : super(
-          contextUrl: dmV2ContextUrl,
-        );
+  LdVcDm2Suite({super.customDocumentLoader})
+    : super(contextUrl: dmV2ContextUrl);
 
   @override
   LdVcDataModelV2 fromParsed(String input, Map<String, dynamic> payload) =>
@@ -35,8 +32,8 @@ class LdVcDataModelV2 extends VcDataModelV2
 
   /// Creates a [LdVcDataModelV2] from a serialized [String] and parsed [input] map.
   LdVcDataModelV2.fromParsed(String serialized, Map<String, dynamic> input)
-      : _serialized = serialized,
-        super.clone(VcDataModelV2.fromJson(input));
+    : _serialized = serialized,
+      super.clone(VcDataModelV2.fromJson(input));
 
   @override
   Map<String, dynamic> toJson() {

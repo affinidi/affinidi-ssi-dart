@@ -35,10 +35,7 @@ class MutableTermsOfUse extends _TermsOfUseInterface {
   ///
   /// The [id] - is id of terms of use.
   /// The [type]- is type of terms.
-  MutableTermsOfUse({
-    this.id,
-    this.type,
-  });
+  MutableTermsOfUse({this.id, this.type});
 
   /// Creates a [MutableTermsOfUse] from JSON data.
   ///
@@ -78,9 +75,7 @@ class TermsOfUse extends _TermsOfUseInterface {
   ///
   /// The [id] - is id of terms of use.
   /// The [type]- is type of terms.
-  TermsOfUse({Uri? id, required String type})
-      : _id = id,
-        _type = type;
+  TermsOfUse({Uri? id, required String type}) : _id = id, _type = type;
 
   /// Creates a [TermsOfUse] from JSON data.
   ///

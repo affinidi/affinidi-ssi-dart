@@ -14,23 +14,29 @@ void main() {
 
       // Generate a key for authentication and assertion
       final authKey = await wallet.generateKey(keyType: KeyType.secp256k1);
-      await manager.addVerificationMethod(authKey.id, relationships: {
-        VerificationRelationship.authentication,
-        VerificationRelationship.assertionMethod,
-      });
+      await manager.addVerificationMethod(
+        authKey.id,
+        relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.assertionMethod,
+        },
+      );
 
       // Generate a second key for keyAgreement
       final agreementKey = await wallet.generateKey(keyType: KeyType.secp256k1);
-      await manager.addVerificationMethod(agreementKey.id, relationships: {
-        VerificationRelationship.keyAgreement,
-      });
+      await manager.addVerificationMethod(
+        agreementKey.id,
+        relationships: {VerificationRelationship.keyAgreement},
+      );
 
       // Add a service endpoint to ensure did:peer:2
-      await manager.addServiceEndpoint(ServiceEndpoint(
-        id: '#service-1',
-        type: const StringServiceType('DIDCommMessaging'),
-        serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
-      ));
+      await manager.addServiceEndpoint(
+        ServiceEndpoint(
+          id: '#service-1',
+          type: const StringServiceType('DIDCommMessaging'),
+          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
+        ),
+      );
     });
 
     test('issue VC using did:peer:2 DID', () async {
@@ -54,12 +60,12 @@ void main() {
       final unsignedCredential = MutableVcDataModelV2(
         context: MutableJsonLdContext.fromJson([
           dmV2ContextUrl,
-          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld',
         ]),
         id: Uri.parse('uuid:peer2-vc-1'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
-          MutableCredentialSubject({'Fname': 'Alice'})
+          MutableCredentialSubject({'Fname': 'Alice'}),
         ],
         issuer: Issuer.uri(signer.did),
         validFrom: DateTime.now(),
@@ -76,8 +82,9 @@ void main() {
       expect(issuedCredential.proof, isNotEmpty);
       expect(issuedCredential.issuer.id.toString(), didDocument.id);
 
-      final verificationResult =
-          await UniversalVerifier().verify(issuedCredential);
+      final verificationResult = await UniversalVerifier().verify(
+        issuedCredential,
+      );
       expect(verificationResult.isValid, isTrue);
     });
 
@@ -98,12 +105,12 @@ void main() {
       final unsignedCredential = MutableVcDataModelV2(
         context: MutableJsonLdContext.fromJson([
           dmV2ContextUrl,
-          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld',
         ]),
         id: Uri.parse('uuid:peer2-vc-2'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
-          MutableCredentialSubject({'Fname': 'Bob'})
+          MutableCredentialSubject({'Fname': 'Bob'}),
         ],
         issuer: Issuer.uri(signer.did),
         validFrom: DateTime.now(),
@@ -134,8 +141,10 @@ void main() {
       expect(issuedPresentation.proof, isNotEmpty);
       expect(issuedPresentation.holder.id.toString(), didDocument.id);
       expect(issuedPresentation.verifiableCredential, hasLength(1));
-      expect(issuedPresentation.verifiableCredential.first.issuer.id.toString(),
-          didDocument.id);
+      expect(
+        issuedPresentation.verifiableCredential.first.issuer.id.toString(),
+        didDocument.id,
+      );
 
       // Basic structural checks are sufficient; presentation verification handled elsewhere.
     });

@@ -78,8 +78,7 @@ void main() {
     });
 
     group('Secp256k1 Verifier - Network Error Handling', () {
-      test('should return validation error when context loading fails',
-          () async {
+      test('should return validation error when context loading fails', () async {
         // Create a verifier with a custom document loader that simulates network failure
         final verifier = Secp256k1Signature2019Verifier(
           issuerDid: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK',
@@ -219,8 +218,7 @@ void main() {
         );
       });
 
-      test('should return validation error for invalid JSON response',
-          () async {
+      test('should return validation error for invalid JSON response', () async {
         final verifier = Secp256k1Signature2019Verifier(
           issuerDid: 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK',
           customDocumentLoader: (Uri uri) async {
@@ -267,8 +265,7 @@ void main() {
     });
 
     group('Data Integrity Verifier - Network Error Handling', () {
-      test('should return validation error when context loading fails',
-          () async {
+      test('should return validation error when context loading fails', () async {
         final verifier = DataIntegrityEcdsaRdfcVerifier(
           issuerDid:
               'did:key:zDnaerx9CtfPJ7PZ4sL8SsSZfYmfB7FS6VTbNc3fHnEEVHg4X',
@@ -308,10 +305,7 @@ void main() {
           result.errors.any((e) => e.contains('Failed to load remote context')),
           isTrue,
         );
-        expect(
-          result.errors.any((e) => e.contains('Network')),
-          isTrue,
-        );
+        expect(result.errors.any((e) => e.contains('Network')), isTrue);
       });
 
       test('should handle timeout in Data Integrity verification', () async {
@@ -321,7 +315,9 @@ void main() {
           customDocumentLoader: (Uri uri) async {
             if (uri.toString().contains('slow')) {
               throw TimeoutException(
-                  'Connection timed out', const Duration(seconds: 30));
+                'Connection timed out',
+                const Duration(seconds: 30),
+              );
             }
             return null;
           },
@@ -356,8 +352,9 @@ void main() {
           isTrue,
         );
         expect(
-          result.errors
-              .any((e) => e.contains('Timeout') || e.contains('timed out')),
+          result.errors.any(
+            (e) => e.contains('Timeout') || e.contains('timed out'),
+          ),
           isTrue,
         );
       });
@@ -381,10 +378,7 @@ void main() {
         );
 
         final credential = {
-          '@context': [
-            'https://www.w3.org/2018/credentials/v1',
-            failedUri,
-          ],
+          '@context': ['https://www.w3.org/2018/credentials/v1', failedUri],
           'type': ['VerifiableCredential'],
           'issuer': 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK',
           'issuanceDate': '2023-01-01T00:00:00Z',
@@ -503,18 +497,14 @@ void main() {
       });
 
       test('JsonLdException should be SsiException', () {
-        final exception = JsonLdException(
-          message: 'Test',
-        );
+        final exception = JsonLdException(message: 'Test');
 
         expect(exception, isA<SsiException>());
         expect(exception, isA<Exception>());
       });
 
       test('should have correct exception code', () {
-        final exception = JsonLdException(
-          message: 'Test',
-        );
+        final exception = JsonLdException(message: 'Test');
 
         expect(exception.code, equals('json_ld_processing_error'));
       });

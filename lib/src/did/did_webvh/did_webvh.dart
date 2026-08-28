@@ -90,9 +90,7 @@ class DidWebVhResolutionMetadata extends DidResolutionMetadata {
   /// Creates a new instance of [DidWebVhResolutionMetadata].
   ///
   /// This constructor initializes the resolution metadata for a DID WebVH resolution result.
-  DidWebVhResolutionMetadata({
-    this.problemDetails,
-  });
+  DidWebVhResolutionMetadata({this.problemDetails});
 }
 
 /// Metadata for a DID WebVH document.
@@ -245,17 +243,19 @@ class DidWebVhUrl extends DidUrl {
   ///
   /// Downloads the log file and verifies it, returning the DID document and metadata.
   Future<(DidDocument, DidDocumentMetadata, DidResolutionMetadata)>
-      resolveDidWithMetadata({DidWebVhResolutionOptions? options}) async {
+  resolveDidWithMetadata({DidWebVhResolutionOptions? options}) async {
     final nnOptions = options ?? DidWebVhResolutionOptions();
     nnOptions.resolvingDidUrl = this;
 
     final didWebVhLog1 = await downloadWebVhLog(client: nnOptions.httpClient);
     nnOptions.versionId = nnOptions.versionId ?? queryParameters['versionId'];
-    nnOptions.versionTime = nnOptions.versionTime ??
+    nnOptions.versionTime =
+        nnOptions.versionTime ??
         (queryParameters['versionTime'] != null
             ? DateTime.parse(queryParameters['versionTime']!)
             : null);
-    nnOptions.versionNumber = nnOptions.versionNumber ??
+    nnOptions.versionNumber =
+        nnOptions.versionNumber ??
         (queryParameters['versionNumber'] != null
             ? int.parse(queryParameters['versionNumber']!)
             : null);
@@ -275,7 +275,8 @@ class DidWebVhUrl extends DidUrl {
   @override
   Future<DidDocument> resolveDid({DidResolutionOptions? options}) async {
     final (didDoc, _, _) = await resolveDidWithMetadata(
-        options: options as DidWebVhResolutionOptions?);
+      options: options as DidWebVhResolutionOptions?,
+    );
     return didDoc;
   }
 
@@ -302,7 +303,8 @@ class DidWebVhUrl extends DidUrl {
   ///
   /// Example: `"example.com%3A8080:path"` → `"https://example.com:8080/path"`
   static String parseHttpsUrlStringFromEncodedUrlString(
-      String encodedUrlString) {
+    String encodedUrlString,
+  ) {
     String urlString = encodedUrlString;
 
     urlString = urlString.replaceAll(':', '/');
@@ -318,8 +320,9 @@ class DidWebVhUrl extends DidUrl {
   static void _validateMethod(String method) {
     if (method != 'webvh') {
       throw SsiException(
-          message: 'Unsupported DID method. Expected method: webvh',
-          code: SsiExceptionType.invalidDidWebVh.code);
+        message: 'Unsupported DID method. Expected method: webvh',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
     }
   }
 
@@ -328,7 +331,9 @@ class DidWebVhUrl extends DidUrl {
   /// Returns a tuple of (scid, encodedUrlString).
   /// Throws [FormatException] if the method-specific ID is invalid.
   static (String, String) _parseMethodSpecificId(
-      String methodSpecificId, String didUrlString) {
+    String methodSpecificId,
+    String didUrlString,
+  ) {
     final colonIndex = methodSpecificId.indexOf(':');
 
     if (colonIndex == -1) {
@@ -348,10 +353,15 @@ class DidWebVhUrl extends DidUrl {
   ///
   /// Throws [FormatException] if either is empty.
   static void _validateScidAndEncodedUrl(
-      String scid, String encodedUrlString, String didUrlString) {
+    String scid,
+    String encodedUrlString,
+    String didUrlString,
+  ) {
     if (scid.isEmpty) {
       throw FormatException(
-          'Invalid DID WebVH URL: scid cannot be empty', didUrlString);
+        'Invalid DID WebVH URL: scid cannot be empty',
+        didUrlString,
+      );
     }
     if (encodedUrlString.isEmpty) {
       throw FormatException(
@@ -365,22 +375,24 @@ class DidWebVhUrl extends DidUrl {
   ///
   /// Throws [SsiException] if multiple version parameters are present.
   static void _validateVersionQueryParameters(
-      String? query, String didUrlString) {
-    final versionQueryParamCount = Uri(
-      host: 'placeholder',
-      query: query,
-    )
+    String? query,
+    String didUrlString,
+  ) {
+    final versionQueryParamCount = Uri(host: 'placeholder', query: query)
         .queryParameters
         .entries
-        .where((entry) =>
-            ['versionId', 'versionTime', 'versionNumber'].contains(entry.key))
+        .where(
+          (entry) =>
+              ['versionId', 'versionTime', 'versionNumber'].contains(entry.key),
+        )
         .length;
 
     if (versionQueryParamCount > 1) {
       throw SsiException(
-          message:
-              'Only one of versionId, versionTime, or versionNumber is allowed in the query parameters',
-          code: SsiExceptionType.invalidDidWebVh.code);
+        message:
+            'Only one of versionId, versionTime, or versionNumber is allowed in the query parameters',
+        code: SsiExceptionType.invalidDidWebVh.code,
+      );
     }
   }
 
@@ -388,12 +400,14 @@ class DidWebVhUrl extends DidUrl {
   ///
   /// Throws [FormatException] if the domain is invalid.
   static void _validateDomain(String encodedUrlString, String didUrlString) {
-    final uriForCheck =
-        Uri.parse(parseHttpsUrlStringFromEncodedUrlString(encodedUrlString));
+    final uriForCheck = Uri.parse(
+      parseHttpsUrlStringFromEncodedUrlString(encodedUrlString),
+    );
 
     final cond1 = RegExp(r'[a-zA-Z]').hasMatch(uriForCheck.host);
     final cond2 = uriForCheck.host.contains('.');
-    final cond3 = !uriForCheck.host.contains('[') &&
+    final cond3 =
+        !uriForCheck.host.contains('[') &&
         !uriForCheck.host.contains(']') &&
         !uriForCheck.host.contains(':');
 

@@ -13,30 +13,39 @@ void main() {
       final keyStore = InMemoryKeyStore();
       wallet = PersistentWallet(keyStore);
       store = InMemoryDidStore();
-      manager = DidPeerManager(
-        store: store,
-        wallet: wallet,
-      );
+      manager = DidPeerManager(store: store, wallet: wallet);
       await manager.init();
     });
 
     group('addVerificationMethod', () {
       test('should add multiple verification methods', () async {
         // Arrange
-        final key1 =
-            await wallet.generateKey(keyId: 'key-1', keyType: KeyType.p256);
-        final key2 =
-            await wallet.generateKey(keyId: 'key-2', keyType: KeyType.p256);
-        final key3 =
-            await wallet.generateKey(keyId: 'key-3', keyType: KeyType.p256);
+        final key1 = await wallet.generateKey(
+          keyId: 'key-1',
+          keyType: KeyType.p256,
+        );
+        final key2 = await wallet.generateKey(
+          keyId: 'key-2',
+          keyType: KeyType.p256,
+        );
+        final key3 = await wallet.generateKey(
+          keyId: 'key-3',
+          keyType: KeyType.p256,
+        );
 
         // Act
-        final res1 =
-            await manager.addVerificationMethod(key1.id, relationships: {});
-        final res2 =
-            await manager.addVerificationMethod(key2.id, relationships: {});
-        final res3 =
-            await manager.addVerificationMethod(key3.id, relationships: {});
+        final res1 = await manager.addVerificationMethod(
+          key1.id,
+          relationships: {},
+        );
+        final res2 = await manager.addVerificationMethod(
+          key2.id,
+          relationships: {},
+        );
+        final res3 = await manager.addVerificationMethod(
+          key3.id,
+          relationships: {},
+        );
 
         // Assert
         expect(res1.verificationMethodId, '#key-1');
@@ -55,8 +64,10 @@ void main() {
         // Act
         final vmIds = <String>[];
         for (final key in keys) {
-          final res =
-              await manager.addVerificationMethod(key.id, relationships: {});
+          final res = await manager.addVerificationMethod(
+            key.id,
+            relationships: {},
+          );
           vmIds.add(res.verificationMethodId);
         }
 
@@ -66,97 +77,122 @@ void main() {
     });
 
     group('DID document/controller cross-checks', () {
-      test('keyAgreement id in DID document matches keypair in controller',
-          () async {
-        // Generate key
-        final key = await wallet.generateKey(keyType: KeyType.ed25519);
+      test(
+        'keyAgreement id in DID document matches keypair in controller',
+        () async {
+          // Generate key
+          final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
-        // Add verification method for both auth and key agreement
-        await manager.addVerificationMethod(key.id, relationships: {
-          VerificationRelationship.authentication,
-          VerificationRelationship.keyAgreement
-        });
+          // Add verification method for both auth and key agreement
+          await manager.addVerificationMethod(
+            key.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.keyAgreement,
+            },
+          );
 
-        // Add service endpoint
-        final serviceEndpoint = ServiceEndpoint(
-          id: '#service-1',
-          type: const StringServiceType('DIDCommMessaging'),
-          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
-        );
-        await manager.addServiceEndpoint(serviceEndpoint);
+          // Add service endpoint
+          final serviceEndpoint = ServiceEndpoint(
+            id: '#service-1',
+            type: const StringServiceType('DIDCommMessaging'),
+            serviceEndpoint: const StringEndpoint(
+              'https://example.com/endpoint',
+            ),
+          );
+          await manager.addServiceEndpoint(serviceEndpoint);
 
-        // Get DID Document
-        final didDocument = await manager.getDidDocument();
-        expect(isPeerDID(didDocument.id), isTrue);
-        expect(didDocument.id, startsWith('did:peer:2'));
+          // Get DID Document
+          final didDocument = await manager.getDidDocument();
+          expect(isPeerDID(didDocument.id), isTrue);
+          expect(didDocument.id, startsWith('did:peer:2'));
 
-        // Cross-check: get key agreement id from doc and retrieve keypair from manager
-        final keyAgreementId = didDocument.keyAgreement.first.id;
-        final didKeyPair = await manager.getKey(keyAgreementId);
-        expect(didKeyPair.keyPair.id, equals(key.id));
-        expect(didKeyPair.verificationMethodId, equals(keyAgreementId));
-      });
+          // Cross-check: get key agreement id from doc and retrieve keypair from manager
+          final keyAgreementId = didDocument.keyAgreement.first.id;
+          final didKeyPair = await manager.getKey(keyAgreementId);
+          expect(didKeyPair.keyPair.id, equals(key.id));
+          expect(didKeyPair.verificationMethodId, equals(keyAgreementId));
+        },
+      );
     });
 
     group('getDidDocument', () {
       test(
-          'generates a valid did:peer:2 document with auth, agreement, and service',
-          () async {
-        // Generate key
-        final key = await wallet.generateKey(keyType: KeyType.ed25519);
+        'generates a valid did:peer:2 document with auth, agreement, and service',
+        () async {
+          // Generate key
+          final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
-        // Add verification method for both auth and key agreement
-        await manager.addVerificationMethod(key.id, relationships: {
-          VerificationRelationship.authentication,
-          VerificationRelationship.keyAgreement
-        });
+          // Add verification method for both auth and key agreement
+          await manager.addVerificationMethod(
+            key.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.keyAgreement,
+            },
+          );
 
-        // Add service endpoint
-        final serviceEndpoint = ServiceEndpoint(
-          id: '#service-1',
-          type: const StringServiceType('DIDCommMessaging'),
-          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
-        );
-        await manager.addServiceEndpoint(serviceEndpoint);
+          // Add service endpoint
+          final serviceEndpoint = ServiceEndpoint(
+            id: '#service-1',
+            type: const StringServiceType('DIDCommMessaging'),
+            serviceEndpoint: const StringEndpoint(
+              'https://example.com/endpoint',
+            ),
+          );
+          await manager.addServiceEndpoint(serviceEndpoint);
 
-        // Get DID Document
-        final didDocument = await manager.getDidDocument();
-        expect(isPeerDID(didDocument.id), isTrue);
+          // Get DID Document
+          final didDocument = await manager.getDidDocument();
+          expect(isPeerDID(didDocument.id), isTrue);
 
-        // Verify DID
-        expect(didDocument.id, startsWith('did:peer:2'));
+          // Verify DID
+          expect(didDocument.id, startsWith('did:peer:2'));
 
-        // Verify verification methods
-        expect(didDocument.verificationMethod, hasLength(2));
-        expect(didDocument.verificationMethod[0].id, '${didDocument.id}#key-1');
-        expect(didDocument.verificationMethod[0].type, 'Multikey');
-        expect(didDocument.verificationMethod[1].id, '${didDocument.id}#key-2');
-        expect(didDocument.verificationMethod[1].type, 'Multikey');
+          // Verify verification methods
+          expect(didDocument.verificationMethod, hasLength(2));
+          expect(
+            didDocument.verificationMethod[0].id,
+            '${didDocument.id}#key-1',
+          );
+          expect(didDocument.verificationMethod[0].type, 'Multikey');
+          expect(
+            didDocument.verificationMethod[1].id,
+            '${didDocument.id}#key-2',
+          );
+          expect(didDocument.verificationMethod[1].type, 'Multikey');
 
-        // Verify verification relationships
-        expect(didDocument.authentication.map((e) => e.id).toList(),
-            ['${didDocument.id}#key-1']);
-        expect(didDocument.keyAgreement.map((e) => e.id).toList(),
-            ['${didDocument.id}#key-2']);
+          // Verify verification relationships
+          expect(didDocument.authentication.map((e) => e.id).toList(), [
+            '${didDocument.id}#key-1',
+          ]);
+          expect(didDocument.keyAgreement.map((e) => e.id).toList(), [
+            '${didDocument.id}#key-2',
+          ]);
 
-        // Cross-check: get key agreement id from doc and retrieve keypair from manager
-        final keyAgreementId = didDocument.keyAgreement.first.id;
-        final didKeyPair = await manager.getKey(keyAgreementId);
-        expect(didKeyPair.keyPair.id, equals(key.id));
-        expect(didKeyPair.verificationMethodId, equals(keyAgreementId));
+          // Cross-check: get key agreement id from doc and retrieve keypair from manager
+          final keyAgreementId = didDocument.keyAgreement.first.id;
+          final didKeyPair = await manager.getKey(keyAgreementId);
+          expect(didKeyPair.keyPair.id, equals(key.id));
+          expect(didKeyPair.verificationMethodId, equals(keyAgreementId));
 
-        // Verify service endpoint
-        expect(didDocument.service, hasLength(1));
-        expect(didDocument.service[0].id, '#service-1');
-        expect(didDocument.service[0].type,
-            const StringServiceType('DIDCommMessaging'));
-        expect((didDocument.service[0].serviceEndpoint as StringEndpoint).url,
-            'https://example.com/endpoint');
+          // Verify service endpoint
+          expect(didDocument.service, hasLength(1));
+          expect(didDocument.service[0].id, '#service-1');
+          expect(
+            didDocument.service[0].type,
+            const StringServiceType('DIDCommMessaging'),
+          );
+          expect(
+            (didDocument.service[0].serviceEndpoint as StringEndpoint).url,
+            'https://example.com/endpoint',
+          );
 
-        // Verify resolution
-        final resolvedDoc = DidPeer.resolve(didDocument.id);
-        expect(resolvedDoc.toJson(), didDocument.toJson());
-      });
+          // Verify resolution
+          final resolvedDoc = DidPeer.resolve(didDocument.id);
+          expect(resolvedDoc.toJson(), didDocument.toJson());
+        },
+      );
 
       test('should throw error when no keys are added', () async {
         // Act & Assert
@@ -178,59 +214,78 @@ void main() {
         );
       });
 
-      test('should create document with multiple authentication keys',
-          () async {
-        // Arrange
-        final auth1 =
-            await wallet.generateKey(keyId: 'auth-1', keyType: KeyType.p256);
-        final auth2 =
-            await wallet.generateKey(keyId: 'auth-2', keyType: KeyType.p256);
-        final auth3 =
-            await wallet.generateKey(keyId: 'auth-3', keyType: KeyType.p256);
+      test(
+        'should create document with multiple authentication keys',
+        () async {
+          // Arrange
+          final auth1 = await wallet.generateKey(
+            keyId: 'auth-1',
+            keyType: KeyType.p256,
+          );
+          final auth2 = await wallet.generateKey(
+            keyId: 'auth-2',
+            keyType: KeyType.p256,
+          );
+          final auth3 = await wallet.generateKey(
+            keyId: 'auth-3',
+            keyType: KeyType.p256,
+          );
 
-        // Add verification methods and set purposes
-        final res1 = await manager.addVerificationMethod(auth1.id,
-            relationships: {VerificationRelationship.authentication});
-        final res2 = await manager.addVerificationMethod(auth2.id,
-            relationships: {VerificationRelationship.authentication});
-        final res3 = await manager.addVerificationMethod(auth3.id,
-            relationships: {VerificationRelationship.authentication});
-        final vmId1 = res1.verificationMethodId;
-        final vmId2 = res2.verificationMethodId;
-        final vmId3 = res3.verificationMethodId;
+          // Add verification methods and set purposes
+          final res1 = await manager.addVerificationMethod(
+            auth1.id,
+            relationships: {VerificationRelationship.authentication},
+          );
+          final res2 = await manager.addVerificationMethod(
+            auth2.id,
+            relationships: {VerificationRelationship.authentication},
+          );
+          final res3 = await manager.addVerificationMethod(
+            auth3.id,
+            relationships: {VerificationRelationship.authentication},
+          );
+          final vmId1 = res1.verificationMethodId;
+          final vmId2 = res2.verificationMethodId;
+          final vmId3 = res3.verificationMethodId;
 
-        // Act
-        final document = await manager.getDidDocument();
-        expect(isPeerDID(document.id), isTrue);
+          // Act
+          final document = await manager.getDidDocument();
+          expect(isPeerDID(document.id), isTrue);
 
-        // Assert
-        expect(document.id, startsWith('did:peer:2'));
-        expect(document.verificationMethod.length, 3);
-        expect(document.authentication.length, 3);
-        expect(
-          document.authentication.map((ref) => ref.id).toList(),
-          containsAll([
-            '${document.id}$vmId1',
-            '${document.id}$vmId2',
-            '${document.id}$vmId3',
-          ]),
-        );
-      });
+          // Assert
+          expect(document.id, startsWith('did:peer:2'));
+          expect(document.verificationMethod.length, 3);
+          expect(document.authentication.length, 3);
+          expect(
+            document.authentication.map((ref) => ref.id).toList(),
+            containsAll([
+              '${document.id}$vmId1',
+              '${document.id}$vmId2',
+              '${document.id}$vmId3',
+            ]),
+          );
+        },
+      );
     });
 
     group('Service endpoints', () {
       test('should add multiple service endpoints', () async {
         // Arrange
         final authKey = await wallet.generateKey(
-            keyId: 'multi-service-key', keyType: KeyType.p256);
-        await manager.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
+          keyId: 'multi-service-key',
+          keyType: KeyType.p256,
+        );
+        await manager.addVerificationMethod(
+          authKey.id,
+          relationships: {VerificationRelationship.authentication},
+        );
 
         final endpoint1 = ServiceEndpoint(
           id: '#service-1',
           type: const StringServiceType('MessagingService'),
-          serviceEndpoint:
-              const StringEndpoint('https://example.com/messaging'),
+          serviceEndpoint: const StringEndpoint(
+            'https://example.com/messaging',
+          ),
         );
 
         final endpoint2 = ServiceEndpoint(
@@ -251,16 +306,22 @@ void main() {
         // Assert
         expect(document.id, startsWith('did:peer:2'));
         expect(document.service.length, 2);
-        expect(document.service.map((s) => s.id).toList(),
-            containsAll(['#service-1', '#service-2']));
+        expect(
+          document.service.map((s) => s.id).toList(),
+          containsAll(['#service-1', '#service-2']),
+        );
       });
 
       test('should remove service endpoint', () async {
         // Arrange
         final authKey = await wallet.generateKey(
-            keyId: 'remove-service-key', keyType: KeyType.p256);
-        await manager.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
+          keyId: 'remove-service-key',
+          keyType: KeyType.p256,
+        );
+        await manager.addVerificationMethod(
+          authKey.id,
+          relationships: {VerificationRelationship.authentication},
+        );
 
         final endpoint = ServiceEndpoint(
           id: '#service-to-remove',
@@ -287,44 +348,54 @@ void main() {
         expect(docAfter.service.length, 0);
       });
 
-      test('should throw error when adding duplicate service endpoint',
-          () async {
-        // Arrange
-        final authKey = await wallet.generateKey(
-            keyId: 'dup-service-key', keyType: KeyType.p256);
-        await manager.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
+      test(
+        'should throw error when adding duplicate service endpoint',
+        () async {
+          // Arrange
+          final authKey = await wallet.generateKey(
+            keyId: 'dup-service-key',
+            keyType: KeyType.p256,
+          );
+          await manager.addVerificationMethod(
+            authKey.id,
+            relationships: {VerificationRelationship.authentication},
+          );
 
-        final endpoint = ServiceEndpoint(
-          id: '#duplicate-service',
-          type: const StringServiceType('TestService'),
-          serviceEndpoint: const StringEndpoint('https://example.com'),
-        );
+          final endpoint = ServiceEndpoint(
+            id: '#duplicate-service',
+            type: const StringServiceType('TestService'),
+            serviceEndpoint: const StringEndpoint('https://example.com'),
+          );
 
-        // Act
-        await manager.addServiceEndpoint(endpoint);
+          // Act
+          await manager.addServiceEndpoint(endpoint);
 
-        // Assert
-        expect(
-          () => manager.addServiceEndpoint(endpoint),
-          throwsA(
-            isA<SsiException>().having(
-              (e) => e.code,
-              'code',
-              SsiExceptionType.other.code,
+          // Assert
+          expect(
+            () => manager.addServiceEndpoint(endpoint),
+            throwsA(
+              isA<SsiException>().having(
+                (e) => e.code,
+                'code',
+                SsiExceptionType.other.code,
+              ),
             ),
-          ),
-        );
-      });
+          );
+        },
+      );
     });
 
     group('Signing and verification', () {
       test('should sign and verify with authentication key', () async {
         // Arrange
         final authKey = await wallet.generateKey(
-            keyId: 'sign-auth-key', keyType: KeyType.p256);
-        final result = await manager.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
+          keyId: 'sign-auth-key',
+          keyType: KeyType.p256,
+        );
+        final result = await manager.addVerificationMethod(
+          authKey.id,
+          relationships: {VerificationRelationship.authentication},
+        );
         final vmId = result.verificationMethodId;
 
         final data = Uint8List.fromList('Hello, DID Peer!'.codeUnits);
@@ -340,14 +411,22 @@ void main() {
       test('should sign and verify with different keys', () async {
         // Arrange
         final key1 = await wallet.generateKey(
-            keyId: 'sign-key-1', keyType: KeyType.p256);
+          keyId: 'sign-key-1',
+          keyType: KeyType.p256,
+        );
         final key2 = await wallet.generateKey(
-            keyId: 'sign-key-2', keyType: KeyType.p256);
+          keyId: 'sign-key-2',
+          keyType: KeyType.p256,
+        );
 
-        final res1 = await manager.addVerificationMethod(key1.id,
-            relationships: {VerificationRelationship.authentication});
-        final res2 = await manager.addVerificationMethod(key2.id,
-            relationships: {VerificationRelationship.assertionMethod});
+        final res1 = await manager.addVerificationMethod(
+          key1.id,
+          relationships: {VerificationRelationship.authentication},
+        );
+        final res2 = await manager.addVerificationMethod(
+          key2.id,
+          relationships: {VerificationRelationship.assertionMethod},
+        );
         final vmId1 = res1.verificationMethodId;
         final vmId2 = res2.verificationMethodId;
 
@@ -368,85 +447,125 @@ void main() {
     });
 
     group('Verification method purposes', () {
-      test('should track all verification method purposes in manager',
-          () async {
-        // Arrange
-        final authKey = await wallet.generateKey(
-            keyId: 'auth-purpose', keyType: KeyType.p256);
-        final kaKey = await wallet.generateKey(
-            keyId: 'ka-purpose', keyType: KeyType.ed25519);
-        final ciKey = await wallet.generateKey(
-            keyId: 'ci-purpose', keyType: KeyType.p256);
-        final cdKey = await wallet.generateKey(
-            keyId: 'cd-purpose', keyType: KeyType.p256);
-        final amKey = await wallet.generateKey(
-            keyId: 'am-purpose', keyType: KeyType.p256);
+      test(
+        'should track all verification method purposes in manager',
+        () async {
+          // Arrange
+          final authKey = await wallet.generateKey(
+            keyId: 'auth-purpose',
+            keyType: KeyType.p256,
+          );
+          final kaKey = await wallet.generateKey(
+            keyId: 'ka-purpose',
+            keyType: KeyType.ed25519,
+          );
+          final ciKey = await wallet.generateKey(
+            keyId: 'ci-purpose',
+            keyType: KeyType.p256,
+          );
+          final cdKey = await wallet.generateKey(
+            keyId: 'cd-purpose',
+            keyType: KeyType.p256,
+          );
+          final amKey = await wallet.generateKey(
+            keyId: 'am-purpose',
+            keyType: KeyType.p256,
+          );
 
-        // Add verification methods and set purposes
-        final resAuth = await manager.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
-        final resKa = await manager.addVerificationMethod(kaKey.id,
-            relationships: {VerificationRelationship.keyAgreement});
-        final resCi = await manager.addVerificationMethod(ciKey.id,
-            relationships: {VerificationRelationship.capabilityInvocation});
-        final resCd = await manager.addVerificationMethod(cdKey.id,
-            relationships: {VerificationRelationship.capabilityDelegation});
-        final resAm = await manager.addVerificationMethod(amKey.id,
-            relationships: {VerificationRelationship.assertionMethod});
+          // Add verification methods and set purposes
+          final resAuth = await manager.addVerificationMethod(
+            authKey.id,
+            relationships: {VerificationRelationship.authentication},
+          );
+          final resKa = await manager.addVerificationMethod(
+            kaKey.id,
+            relationships: {VerificationRelationship.keyAgreement},
+          );
+          final resCi = await manager.addVerificationMethod(
+            ciKey.id,
+            relationships: {VerificationRelationship.capabilityInvocation},
+          );
+          final resCd = await manager.addVerificationMethod(
+            cdKey.id,
+            relationships: {VerificationRelationship.capabilityDelegation},
+          );
+          final resAm = await manager.addVerificationMethod(
+            amKey.id,
+            relationships: {VerificationRelationship.assertionMethod},
+          );
 
-        final vmIds = [
-          resAuth.verificationMethodId,
-          resKa.relationships[VerificationRelationship.keyAgreement]!,
-          resCi.verificationMethodId,
-          resCd.verificationMethodId,
-          resAm.verificationMethodId
-        ];
+          final vmIds = [
+            resAuth.verificationMethodId,
+            resKa.relationships[VerificationRelationship.keyAgreement]!,
+            resCi.verificationMethodId,
+            resCd.verificationMethodId,
+            resAm.verificationMethodId,
+          ];
 
-        // Assert - Controller tracks all purposes
-        expect(manager.authentication, contains(vmIds[0]));
-        expect(manager.keyAgreement, contains(vmIds[1]));
-        expect(manager.capabilityInvocation, contains(vmIds[2]));
-        expect(manager.capabilityDelegation, contains(vmIds[3]));
-        expect(manager.assertionMethod, contains(vmIds[4]));
+          // Assert - Controller tracks all purposes
+          expect(manager.authentication, contains(vmIds[0]));
+          expect(manager.keyAgreement, contains(vmIds[1]));
+          expect(manager.capabilityInvocation, contains(vmIds[2]));
+          expect(manager.capabilityDelegation, contains(vmIds[3]));
+          expect(manager.assertionMethod, contains(vmIds[4]));
 
-        // Act - Get document
-        final document = await manager.getDidDocument();
-        expect(isPeerDID(document.id), isTrue);
+          // Act - Get document
+          final document = await manager.getDidDocument();
+          expect(isPeerDID(document.id), isTrue);
 
-        // Assert
-        expect(document.id, startsWith('did:peer:2'));
-        expect(
-            document.authentication
-                .any((ref) => ref.id == '${document.id}${vmIds[0]}'),
-            isTrue);
-        expect(
-            document.keyAgreement
-                .any((ref) => ref.id == '${document.id}${vmIds[1]}'),
-            isTrue);
-        expect(
-            document.capabilityInvocation
-                .any((ref) => ref.id == '${document.id}${vmIds[2]}'),
-            isTrue);
-        expect(
-            document.capabilityDelegation
-                .any((ref) => ref.id == '${document.id}${vmIds[3]}'),
-            isTrue);
-        expect(
-            document.assertionMethod
-                .any((ref) => ref.id == '${document.id}${vmIds[4]}'),
-            isTrue);
-      });
+          // Assert
+          expect(document.id, startsWith('did:peer:2'));
+          expect(
+            document.authentication.any(
+              (ref) => ref.id == '${document.id}${vmIds[0]}',
+            ),
+            isTrue,
+          );
+          expect(
+            document.keyAgreement.any(
+              (ref) => ref.id == '${document.id}${vmIds[1]}',
+            ),
+            isTrue,
+          );
+          expect(
+            document.capabilityInvocation.any(
+              (ref) => ref.id == '${document.id}${vmIds[2]}',
+            ),
+            isTrue,
+          );
+          expect(
+            document.capabilityDelegation.any(
+              (ref) => ref.id == '${document.id}${vmIds[3]}',
+            ),
+            isTrue,
+          );
+          expect(
+            document.assertionMethod.any(
+              (ref) => ref.id == '${document.id}${vmIds[4]}',
+            ),
+            isTrue,
+          );
+        },
+      );
 
       test('should remove verification method purposes', () async {
         // Arrange
         final key1 = await wallet.generateKey(
-            keyId: 'remove-purpose-1', keyType: KeyType.p256);
+          keyId: 'remove-purpose-1',
+          keyType: KeyType.p256,
+        );
         final key2 = await wallet.generateKey(
-            keyId: 'remove-purpose-2', keyType: KeyType.p256);
-        final res1 =
-            await manager.addVerificationMethod(key1.id, relationships: {});
-        final res2 =
-            await manager.addVerificationMethod(key2.id, relationships: {});
+          keyId: 'remove-purpose-2',
+          keyType: KeyType.p256,
+        );
+        final res1 = await manager.addVerificationMethod(
+          key1.id,
+          relationships: {},
+        );
+        final res2 = await manager.addVerificationMethod(
+          key2.id,
+          relationships: {},
+        );
         final vmId1 = res1.verificationMethodId;
         final vmId2 = res2.verificationMethodId;
 
@@ -477,110 +596,142 @@ void main() {
         expect(document.authentication.length, 1);
       });
 
-      test('should create separate verification methods for each purpose',
-          () async {
-        // Arrange
-        final key = await wallet.generateKey(
-            keyId: 'multi-purpose-key', keyType: KeyType.p256);
+      test(
+        'should create separate verification methods for each purpose',
+        () async {
+          // Arrange
+          final key = await wallet.generateKey(
+            keyId: 'multi-purpose-key',
+            keyType: KeyType.p256,
+          );
 
-        // Act
-        final result =
-            await manager.addVerificationMethod(key.id, relationships: {
-          VerificationRelationship.authentication,
-          VerificationRelationship.assertionMethod,
-        });
+          // Act
+          final result = await manager.addVerificationMethod(
+            key.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.assertionMethod,
+            },
+          );
 
-        // Assert
-        final authVmId =
-            result.relationships[VerificationRelationship.authentication];
-        final assertVmId =
-            result.relationships[VerificationRelationship.assertionMethod];
+          // Assert
+          final authVmId =
+              result.relationships[VerificationRelationship.authentication];
+          final assertVmId =
+              result.relationships[VerificationRelationship.assertionMethod];
 
-        expect(authVmId, isNotNull);
-        expect(assertVmId, isNotNull);
-        expect(authVmId, isNot(equals(assertVmId)),
-            reason: 'Each purpose should have a unique verification method ID');
+          expect(authVmId, isNotNull);
+          expect(assertVmId, isNotNull);
+          expect(
+            authVmId,
+            isNot(equals(assertVmId)),
+            reason: 'Each purpose should have a unique verification method ID',
+          );
 
-        final storeAuth = await store.authentication;
-        final storeAssert = await store.assertionMethod;
+          final storeAuth = await store.authentication;
+          final storeAssert = await store.assertionMethod;
 
-        expect(storeAuth, [authVmId]);
-        expect(storeAssert, [assertVmId]);
+          expect(storeAuth, [authVmId]);
+          expect(storeAssert, [assertVmId]);
 
-        final allVmIds = await store.verificationMethodIds;
-        expect(allVmIds, hasLength(2));
-        expect(allVmIds, containsAll([authVmId, assertVmId]));
+          final allVmIds = await store.verificationMethodIds;
+          expect(allVmIds, hasLength(2));
+          expect(allVmIds, containsAll([authVmId, assertVmId]));
 
-        final doc = await manager.getDidDocument();
-        expect(doc.authentication.first.id, '${doc.id}$authVmId');
-        expect(doc.assertionMethod.first.id, '${doc.id}$assertVmId');
-        expect(doc.verificationMethod, hasLength(2));
-      });
+          final doc = await manager.getDidDocument();
+          expect(doc.authentication.first.id, '${doc.id}$authVmId');
+          expect(doc.assertionMethod.first.id, '${doc.id}$assertVmId');
+          expect(doc.verificationMethod, hasLength(2));
+        },
+      );
 
-      test('should maintain verification method order across manager instances',
-          () async {
-        // Arrange: First manager instance
-        final key1 = await wallet.generateKey(
-            keyId: 'order-key-1', keyType: KeyType.ed25519);
-        final key2 = await wallet.generateKey(
-            keyId: 'order-key-2', keyType: KeyType.p256);
+      test(
+        'should maintain verification method order across manager instances',
+        () async {
+          // Arrange: First manager instance
+          final key1 = await wallet.generateKey(
+            keyId: 'order-key-1',
+            keyType: KeyType.ed25519,
+          );
+          final key2 = await wallet.generateKey(
+            keyId: 'order-key-2',
+            keyType: KeyType.p256,
+          );
 
-        // Act: Add keys in a specific order
-        final res1 =
-            await manager.addVerificationMethod(key1.id, relationships: {
-          VerificationRelationship.authentication,
-          VerificationRelationship.keyAgreement,
-        });
-        final res2 = await manager.addVerificationMethod(key2.id,
-            relationships: {VerificationRelationship.authentication});
+          // Act: Add keys in a specific order
+          final res1 = await manager.addVerificationMethod(
+            key1.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.keyAgreement,
+            },
+          );
+          final res2 = await manager.addVerificationMethod(
+            key2.id,
+            relationships: {VerificationRelationship.authentication},
+          );
 
-        final authVmId1 =
-            res1.relationships[VerificationRelationship.authentication]!;
-        final kaVmId1 =
-            res1.relationships[VerificationRelationship.keyAgreement]!;
-        final authVmId2 =
-            res2.relationships[VerificationRelationship.authentication]!;
+          final authVmId1 =
+              res1.relationships[VerificationRelationship.authentication]!;
+          final kaVmId1 =
+              res1.relationships[VerificationRelationship.keyAgreement]!;
+          final authVmId2 =
+              res2.relationships[VerificationRelationship.authentication]!;
 
-        // Assert: Check the state of the first manager
-        final doc1 = await manager.getDidDocument();
-        expect(doc1.id, startsWith('did:peer:2'));
-        expect(doc1.verificationMethod, hasLength(3));
-        expect(doc1.verificationMethod.map((vm) => vm.id).toList(), [
-          '${doc1.id}$authVmId1',
-          '${doc1.id}$kaVmId1',
-          '${doc1.id}$authVmId2'
-        ]);
-        expect(doc1.authentication.map((ref) => ref.id).toList(),
-            ['${doc1.id}$authVmId1', '${doc1.id}$authVmId2']);
-        expect(doc1.keyAgreement.map((ref) => ref.id).toList(),
-            ['${doc1.id}$kaVmId1']);
+          // Assert: Check the state of the first manager
+          final doc1 = await manager.getDidDocument();
+          expect(doc1.id, startsWith('did:peer:2'));
+          expect(doc1.verificationMethod, hasLength(3));
+          expect(doc1.verificationMethod.map((vm) => vm.id).toList(), [
+            '${doc1.id}$authVmId1',
+            '${doc1.id}$kaVmId1',
+            '${doc1.id}$authVmId2',
+          ]);
+          expect(doc1.authentication.map((ref) => ref.id).toList(), [
+            '${doc1.id}$authVmId1',
+            '${doc1.id}$authVmId2',
+          ]);
+          expect(doc1.keyAgreement.map((ref) => ref.id).toList(), [
+            '${doc1.id}$kaVmId1',
+          ]);
 
-        // Compare resolved doc with originally created doc
-        final resolvedDoc1 = DidPeer.resolve(doc1.id);
-        expect(resolvedDoc1.toJson(), doc1.toJson());
+          // Compare resolved doc with originally created doc
+          final resolvedDoc1 = DidPeer.resolve(doc1.id);
+          expect(resolvedDoc1.toJson(), doc1.toJson());
 
-        // Arrange: Second manager instance with the same store
-        final manager2 = DidPeerManager(store: store, wallet: wallet);
-        await manager2.init();
+          // Arrange: Second manager instance with the same store
+          final manager2 = DidPeerManager(store: store, wallet: wallet);
+          await manager2.init();
 
-        // Act: Get document from the second manager
-        final doc2 = await manager2.getDidDocument();
+          // Act: Get document from the second manager
+          final doc2 = await manager2.getDidDocument();
 
-        // Assert: Ensure the second manager produces the identical document
-        expect(doc2.id, doc1.id,
-            reason: 'DIDs from both managers should match');
-        expect(doc2.toJson(), doc1.toJson(),
-            reason: 'DID documents from both managers should match');
-      });
+          // Assert: Ensure the second manager produces the identical document
+          expect(
+            doc2.id,
+            doc1.id,
+            reason: 'DIDs from both managers should match',
+          );
+          expect(
+            doc2.toJson(),
+            doc1.toJson(),
+            reason: 'DID documents from both managers should match',
+          );
+        },
+      );
     });
 
     group('DID signer integration', () {
       test('should get DID signer', () async {
         // Arrange
         final key = await wallet.generateKey(
-            keyId: 'signer-key', keyType: KeyType.p256);
-        final result = await manager.addVerificationMethod(key.id,
-            relationships: {VerificationRelationship.authentication});
+          keyId: 'signer-key',
+          keyType: KeyType.p256,
+        );
+        final result = await manager.addVerificationMethod(
+          key.id,
+          relationships: {VerificationRelationship.authentication},
+        );
         final vmId = result.verificationMethodId;
 
         // Act
@@ -601,8 +752,10 @@ void main() {
           keyId: 'signer-scheme-key',
           keyType: KeyType.p256,
         );
-        final result = await manager.addVerificationMethod(key.id,
-            relationships: {VerificationRelationship.authentication});
+        final result = await manager.addVerificationMethod(
+          key.id,
+          relationships: {VerificationRelationship.authentication},
+        );
         final vmId = result.verificationMethodId;
 
         // Act
@@ -616,65 +769,72 @@ void main() {
       });
 
       test(
-          'normalizes fragment-only verificationMethodId to full DID URL and uses full ID in proofs',
-          () async {
-        // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
-        final peer0Manager = DidPeerManager(
-          store: InMemoryDidStore(),
-          wallet: wallet,
-          preferredNumalgo: DidPeerType.peer0,
-        );
-        await peer0Manager.init();
+        'normalizes fragment-only verificationMethodId to full DID URL and uses full ID in proofs',
+        () async {
+          // Opt into peer:0 explicitly (default is peer:2). See PLAN-did-peer-multi-key.md.
+          final peer0Manager = DidPeerManager(
+            store: InMemoryDidStore(),
+            wallet: wallet,
+            preferredNumalgo: DidPeerType.peer0,
+          );
+          await peer0Manager.init();
 
-        final key = await wallet.generateKey(keyType: KeyType.ed25519);
-        final result = await peer0Manager.addVerificationMethod(key.id,
-            relationships: {VerificationRelationship.authentication});
-        final vmIdFragment = result.verificationMethodId; // e.g. '#key-1'
+          final key = await wallet.generateKey(keyType: KeyType.ed25519);
+          final result = await peer0Manager.addVerificationMethod(
+            key.id,
+            relationships: {VerificationRelationship.authentication},
+          );
+          final vmIdFragment = result.verificationMethodId; // e.g. '#key-1'
 
-        final signer = await peer0Manager.getSigner(vmIdFragment);
+          final signer = await peer0Manager.getSigner(vmIdFragment);
 
-        // signer.keyId should now be fully qualified DID + fragment
-        expect(signer.keyId, '${signer.did}$vmIdFragment');
+          // signer.keyId should now be fully qualified DID + fragment
+          expect(signer.keyId, '${signer.did}$vmIdFragment');
 
-        // signer.did should be a did:peer:0 (single auth key)
-        expect(signer.did.startsWith('did:peer:0'), isTrue);
+          // signer.did should be a did:peer:0 (single auth key)
+          expect(signer.did.startsWith('did:peer:0'), isTrue);
 
-        // signer.didKeyId should equal keyId (already fully qualified)
-        expect(signer.didKeyId, signer.keyId);
+          // signer.didKeyId should equal keyId (already fully qualified)
+          expect(signer.didKeyId, signer.keyId);
 
-        // Generate a simple credential using this signer and assert proof.verificationMethod is fully-qualified
-        final unsignedCredential = MutableVcDataModelV1(
-          context: MutableJsonLdContext.fromJson([
-            'https://www.w3.org/2018/credentials/v1',
-            'https://w3id.org/security/data-integrity/v2'
-          ]),
-          id: Uri.parse('uuid:test-normalization'),
-          type: {'VerifiableCredential'},
-          credentialSubject: [
-            MutableCredentialSubject({'id': signer.did, 'test': 'value'})
-          ],
-          issuanceDate: DateTime.now(),
-          issuer: Issuer.uri(signer.did),
-        );
+          // Generate a simple credential using this signer and assert proof.verificationMethod is fully-qualified
+          final unsignedCredential = MutableVcDataModelV1(
+            context: MutableJsonLdContext.fromJson([
+              'https://www.w3.org/2018/credentials/v1',
+              'https://w3id.org/security/data-integrity/v2',
+            ]),
+            id: Uri.parse('uuid:test-normalization'),
+            type: {'VerifiableCredential'},
+            credentialSubject: [
+              MutableCredentialSubject({'id': signer.did, 'test': 'value'}),
+            ],
+            issuanceDate: DateTime.now(),
+            issuer: Issuer.uri(signer.did),
+          );
 
-        final proofGenerator = DataIntegrityEddsaJcsGenerator(signer: signer);
-        final issued = await LdVcDm1Suite().issue(
-          unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
-          proofGenerator: proofGenerator,
-        );
+          final proofGenerator = DataIntegrityEddsaJcsGenerator(signer: signer);
+          final issued = await LdVcDm1Suite().issue(
+            unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+            proofGenerator: proofGenerator,
+          );
 
-        final proof = issued.toJson()['proof'] as Map<String, dynamic>;
-        expect(proof['verificationMethod'], signer.keyId);
-        expect(proof['verificationMethod'], startsWith(signer.did));
-      });
+          final proof = issued.toJson()['proof'] as Map<String, dynamic>;
+          expect(proof['verificationMethod'], signer.keyId);
+          expect(proof['verificationMethod'], startsWith(signer.did));
+        },
+      );
 
       test('keeps fully-qualified verificationMethodId unchanged', () async {
         final key1 = await wallet.generateKey(keyType: KeyType.p256);
         final key2 = await wallet.generateKey(keyType: KeyType.p256);
-        await manager.addVerificationMethod(key1.id,
-            relationships: {VerificationRelationship.authentication});
-        await manager.addVerificationMethod(key2.id,
-            relationships: {VerificationRelationship.authentication});
+        await manager.addVerificationMethod(
+          key1.id,
+          relationships: {VerificationRelationship.authentication},
+        );
+        await manager.addVerificationMethod(
+          key2.id,
+          relationships: {VerificationRelationship.authentication},
+        );
         final didDocument = await manager.getDidDocument(); // did:peer:2
         final vmFull = '${didDocument.id}#key-1';
 
@@ -698,9 +858,13 @@ void main() {
         await peer0Manager.init();
 
         final key = await wallet.generateKey(
-            keyId: 'retrieve-key', keyType: KeyType.p256);
-        final result = await peer0Manager.addVerificationMethod(key.id,
-            relationships: {VerificationRelationship.authentication});
+          keyId: 'retrieve-key',
+          keyType: KeyType.p256,
+        );
+        final result = await peer0Manager.addVerificationMethod(
+          key.id,
+          relationships: {VerificationRelationship.authentication},
+        );
         final vmId = result.verificationMethodId;
 
         // Act
@@ -709,8 +873,10 @@ void main() {
         // Assert
         expect(didKeyPair.keyPair.id, equals(key.id));
         expect(didKeyPair.verificationMethodId, equals(vmId));
-        expect(didKeyPair.didDocument?.id,
-            startsWith('did:peer:0')); // Single auth key generates peer:0
+        expect(
+          didKeyPair.didDocument?.id,
+          startsWith('did:peer:0'),
+        ); // Single auth key generates peer:0
       });
     });
 
@@ -718,27 +884,39 @@ void main() {
       test('should use multikey context for did:peer:2', () async {
         // Arrange
         final key1 = await wallet.generateKey(
-            keyId: 'context-key-1', keyType: KeyType.p256);
+          keyId: 'context-key-1',
+          keyType: KeyType.p256,
+        );
         final key2 = await wallet.generateKey(
-            keyId: 'context-key-2', keyType: KeyType.ed25519);
+          keyId: 'context-key-2',
+          keyType: KeyType.ed25519,
+        );
 
-        await manager.addVerificationMethod(key1.id,
-            relationships: {VerificationRelationship.authentication});
-        await manager.addVerificationMethod(key2.id,
-            relationships: {VerificationRelationship.keyAgreement});
+        await manager.addVerificationMethod(
+          key1.id,
+          relationships: {VerificationRelationship.authentication},
+        );
+        await manager.addVerificationMethod(
+          key2.id,
+          relationships: {VerificationRelationship.keyAgreement},
+        );
 
         // Act
         final document = await manager.getDidDocument();
 
         // Assert
         expect(
-            document.context
-                .hasUrlContext(Uri.parse('https://www.w3.org/ns/did/v1')),
-            isTrue);
+          document.context.hasUrlContext(
+            Uri.parse('https://www.w3.org/ns/did/v1'),
+          ),
+          isTrue,
+        );
         expect(
-            document.context.hasUrlContext(
-                Uri.parse('https://w3id.org/security/multikey/v1')),
-            isTrue);
+          document.context.hasUrlContext(
+            Uri.parse('https://w3id.org/security/multikey/v1'),
+          ),
+          isTrue,
+        );
       });
     });
 
@@ -756,8 +934,10 @@ void main() {
         final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
         // Add verification method and assign purpose
-        await manager.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
+        await manager.addVerificationMethod(
+          authKey.id,
+          relationships: {VerificationRelationship.authentication},
+        );
 
         // Get DID Document
         final didDocument = await manager.getDidDocument();
@@ -786,14 +966,22 @@ void main() {
       test('should generate did:peer:2 for multiple keys', () async {
         // Arrange
         final key1 = await wallet.generateKey(
-            keyId: 'peer2-key-1', keyType: KeyType.p256);
+          keyId: 'peer2-key-1',
+          keyType: KeyType.p256,
+        );
         final key2 = await wallet.generateKey(
-            keyId: 'peer2-key-2', keyType: KeyType.p256);
+          keyId: 'peer2-key-2',
+          keyType: KeyType.p256,
+        );
 
-        await manager.addVerificationMethod(key1.id,
-            relationships: {VerificationRelationship.authentication});
-        await manager.addVerificationMethod(key2.id,
-            relationships: {VerificationRelationship.authentication});
+        await manager.addVerificationMethod(
+          key1.id,
+          relationships: {VerificationRelationship.authentication},
+        );
+        await manager.addVerificationMethod(
+          key2.id,
+          relationships: {VerificationRelationship.authentication},
+        );
 
         // Act
         final document = await manager.getDidDocument();
@@ -814,102 +1002,125 @@ void main() {
       // silently fall back to peer:0.
       // -----------------------------------------------------------------
       test(
-          'default manager: 1 key + 1 relationship + 0 services -> did:peer:2 (no auto-collapse to peer:0)',
-          () async {
-        final k = await wallet.generateKey(
-            keyId: 'peer2-default-1k1r', keyType: KeyType.p256);
-        await manager.addVerificationMethod(k.id,
-            relationships: {VerificationRelationship.authentication});
+        'default manager: 1 key + 1 relationship + 0 services -> did:peer:2 (no auto-collapse to peer:0)',
+        () async {
+          final k = await wallet.generateKey(
+            keyId: 'peer2-default-1k1r',
+            keyType: KeyType.p256,
+          );
+          await manager.addVerificationMethod(
+            k.id,
+            relationships: {VerificationRelationship.authentication},
+          );
 
-        final document = await manager.getDidDocument();
-        expect(document.id, startsWith('did:peer:2'));
-        expect(document.id, isNot(startsWith('did:peer:0')));
-        // The DID must encode the single key under the V (authentication)
-        // prefix — confirms we went through the peer:2 encoder.
-        expect(document.id, contains('.Vz'));
-        expect(document.verificationMethod, hasLength(1));
-        expect(document.verificationMethod[0].id, '${document.id}#key-1');
-        expect(document.authentication, hasLength(1));
-        expect(document.keyAgreement, isEmpty);
-        expect(document.service, isEmpty);
-      });
-
-      test(
-          'default manager: 1 ed25519 key + auth+keyAgreement + 0 services -> did:peer:2 with V and E entries',
-          () async {
-        // This shape would have collapsed to did:peer:0 (with did:key-style
-        // ed25519+derived-x25519 doc) under pre-PR behavior. Under the new
-        // peer:2 default it must stay as did:peer:2 with explicit V and E
-        // entries in the DID and 2 VMs in the document.
-        final k = await wallet.generateKey(
-            keyId: 'peer2-default-ed25519', keyType: KeyType.ed25519);
-        await manager.addVerificationMethod(k.id, relationships: {
-          VerificationRelationship.authentication,
-          VerificationRelationship.keyAgreement,
-        });
-
-        final document = await manager.getDidDocument();
-        expect(document.id, startsWith('did:peer:2'));
-        expect(document.id, contains('.Vz')); // authentication (ed25519)
-        expect(document.id, contains('.Ez')); // keyAgreement (derived x25519)
-        expect(document.verificationMethod, hasLength(2));
-        expect(document.authentication, hasLength(1));
-        expect(document.keyAgreement, hasLength(1));
-        expect(document.service, isEmpty);
-      });
+          final document = await manager.getDidDocument();
+          expect(document.id, startsWith('did:peer:2'));
+          expect(document.id, isNot(startsWith('did:peer:0')));
+          // The DID must encode the single key under the V (authentication)
+          // prefix — confirms we went through the peer:2 encoder.
+          expect(document.id, contains('.Vz'));
+          expect(document.verificationMethod, hasLength(1));
+          expect(document.verificationMethod[0].id, '${document.id}#key-1');
+          expect(document.authentication, hasLength(1));
+          expect(document.keyAgreement, isEmpty);
+          expect(document.service, isEmpty);
+        },
+      );
 
       test(
-          'default manager: 1 key + 0 relationships (key only) -> rejected, not silently peer:0',
-          () async {
-        // Empty relationship set: the key is added to verificationMethod
-        // but not assigned to any purpose. This shape would have been
-        // peer:0-eligible under pre-PR behavior; the manager now requires
-        // at least one relationship and throws — neither does it silently
-        // collapse to a relationships-less did:peer:0 document.
-        final k = await wallet.generateKey(
-            keyId: 'peer2-default-orphan', keyType: KeyType.p256);
-        await manager.addVerificationMethod(k.id, relationships: const {});
+        'default manager: 1 ed25519 key + auth+keyAgreement + 0 services -> did:peer:2 with V and E entries',
+        () async {
+          // This shape would have collapsed to did:peer:0 (with did:key-style
+          // ed25519+derived-x25519 doc) under pre-PR behavior. Under the new
+          // peer:2 default it must stay as did:peer:2 with explicit V and E
+          // entries in the DID and 2 VMs in the document.
+          final k = await wallet.generateKey(
+            keyId: 'peer2-default-ed25519',
+            keyType: KeyType.ed25519,
+          );
+          await manager.addVerificationMethod(
+            k.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.keyAgreement,
+            },
+          );
 
-        expect(
-          () => manager.getDidDocument(),
-          throwsA(isA<SsiException>().having(
-              (e) => e.code, 'code', SsiExceptionType.invalidDidDocument.code)),
-        );
-      });
+          final document = await manager.getDidDocument();
+          expect(document.id, startsWith('did:peer:2'));
+          expect(document.id, contains('.Vz')); // authentication (ed25519)
+          expect(document.id, contains('.Ez')); // keyAgreement (derived x25519)
+          expect(document.verificationMethod, hasLength(2));
+          expect(document.authentication, hasLength(1));
+          expect(document.keyAgreement, hasLength(1));
+          expect(document.service, isEmpty);
+        },
+      );
 
       test(
-          'generates a did:peer:2 document when a service is added, even with one auth key',
-          () async {
-        // Generate key
-        final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
+        'default manager: 1 key + 0 relationships (key only) -> rejected, not silently peer:0',
+        () async {
+          // Empty relationship set: the key is added to verificationMethod
+          // but not assigned to any purpose. This shape would have been
+          // peer:0-eligible under pre-PR behavior; the manager now requires
+          // at least one relationship and throws — neither does it silently
+          // collapse to a relationships-less did:peer:0 document.
+          final k = await wallet.generateKey(
+            keyId: 'peer2-default-orphan',
+            keyType: KeyType.p256,
+          );
+          await manager.addVerificationMethod(k.id, relationships: const {});
 
-        // Add verification method and assign purpose
-        await manager.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
+          expect(
+            () => manager.getDidDocument(),
+            throwsA(
+              isA<SsiException>().having(
+                (e) => e.code,
+                'code',
+                SsiExceptionType.invalidDidDocument.code,
+              ),
+            ),
+          );
+        },
+      );
 
-        // Add service endpoint
-        final serviceEndpoint = ServiceEndpoint(
-          id: '#service-1',
-          type: const StringServiceType('DIDCommMessaging'),
-          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
-        );
-        await manager.addServiceEndpoint(serviceEndpoint);
+      test(
+        'generates a did:peer:2 document when a service is added, even with one auth key',
+        () async {
+          // Generate key
+          final authKey = await wallet.generateKey(keyType: KeyType.ed25519);
 
-        // Get DID Document
-        final didDocument = await manager.getDidDocument();
-        expect(isPeerDID(didDocument.id), isTrue);
+          // Add verification method and assign purpose
+          await manager.addVerificationMethod(
+            authKey.id,
+            relationships: {VerificationRelationship.authentication},
+          );
 
-        // Verify DID is did:peer:2 because a service was added
-        expect(didDocument.id, startsWith('did:peer:2'));
-        expect(didDocument.id, contains('.S')); // Service encoding in DID
+          // Add service endpoint
+          final serviceEndpoint = ServiceEndpoint(
+            id: '#service-1',
+            type: const StringServiceType('DIDCommMessaging'),
+            serviceEndpoint: const StringEndpoint(
+              'https://example.com/endpoint',
+            ),
+          );
+          await manager.addServiceEndpoint(serviceEndpoint);
 
-        // Verify resolution
-        final resolvedDoc = DidPeer.resolve(didDocument.id);
-        expect(resolvedDoc.toJson(), didDocument.toJson());
-      });
+          // Get DID Document
+          final didDocument = await manager.getDidDocument();
+          expect(isPeerDID(didDocument.id), isTrue);
 
-      test('generates a valid did:peer:0 document with secp256k1 key',
-          () async {
+          // Verify DID is did:peer:2 because a service was added
+          expect(didDocument.id, startsWith('did:peer:2'));
+          expect(didDocument.id, contains('.S')); // Service encoding in DID
+
+          // Verify resolution
+          final resolvedDoc = DidPeer.resolve(didDocument.id);
+          expect(resolvedDoc.toJson(), didDocument.toJson());
+        },
+      );
+
+      test('generates a valid did:peer:0 document with secp256k1 key', () async {
         // Arrange
         // Use Bip32Wallet for secp256k1 keys
         final seed = Uint8List(32); // A dummy seed for testing
@@ -925,8 +1136,10 @@ void main() {
         final authKey = await bip32Wallet.generateKey(keyId: derivationPath);
 
         // Add verification method and assign purpose
-        await manager.addVerificationMethod(authKey.id,
-            relationships: {VerificationRelationship.authentication});
+        await manager.addVerificationMethod(
+          authKey.id,
+          relationships: {VerificationRelationship.authentication},
+        );
 
         // Act
         final didDocument = await manager.getDidDocument();
@@ -967,45 +1180,72 @@ void main() {
         await peer0Manager.init();
       });
 
-      test('rejects a second wallet key with tooManyVerificationMethods',
-          () async {
-        final k1 = await wallet.generateKey(
-            keyId: 'peer0-strict-key-1', keyType: KeyType.p256);
-        final k2 = await wallet.generateKey(
-            keyId: 'peer0-strict-key-2', keyType: KeyType.p256);
+      test(
+        'rejects a second wallet key with tooManyVerificationMethods',
+        () async {
+          final k1 = await wallet.generateKey(
+            keyId: 'peer0-strict-key-1',
+            keyType: KeyType.p256,
+          );
+          final k2 = await wallet.generateKey(
+            keyId: 'peer0-strict-key-2',
+            keyType: KeyType.p256,
+          );
 
-        await peer0Manager.addVerificationMethod(k1.id,
-            relationships: {VerificationRelationship.authentication});
+          await peer0Manager.addVerificationMethod(
+            k1.id,
+            relationships: {VerificationRelationship.authentication},
+          );
 
-        expect(
-          () => peer0Manager.addVerificationMethod(k2.id,
-              relationships: {VerificationRelationship.authentication}),
-          throwsA(isA<SsiException>().having((e) => e.code, 'code',
-              SsiExceptionType.tooManyVerificationMethods.code)),
-        );
-      });
+          expect(
+            () => peer0Manager.addVerificationMethod(
+              k2.id,
+              relationships: {VerificationRelationship.authentication},
+            ),
+            throwsA(
+              isA<SsiException>().having(
+                (e) => e.code,
+                'code',
+                SsiExceptionType.tooManyVerificationMethods.code,
+              ),
+            ),
+          );
+        },
+      );
 
-      test('allows re-entry for the SAME wallet key (multi-relationship adds)',
-          () async {
-        final k = await wallet.generateKey(
-            keyId: 'peer0-reentry-key', keyType: KeyType.p256);
+      test(
+        'allows re-entry for the SAME wallet key (multi-relationship adds)',
+        () async {
+          final k = await wallet.generateKey(
+            keyId: 'peer0-reentry-key',
+            keyType: KeyType.p256,
+          );
 
-        // Two separate calls for the same wallet key must not throw.
-        await peer0Manager.addVerificationMethod(k.id,
-            relationships: {VerificationRelationship.authentication});
-        await peer0Manager.addVerificationMethod(k.id,
-            relationships: {VerificationRelationship.assertionMethod});
+          // Two separate calls for the same wallet key must not throw.
+          await peer0Manager.addVerificationMethod(
+            k.id,
+            relationships: {VerificationRelationship.authentication},
+          );
+          await peer0Manager.addVerificationMethod(
+            k.id,
+            relationships: {VerificationRelationship.assertionMethod},
+          );
 
-        // Document still resolves to a peer:0 DID.
-        final doc = await peer0Manager.getDidDocument();
-        expect(doc.id, startsWith('did:peer:0'));
-      });
+          // Document still resolves to a peer:0 DID.
+          final doc = await peer0Manager.getDidDocument();
+          expect(doc.id, startsWith('did:peer:0'));
+        },
+      );
 
       test('rejects addServiceEndpoint with SsiException', () async {
         final k = await wallet.generateKey(
-            keyId: 'peer0-svc-key', keyType: KeyType.p256);
-        await peer0Manager.addVerificationMethod(k.id,
-            relationships: {VerificationRelationship.authentication});
+          keyId: 'peer0-svc-key',
+          keyType: KeyType.p256,
+        );
+        await peer0Manager.addVerificationMethod(
+          k.id,
+          relationships: {VerificationRelationship.authentication},
+        );
 
         final endpoint = ServiceEndpoint(
           id: '#service-1',
@@ -1015,77 +1255,110 @@ void main() {
 
         expect(
           () => peer0Manager.addServiceEndpoint(endpoint),
-          throwsA(isA<SsiException>().having((e) => e.code, 'code',
-              SsiExceptionType.unsupportedDidOperation.code)),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.code,
+              'code',
+              SsiExceptionType.unsupportedDidOperation.code,
+            ),
+          ),
         );
       });
 
       test(
-          'getDidDocument with single ed25519 key + keyAgreement still produces did:peer:0 (mirrors did:key)',
-          () async {
-        // Single ed25519 wallet key with auth + keyAgreement: the manager
-        // creates one VM for the ed25519 key plus a derived x25519 VM.
-        // Under strict peer:0 semantics getDidDocument must collapse those
-        // back to a single-key did:peer:0 — same shape DidKeyManager would
-        // produce for the same input.
-        final k = await wallet.generateKey(
-            keyId: 'peer0-ed25519', keyType: KeyType.ed25519);
-        await peer0Manager.addVerificationMethod(k.id, relationships: {
-          VerificationRelationship.authentication,
-          VerificationRelationship.keyAgreement,
-        });
+        'getDidDocument with single ed25519 key + keyAgreement still produces did:peer:0 (mirrors did:key)',
+        () async {
+          // Single ed25519 wallet key with auth + keyAgreement: the manager
+          // creates one VM for the ed25519 key plus a derived x25519 VM.
+          // Under strict peer:0 semantics getDidDocument must collapse those
+          // back to a single-key did:peer:0 — same shape DidKeyManager would
+          // produce for the same input.
+          final k = await wallet.generateKey(
+            keyId: 'peer0-ed25519',
+            keyType: KeyType.ed25519,
+          );
+          await peer0Manager.addVerificationMethod(
+            k.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.keyAgreement,
+            },
+          );
 
-        final doc = await peer0Manager.getDidDocument();
+          final doc = await peer0Manager.getDidDocument();
 
-        expect(doc.id, startsWith('did:peer:0z6Mk'));
-        // _buildEDDoc surfaces both the ed25519 verification key and the
-        // derived x25519 keyAgreement key.
-        expect(doc.verificationMethod, hasLength(2));
-        expect(doc.authentication, hasLength(1));
-        expect(doc.keyAgreement, hasLength(1));
-        expect(doc.keyAgreement.first.id,
-            isNot(equals(doc.authentication.first.id)));
-      });
+          expect(doc.id, startsWith('did:peer:0z6Mk'));
+          // _buildEDDoc surfaces both the ed25519 verification key and the
+          // derived x25519 keyAgreement key.
+          expect(doc.verificationMethod, hasLength(2));
+          expect(doc.authentication, hasLength(1));
+          expect(doc.keyAgreement, hasLength(1));
+          expect(
+            doc.keyAgreement.first.id,
+            isNot(equals(doc.authentication.first.id)),
+          );
+        },
+      );
 
       test(
-          'getDidDocument with single p256 key + multiple relationships produces did:peer:0',
-          () async {
-        // P256 doesn't trigger ed25519→x25519 derivation; a single wallet
-        // key with multiple relationships produces multiple VMs in the
-        // store. The strict peer:0 fast path must still collapse to peer:0.
-        final k = await wallet.generateKey(
-            keyId: 'peer0-p256', keyType: KeyType.p256);
-        await peer0Manager.addVerificationMethod(k.id, relationships: {
-          VerificationRelationship.authentication,
-          VerificationRelationship.assertionMethod,
-        });
+        'getDidDocument with single p256 key + multiple relationships produces did:peer:0',
+        () async {
+          // P256 doesn't trigger ed25519→x25519 derivation; a single wallet
+          // key with multiple relationships produces multiple VMs in the
+          // store. The strict peer:0 fast path must still collapse to peer:0.
+          final k = await wallet.generateKey(
+            keyId: 'peer0-p256',
+            keyType: KeyType.p256,
+          );
+          await peer0Manager.addVerificationMethod(
+            k.id,
+            relationships: {
+              VerificationRelationship.authentication,
+              VerificationRelationship.assertionMethod,
+            },
+          );
 
-        final doc = await peer0Manager.getDidDocument();
-        expect(doc.id, startsWith('did:peer:0zDn'));
-      });
+          final doc = await peer0Manager.getDidDocument();
+          expect(doc.id, startsWith('did:peer:0zDn'));
+        },
+      );
 
-      test('default (peer2) manager still allows multiple keys and services',
-          () async {
-        // Sanity: the strict checks must NOT leak into the default peer2
-        // manager constructed in the outer setUp().
-        final k1 = await wallet.generateKey(
-            keyId: 'peer2-default-1', keyType: KeyType.p256);
-        final k2 = await wallet.generateKey(
-            keyId: 'peer2-default-2', keyType: KeyType.p256);
+      test(
+        'default (peer2) manager still allows multiple keys and services',
+        () async {
+          // Sanity: the strict checks must NOT leak into the default peer2
+          // manager constructed in the outer setUp().
+          final k1 = await wallet.generateKey(
+            keyId: 'peer2-default-1',
+            keyType: KeyType.p256,
+          );
+          final k2 = await wallet.generateKey(
+            keyId: 'peer2-default-2',
+            keyType: KeyType.p256,
+          );
 
-        await manager.addVerificationMethod(k1.id,
-            relationships: {VerificationRelationship.authentication});
-        await manager.addVerificationMethod(k2.id,
-            relationships: {VerificationRelationship.authentication});
-        await manager.addServiceEndpoint(ServiceEndpoint(
-          id: '#service-default',
-          type: const StringServiceType('DIDCommMessaging'),
-          serviceEndpoint: const StringEndpoint('https://example.com/endpoint'),
-        ));
+          await manager.addVerificationMethod(
+            k1.id,
+            relationships: {VerificationRelationship.authentication},
+          );
+          await manager.addVerificationMethod(
+            k2.id,
+            relationships: {VerificationRelationship.authentication},
+          );
+          await manager.addServiceEndpoint(
+            ServiceEndpoint(
+              id: '#service-default',
+              type: const StringServiceType('DIDCommMessaging'),
+              serviceEndpoint: const StringEndpoint(
+                'https://example.com/endpoint',
+              ),
+            ),
+          );
 
-        final doc = await manager.getDidDocument();
-        expect(doc.id, startsWith('did:peer:2'));
-      });
+          final doc = await manager.getDidDocument();
+          expect(doc.id, startsWith('did:peer:2'));
+        },
+      );
     });
   });
 }

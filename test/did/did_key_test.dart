@@ -20,8 +20,9 @@ void main() {
 
     setUp(() async {
       wallet = Bip32Wallet.fromSeed(seed);
-      accountPublicKey =
-          (await wallet.generateKey(keyId: "m/44'/60'/0'/0/0")).publicKey;
+      accountPublicKey = (await wallet.generateKey(
+        keyId: "m/44'/60'/0'/0/0",
+      )).publicKey;
     });
 
     test('generateDocument should match expected', () async {
@@ -33,8 +34,9 @@ void main() {
       final actualDid = doc.id;
       final actualKeyType = accountPublicKey.type;
 
-      final expectedDidDoc =
-          jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
+      final expectedDidDoc = jsonDecode(
+        DidDocumentFixtures.didDocumentWithControllerKey,
+      );
       final resolvedDidDocument = DidKey.resolve(actualDid);
       expect(resolvedDidDocument.id, expectedDid);
       expect(resolvedDidDocument.toJson(), expectedDidDoc);
@@ -52,32 +54,35 @@ void main() {
       expect(actualDid, expectedDid);
     });
 
-    test('generateDocument for derived key should start with did:key:zQ3s',
-        () async {
-      final expectedDidKeyPrefix = 'did:key:zQ3s';
+    test(
+      'generateDocument for derived key should start with did:key:zQ3s',
+      () async {
+        final expectedDidKeyPrefix = 'did:key:zQ3s';
 
-      final derivedKeyPath = "m/44'/60'/$accountNumber'/0/0";
-      final key = await wallet.generateKey(keyId: derivedKeyPath);
-      final doc = DidKey.generateDocument(key.publicKey);
-      final actualDid = doc.id;
+        final derivedKeyPath = "m/44'/60'/$accountNumber'/0/0";
+        final key = await wallet.generateKey(keyId: derivedKeyPath);
+        final doc = DidKey.generateDocument(key.publicKey);
+        final actualDid = doc.id;
 
-      expect(actualDid, startsWith(expectedDidKeyPrefix));
-    });
+        expect(actualDid, startsWith(expectedDidKeyPrefix));
+      },
+    );
 
     test(
-        'generateDocument should be different if the wrong key type is provided',
-        () async {
-      final expectedDid =
-          'did:key:zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
-      final expectedKeyType = KeyType.secp256k1;
+      'generateDocument should be different if the wrong key type is provided',
+      () async {
+        final expectedDid =
+            'did:key:zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
+        final expectedKeyType = KeyType.secp256k1;
 
-      final doc = DidKey.generateDocument(accountPublicKey);
-      final actualDid = doc.id;
-      final actualKeyType = accountPublicKey.type;
+        final doc = DidKey.generateDocument(accountPublicKey);
+        final actualDid = doc.id;
+        final actualKeyType = accountPublicKey.type;
 
-      expect(actualDid, isNot(equals(expectedDid)));
-      expect(actualKeyType, expectedKeyType);
-    });
+        expect(actualDid, isNot(equals(expectedDid)));
+        expect(actualKeyType, expectedKeyType);
+      },
+    );
 
     test('public key derived from did should be the same', () async {
       final expectedPublicKey = Uint8List.fromList([
@@ -115,7 +120,7 @@ void main() {
         211,
         42,
         192,
-        136
+        136,
       ]);
 
       final doc = DidKey.generateDocument(accountPublicKey);
@@ -163,8 +168,13 @@ void main() {
       test('it throws invalid did key exception', () async {
         expect(
           () => DidKey.resolve('did:test:something'),
-          throwsA(isA<SsiException>().having(
-              (e) => e.code, 'code', SsiExceptionType.invalidDidKey.code)),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.code,
+              'code',
+              SsiExceptionType.invalidDidKey.code,
+            ),
+          ),
         );
       });
     });
@@ -173,8 +183,13 @@ void main() {
       test('it throws invalid did key exception', () async {
         expect(
           () => DidKey.resolve('did:key:something:sometimes'),
-          throwsA(isA<SsiException>().having(
-              (e) => e.code, 'code', SsiExceptionType.invalidDidKey.code)),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.code,
+              'code',
+              SsiExceptionType.invalidDidKey.code,
+            ),
+          ),
         );
       });
     });

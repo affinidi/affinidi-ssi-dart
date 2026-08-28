@@ -41,7 +41,8 @@ class VcSuites {
   ///
   /// Deprecated: Use [getVcSuiteWithOptions] instead for more configuration options.
   @Deprecated(
-      'Use getVcSuiteWithOptions instead for more configuration options')
+    'Use getVcSuiteWithOptions instead for more configuration options',
+  )
   static VerifiableCredentialSuite getVcSuiteWithDocumentLoader(
     ParsedVerifiableCredential vc,
     DocumentLoader? customDocumentLoader,
@@ -67,18 +68,18 @@ class VcSuites {
     DidResolver? didResolver,
   }) {
     return switch (vc) {
-      LdVcDataModelV1() => LdVcDm1Suite(
-          customDocumentLoader: customDocumentLoader,
-        ) as VerifiableCredentialSuite,
-      LdVcDataModelV2() => LdVcDm2Suite(
-          customDocumentLoader: customDocumentLoader,
-        ) as VerifiableCredentialSuite,
+      LdVcDataModelV1() =>
+        LdVcDm1Suite(customDocumentLoader: customDocumentLoader)
+            as VerifiableCredentialSuite,
+      LdVcDataModelV2() =>
+        LdVcDm2Suite(customDocumentLoader: customDocumentLoader)
+            as VerifiableCredentialSuite,
       JwtVcDataModelV1() => JwtDm1Suite() as VerifiableCredentialSuite,
       SdJwtDataModelV2() => SdJwtDm2Suite() as VerifiableCredentialSuite,
       _ => throw SsiException(
-          message: 'Suite for "${vc.runtimeType}" is not supported',
-          code: SsiExceptionType.other.code,
-        ),
+        message: 'Suite for "${vc.runtimeType}" is not supported',
+        code: SsiExceptionType.other.code,
+      ),
     };
   }
 }

@@ -23,22 +23,28 @@ void main() async {
   // 4. Add key to the manager, which will set up verification methods
   // for default relationships (authentication, key agreement, etc.)
   print('\nAdding key to manager...');
-  final addKeyResult =
-      await didPeerManager.addVerificationMethod(ed25519Key.id);
+  final addKeyResult = await didPeerManager.addVerificationMethod(
+    ed25519Key.id,
+  );
   final relationshipMap = addKeyResult.relationships;
 
   print('Verification methods added and purposes assigned:');
   print(' - Primary VM ID: ${addKeyResult.verificationMethodId}');
   print(
-      ' - Authentication VM ID: ${relationshipMap[VerificationRelationship.authentication]}');
+    ' - Authentication VM ID: ${relationshipMap[VerificationRelationship.authentication]}',
+  );
   print(
-      ' - Key Agreement VM ID: ${relationshipMap[VerificationRelationship.keyAgreement]}');
+    ' - Key Agreement VM ID: ${relationshipMap[VerificationRelationship.keyAgreement]}',
+  );
   print(
-      ' - Assertion Method VM ID: ${relationshipMap[VerificationRelationship.assertionMethod]}');
+    ' - Assertion Method VM ID: ${relationshipMap[VerificationRelationship.assertionMethod]}',
+  );
   print(
-      ' - Capability Invocation VM ID: ${relationshipMap[VerificationRelationship.capabilityInvocation]}');
+    ' - Capability Invocation VM ID: ${relationshipMap[VerificationRelationship.capabilityInvocation]}',
+  );
   print(
-      ' - Capability Delegation VM ID: ${relationshipMap[VerificationRelationship.capabilityDelegation]}');
+    ' - Capability Delegation VM ID: ${relationshipMap[VerificationRelationship.capabilityDelegation]}',
+  );
 
   // 5. Add a service endpoint
   print('\nAdding a service endpoint...');
@@ -71,5 +77,6 @@ void main() async {
   // Note: The resolved document's DID will be the short-form version,
   // so we compare the rest of the content.
   print(
-      'Resolved DID Document content matches generated document: ${resolvedJson == originalJson}');
+    'Resolved DID Document content matches generated document: ${resolvedJson == originalJson}',
+  );
 }

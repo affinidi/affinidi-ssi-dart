@@ -63,7 +63,9 @@ class P256KeyPair extends KeyPair {
       if (k > BigInt.zero && k < n) {
         final effectiveId = id ?? randomId();
         return P256KeyPair._(
-            ec.PrivateKey.fromBytes(_p256, candidate), effectiveId);
+          ec.PrivateKey.fromBytes(_p256, candidate),
+          effectiveId,
+        );
       }
 
       // Not in range; derive a new candidate deterministically
@@ -75,7 +77,8 @@ class P256KeyPair extends KeyPair {
     }
 
     throw ArgumentError(
-        'Failed to derive a valid P-256 private key from seed after $maxAttempts attempts');
+      'Failed to derive a valid P-256 private key from seed after $maxAttempts attempts',
+    );
   }
 
   /// Creates a [P256KeyPair] instance from a private key.
@@ -85,7 +88,9 @@ class P256KeyPair extends KeyPair {
   factory P256KeyPair.fromPrivateKey(Uint8List privateKeyBytes, {String? id}) {
     final effectiveId = id ?? randomId();
     return P256KeyPair._(
-        ec.PrivateKey.fromBytes(_p256, privateKeyBytes), effectiveId);
+      ec.PrivateKey.fromBytes(_p256, privateKeyBytes),
+      effectiveId,
+    );
   }
 
   @override
@@ -96,7 +101,9 @@ class P256KeyPair extends KeyPair {
 
   @override
   Future<Uint8List> internalSign(
-      Uint8List data, SignatureScheme signatureScheme) async {
+    Uint8List data,
+    SignatureScheme signatureScheme,
+  ) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -106,8 +113,11 @@ class P256KeyPair extends KeyPair {
   }
 
   @override
-  Future<bool> internalVerify(Uint8List data, Uint8List signature,
-      SignatureScheme signatureScheme) async {
+  Future<bool> internalVerify(
+    Uint8List data,
+    Uint8List signature,
+    SignatureScheme signatureScheme,
+  ) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -134,8 +144,10 @@ class P256KeyPair extends KeyPair {
   }
 
   @override
-  Future<Uint8List> decrypt(Uint8List ivAndBytes,
-      {Uint8List? publicKey}) async {
+  Future<Uint8List> decrypt(
+    Uint8List ivAndBytes, {
+    Uint8List? publicKey,
+  }) async {
     final privateKey = Uint8List.fromList(_privateKey.bytes);
 
     return ecdh_utils.decryptData(

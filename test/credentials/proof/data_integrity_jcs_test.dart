@@ -15,12 +15,15 @@ void main() {
       // Validate test vector structure
       expect(json['proof']['cryptosuite'], 'ecdsa-jcs-2019');
       expect(
-          json['proof']['proofValue'], startsWith('z')); // base58-btc multibase
+        json['proof']['proofValue'],
+        startsWith('z'),
+      ); // base58-btc multibase
       expect(json['issuer'], startsWith('did:key:zDnaeo')); // P-256 key format
 
       // Validate signature length (ECDSA P-256 signature = 64 bytes: 32 bytes r + 32 bytes s)
-      final signature =
-          base58BitcoinDecode(json['proof']['proofValue'].substring(1));
+      final signature = base58BitcoinDecode(
+        json['proof']['proofValue'].substring(1),
+      );
       expect(signature.length, 64);
 
       // Extract issuer DID
@@ -43,12 +46,15 @@ void main() {
       // Validate test vector structure
       expect(json['proof']['cryptosuite'], 'eddsa-jcs-2022');
       expect(
-          json['proof']['proofValue'], startsWith('z')); // base58-btc multibase
+        json['proof']['proofValue'],
+        startsWith('z'),
+      ); // base58-btc multibase
       expect(json['issuer'], startsWith('did:key:z6Mkr')); // Ed25519 key format
 
       // Validate signature length (EdDSA Ed25519 signature = 64 bytes: 32 bytes R + 32 bytes S)
-      final signature =
-          base58BitcoinDecode(json['proof']['proofValue'].substring(1));
+      final signature = base58BitcoinDecode(
+        json['proof']['proofValue'].substring(1),
+      );
       expect(signature.length, 64);
 
       // Extract issuer DID
@@ -65,10 +71,12 @@ void main() {
     });
 
     test('Reject invalid multibase encoding', () async {
-      final json =
-          Map<String, dynamic>.from(JcsTestVectors.ecdsaJcs2019TestVector);
-      final proof =
-          Map<String, dynamic>.from(json['proof'] as Map<String, dynamic>);
+      final json = Map<String, dynamic>.from(
+        JcsTestVectors.ecdsaJcs2019TestVector,
+      );
+      final proof = Map<String, dynamic>.from(
+        json['proof'] as Map<String, dynamic>,
+      );
       json['proof'] = proof;
 
       // Change multibase prefix from 'z' to 'f'
@@ -89,8 +97,9 @@ void main() {
       int seedStart = 1,
     }) async {
       // Create a test wallet and generate key
-      final seed =
-          Uint8List.fromList(List.generate(32, (index) => index + seedStart));
+      final seed = Uint8List.fromList(
+        List.generate(32, (index) => index + seedStart),
+      );
       final wallet = Bip32Ed25519Wallet.fromSeed(seed);
       final keyPair = await wallet.generateKey(keyId: "m/0'/0'");
       final doc = DidKey.generateDocument(keyPair.publicKey);
@@ -101,7 +110,7 @@ void main() {
         ]),
         type: {'VerifiableCredential'},
         credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subject'})
+          MutableCredentialSubject({'id': 'did:example:subject'}),
         ],
         issuer: Issuer.uri(doc.id),
       );
@@ -128,9 +137,7 @@ void main() {
       expect(proof.nonce, isNotNull);
 
       // Verify the credential
-      final verifier = DataIntegrityEddsaJcsVerifier(
-        verifierDid: doc.id,
-      );
+      final verifier = DataIntegrityEddsaJcsVerifier(verifierDid: doc.id);
       final result = await verifier.verify(credentialWithProof);
 
       expect(result.isValid, true);
@@ -144,40 +151,45 @@ void main() {
       );
     });
 
-    test('Support both base58 and base64url in same verification flow',
-        () async {
-      final encodings = [
-        {'encoding': MultiBase.base58bitcoin, 'prefix': 'z'},
-        {'encoding': MultiBase.base64UrlNoPad, 'prefix': 'u'},
-      ];
+    test(
+      'Support both base58 and base64url in same verification flow',
+      () async {
+        final encodings = [
+          {'encoding': MultiBase.base58bitcoin, 'prefix': 'z'},
+          {'encoding': MultiBase.base64UrlNoPad, 'prefix': 'u'},
+        ];
 
-      for (final config in encodings) {
-        await testMultibaseEncoding(
-          encoding: config['encoding'] as MultiBase,
-          expectedPrefix: config['prefix'] as String,
-          seedStart: 5,
-        );
-      }
-    });
+        for (final config in encodings) {
+          await testMultibaseEncoding(
+            encoding: config['encoding'] as MultiBase,
+            expectedPrefix: config['prefix'] as String,
+            seedStart: 5,
+          );
+        }
+      },
+    );
 
     test(
-        'Verifier rejects when verifierDid mismatches proof.verificationMethod DID',
-        () async {
-      final json =
-          Map<String, dynamic>.from(JcsTestVectors.ecdsaJcs2019TestVector);
-      // expect((json['proof'] as Map<String, dynamic>)['verificationMethod'], startsWith(json['issuer'] as String));
+      'Verifier rejects when verifierDid mismatches proof.verificationMethod DID',
+      () async {
+        final json = Map<String, dynamic>.from(
+          JcsTestVectors.ecdsaJcs2019TestVector,
+        );
+        // expect((json['proof'] as Map<String, dynamic>)['verificationMethod'], startsWith(json['issuer'] as String));
 
-      final wrongIssuerDid = 'did:example:someone-else';
-      final verifier =
-          DataIntegrityEcdsaJcsVerifier(verifierDid: wrongIssuerDid);
+        final wrongIssuerDid = 'did:example:someone-else';
+        final verifier = DataIntegrityEcdsaJcsVerifier(
+          verifierDid: wrongIssuerDid,
+        );
 
-      final result = await verifier.verify(json);
+        final result = await verifier.verify(json);
 
-      expect(result.isValid, isFalse);
-      expect(
-        result.errors.join(' ').toLowerCase(),
-        contains('issuer did does not match'),
-      );
-    });
+        expect(result.isValid, isFalse);
+        expect(
+          result.errors.join(' ').toLowerCase(),
+          contains('issuer did does not match'),
+        );
+      },
+    );
   });
 }

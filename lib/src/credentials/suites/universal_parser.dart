@@ -22,9 +22,11 @@ final class UniversalParser {
     }
 
     Error.throwWithStackTrace(
-        SsiException(
-            message: 'Unknown VC Data Model',
-            code: SsiExceptionType.unableToParseVerifiableCredential.code),
-        StackTrace.current);
+      SsiException(
+        message: 'Unknown VC Data Model',
+        code: SsiExceptionType.unableToParseVerifiableCredential.code,
+      ),
+      StackTrace.current,
+    );
   }
 }

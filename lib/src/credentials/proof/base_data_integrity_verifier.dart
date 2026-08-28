@@ -57,8 +57,10 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
   String get proofValueField;
 
   @override
-  Future<VerificationResult> verify(Map<String, dynamic> document,
-      {DateTime Function() getNow = DateTime.now}) async {
+  Future<VerificationResult> verify(
+    Map<String, dynamic> document, {
+    DateTime Function() getNow = DateTime.now,
+  }) async {
     try {
       final copy = Map.of(document);
       final proof = copy.remove('proof');
@@ -74,8 +76,10 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       }
 
       // Subclasses handle cryptosuite-specific validation
-      final cryptosuiteValidationResult =
-          await validateCryptosuite(document, proof);
+      final cryptosuiteValidationResult = await validateCryptosuite(
+        document,
+        proof,
+      );
       if (!cryptosuiteValidationResult.isValid) {
         return cryptosuiteValidationResult;
       }
@@ -98,9 +102,7 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
 
       final originalProofValue = proof.remove(proofValueField);
       if (originalProofValue == null) {
-        return VerificationResult.invalid(
-          errors: ['missing $proofValueField'],
-        );
+        return VerificationResult.invalid(errors: ['missing $proofValueField']);
       }
 
       // Prepare proof for verification (subclasses handle cryptosuite-specific preparation)
@@ -111,7 +113,10 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
       final Uint8List hash;
       try {
         hash = await computeSignatureHash(
-            proofForVerification, copy, cacheLoadDocument);
+          proofForVerification,
+          copy,
+          cacheLoadDocument,
+        );
       } on RemoteContextLoadException catch (e) {
         return VerificationResult.invalid(
           errors: [
@@ -131,22 +136,21 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
         final errorStr = e.toString();
         if (errorStr.contains('loading remote context failed')) {
           return VerificationResult.invalid(
-            errors: [
-              'Failed to load remote context',
-              'Cause: $errorStr',
-            ],
+            errors: ['Failed to load remote context', 'Cause: $errorStr'],
           );
         }
         rethrow;
       }
 
       final isValid = await verifySignature(
-          originalProofValue as String, issuerDid, verificationMethod, hash);
+        originalProofValue as String,
+        issuerDid,
+        verificationMethod,
+        hash,
+      );
 
       if (!isValid) {
-        return VerificationResult.invalid(
-          errors: ['signature invalid'],
-        );
+        return VerificationResult.invalid(errors: ['signature invalid']);
       }
 
       return VerificationResult.ok();
@@ -167,7 +171,7 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   );
 
   /// Verifies the signature against the computed hash.
@@ -180,9 +184,7 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
 
   VerificationResult _validateProofStructure(dynamic proof) {
     if (proof == null || proof is! Map<String, dynamic>) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof'],
-      );
+      return VerificationResult.invalid(errors: ['invalid or missing proof']);
     }
 
     final typeValidation = ProofValidationUtils.validateProofTypeStructure(
@@ -212,16 +214,12 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
         try {
           expiryDate = DateTime.parse(expires);
         } catch (e) {
-          return VerificationResult.invalid(
-            errors: ['invalid expires format'],
-          );
+          return VerificationResult.invalid(errors: ['invalid expires format']);
         }
       } else if (expires is DateTime) {
         expiryDate = expires;
       } else {
-        return VerificationResult.invalid(
-          errors: ['invalid expires type'],
-        );
+        return VerificationResult.invalid(errors: ['invalid expires type']);
       }
 
       if (now.isAfter(expiryDate)) {
@@ -236,7 +234,9 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
   /// Subclasses override this method to implement cryptosuite-specific validation logic.
   /// Base implementation performs no additional validation.
   Future<VerificationResult> validateCryptosuite(
-      Map<String, dynamic> document, Map<String, dynamic> proof) async {
+    Map<String, dynamic> document,
+    Map<String, dynamic> proof,
+  ) async {
     return VerificationResult.ok();
   }
 
@@ -245,7 +245,9 @@ abstract class BaseDataIntegrityVerifier extends EmbeddedProofSuiteVerifyOptions
   /// Subclasses override this method to implement cryptosuite-specific proof preparation.
   /// Base implementation uses standard data integrity context.
   Map<String, dynamic> prepareProofForVerification(
-      Map<String, dynamic> proof, Map<String, dynamic> document) {
+    Map<String, dynamic> proof,
+    Map<String, dynamic> document,
+  ) {
     final proofCopy = Map<String, dynamic>.from(proof);
     proofCopy['@context'] = contextUrl;
     return proofCopy;
@@ -257,14 +259,11 @@ Future<Uint8List> computeDataIntegrityHash(
   Map<String, dynamic> proof,
   Map<String, dynamic> unsignedCredential,
   Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-      documentLoader,
+  documentLoader,
 ) async {
   final normalizedProof = await JsonLdProcessor.normalize(
     proof,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
+    options: JsonLdOptions(safeMode: true, documentLoader: documentLoader),
   );
   final proofConfigHash = DigestUtils.getDigest(
     utf8.encode(normalizedProof),
@@ -273,10 +272,7 @@ Future<Uint8List> computeDataIntegrityHash(
 
   final normalizedContent = await JsonLdProcessor.normalize(
     unsignedCredential,
-    options: JsonLdOptions(
-      safeMode: true,
-      documentLoader: documentLoader,
-    ),
+    options: JsonLdOptions(safeMode: true, documentLoader: documentLoader),
   );
   final transformedDocumentHash = DigestUtils.getDigest(
     utf8.encode(normalizedContent),
@@ -320,14 +316,10 @@ Future<bool> verifyDataIntegritySignature(
 }
 
 /// Document loader function type.
-typedef LibDocumentLoader = Future<RemoteDocument> Function(
-  Uri url,
-  LoadDocumentOptions? options,
-);
+typedef LibDocumentLoader =
+    Future<RemoteDocument> Function(Uri url, LoadDocumentOptions? options);
 
-LibDocumentLoader _cacheLoadDocument(
-  DocumentLoader customLoader,
-) =>
+LibDocumentLoader _cacheLoadDocument(DocumentLoader customLoader) =>
     (Uri url, LoadDocumentOptions? options) async {
       final fromCache = _documentCache[url];
       if (fromCache != null) {
@@ -363,22 +355,14 @@ LibDocumentLoader _cacheLoadDocument(
         );
       } catch (e) {
         if (e.toString().contains('loading remote context failed')) {
-          throw RemoteContextLoadException(
-            uri: url,
-            cause: e.toString(),
-          );
+          throw RemoteContextLoadException(uri: url, cause: e.toString());
         }
-        throw RemoteContextLoadException(
-          uri: url,
-          cause: e,
-        );
+        throw RemoteContextLoadException(uri: url, cause: e);
       }
     };
 
 /// Creates a cached document loader.
-LibDocumentLoader createCacheDocumentLoader(
-  DocumentLoader customLoader,
-) =>
+LibDocumentLoader createCacheDocumentLoader(DocumentLoader customLoader) =>
     _cacheLoadDocument(customLoader);
 
 final _documentCache = <Uri, RemoteDocument>{

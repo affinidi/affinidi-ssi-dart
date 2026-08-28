@@ -12,10 +12,7 @@ void main() {
     setUp(() async {
       wallet = PersistentWallet(InMemoryKeyStore());
       store = InMemoryDidStore();
-      didKeyManager = DidKeyManager(
-        wallet: wallet,
-        store: store,
-      );
+      didKeyManager = DidKeyManager(wallet: wallet, store: store);
     });
 
     test('should create DidKeyPair through DidManager.getKey()', () async {
@@ -75,31 +72,36 @@ void main() {
       // Try to get a key that doesn't exist
       expect(
         () => didKeyManager.getKey('non-existent-key-id'),
-        throwsA(isA<SsiException>().having(
-          (e) => e.code,
-          'code',
-          SsiExceptionType.keyNotFound.code,
-        )),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.code,
+            'code',
+            SsiExceptionType.keyNotFound.code,
+          ),
+        ),
       );
     });
 
-    test('should maintain proper key mapping between DID and wallet IDs',
-        () async {
-      // Create a key in the wallet first
-      final key = await wallet.generateKey(keyType: KeyType.ed25519);
+    test(
+      'should maintain proper key mapping between DID and wallet IDs',
+      () async {
+        // Create a key in the wallet first
+        final key = await wallet.generateKey(keyType: KeyType.ed25519);
 
-      // Add it as a verification method
-      final result = await didKeyManager.addVerificationMethod(key.id);
-      final verificationMethodId = result.verificationMethodId;
+        // Add it as a verification method
+        final result = await didKeyManager.addVerificationMethod(key.id);
+        final verificationMethodId = result.verificationMethodId;
 
-      // Get the DidKeyPair
-      final didKeyPair = await didKeyManager.getKey(verificationMethodId);
+        // Get the DidKeyPair
+        final didKeyPair = await didKeyManager.getKey(verificationMethodId);
 
-      // Verify the mapping
-      final mappedWalletKeyId =
-          await didKeyManager.getWalletKeyId(verificationMethodId);
-      expect(mappedWalletKeyId, equals(didKeyPair.walletKeyId));
-      expect(mappedWalletKeyId, equals(didKeyPair.keyPair.id));
-    });
+        // Verify the mapping
+        final mappedWalletKeyId = await didKeyManager.getWalletKeyId(
+          verificationMethodId,
+        );
+        expect(mappedWalletKeyId, equals(didKeyPair.walletKeyId));
+        expect(mappedWalletKeyId, equals(didKeyPair.keyPair.id));
+      },
+    );
   });
 }

@@ -33,7 +33,8 @@ class KmsWallet implements Wallet {
 
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
-      String keyId) async {
+    String keyId,
+  ) async {
     final keyPair = await getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
@@ -55,13 +56,11 @@ class KmsWallet implements Wallet {
   }
 
   @override
-  Future<KeyPair> generateKey({
-    String? keyId,
-    KeyType? keyType,
-  }) async {
+  Future<KeyPair> generateKey({String? keyId, KeyType? keyType}) async {
     if (keyId != null) {
       throw ArgumentError(
-          'AWS KMS creates the key identifiers. keyId should not be provided');
+        'AWS KMS creates the key identifiers. keyId should not be provided',
+      );
     }
     final response = await kmsClient.createKey(
       keyUsage: kms.KeyUsageType.signVerify,

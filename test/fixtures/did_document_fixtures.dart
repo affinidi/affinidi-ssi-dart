@@ -2,103 +2,95 @@ import 'dart:convert';
 
 class DidDocumentFixtures {
   static Map<String, dynamic> get didDocumentValid => {
-        'id': 'did:web:example.com',
-        'authentication': [
-          'did:web:example.com#key-0',
-          verififcationMethodValid
-        ],
-        'assertionMethod': [
-          'did:web:example.com#key-0',
-          verififcationMethodValid
-        ],
-        'keyAgreement': ['did:web:example.com#key-1', verififcationMethodValid],
-        'alsoKnownAs': ['did:web:alias.example.com'],
-        'capabilityInvocation': [
-          'did:web:example.com#key-0',
-          verififcationMethodValid
-        ],
-        'capabilityDelegation': [
-          'did:web:example.com#key-1',
-          verififcationMethodValid
-        ],
-        'verificationMethod': [
-          {
-            'id': 'did:web:example.com#key-0',
-            'type': 'JsonWebKey2020',
-            'controller': 'did:web:example.com',
-            'publicKeyJwk': {
-              'crv': 'Ed25519',
-              'kty': 'OKP',
-              'x': 'g6d8EXXxg9jzrm7H3a-AWoGdKhEKVYF5eUcZsEgZMzQ'
-            }
-          },
-          {
-            'id': 'did:web:example.com#key-1',
-            'type': 'JsonWebKey2020',
-            'controller': 'did:web:example.com',
-            'publicKeyJwk': {
-              'crv': 'P-256',
-              'kty': 'EC',
-              'x': 'oazkBDKur0nt556t_2Ew7va7_OhE2nl5z_e2ZKpPZA0',
-              'y': 'LaAIhQNzWniOzvLxiPP8r0IotHVNWdPvaygXk0KCUp4'
-            }
-          },
-          verififcationMethodValid,
-        ],
-        'service': [
-          serviceEndpointValid,
-        ],
-        '@context': [
-          'https://www.w3.org/ns/did/v1',
-          'https://w3id.org/security/suites/jws-2020/v1'
-        ]
-      };
-
-  static Map<String, dynamic> get didDocumentInvalidWithoutId => {
-        '@context': [
-          'https://www.w3.org/ns/did/v1',
-          'https://w3id.org/security/suites/jws-2020/v1'
-        ],
-        'authentication': ['did:web:example.com#key-0'],
-      };
-
-  static Map<String, dynamic> get didDocumentInvalidWithoutContext => {
-        'authentication': ['did:web:example.com#key-0'],
-      };
-
-  static Map<String, dynamic> get didDocumentInvalidAuthentication => {
-        'id': 'did:web:example.com',
-        'authentication': 0,
-      };
-
-  static Map<String, dynamic> get verififcationMethodValid => {
-        'id': 'did:web:example.com#key-2',
+    'id': 'did:web:example.com',
+    'authentication': ['did:web:example.com#key-0', verififcationMethodValid],
+    'assertionMethod': ['did:web:example.com#key-0', verififcationMethodValid],
+    'keyAgreement': ['did:web:example.com#key-1', verififcationMethodValid],
+    'alsoKnownAs': ['did:web:alias.example.com'],
+    'capabilityInvocation': [
+      'did:web:example.com#key-0',
+      verififcationMethodValid,
+    ],
+    'capabilityDelegation': [
+      'did:web:example.com#key-1',
+      verififcationMethodValid,
+    ],
+    'verificationMethod': [
+      {
+        'id': 'did:web:example.com#key-0',
+        'type': 'JsonWebKey2020',
+        'controller': 'did:web:example.com',
+        'publicKeyJwk': {
+          'crv': 'Ed25519',
+          'kty': 'OKP',
+          'x': 'g6d8EXXxg9jzrm7H3a-AWoGdKhEKVYF5eUcZsEgZMzQ',
+        },
+      },
+      {
+        'id': 'did:web:example.com#key-1',
         'type': 'JsonWebKey2020',
         'controller': 'did:web:example.com',
         'publicKeyJwk': {
           'crv': 'P-256',
           'kty': 'EC',
           'x': 'oazkBDKur0nt556t_2Ew7va7_OhE2nl5z_e2ZKpPZA0',
-          'y': 'LaAIhQNzWniOzvLxiPP8r0IotHVNWdPvaygXk0KCUp4'
-        }
-      };
+          'y': 'LaAIhQNzWniOzvLxiPP8r0IotHVNWdPvaygXk0KCUp4',
+        },
+      },
+      verififcationMethodValid,
+    ],
+    'service': [serviceEndpointValid],
+    '@context': [
+      'https://www.w3.org/ns/did/v1',
+      'https://w3id.org/security/suites/jws-2020/v1',
+    ],
+  };
+
+  static Map<String, dynamic> get didDocumentInvalidWithoutId => {
+    '@context': [
+      'https://www.w3.org/ns/did/v1',
+      'https://w3id.org/security/suites/jws-2020/v1',
+    ],
+    'authentication': ['did:web:example.com#key-0'],
+  };
+
+  static Map<String, dynamic> get didDocumentInvalidWithoutContext => {
+    'authentication': ['did:web:example.com#key-0'],
+  };
+
+  static Map<String, dynamic> get didDocumentInvalidAuthentication => {
+    'id': 'did:web:example.com',
+    'authentication': 0,
+  };
+
+  static Map<String, dynamic> get verififcationMethodValid => {
+    'id': 'did:web:example.com#key-2',
+    'type': 'JsonWebKey2020',
+    'controller': 'did:web:example.com',
+    'publicKeyJwk': {
+      'crv': 'P-256',
+      'kty': 'EC',
+      'x': 'oazkBDKur0nt556t_2Ew7va7_OhE2nl5z_e2ZKpPZA0',
+      'y': 'LaAIhQNzWniOzvLxiPP8r0IotHVNWdPvaygXk0KCUp4',
+    },
+  };
 
   static Map<String, dynamic> get serviceEndpointValid => {
-        'id': 'did:web:example.com#service',
-        'type': 'GenericService',
-        'serviceEndpoint': [
-          {
-            'accept': ['application/json'],
-            'routingKeys': <String>[],
-            'uri': 'https://example.com'
-          },
-          {
-            'accept': ['application/json'],
-            'routingKeys': <String>[],
-            'uri': 'wss://example.com/ws'
-          }
-        ]
-      };
+    'id': 'did:web:example.com#service',
+    'type': 'GenericService',
+    'serviceEndpoint': [
+      {
+        'accept': ['application/json'],
+        'routingKeys': <String>[],
+        'uri': 'https://example.com',
+      },
+      {
+        'accept': ['application/json'],
+        'routingKeys': <String>[],
+        'uri': 'wss://example.com/ws',
+      },
+    ],
+  };
 
   static Map<String, dynamic> get serviceEndpointTypeListOneElement =>
       jsonDecode(r'''

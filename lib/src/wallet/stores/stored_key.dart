@@ -21,7 +21,8 @@ class StoredKey {
         .toList();
     if (keyBytesList == null) {
       throw ArgumentError(
-          'Missing privateKeyBytes for privateKeyBytes representation');
+        'Missing privateKeyBytes for privateKeyBytes representation',
+      );
     }
     return StoredKey(
       keyType: keyType,

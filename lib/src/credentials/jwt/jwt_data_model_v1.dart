@@ -9,7 +9,7 @@ class JwtVcDataModelV1 extends VcDataModelV1
 
   /// Creates a [JwtVcDataModelV1] instance from a [Jws].
   JwtVcDataModelV1.fromJws(this.jws)
-      : super.clone(VcDataModelV1.fromJson(jwtToJson(jws.payload)));
+    : super.clone(VcDataModelV1.fromJson(jwtToJson(jws.payload)));
 
   @override
   String get serialized => jws.serialized;

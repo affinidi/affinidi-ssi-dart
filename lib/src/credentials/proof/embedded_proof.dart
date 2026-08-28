@@ -68,9 +68,7 @@ class EmbeddedProof {
 
   /// Converts this proof to a JSON-serializable map.
   Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{
-      'type': type,
-    };
+    final json = <String, dynamic>{'type': type};
 
     if (id != null) {
       json['id'] = id.toString();
@@ -165,8 +163,9 @@ class EmbeddedProof {
       if (input['previousProof'] is String) {
         previousProof = [input['previousProof'] as String];
       } else if (input['previousProof'] is List) {
-        previousProof =
-            (input['previousProof'] as List).map((e) => e.toString()).toList();
+        previousProof = (input['previousProof'] as List)
+            .map((e) => e.toString())
+            .toList();
       }
     }
 

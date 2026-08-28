@@ -39,7 +39,7 @@ void main() {
             'verificationMethod': '${signer.did}#key-1',
             'proofPurpose': 'assertionMethod',
             'proofValue': 'z3invalidproofvalue',
-          }
+          },
         };
 
         expect(
@@ -48,33 +48,35 @@ void main() {
         );
       });
 
-      test('Should fail verification when proof type is empty string',
-          () async {
-        final credential = {
-          '@context': [
-            'https://www.w3.org/2018/credentials/v1',
-            'https://w3id.org/security/data-integrity/v2',
-          ],
-          'id': 'uuid:test-empty-type',
-          'type': ['VerifiableCredential'],
-          'issuer': signer.did,
-          'issuanceDate': DateTime.now().toIso8601String(),
-          'credentialSubject': {'id': 'did:example:123'},
-          'proof': {
-            'type': '', // Empty string
-            'cryptosuite': 'ecdsa-rdfc-2019',
-            'created': DateTime.now().toIso8601String(),
-            'verificationMethod': '${signer.did}#key-1',
-            'proofPurpose': 'assertionMethod',
-            'proofValue': 'z3invalidproofvalue',
-          }
-        };
+      test(
+        'Should fail verification when proof type is empty string',
+        () async {
+          final credential = {
+            '@context': [
+              'https://www.w3.org/2018/credentials/v1',
+              'https://w3id.org/security/data-integrity/v2',
+            ],
+            'id': 'uuid:test-empty-type',
+            'type': ['VerifiableCredential'],
+            'issuer': signer.did,
+            'issuanceDate': DateTime.now().toIso8601String(),
+            'credentialSubject': {'id': 'did:example:123'},
+            'proof': {
+              'type': '', // Empty string
+              'cryptosuite': 'ecdsa-rdfc-2019',
+              'created': DateTime.now().toIso8601String(),
+              'verificationMethod': '${signer.did}#key-1',
+              'proofPurpose': 'assertionMethod',
+              'proofValue': 'z3invalidproofvalue',
+            },
+          };
 
-        final vc = LdVcDm1Suite().parse(jsonEncode(credential));
-        final isValid = await LdVcDm1Suite().verifyIntegrity(vc);
+          final vc = LdVcDm1Suite().parse(jsonEncode(credential));
+          final isValid = await LdVcDm1Suite().verifyIntegrity(vc);
 
-        expect(isValid, false);
-      });
+          expect(isValid, false);
+        },
+      );
 
       test('Should fail verification when proof object is missing', () async {
         final credential = {
@@ -135,7 +137,7 @@ void main() {
             'verificationMethod': '${signer.did}#key-1',
             'proofPurpose': 'assertionMethod',
             'proofValue': 'z3invalidproofvalue',
-          }
+          },
         };
 
         final vc = LdVcDm1Suite().parse(jsonEncode(credential));
@@ -144,31 +146,31 @@ void main() {
         expect(isValid, false);
       });
 
-      test('Should fail verification for Ed25519Signature2020 (not supported)',
-          () async {
-        final credential = {
-          '@context': [
-            'https://www.w3.org/2018/credentials/v1',
-          ],
-          'id': 'uuid:test-ed25519-2020',
-          'type': ['VerifiableCredential'],
-          'issuer': signer.did,
-          'issuanceDate': DateTime.now().toIso8601String(),
-          'credentialSubject': {'id': 'did:example:123'},
-          'proof': {
-            'type': 'Ed25519Signature2020', // Not supported
-            'created': DateTime.now().toIso8601String(),
-            'verificationMethod': '${signer.did}#key-1',
-            'proofPurpose': 'assertionMethod',
-            'jws': 'invalid_jws',
-          }
-        };
+      test(
+        'Should fail verification for Ed25519Signature2020 (not supported)',
+        () async {
+          final credential = {
+            '@context': ['https://www.w3.org/2018/credentials/v1'],
+            'id': 'uuid:test-ed25519-2020',
+            'type': ['VerifiableCredential'],
+            'issuer': signer.did,
+            'issuanceDate': DateTime.now().toIso8601String(),
+            'credentialSubject': {'id': 'did:example:123'},
+            'proof': {
+              'type': 'Ed25519Signature2020', // Not supported
+              'created': DateTime.now().toIso8601String(),
+              'verificationMethod': '${signer.did}#key-1',
+              'proofPurpose': 'assertionMethod',
+              'jws': 'invalid_jws',
+            },
+          };
 
-        final vc = LdVcDm1Suite().parse(jsonEncode(credential));
-        final isValid = await LdVcDm1Suite().verifyIntegrity(vc);
+          final vc = LdVcDm1Suite().parse(jsonEncode(credential));
+          final isValid = await LdVcDm1Suite().verifyIntegrity(vc);
 
-        expect(isValid, false);
-      });
+          expect(isValid, false);
+        },
+      );
     });
 
     group('Supported Proof Types', () {
@@ -181,15 +183,13 @@ void main() {
           id: Uri.parse('uuid:test-supported-di-ecdsa'),
           type: {'VerifiableCredential'},
           credentialSubject: [
-            MutableCredentialSubject({'id': 'did:example:123'})
+            MutableCredentialSubject({'id': 'did:example:123'}),
           ],
           issuanceDate: DateTime.now(),
           issuer: Issuer.uri(signer.did),
         );
 
-        final proofGenerator = DataIntegrityEcdsaRdfcGenerator(
-          signer: signer,
-        );
+        final proofGenerator = DataIntegrityEcdsaRdfcGenerator(signer: signer);
 
         final issuedCredential = await LdVcDm1Suite().issue(
           unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
@@ -217,7 +217,7 @@ void main() {
           id: Uri.parse('uuid:test-supported-secp256k1'),
           type: {'VerifiableCredential'},
           credentialSubject: [
-            MutableCredentialSubject({'id': 'did:example:123'})
+            MutableCredentialSubject({'id': 'did:example:123'}),
           ],
           issuanceDate: DateTime.now(),
           issuer: Issuer.uri(secp256k1Signer.did),
@@ -258,7 +258,7 @@ void main() {
             'verificationMethod': '${signer.did}#key-1',
             'proofPurpose': 'assertionMethod',
             'proofValue': 'z3invalidproofvalue',
-          }
+          },
         };
 
         final vc = LdVcDm1Suite().parse(jsonEncode(credential));
@@ -268,78 +268,80 @@ void main() {
       });
 
       test(
-          'Should fail verification when cryptosuite is null for DataIntegrityProof',
-          () async {
-        final credential = {
-          '@context': [
-            'https://www.w3.org/2018/credentials/v1',
-            'https://w3id.org/security/data-integrity/v2',
-          ],
-          'id': 'uuid:test-null-cryptosuite',
-          'type': ['VerifiableCredential'],
-          'issuer': signer.did,
-          'issuanceDate': DateTime.now().toIso8601String(),
-          'credentialSubject': {'id': 'did:example:123'},
-          'proof': {
-            'type': 'DataIntegrityProof',
-            // cryptosuite is missing
-            'created': DateTime.now().toIso8601String(),
-            'verificationMethod': '${signer.did}#key-1',
-            'proofPurpose': 'assertionMethod',
-            'proofValue': 'z3invalidproofvalue',
-          }
-        };
+        'Should fail verification when cryptosuite is null for DataIntegrityProof',
+        () async {
+          final credential = {
+            '@context': [
+              'https://www.w3.org/2018/credentials/v1',
+              'https://w3id.org/security/data-integrity/v2',
+            ],
+            'id': 'uuid:test-null-cryptosuite',
+            'type': ['VerifiableCredential'],
+            'issuer': signer.did,
+            'issuanceDate': DateTime.now().toIso8601String(),
+            'credentialSubject': {'id': 'did:example:123'},
+            'proof': {
+              'type': 'DataIntegrityProof',
+              // cryptosuite is missing
+              'created': DateTime.now().toIso8601String(),
+              'verificationMethod': '${signer.did}#key-1',
+              'proofPurpose': 'assertionMethod',
+              'proofValue': 'z3invalidproofvalue',
+            },
+          };
 
-        final vc = LdVcDm1Suite().parse(jsonEncode(credential));
-        final isValid = await LdVcDm1Suite().verifyIntegrity(vc);
+          final vc = LdVcDm1Suite().parse(jsonEncode(credential));
+          final isValid = await LdVcDm1Suite().verifyIntegrity(vc);
 
-        expect(isValid, false);
-      });
+          expect(isValid, false);
+        },
+      );
     });
 
     group('Verification - Proof Type Validation', () {
       test(
-          'Should fail verification when proof type does not match expected type',
-          () async {
-        final unsignedCredential = MutableVcDataModelV1(
-          context: MutableJsonLdContext.fromJson([
-            'https://www.w3.org/2018/credentials/v1',
-            'https://w3id.org/security/data-integrity/v2',
-          ]),
-          id: Uri.parse('uuid:test-verify-wrong-type'),
-          type: {'VerifiableCredential'},
-          credentialSubject: [
-            MutableCredentialSubject({'id': 'did:example:123'})
-          ],
-          issuanceDate: DateTime.now(),
-          issuer: Issuer.uri(signer.did),
-        );
+        'Should fail verification when proof type does not match expected type',
+        () async {
+          final unsignedCredential = MutableVcDataModelV1(
+            context: MutableJsonLdContext.fromJson([
+              'https://www.w3.org/2018/credentials/v1',
+              'https://w3id.org/security/data-integrity/v2',
+            ]),
+            id: Uri.parse('uuid:test-verify-wrong-type'),
+            type: {'VerifiableCredential'},
+            credentialSubject: [
+              MutableCredentialSubject({'id': 'did:example:123'}),
+            ],
+            issuanceDate: DateTime.now(),
+            issuer: Issuer.uri(signer.did),
+          );
 
-        final proofGenerator = DataIntegrityEcdsaRdfcGenerator(
-          signer: signer,
-        );
+          final proofGenerator = DataIntegrityEcdsaRdfcGenerator(
+            signer: signer,
+          );
 
-        final issuedCredential = await LdVcDm1Suite().issue(
-          unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
-          proofGenerator: proofGenerator,
-        );
+          final issuedCredential = await LdVcDm1Suite().issue(
+            unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
+            proofGenerator: proofGenerator,
+          );
 
-        // Create a verifier with wrong expected proof type
-        final proofVerifier = DataIntegrityEddsaRdfcVerifier(
-          issuerDid: signer.did,
-        );
+          // Create a verifier with wrong expected proof type
+          final proofVerifier = DataIntegrityEddsaRdfcVerifier(
+            issuerDid: signer.did,
+          );
 
-        final result = await proofVerifier.verify(issuedCredential.toJson());
+          final result = await proofVerifier.verify(issuedCredential.toJson());
 
-        expect(result.isValid, false);
-        expect(
-          result.errors,
-          anyOf(
-            contains(contains('invalid proof type')),
-            contains(contains('invalid cryptosuite')),
-          ),
-        );
-      });
+          expect(result.isValid, false);
+          expect(
+            result.errors,
+            anyOf(
+              contains(contains('invalid proof type')),
+              contains(contains('invalid cryptosuite')),
+            ),
+          );
+        },
+      );
     });
 
     group('Base Verifier - Empty Type Validation', () {
@@ -361,12 +363,10 @@ void main() {
             'verificationMethod': '${signer.did}#key-1',
             'proofPurpose': 'assertionMethod',
             'proofValue': 'z3invalidproofvalue',
-          }
+          },
         };
 
-        final verifier = DataIntegrityEcdsaRdfcVerifier(
-          issuerDid: signer.did,
-        );
+        final verifier = DataIntegrityEcdsaRdfcVerifier(issuerDid: signer.did);
 
         final result = await verifier.verify(credentialWithEmptyType);
 
@@ -385,9 +385,7 @@ void main() {
         );
 
         final credentialWithEmptyType = {
-          '@context': [
-            'https://www.w3.org/2018/credentials/v1',
-          ],
+          '@context': ['https://www.w3.org/2018/credentials/v1'],
           'id': 'uuid:test-secp256k1-verifier',
           'type': ['VerifiableCredential'],
           'issuer': secp256k1Signer.did,
@@ -399,7 +397,7 @@ void main() {
             'verificationMethod': '${secp256k1Signer.did}#key-1',
             'proofPurpose': 'assertionMethod',
             'jws': 'invalid_jws',
-          }
+          },
         };
 
         final verifier = Secp256k1Signature2019Verifier(

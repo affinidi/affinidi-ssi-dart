@@ -363,12 +363,14 @@ dynamic encodeListToSingleOrArray<T>(List<T> items) {
 
 /// Removes empty entries from a map.
 Map<String, dynamic> cleanEmpty(Map<String, dynamic> input) {
-  final entries = input.entries.where((entry) => switch (entry.value) {
-        null => false,
-        List a => a.isNotEmpty,
-        Map m => m.isNotEmpty,
-        _ => true
-      });
+  final entries = input.entries.where(
+    (entry) => switch (entry.value) {
+      null => false,
+      List a => a.isNotEmpty,
+      Map m => m.isNotEmpty,
+      _ => true,
+    },
+  );
 
   return Map.fromEntries(entries);
 }

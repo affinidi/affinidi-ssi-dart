@@ -31,18 +31,18 @@ class Secp256k1KeyPair extends KeyPair {
   ///
   /// [node] - The BIP32 node containing the key material.
   /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
-  Secp256k1KeyPair({
-    required BIP32 node,
-    String? id,
-  })  : _node = node,
-        id = id ?? randomId();
+  Secp256k1KeyPair({required BIP32 node, String? id})
+    : _node = node,
+      id = id ?? randomId();
 
   @override
   PublicKey get publicKey => PublicKey(id, _node.publicKey, KeyType.secp256k1);
 
   @override
   Future<Uint8List> internalSign(
-      Uint8List data, SignatureScheme signatureScheme) async {
+    Uint8List data,
+    SignatureScheme signatureScheme,
+  ) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -51,8 +51,11 @@ class Secp256k1KeyPair extends KeyPair {
   }
 
   @override
-  Future<bool> internalVerify(Uint8List data, Uint8List signature,
-      SignatureScheme signatureScheme) async {
+  Future<bool> internalVerify(
+    Uint8List data,
+    Uint8List signature,
+    SignatureScheme signatureScheme,
+  ) async {
     final digest = DigestUtils.getDigest(
       data,
       hashingAlgorithm: signatureScheme.hashingAlgorithm,
@@ -104,19 +107,23 @@ class Secp256k1KeyPair extends KeyPair {
   /// Returns the computed shared secret as a [Uint8List].
   @override
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
-    final publicKeyObj =
-        _secp256k1.compressedHexToPublicKey(hex.encode(publicKey));
+    final publicKeyObj = _secp256k1.compressedHexToPublicKey(
+      hex.encode(publicKey),
+    );
     final privateKey = ec.PrivateKey.fromBytes(_secp256k1, _node.privateKey!);
     final secret = computeSecret(privateKey, publicKeyObj);
     return Future.value(Uint8List.fromList(secret));
   }
 
   /// Generates a new secp256k1 key pair from a private key.
-  factory Secp256k1KeyPair.fromPrivateKey(Uint8List privateKeyBytes,
-      {String? id}) {
+  factory Secp256k1KeyPair.fromPrivateKey(
+    Uint8List privateKeyBytes, {
+    String? id,
+  }) {
     if (privateKeyBytes.length != 32) {
       throw ArgumentError(
-          'secp256k1 private key must be 32 bytes, got \\${privateKeyBytes.length}');
+        'secp256k1 private key must be 32 bytes, got \\${privateKeyBytes.length}',
+      );
     }
     final node = BIP32.fromPrivateKey(privateKeyBytes, _chainCode);
     return Secp256k1KeyPair(node: node, id: id);
@@ -139,8 +146,9 @@ class Secp256k1KeyPair extends KeyPair {
   static (Secp256k1KeyPair, Uint8List) generate({String? id}) {
     // Generate 32 random bytes for secp256k1 private key
     final random = Random.secure();
-    final privateKeyBytes =
-        Uint8List.fromList(List.generate(32, (_) => random.nextInt(256)));
+    final privateKeyBytes = Uint8List.fromList(
+      List.generate(32, (_) => random.nextInt(256)),
+    );
 
     final node = BIP32.fromPrivateKey(privateKeyBytes, _chainCode);
     final keyPair = Secp256k1KeyPair(node: node, id: id);

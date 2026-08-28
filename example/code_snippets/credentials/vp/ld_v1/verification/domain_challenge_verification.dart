@@ -10,9 +10,12 @@ void main() async {
 
   // create universal presentation verifier with custom domain and challenge verifier
   final domainVerifier = VpDomainChallengeVerifier(
-      domain: ['test-domain'], challenge: 'test-challenge');
-  final verifier =
-      UniversalPresentationVerifier(customVerifiers: [domainVerifier]);
+    domain: ['test-domain'],
+    challenge: 'test-challenge',
+  );
+  final verifier = UniversalPresentationVerifier(
+    customVerifiers: [domainVerifier],
+  );
   final verificationStatus = await verifier.verify(v1Vp);
 
   // Print results

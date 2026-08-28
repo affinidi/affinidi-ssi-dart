@@ -17,9 +17,7 @@ class JsonLdException extends SsiException {
     this.failedUri,
     this.cause,
     this.operation,
-  }) : super(
-          code: SsiExceptionType.jsonLdProcessing.code,
-        );
+  }) : super(code: SsiExceptionType.jsonLdProcessing.code);
 
   @override
   String toString() {
@@ -39,13 +37,11 @@ class JsonLdException extends SsiException {
 
 /// Exception thrown when a remote context fails to load.
 class RemoteContextLoadException extends JsonLdException {
-  RemoteContextLoadException({
-    required Uri uri,
-    required Object cause,
-  }) : super(
-          message: 'Failed to load remote context',
-          failedUri: uri,
-          cause: cause,
-          operation: 'load_remote_context',
-        );
+  RemoteContextLoadException({required Uri uri, required Object cause})
+    : super(
+        message: 'Failed to load remote context',
+        failedUri: uri,
+        cause: cause,
+        operation: 'load_remote_context',
+      );
 }
