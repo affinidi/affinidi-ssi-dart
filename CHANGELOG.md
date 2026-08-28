@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-09-01
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v2.20.1`](#ssi---v2201)
+
+---
+
+#### `ssi` - `v2.20.1`
+
+ - **FIX**: support latest x25519 dependency.
+
+## 2.20.1
+
+ - **FIX**: support latest x25519 dependency.
+
+
 ## 2025-11-26
 
 ### Changes
