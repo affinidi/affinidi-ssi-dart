@@ -12,7 +12,8 @@ sealed class ServiceType {
       return SetServiceType(List<String>.from(json));
     } else {
       throw FormatException(
-          'Service type must be a string or a list of strings, got: ${json.runtimeType}');
+        'Service type must be a string or a list of strings, got: ${json.runtimeType}',
+      );
     }
   }
 

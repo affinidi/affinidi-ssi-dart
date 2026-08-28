@@ -61,7 +61,8 @@ bool _hasDataIntegrityProof(Map<String, dynamic> credentialMap) {
 
   if (proof is List) {
     return proof.any(
-        (p) => p is Map<String, dynamic> && p['type'] == 'DataIntegrityProof');
+      (p) => p is Map<String, dynamic> && p['type'] == 'DataIntegrityProof',
+    );
   }
 
   return false;
@@ -92,10 +93,7 @@ Map<String, dynamic> _ensureProofContext(Map<String, dynamic> credentialMap) {
     for (final p in proof) {
       if (p is Map<String, dynamic>) {
         if (p['type'] == 'DataIntegrityProof' && !p.containsKey('@context')) {
-          updatedProofs.add({
-            '@context': _dataIntegrityProofContext,
-            ...p,
-          });
+          updatedProofs.add({'@context': _dataIntegrityProofContext, ...p});
           needsUpdate = true;
         } else {
           updatedProofs.add(p);

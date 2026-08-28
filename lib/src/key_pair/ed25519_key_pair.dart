@@ -71,15 +71,14 @@ class Ed25519KeyPair extends KeyPair {
   ///
   /// Returns the key as [Uint8List].
   @override
-  PublicKey get publicKey => PublicKey(
-        id,
-        Uint8List.fromList(_privateKey.verifyKey),
-        KeyType.ed25519,
-      );
+  PublicKey get publicKey =>
+      PublicKey(id, Uint8List.fromList(_privateKey.verifyKey), KeyType.ed25519);
 
   @override
   Future<Uint8List> internalSign(
-      Uint8List data, SignatureScheme signatureScheme) async {
+    Uint8List data,
+    SignatureScheme signatureScheme,
+  ) async {
     // For Ed25519, the library handles hashing internally
     return Uint8List.fromList(_privateKey.sign(data).signature);
   }
@@ -95,8 +94,11 @@ class Ed25519KeyPair extends KeyPair {
   ///
   /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   @override
-  Future<bool> internalVerify(Uint8List data, Uint8List signature,
-      SignatureScheme signatureScheme) async {
+  Future<bool> internalVerify(
+    Uint8List data,
+    Uint8List signature,
+    SignatureScheme signatureScheme,
+  ) async {
     return verifyEd25519Signature(
       Uint8List.fromList(_privateKey.verifyKey),
       data,
@@ -236,8 +238,9 @@ class Ed25519KeyPair extends KeyPair {
   /// Converts the Ed25519 key to an X25519 public key.
   /// Returns a [Future] that completes with the X25519 [PublicKey].
   Future<PublicKey> ed25519KeyToX25519PublicKey() async {
-    final x25519PublicKeyBytes =
-        ed25519PublicToX25519Public(_privateKey.verifyKey);
+    final x25519PublicKeyBytes = ed25519PublicToX25519Public(
+      _privateKey.verifyKey,
+    );
     return PublicKey(id, x25519PublicKeyBytes, KeyType.x25519);
   }
 }

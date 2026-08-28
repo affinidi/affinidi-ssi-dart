@@ -7,8 +7,9 @@ import '../../test_utils.dart';
 
 void main() {
   group('SD-JWT Parser Tests', () {
-    final testSeed =
-        Uint8List.fromList(List.generate(32, (index) => index + 1));
+    final testSeed = Uint8List.fromList(
+      List.generate(32, (index) => index + 1),
+    );
 
     late DidSigner signer;
     late SdJwtDm2Suite suite;
@@ -42,12 +43,14 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'Test Subject',
-          })
+          }),
         ],
       );
 
       final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
       final validSdJwt = issuedCredential.serialized;
 
       expect(suite.canParse(validSdJwt), isTrue);
@@ -56,11 +59,13 @@ void main() {
     test('parse throws exception for non-string input', () {
       expect(
         () => suite.parse(123),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          'Only String is supported',
-        )),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            'Only String is supported',
+          ),
+        ),
       );
     });
 
@@ -81,12 +86,14 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'Test Subject',
-          })
+          }),
         ],
       );
 
       final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
       final validSdJwt = issuedCredential.serialized;
 
       final result = suite.tryParse(validSdJwt);
@@ -106,12 +113,14 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'Test Subject',
-          })
+          }),
         ],
       );
 
       final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
       final validSdJwt = issuedCredential.serialized;
 
       final parsedCredential = suite.parse(validSdJwt);

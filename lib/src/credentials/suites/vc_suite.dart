@@ -4,9 +4,10 @@ import '../models/verifiable_credential.dart';
 
 /// Defines operations for working with encoded Verifiable Credentials.
 abstract interface class VerifiableCredentialSuite<
-    SerializedType,
-    VC extends VerifiableCredential,
-    ParsedVC extends ParsedVerifiableCredential<SerializedType>> {
+  SerializedType,
+  VC extends VerifiableCredential,
+  ParsedVC extends ParsedVerifiableCredential<SerializedType>
+> {
   /// Determines whether the provided [data] can be parsed by this suite.
   bool canParse(Object data);
 
@@ -30,8 +31,11 @@ abstract interface class VerifiableCredentialSuite<
   /// `nonce` must be separately validated
   ///
   /// Optionally accepts a custom [didResolver] for resolving DID documents.
-  Future<bool> verifyIntegrity(ParsedVC input,
-      {DateTime Function() getNow = DateTime.now, DidResolver? didResolver});
+  Future<bool> verifyIntegrity(
+    ParsedVC input, {
+    DateTime Function() getNow = DateTime.now,
+    DidResolver? didResolver,
+  });
 
   /// Presents the [input] credential in its serialized form.
   dynamic present(ParsedVC input);

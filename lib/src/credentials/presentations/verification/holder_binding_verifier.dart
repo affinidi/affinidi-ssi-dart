@@ -61,9 +61,7 @@ class HolderBindingVerifier implements VpVerifier {
       } else {
         final subjects = vc.credentialSubject;
         if (subjects.isEmpty) {
-          errors.add(
-            'VC $vcId has no holder and no credentialSubject IDs',
-          );
+          errors.add('VC $vcId has no holder and no credentialSubject IDs');
           continue;
         }
 
@@ -74,9 +72,7 @@ class HolderBindingVerifier implements VpVerifier {
             .toList();
 
         if (subjectIds.isEmpty) {
-          errors.add(
-            'VC $vcId has no valid credentialSubject IDs',
-          );
+          errors.add('VC $vcId has no valid credentialSubject IDs');
         } else if (!subjectIds.contains(vpHolderDid)) {
           errors.add(
             'VC $vcId subject IDs $subjectIds do not include VP holder $vpHolderDid',

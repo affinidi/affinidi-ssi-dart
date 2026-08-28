@@ -24,10 +24,7 @@ class VpDomainChallengeVerifier implements VpVerifier {
   final String? challenge;
 
   /// Creates a [VpDomainChallengeVerifier].
-  VpDomainChallengeVerifier({
-    this.domain,
-    this.challenge,
-  });
+  VpDomainChallengeVerifier({this.domain, this.challenge});
 
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {
@@ -41,26 +38,33 @@ class VpDomainChallengeVerifier implements VpVerifier {
       final proofChallenge = proof.challenge;
 
       if (proofDomain != null) {
-        var isDomainValid = proofDomain.every((d) =>
-            d.trim().isNotEmpty && domain != null ? domain!.contains(d) : true);
+        var isDomainValid = proofDomain.every(
+          (d) => d.trim().isNotEmpty && domain != null
+              ? domain!.contains(d)
+              : true,
+        );
 
         if (!isDomainValid) {
           return VerificationResult.invalid(
-              errors: ['invalid or missing proof.domain']);
+            errors: ['invalid or missing proof.domain'],
+          );
         }
 
         if (proofChallenge == null || proofChallenge.trim().isEmpty) {
           return VerificationResult.invalid(
-              errors: ['invalid or missing proof.challenge']);
+            errors: ['invalid or missing proof.challenge'],
+          );
         }
 
         if (challenge != null && proofChallenge != challenge) {
           return VerificationResult.invalid(
-              errors: ['invalid or missing proof.challenge']);
+            errors: ['invalid or missing proof.challenge'],
+          );
         }
       } else if (proofChallenge != null) {
         return VerificationResult.invalid(
-            errors: ['proof.challenge must be accompanied by proof.domain']);
+          errors: ['proof.challenge must be accompanied by proof.domain'],
+        );
       }
     }
 

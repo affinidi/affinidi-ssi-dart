@@ -7,10 +7,8 @@ abstract interface class _RefreshServiceV1Interface {
   /// Converts this status to a JSON-serializable map.
   ///
   /// Returns a map containing the 'type' field and 'id' field if present.
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-        'type': type,
-      });
+  Map<String, dynamic> toJson() =>
+      cleanEmpty({'id': id?.toString(), 'type': type});
 }
 
 /// Represents a Mutable refreshService for verifiable credentials following W3C standards.
@@ -78,8 +76,8 @@ class RefreshServiceV1 extends _RefreshServiceV1Interface {
   /// The [id] is the URL where refresh service can be found.
   /// The [type] identifies the type of refresher.
   RefreshServiceV1({required Uri id, required String type})
-      : _id = id,
-        _type = type;
+    : _id = id,
+      _type = type;
 
   /// Creates a [MutableRefreshServiceV1] from JSON data.
   ///

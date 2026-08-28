@@ -38,7 +38,8 @@ class Bip32Ed25519Wallet implements Wallet {
 
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
-      String keyId) async {
+    String keyId,
+  ) async {
     final keyPair = await _getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
@@ -61,24 +62,22 @@ class Bip32Ed25519Wallet implements Wallet {
     SignatureScheme? signatureScheme,
   }) async {
     final keyPair = await _getKeyPair(keyId);
-    return keyPair.verify(
-      data,
-      signature,
-      signatureScheme: signatureScheme,
-    );
+    return keyPair.verify(data, signature, signatureScheme: signatureScheme);
   }
 
   @override
   Future<KeyPair> generateKey({String? keyId, KeyType? keyType}) async {
     if (keyId == null) {
       throw ArgumentError(
-          'keyId is required for Bip32Wallet as it defines the derivation path');
+        'keyId is required for Bip32Wallet as it defines the derivation path',
+      );
     }
 
     // TODO: thoroughly validate derivation path. If not fully hardened did peer fails
     if (!keyId.startsWith('m/')) {
       throw ArgumentError(
-          'Invalid derivation path format. Must start with "m/".');
+        'Invalid derivation path format. Must start with "m/".',
+      );
     }
 
     final effectiveKeyType = keyType ?? KeyType.ed25519;
@@ -141,8 +140,10 @@ class Bip32Ed25519Wallet implements Wallet {
 
     _validateDerivationPath(keyId);
     final derivedData = await ED25519_HD_KEY.derivePath(keyId, _seed);
-    final keyPair =
-        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
+    final keyPair = Ed25519KeyPair.fromSeed(
+      Uint8List.fromList(derivedData.key),
+      id: keyId,
+    );
 
     _runtimeCache[keyId] = keyPair;
     return keyPair;
@@ -151,7 +152,8 @@ class Bip32Ed25519Wallet implements Wallet {
   void _validateDerivationPath(String path) {
     if (!_pathRegex.hasMatch(path)) {
       throw ArgumentError(
-          'Invalid derivation path. Expected BIP32 path format');
+        'Invalid derivation path. Expected BIP32 path format',
+      );
     }
 
     for (final segment in path.split('/').skip(1)) {

@@ -4,9 +4,10 @@ import '../models/verifiable_presentation.dart';
 
 /// Defines operations for working with Verifiable Presentations.
 abstract class VerifiablePresentationSuite<
-    SerializedType,
-    VP extends VerifiablePresentation,
-    ParsedVP extends ParsedVerifiablePresentation<SerializedType>> {
+  SerializedType,
+  VP extends VerifiablePresentation,
+  ParsedVP extends ParsedVerifiablePresentation<SerializedType>
+> {
   /// Determines whether the provided [data] can be parsed by this suite.
   bool canParse(Object data);
 
@@ -29,6 +30,9 @@ abstract class VerifiablePresentationSuite<
   /// Optionally accepts:
   /// - [getNow] to provide a custom "now" time for expiry and validity checks.
   /// - [didResolver] for custom DID resolution logic.
-  Future<bool> verifyIntegrity(ParsedVP input,
-      {DateTime Function() getNow = DateTime.now, DidResolver? didResolver});
+  Future<bool> verifyIntegrity(
+    ParsedVP input, {
+    DateTime Function() getNow = DateTime.now,
+    DidResolver? didResolver,
+  });
 }

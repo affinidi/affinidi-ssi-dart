@@ -77,10 +77,7 @@ class DidWebVhWitness {
   /// Each proof must be a DataIntegrityProof with eddsa-jcs-2022 cryptosuite.
   final List<Map<String, dynamic>> proof;
 
-  DidWebVhWitness._({
-    required this.versionId,
-    required this.proof,
-  });
+  DidWebVhWitness._({required this.versionId, required this.proof});
 
   /// Factory constructor to create a [DidWebVhWitness] from JSON data.
   /// Validates that required fields are present and correctly typed.
@@ -186,14 +183,17 @@ class DidWebVhWitnessVerifier {
     // Collect applicable proofs using "later proofs" rule:
     // A proof for versionId N can satisfy entries 1 through N
     for (final witnessEntry in witnessProofs) {
-      final (proofVersionNumber, _) =
-          DidWebVhLogEntry.parseVersionId(witnessEntry.versionId);
+      final (proofVersionNumber, _) = DidWebVhLogEntry.parseVersionId(
+        witnessEntry.versionId,
+      );
       if (proofVersionNumber >= entry.versionNumber) {
         for (final proof in witnessEntry.proof) {
-          applicableProofs.add(_ProofWithVersionId(
-            proof: proof,
-            signedVersionId: witnessEntry.versionId,
-          ));
+          applicableProofs.add(
+            _ProofWithVersionId(
+              proof: proof,
+              signedVersionId: witnessEntry.versionId,
+            ),
+          );
         }
       }
     }
@@ -267,7 +267,8 @@ class DidWebVhWitnessVerifier {
         validCount: validCount,
         threshold: threshold,
         validWitnessDids: validatedWitnesses,
-        error: 'Insufficient witness proofs for versionId ${entry.versionId}. '
+        error:
+            'Insufficient witness proofs for versionId ${entry.versionId}. '
             'Required: $threshold, Valid: $validCount, '
             'Authorized witnesses: ${authorizedWitnessDids.length}',
       );
@@ -294,13 +295,11 @@ class DidWebVhWitnessVerifier {
       final proofMapCopy = Map<String, dynamic>.from(proofMap);
       final documentToVerify = {
         'versionId': signedVersionId,
-        'proof': proofMapCopy
+        'proof': proofMapCopy,
       };
 
       // Verify signature using witness DID
-      final verifier = DataIntegrityEddsaJcsVerifier(
-        verifierDid: witnessDid,
-      );
+      final verifier = DataIntegrityEddsaJcsVerifier(verifierDid: witnessDid);
 
       final result = await verifier.verify(documentToVerify);
       return result.isValid;
@@ -322,8 +321,10 @@ class DidWebVhWitnessVerifier {
   /// - Response is not valid JSON
   /// - JSON is not an array
   /// - Witness entries are malformed
-  static Future<List<DidWebVhWitness>> fetchWitnesses(String witnessUrlString,
-      [http.Client? client]) async {
+  static Future<List<DidWebVhWitness>> fetchWitnesses(
+    String witnessUrlString, [
+    http.Client? client,
+  ]) async {
     try {
       // Download witness file
       final data = await downloadDocument(
@@ -368,8 +369,5 @@ class _ProofWithVersionId {
   /// The versionId that this proof actually signed.
   final String signedVersionId;
 
-  _ProofWithVersionId({
-    required this.proof,
-    required this.signedVersionId,
-  });
+  _ProofWithVersionId({required this.proof, required this.signedVersionId});
 }

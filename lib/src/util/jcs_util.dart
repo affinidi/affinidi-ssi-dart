@@ -119,7 +119,9 @@ class JcsUtil {
 
   /// Finds the original key in the map that matches the string representation.
   static dynamic _findOriginalKey(
-      Map<dynamic, dynamic> object, String keyString) {
+    Map<dynamic, dynamic> object,
+    String keyString,
+  ) {
     for (final key in object.keys) {
       if (key.toString() == keyString) {
         return key;

@@ -20,15 +20,13 @@ void main() async {
   // Create did:key manager
   print('\n--- did:key Manager ---');
   final keyMapping = InMemoryDidStore();
-  final didKeyManager = DidKeyManager(
-    store: keyMapping,
-    wallet: wallet,
-  );
+  final didKeyManager = DidKeyManager(store: keyMapping, wallet: wallet);
 
   // Generate a key for did:key
   final keyForDidKey = await wallet.generateKey(keyId: "m/44'/60'/0'/0'/0'");
   print(
-      'Generated key for did:key. Public key: ${keyForDidKey.publicKey.bytes.sublist(1, 9)}...');
+    'Generated key for did:key. Public key: ${keyForDidKey.publicKey.bytes.sublist(1, 9)}...',
+  );
 
   // Add verification method and create DID document
   await didKeyManager.addVerificationMethod(keyForDidKey.id);
@@ -47,9 +45,11 @@ void main() async {
   final authKey = await wallet.generateKey(keyId: "m/44'/60'/0'/0'/1'");
   final keyAgreementKey = await wallet.generateKey(keyId: "m/44'/60'/0'/0'/2'");
   print(
-      'Generated authentication key. Public key: ${authKey.publicKey.bytes.sublist(1, 9)}...');
+    'Generated authentication key. Public key: ${authKey.publicKey.bytes.sublist(1, 9)}...',
+  );
   print(
-      'Generated key agreement key. Public key: ${keyAgreementKey.publicKey.bytes.sublist(1, 9)}...');
+    'Generated key agreement key. Public key: ${keyAgreementKey.publicKey.bytes.sublist(1, 9)}...',
+  );
 
   // Add verification methods and create DID document
   final authVmId = await didPeerManager.addVerificationMethod(authKey.id);

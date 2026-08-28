@@ -17,7 +17,8 @@ void main() async {
   // Generate a P256 key pair. The key ID is returned along with public key info.
   final p256key = await wallet.generateKey(keyType: KeyType.p256);
   print(
-      'P256 key pair created. Id: ${p256key.id}, Public key: ${p256key.publicKey.bytes.sublist(1, 9)}...');
+    'P256 key pair created. Id: ${p256key.id}, Public key: ${p256key.publicKey.bytes.sublist(1, 9)}...',
+  );
 
   // Sign a sample payload using the generated P256 key ID.
   print('Signing payload with P256 key...');
@@ -26,8 +27,11 @@ void main() async {
 
   // Verify the signature using the same P256 key ID and original data.
   print('Verifying P256 signature...');
-  final verificationP256 = await wallet.verify(dataToSign,
-      signature: signatureP256, keyId: p256key.id);
+  final verificationP256 = await wallet.verify(
+    dataToSign,
+    signature: signatureP256,
+    keyId: p256key.id,
+  );
   assert(verificationP256, 'Verification failed');
   print('Verification succeeded');
 
@@ -37,7 +41,8 @@ void main() async {
   // Generate an Ed25519 key pair.
   final ed25519key = await wallet.generateKey(keyType: KeyType.ed25519);
   print(
-      'Ed25519 key pair created. Public key: ${ed25519key.publicKey.bytes.sublist(1, 9)}...');
+    'Ed25519 key pair created. Public key: ${ed25519key.publicKey.bytes.sublist(1, 9)}...',
+  );
 
   // Sign the same payload using the generated Ed25519 key ID.
   print('Signing payload with Ed25519 key...');
@@ -46,8 +51,11 @@ void main() async {
 
   // Verify the signature using the Ed25519 key ID.
   print('Verifying Ed25519 signature...');
-  final verificationEd25519 = await wallet.verify(dataToSign,
-      signature: signatureEd25519, keyId: ed25519key.id);
+  final verificationEd25519 = await wallet.verify(
+    dataToSign,
+    signature: signatureEd25519,
+    keyId: ed25519key.id,
+  );
   assert(verificationEd25519, 'Verification failed');
   print('Verification succeeded');
 
@@ -67,7 +75,8 @@ void main() async {
     keyId: p256key.id,
   );
   print(
-      'Encrypted data (single-party): ${encryptedSingleParty.sublist(1, 9)}...');
+    'Encrypted data (single-party): ${encryptedSingleParty.sublist(1, 9)}...',
+  );
 
   // Decrypt using the same P256 key. When no peer public key is provided,
   // the wallet expects the ephemeral public key to be prepended to the
@@ -88,12 +97,14 @@ void main() async {
   // Generate a P256 key pair for Bob in his wallet.
   final bobP256key = await bobWallet.generateKey(keyType: KeyType.p256);
   print(
-      'Bob P256 key pair created. Public key: ${bobP256key.publicKey.bytes.sublist(1, 9)}...');
+    'Bob P256 key pair created. Public key: ${bobP256key.publicKey.bytes.sublist(1, 9)}...',
+  );
 
   // Alice encrypts data for Bob using her private key (identified by p256key.id)
   // and Bob's public key (bobP256key.bytes).
   print(
-      'Alice encrypting for Bob using her key ${p256key.id} and Bob\'s public key...');
+    'Alice encrypting for Bob using her key ${p256key.id} and Bob\'s public key...',
+  );
   final encryptedForBob = await wallet.encrypt(
     plainText,
     keyId: p256key.id, // Alice's key ID
@@ -104,7 +115,8 @@ void main() async {
   // Bob decrypts the data using his private key (identified by bobP256key.id)
   // and Alice's public key (p256key.bytes).
   print(
-      'Bob decrypting using his key ${bobP256key.id} and Alice\'s public key...');
+    'Bob decrypting using his key ${bobP256key.id} and Alice\'s public key...',
+  );
   final decryptedByBob = await bobWallet.decrypt(
     encryptedForBob,
     keyId: bobP256key.id, // Bob's key ID
@@ -120,35 +132,42 @@ void main() async {
   final charlieWallet = PersistentWallet(charlieKeyStore);
 
   // Generate an Ed25519 key pair for Charlie in his wallet.
-  final charlieEd25519key =
-      await charlieWallet.generateKey(keyType: KeyType.ed25519);
+  final charlieEd25519key = await charlieWallet.generateKey(
+    keyType: KeyType.ed25519,
+  );
   print('Charlie Ed25519 key pair created.');
 
   // Get the corresponding X25519 public keys for ECDH
   final aliceX25519PublicKey = await wallet.getX25519PublicKey(ed25519key.id);
-  final charlieX25519PublicKey =
-      await charlieWallet.getX25519PublicKey(charlieEd25519key.id);
+  final charlieX25519PublicKey = await charlieWallet.getX25519PublicKey(
+    charlieEd25519key.id,
+  );
   print(
-      'Alice X25519 Public Key: ${aliceX25519PublicKey.bytes.sublist(1, 9)}...');
+    'Alice X25519 Public Key: ${aliceX25519PublicKey.bytes.sublist(1, 9)}...',
+  );
   print(
-      'Charlie X25519 Public Key: ${charlieX25519PublicKey.bytes.sublist(1, 9)}...');
+    'Charlie X25519 Public Key: ${charlieX25519PublicKey.bytes.sublist(1, 9)}...',
+  );
 
   // Alice encrypts data for Charlie using her Ed25519 private key
   // and Charlie's X25519 public key.
   print(
-      'Alice encrypting for Charlie using her key ${ed25519key.id} and Charlie\'s X25519 public key...');
+    'Alice encrypting for Charlie using her key ${ed25519key.id} and Charlie\'s X25519 public key...',
+  );
   final encryptedForCharlie = await wallet.encrypt(
     plainText,
     keyId: ed25519key.id,
     publicKey: charlieX25519PublicKey.bytes,
   );
   print(
-      'Encrypted data (for Charlie): ${encryptedForCharlie.sublist(1, 9)}...');
+    'Encrypted data (for Charlie): ${encryptedForCharlie.sublist(1, 9)}...',
+  );
 
   // Charlie decrypts the data using his Ed25519 private key
   // and Alice's X25519 public key.
   print(
-      'Charlie decrypting using his key ${charlieEd25519key.id} and Alice\'s X25519 public key...');
+    'Charlie decrypting using his key ${charlieEd25519key.id} and Alice\'s X25519 public key...',
+  );
   final decryptedByCharlie = await charlieWallet.decrypt(
     encryptedForCharlie,
     keyId: charlieEd25519key.id,

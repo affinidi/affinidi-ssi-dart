@@ -165,9 +165,6 @@ final class UniversalVerifier {
       warnings.addAll(verifResult.warnings);
     }
 
-    return VerificationResult.fromFindings(
-      errors: errors,
-      warnings: warnings,
-    );
+    return VerificationResult.fromFindings(errors: errors, warnings: warnings);
   }
 }

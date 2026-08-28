@@ -92,8 +92,7 @@ enum SsiExceptionType {
   jsonLdProcessing(code: 'json_ld_processing_error'),
 
   /// An unknown error has occurred.
-  other(code: 'other'),
-  ;
+  other(code: 'other');
 
   const SsiExceptionType({required this.code});
 

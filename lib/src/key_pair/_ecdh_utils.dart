@@ -43,7 +43,9 @@ PublicKey generateEphemeralPubKey(Curve curve) {
 
 /// Computes the ECDH shared secret.
 Future<Uint8List> computeEcdhSecret(
-    PrivateKey privateKey, PublicKey publicKey) async {
+  PrivateKey privateKey,
+  PublicKey publicKey,
+) async {
   final secret = computeSecret(privateKey, publicKey);
   return Uint8List.fromList(secret);
 }
@@ -72,10 +74,7 @@ Future<Uint8List> encryptData({
 
   final sharedSecret = await computeEcdhSecret(privateKey, publicKeyToUse);
 
-  final algorithm = crypto.Hkdf(
-    hmac: crypto.Hmac.sha256(),
-    outputLength: 32,
-  );
+  final algorithm = crypto.Hkdf(hmac: crypto.Hmac.sha256(), outputLength: 32);
 
   final secretKey = crypto.SecretKey(sharedSecret);
   final derivedKey = await algorithm.deriveKey(
@@ -110,10 +109,7 @@ Future<Uint8List> decryptData({
 
   final sharedSecret = await computeEcdhSecret(privateKey, pubKeyToUse);
 
-  final algorithm = crypto.Hkdf(
-    hmac: crypto.Hmac.sha256(),
-    outputLength: 32,
-  );
+  final algorithm = crypto.Hkdf(hmac: crypto.Hmac.sha256(), outputLength: 32);
 
   final secretKey = crypto.SecretKey(sharedSecret);
   final derivedKey = await algorithm.deriveKey(
@@ -124,8 +120,10 @@ Future<Uint8List> decryptData({
   final derivedKeyBytes = await derivedKey.extractBytes();
   final symmetricKey = Uint8List.fromList(derivedKeyBytes);
 
-  final decryptedData =
-      encryptionUtils.decryptFromBytes(symmetricKey, encryptedData);
+  final decryptedData = encryptionUtils.decryptFromBytes(
+    symmetricKey,
+    encryptedData,
+  );
 
   if (decryptedData == null) {
     throw SsiException(

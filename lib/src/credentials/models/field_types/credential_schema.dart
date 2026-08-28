@@ -7,10 +7,8 @@ abstract interface class _CredentialSchemaInterface {
   /// Converts this status to a JSON-serializable map.
   ///
   /// Returns a map containing the 'type' field and 'id' field if present.
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-        'type': type,
-      });
+  Map<String, dynamic> toJson() =>
+      cleanEmpty({'id': id?.toString(), 'type': type});
 }
 
 /// Represents a Mutable schema for verifiable credentials following W3C standards.
@@ -40,10 +38,7 @@ class MutableCredentialSchema extends _CredentialSchemaInterface {
   ///
   /// The [id] - is id of credential schema.
   /// The [type]- is schema validation type, defaults to 'JsonSchemaValidator2018'.
-  MutableCredentialSchema({
-    this.id,
-    this.type = 'JsonSchemaValidator2018',
-  });
+  MutableCredentialSchema({this.id, this.type = 'JsonSchemaValidator2018'});
 
   /// Creates a [MutableCredentialSchema] instance.
   ///
@@ -101,8 +96,8 @@ class CredentialSchema extends _CredentialSchemaInterface {
   /// The [id] - is id of credential schema.
   /// The [type]- is schema validation type.
   CredentialSchema({required Uri id, required String type})
-      : _id = id,
-        _type = type;
+    : _id = id,
+      _type = type;
 
   /// Creates a [CredentialSchema] from JSON data.
   ///

@@ -9,8 +9,9 @@ void main() {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final raw = jsonFixture['@context'];
-      final expectedContext =
-          raw is List ? List<String>.from(raw) : [raw as String];
+      final expectedContext = raw is List
+          ? List<String>.from(raw)
+          : [raw as String];
       final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.context.context, expectedContext);
     });
@@ -27,8 +28,9 @@ void main() {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final raw = jsonFixture['type'];
-      final expectedType =
-          raw is List ? List<String>.from(raw) : [raw as String];
+      final expectedType = raw is List
+          ? List<String>.from(raw)
+          : [raw as String];
       final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.type, expectedType);
     });
@@ -63,7 +65,8 @@ void main() {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
       final expected = CredentialSubject.fromJson(
-          jsonFixture['credentialSubject'] as Map<String, dynamic>);
+        jsonFixture['credentialSubject'] as Map<String, dynamic>,
+      );
       final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.credentialSubject.first.id, expected.id);
       expect(vc.credentialSubject.first['email'], expected['email']);
@@ -75,14 +78,18 @@ void main() {
       final rawSchema = jsonFixture['credentialSchema'];
       final expected = rawSchema is List
           ? rawSchema
-              .map((e) => CredentialSchema.fromJson(e as Map<String, dynamic>))
-              .toList()
+                .map(
+                  (e) => CredentialSchema.fromJson(e as Map<String, dynamic>),
+                )
+                .toList()
           : <CredentialSchema>[];
       final vc = VcDataModelV1.fromJson(jsonFixture);
       expect([0, 1], contains(vc.credentialSchema.length));
-      for (var i = 0;
-          i < expected.length && i < vc.credentialSchema.length;
-          i++) {
+      for (
+        var i = 0;
+        i < expected.length && i < vc.credentialSchema.length;
+        i++
+      ) {
         expect(vc.credentialSchema[i].id, expected[i].id);
         expect(vc.credentialSchema[i].type, expected[i].type);
       }
@@ -94,8 +101,9 @@ void main() {
       final rawStatus = jsonFixture['credentialStatus'];
       final vc = VcDataModelV1.fromJson(jsonFixture);
       if (rawStatus != null) {
-        final expected =
-            CredentialStatusV1.fromJson(rawStatus as Map<String, dynamic>);
+        final expected = CredentialStatusV1.fromJson(
+          rawStatus as Map<String, dynamic>,
+        );
         expect(vc.credentialStatus?.id, expected.id);
         expect(vc.credentialStatus?.type, expected.type);
       } else {
@@ -114,8 +122,9 @@ void main() {
     test('should correctly assign proof', () {
       final jsonFixture =
           VerifiableCredentialDataFixtures.credentialWithProofDataModelV11;
-      final expected =
-          EmbeddedProof.fromJson(jsonFixture['proof'] as Map<String, dynamic>);
+      final expected = EmbeddedProof.fromJson(
+        jsonFixture['proof'] as Map<String, dynamic>,
+      );
       final vc = VcDataModelV1.fromJson(jsonFixture);
       expect(vc.proof.length, 1);
       expect(vc.proof.first.type, expected.type);
@@ -128,7 +137,9 @@ void main() {
       final vc = MutableVcDataModelV1.fromJson(jsonFixture)
         ..refreshService = [
           MutableRefreshServiceV1(
-              id: Uri.parse('test-refresh-service-id'), type: 't')
+            id: Uri.parse('test-refresh-service-id'),
+            type: 't',
+          ),
         ];
       expect(vc.refreshService.first.id.toString(), 'test-refresh-service-id');
       expect(vc.refreshService.first.type, 't');
@@ -140,7 +151,7 @@ void main() {
       final vc = MutableVcDataModelV1.fromJson(jsonFixture)
         ..termsOfUse = [
           MutableTermsOfUse(id: Uri.parse('test-terms-of-use-id'), type: 't'),
-          MutableTermsOfUse(type: 'AnotherTermV1')
+          MutableTermsOfUse(type: 'AnotherTermV1'),
         ];
       expect(vc.termsOfUse.length, 2);
       expect(vc.termsOfUse[0].id.toString(), 'test-terms-of-use-id');
@@ -153,7 +164,7 @@ void main() {
       final vc = MutableVcDataModelV1.fromJson(jsonFixture)
         ..evidence = [
           MutableEvidence(id: Uri.parse('test-evidence-id'), type: 't'),
-          MutableEvidence(type: 'AnotherEvidenceV1')
+          MutableEvidence(type: 'AnotherEvidenceV1'),
         ];
       expect(vc.evidence.length, 2);
       expect(vc.evidence[0].id.toString(), 'test-evidence-id');
@@ -167,21 +178,25 @@ void main() {
         final vc = MutableVcDataModelV1.fromJson(jsonFixture)
           ..refreshService = [
             MutableRefreshServiceV1(
-                id: Uri.parse('test-refresh-service-id'), type: 't')
+              id: Uri.parse('test-refresh-service-id'),
+              type: 't',
+            ),
           ]
           ..termsOfUse = [
             MutableTermsOfUse(id: Uri.parse('test-terms-of-use-id'), type: 't'),
-            MutableTermsOfUse(type: 'AnotherTermV1')
+            MutableTermsOfUse(type: 'AnotherTermV1'),
           ]
           ..evidence = [
             MutableEvidence(id: Uri.parse('test-evidence-id'), type: 't'),
-            MutableEvidence(type: 'AnotherEvidenceV1')
+            MutableEvidence(type: 'AnotherEvidenceV1'),
           ];
         final jsonMap = vc.toJson();
 
         expect(jsonMap['@context'], jsonFixture['@context']);
         expect(
-            jsonMap['id'], Uri.parse(jsonFixture['id'] as String).toString());
+          jsonMap['id'],
+          Uri.parse(jsonFixture['id'] as String).toString(),
+        );
         expect(jsonMap['type'], jsonFixture['type']);
         if (jsonMap['issuer'] is Map && jsonFixture['issuer'] is Map) {
           expect(jsonMap['issuer'], jsonFixture['issuer']);
@@ -193,10 +208,14 @@ void main() {
         if (jsonMap['credentialSubject'] is Map &&
             jsonFixture['credentialSubject'] is Map) {
           expect(
-              jsonMap['credentialSubject'], jsonFixture['credentialSubject']);
+            jsonMap['credentialSubject'],
+            jsonFixture['credentialSubject'],
+          );
         } else {
-          expect(jsonMap['credentialSubject'].toString(),
-              jsonFixture['credentialSubject'].toString());
+          expect(
+            jsonMap['credentialSubject'].toString(),
+            jsonFixture['credentialSubject'].toString(),
+          );
         }
         expect(jsonMap['credentialSchema'], jsonFixture['credentialSchema']);
         if (jsonMap['credentialStatus'] is Map &&
@@ -219,20 +238,26 @@ void main() {
             expect(jsonMap['holder']['id'], jsonFixture['holder']);
           } else {
             expect(
-                jsonMap['holder'].toString(), jsonFixture['holder'].toString());
+              jsonMap['holder'].toString(),
+              jsonFixture['holder'].toString(),
+            );
           }
         }
         if (jsonMap['proof'] is Map && jsonFixture['proof'] is Map) {
           final actualProof = Map<String, dynamic>.from(
-              jsonMap['proof'] as Map<String, dynamic>);
+            jsonMap['proof'] as Map<String, dynamic>,
+          );
           final expectedProof = Map<String, dynamic>.from(
-              jsonFixture['proof'] as Map<String, dynamic>);
+            jsonFixture['proof'] as Map<String, dynamic>,
+          );
           if (actualProof.containsKey('created') &&
               expectedProof.containsKey('created')) {
             String normalize(String dt) => dt.replaceAll('.000Z', 'Z');
-            expect(normalize(actualProof['created'].toString()),
-                normalize(expectedProof['created'].toString()),
-                reason: "Normalized 'created' field should match");
+            expect(
+              normalize(actualProof['created'].toString()),
+              normalize(expectedProof['created'].toString()),
+              reason: "Normalized 'created' field should match",
+            );
             actualProof.remove('created');
             expectedProof.remove('created');
           }
@@ -243,11 +268,11 @@ void main() {
         expect(jsonMap['refreshService']['id'], 'test-refresh-service-id');
         expect(jsonMap['termsOfUse'], [
           {'id': 'test-terms-of-use-id', 'type': 't'},
-          {'type': 'AnotherTermV1'}
+          {'type': 'AnotherTermV1'},
         ]);
         expect(jsonMap['evidence'], [
           {'id': 'test-evidence-id', 'type': 't'},
-          {'type': 'AnotherEvidenceV1'}
+          {'type': 'AnotherEvidenceV1'},
         ]);
       });
 
@@ -257,17 +282,20 @@ void main() {
         final vc = VcDataModelV1.fromJson({
           ...jsonFixture,
           'refreshService': RefreshServiceV1(
-                  id: Uri.parse('test-refresh-service-id'), type: 't')
-              .toJson(),
+            id: Uri.parse('test-refresh-service-id'),
+            type: 't',
+          ).toJson(),
           'termsOfUse': [
-            TermsOfUse(id: Uri.parse('test-terms-of-use-id'), type: 't')
-                .toJson(),
-            TermsOfUse(type: 'AnotherTermV1').toJson()
+            TermsOfUse(
+              id: Uri.parse('test-terms-of-use-id'),
+              type: 't',
+            ).toJson(),
+            TermsOfUse(type: 'AnotherTermV1').toJson(),
           ],
           'evidence': [
             Evidence(id: Uri.parse('test-evidence-id'), type: 't').toJson(),
-            Evidence(type: 'AnotherEvidenceV1').toJson()
-          ]
+            Evidence(type: 'AnotherEvidenceV1').toJson(),
+          ],
         });
         final parsed = VcDataModelV1.fromJson(vc.toJson());
 
@@ -278,7 +306,9 @@ void main() {
         expect(parsed.issuanceDate, vc.issuanceDate);
         expect(parsed.expirationDate, vc.expirationDate);
         expect(
-            parsed.credentialSubject.first.id, vc.credentialSubject.first.id);
+          parsed.credentialSubject.first.id,
+          vc.credentialSubject.first.id,
+        );
         expect(parsed.credentialSchema.length, vc.credentialSchema.length);
         expect(parsed.credentialStatus?.id, vc.credentialStatus?.id);
         expect(parsed.holder?.id, vc.holder?.id);
@@ -298,13 +328,16 @@ void main() {
           ? List<String>.from(rawContext)
           : [rawContext as String];
       final rawType = jsonFixture['type'];
-      final testType =
-          rawType is List ? List<String>.from(rawType) : [rawType as String];
+      final testType = rawType is List
+          ? List<String>.from(rawType)
+          : [rawType as String];
       final testIssuer = Issuer.fromJson(jsonFixture['issuer']);
-      final testIssuanceDate =
-          DateTime.parse(jsonFixture['issuanceDate'] as String);
+      final testIssuanceDate = DateTime.parse(
+        jsonFixture['issuanceDate'] as String,
+      );
       final testCredentialSubject = CredentialSubject.fromJson(
-          jsonFixture['credentialSubject'] as Map<String, dynamic>);
+        jsonFixture['credentialSubject'] as Map<String, dynamic>,
+      );
 
       final jsonMap = {
         '@context': rawContext,
@@ -322,8 +355,10 @@ void main() {
       try {
         final parsed = VcDataModelV1.fromJson(jsonMap);
         expect(parsed.context.toJson(), testContext);
-        expect(parsed.id.toString(),
-            Uri.parse(jsonFixture['id'] as String).toString());
+        expect(
+          parsed.id.toString(),
+          Uri.parse(jsonFixture['id'] as String).toString(),
+        );
         expect(parsed.type, testType);
         expect(parsed.issuer.id, testIssuer.id);
         expect(parsed.issuanceDate, testIssuanceDate);
@@ -371,35 +406,44 @@ void main() {
         };
         expect(
           () => VcDataModelV1.fromJson(invalid),
-          throwsA(isA<SsiException>().having(
-            (e) => e.code,
-            'code',
-            SsiExceptionType.invalidJson.code,
-          )),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.code,
+              'code',
+              SsiExceptionType.invalidJson.code,
+            ),
+          ),
         );
       },
     );
 
-    test('validate() throws when `VerifiableCredential` is missing in type',
-        () {
-      expect(
-        () => VcDataModelV1(
-          context: JsonLdContext.fromJson([dmV1ContextUrl]),
-          id: Uri.parse('id'),
-          type: {'ExampleCredential'},
-          issuer: Issuer.uri('did:example:issuer'),
-          issuanceDate: DateTime.now(),
-          credentialSubject: [
-            CredentialSubject.fromJson({'id': 'did:example:subject'})
-          ],
-        ),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message
-                .contains('MUST include the value "VerifiableCredential"'))),
-      );
-    });
+    test(
+      'validate() throws when `VerifiableCredential` is missing in type',
+      () {
+        expect(
+          () => VcDataModelV1(
+            context: JsonLdContext.fromJson([dmV1ContextUrl]),
+            id: Uri.parse('id'),
+            type: {'ExampleCredential'},
+            issuer: Issuer.uri('did:example:issuer'),
+            issuanceDate: DateTime.now(),
+            credentialSubject: [
+              CredentialSubject.fromJson({'id': 'did:example:subject'}),
+            ],
+          ),
+          throwsA(
+            predicate(
+              (e) =>
+                  e is SsiException &&
+                  e.code == SsiExceptionType.invalidJson.code &&
+                  e.message.contains(
+                    'MUST include the value "VerifiableCredential"',
+                  ),
+            ),
+          ),
+        );
+      },
+    );
 
     test('validate() succeeds when `type` contains VerifiableCredential', () {
       final vc = VcDataModelV1(
@@ -409,7 +453,7 @@ void main() {
         issuer: Issuer.uri('did:example:issuer'),
         issuanceDate: DateTime.now(),
         credentialSubject: [
-          CredentialSubject.fromJson({'id': 'did:example:subject'})
+          CredentialSubject.fromJson({'id': 'did:example:subject'}),
         ],
       );
       expect(vc.type.contains('VerifiableCredential'), isTrue);
@@ -419,79 +463,98 @@ void main() {
 
   group('VcDataModelV1 issuer vs proof.verificationMethod DID consistency', () {
     Map<String, dynamic> baseCredential({Object? proof}) => {
-          '@context': ['https://www.w3.org/2018/credentials/v1'],
-          'type': ['VerifiableCredential'],
-          'issuer': 'did:key:issuerDid',
-          'issuanceDate': '2024-01-01T00:00:00Z',
-          'credentialSubject': {'id': 'did:example:subject'},
-          if (proof != null) 'proof': proof,
-        };
+      '@context': ['https://www.w3.org/2018/credentials/v1'],
+      'type': ['VerifiableCredential'],
+      'issuer': 'did:key:issuerDid',
+      'issuanceDate': '2024-01-01T00:00:00Z',
+      'credentialSubject': {'id': 'did:example:subject'},
+      if (proof != null) 'proof': proof,
+    };
 
     Map<String, dynamic> proofMap({required String? vmDid}) => {
-          'type': 'Ed25519Signature2020',
-          'created': '2024-01-01T00:00:00Z',
-          'proofPurpose': 'assertionMethod',
-          if (vmDid != null)
-            'verificationMethod': 'did:key:$vmDid#key-1'
-          else
-            'verificationMethod': null,
-          'jws': 'mock-jws',
-        };
+      'type': 'Ed25519Signature2020',
+      'created': '2024-01-01T00:00:00Z',
+      'proofPurpose': 'assertionMethod',
+      if (vmDid != null)
+        'verificationMethod': 'did:key:$vmDid#key-1'
+      else
+        'verificationMethod': null,
+      'jws': 'mock-jws',
+    };
 
     test(
-        'passes when issuer DID matches verificationMethod DID (single proof map)',
-        () {
-      final json = baseCredential(proof: proofMap(vmDid: 'issuerDid'));
-      final vc = VcDataModelV1.fromJson(json);
-      expect(vc.issuer.id.toString(), 'did:key:issuerDid');
-      expect(vc.proof.first.verificationMethod, 'did:key:issuerDid#key-1');
-    });
+      'passes when issuer DID matches verificationMethod DID (single proof map)',
+      () {
+        final json = baseCredential(proof: proofMap(vmDid: 'issuerDid'));
+        final vc = VcDataModelV1.fromJson(json);
+        expect(vc.issuer.id.toString(), 'did:key:issuerDid');
+        expect(vc.proof.first.verificationMethod, 'did:key:issuerDid#key-1');
+      },
+    );
 
     test(
-        'throws when issuer DID mismatches verificationMethod DID (single proof map)',
-        () {
-      final json = baseCredential(proof: proofMap(vmDid: 'differentDid'));
-      expect(
-        () => VcDataModelV1.fromJson(json),
-        throwsA(allOf(
-          isA<SsiException>()
-              .having(
-                (e) => e.message,
-                'message',
-                contains(
-                    'Issuer mismatch: `issuer` (did:key:issuerDid) and proof.verificationMethod DID (did:key:differentDid) differ - v1'),
-              )
-              .having((e) => e.code, 'code', SsiExceptionType.invalidJson.code),
-        )),
-      );
-    });
-
-    test('passes when issuer DID matches verificationMethod DID (proof list)',
-        () {
-      final json = baseCredential(proof: [proofMap(vmDid: 'issuerDid')]);
-      final vc = VcDataModelV1.fromJson(json);
-      expect(vc.issuer.id.toString(), 'did:key:issuerDid');
-      expect(vc.proof.first.verificationMethod, 'did:key:issuerDid#key-1');
-    });
+      'throws when issuer DID mismatches verificationMethod DID (single proof map)',
+      () {
+        final json = baseCredential(proof: proofMap(vmDid: 'differentDid'));
+        expect(
+          () => VcDataModelV1.fromJson(json),
+          throwsA(
+            allOf(
+              isA<SsiException>()
+                  .having(
+                    (e) => e.message,
+                    'message',
+                    contains(
+                      'Issuer mismatch: `issuer` (did:key:issuerDid) and proof.verificationMethod DID (did:key:differentDid) differ - v1',
+                    ),
+                  )
+                  .having(
+                    (e) => e.code,
+                    'code',
+                    SsiExceptionType.invalidJson.code,
+                  ),
+            ),
+          ),
+        );
+      },
+    );
 
     test(
-        'throws when issuer DID mismatches verificationMethod DID (proof list)',
-        () {
-      final json = baseCredential(proof: [proofMap(vmDid: 'otherDid')]);
-      expect(
-        () => VcDataModelV1.fromJson(json),
-        throwsA(allOf(
-          isA<SsiException>()
-              .having(
-                (e) => e.message,
-                'message',
-                contains(
-                    'Issuer mismatch: `issuer` (did:key:issuerDid) and proof.verificationMethod DID (did:key:otherDid) differ - v1'),
-              )
-              .having((e) => e.code, 'code', SsiExceptionType.invalidJson.code),
-        )),
-      );
-    });
+      'passes when issuer DID matches verificationMethod DID (proof list)',
+      () {
+        final json = baseCredential(proof: [proofMap(vmDid: 'issuerDid')]);
+        final vc = VcDataModelV1.fromJson(json);
+        expect(vc.issuer.id.toString(), 'did:key:issuerDid');
+        expect(vc.proof.first.verificationMethod, 'did:key:issuerDid#key-1');
+      },
+    );
+
+    test(
+      'throws when issuer DID mismatches verificationMethod DID (proof list)',
+      () {
+        final json = baseCredential(proof: [proofMap(vmDid: 'otherDid')]);
+        expect(
+          () => VcDataModelV1.fromJson(json),
+          throwsA(
+            allOf(
+              isA<SsiException>()
+                  .having(
+                    (e) => e.message,
+                    'message',
+                    contains(
+                      'Issuer mismatch: `issuer` (did:key:issuerDid) and proof.verificationMethod DID (did:key:otherDid) differ - v1',
+                    ),
+                  )
+                  .having(
+                    (e) => e.code,
+                    'code',
+                    SsiExceptionType.invalidJson.code,
+                  ),
+            ),
+          ),
+        );
+      },
+    );
 
     test('does not throw when verificationMethod is null', () {
       final json = baseCredential(proof: proofMap(vmDid: null));
@@ -519,36 +582,47 @@ void main() {
           issuer: Issuer.uri('did:example:issuerV1'),
           issuanceDate: DateTime.now(),
           credentialSubject: [
-            CredentialSubject.fromJson({'id': 'did:example:subjectV1'})
+            CredentialSubject.fromJson({'id': 'did:example:subjectV1'}),
           ],
         ),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message.contains('`type` property is mandatory'))),
+        throwsA(
+          predicate(
+            (e) =>
+                e is SsiException &&
+                e.code == SsiExceptionType.invalidJson.code &&
+                e.message.contains('`type` property is mandatory'),
+          ),
+        ),
       );
     });
 
-    test('validate() throws when `VerifiableCredential` is missing in type',
-        () {
-      expect(
-        () => VcDataModelV1(
-          context: JsonLdContext.fromJson([dmV1ContextUrl]),
-          id: Uri.parse('id'),
-          type: {'ExampleCredentialV1'},
-          issuer: Issuer.uri('did:example:issuerV1'),
-          issuanceDate: DateTime.now(),
-          credentialSubject: [
-            CredentialSubject.fromJson({'id': 'did:example:subjectV1'})
-          ],
-        ),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message
-                .contains('MUST include the value "VerifiableCredential"'))),
-      );
-    });
+    test(
+      'validate() throws when `VerifiableCredential` is missing in type',
+      () {
+        expect(
+          () => VcDataModelV1(
+            context: JsonLdContext.fromJson([dmV1ContextUrl]),
+            id: Uri.parse('id'),
+            type: {'ExampleCredentialV1'},
+            issuer: Issuer.uri('did:example:issuerV1'),
+            issuanceDate: DateTime.now(),
+            credentialSubject: [
+              CredentialSubject.fromJson({'id': 'did:example:subjectV1'}),
+            ],
+          ),
+          throwsA(
+            predicate(
+              (e) =>
+                  e is SsiException &&
+                  e.code == SsiExceptionType.invalidJson.code &&
+                  e.message.contains(
+                    'MUST include the value "VerifiableCredential"',
+                  ),
+            ),
+          ),
+        );
+      },
+    );
 
     test('validate() succeeds when `type` contains VerifiableCredential', () {
       final vc = VcDataModelV1(
@@ -558,7 +632,7 @@ void main() {
         issuer: Issuer.uri('did:example:issuerV1'),
         issuanceDate: DateTime.now(),
         credentialSubject: [
-          CredentialSubject.fromJson({'id': 'did:example:subjectV1'})
+          CredentialSubject.fromJson({'id': 'did:example:subjectV1'}),
         ],
       );
       expect(vc.type.contains('VerifiableCredential'), isTrue);

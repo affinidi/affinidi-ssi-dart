@@ -12,7 +12,7 @@ abstract interface class _CredentialStatusV2Interface
     return cleanEmpty({
       'id': id?.toString(),
       'type': type,
-      ...Map<String, dynamic>.fromEntries(entries)
+      ...Map<String, dynamic>.fromEntries(entries),
     });
   }
 }
@@ -48,12 +48,13 @@ class MutableCredentialStatusV2 extends _CredentialStatusV2Interface {
   /// The 'id' is validated and converted to a [Uri] using [getUri], and 'type' is validated
   /// as a [String] using [getString].
   MutableCredentialStatusV2(Map<String, dynamic>? revocationFields)
-      : id = getUri(revocationFields ?? {}, 'id'),
-        type = getString(revocationFields ?? {}, 'type'),
-        _revocationFields = UnmodifiableMapView(
-            Map<String, dynamic>.from(revocationFields ?? {})
-              ..remove('id')
-              ..remove('type'));
+    : id = getUri(revocationFields ?? {}, 'id'),
+      type = getString(revocationFields ?? {}, 'type'),
+      _revocationFields = UnmodifiableMapView(
+        Map<String, dynamic>.from(revocationFields ?? {})
+          ..remove('id')
+          ..remove('type'),
+      );
 
   /// Creates a [MutableCredentialStatusV2] from JSON data.
   factory MutableCredentialStatusV2.fromJson(Map<String, dynamic> json) {
@@ -121,12 +122,13 @@ interface class CredentialStatusV2 extends _CredentialStatusV2Interface {
   /// The 'id' is validated as a [Uri] using [getUri], and 'type' is required and validated
   /// using [getMandatoryString]. Other fields are stored in an unmodifiable map.
   CredentialStatusV2(Map<String, dynamic> revocationFields)
-      : id = getUri(revocationFields, 'id'),
-        type = getMandatoryString(revocationFields, 'type'),
-        _revocationFields =
-            UnmodifiableMapView(Map<String, dynamic>.from(revocationFields)
-              ..remove('id')
-              ..remove('type'));
+    : id = getUri(revocationFields, 'id'),
+      type = getMandatoryString(revocationFields, 'type'),
+      _revocationFields = UnmodifiableMapView(
+        Map<String, dynamic>.from(revocationFields)
+          ..remove('id')
+          ..remove('type'),
+      );
 
   /// Creates a [CredentialStatusV2] from JSON data.
   factory CredentialStatusV2.fromJson(Map<String, dynamic> json) {

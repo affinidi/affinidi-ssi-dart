@@ -12,8 +12,10 @@ void main() {
     });
 
     test('generates an ML-DSA-44 key', () async {
-      final kp =
-          await wallet.generateKey(keyId: 'ml1', keyType: KeyType.mldsa44);
+      final kp = await wallet.generateKey(
+        keyId: 'ml1',
+        keyType: KeyType.mldsa44,
+      );
       expect(kp, isA<MlDsa44KeyPair>());
       expect(kp.publicKey.type, KeyType.mldsa44);
       expect(kp.publicKey.bytes.length, 1312);
@@ -41,15 +43,21 @@ void main() {
       expect(schemes, contains(SignatureScheme.mldsa44));
     });
 
-    test('generateKey returns the same key on second call with same ID',
-        () async {
-      final kp1 =
-          await wallet.generateKey(keyId: 'ml5', keyType: KeyType.mldsa44);
-      // Second call should return the stored key unchanged.
-      final kp2 =
-          await wallet.generateKey(keyId: 'ml5', keyType: KeyType.mldsa44);
-      expect(kp1.publicKey.bytes, equals(kp2.publicKey.bytes));
-    });
+    test(
+      'generateKey returns the same key on second call with same ID',
+      () async {
+        final kp1 = await wallet.generateKey(
+          keyId: 'ml5',
+          keyType: KeyType.mldsa44,
+        );
+        // Second call should return the stored key unchanged.
+        final kp2 = await wallet.generateKey(
+          keyId: 'ml5',
+          keyType: KeyType.mldsa44,
+        );
+        expect(kp1.publicKey.bytes, equals(kp2.publicKey.bytes));
+      },
+    );
 
     test('encrypt via wallet throws SsiException for mldsa44 key', () async {
       await wallet.generateKey(keyId: 'ml6', keyType: KeyType.mldsa44);
@@ -68,8 +76,9 @@ void main() {
       expect(restored.keyType, KeyType.mldsa44);
       expect(restored.privateKeyBytes.length, 3872);
       // Ensure restore actually reconstructs the same public key.
-      final restoredKp =
-          MlDsa44KeyPair.fromPrivateKey(restored.privateKeyBytes);
+      final restoredKp = MlDsa44KeyPair.fromPrivateKey(
+        restored.privateKeyBytes,
+      );
       expect(restoredKp.publicKey.bytes, equals(kp.publicKey.bytes));
     });
   });

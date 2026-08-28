@@ -17,7 +17,9 @@ class InMemoryDidStore extends DidStore {
 
   @override
   Future<void> setMapping(
-      String verificationMethodId, String walletKeyId) async {
+    String verificationMethodId,
+    String walletKeyId,
+  ) async {
     _keyMapping[verificationMethodId] = walletKeyId;
   }
 

@@ -11,10 +11,7 @@ void main() {
       final keyStore = InMemoryKeyStore();
       wallet = PersistentWallet(keyStore);
       store = InMemoryDidStore();
-      manager = _TestDidManager(
-        wallet: wallet,
-        store: store,
-      );
+      manager = _TestDidManager(wallet: wallet, store: store);
     });
 
     group('removeAllVerificationMethodReferences', () {
@@ -68,10 +65,7 @@ void main() {
 
 /// Test implementation of DidManager for testing base functionality
 class _TestDidManager extends DidManager {
-  _TestDidManager({
-    required super.store,
-    required super.wallet,
-  });
+  _TestDidManager({required super.store, required super.wallet});
 
   @override
   Future<DidDocument> getDidDocument() async {
@@ -86,8 +80,10 @@ class _TestDidManager extends DidManager {
         capabilityInvocation.isEmpty &&
         capabilityDelegation.isEmpty) {
       final key = await wallet.generateKey(keyId: 'temp-test-key');
-      await peerManager.addVerificationMethod(key.id,
-          relationships: {VerificationRelationship.authentication});
+      await peerManager.addVerificationMethod(
+        key.id,
+        relationships: {VerificationRelationship.authentication},
+      );
     }
 
     return peerManager.getDidDocument();

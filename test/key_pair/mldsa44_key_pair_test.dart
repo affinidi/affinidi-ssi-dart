@@ -8,10 +8,16 @@ void main() {
     group('generate', () {
       test('generates a fresh key pair with correct sizes', () {
         final (kp, keyBlob) = MlDsa44KeyPair.generate();
-        expect(kp.publicKey.bytes.length, 1312,
-            reason: 'ML-DSA-44 public key must be 1312 bytes');
-        expect(keyBlob.length, 3872,
-            reason: 'key blob (sk||pk) must be 2560+1312=3872 bytes');
+        expect(
+          kp.publicKey.bytes.length,
+          1312,
+          reason: 'ML-DSA-44 public key must be 1312 bytes',
+        );
+        expect(
+          keyBlob.length,
+          3872,
+          reason: 'key blob (sk||pk) must be 2560+1312=3872 bytes',
+        );
         expect(kp.publicKey.type, KeyType.mldsa44);
       });
 
@@ -108,8 +114,11 @@ void main() {
       test('signs and self-verifies', () async {
         final data = Uint8List.fromList([1, 2, 3, 4, 5]);
         final sig = await kp.sign(data);
-        expect(sig.length, 2420,
-            reason: 'ML-DSA-44 signature must be 2420 bytes');
+        expect(
+          sig.length,
+          2420,
+          reason: 'ML-DSA-44 signature must be 2420 bytes',
+        );
         expect(await kp.verify(data, sig), isTrue);
       });
 
@@ -145,17 +154,11 @@ void main() {
       });
 
       test('encrypt throws SsiException', () {
-        expect(
-          () => kp.encrypt(Uint8List(8)),
-          throwsA(isA<SsiException>()),
-        );
+        expect(() => kp.encrypt(Uint8List(8)), throwsA(isA<SsiException>()));
       });
 
       test('decrypt throws SsiException', () {
-        expect(
-          () => kp.decrypt(Uint8List(8)),
-          throwsA(isA<SsiException>()),
-        );
+        expect(() => kp.decrypt(Uint8List(8)), throwsA(isA<SsiException>()));
       });
 
       test('computeEcdhSecret throws SsiException', () {

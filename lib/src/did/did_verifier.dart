@@ -63,8 +63,9 @@ class DidVerifier implements Verifier {
     }
 
     VerificationMethod? verificationMethod;
-    final fragment =
-        kidToUse.contains('#') ? kidToUse.split('#').last : kidToUse;
+    final fragment = kidToUse.contains('#')
+        ? kidToUse.split('#').last
+        : kidToUse;
     verificationMethod = didDocument.verificationMethod.firstWhere(
       (method) => method.id == kidToUse || method.id.endsWith('#$fragment'),
       orElse: () => throw SsiException(
@@ -111,8 +112,14 @@ class DidVerifier implements Verifier {
 
   static bool _isKeyCompatibleWithAlgorithm(JWTKey key, String algorithm) {
     if (key is RSAPublicKey) {
-      return ['RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512']
-          .contains(algorithm);
+      return [
+        'RS256',
+        'RS384',
+        'RS512',
+        'PS256',
+        'PS384',
+        'PS512',
+      ].contains(algorithm);
     }
     if (key is ECPublicKey) {
       return ['ES256', 'ES384', 'ES512', 'ES256K'].contains(algorithm);

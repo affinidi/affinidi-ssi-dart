@@ -308,10 +308,7 @@ class VerificationMethodRef implements VerificationMethod {
   final String reference;
 
   /// Creates a [VerificationMethodRef] instance.
-  VerificationMethodRef({
-    required this.reference,
-    required this.method,
-  });
+  VerificationMethodRef({required this.reference, required this.method});
 
   @override
   Jwk asJwk() => method.asJwk();

@@ -31,9 +31,9 @@ Future<String> downloadDocument(
   final ownsClient = client == null;
   final httpClient = client ?? http.Client();
   try {
-    final response = await httpClient.get(url, headers: {
-      'Accept': 'application/json, application/jsonl'
-    }).timeout(timeout);
+    final response = await httpClient
+        .get(url, headers: {'Accept': 'application/json, application/jsonl'})
+        .timeout(timeout);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return response.body;
     }
@@ -218,9 +218,7 @@ class Witness {
   /// Creates a [Witness] with the given [id].
   ///
   /// - [id]: The DID identifying the witness.
-  Witness({
-    required this.id,
-  });
+  Witness({required this.id});
 
   /// Creates a [Witness] from a JSON map.
   ///
@@ -228,18 +226,14 @@ class Witness {
   ///
   /// Throws [TypeError] if the `"id"` field is missing or not a string.
   factory Witness.fromJson(Map<String, dynamic> json) {
-    return Witness(
-      id: json['id'] as String,
-    );
+    return Witness(id: json['id'] as String);
   }
 
   /// Serializes this witness to a JSON map.
   ///
   /// Returns `{"id": "<did>"}`.
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-    };
+    return {'id': id};
   }
 }
 
@@ -265,10 +259,7 @@ class WitnessParameter {
   ///
   /// Contains the necessary information to configure and initialize a witness
   /// in the DID WebVH log system.
-  WitnessParameter({
-    this.threshold,
-    this.witnesses,
-  });
+  WitnessParameter({this.threshold, this.witnesses});
 
   /// Creates a [WitnessParameter] instance from a JSON map.
   ///
@@ -533,18 +524,20 @@ class DidWebVhLogEntry {
       entryVersionTime = _webVhDateFormat.parse(json['versionTime'] as String);
     } on FormatException catch (e) {
       throw SsiDidResolutionException(
-          message:
-              'Invalid DID WebVh Log Entry versionTime format. versionTime must be in ISO8601 format (e.g., "2024-04-05T07:32:58Z") in entry with versionId $entryVersionId',
-          code: SsiExceptionType.invalidDidWebVh.code,
-          originalMessage: e.message,
-          resolutionMetadata: DidWebVhResolutionMetadata(problemDetails: ''));
+        message:
+            'Invalid DID WebVh Log Entry versionTime format. versionTime must be in ISO8601 format (e.g., "2024-04-05T07:32:58Z") in entry with versionId $entryVersionId',
+        code: SsiExceptionType.invalidDidWebVh.code,
+        originalMessage: e.message,
+        resolutionMetadata: DidWebVhResolutionMetadata(problemDetails: ''),
+      );
     }
 
     return DidWebVhLogEntry._(
       versionId: entryVersionId,
       versionTime: entryVersionTime,
       parameters: DidWebVhLogEntryParameters.fromJson(
-          Map<String, dynamic>.from(json['parameters'] as Map)),
+        Map<String, dynamic>.from(json['parameters'] as Map),
+      ),
       state: DidDocument.fromJson(json['state'] as Map<String, dynamic>),
       proof: (json['proof'] as List)
           .map((e) => DidWebVhLogEntryProof.fromJson(e as Map<String, dynamic>))
@@ -566,7 +559,8 @@ class DidWebVhLogEntry {
   ///
   /// Returns a map suitable for canonicalization and hashing.
   Map<String, dynamic> buildMapFromEntryWithVersionIdAndStrippedProof(
-      String newVersionId) {
+    String newVersionId,
+  ) {
     final result = Map<String, dynamic>.from(_sourceJson);
     result.remove('proof');
     result['versionId'] = newVersionId;
@@ -708,9 +702,7 @@ class DidWebVhLog {
   /// Creates a [DidWebVhLog] with the provided list of entries.
   ///
   /// - [entries]: The ordered list of log entries for the DID.
-  DidWebVhLog({
-    required this.entries,
-  });
+  DidWebVhLog({required this.entries});
 
   /// Creates a [DidWebVhLog] from a JSON Lines formatted string.
   ///
@@ -735,8 +727,11 @@ class DidWebVhLog {
     final lines = jsonLines.split('\n');
     final entries = lines
         .where((line) => line.trim().isNotEmpty)
-        .map((line) => DidWebVhLogEntry.fromJson(
-            Map<String, dynamic>.from(jsonDecode(line))))
+        .map(
+          (line) => DidWebVhLogEntry.fromJson(
+            Map<String, dynamic>.from(jsonDecode(line)),
+          ),
+        )
         .toList();
     return DidWebVhLog(entries: entries);
   }
@@ -747,7 +742,9 @@ class DidWebVhLog {
   ///
   /// Throws [SsiException] if the version number doesn't match the expected value.
   void _verifyVersionNumberSequencing(
-      int actualVersionNum, int expectedVersionNum) {
+    int actualVersionNum,
+    int expectedVersionNum,
+  ) {
     if (actualVersionNum != expectedVersionNum) {
       throw SsiException(
         message:
@@ -766,10 +763,11 @@ class DidWebVhLog {
   /// - Timestamps are not in ascending order
   /// - Timestamp format is invalid (not ISO8601)
   void _verifyTimestampOrdering(
-      DidWebVhLogEntry currentEntry,
-      DidWebVhLogEntry? previousEntry,
-      int versionNum,
-      DateTime resolutionTime) {
+    DidWebVhLogEntry currentEntry,
+    DidWebVhLogEntry? previousEntry,
+    int versionNum,
+    DateTime resolutionTime,
+  ) {
     if (currentEntry.versionTime.isAfter(resolutionTime)) {
       throw SsiDidResolutionException(
         message:
@@ -802,7 +800,8 @@ class DidWebVhLog {
   /// - The specified version is not found in the log
   /// - No entries exist at or before the specified versionTime
   int _determineVerificationBoundary(
-      DidWebVhResolutionOptions? resolutionOptions) {
+    DidWebVhResolutionOptions? resolutionOptions,
+  ) {
     int verifyUpToIndex = entries.length - 1;
 
     var providedParametersCount = 0;
@@ -831,8 +830,9 @@ class DidWebVhLog {
       verifyUpToIndex = index;
     } else if (resolutionOptions?.versionNumber != null) {
       final targetVersionNum = resolutionOptions!.versionNumber;
-      final index =
-          entries.indexWhere((e) => e.versionNumber == targetVersionNum);
+      final index = entries.indexWhere(
+        (e) => e.versionNumber == targetVersionNum,
+      );
       if (index == -1) {
         throw SsiException(
           message: 'versionNumber $targetVersionNum not found in log',
@@ -913,7 +913,8 @@ class DidWebVhLog {
   ///
   /// Throws [SsiException] if the method parameter is null in the first entry.
   void _parameterMethodMustExistInFirstVersion(
-      DidWebVhLogEntryParameters params) {
+    DidWebVhLogEntryParameters params,
+  ) {
     if (params.method == null) {
       throw SsiException(
         message: 'First log entry must contain "method" parameter',
@@ -932,7 +933,8 @@ class DidWebVhLog {
   ///
   /// Throws [SsiException] if the SCID parameter is null in the first entry.
   void _parameterScidMustExistInfirstVersion(
-      DidWebVhLogEntryParameters params) {
+    DidWebVhLogEntryParameters params,
+  ) {
     if (params.scid == null) {
       throw SsiException(
         message: 'First log entry must contain "scid" parameter',
@@ -951,7 +953,8 @@ class DidWebVhLog {
   ///
   /// Throws [SsiException] if the updateKeys parameter is null in the first entry.
   void _parameterUpdateKeysMustExistInFirstVersion(
-      DidWebVhLogEntryParameters params) {
+    DidWebVhLogEntryParameters params,
+  ) {
     if (params.updateKeys == null) {
       throw SsiException(
         message: 'First log entry must contain "updateKeys" parameter',
@@ -970,7 +973,8 @@ class DidWebVhLog {
   ///
   /// Throws [SsiException] if the SCID parameter is present in a later entry.
   void _parameterScidCannotExistInLaterVersions(
-      DidWebVhLogEntryParameters params) {
+    DidWebVhLogEntryParameters params,
+  ) {
     if (params.scid != null) {
       throw SsiException(
         message: 'SCID parameter must only appear in first log entry',
@@ -990,8 +994,9 @@ class DidWebVhLog {
   ///
   /// Throws [SsiException] if portable is being changed from false to true.
   void _parameterPortableCannotBeTrueInLaterVersions(
-      DidWebVhLogEntryParameters? prevActiveParameters,
-      DidWebVhLogEntryParameters activeParameters) {
+    DidWebVhLogEntryParameters? prevActiveParameters,
+    DidWebVhLogEntryParameters activeParameters,
+  ) {
     if (prevActiveParameters?.portable == false &&
         activeParameters.portable == true) {
       throw SsiException(
@@ -1083,12 +1088,13 @@ class DidWebVhLog {
   void _scidMustMatchWithHashOfFirstEntry(DidWebVhLogEntry firstEntry) {
     final String expectedScid = firstEntry.parameters.scid!;
     // Create a map representation of the first entry without the proof field
-    final entryWithoutProof =
-        firstEntry.buildMapFromEntryWithVersionIdAndStrippedProof('{SCID}');
+    final entryWithoutProof = firstEntry
+        .buildMapFromEntryWithVersionIdAndStrippedProof('{SCID}');
 
     // Canonicalize using JCS and replace scid value with {SCID}
-    final canonicalized = JcsUtil.canonicalize(entryWithoutProof)
-        .replaceAll(expectedScid, '{SCID}');
+    final canonicalized = JcsUtil.canonicalize(
+      entryWithoutProof,
+    ).replaceAll(expectedScid, '{SCID}');
 
     final retBytes = _multiHashSha256(canonicalized);
 
@@ -1179,13 +1185,16 @@ class DidWebVhLog {
   ///
   /// Throws [SsiException] if the calculated entryHash doesn't match the versionId.
   void _entryHashMustMatchWithHashOfEntryContent(
-      DidWebVhLogEntry entry, DidWebVhLogEntry? prevEntry) {
+    DidWebVhLogEntry entry,
+    DidWebVhLogEntry? prevEntry,
+  ) {
     final expectedEntryHash = entry.entryHash;
 
     // Create a map representation of the entry without the proof field
-    final entryWithoutProof =
-        entry.buildMapFromEntryWithVersionIdAndStrippedProof(
-            prevEntry?.versionId ?? entry.parameters.scid!);
+    final entryWithoutProof = entry
+        .buildMapFromEntryWithVersionIdAndStrippedProof(
+          prevEntry?.versionId ?? entry.parameters.scid!,
+        );
 
     // Canonicalize using JCS
     final canonicalized = JcsUtil.canonicalize(entryWithoutProof);
@@ -1287,8 +1296,8 @@ class DidWebVhLog {
     // and verify them instead of just taking the first proof. For now, we will just take the
     // first proof and verify it.
     final proof = entry.proof.first;
-    final documentToVerify =
-        entry.buildMapFromEntryWithVersionIdAndStrippedProof(entry.versionId);
+    final documentToVerify = entry
+        .buildMapFromEntryWithVersionIdAndStrippedProof(entry.versionId);
 
     documentToVerify['proof'] = proof.toJson();
 
@@ -1409,25 +1418,29 @@ class DidWebVhLog {
       // Construct the HTTPS URL from the DID
       // final httpsUrl = didWebVh.jsonLogFileHttpsUrlString;
 
-      newServices.add(ServiceEndpoint(
-        /// FIXME: @context is missing here, but it is required by the spec.
-        /// We will need to add it in the future when we have a better understanding
-        /// of how to handle @context in this implementation.
-        ///
-        id: '#whois',
-        type: const StringServiceType('LinkedVerifiablePresentation'),
-        serviceEndpoint: StringEndpoint(didWebVh.whoIsServiceHttpsUrlString),
-      ));
+      newServices.add(
+        ServiceEndpoint(
+          /// FIXME: @context is missing here, but it is required by the spec.
+          /// We will need to add it in the future when we have a better understanding
+          /// of how to handle @context in this implementation.
+          ///
+          id: '#whois',
+          type: const StringServiceType('LinkedVerifiablePresentation'),
+          serviceEndpoint: StringEndpoint(didWebVh.whoIsServiceHttpsUrlString),
+        ),
+      );
     }
 
     // 2. Add files services if watchers are defined
     final filesId = '$did#files';
     if (!serviceExists(filesId)) {
-      newServices.add(ServiceEndpoint(
-        id: '#files',
-        type: const StringServiceType('relativeRef'),
-        serviceEndpoint: StringEndpoint(didWebVh.toHttpsUrlString()),
-      ));
+      newServices.add(
+        ServiceEndpoint(
+          id: '#files',
+          type: const StringServiceType('relativeRef'),
+          serviceEndpoint: StringEndpoint(didWebVh.toHttpsUrlString()),
+        ),
+      );
     }
 
     // Return a new DID Document with updated services
@@ -1470,10 +1483,11 @@ class DidWebVhLog {
     } catch (e) {
       // Catch any other unexpected exceptions and wrap them in an SsiException
       throw SsiException(
-          message:
-              'SCID mismatch: DID Document ID does not contain expected SCID $expectedScid',
-          code: SsiExceptionType.invalidDidWebVh.code,
-          originalMessage: e.toString());
+        message:
+            'SCID mismatch: DID Document ID does not contain expected SCID $expectedScid',
+        code: SsiExceptionType.invalidDidWebVh.code,
+        originalMessage: e.toString(),
+      );
     }
   }
 
@@ -1485,9 +1499,10 @@ class DidWebVhLog {
   /// Throws an exception if the DID document is attempted to be ported without
   /// the portable flag being explicitly enabled.
   void _didDocCanBePortedOnlyWhenPortableIsTrue(
-      DidDocument prevResolvedDoc,
-      DidDocument currentResolvedDoc,
-      DidWebVhLogEntryParameters activeParameters) {
+    DidDocument prevResolvedDoc,
+    DidDocument currentResolvedDoc,
+    DidWebVhLogEntryParameters activeParameters,
+  ) {
     if (prevResolvedDoc.id != currentResolvedDoc.id &&
         activeParameters.portable != true) {
       throw SsiException(
@@ -1568,7 +1583,7 @@ class DidWebVhLog {
   /// ```
   ///
   Future<(DidDocument, DidWebVhDocumentMetadata, DidWebVhResolutionMetadata)>
-      verify({DidWebVhResolutionOptions? options}) async {
+  verify({DidWebVhResolutionOptions? options}) async {
     if (entries.isEmpty) {
       throw SsiException(
         message: 'DID log is empty',
@@ -1602,7 +1617,7 @@ class DidWebVhLog {
     bool prevWitnessingActive = false;
     DidDocument? resolvedDidDoc;
     List<({String versionId, WitnessParameter activeWitness})>
-        witnessRequiringVersions = [];
+    witnessRequiringVersions = [];
     DateTime resolutionTime = DateTime.now().toUtc();
 
     for (int i = 0; i <= verifyUpToIndex; i++) {
@@ -1659,7 +1674,9 @@ class DidWebVhLog {
       if (!isFirstEntry) {
         _parameterScidCannotExistInLaterVersions(params);
         _parameterPortableCannotBeTrueInLaterVersions(
-            prevActiveParams, activeParameters);
+          prevActiveParams,
+          activeParameters,
+        );
 
         // Pre-rotation constraints
         if (preRotationActive) {
@@ -1680,14 +1697,10 @@ class DidWebVhLog {
       final activeUpdateKeys = isFirstEntry
           ? activeParameters.updateKeys!
           : (preRotationActive
-              ? activeParameters.updateKeys!
-              : prevActiveParams!.updateKeys!);
+                ? activeParameters.updateKeys!
+                : prevActiveParams!.updateKeys!);
       if (!skipAllProofRelatedVerification) {
-        await _proofMustBeValid(
-          entry,
-          activeUpdateKeys,
-          options!,
-        );
+        await _proofMustBeValid(entry, activeUpdateKeys, options!);
       }
 
       // Update deactivation status
@@ -1702,24 +1715,25 @@ class DidWebVhLog {
         // activating now, so we need to verify the new active witness
         witnessRequiringVersions.add((
           versionId: entry.versionId,
-          activeWitness: activeParameters.witness!
+          activeWitness: activeParameters.witness!,
         ));
       } else if (witnessingActive && prevWitnessingActive) {
         // already active, so we need to verify the last active witness
         witnessRequiringVersions.add((
           versionId: entry.versionId,
-          activeWitness: prevActiveParams!.witness!
+          activeWitness: prevActiveParams!.witness!,
         ));
       } else if (!witnessingActive && prevWitnessingActive) {
         // deactivating now, so we need to verify the last active state
         witnessRequiringVersions.add((
           versionId: entry.versionId,
-          activeWitness: prevActiveParams!.witness!
+          activeWitness: prevActiveParams!.witness!,
         ));
       }
 
       // Update prerotation active status
-      preRotationActive = activeParameters.nextKeyHashes != null &&
+      preRotationActive =
+          activeParameters.nextKeyHashes != null &&
           activeParameters.nextKeyHashes!.isNotEmpty;
 
       // Update resolved DID Document after processing this entry
@@ -1729,13 +1743,18 @@ class DidWebVhLog {
       // Validate that SCID in resolved DID Document matches active parameters
       if (!skipResolvedDidDocScidVerification) {
         _validateResolvedDidDocScid(
-            resolvedDidDoc, options!.resolvingDidUrl!.scid);
+          resolvedDidDoc,
+          options!.resolvingDidUrl!.scid,
+        );
       }
       // Validate that DID Document can only be ported when portable flag is true
       if (!isFirstEntry) {
         if (skipDidDocPortabilityVerification) {
           _didDocCanBePortedOnlyWhenPortableIsTrue(
-              prevEntry!.state, resolvedDidDoc, activeParameters);
+            prevEntry!.state,
+            resolvedDidDoc,
+            activeParameters,
+          );
         }
       }
     }
@@ -1745,15 +1764,14 @@ class DidWebVhLog {
         message:
             'Failed to resolve DID Document from log entries - no valid entries found according to query parameters',
         code: SsiExceptionType.invalidDidWebVh.code,
-        resolutionMetadata: DidWebVhResolutionMetadata(
-          problemDetails: '',
-        ),
+        resolutionMetadata: DidWebVhResolutionMetadata(problemDetails: ''),
       );
     }
 
     if (!skipWitnessVerification && witnessRequiringVersions.isNotEmpty) {
       final witnessProofs = await DidWebVhWitnessVerifier.fetchWitnesses(
-          options!.resolvingDidUrl!.witnessUrlString);
+        options!.resolvingDidUrl!.witnessUrlString,
+      );
       final verifier = DidWebVhWitnessVerifier();
 
       for (final witnessReq in witnessRequiringVersions) {
@@ -1790,11 +1808,12 @@ class DidWebVhLog {
     return (
       resolvedDidDoc,
       DidWebVhDocumentMetadata(
-          scid: activeParameters.scid!,
-          versionId: entries[verifyUpToIndex].versionId,
-          versionNumber: entries[verifyUpToIndex].versionNumber,
-          versionTime: entries[verifyUpToIndex].versionTime),
-      DidWebVhResolutionMetadata()
+        scid: activeParameters.scid!,
+        versionId: entries[verifyUpToIndex].versionId,
+        versionNumber: entries[verifyUpToIndex].versionNumber,
+        versionTime: entries[verifyUpToIndex].versionTime,
+      ),
+      DidWebVhResolutionMetadata(),
     );
   }
 }

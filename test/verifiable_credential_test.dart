@@ -30,72 +30,65 @@ void main() {
           );
         });
 
-        test(
-          'it retrieves the correct issuer',
-          () async {
-            expect(verifiableCredential.issuer.id.toString(),
-                'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa');
-          },
-        );
+        test('it retrieves the correct issuer', () async {
+          expect(
+            verifiableCredential.issuer.id.toString(),
+            'did:key:aaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaabaaaa',
+          );
+        });
 
-        test(
-          'it retrieves the correct type',
-          () {
-            expect(verifiableCredential.type,
-                ['VerifiableCredential', 'HITContacts']);
-          },
-        );
+        test('it retrieves the correct type', () {
+          expect(verifiableCredential.type, [
+            'VerifiableCredential',
+            'HITContacts',
+          ]);
+        });
 
-        test(
-          'it retrieves the correct issuance date',
-          () {
-            expect(verifiableCredential.validFrom,
-                DateTime(2024, 07, 16, 20, 16, 05, 648));
-          },
-        );
+        test('it retrieves the correct issuance date', () {
+          expect(
+            verifiableCredential.validFrom,
+            DateTime(2024, 07, 16, 20, 16, 05, 648),
+          );
+        });
 
-        test(
-          'it retrieves the correct credentials subject',
-          () {
-            expect(verifiableCredential.credentialSubject.first['email'],
-                'user@affinidi.com');
-          },
-        );
+        test('it retrieves the correct credentials subject', () {
+          expect(
+            verifiableCredential.credentialSubject.first['email'],
+            'user@affinidi.com',
+          );
+        });
 
-        test(
-          'it retrieves the correct id',
-          () {
-            expect(verifiableCredential.id.toString(),
-                'claimid:02-aaaaaa-aaaaaaaaaaa');
-          },
-        );
+        test('it retrieves the correct id', () {
+          expect(
+            verifiableCredential.id.toString(),
+            'claimid:02-aaaaaa-aaaaaaaaaaa',
+          );
+        });
 
-        test(
-          'it retrieves the correct schema',
-          () {
-            expect(
-                verifiableCredential.credentialSchema.firstOrNull?.id
-                    .toString(),
-                'credentialSchemaId');
-            expect(verifiableCredential.credentialSchema.firstOrNull?.type,
-                'credentialSchemaType');
-          },
-        );
+        test('it retrieves the correct schema', () {
+          expect(
+            verifiableCredential.credentialSchema.firstOrNull?.id.toString(),
+            'credentialSchemaId',
+          );
+          expect(
+            verifiableCredential.credentialSchema.firstOrNull?.type,
+            'credentialSchemaType',
+          );
+        });
 
-        test(
-          'it retrieves the correct valid until date',
-          () {
-            expect(verifiableCredential.validUntil,
-                DateTime(2024, 07, 18, 20, 16, 05, 648));
-          },
-        );
+        test('it retrieves the correct valid until date', () {
+          expect(
+            verifiableCredential.validUntil,
+            DateTime(2024, 07, 18, 20, 16, 05, 648),
+          );
+        });
 
         test(
           'it holds the original json data provided to create the instance',
           () {
             final expected = Map<String, dynamic>.from(
-                VerifiableCredentialDataFixtures
-                    .credentialWithProofDataModelV11);
+              VerifiableCredentialDataFixtures.credentialWithProofDataModelV11,
+            );
             if (expected['issuer'] is Map &&
                 expected['issuer'].length == 1 &&
                 expected['issuer']['id'] != null) {
@@ -109,41 +102,45 @@ void main() {
           'it holds the original raw data provided to create the instance',
           () {
             expect(
-                verifiableCredential.serialized,
-                VerifiableCredentialDataFixtures
-                    .credentialWithProofDataModelV11JsonEncoded);
+              verifiableCredential.serialized,
+              VerifiableCredentialDataFixtures
+                  .credentialWithProofDataModelV11JsonEncoded,
+            );
           },
         );
 
         group('and amending the initial input data identifier', () {
           data['id'] = 'modified';
 
-          test(
-            'it does not update the verifiable credential identifier',
-            () {
-              expect(
-                  verifiableCredential.id.toString(),
-                  Uri.parse(VerifiableCredentialDataFixtures
-                          .credentialWithProofDataModelV11['id'] as String)
-                      .toString());
-            },
-          );
+          test('it does not update the verifiable credential identifier', () {
+            expect(
+              verifiableCredential.id.toString(),
+              Uri.parse(
+                VerifiableCredentialDataFixtures
+                        .credentialWithProofDataModelV11['id']
+                    as String,
+              ).toString(),
+            );
+          });
         });
       });
 
       group('without a proof', () {
-        test(
-          'it throws an unknown format exception',
-          () {
-            expect(
-                () => UniversalParser.parse(VerifiableCredentialDataFixtures
-                    .credentialWithoutProofDataModelV11),
-                throwsA(isA<SsiException>().having(
-                    (error) => error.code,
-                    'code',
-                    SsiExceptionType.unableToParseVerifiableCredential.code)));
-          },
-        );
+        test('it throws an unknown format exception', () {
+          expect(
+            () => UniversalParser.parse(
+              VerifiableCredentialDataFixtures
+                  .credentialWithoutProofDataModelV11,
+            ),
+            throwsA(
+              isA<SsiException>().having(
+                (error) => error.code,
+                'code',
+                SsiExceptionType.unableToParseVerifiableCredential.code,
+              ),
+            ),
+          );
+        });
       });
     });
 
@@ -154,115 +151,103 @@ void main() {
         verifiableCredential = UniversalParser.parse(data);
       });
 
-      test(
-        'it has correct signature',
-        () async {
-          expect(
-              await JwtDm1Suite()
-                  .verifyIntegrity(verifiableCredential as JwtVcDataModelV1),
-              true);
-        },
-      );
+      test('it has correct signature', () async {
+        expect(
+          await JwtDm1Suite().verifyIntegrity(
+            verifiableCredential as JwtVcDataModelV1,
+          ),
+          true,
+        );
+      });
 
-      test(
-        'it has invalid signature',
-        () async {
-          final verifiableCredential = UniversalParser.parse(
-              VerifiableCredentialDataFixtures
-                  .jwtCredentialDataModelV11InvalidSig);
+      test('it has invalid signature', () async {
+        final verifiableCredential = UniversalParser.parse(
+          VerifiableCredentialDataFixtures.jwtCredentialDataModelV11InvalidSig,
+        );
 
-          var actualIntegrity = await JwtDm1Suite()
-              .verifyIntegrity(verifiableCredential as JwtVcDataModelV1);
+        var actualIntegrity = await JwtDm1Suite().verifyIntegrity(
+          verifiableCredential as JwtVcDataModelV1,
+        );
 
-          expect(actualIntegrity, false);
-        },
-      );
+        expect(actualIntegrity, false);
+      });
 
-      test(
-        'it can encode & decode',
-        () async {
-          final dataModel = MutableVcDataModelV1.fromJson(
-            VerifiableCredentialDataFixtures.credentialWithoutProofDataModelV11,
-          )..issuer = MutableIssuer.uri(signer.did);
+      test('it can encode & decode', () async {
+        final dataModel = MutableVcDataModelV1.fromJson(
+          VerifiableCredentialDataFixtures.credentialWithoutProofDataModelV11,
+        )..issuer = MutableIssuer.uri(signer.did);
 
-          final suite = JwtDm1Suite();
-          final jwt = await suite.issue(
-              unsignedData: VcDataModelV1.fromMutable(dataModel),
-              signer: signer);
+        final suite = JwtDm1Suite();
+        final jwt = await suite.issue(
+          unsignedData: VcDataModelV1.fromMutable(dataModel),
+          signer: signer,
+        );
 
-          var actualIntegrity = await suite.verifyIntegrity(jwt);
+        var actualIntegrity = await suite.verifyIntegrity(jwt);
 
-          expect(actualIntegrity, true);
-        },
-      );
+        expect(actualIntegrity, true);
+      });
 
-      test(
-        'it retrieves the correct issuer',
-        () {
-          expect(verifiableCredential.issuer.id.toString(),
-              'https://example.edu/issuers/565049');
-        },
-      );
+      test('it retrieves the correct issuer', () {
+        expect(
+          verifiableCredential.issuer.id.toString(),
+          'https://example.edu/issuers/565049',
+        );
+      });
 
-      test(
-        'it retrieves the correct credential type',
-        () {
-          expect(verifiableCredential.type,
-              ['VerifiableCredential', 'UniversityDegreeCredential']);
-        },
-      );
+      test('it retrieves the correct credential type', () {
+        expect(verifiableCredential.type, [
+          'VerifiableCredential',
+          'UniversityDegreeCredential',
+        ]);
+      });
 
-      test(
-        'it retrieves the correct issuance date',
-        () {
-          expect(verifiableCredential.validFrom,
-              DateTime.utc(2010, 01, 01, 00, 00, 00));
-        },
-      );
+      test('it retrieves the correct issuance date', () {
+        expect(
+          verifiableCredential.validFrom,
+          DateTime.utc(2010, 01, 01, 00, 00, 00),
+        );
+      });
 
       test(
         'it retrieves the correct credential subject with a profession position',
         () {
-          expect(verifiableCredential.credentialSubject.first.id.toString(),
-              'did:example:ebfeb1f712ebc6f1c276e12ec21');
+          expect(
+            verifiableCredential.credentialSubject.first.id.toString(),
+            'did:example:ebfeb1f712ebc6f1c276e12ec21',
+          );
         },
       );
 
-      test(
-        'it retrieves the correct id',
-        () {
-          expect(verifiableCredential.id.toString(),
-              'http://example.edu/credentials/3732');
-        },
-      );
+      test('it retrieves the correct id', () {
+        expect(
+          verifiableCredential.id.toString(),
+          'http://example.edu/credentials/3732',
+        );
+      });
 
-      test(
-        'it retrieves the correct schema',
-        () {
-          expect(verifiableCredential.credentialSchema, isEmpty);
-        },
-      );
+      test('it retrieves the correct schema', () {
+        expect(verifiableCredential.credentialSchema, isEmpty);
+      });
 
-      test(
-        'it does not have an expiry date',
-        () {
-          expect(verifiableCredential.validUntil, isNull);
-        },
-      );
+      test('it does not have an expiry date', () {
+        expect(verifiableCredential.validUntil, isNull);
+      });
 
       test(
         'it holds the original json data provided to create the instance',
         () {
           final expected = Map<String, dynamic>.from(
-              VerifiableCredentialDataFixtures
-                  .jwtCredentialDataModelV11Decoded);
+            VerifiableCredentialDataFixtures.jwtCredentialDataModelV11Decoded,
+          );
           if (expected['issuer'] is Map &&
               expected['issuer'].length == 1 &&
               expected['issuer']['id'] != null) {
             expected['issuer'] = expected['issuer']['id'];
           }
-          final actual =
-              Map<String, dynamic>.from(verifiableCredential.toJson());
+          final actual = Map<String, dynamic>.from(
+            verifiableCredential.toJson(),
+          );
 
           // Remove 'proof' if not present in expected
           if (!expected.containsKey('proof')) {
@@ -275,26 +260,28 @@ void main() {
       test(
         'it holds the original raw data provided to create the instance',
         () {
-          expect(verifiableCredential.serialized,
-              VerifiableCredentialDataFixtures.jwtCredentialDataModelV11);
+          expect(
+            verifiableCredential.serialized,
+            VerifiableCredentialDataFixtures.jwtCredentialDataModelV11,
+          );
         },
       );
 
-      test(
-        'it passes integrity check',
-        () async {
-          var actualIntegrity = await JwtDm1Suite()
-              .verifyIntegrity(verifiableCredential as JwtVcDataModelV1);
-          expect(actualIntegrity, true);
-        },
-      );
+      test('it passes integrity check', () async {
+        var actualIntegrity = await JwtDm1Suite().verifyIntegrity(
+          verifiableCredential as JwtVcDataModelV1,
+        );
+        expect(actualIntegrity, true);
+      });
 
       group('and amending the initial data', () {
         test('it does not update the verifiable credential rawData', () {
           final original = data; // keep original JWT
           data = 'aaa'; // mutate after parsing occurred
-          expect(verifiableCredential.serialized,
-              VerifiableCredentialDataFixtures.jwtCredentialDataModelV11);
+          expect(
+            verifiableCredential.serialized,
+            VerifiableCredentialDataFixtures.jwtCredentialDataModelV11,
+          );
           data = original; // restore to avoid side-effects on other tests
         });
       });
@@ -310,94 +297,95 @@ void main() {
         setUpAll(() {
           verifiableCredential = UniversalParser.parse(data);
         });
-        test(
-          'it retrieves the correct issuer',
-          () {
-            expect(verifiableCredential.issuer.id.toString(),
-                'did:example:6fb1f712ebe12c27cc26eebfe11');
-          },
-        );
+        test('it retrieves the correct issuer', () {
+          expect(
+            verifiableCredential.issuer.id.toString(),
+            'did:example:6fb1f712ebe12c27cc26eebfe11',
+          );
+        });
 
-        test(
-          'it retrieves the correct type',
-          () {
-            expect(verifiableCredential.type,
-                ['VerifiableCredential', 'ExampleDegreeCredential']);
-          },
-        );
+        test('it retrieves the correct type', () {
+          expect(verifiableCredential.type, [
+            'VerifiableCredential',
+            'ExampleDegreeCredential',
+          ]);
+        });
 
-        test(
-          'it retrieves the correct issuance date',
-          () {
-            expect(verifiableCredential.validFrom,
-                DateTime.utc(2010, 01, 01, 19, 23, 24, 0));
-          },
-        );
+        test('it retrieves the correct issuance date', () {
+          expect(
+            verifiableCredential.validFrom,
+            DateTime.utc(2010, 01, 01, 19, 23, 24, 0),
+          );
+        });
 
-        test(
-          'it retrieves the correct credentials subject',
-          () {
-            expect(verifiableCredential.credentialSubject.first.id.toString(),
-                'https://subject.example/subject/3921');
-          },
-        );
+        test('it retrieves the correct credentials subject', () {
+          expect(
+            verifiableCredential.credentialSubject.first.id.toString(),
+            'https://subject.example/subject/3921',
+          );
+        });
 
-        test(
-          'it retrieves the correct id',
-          () {
-            expect(verifiableCredential.id.toString(),
-                'https://example.gov/credentials/3732');
-          },
-        );
+        test('it retrieves the correct id', () {
+          expect(
+            verifiableCredential.id.toString(),
+            'https://example.gov/credentials/3732',
+          );
+        });
 
-        test(
-          'it retrieves the correct schema',
-          () {
-            expect(
-                verifiableCredential.credentialSchema.firstOrNull?.id
-                    .toString(),
-                'https://example.org/examples/degree.json');
-            expect(verifiableCredential.credentialSchema.firstOrNull?.type,
-                'JsonSchema');
-            expect(
-                verifiableCredential.credentialSchema.lastOrNull?.id.toString(),
-                'https://example.org/examples/alumni.json');
-            expect(verifiableCredential.credentialSchema.lastOrNull?.type,
-                'JsonSchema');
-          },
-        );
+        test('it retrieves the correct schema', () {
+          expect(
+            verifiableCredential.credentialSchema.firstOrNull?.id.toString(),
+            'https://example.org/examples/degree.json',
+          );
+          expect(
+            verifiableCredential.credentialSchema.firstOrNull?.type,
+            'JsonSchema',
+          );
+          expect(
+            verifiableCredential.credentialSchema.lastOrNull?.id.toString(),
+            'https://example.org/examples/alumni.json',
+          );
+          expect(
+            verifiableCredential.credentialSchema.lastOrNull?.type,
+            'JsonSchema',
+          );
+        });
 
-        test(
-          'it retrieves the correct valid until date',
-          () {
-            expect(verifiableCredential.validUntil,
-                DateTime.utc(2020, 02, 01, 19, 25, 24, 0));
-          },
-        );
+        test('it retrieves the correct valid until date', () {
+          expect(
+            verifiableCredential.validUntil,
+            DateTime.utc(2020, 02, 01, 19, 25, 24, 0),
+          );
+        });
 
         test(
           'it holds the original json data provided to create the instance',
           () {
             final expected = Map<String, dynamic>.from(
-                VerifiableCredentialDataFixtures
-                    .credentialWithProofDataModelV20);
+              VerifiableCredentialDataFixtures.credentialWithProofDataModelV20,
+            );
             if (expected['issuer'] is Map &&
                 expected['issuer'].length == 1 &&
                 expected['issuer']['id'] != null) {
               expected['issuer'] = expected['issuer']['id'];
             }
-            final actual =
-                Map<String, dynamic>.from(verifiableCredential.toJson());
+            final actual = Map<String, dynamic>.from(
+              verifiableCredential.toJson(),
+            );
             // Normalize 'created' field in proof if present
             if (expected['proof'] != null && actual['proof'] != null) {
               final expProof = Map<String, dynamic>.from(
-                  expected['proof'] as Map<String, dynamic>);
+                expected['proof'] as Map<String, dynamic>,
+              );
               final actProof = Map<String, dynamic>.from(
-                  actual['proof'] as Map<String, dynamic>);
+                actual['proof'] as Map<String, dynamic>,
+              );
               if (expProof['created'] != null && actProof['created'] != null) {
                 // Remove milliseconds if present in actual
-                actProof['created'] =
-                    actProof['created'].replaceAll('.000Z', 'Z');
+                actProof['created'] = actProof['created'].replaceAll(
+                  '.000Z',
+                  'Z',
+                );
                 expected['proof'] = expProof;
                 actual['proof'] = actProof;
               }
@@ -410,26 +398,30 @@ void main() {
           'it holds the original raw data provided to create the instance',
           () {
             expect(
-                verifiableCredential.serialized,
-                VerifiableCredentialDataFixtures
-                    .credentialWithProofDataModelV20String);
+              verifiableCredential.serialized,
+              VerifiableCredentialDataFixtures
+                  .credentialWithProofDataModelV20String,
+            );
           },
         );
       });
 
       group('without a proof', () {
-        test(
-          'it throws an unknown format exception',
-          () {
-            expect(
-                () => UniversalParser.parse(VerifiableCredentialDataFixtures
-                    .credentialWithoutProofDataModelV20),
-                throwsA(isA<SsiException>().having(
-                    (error) => error.code,
-                    'code',
-                    SsiExceptionType.unableToParseVerifiableCredential.code)));
-          },
-        );
+        test('it throws an unknown format exception', () {
+          expect(
+            () => UniversalParser.parse(
+              VerifiableCredentialDataFixtures
+                  .credentialWithoutProofDataModelV20,
+            ),
+            throwsA(
+              isA<SsiException>().having(
+                (error) => error.code,
+                'code',
+                SsiExceptionType.unableToParseVerifiableCredential.code,
+              ),
+            ),
+          );
+        });
       });
     });
   });
@@ -450,76 +442,53 @@ void main() {
       return json;
     }
 
-    test(
-      'Map issuer with id sets payload[iss] to that id',
-      () {
-        final (_, payload) = JwtVcDataModelV1.vcToJws(
-          buildVcJson(issuer: {'id': 'did:example:explicit-map-issuer'}),
-          signer,
-        );
-        expect(payload['iss'], 'did:example:explicit-map-issuer');
-      },
-    );
+    test('Map issuer with id sets payload[iss] to that id', () {
+      final (_, payload) = JwtVcDataModelV1.vcToJws(
+        buildVcJson(issuer: {'id': 'did:example:explicit-map-issuer'}),
+        signer,
+      );
+      expect(payload['iss'], 'did:example:explicit-map-issuer');
+    });
 
-    test(
-      'Map issuer without id falls back to signer.did',
-      () {
-        final (_, payload) = JwtVcDataModelV1.vcToJws(
-          // Map with metadata but no `id`
-          buildVcJson(issuer: {'name': 'Example Issuer'}),
-          signer,
-        );
-        expect(payload['iss'], signer.did);
-      },
-    );
+    test('Map issuer without id falls back to signer.did', () {
+      final (_, payload) = JwtVcDataModelV1.vcToJws(
+        // Map with metadata but no `id`
+        buildVcJson(issuer: {'name': 'Example Issuer'}),
+        signer,
+      );
+      expect(payload['iss'], signer.did);
+    });
 
-    test(
-      'Map issuer with non-String id throws',
-      () {
-        // `rawIssuer['id'] as String?` does not tolerate a non-null
-        // wrong-typed value, so vcToJws must surface a TypeError.
-        expect(
-          () => JwtVcDataModelV1.vcToJws(
-            buildVcJson(issuer: {'id': 123}),
-            signer,
-          ),
-          throwsA(isA<TypeError>()),
-        );
-      },
-    );
+    test('Map issuer with non-String id throws', () {
+      // `rawIssuer['id'] as String?` does not tolerate a non-null
+      // wrong-typed value, so vcToJws must surface a TypeError.
+      expect(
+        () =>
+            JwtVcDataModelV1.vcToJws(buildVcJson(issuer: {'id': 123}), signer),
+        throwsA(isA<TypeError>()),
+      );
+    });
 
-    test(
-      'String issuer is passed through to payload[iss] verbatim',
-      () {
-        final (_, payload) = JwtVcDataModelV1.vcToJws(
-          buildVcJson(issuer: 'did:example:string-issuer'),
-          signer,
-        );
-        expect(payload['iss'], 'did:example:string-issuer');
-      },
-    );
+    test('String issuer is passed through to payload[iss] verbatim', () {
+      final (_, payload) = JwtVcDataModelV1.vcToJws(
+        buildVcJson(issuer: 'did:example:string-issuer'),
+        signer,
+      );
+      expect(payload['iss'], 'did:example:string-issuer');
+    });
 
-    test(
-      'Missing issuer field falls back to signer.did',
-      () {
-        final (_, payload) = JwtVcDataModelV1.vcToJws(
-          buildVcJson(),
-          signer,
-        );
-        expect(payload['iss'], signer.did);
-      },
-    );
+    test('Missing issuer field falls back to signer.did', () {
+      final (_, payload) = JwtVcDataModelV1.vcToJws(buildVcJson(), signer);
+      expect(payload['iss'], signer.did);
+    });
 
-    test(
-      'Null issuer falls back to signer.did',
-      () {
-        final (_, payload) = JwtVcDataModelV1.vcToJws(
-          buildVcJson(issuer: null),
-          signer,
-        );
-        expect(payload['iss'], signer.did);
-      },
-    );
+    test('Null issuer falls back to signer.did', () {
+      final (_, payload) = JwtVcDataModelV1.vcToJws(
+        buildVcJson(issuer: null),
+        signer,
+      );
+      expect(payload['iss'], signer.did);
+    });
   });
 }
 

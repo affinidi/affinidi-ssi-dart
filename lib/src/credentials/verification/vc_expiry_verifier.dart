@@ -13,9 +13,8 @@ class VcExpiryVerifier implements VcVerifier {
   ///
   /// Optionally accepts a [getNow] function to provide the current time,
   /// useful for testing or custom time validation scenarios.
-  VcExpiryVerifier({
-    DateTime Function() getNow = DateTime.now,
-  }) : _getNow = getNow;
+  VcExpiryVerifier({DateTime Function() getNow = DateTime.now})
+    : _getNow = getNow;
 
   /// Verifies that the [data] credential is currently valid based on its
   /// `validFrom` and `validUntil` timestamps.
@@ -38,14 +37,12 @@ class VcExpiryVerifier implements VcVerifier {
       return Future.value(
         VerificationResult.invalid(
           errors: [
-            'vc ${data.id} is no longer valid, validUntil: "$validUntil"'
+            'vc ${data.id} is no longer valid, validUntil: "$validUntil"',
           ],
         ),
       );
     }
 
-    return Future.value(
-      VerificationResult.ok(),
-    );
+    return Future.value(VerificationResult.ok());
   }
 }

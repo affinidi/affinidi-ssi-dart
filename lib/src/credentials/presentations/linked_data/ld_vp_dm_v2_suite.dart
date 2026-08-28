@@ -15,8 +15,7 @@ final class LdVpDm2Suite extends LdBaseSuite<VpDataModelV2, LdVpDataModelV2>
         VerifiablePresentationSuite<String, VpDataModelV2, LdVpDataModelV2> {
   /// Creates a new [LdVpDm2Suite] with the v2.2 context URL.
   LdVpDm2Suite({super.customDocumentLoader})
-      : super(
-            contextUrl: dmV2ContextUrl, issuerKey: VpDataModelV2Key.holder.key);
+    : super(contextUrl: dmV2ContextUrl, issuerKey: VpDataModelV2Key.holder.key);
 
   /// Parses a [String] input and payload [Map] into a [LdVpDataModelV2] instance.
   @override
@@ -35,9 +34,9 @@ class LdVpDataModelV2 extends VpDataModelV2
   /// The input map is passed to the [MutableVpDataModelV2] constructor, and
   /// the JSON string is parsed for `toJson`.
   LdVpDataModelV2.fromParsed(String serialized, Map<String, dynamic> input)
-      : _serialized = serialized,
-        // use parsing from VcDataModelV2
-        super.clone(VpDataModelV2.fromJson(input));
+    : _serialized = serialized,
+      // use parsing from VcDataModelV2
+      super.clone(VpDataModelV2.fromJson(input));
 
   /// Returns the JSON representation of the serialized presentation.
   @override

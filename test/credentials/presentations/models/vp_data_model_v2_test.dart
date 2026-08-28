@@ -12,30 +12,41 @@ void main() {
           verifiableCredential: [],
           proof: [],
         ),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message.contains('`type` property is mandatory'))),
+        throwsA(
+          predicate(
+            (e) =>
+                e is SsiException &&
+                e.code == SsiExceptionType.invalidJson.code &&
+                e.message.contains('`type` property is mandatory'),
+          ),
+        ),
       );
     });
 
-    test('validate() throws when `VerifiablePresentation` is missing in type',
-        () {
-      expect(
-        () => VpDataModelV2(
-          context: JsonLdContext.fromJson([dmV2ContextUrl]),
-          type: {'CustomPresentation'},
-          holder: Holder.uri('did:example:holder'),
-          verifiableCredential: [],
-          proof: [],
-        ),
-        throwsA(predicate((e) =>
-            e is SsiException &&
-            e.code == SsiExceptionType.invalidJson.code &&
-            e.message
-                .contains('MUST include the value "VerifiablePresentation"'))),
-      );
-    });
+    test(
+      'validate() throws when `VerifiablePresentation` is missing in type',
+      () {
+        expect(
+          () => VpDataModelV2(
+            context: JsonLdContext.fromJson([dmV2ContextUrl]),
+            type: {'CustomPresentation'},
+            holder: Holder.uri('did:example:holder'),
+            verifiableCredential: [],
+            proof: [],
+          ),
+          throwsA(
+            predicate(
+              (e) =>
+                  e is SsiException &&
+                  e.code == SsiExceptionType.invalidJson.code &&
+                  e.message.contains(
+                    'MUST include the value "VerifiablePresentation"',
+                  ),
+            ),
+          ),
+        );
+      },
+    );
 
     test('validate() succeeds when `type` contains VerifiablePresentation', () {
       final vp = VpDataModelV2(
@@ -49,17 +60,18 @@ void main() {
     });
 
     test(
-        'validate() succeeds with multiple types including VerifiablePresentation',
-        () {
-      final vp = VpDataModelV2(
-        context: JsonLdContext.fromJson([dmV2ContextUrl]),
-        type: {'VerifiablePresentation', 'CustomPresentation'},
-        holder: Holder.uri('did:example:holder'),
-        verifiableCredential: [],
-        proof: [],
-      );
-      expect(vp.type.contains('VerifiablePresentation'), isTrue);
-      expect(vp.type.contains('CustomPresentation'), isTrue);
-    });
+      'validate() succeeds with multiple types including VerifiablePresentation',
+      () {
+        final vp = VpDataModelV2(
+          context: JsonLdContext.fromJson([dmV2ContextUrl]),
+          type: {'VerifiablePresentation', 'CustomPresentation'},
+          holder: Holder.uri('did:example:holder'),
+          verifiableCredential: [],
+          proof: [],
+        );
+        expect(vp.type.contains('VerifiablePresentation'), isTrue);
+        expect(vp.type.contains('CustomPresentation'), isTrue);
+      },
+    );
   });
 }

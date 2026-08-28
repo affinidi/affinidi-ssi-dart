@@ -11,10 +11,7 @@ Future<void> main() async {
   final store = InMemoryDidStore();
 
   // Create a DID Peer manager
-  final manager = DidPeerManager(
-    store: store,
-    wallet: wallet,
-  );
+  final manager = DidPeerManager(store: store, wallet: wallet);
 
   // Generate authentication and key agreement keys
   final authKeyId = 'auth-key-1';
@@ -24,16 +21,20 @@ Future<void> main() async {
   final agreementKey = await wallet.generateKey(keyId: agreementKeyId);
 
   // Add verification methods
-  final authVerificationMethodId =
-      await manager.addVerificationMethod(authKey.id);
-  final agreementVerificationMethodId =
-      await manager.addVerificationMethod(agreementKey.id);
+  final authVerificationMethodId = await manager.addVerificationMethod(
+    authKey.id,
+  );
+  final agreementVerificationMethodId = await manager.addVerificationMethod(
+    agreementKey.id,
+  );
 
   // Set up verification method purposes
-  await manager
-      .addAuthentication(authVerificationMethodId.verificationMethodId);
-  await manager
-      .addKeyAgreement(agreementVerificationMethodId.verificationMethodId);
+  await manager.addAuthentication(
+    authVerificationMethodId.verificationMethodId,
+  );
+  await manager.addKeyAgreement(
+    agreementVerificationMethodId.verificationMethodId,
+  );
 
   // Add service endpoints
   final serviceEndpoint = ServiceEndpoint(
@@ -54,15 +55,19 @@ Future<void> main() async {
   // Example: Add multiple authentication keys
   final authKey2Id = 'auth-key-2';
   final authKey2 = await wallet.generateKey(keyId: authKey2Id);
-  final authVerificationMethod2Id =
-      await manager.addVerificationMethod(authKey2.id);
-  await manager
-      .addAuthentication(authVerificationMethod2Id.verificationMethodId);
+  final authVerificationMethod2Id = await manager.addVerificationMethod(
+    authKey2.id,
+  );
+  await manager.addAuthentication(
+    authVerificationMethod2Id.verificationMethodId,
+  );
 
   // Sign data using authentication key
   final dataToSign = Uint8List.fromList('Hello, DID Peer!'.codeUnits);
   final signature = await manager.sign(
-      dataToSign, authVerificationMethodId.verificationMethodId);
+    dataToSign,
+    authVerificationMethodId.verificationMethodId,
+  );
   print('\nSigned data with authentication key');
   print('Signature: ${base64.encode(signature)}');
 
@@ -78,6 +83,7 @@ Future<void> main() async {
   final updatedDocument = await manager.getDidDocument();
   print('\nUpdated DID document:');
   print(
-      'Total verification methods: ${updatedDocument.verificationMethod.length}');
+    'Total verification methods: ${updatedDocument.verificationMethod.length}',
+  );
   print('Authentication methods: ${updatedDocument.authentication.length}');
 }

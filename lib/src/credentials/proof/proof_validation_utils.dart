@@ -81,12 +81,14 @@ class ProofValidationUtils {
   /// - [VerificationResult.ok()] if the proof purpose matches the expected purpose
   /// - [VerificationResult.invalid()] with error message if the proof purpose does not match
   static VerificationResult validateProofPurpose(
-      String proofPurpose, dynamic docType) {
+    String proofPurpose,
+    dynamic docType,
+  ) {
     final expectedProofPurpose =
         (docType is List && docType.contains('VerifiablePresentation') ||
-                docType is String && docType == 'VerifiablePresentation')
-            ? ProofPurpose.authentication.value
-            : ProofPurpose.assertionMethod.value;
+            docType is String && docType == 'VerifiablePresentation')
+        ? ProofPurpose.authentication.value
+        : ProofPurpose.assertionMethod.value;
 
     if (proofPurpose != expectedProofPurpose) {
       return VerificationResult.invalid(
