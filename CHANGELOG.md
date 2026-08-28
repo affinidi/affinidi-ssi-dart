@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-08-28
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v4.0.2`](#ssi---v402)
+
+---
+
+#### `ssi` - `v4.0.2`
+
+ - **FIX**: support latest x25519 dependency ([#298](https://github.com/affinidi/affinidi-ssi-dart/issues/298)).
+
+## 4.0.2
+
+ - **FIX**: support latest x25519 dependency ([#298](https://github.com/affinidi/affinidi-ssi-dart/issues/298)).
+
+
 ## 2026-07-23
 
 ### Changes
