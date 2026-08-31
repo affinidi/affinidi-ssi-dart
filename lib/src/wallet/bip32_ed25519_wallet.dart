@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:ed25519_hd_key/ed25519_hd_key.dart';
+import 'package:crypto/crypto.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -16,6 +17,9 @@ import 'wallet.dart';
 /// It supports signing and verifying messages using Ed25519 signature scheme,
 /// and ecrypting/decrypting payloads.
 class Bip32Ed25519Wallet implements Wallet {
+  static final _pathRegex = RegExp(r"^(m\/)?(\d+'?\/)*\d+'?$");
+  static const _hardenedOffset = 0x80000000;
+
   // Runtime cache for derived KeyPair objects
   final Map<String, Ed25519KeyPair> _runtimeCache =
       {}; // Keyed by keyId which is equivalent to derivation path
@@ -136,12 +140,33 @@ class Bip32Ed25519Wallet implements Wallet {
       return _runtimeCache[keyId]!;
     }
 
-    final derivedData = await ED25519_HD_KEY.derivePath(keyId, _seed);
-    final keyPair =
-        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
+    final derivedSeed = _deriveSeed(keyId);
+    final keyPair = Ed25519KeyPair.fromSeed(derivedSeed, id: keyId);
 
     _runtimeCache[keyId] = keyPair;
     return keyPair;
+  }
+
+  Uint8List _deriveSeed(String path) {
+    if (!_pathRegex.hasMatch(path)) {
+      throw ArgumentError(
+          'Invalid derivation path. Expected BIP32 path format');
+    }
+
+    var digest = Hmac(sha512, utf8.encode('ed25519 seed')).convert(_seed).bytes;
+    var key = digest.sublist(0, 32);
+    var chainCode = digest.sublist(32);
+
+    for (final segment in path.split('/').skip(1)) {
+      final index = int.parse(segment.substring(0, segment.length - 1));
+      final data = Uint8List(37)..setRange(1, 33, key);
+      data.buffer.asByteData().setUint32(33, index + _hardenedOffset);
+      digest = Hmac(sha512, chainCode).convert(data).bytes;
+      key = digest.sublist(0, 32);
+      chainCode = digest.sublist(32);
+    }
+
+    return Uint8List.fromList(key);
   }
 
   /// Clears the runtime cache.

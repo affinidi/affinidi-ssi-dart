@@ -238,8 +238,29 @@ void main() {
       });
     }
 
+    test('it signs and verifies with Ed25519', () async {
+      final keyPair = Ed25519KeyPair.fromSeed(_seed);
+      final signature = await keyPair.sign(_payload);
+
+      expect(await keyPair.verify(_payload, signature), isTrue);
+    });
+
+    test('it derives and uses an Ed25519 wallet key', () async {
+      final wallet = Bip32Ed25519Wallet.fromSeed(_seed);
+      const keyId = "m/44'/1'/0'/0'/0'";
+      final keyPair = await wallet.generateKey(keyId: keyId);
+      final signature = await wallet.sign(_payload, keyId: keyId);
+
+      expect(keyPair.publicKey.type, KeyType.ed25519);
+      expect(
+        await wallet.verify(_payload, signature: signature, keyId: keyId),
+        isTrue,
+      );
+    });
+
     final generatedKeyPairs = <String, KeyPair Function()>{
       'secp256k1': () => Secp256k1KeyPair.generate().$1,
+      'Ed25519': () => Ed25519KeyPair.generate().$1,
       'P-256': () => P256KeyPair.generate().$1,
       'P-384': () => P384KeyPair.generate().$1,
       'P-521': () => P521KeyPair.generate().$1,

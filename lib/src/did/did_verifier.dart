@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
+import 'package:pinenacl/ed25519.dart' as ed;
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -136,7 +136,10 @@ class DidVerifier implements Verifier {
       if ((_jwk['kty'] == 'OKP' && _jwk['crv'] == 'Ed25519') ||
           (_jwk['alg'] == 'Ed25519')) {
         final publicKeyBytes = base64UrlNoPadDecode(_jwk['x']);
-        return ed.verify(ed.PublicKey(publicKeyBytes), data, signature);
+        return ed.VerifyKey(publicKeyBytes).verify(
+          signature: ed.Signature(signature),
+          message: data,
+        );
       }
 
       if (_jwk['crv'] == 'P-256K') {
