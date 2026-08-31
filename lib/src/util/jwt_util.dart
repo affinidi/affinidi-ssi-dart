@@ -12,10 +12,7 @@ class JwtSignResult {
   final String serialized;
 
   /// Creates a [JwtSignResult] instance.
-  JwtSignResult({
-    required this.signature,
-    required this.serialized,
-  });
+  JwtSignResult({required this.signature, required this.serialized});
 }
 
 /// Utility class for handling JWT operations.
@@ -27,17 +24,15 @@ class JwtUtil {
 
   /// Signs a JWT with the given [header] and [payload].
   Future<JwtSignResult> signJwt(
-      Map<String, dynamic> header, Map<String, dynamic> payload) async {
-    final encodedHeader = base64UrlNoPadEncode(
-      utf8.encode(jsonEncode(header)),
-    );
+    Map<String, dynamic> header,
+    Map<String, dynamic> payload,
+  ) async {
+    final encodedHeader = base64UrlNoPadEncode(utf8.encode(jsonEncode(header)));
     final encodedPayload = base64UrlNoPadEncode(
       utf8.encode(jsonEncode(payload)),
     );
     final toSign = ascii.encode('$encodedHeader.$encodedPayload');
-    final signature = base64UrlNoPadEncode(
-      await _signer.sign(toSign),
-    );
+    final signature = base64UrlNoPadEncode(await _signer.sign(toSign));
 
     final serialized = '$encodedHeader.$encodedPayload.$signature';
     return JwtSignResult(signature: signature, serialized: serialized);

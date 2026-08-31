@@ -11,13 +11,15 @@ import '../../../fixtures/verifiable_presentations_fixtures.dart';
 void main() async {
   Future<Map<String, dynamic>?> defaultDocumentLoader(Uri uri) async {
     try {
-      final response = await http.get(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 30));
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
@@ -32,31 +34,34 @@ void main() async {
 
   group('Universal Presentation Verifier', () {
     test(
-        'should be able to verify the revoked credential inside of a valid V1 presentation',
-        () async {
+      'should be able to verify the revoked credential inside of a valid V1 presentation',
+      () async {
+        final v1Vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v1VpWithRevokedVCString,
+        );
+        final verificationStatus = await UniversalPresentationVerifier(
+          customDocumentLoader: defaultDocumentLoader,
+        ).verify(v1Vp);
+
+        expect(verificationStatus.errors.length, 1);
+        expect(verificationStatus.warnings.length, 0);
+        expect(verificationStatus.isValid, false);
+      },
+    );
+
+    test('should return integrity error for 1 VC', () async {
       final v1Vp = UniversalPresentationParser.parse(
-          VerifiablePresentationDataFixtures.v1VpWithRevokedVCString);
+        VerifiablePresentationDataFixtures.v1VpWithInvalidIntegrityVC,
+      );
       final verificationStatus = await UniversalPresentationVerifier(
         customDocumentLoader: defaultDocumentLoader,
       ).verify(v1Vp);
 
       expect(verificationStatus.errors.length, 1);
-      expect(verificationStatus.warnings.length, 0);
-      expect(verificationStatus.isValid, false);
-    });
-
-    test('should return integrity error for 1 VC', () async {
-      final v1Vp = UniversalPresentationParser.parse(
-          VerifiablePresentationDataFixtures.v1VpWithInvalidIntegrityVC);
-      final verificationStatus = await UniversalPresentationVerifier(
-              customDocumentLoader: defaultDocumentLoader)
-          .verify(v1Vp);
-
-      expect(verificationStatus.errors.length, 1);
       expect(
-          verificationStatus.errors[0]
-              .contains('integrity_verification_failed'),
-          isTrue);
+        verificationStatus.errors[0].contains('integrity_verification_failed'),
+        isTrue,
+      );
       expect(verificationStatus.warnings.length, 0);
       expect(verificationStatus.isValid, false);
     });
@@ -66,7 +71,8 @@ void main() async {
       final trackingResolver = TrackingDidResolver();
 
       final v1Vp = UniversalPresentationParser.parse(
-          VerifiablePresentationDataFixtures.v1VpWithRevokedVCString);
+        VerifiablePresentationDataFixtures.v1VpWithRevokedVCString,
+      );
 
       // Create verifier with tracking resolver - should not throw
       final verifier = UniversalPresentationVerifier(
@@ -86,7 +92,8 @@ void main() async {
       final trackingResolver = TrackingDidResolver();
 
       final v1Vp = UniversalPresentationParser.parse(
-          VerifiablePresentationDataFixtures.v1VpWithRevokedVCString);
+        VerifiablePresentationDataFixtures.v1VpWithRevokedVCString,
+      );
 
       // Create verifier with custom resolver
       final verifier = UniversalPresentationVerifier(
@@ -106,7 +113,8 @@ void main() async {
       final loggingResolver = LoggingDidResolver();
 
       final v1Vp = UniversalPresentationParser.parse(
-          VerifiablePresentationDataFixtures.v1VpWithRevokedVCString);
+        VerifiablePresentationDataFixtures.v1VpWithRevokedVCString,
+      );
 
       // Create verifier with logging resolver
       final verifier = UniversalPresentationVerifier(

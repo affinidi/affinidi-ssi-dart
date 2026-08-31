@@ -1,9 +1,23 @@
 name: check
 on:
   pull_request:
+permissions:
+   contents: read
+   pull-requests: write
 jobs:
   dart-pipeline:
     uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
     with:
       flutter-version: "3.41.2"
     secrets: inherit
+  minimum-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.10.0"
+      - run: dart pub get
+      - run: dart analyze .
+      - run: dart test
+  

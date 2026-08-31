@@ -104,10 +104,14 @@ class DidWebManager extends DidManager {
 
       var publicKey = await wallet.getPublicKey(walletKeyId);
       if (keyAgreement.contains(vmId) && publicKey.type == KeyType.ed25519) {
-        final x25519PublicKeyBytes =
-            ed25519PublicToX25519Public(publicKey.bytes);
-        publicKey =
-            PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
+        final x25519PublicKeyBytes = ed25519PublicToX25519Public(
+          publicKey.bytes,
+        );
+        publicKey = PublicKey(
+          publicKey.id,
+          x25519PublicKeyBytes,
+          KeyType.x25519,
+        );
       }
       verificationMethodPublicKeys.add(publicKey);
     }
@@ -117,10 +121,10 @@ class DidWebManager extends DidManager {
       VerificationRelationship.authentication: authentication.toList(),
       VerificationRelationship.keyAgreement: keyAgreement.toList(),
       VerificationRelationship.assertionMethod: assertionMethod.toList(),
-      VerificationRelationship.capabilityInvocation:
-          capabilityInvocation.toList(),
-      VerificationRelationship.capabilityDelegation:
-          capabilityDelegation.toList(),
+      VerificationRelationship.capabilityInvocation: capabilityInvocation
+          .toList(),
+      VerificationRelationship.capabilityDelegation: capabilityDelegation
+          .toList(),
     };
 
     return DidWeb.generateDocument(
@@ -154,9 +158,10 @@ class DidWebManager extends DidManager {
     // ── Determine whether we need a primary (non-keyAgreement) VM ──
     // Skip it only when the SOLE relationship is keyAgreement on an ed25519 key
     // (in that case only the derived X25519 VM is needed).
-    final needsPrimaryVm = !(relationships.length == 1 &&
-        relationships.first == VerificationRelationship.keyAgreement &&
-        publicKey.type == KeyType.ed25519);
+    final needsPrimaryVm =
+        !(relationships.length == 1 &&
+            relationships.first == VerificationRelationship.keyAgreement &&
+            publicKey.type == KeyType.ed25519);
 
     // ── Build the PRIMARY VM id once — reused for all non-keyAgreement
     //    relationships (and for keyAgreement when the key is not ed25519). ──
@@ -181,15 +186,19 @@ class DidWebManager extends DidManager {
       VerificationRelationship.assertionMethod,
     ];
 
-    for (final relationship
-        in processingOrder.where((r) => relationships.contains(r))) {
+    for (final relationship in processingOrder.where(
+      (r) => relationships.contains(r),
+    )) {
       if (relationship == VerificationRelationship.keyAgreement &&
           publicKey.type == KeyType.ed25519) {
         // Derive X25519 VM once (lazy).
         if (derivedVmId == null) {
           final x25519Bytes = ed25519PublicToX25519Public(publicKey.bytes);
-          final x25519Key =
-              PublicKey(publicKey.id, x25519Bytes, KeyType.x25519);
+          final x25519Key = PublicKey(
+            publicKey.id,
+            x25519Bytes,
+            KeyType.x25519,
+          );
           derivedVmId = await buildVerificationMethodId(x25519Key);
           await addVerificationMethodFromPublicKey(
             x25519Key,

@@ -30,9 +30,9 @@ void main() {
     test('custom implementation should resolve correctly', () async {
       final testResolver = TestDidResolver();
       final testDid = 'did:test:123';
-      final mockDocument = jsonDecode(
-        DidDocumentFixtures.didDocumentWithControllerKey,
-      ) as Map<String, dynamic>;
+      final mockDocument =
+          jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey)
+              as Map<String, dynamic>;
 
       testResolver.addMockDocument(testDid, mockDocument);
 
@@ -56,19 +56,21 @@ void main() {
       );
     });
 
-    test('custom implementation should resolve without resolver address',
-        () async {
-      final testResolver = TestDidResolver();
-      final testDid = 'did:test:456';
-      final mockDocument = jsonDecode(
-        DidDocumentFixtures.didDocumentWithControllerKey,
-      ) as Map<String, dynamic>;
+    test(
+      'custom implementation should resolve without resolver address',
+      () async {
+        final testResolver = TestDidResolver();
+        final testDid = 'did:test:456';
+        final mockDocument =
+            jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey)
+                as Map<String, dynamic>;
 
-      testResolver.addMockDocument(testDid, mockDocument);
+        testResolver.addMockDocument(testDid, mockDocument);
 
-      final resolvedDocument = await testResolver.resolveDid(testDid);
-      expect(resolvedDocument.toJson(), equals(mockDocument));
-    });
+        final resolvedDocument = await testResolver.resolveDid(testDid);
+        expect(resolvedDocument.toJson(), equals(mockDocument));
+      },
+    );
 
     test('interface contract should be enforced', () {
       final testResolver = TestDidResolver();

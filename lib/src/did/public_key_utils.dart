@@ -212,9 +212,7 @@ Uint8List _ecJwkToMultiKey({
     ),
   );
   final compressedBytes = hexDecode(compressedHex);
-  return Uint8List.fromList(
-    multikeyIndicator + compressedBytes,
-  );
+  return Uint8List.fromList(multikeyIndicator + compressedBytes);
 }
 
 /// Returns a decoded varint staring at the first byte of [varint] and the number of bytes read.
@@ -323,10 +321,7 @@ Map<KeyType, MultiKeyIndicator> _initKeyIndicatorsMap() {
 }
 
 /// Converts a public key and key type to a multikey [Uint8List].
-Uint8List toMultikey(
-  Uint8List pubKeyBytes,
-  KeyType keyType,
-) {
+Uint8List toMultikey(Uint8List pubKeyBytes, KeyType keyType) {
   if (!keyIndicators.containsKey(keyType)) {
     throw SsiException(
       message: 'toMultikey: $keyType not supported',

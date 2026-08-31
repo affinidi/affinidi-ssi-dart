@@ -92,17 +92,18 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
     final signature = await computeSignature(hash, signer);
 
     return EmbeddedProof(
-        type: JcsUtils.dataIntegrityType,
-        cryptosuite: cryptosuite,
-        created: created,
-        verificationMethod: signer.didKeyId,
-        proofPurpose: proofPurpose?.value,
-        proofValue: signature,
-        expires: expires,
-        challenge: challenge,
-        domain: domain,
-        nonce: nonce,
-        additionalProperties: additionalProperties);
+      type: JcsUtils.dataIntegrityType,
+      cryptosuite: cryptosuite,
+      created: created,
+      verificationMethod: signer.didKeyId,
+      proofPurpose: proofPurpose?.value,
+      proofValue: signature,
+      expires: expires,
+      challenge: challenge,
+      domain: domain,
+      nonce: nonce,
+      additionalProperties: additionalProperties,
+    );
   }
 
   /// Computes the signature for the given hash.
@@ -110,7 +111,9 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
   /// Signs the hash using the signer and encodes it with multibase for JCS.
   Future<String> computeSignature(Uint8List hash, DidSigner signer) async {
     final signature = await signer.sign(hash);
-    return JcsUtils.encodeJcsSignatureMultibase(signature,
-        base: proofValueMultiBase);
+    return JcsUtils.encodeJcsSignatureMultibase(
+      signature,
+      base: proofValueMultiBase,
+    );
   }
 }

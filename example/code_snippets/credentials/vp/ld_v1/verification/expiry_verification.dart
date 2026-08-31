@@ -8,8 +8,9 @@ void main() async {
   final v1Vp = UniversalPresentationParser.parse(v1VpString);
 
   // Create a VpExpiryVerifier with a mocked "now" time
-  final verificationStatus =
-      await VpExpiryVerifier(getNow: _getNow).verify(v1Vp);
+  final verificationStatus = await VpExpiryVerifier(
+    getNow: _getNow,
+  ).verify(v1Vp);
 
   // Print results
   print('Is VP valid? ${verificationStatus.isValid}');

@@ -39,7 +39,8 @@ class Bip32Wallet implements Wallet {
 
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(
-      String keyId) async {
+    String keyId,
+  ) async {
     final keyPair = _getKeyPair(keyId);
     return keyPair.supportedSignatureSchemes;
   }
@@ -62,24 +63,22 @@ class Bip32Wallet implements Wallet {
     SignatureScheme? signatureScheme,
   }) async {
     final keyPair = _getKeyPair(keyId);
-    return keyPair.verify(
-      data,
-      signature,
-      signatureScheme: signatureScheme,
-    );
+    return keyPair.verify(data, signature, signatureScheme: signatureScheme);
   }
 
   @override
   Future<KeyPair> generateKey({String? keyId, KeyType? keyType}) async {
     if (keyId == null) {
       throw ArgumentError(
-          'keyId is required for Bip32Wallet as it defines the derivation path');
+        'keyId is required for Bip32Wallet as it defines the derivation path',
+      );
     }
 
     // TODO: thoroughly validate derivation path
     if (!keyId.startsWith('m/')) {
       throw ArgumentError(
-          'Invalid derivation path format. Must start with "m/".');
+        'Invalid derivation path format. Must start with "m/".',
+      );
     }
 
     final effectiveKeyType = keyType ?? KeyType.secp256k1;

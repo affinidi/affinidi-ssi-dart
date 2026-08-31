@@ -32,9 +32,9 @@ class DidSigner {
     required String didKeyId,
     required KeyPair keyPair,
     required this.signatureScheme,
-  })  : _didKeyId = didKeyId,
-        _keyPair = keyPair,
-        _did = did {
+  }) : _didKeyId = didKeyId,
+       _keyPair = keyPair,
+       _did = did {
     _validateParameters(did, didKeyId, keyPair, signatureScheme);
   }
 
@@ -53,10 +53,8 @@ class DidSigner {
   String get didKeyId => keyId.startsWith('#') ? '$did$keyId' : keyId;
 
   /// Signs the provided data using the key pair and signature scheme.
-  Future<Uint8List> sign(Uint8List data) => _keyPair.sign(
-        data,
-        signatureScheme: signatureScheme,
-      );
+  Future<Uint8List> sign(Uint8List data) =>
+      _keyPair.sign(data, signatureScheme: signatureScheme);
 
   /// Validates constructor parameters to ensure consistency and security.
   static void _validateParameters(

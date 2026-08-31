@@ -50,8 +50,9 @@ class MutableVpDataModelV1 {
     json[_P.type.key] = type.toList();
     json[_P.holder.key] = holder?.toJson();
     json[_P.proof.key] = encodeListToSingleOrArray(proof);
-    json[_P.verifiableCredential.key] =
-        verifiableCredential.map(presentVC).toList();
+    json[_P.verifiableCredential.key] = verifiableCredential
+        .map(presentVC)
+        .toList();
 
     return cleanEmpty(json);
   }
@@ -70,9 +71,9 @@ class MutableVpDataModelV1 {
     this.holder,
     List<ParsedVerifiableCredential>? verifiableCredential,
     List<EmbeddedProof>? proof,
-  })  : type = type ?? {},
-        proof = proof ?? [],
-        verifiableCredential = verifiableCredential ?? [];
+  }) : type = type ?? {},
+       proof = proof ?? [],
+       verifiableCredential = verifiableCredential ?? [];
 
   /// Creates a [VpDataModelV1] from JSON input.
   ///
@@ -91,21 +92,28 @@ class MutableVpDataModelV1 {
 
     final holder = MutableHolder.fromJson(json[_P.holder.key]);
 
-    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
-        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+    final proof = parseListOrSingleItem<EmbeddedProof>(
+      json,
+      _P.proof.key,
+      (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final credentials = parseListOrSingleItem<ParsedVerifiableCredential>(
-        json, _P.verifiableCredential.key, parseVC,
-        allowSingleValue: true);
+      json,
+      _P.verifiableCredential.key,
+      parseVC,
+      allowSingleValue: true,
+    );
 
     return MutableVpDataModelV1(
-        context: context,
-        id: id,
-        type: type,
-        proof: proof,
-        holder: holder,
-        verifiableCredential: credentials);
+      context: context,
+      id: id,
+      type: type,
+      proof: proof,
+      holder: holder,
+      verifiableCredential: credentials,
+    );
   }
 }
 

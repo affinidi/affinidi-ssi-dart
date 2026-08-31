@@ -7,8 +7,9 @@ import '../../test_utils.dart';
 
 void main() {
   group('SD-JWT Verification Tests', () {
-    final testSeed =
-        Uint8List.fromList(List.generate(32, (index) => index + 1));
+    final testSeed = Uint8List.fromList(
+      List.generate(32, (index) => index + 1),
+    );
 
     late DidSigner signer;
     late SdJwtDm2Suite suite;
@@ -31,12 +32,14 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'Test Subject',
-          })
+          }),
         ],
       );
 
       final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
 
       final isValid = await suite.verifyIntegrity(issuedCredential);
       expect(isValid, isTrue);
@@ -55,12 +58,14 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'Test Subject',
-          })
+          }),
         ],
       );
 
       final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
 
       final isValid = await suite.verifyIntegrity(issuedCredential);
       expect(isValid, isFalse);
@@ -79,12 +84,14 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'Test Subject',
-          })
+          }),
         ],
       );
 
       final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
 
       final isValid = await suite.verifyIntegrity(issuedCredential);
       expect(isValid, isFalse);
@@ -103,12 +110,14 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'Test Subject',
-          })
+          }),
         ],
       );
 
       final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
 
       final isValid = await suite.verifyIntegrity(issuedCredential);
       expect(isValid, isTrue);
@@ -127,15 +136,19 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'Test Subject',
-          })
+          }),
         ],
       );
 
       final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential), signer: signer);
+        unsignedData: VcDataModelV2.fromMutable(credential),
+        signer: signer,
+      );
 
-      final isValid = await suite.verifyIntegrity(issuedCredential,
-          getNow: () => fixedTime);
+      final isValid = await suite.verifyIntegrity(
+        issuedCredential,
+        getNow: () => fixedTime,
+      );
       expect(isValid, isTrue);
     });
   });

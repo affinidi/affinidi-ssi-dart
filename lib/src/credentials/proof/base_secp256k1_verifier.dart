@@ -52,8 +52,10 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
   String get proofValueField;
 
   @override
-  Future<VerificationResult> verify(Map<String, dynamic> document,
-      {DateTime Function() getNow = DateTime.now}) async {
+  Future<VerificationResult> verify(
+    Map<String, dynamic> document, {
+    DateTime Function() getNow = DateTime.now,
+  }) async {
     try {
       final copy = Map.of(document);
       final proof = copy.remove('proof');
@@ -84,9 +86,7 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
 
       final originalProofValue = proof.remove(proofValueField);
       if (originalProofValue == null) {
-        return VerificationResult.invalid(
-          errors: ['missing $proofValueField'],
-        );
+        return VerificationResult.invalid(errors: ['missing $proofValueField']);
       }
 
       proof['@context'] = contextUrl;
@@ -115,22 +115,21 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
         final errorStr = e.toString();
         if (errorStr.contains('loading remote context failed')) {
           return VerificationResult.invalid(
-            errors: [
-              'Failed to load remote context',
-              'Cause: $errorStr',
-            ],
+            errors: ['Failed to load remote context', 'Cause: $errorStr'],
           );
         }
         rethrow;
       }
 
       final isValid = await verifySignature(
-          originalProofValue as String, issuerDid, verificationMethod, hash);
+        originalProofValue as String,
+        issuerDid,
+        verificationMethod,
+        hash,
+      );
 
       if (!isValid) {
-        return VerificationResult.invalid(
-          errors: ['signature invalid'],
-        );
+        return VerificationResult.invalid(errors: ['signature invalid']);
       }
 
       return VerificationResult.ok();
@@ -151,7 +150,7 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   );
 
   /// Verifies the signature against the computed hash.
@@ -164,9 +163,7 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
 
   VerificationResult _validateProofStructure(dynamic proof) {
     if (proof == null || proof is! Map<String, dynamic>) {
-      return VerificationResult.invalid(
-        errors: ['invalid or missing proof'],
-      );
+      return VerificationResult.invalid(errors: ['invalid or missing proof']);
     }
 
     return ProofValidationUtils.validateProofTypeStructure(
@@ -176,7 +173,9 @@ abstract class BaseSecp256k1Verifier extends EmbeddedProofSuiteVerifyOptions
   }
 
   VerificationResult _validateProofPurpose(
-      Map<String, dynamic> document, Map<String, dynamic> proof) {
+    Map<String, dynamic> document,
+    Map<String, dynamic> proof,
+  ) {
     final actualProofPurpose = proof['proofPurpose'];
     final docType = document['type'];
     return ProofValidationUtils.validateProofPurpose(
@@ -199,32 +198,24 @@ Future<Uint8List> computeVcHash(
   Map<String, dynamic> proof,
   Map<String, dynamic> unsignedCredential,
   Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-      documentLoader,
+  documentLoader,
 ) async {
   try {
     final normalizedProof = await JsonLdProcessor.normalize(
       proof,
-      options: JsonLdOptions(
-        safeMode: true,
-        documentLoader: documentLoader,
-      ),
+      options: JsonLdOptions(safeMode: true, documentLoader: documentLoader),
     );
-    final proofDigest = Digest('SHA-256').process(
-      utf8.encode(normalizedProof),
-    );
+    final proofDigest = Digest('SHA-256').process(utf8.encode(normalizedProof));
 
     // 4
     final normalizedContent = await JsonLdProcessor.normalize(
       unsignedCredential,
-      options: JsonLdOptions(
-        safeMode: true,
-        documentLoader: documentLoader,
-      ),
+      options: JsonLdOptions(safeMode: true, documentLoader: documentLoader),
     );
 
-    final contentDigest = Digest('SHA-256').process(
-      utf8.encode(normalizedContent),
-    );
+    final contentDigest = Digest(
+      'SHA-256',
+    ).process(utf8.encode(normalizedContent));
 
     final payloadToSign = Uint8List.fromList(proofDigest + contentDigest);
     return payloadToSign;
@@ -248,12 +239,13 @@ Future<Uint8List> computeVcHash(
 
 /// Verifies a JWS signature.
 Future<bool> verifyJws(
-    String jws,
-    String issuerDid,
-    Uri verificationMethod, // expected kid / verification method DID URL
-    Uint8List
-        payloadToSign, // canonicalized UTF-8 bytes of the JSON-LD document
-    {DidResolver? didResolver}) async {
+  String jws,
+  String issuerDid,
+  Uri verificationMethod, // expected kid / verification method DID URL
+  Uint8List
+  payloadToSign, { // canonicalized UTF-8 bytes of the JSON-LD document
+  DidResolver? didResolver,
+}) async {
   // 1) Parse JWS compact or RFC7797 detached (header..signature)
   String encodedHeader;
   String? encodedPayloadFromJws; // only present in 3-part JWS
@@ -263,8 +255,9 @@ Future<bool> verifyJws(
     final parts = jws.split('..');
     if (parts.length != 2) {
       throw SsiException(
-          message: 'Invalid detached JWS format',
-          code: SsiExceptionType.other.code);
+        message: 'Invalid detached JWS format',
+        code: SsiExceptionType.other.code,
+      );
     }
     encodedHeader = parts[0];
     encodedSignature = parts[1];
@@ -272,8 +265,9 @@ Future<bool> verifyJws(
     final parts = jws.split('.');
     if (parts.length != 3) {
       throw SsiException(
-          message: 'Invalid JWS compact serialization',
-          code: SsiExceptionType.other.code);
+        message: 'Invalid JWS compact serialization',
+        code: SsiExceptionType.other.code,
+      );
     }
     encodedHeader = parts[0];
     encodedPayloadFromJws = parts[1];
@@ -289,13 +283,16 @@ Future<bool> verifyJws(
   final alg = header['alg'] as String?;
   if (alg == null) {
     throw SsiException(
-        message: 'Missing alg in JWS header',
-        code: SsiExceptionType.other.code);
+      message: 'Missing alg in JWS header',
+      code: SsiExceptionType.other.code,
+    );
   }
   if (alg != 'ES256K' && alg != 'ES256K-R') {
     // ES256K-R (recovery) is sometimes used by some suites; accept if you support it.
     throw SsiException(
-        message: 'Unsupported alg: $alg', code: SsiExceptionType.other.code);
+      message: 'Unsupported alg: $alg',
+      code: SsiExceptionType.other.code,
+    );
   }
 
   // 4) b64 handling
@@ -305,15 +302,17 @@ Future<bool> verifyJws(
     final crit = header['crit'];
     if (crit is! List || !crit.contains('b64')) {
       throw SsiException(
-          message: 'Invalid header: b64=false must appear in crit',
-          code: SsiExceptionType.other.code);
+        message: 'Invalid header: b64=false must appear in crit',
+        code: SsiExceptionType.other.code,
+      );
     }
     // If compact serialization included a payload part when b64=false, this should be empty (RFC7797).
     if (encodedPayloadFromJws != null && encodedPayloadFromJws.isNotEmpty) {
       throw SsiException(
-          message:
-              'Invalid compact serialization: encoded payload must be empty when b64=false',
-          code: SsiExceptionType.other.code);
+        message:
+            'Invalid compact serialization: encoded payload must be empty when b64=false',
+        code: SsiExceptionType.other.code,
+      );
     }
   }
 
@@ -321,11 +320,14 @@ Future<bool> verifyJws(
   final headerKid = header['kid'] as String?;
   if (headerKid != null) {
     final expectedKid = verificationMethod.toString();
-    final expectedFragment =
-        expectedKid.contains('#') ? expectedKid.split('#').last : null;
-    final headerIsFragment =
-        headerKid.startsWith('#') ? headerKid.substring(1) : headerKid;
-    final bool kidMatches = headerKid == expectedKid ||
+    final expectedFragment = expectedKid.contains('#')
+        ? expectedKid.split('#').last
+        : null;
+    final headerIsFragment = headerKid.startsWith('#')
+        ? headerKid.substring(1)
+        : headerKid;
+    final bool kidMatches =
+        headerKid == expectedKid ||
         (expectedFragment != null && (headerIsFragment == expectedFragment)) ||
         // also accept `kid=` fragment style in some VC usages: e.g. did:...#kid=BASE64
         (expectedKid.contains('#') &&
@@ -333,9 +335,10 @@ Future<bool> verifyJws(
             headerKid == expectedKid.split('#').last);
     if (!kidMatches) {
       throw SsiException(
-          message:
-              'kid mismatch between JWS header and expected verificationMethod',
-          code: SsiExceptionType.other.code);
+        message:
+            'kid mismatch between JWS header and expected verificationMethod',
+        code: SsiExceptionType.other.code,
+      );
     }
   }
 
@@ -346,8 +349,9 @@ Future<bool> verifyJws(
     if (encodedPayloadFromJws != null &&
         encodedPayloadFromJws != encodedPayload) {
       throw SsiException(
-          message: 'Payload mismatch between provided payload and JWS payload',
-          code: SsiExceptionType.other.code);
+        message: 'Payload mismatch between provided payload and JWS payload',
+        code: SsiExceptionType.other.code,
+      );
     }
     final headerAndDot = utf8.encode(encodedHeader) + utf8.encode('.');
     final payloadBytes = utf8.encode(encodedPayload);
@@ -489,14 +493,10 @@ Uint8List _leftPad(Uint8List src, int length) {
 }
 
 /// Document loader function type.
-typedef LibDocumentLoader = Future<RemoteDocument> Function(
-  Uri url,
-  LoadDocumentOptions? options,
-);
+typedef LibDocumentLoader =
+    Future<RemoteDocument> Function(Uri url, LoadDocumentOptions? options);
 
-LibDocumentLoader _cacheLoadDocument(
-  DocumentLoader customLoader,
-) =>
+LibDocumentLoader _cacheLoadDocument(DocumentLoader customLoader) =>
     (Uri url, LoadDocumentOptions? options) async {
       final fromCache = _documentCache[url];
       if (fromCache != null) {

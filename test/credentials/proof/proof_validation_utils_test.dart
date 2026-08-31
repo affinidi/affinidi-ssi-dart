@@ -6,8 +6,9 @@ void main() {
   group('ProofValidationUtils', () {
     group('validateProofType', () {
       test('should pass for valid non-empty string', () {
-        final result =
-            ProofValidationUtils.validateProofType('DataIntegrityProof');
+        final result = ProofValidationUtils.validateProofType(
+          'DataIntegrityProof',
+        );
 
         expect(result.isValid, true);
         expect(result.errors, isEmpty);
@@ -113,10 +114,7 @@ void main() {
       });
 
       test('should fail when proof type is missing', () {
-        final proof = {
-          'cryptosuite': 'ecdsa-rdfc-2019',
-          'proofValue': 'z123',
-        };
+        final proof = {'cryptosuite': 'ecdsa-rdfc-2019', 'proofValue': 'z123'};
 
         final result = ProofValidationUtils.validateProofTypeStructure(
           proof,
@@ -150,10 +148,7 @@ void main() {
       });
 
       test('should fail when proof type does not match expected', () {
-        final proof = {
-          'type': 'EcdsaSecp256k1Signature2019',
-          'jws': 'ey...',
-        };
+        final proof = {'type': 'EcdsaSecp256k1Signature2019', 'jws': 'ey...'};
 
         final result = ProofValidationUtils.validateProofTypeStructure(
           proof,
@@ -172,23 +167,23 @@ void main() {
           {
             'type': 'DataIntegrityProof',
             'expected': 'DataIntegrityProof',
-            'shouldPass': true
+            'shouldPass': true,
           },
           {
             'type': 'EcdsaSecp256k1Signature2019',
             'expected': 'EcdsaSecp256k1Signature2019',
-            'shouldPass': true
+            'shouldPass': true,
           },
           {
             'type': 'Ed25519Signature2020',
             'expected': 'Ed25519Signature2020',
-            'shouldPass': true
+            'shouldPass': true,
           },
           {'type': '', 'expected': 'DataIntegrityProof', 'shouldPass': false},
           {
             'type': 'WrongType',
             'expected': 'DataIntegrityProof',
-            'shouldPass': false
+            'shouldPass': false,
           },
         ];
 
@@ -230,27 +225,31 @@ void main() {
         expect(result.errors, isEmpty);
       });
 
-      test('should pass for VerifiableCredential list with assertionMethod',
-          () {
-        final result = ProofValidationUtils.validateProofPurpose(
-          'assertionMethod',
-          ['VerifiableCredential', 'CustomCredential'],
-        );
+      test(
+        'should pass for VerifiableCredential list with assertionMethod',
+        () {
+          final result = ProofValidationUtils.validateProofPurpose(
+            'assertionMethod',
+            ['VerifiableCredential', 'CustomCredential'],
+          );
 
-        expect(result.isValid, true);
-        expect(result.errors, isEmpty);
-      });
+          expect(result.isValid, true);
+          expect(result.errors, isEmpty);
+        },
+      );
 
-      test('should pass for VerifiablePresentation list with authentication',
-          () {
-        final result = ProofValidationUtils.validateProofPurpose(
-          'authentication',
-          ['VerifiablePresentation', 'CustomPresentation'],
-        );
+      test(
+        'should pass for VerifiablePresentation list with authentication',
+        () {
+          final result = ProofValidationUtils.validateProofPurpose(
+            'authentication',
+            ['VerifiablePresentation', 'CustomPresentation'],
+          );
 
-        expect(result.isValid, true);
-        expect(result.errors, isEmpty);
-      });
+          expect(result.isValid, true);
+          expect(result.errors, isEmpty);
+        },
+      );
 
       test('should fail for VerifiableCredential with wrong proof purpose', () {
         final result = ProofValidationUtils.validateProofPurpose(
@@ -265,19 +264,21 @@ void main() {
         );
       });
 
-      test('should fail for VerifiablePresentation with wrong proof purpose',
-          () {
-        final result = ProofValidationUtils.validateProofPurpose(
-          'assertionMethod',
-          'VerifiablePresentation',
-        );
+      test(
+        'should fail for VerifiablePresentation with wrong proof purpose',
+        () {
+          final result = ProofValidationUtils.validateProofPurpose(
+            'assertionMethod',
+            'VerifiablePresentation',
+          );
 
-        expect(result.isValid, false);
-        expect(
-          result.errors,
-          contains('invalid proof purpose, expected authentication'),
-        );
-      });
+          expect(result.isValid, false);
+          expect(
+            result.errors,
+            contains('invalid proof purpose, expected authentication'),
+          );
+        },
+      );
     });
 
     group('Integration with VerificationResult', () {

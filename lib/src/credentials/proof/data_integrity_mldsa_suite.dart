@@ -155,8 +155,11 @@ class DataIntegrityMldsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
     document.remove('proof');
 
     final cacheLoadDocument = createCacheDocumentLoader(customDocumentLoader);
-    final hash =
-        await computeDataIntegrityHash(proof, document, cacheLoadDocument);
+    final hash = await computeDataIntegrityHash(
+      proof,
+      document,
+      cacheLoadDocument,
+    );
     final proofValue = await _computeProofValue(hash, signer);
 
     proof.remove('@context');
@@ -217,7 +220,7 @@ class DataIntegrityMldsaRdfcVerifier extends BaseDataIntegrityVerifier {
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   ) async {
     return computeDataIntegrityHash(proof, unsignedCredential, documentLoader);
   }

@@ -57,22 +57,25 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
       document.remove('proof');
 
       final cacheLoadDocument = _cacheLoadDocument(customDocumentLoader);
-      final jws = await computeVcHash(proof, document, cacheLoadDocument).then(
-        (hash) => _computeJws(hash, signer),
-      );
+      final jws = await computeVcHash(
+        proof,
+        document,
+        cacheLoadDocument,
+      ).then((hash) => _computeJws(hash, signer));
 
       proof.remove('@context');
       proof['jws'] = jws;
 
       return EcdsaSecp256k1Signature2019Proof(
-          type: 'EcdsaSecp256k1Signature2019',
-          created: created,
-          verificationMethod: signer.didKeyId,
-          proofPurpose: proofPurpose?.value,
-          jws: jws,
-          expires: expires,
-          challenge: challenge,
-          domain: domain);
+        type: 'EcdsaSecp256k1Signature2019',
+        created: created,
+        verificationMethod: signer.didKeyId,
+        proofPurpose: proofPurpose?.value,
+        jws: jws,
+        expires: expires,
+        challenge: challenge,
+        domain: domain,
+      );
     } on RemoteContextLoadException {
       rethrow;
     } on JsonLdException {
@@ -92,13 +95,11 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
   ) async {
     final encodedHeader = base64UrlNoPadEncode(
       utf8.encode(
-        jsonEncode(
-          {
-            'alg': 'ES256K',
-            'b64': false,
-            'crit': ['b64'],
-          },
-        ),
+        jsonEncode({
+          'alg': 'ES256K',
+          'b64': false,
+          'crit': ['b64'],
+        }),
       ),
     );
 
@@ -111,9 +112,7 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
     return '$encodedHeader..$jws';
   }
 
-  static LibDocumentLoader _cacheLoadDocument(
-    DocumentLoader customLoader,
-  ) =>
+  static LibDocumentLoader _cacheLoadDocument(DocumentLoader customLoader) =>
       (Uri url, LoadDocumentOptions? options) async {
         final fromCache = _documentCache[url];
         if (fromCache != null) {
@@ -150,15 +149,9 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
         } catch (e) {
           // Catch any other errors including JsonLdError from the processor
           if (e.toString().contains('loading remote context failed')) {
-            throw RemoteContextLoadException(
-              uri: url,
-              cause: e.toString(),
-            );
+            throw RemoteContextLoadException(uri: url, cause: e.toString());
           }
-          throw RemoteContextLoadException(
-            uri: url,
-            cause: e,
-          );
+          throw RemoteContextLoadException(uri: url, cause: e);
         }
       };
 
@@ -718,7 +711,7 @@ class Secp256k1Signature2019Verifier extends BaseSecp256k1Verifier {
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   ) async {
     return computeVcHash(proof, unsignedCredential, documentLoader);
   }
@@ -730,8 +723,13 @@ class Secp256k1Signature2019Verifier extends BaseSecp256k1Verifier {
     Uri verificationMethod,
     Uint8List hash,
   ) async {
-    return verifyJws(proofValue, issuerDid, verificationMethod, hash,
-        didResolver: didResolver);
+    return verifyJws(
+      proofValue,
+      issuerDid,
+      verificationMethod,
+      hash,
+      didResolver: didResolver,
+    );
   }
 }
 
@@ -747,15 +745,16 @@ class EcdsaSecp256k1Signature2019Proof extends EmbeddedProof {
   ///
   /// Required fields include [type], [created], [verificationMethod], [proofPurpose], and [jws].
   /// Optional fields include [expires], [challenge], and [domain].
-  EcdsaSecp256k1Signature2019Proof(
-      {required super.type,
-      required super.created,
-      required super.verificationMethod,
-      required super.proofPurpose,
-      required this.jws,
-      super.expires,
-      super.domain,
-      super.challenge});
+  EcdsaSecp256k1Signature2019Proof({
+    required super.type,
+    required super.created,
+    required super.verificationMethod,
+    required super.proofPurpose,
+    required this.jws,
+    super.expires,
+    super.domain,
+    super.challenge,
+  });
 
   @override
   Map<String, dynamic> toJson() {

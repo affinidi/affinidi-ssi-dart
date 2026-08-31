@@ -47,10 +47,13 @@ abstract class DidUrl {
     String? path,
     String? query,
     String? fragment,
-  }) fromUrlString(String urlString) {
+  })
+  fromUrlString(String urlString) {
     if (!urlString.startsWith('did:')) {
       throw FormatException(
-          'Invalid DID URL: must start with "did:"', urlString);
+        'Invalid DID URL: must start with "did:"',
+        urlString,
+      );
     }
 
     // Extract fragment first
@@ -94,7 +97,9 @@ abstract class DidUrl {
 
     if (method.isEmpty) {
       throw FormatException(
-          'Invalid DID URL: method cannot be empty', urlString);
+        'Invalid DID URL: method cannot be empty',
+        urlString,
+      );
     }
     if (methodSpecificId.isEmpty) {
       throw FormatException(

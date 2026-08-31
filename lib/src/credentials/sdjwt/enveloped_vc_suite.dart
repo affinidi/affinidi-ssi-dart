@@ -20,7 +20,7 @@ enum MediaTypes {
 
 /// Mapping between media type strings and their corresponding VC suites.
 final Map<String, VerifiableCredentialSuite> mediaTypeSuites = {
-  MediaTypes.sdJwt.type: SdJwtDm2Suite()
+  MediaTypes.sdJwt.type: SdJwtDm2Suite(),
 };
 
 /// Suite for working with W3C VC Data Model v2 credentials in SD-JWT format.
@@ -29,11 +29,13 @@ final Map<String, VerifiableCredentialSuite> mediaTypeSuites = {
 /// represented as Selective Disclosure JWT (SD-JWT) according to the
 /// W3C Data Model v2 specification.
 final class EnvelopedVcDm2Suite
-    with
-        LdParser
+    with LdParser
     implements
-        VerifiableCredentialSuite<String, VcDataModelV2,
-            ParsedVerifiableCredential<String>> {
+        VerifiableCredentialSuite<
+          String,
+          VcDataModelV2,
+          ParsedVerifiableCredential<String>
+        > {
   @override
   bool hasValidPayload(Map<String, dynamic> data) {
     final context = data[VcDataModelV2Key.context.key];
@@ -74,8 +76,9 @@ final class EnvelopedVcDm2Suite
     final parsed = decode(input);
     final envelopedData = parsed['id'] as String;
 
-    final mediaType = mediaTypeSuites.entries
-        .firstWhere((e) => envelopedData.startsWith(e.key));
+    final mediaType = mediaTypeSuites.entries.firstWhere(
+      (e) => envelopedData.startsWith(e.key),
+    );
 
     final serialized = envelopedData.replaceFirst(mediaType.key, '');
 
@@ -98,9 +101,11 @@ final class EnvelopedVcDm2Suite
   }
 
   @override
-  Future<bool> verifyIntegrity(ParsedVerifiableCredential<String> input,
-      {DateTime Function() getNow = DateTime.now,
-      DidResolver? didResolver}) async {
+  Future<bool> verifyIntegrity(
+    ParsedVerifiableCredential<String> input, {
+    DateTime Function() getNow = DateTime.now,
+    DidResolver? didResolver,
+  }) async {
     throw SsiException(
       message: 'Call verification on ${VcSuites.getVcSuite(input).runtimeType}',
       code: SsiExceptionType.unsupportedEnvelopeVCOperation.code,
@@ -110,19 +115,22 @@ final class EnvelopedVcDm2Suite
   @override
   Map<String, dynamic> present(ParsedVerifiableCredential<String> input) {
     final suite = VcSuites.getVcSuite(input);
-    final mediaTypeEntry = mediaTypeSuites.entries
-        .firstWhere((e) => e.value.runtimeType == suite.runtimeType,
-            orElse: () => throw SsiException(
-                  message:
-                      'Enveloped VC Presentation for "${input.runtimeType}" is not supported',
-                  code: SsiExceptionType.other.code,
-                ));
+    final mediaTypeEntry = mediaTypeSuites.entries.firstWhere(
+      (e) => e.value.runtimeType == suite.runtimeType,
+      orElse: () => throw SsiException(
+        message:
+            'Enveloped VC Presentation for "${input.runtimeType}" is not supported',
+        code: SsiExceptionType.other.code,
+      ),
+    );
 
     return _envelope(mediaTypeEntry.key, input);
   }
 
   Map<String, dynamic> _envelope(
-      String mediaType, ParsedVerifiableCredential credential) {
+    String mediaType,
+    ParsedVerifiableCredential credential,
+  ) {
     return {
       '@context': ['https://www.w3.org/ns/credentials/v2'],
       'id': '$mediaType${credential.serialized}',

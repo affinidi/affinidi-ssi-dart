@@ -112,7 +112,7 @@ void main() {
           0xdd,
           0xee,
           0xff,
-          0x00
+          0x00,
         ]),
         KeyType.ed25519,
       );
@@ -160,7 +160,7 @@ void main() {
           0xdd,
           0xee,
           0xff,
-          0x00
+          0x00,
         ]),
         KeyType.x25519,
       );
@@ -173,32 +173,30 @@ void main() {
       expect(jwk.containsKey('y'), false); // X25519 doesn't have y coordinate
     });
 
-    test('should convert secp256k1 public key to JWK with X and Y coordinates',
-        () {
-      // Use the known-good secp256k1 multikey from did_document_test.dart
-      final multibase = 'zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
-      final multikey = multiBaseToUint8List(multibase);
-      final keyBytes = multikey.sublist(2); // Remove the 2-byte indicator
+    test(
+      'should convert secp256k1 public key to JWK with X and Y coordinates',
+      () {
+        // Use the known-good secp256k1 multikey from did_document_test.dart
+        final multibase = 'zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
+        final multikey = multiBaseToUint8List(multibase);
+        final keyBytes = multikey.sublist(2); // Remove the 2-byte indicator
 
-      final publicKey = PublicKey(
-        'test-key',
-        keyBytes,
-        KeyType.secp256k1,
-      );
+        final publicKey = PublicKey('test-key', keyBytes, KeyType.secp256k1);
 
-      final jwk = keyToJwk(publicKey);
+        final jwk = keyToJwk(publicKey);
 
-      expect(jwk['kty'], 'EC');
-      expect(jwk['crv'], 'secp256k1');
-      expect(jwk['x'], isA<String>());
-      expect(jwk['y'], isA<String>());
-      expect(jwk['x']!.isNotEmpty, true);
-      expect(jwk['y']!.isNotEmpty, true);
+        expect(jwk['kty'], 'EC');
+        expect(jwk['crv'], 'secp256k1');
+        expect(jwk['x'], isA<String>());
+        expect(jwk['y'], isA<String>());
+        expect(jwk['x']!.isNotEmpty, true);
+        expect(jwk['y']!.isNotEmpty, true);
 
-      // Verify the exact values match the expected ones from did_document_test.dart
-      expect(jwk['x'], '8G9rBdSs9mib1X_2K4ify7wFDLT4ZhoVD7aCy-jimUg');
-      expect(jwk['y'], '4D9aPYTmYa68Xw3OeFuFE33-l4JrSpQ8Bh4VkBdXvT8');
-    });
+        // Verify the exact values match the expected ones from did_document_test.dart
+        expect(jwk['x'], '8G9rBdSs9mib1X_2K4ify7wFDLT4ZhoVD7aCy-jimUg');
+        expect(jwk['y'], '4D9aPYTmYa68Xw3OeFuFE33-l4JrSpQ8Bh4VkBdXvT8');
+      },
+    );
 
     test('should throw exception for unsupported key type', () {
       final publicKey = PublicKey(
@@ -219,30 +217,32 @@ void main() {
       );
     });
 
-    test('should verify multiKeyToJwk exposes X and Y properties for EC curves',
-        () {
-      // Test the underlying multiKeyToJwk function directly with known-good data
-      final multibase = 'zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
-      final multikey = multiBaseToUint8List(multibase);
+    test(
+      'should verify multiKeyToJwk exposes X and Y properties for EC curves',
+      () {
+        // Test the underlying multiKeyToJwk function directly with known-good data
+        final multibase = 'zQ3shvpfWjYk7DfbsyAEFQTfmz3qjeDmdNcJ8a1mhkps4qKGj';
+        final multikey = multiBaseToUint8List(multibase);
 
-      final jwk = multiKeyToJwk(multikey);
+        final jwk = multiKeyToJwk(multikey);
 
-      // Verify X and Y coordinates are present and accessible
-      expect(jwk, containsPair('x', isA<String>()));
-      expect(jwk, containsPair('y', isA<String>()));
+        // Verify X and Y coordinates are present and accessible
+        expect(jwk, containsPair('x', isA<String>()));
+        expect(jwk, containsPair('y', isA<String>()));
 
-      // Verify coordinates are base64url encoded (no padding, URL-safe chars)
-      final xCoord = jwk['x'] as String;
-      final yCoord = jwk['y'] as String;
-      expect(xCoord, matches(r'^[A-Za-z0-9_-]+$')); // base64url pattern
-      expect(yCoord, matches(r'^[A-Za-z0-9_-]+$')); // base64url pattern
-      expect(xCoord.contains('='), false); // no padding
-      expect(yCoord.contains('='), false); // no padding
+        // Verify coordinates are base64url encoded (no padding, URL-safe chars)
+        final xCoord = jwk['x'] as String;
+        final yCoord = jwk['y'] as String;
+        expect(xCoord, matches(r'^[A-Za-z0-9_-]+$')); // base64url pattern
+        expect(yCoord, matches(r'^[A-Za-z0-9_-]+$')); // base64url pattern
+        expect(xCoord.contains('='), false); // no padding
+        expect(yCoord.contains('='), false); // no padding
 
-      // Verify the exact values
-      expect(xCoord, '8G9rBdSs9mib1X_2K4ify7wFDLT4ZhoVD7aCy-jimUg');
-      expect(yCoord, '4D9aPYTmYa68Xw3OeFuFE33-l4JrSpQ8Bh4VkBdXvT8');
-    });
+        // Verify the exact values
+        expect(xCoord, '8G9rBdSs9mib1X_2K4ify7wFDLT4ZhoVD7aCy-jimUg');
+        expect(yCoord, '4D9aPYTmYa68Xw3OeFuFE33-l4JrSpQ8Bh4VkBdXvT8');
+      },
+    );
   });
 }
 

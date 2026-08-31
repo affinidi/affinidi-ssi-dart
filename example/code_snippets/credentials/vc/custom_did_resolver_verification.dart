@@ -16,9 +16,7 @@ void main() async {
 
   // Example 1: Custom DID resolver with caching
   final cachingResolver = CachingDidResolver();
-  final verifierWithCache = VcIntegrityVerifier(
-    didResolver: cachingResolver,
-  );
+  final verifierWithCache = VcIntegrityVerifier(didResolver: cachingResolver);
 
   print('Verifying with caching resolver...');
   final result1 = await verifierWithCache.verify(verifiableCredential);
@@ -28,9 +26,7 @@ void main() async {
 
   // Example 2: Custom DID resolver with logging
   final loggingResolver = LoggingDidResolver();
-  final verifierWithLogging = VcIntegrityVerifier(
-    didResolver: loggingResolver,
-  );
+  final verifierWithLogging = VcIntegrityVerifier(didResolver: loggingResolver);
 
   print('\nVerifying with logging resolver...');
   final result2 = await verifierWithLogging.verify(verifiableCredential);

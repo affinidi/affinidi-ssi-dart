@@ -12,7 +12,7 @@ class RevocationList2020Verifier implements VcVerifier {
   /// The status list credential must contain a `credentialSubject.encodedList`
   /// field encoded as base64-url.
   final Future<Map<String, dynamic>> Function(Uri uri)?
-      fetchStatusListCredential;
+  fetchStatusListCredential;
 
   /// Custom document loader for loading external resources.
   final DocumentLoader? customDocumentLoader;
@@ -72,25 +72,29 @@ class RevocationList2020Verifier implements VcVerifier {
 
       if (listUri == null || index == null) {
         errors.add(
-            '${SsiExceptionType.invalidVC.code} ${vc.id} for status ${status.id}');
+          '${SsiExceptionType.invalidVC.code} ${vc.id} for status ${status.id}',
+        );
         continue;
       }
 
       Map<String, dynamic> statusListVc;
       try {
         final revocationDocument = await _fetchStatusList(listUri);
-        statusListVc = revocationDocument['revocationListCredential'] ??
+        statusListVc =
+            revocationDocument['revocationListCredential'] ??
             revocationDocument;
       } catch (e) {
         errors.add(
-            '${SsiExceptionType.failedToFetchRevocationList.code} for VC ${vc.id} status ${status.id}: $e');
+          '${SsiExceptionType.failedToFetchRevocationList.code} for VC ${vc.id} status ${status.id}: $e',
+        );
         continue;
       }
 
       final encodedList = statusListVc['credentialSubject']?['encodedList'];
       if (encodedList == null || encodedList is! String) {
         errors.add(
-            '${SsiExceptionType.invalidVC.code} ${vc.id} for status ${status.id}');
+          '${SsiExceptionType.invalidVC.code} ${vc.id} for status ${status.id}',
+        );
         continue;
       }
 
@@ -101,7 +105,8 @@ class RevocationList2020Verifier implements VcVerifier {
         bitstring = Uint8List.fromList(_gZipDecoder.decodeBytes(compressed));
       } catch (_) {
         errors.add(
-            '${SsiExceptionType.invalidEncoding.code} for VC ${vc.id} status ${status.id}');
+          '${SsiExceptionType.invalidEncoding.code} for VC ${vc.id} status ${status.id}',
+        );
         continue;
       }
 
@@ -110,7 +115,8 @@ class RevocationList2020Verifier implements VcVerifier {
 
       if (byteIndex >= bitstring.length) {
         errors.add(
-            '${SsiExceptionType.revocationIndexOutOfBounds.code} for VC ${vc.id} status ${status.id}');
+          '${SsiExceptionType.revocationIndexOutOfBounds.code} for VC ${vc.id} status ${status.id}',
+        );
         continue;
       }
 
@@ -119,7 +125,8 @@ class RevocationList2020Verifier implements VcVerifier {
 
       if (isRevoked) {
         errors.add(
-            '${SsiExceptionType.revokedVC.code} ${vc.id} for status ${status.id}');
+          '${SsiExceptionType.revokedVC.code} ${vc.id} for status ${status.id}',
+        );
       }
     }
 
@@ -149,16 +156,18 @@ List getCredentialStatusFromVc(ParsedVerifiableCredential vc) {
       credentialStatus = status == null ? [] : [status.toJson()];
       break;
     case LdVcDataModelV2():
-      credentialStatus =
-          vc.credentialStatus.map((status) => status.toJson()).toList();
+      credentialStatus = vc.credentialStatus
+          .map((status) => status.toJson())
+          .toList();
       break;
     case JwtVcDataModelV1():
       final status = vc.credentialStatus;
       credentialStatus = status == null ? [] : [status.toJson()];
       break;
     case SdJwtDataModelV2():
-      credentialStatus =
-          vc.credentialStatus.map((status) => status.toJson()).toList();
+      credentialStatus = vc.credentialStatus
+          .map((status) => status.toJson())
+          .toList();
       break;
     default:
       return [];

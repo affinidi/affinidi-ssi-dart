@@ -95,12 +95,18 @@ class DidDocument implements JsonObject {
       authentication: _convertToVerificationRelationship(authentication, vmMap),
       keyAgreement: _convertToVerificationRelationship(keyAgreement, vmMap),
       service: _convertToServiceEndpoint(service),
-      assertionMethod:
-          _convertToVerificationRelationship(assertionMethod, vmMap),
-      capabilityDelegation:
-          _convertToVerificationRelationship(capabilityDelegation, vmMap),
-      capabilityInvocation:
-          _convertToVerificationRelationship(capabilityInvocation, vmMap),
+      assertionMethod: _convertToVerificationRelationship(
+        assertionMethod,
+        vmMap,
+      ),
+      capabilityDelegation: _convertToVerificationRelationship(
+        capabilityDelegation,
+        vmMap,
+      ),
+      capabilityInvocation: _convertToVerificationRelationship(
+        capabilityInvocation,
+        vmMap,
+      ),
     );
   }
 
@@ -116,8 +122,10 @@ class DidDocument implements JsonObject {
     }
     if (input is List) {
       return input
-          .map((item) =>
-              item is ServiceEndpoint ? item : ServiceEndpoint.fromJson(item))
+          .map(
+            (item) =>
+                item is ServiceEndpoint ? item : ServiceEndpoint.fromJson(item),
+          )
           .toList();
     }
     return [];
@@ -154,16 +162,16 @@ class DidDocument implements JsonObject {
   ///
   /// [jsonObject] The JSON data to create the DID document from.
   DidDocument.fromJson(dynamic jsonObject)
-      : context = JsonLdContext.fromJson(''),
-        alsoKnownAs = [],
-        controller = [],
-        verificationMethod = [],
-        authentication = [],
-        keyAgreement = [],
-        service = [],
-        assertionMethod = [],
-        capabilityDelegation = [],
-        capabilityInvocation = [] {
+    : context = JsonLdContext.fromJson(''),
+      alsoKnownAs = [],
+      controller = [],
+      verificationMethod = [],
+      authentication = [],
+      keyAgreement = [],
+      service = [],
+      assertionMethod = [],
+      capabilityDelegation = [],
+      capabilityInvocation = [] {
     final document = jsonToMap(jsonObject);
 
     if (document.containsKey('@context')) {

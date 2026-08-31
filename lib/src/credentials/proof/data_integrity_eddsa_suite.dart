@@ -77,8 +77,11 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
     document.remove('proof');
 
     final cacheLoadDocument = createCacheDocumentLoader(customDocumentLoader);
-    final hash =
-        await computeDataIntegrityHash(proof, document, cacheLoadDocument);
+    final hash = await computeDataIntegrityHash(
+      proof,
+      document,
+      cacheLoadDocument,
+    );
     final proofValue = await _computeProofValue(hash, signer);
 
     proof.remove('@context');
@@ -98,15 +101,9 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
     );
   }
 
-  Future<String> _computeProofValue(
-    Uint8List hash,
-    DidSigner signer,
-  ) async {
+  Future<String> _computeProofValue(Uint8List hash, DidSigner signer) async {
     final signature = await signer.sign(hash);
-    return toMultiBase(
-      signature,
-      base: proofValueMultiBase,
-    );
+    return toMultiBase(signature, base: proofValueMultiBase);
   }
 }
 
@@ -117,7 +114,8 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
 ///
 /// @deprecated Use [DataIntegrityEddsaRdfcGenerator] instead for consistent naming.
 @Deprecated(
-    'Use DataIntegrityEddsaRdfcGenerator instead for consistent naming.')
+  'Use DataIntegrityEddsaRdfcGenerator instead for consistent naming.',
+)
 typedef DataIntegrityEddsaGenerator = DataIntegrityEddsaRdfcGenerator;
 
 /// Verifies Data Integrity Proofs signed with the eddsa-rdfc-2022 cryptosuite.
@@ -125,7 +123,8 @@ typedef DataIntegrityEddsaGenerator = DataIntegrityEddsaRdfcGenerator;
 /// Normalizes and hashes the credential and proof separately, then verifies
 /// the combined hash against the provided proof signature using the issuer's DID key.
 @Deprecated(
-    'Use DataIntegrityEddsaRdfcVerifier for eddsa-rdfc-2022 cryptosuite instead')
+  'Use DataIntegrityEddsaRdfcVerifier for eddsa-rdfc-2022 cryptosuite instead',
+)
 class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
   /// Constructs a new [DataIntegrityRdfcEddsaVerifier].
   ///
@@ -160,7 +159,7 @@ class DataIntegrityRdfcEddsaVerifier extends BaseDataIntegrityVerifier {
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   ) async {
     return computeDataIntegrityHash(proof, unsignedCredential, documentLoader);
   }
@@ -221,7 +220,7 @@ class DataIntegrityEddsaRdfcVerifier extends BaseDataIntegrityVerifier {
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   ) async {
     return computeDataIntegrityHash(proof, unsignedCredential, documentLoader);
   }

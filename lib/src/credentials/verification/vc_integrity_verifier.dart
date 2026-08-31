@@ -54,10 +54,7 @@ class VcIntegrityVerifier implements VcVerifier {
   /// // Verify a credential
   /// final result = await verifier.verify(credential);
   /// ```
-  VcIntegrityVerifier({
-    this.customDocumentLoader,
-    this.didResolver,
-  });
+  VcIntegrityVerifier({this.customDocumentLoader, this.didResolver});
 
   /// Verifies the signature and cryptographic integrity of the [data] credential.
   ///
@@ -74,8 +71,10 @@ class VcIntegrityVerifier implements VcVerifier {
     var integrityValid = false;
 
     try {
-      integrityValid =
-          await vcSuite.verifyIntegrity(data, didResolver: didResolver);
+      integrityValid = await vcSuite.verifyIntegrity(
+        data,
+        didResolver: didResolver,
+      );
     } catch (e) {
       integrityValid = false;
     }
@@ -90,8 +89,6 @@ class VcIntegrityVerifier implements VcVerifier {
       );
     }
 
-    return Future.value(
-      VerificationResult.ok(),
-    );
+    return Future.value(VerificationResult.ok());
   }
 }

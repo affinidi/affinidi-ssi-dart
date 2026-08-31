@@ -32,8 +32,13 @@ void main() {
 
       await expectLater(
         DidWeb.resolve(did),
-        throwsA(isA<SsiException>().having(
-            (e) => e.code, 'code', SsiExceptionType.invalidDidWeb.code)),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.code,
+            'code',
+            SsiExceptionType.invalidDidWeb.code,
+          ),
+        ),
       );
     });
   });
@@ -44,13 +49,13 @@ void main() {
       final mockDidDoc = DidDocument.fromJson({
         '@context': [
           'https://www.w3.org/ns/did/v1',
-          {'@id': 'https://w3id.org/security#publicKeyJwk', '@type': '@json'}
+          {'@id': 'https://w3id.org/security#publicKeyJwk', '@type': '@json'},
         ],
         'assertionMethod': [
-          'did:web:demo.spruceid.com#_t-v-Ep7AtkELhhvAzCCDzy1O5Bn_z1CVFv9yiRXdHY'
+          'did:web:demo.spruceid.com#_t-v-Ep7AtkELhhvAzCCDzy1O5Bn_z1CVFv9yiRXdHY',
         ],
         'authentication': [
-          'did:web:demo.spruceid.com#_t-v-Ep7AtkELhhvAzCCDzy1O5Bn_z1CVFv9yiRXdHY'
+          'did:web:demo.spruceid.com#_t-v-Ep7AtkELhhvAzCCDzy1O5Bn_z1CVFv9yiRXdHY',
         ],
         'id': 'did:web:demo.spruceid.com',
         'verificationMethod': [
@@ -61,11 +66,11 @@ void main() {
             'publicKeyJwk': {
               'crv': 'Ed25519',
               'kty': 'OKP',
-              'x': '2yv3J-Sf263OmwDLS9uFPTRD0PzbvfBGKLiSnPHtXIU'
+              'x': '2yv3J-Sf263OmwDLS9uFPTRD0PzbvfBGKLiSnPHtXIU',
             },
-            'type': 'Ed25519VerificationKey2018'
-          }
-        ]
+            'type': 'Ed25519VerificationKey2018',
+          },
+        ],
       });
 
       final mockResolver = MockDidResolver(mockDidDoc);
@@ -88,7 +93,7 @@ void main() {
       final mockDidDoc = DidDocument.fromJson({
         '@context': [
           'https://www.w3.org/ns/did/v1',
-          {'@id': 'https://w3id.org/security#publicKeyJwk', '@type': '@json'}
+          {'@id': 'https://w3id.org/security#publicKeyJwk', '@type': '@json'},
         ],
         'id': 'did:web:demo.spruceid.com',
         'verificationMethod': [
@@ -99,11 +104,11 @@ void main() {
             'publicKeyJwk': {
               'crv': 'Ed25519',
               'kty': 'OKP',
-              'x': '2yv3J-Sf263OmwDLS9uFPTRD0PzbvfBGKLiSnPHtXIU'
+              'x': '2yv3J-Sf263OmwDLS9uFPTRD0PzbvfBGKLiSnPHtXIU',
             },
-            'type': 'Ed25519VerificationKey2018'
-          }
-        ]
+            'type': 'Ed25519VerificationKey2018',
+          },
+        ],
       });
 
       final mockResolver = MockDidResolver(mockDidDoc);
@@ -118,12 +123,18 @@ void main() {
       final testData = Uint8List.fromList(utf8.encode('Test data'));
       final fakeSignature = Uint8List.fromList(List.filled(64, 0));
 
-      expect(verifier.verify(testData, fakeSignature), isFalse,
-          reason: 'Should reject an obviously fake signature');
+      expect(
+        verifier.verify(testData, fakeSignature),
+        isFalse,
+        reason: 'Should reject an obviously fake signature',
+      );
 
       final anotherFakeSignature = Uint8List.fromList(List.filled(64, 1));
-      expect(verifier.verify(testData, anotherFakeSignature), isFalse,
-          reason: 'Should reject another fake signature');
+      expect(
+        verifier.verify(testData, anotherFakeSignature),
+        isFalse,
+        reason: 'Should reject another fake signature',
+      );
     });
 
     test('algorithm mismatch throws error', () async {
@@ -131,7 +142,7 @@ void main() {
       final mockDidDoc = DidDocument.fromJson({
         '@context': [
           'https://www.w3.org/ns/did/v1',
-          {'@id': 'https://w3id.org/security#publicKeyJwk', '@type': '@json'}
+          {'@id': 'https://w3id.org/security#publicKeyJwk', '@type': '@json'},
         ],
         'id': 'did:web:demo.spruceid.com',
         'verificationMethod': [
@@ -142,11 +153,11 @@ void main() {
             'publicKeyJwk': {
               'crv': 'Ed25519',
               'kty': 'OKP',
-              'x': '2yv3J-Sf263OmwDLS9uFPTRD0PzbvfBGKLiSnPHtXIU'
+              'x': '2yv3J-Sf263OmwDLS9uFPTRD0PzbvfBGKLiSnPHtXIU',
             },
-            'type': 'Ed25519VerificationKey2018'
-          }
-        ]
+            'type': 'Ed25519VerificationKey2018',
+          },
+        ],
       });
 
       final mockResolver = MockDidResolver(mockDidDoc);
@@ -205,11 +216,15 @@ void main() {
       expect(doc.verificationMethod.length, equals(1));
       expect(doc.verificationMethod.first.id, equals(vmId));
       expect(doc.authentication.length, equals(1));
-      expect((doc.authentication.first as VerificationMethodRef).reference,
-          equals(vmId));
+      expect(
+        (doc.authentication.first as VerificationMethodRef).reference,
+        equals(vmId),
+      );
       expect(doc.assertionMethod.length, equals(1));
-      expect((doc.assertionMethod.first as VerificationMethodRef).reference,
-          equals(vmId));
+      expect(
+        (doc.assertionMethod.first as VerificationMethodRef).reference,
+        equals(vmId),
+      );
       expect(doc.service.length, equals(0));
     });
 
@@ -387,22 +402,23 @@ void main() {
     });
 
     test(
-        'throws ArgumentError when verification method IDs and keys length mismatch',
-        () {
-      final did = 'did:web:example.com';
-      final vmId1 = '$did#key-1';
-      final vmId2 = '$did#key-2';
+      'throws ArgumentError when verification method IDs and keys length mismatch',
+      () {
+        final did = 'did:web:example.com';
+        final vmId1 = '$did#key-1';
+        final vmId2 = '$did#key-2';
 
-      expect(
-        () => DidWeb.generateDocument(
-          did: did,
-          verificationMethodIds: [vmId1, vmId2],
-          publicKeys: [testPublicKey], // Only one key for two IDs
-          relationships: {},
-          serviceEndpoints: [],
-        ),
-        throwsArgumentError,
-      );
-    });
+        expect(
+          () => DidWeb.generateDocument(
+            did: did,
+            verificationMethodIds: [vmId1, vmId2],
+            publicKeys: [testPublicKey], // Only one key for two IDs
+            relationships: {},
+            serviceEndpoints: [],
+          ),
+          throwsArgumentError,
+        );
+      },
+    );
   });
 }

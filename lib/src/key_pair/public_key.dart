@@ -23,9 +23,5 @@ class PublicKey {
   /// [id] - The identifier of the key as [String].
   /// [bytes] - The public key bytes.
   /// [type] - The type of the key as [KeyType].
-  PublicKey(
-    this.id,
-    this.bytes,
-    this.type,
-  );
+  PublicKey(this.id, this.bytes, this.type);
 }

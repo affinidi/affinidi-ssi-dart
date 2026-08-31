@@ -7,8 +7,9 @@ import '../../test_utils.dart';
 
 void main() {
   group('SD-JWT Mandatory Claims Validation Tests', () {
-    final testSeed =
-        Uint8List.fromList(List.generate(32, (index) => index + 1));
+    final testSeed = Uint8List.fromList(
+      List.generate(32, (index) => index + 1),
+    );
 
     late DidSigner signer;
     late SdJwtDm2Suite suite;
@@ -19,8 +20,7 @@ void main() {
     });
 
     group('Mandatory Field Disclosure Validation', () {
-      test('should fail when @context is made selectively disclosable',
-          () async {
+      test('should fail when @context is made selectively disclosable', () async {
         final credential = MutableVcDataModelV2(
           context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
           id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
@@ -31,7 +31,7 @@ void main() {
             MutableCredentialSubject({
               'id': 'did:example:subject',
               'name': 'Test Subject',
-            })
+            }),
           ],
         );
 
@@ -62,7 +62,7 @@ void main() {
             MutableCredentialSubject({
               'id': 'did:example:subject',
               'name': 'Test Subject',
-            })
+            }),
           ],
         );
 
@@ -81,82 +81,86 @@ void main() {
         );
       });
 
-      test('should fail when credentialSchema is made selectively disclosable',
-          () async {
-        final credential = MutableVcDataModelV2(
-          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-          id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-          issuer: Issuer.uri(signer.did),
-          type: {'VerifiableCredential', 'TestCredential'},
-          validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
-          credentialSubject: [
-            MutableCredentialSubject({
-              'id': 'did:example:subject',
-              'name': 'Test Subject',
-            })
-          ],
-          credentialSchema: [
-            MutableCredentialSchema(
-              id: Uri.parse('https://example.org/schema.json'),
-              type: 'JsonSchema',
+      test(
+        'should fail when credentialSchema is made selectively disclosable',
+        () async {
+          final credential = MutableVcDataModelV2(
+            context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+            id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+            issuer: Issuer.uri(signer.did),
+            type: {'VerifiableCredential', 'TestCredential'},
+            validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
+            credentialSubject: [
+              MutableCredentialSubject({
+                'id': 'did:example:subject',
+                'name': 'Test Subject',
+              }),
+            ],
+            credentialSchema: [
+              MutableCredentialSchema(
+                id: Uri.parse('https://example.org/schema.json'),
+                type: 'JsonSchema',
+              ),
+            ],
+          );
+
+          // Attempt to make credentialSchema selectively disclosable (this should fail)
+          final invalidDisclosureFrame = {
+            '_sd': ['credentialSchema'], // This violates the spec
+          };
+
+          expect(
+            () async => await suite.issue(
+              unsignedData: VcDataModelV2.fromMutable(credential),
+              signer: signer,
+              disclosureFrame: invalidDisclosureFrame,
             ),
-          ],
-        );
+            throwsA(isA<SsiException>()),
+          );
+        },
+      );
 
-        // Attempt to make credentialSchema selectively disclosable (this should fail)
-        final invalidDisclosureFrame = {
-          '_sd': ['credentialSchema'], // This violates the spec
-        };
+      test(
+        'should fail when credentialStatus is made selectively disclosable',
+        () async {
+          final credential = MutableVcDataModelV2(
+            context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+            id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+            issuer: Issuer.uri(signer.did),
+            type: {'VerifiableCredential', 'TestCredential'},
+            validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
+            credentialSubject: [
+              MutableCredentialSubject({
+                'id': 'did:example:subject',
+                'name': 'Test Subject',
+              }),
+            ],
+            credentialStatus: [
+              MutableCredentialStatusV2({
+                'id': Uri.parse('https://example.org/status/1'),
+                'type': 'StatusList2021Entry',
+                'statusPurpose': 'revocation',
+                'statusListIndex': '12345',
+                'statusListCredential': 'https://example.org/status-list',
+              }),
+            ],
+          );
 
-        expect(
-          () async => await suite.issue(
-            unsignedData: VcDataModelV2.fromMutable(credential),
-            signer: signer,
-            disclosureFrame: invalidDisclosureFrame,
-          ),
-          throwsA(isA<SsiException>()),
-        );
-      });
+          // Attempt to make credentialStatus selectively disclosable (this should fail)
+          final invalidDisclosureFrame = {
+            '_sd': ['credentialStatus'], // This violates the spec
+          };
 
-      test('should fail when credentialStatus is made selectively disclosable',
-          () async {
-        final credential = MutableVcDataModelV2(
-          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-          id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-          issuer: Issuer.uri(signer.did),
-          type: {'VerifiableCredential', 'TestCredential'},
-          validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
-          credentialSubject: [
-            MutableCredentialSubject({
-              'id': 'did:example:subject',
-              'name': 'Test Subject',
-            })
-          ],
-          credentialStatus: [
-            MutableCredentialStatusV2({
-              'id': Uri.parse('https://example.org/status/1'),
-              'type': 'StatusList2021Entry',
-              'statusPurpose': 'revocation',
-              'statusListIndex': '12345',
-              'statusListCredential': 'https://example.org/status-list',
-            }),
-          ],
-        );
-
-        // Attempt to make credentialStatus selectively disclosable (this should fail)
-        final invalidDisclosureFrame = {
-          '_sd': ['credentialStatus'], // This violates the spec
-        };
-
-        expect(
-          () async => await suite.issue(
-            unsignedData: VcDataModelV2.fromMutable(credential),
-            signer: signer,
-            disclosureFrame: invalidDisclosureFrame,
-          ),
-          throwsA(isA<SsiException>()),
-        );
-      });
+          expect(
+            () async => await suite.issue(
+              unsignedData: VcDataModelV2.fromMutable(credential),
+              signer: signer,
+              disclosureFrame: invalidDisclosureFrame,
+            ),
+            throwsA(isA<SsiException>()),
+          );
+        },
+      );
 
       test('should allow other fields to be selectively disclosable', () async {
         final credential = MutableVcDataModelV2(
@@ -171,7 +175,7 @@ void main() {
               'name': 'Test Subject',
               'age': 30,
               'email': 'test@example.com',
-            })
+            }),
           ],
         );
 
@@ -197,31 +201,33 @@ void main() {
     });
 
     group('Verification of Disclosed Claims', () {
-      test('should verify that @context is always present in payload',
-          () async {
-        final credential = MutableVcDataModelV2(
-          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-          id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-          issuer: Issuer.uri(signer.did),
-          type: {'VerifiableCredential', 'TestCredential'},
-          validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
-          credentialSubject: [
-            MutableCredentialSubject({
-              'id': 'did:example:subject',
-              'name': 'Test Subject',
-            })
-          ],
-        );
+      test(
+        'should verify that @context is always present in payload',
+        () async {
+          final credential = MutableVcDataModelV2(
+            context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+            id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+            issuer: Issuer.uri(signer.did),
+            type: {'VerifiableCredential', 'TestCredential'},
+            validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
+            credentialSubject: [
+              MutableCredentialSubject({
+                'id': 'did:example:subject',
+                'name': 'Test Subject',
+              }),
+            ],
+          );
 
-        final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential),
-          signer: signer,
-        );
+          final issuedCredential = await suite.issue(
+            unsignedData: VcDataModelV2.fromMutable(credential),
+            signer: signer,
+          );
 
-        // @context must be present in the payload (not in disclosures)
-        expect(issuedCredential.sdJwt.payload, contains('@context'));
-        expect(issuedCredential.context, isNotNull);
-      });
+          // @context must be present in the payload (not in disclosures)
+          expect(issuedCredential.sdJwt.payload, contains('@context'));
+          expect(issuedCredential.context, isNotNull);
+        },
+      );
 
       test('should verify that type is always present in payload', () async {
         final credential = MutableVcDataModelV2(
@@ -234,7 +240,7 @@ void main() {
             MutableCredentialSubject({
               'id': 'did:example:subject',
               'name': 'Test Subject',
-            })
+            }),
           ],
         );
 
@@ -250,146 +256,151 @@ void main() {
       });
 
       test(
-          'should verify that credentialSchema is present in payload when provided',
-          () async {
-        final credential = MutableVcDataModelV2(
-          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-          id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-          issuer: Issuer.uri(signer.did),
-          type: {'VerifiableCredential', 'TestCredential'},
-          validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
-          credentialSubject: [
-            MutableCredentialSubject({
-              'id': 'did:example:subject',
-              'name': 'Test Subject',
-            })
-          ],
-          credentialSchema: [
-            MutableCredentialSchema(
-              id: Uri.parse('https://example.org/schema.json'),
-              type: 'JsonSchema',
-            ),
-          ],
-        );
+        'should verify that credentialSchema is present in payload when provided',
+        () async {
+          final credential = MutableVcDataModelV2(
+            context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+            id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+            issuer: Issuer.uri(signer.did),
+            type: {'VerifiableCredential', 'TestCredential'},
+            validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
+            credentialSubject: [
+              MutableCredentialSubject({
+                'id': 'did:example:subject',
+                'name': 'Test Subject',
+              }),
+            ],
+            credentialSchema: [
+              MutableCredentialSchema(
+                id: Uri.parse('https://example.org/schema.json'),
+                type: 'JsonSchema',
+              ),
+            ],
+          );
 
-        final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential),
-          signer: signer,
-        );
+          final issuedCredential = await suite.issue(
+            unsignedData: VcDataModelV2.fromMutable(credential),
+            signer: signer,
+          );
 
-        // credentialSchema must be present in the payload (not in disclosures)
-        expect(issuedCredential.sdJwt.payload, contains('credentialSchema'));
-        expect(issuedCredential.credentialSchema, isNotEmpty);
-      });
+          // credentialSchema must be present in the payload (not in disclosures)
+          expect(issuedCredential.sdJwt.payload, contains('credentialSchema'));
+          expect(issuedCredential.credentialSchema, isNotEmpty);
+        },
+      );
 
       test(
-          'should verify that credentialStatus is present in payload when provided',
-          () async {
-        final credential = MutableVcDataModelV2(
-          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-          id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-          issuer: Issuer.uri(signer.did),
-          type: {'VerifiableCredential', 'TestCredential'},
-          validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
-          credentialSubject: [
-            MutableCredentialSubject({
-              'id': 'did:example:subject',
-              'name': 'Test Subject',
-            })
-          ],
-          credentialStatus: [
-            MutableCredentialStatusV2({
-              'id': Uri.parse('https://example.org/status/1'),
-              'type': 'StatusList2021Entry',
-              'statusPurpose': 'revocation',
-              'statusListIndex': '12345',
-              'statusListCredential': 'https://example.org/status-list',
-            }),
-          ],
-        );
+        'should verify that credentialStatus is present in payload when provided',
+        () async {
+          final credential = MutableVcDataModelV2(
+            context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+            id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+            issuer: Issuer.uri(signer.did),
+            type: {'VerifiableCredential', 'TestCredential'},
+            validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
+            credentialSubject: [
+              MutableCredentialSubject({
+                'id': 'did:example:subject',
+                'name': 'Test Subject',
+              }),
+            ],
+            credentialStatus: [
+              MutableCredentialStatusV2({
+                'id': Uri.parse('https://example.org/status/1'),
+                'type': 'StatusList2021Entry',
+                'statusPurpose': 'revocation',
+                'statusListIndex': '12345',
+                'statusListCredential': 'https://example.org/status-list',
+              }),
+            ],
+          );
 
-        final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential),
-          signer: signer,
-        );
+          final issuedCredential = await suite.issue(
+            unsignedData: VcDataModelV2.fromMutable(credential),
+            signer: signer,
+          );
 
-        // credentialStatus must be present in the payload (not in disclosures)
-        expect(issuedCredential.sdJwt.payload, contains('credentialStatus'));
-        expect(issuedCredential.credentialStatus, isNotEmpty);
-      });
+          // credentialStatus must be present in the payload (not in disclosures)
+          expect(issuedCredential.sdJwt.payload, contains('credentialStatus'));
+          expect(issuedCredential.credentialStatus, isNotEmpty);
+        },
+      );
     });
 
     group('Edge Cases', () {
-      test('should handle credentials without optional mandatory fields',
-          () async {
-        // Credential without credentialSchema and credentialStatus
-        final credential = MutableVcDataModelV2(
-          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-          id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-          issuer: Issuer.uri(signer.did),
-          type: {'VerifiableCredential', 'TestCredential'},
-          validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
-          credentialSubject: [
-            MutableCredentialSubject({
-              'id': 'did:example:subject',
-              'name': 'Test Subject',
-            })
-          ],
-        );
-
-        final issuedCredential = await suite.issue(
-          unsignedData: VcDataModelV2.fromMutable(credential),
-          signer: signer,
-        );
-
-        expect(issuedCredential, isNotNull);
-        expect(issuedCredential.sdJwt.payload, contains('@context'));
-        expect(issuedCredential.sdJwt.payload, contains('type'));
-
-        final isValid = await suite.verifyIntegrity(issuedCredential);
-        expect(isValid, isTrue);
-      });
-
       test(
-          'should prevent nested fields of mandatory claims from being selectively disclosable',
-          () async {
-        final credential = MutableVcDataModelV2(
-          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-          id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
-          issuer: Issuer.uri(signer.did),
-          type: {'VerifiableCredential', 'TestCredential'},
-          validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
-          credentialSubject: [
-            MutableCredentialSubject({
-              'id': 'did:example:subject',
-              'name': 'Test Subject',
-            })
-          ],
-          credentialSchema: [
-            MutableCredentialSchema(
-              id: Uri.parse('https://example.org/schema.json'),
-              type: 'JsonSchema',
-            ),
-          ],
-        );
+        'should handle credentials without optional mandatory fields',
+        () async {
+          // Credential without credentialSchema and credentialStatus
+          final credential = MutableVcDataModelV2(
+            context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+            id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+            issuer: Issuer.uri(signer.did),
+            type: {'VerifiableCredential', 'TestCredential'},
+            validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
+            credentialSubject: [
+              MutableCredentialSubject({
+                'id': 'did:example:subject',
+                'name': 'Test Subject',
+              }),
+            ],
+          );
 
-        // Attempt to make nested properties of credentialSchema selectively disclosable
-        final invalidDisclosureFrame = {
-          'credentialSchema': {
-            '_sd': ['id', 'type'], // Nested properties should also not be SD
-          },
-        };
-
-        // This should fail because credentialSchema and its contents must be fully disclosed
-        expect(
-          () async => await suite.issue(
+          final issuedCredential = await suite.issue(
             unsignedData: VcDataModelV2.fromMutable(credential),
             signer: signer,
-            disclosureFrame: invalidDisclosureFrame,
-          ),
-          throwsA(isA<SsiException>()),
-        );
-      });
+          );
+
+          expect(issuedCredential, isNotNull);
+          expect(issuedCredential.sdJwt.payload, contains('@context'));
+          expect(issuedCredential.sdJwt.payload, contains('type'));
+
+          final isValid = await suite.verifyIntegrity(issuedCredential);
+          expect(isValid, isTrue);
+        },
+      );
+
+      test(
+        'should prevent nested fields of mandatory claims from being selectively disclosable',
+        () async {
+          final credential = MutableVcDataModelV2(
+            context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+            id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
+            issuer: Issuer.uri(signer.did),
+            type: {'VerifiableCredential', 'TestCredential'},
+            validFrom: DateTime.parse('2023-01-01T12:00:00Z'),
+            credentialSubject: [
+              MutableCredentialSubject({
+                'id': 'did:example:subject',
+                'name': 'Test Subject',
+              }),
+            ],
+            credentialSchema: [
+              MutableCredentialSchema(
+                id: Uri.parse('https://example.org/schema.json'),
+                type: 'JsonSchema',
+              ),
+            ],
+          );
+
+          // Attempt to make nested properties of credentialSchema selectively disclosable
+          final invalidDisclosureFrame = {
+            'credentialSchema': {
+              '_sd': ['id', 'type'], // Nested properties should also not be SD
+            },
+          };
+
+          // This should fail because credentialSchema and its contents must be fully disclosed
+          expect(
+            () async => await suite.issue(
+              unsignedData: VcDataModelV2.fromMutable(credential),
+              signer: signer,
+              disclosureFrame: invalidDisclosureFrame,
+            ),
+            throwsA(isA<SsiException>()),
+          );
+        },
+      );
 
       test('should validate that issuer is always disclosed', () async {
         final credential = MutableVcDataModelV2(
@@ -402,7 +413,7 @@ void main() {
             MutableCredentialSubject({
               'id': 'did:example:subject',
               'name': 'Test Subject',
-            })
+            }),
           ],
         );
 

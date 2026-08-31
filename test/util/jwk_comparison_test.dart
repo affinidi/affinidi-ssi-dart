@@ -112,11 +112,7 @@ void main() {
           'crv': 'Ed25519',
           'x': '11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo',
         };
-        final jwk2 = {
-          'kty': 'OKP',
-          'crv': 'Ed25519',
-          'x': 'DIFFERENT_X_VALUE',
-        };
+        final jwk2 = {'kty': 'OKP', 'crv': 'Ed25519', 'x': 'DIFFERENT_X_VALUE'};
 
         expect(areJwksEqual(jwk1, jwk2), isFalse);
       });
@@ -139,30 +135,16 @@ void main() {
 
     group('unsupported key types', () {
       test('RSA keys should return false (unsupported)', () {
-        final jwk1 = {
-          'kty': 'RSA',
-          'n': 'MODULUS',
-          'e': 'AQAB',
-        };
-        final jwk2 = {
-          'kty': 'RSA',
-          'n': 'MODULUS',
-          'e': 'AQAB',
-        };
+        final jwk1 = {'kty': 'RSA', 'n': 'MODULUS', 'e': 'AQAB'};
+        final jwk2 = {'kty': 'RSA', 'n': 'MODULUS', 'e': 'AQAB'};
 
         // RSA keys are not supported by this library
         expect(areJwksEqual(jwk1, jwk2), isFalse);
       });
 
       test('oct keys should return false (unsupported)', () {
-        final jwk1 = {
-          'kty': 'oct',
-          'k': 'GawgguFyGrWKav7AX4VKUg',
-        };
-        final jwk2 = {
-          'kty': 'oct',
-          'k': 'GawgguFyGrWKav7AX4VKUg',
-        };
+        final jwk1 = {'kty': 'oct', 'k': 'GawgguFyGrWKav7AX4VKUg'};
+        final jwk2 = {'kty': 'oct', 'k': 'GawgguFyGrWKav7AX4VKUg'};
 
         // Symmetric keys are not supported by this library
         expect(areJwksEqual(jwk1, jwk2), isFalse);
@@ -281,14 +263,8 @@ void main() {
 
     group('unknown key types', () {
       test('unknown key type should return false', () {
-        final jwk1 = {
-          'kty': 'UNKNOWN',
-          'x': 'some-value',
-        };
-        final jwk2 = {
-          'kty': 'UNKNOWN',
-          'x': 'some-value',
-        };
+        final jwk1 = {'kty': 'UNKNOWN', 'x': 'some-value'};
+        final jwk2 = {'kty': 'UNKNOWN', 'x': 'some-value'};
 
         expect(areJwksEqual(jwk1, jwk2), isFalse);
       });

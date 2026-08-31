@@ -29,14 +29,18 @@ class VpIntegrityVerifier implements VpVerifier {
 
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {
-    final vpSuite =
-        VpSuites.getVpSuiteWithDocumentLoader(data, customDocumentLoader);
+    final vpSuite = VpSuites.getVpSuiteWithDocumentLoader(
+      data,
+      customDocumentLoader,
+    );
 
     var integrityValid = false;
 
     try {
-      integrityValid =
-          await vpSuite.verifyIntegrity(data, didResolver: didResolver);
+      integrityValid = await vpSuite.verifyIntegrity(
+        data,
+        didResolver: didResolver,
+      );
     } catch (e) {
       integrityValid = false;
     }
@@ -45,14 +49,12 @@ class VpIntegrityVerifier implements VpVerifier {
       return Future.value(
         VerificationResult.invalid(
           errors: [
-            '${SsiExceptionType.failedIntegrityVerification.code} for VP ${data.id}'
+            '${SsiExceptionType.failedIntegrityVerification.code} for VP ${data.id}',
           ],
         ),
       );
     }
 
-    return Future.value(
-      VerificationResult.ok(),
-    );
+    return Future.value(VerificationResult.ok());
   }
 }

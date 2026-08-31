@@ -19,10 +19,7 @@ class DidKeyManager extends DidManager {
   ///
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
-  DidKeyManager({
-    required super.store,
-    required super.wallet,
-  });
+  DidKeyManager({required super.store, required super.wallet});
 
   @override
   Future<AddVerificationMethodResult> addVerificationMethod(
@@ -39,7 +36,8 @@ class DidKeyManager extends DidManager {
 
     if (relationships != null) {
       throw SsiException(
-        message: 'For did:key, relationships are automatically assigned and '
+        message:
+            'For did:key, relationships are automatically assigned and '
             'cannot be specified manually.',
         code: SsiExceptionType.invalidDidKey.code,
       );
@@ -87,9 +85,10 @@ class DidKeyManager extends DidManager {
     final walletKeyId = await getWalletKeyId(verificationMethodId);
     if (walletKeyId == null) {
       throw SsiException(
-          message:
-              'Wallet key for verification method $verificationMethodId not found.',
-          code: SsiExceptionType.keyNotFound.code);
+        message:
+            'Wallet key for verification method $verificationMethodId not found.',
+        code: SsiExceptionType.keyNotFound.code,
+      );
     }
     return walletKeyId;
   }
@@ -118,7 +117,8 @@ class DidKeyManager extends DidManager {
   Future<void> addAuthentication(String verificationMethodId) async {
     if (authentication.isNotEmpty) {
       throw UnsupportedError(
-          'did:key does not support manually modifying verification relationships.');
+        'did:key does not support manually modifying verification relationships.',
+      );
     }
     return super.addAuthentication(verificationMethodId);
   }
@@ -127,7 +127,8 @@ class DidKeyManager extends DidManager {
   Future<void> addKeyAgreement(String verificationMethodId) async {
     if (keyAgreement.isNotEmpty) {
       throw UnsupportedError(
-          'did:key does not support manually modifying verification relationships.');
+        'did:key does not support manually modifying verification relationships.',
+      );
     }
     return super.addKeyAgreement(verificationMethodId);
   }
@@ -136,7 +137,8 @@ class DidKeyManager extends DidManager {
   Future<void> addCapabilityInvocation(String verificationMethodId) async {
     if (capabilityInvocation.isNotEmpty) {
       throw UnsupportedError(
-          'did:key does not support manually modifying verification relationships.');
+        'did:key does not support manually modifying verification relationships.',
+      );
     }
     return super.addCapabilityInvocation(verificationMethodId);
   }
@@ -145,7 +147,8 @@ class DidKeyManager extends DidManager {
   Future<void> addCapabilityDelegation(String verificationMethodId) async {
     if (capabilityDelegation.isNotEmpty) {
       throw UnsupportedError(
-          'did:key does not support manually modifying verification relationships.');
+        'did:key does not support manually modifying verification relationships.',
+      );
     }
     return super.addCapabilityDelegation(verificationMethodId);
   }
@@ -154,7 +157,8 @@ class DidKeyManager extends DidManager {
   Future<void> addAssertionMethod(String verificationMethodId) async {
     if (assertionMethod.isNotEmpty) {
       throw UnsupportedError(
-          'did:key does not support manually modifying verification relationships.');
+        'did:key does not support manually modifying verification relationships.',
+      );
     }
     return super.addAssertionMethod(verificationMethodId);
   }
@@ -162,12 +166,14 @@ class DidKeyManager extends DidManager {
   @override
   Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
     throw UnsupportedError(
-        'Adding service endpoints to did:key method is not supported.');
+      'Adding service endpoints to did:key method is not supported.',
+    );
   }
 
   @override
   Future<void> removeServiceEndpoint(String id) async {
     throw UnsupportedError(
-        'Removing service endpoints from did:key method is not supported.');
+      'Removing service endpoints from did:key method is not supported.',
+    );
   }
 }

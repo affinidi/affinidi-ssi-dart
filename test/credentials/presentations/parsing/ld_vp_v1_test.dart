@@ -9,20 +9,22 @@ import '../../../fixtures/verifiable_presentations_fixtures.dart';
 void main() async {
   group('VP LD V1 Parsing', () {
     test(
-        'should be able to parse a V1 presentation containing V1 compatible VCs',
-        () async {
-      final v1Vp = UniversalPresentationParser.parse(
-          VerifiablePresentationDataFixtures.v1VpString);
+      'should be able to parse a V1 presentation containing V1 compatible VCs',
+      () async {
+        final v1Vp = UniversalPresentationParser.parse(
+          VerifiablePresentationDataFixtures.v1VpString,
+        );
 
-      expect(v1Vp, isNotNull);
-      expect(v1Vp.serialized, isNotNull);
-      expect(v1Vp.serialized, isA<String>());
-      expect(dmV1ContextUrl, isIn(v1Vp.context.firstUri.toString()));
-      expect(v1Vp.holder, isNotNull);
-      expect(v1Vp.proof, isNotEmpty);
-      expect(v1Vp.verifiableCredential.length, 2);
-      expect(v1Vp.verifiableCredential[0], isA<LdVcDataModelV1>());
-      expect(v1Vp.verifiableCredential[1], isA<JwtVcDataModelV1>());
-    });
+        expect(v1Vp, isNotNull);
+        expect(v1Vp.serialized, isNotNull);
+        expect(v1Vp.serialized, isA<String>());
+        expect(dmV1ContextUrl, isIn(v1Vp.context.firstUri.toString()));
+        expect(v1Vp.holder, isNotNull);
+        expect(v1Vp.proof, isNotEmpty);
+        expect(v1Vp.verifiableCredential.length, 2);
+        expect(v1Vp.verifiableCredential[0], isA<LdVcDataModelV1>());
+        expect(v1Vp.verifiableCredential[1], isA<JwtVcDataModelV1>());
+      },
+    );
   });
 }

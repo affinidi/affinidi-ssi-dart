@@ -110,7 +110,7 @@ Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/mai
 
 ## Requirements
 
-- Dart SDK version ^3.6.0
+- Dart SDK version ^3.10.0
 
 ## Installation
 

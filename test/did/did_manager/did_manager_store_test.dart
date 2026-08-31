@@ -62,8 +62,10 @@ void main() {
 
       test('should handle removing non-existent mapping', () async {
         // Act & Assert - Should not throw
-        expect(() async => await store.removeMapping('non-existent'),
-            returnsNormally);
+        expect(
+          () async => await store.removeMapping('non-existent'),
+          returnsNormally,
+        );
       });
     });
 
@@ -166,8 +168,10 @@ void main() {
 
         // Assert
         expect(keys.length, 3);
-        expect(keys,
-            containsAll(['did:key:1#key', 'did:key:2#key', 'did:key:3#key']));
+        expect(
+          keys,
+          containsAll(['did:key:1#key', 'did:key:2#key', 'did:key:3#key']),
+        );
       });
 
       test('should update after removal', () async {
@@ -199,21 +203,23 @@ void main() {
     });
 
     group('Edge cases', () {
-      test('should handle mapping same wallet key to multiple DID keys',
-          () async {
-        // Arrange
-        const walletKeyId = 'shared-wallet-key';
+      test(
+        'should handle mapping same wallet key to multiple DID keys',
+        () async {
+          // Arrange
+          const walletKeyId = 'shared-wallet-key';
 
-        // Act
-        await store.setMapping('did:key:1#key', walletKeyId);
-        await store.setMapping('did:key:2#key', walletKeyId);
-        await store.setMapping('did:peer:3#key', walletKeyId);
+          // Act
+          await store.setMapping('did:key:1#key', walletKeyId);
+          await store.setMapping('did:key:2#key', walletKeyId);
+          await store.setMapping('did:peer:3#key', walletKeyId);
 
-        // Assert
-        expect(await store.getWalletKeyId('did:key:1#key'), walletKeyId);
-        expect(await store.getWalletKeyId('did:key:2#key'), walletKeyId);
-        expect(await store.getWalletKeyId('did:peer:3#key'), walletKeyId);
-      });
+          // Assert
+          expect(await store.getWalletKeyId('did:key:1#key'), walletKeyId);
+          expect(await store.getWalletKeyId('did:key:2#key'), walletKeyId);
+          expect(await store.getWalletKeyId('did:peer:3#key'), walletKeyId);
+        },
+      );
 
       test('should handle very long key identifiers', () async {
         // Arrange
@@ -252,8 +258,10 @@ void main() {
 
         // Should implement the same interface
         await customStore.setMapping('did:key:test#key', 'wallet-test');
-        expect(await customStore.getWalletKeyId('did:key:test#key'),
-            'wallet-test');
+        expect(
+          await customStore.getWalletKeyId('did:key:test#key'),
+          'wallet-test',
+        );
 
         await customStore.removeMapping('did:key:test#key');
         expect(await customStore.getWalletKeyId('did:key:test#key'), isNull);

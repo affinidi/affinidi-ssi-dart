@@ -51,10 +51,12 @@ void main() {
     test('Compute ECDH shared secret for encryption', () async {
       final (keyPairAlice, aliceKeyBytes) = P256KeyPair.generate();
       final (keyPairBob, bobKeyBytes) = P256KeyPair.generate();
-      final secretAlice =
-          await keyPairAlice.computeEcdhSecret(keyPairBob.publicKey.bytes);
-      final secretBob =
-          await keyPairBob.computeEcdhSecret(keyPairAlice.publicKey.bytes);
+      final secretAlice = await keyPairAlice.computeEcdhSecret(
+        keyPairBob.publicKey.bytes,
+      );
+      final secretBob = await keyPairBob.computeEcdhSecret(
+        keyPairAlice.publicKey.bytes,
+      );
 
       expect(secretAlice, equals(secretBob));
       expect(secretAlice.length, 32); // P-256 ECDH secret length

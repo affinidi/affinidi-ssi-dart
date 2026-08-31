@@ -23,11 +23,12 @@ class Jws {
   String serialized;
 
   /// Creates a new [Jws] instance with the provided components.
-  Jws(
-      {required this.header,
-      required this.payload,
-      required this.signature,
-      required this.serialized});
+  Jws({
+    required this.header,
+    required this.payload,
+    required this.signature,
+    required this.serialized,
+  });
 }
 
 /// Mixin that provides functionality for parsing JWT/JWS formatted data.
@@ -54,22 +55,19 @@ mixin JwtParser implements VerifiableDataParser<String, Jws> {
       );
     }
 
-    final header = jsonDecode(
-      utf8.decode(
-        base64UrlNoPadDecode(segments[0]),
-      ),
-    ) as Map<String, dynamic>;
+    final header =
+        jsonDecode(utf8.decode(base64UrlNoPadDecode(segments[0])))
+            as Map<String, dynamic>;
 
-    final payload = jsonDecode(
-      utf8.decode(
-        base64UrlNoPadDecode(segments[1]),
-      ),
-    ) as Map<String, dynamic>;
+    final payload =
+        jsonDecode(utf8.decode(base64UrlNoPadDecode(segments[1])))
+            as Map<String, dynamic>;
 
     return Jws(
-        header: header,
-        payload: payload,
-        signature: segments[2],
-        serialized: input);
+      header: header,
+      payload: payload,
+      signature: segments[2],
+      serialized: input,
+    );
   }
 }

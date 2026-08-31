@@ -54,8 +54,9 @@ class MutableVpDataModelV2 {
     json[_P.holder.key] = holder?.toJson();
     json[_P.proof.key] = encodeListToSingleOrArray(proof);
     json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
-    json[_P.verifiableCredential.key] =
-        verifiableCredential.map(presentVC).toList();
+    json[_P.verifiableCredential.key] = verifiableCredential
+        .map(presentVC)
+        .toList();
 
     return cleanEmpty(json);
   }
@@ -75,10 +76,10 @@ class MutableVpDataModelV2 {
     List<ParsedVerifiableCredential>? verifiableCredential,
     List<EmbeddedProof>? proof,
     List<TermsOfUse>? termsOfUse,
-  })  : type = type ?? {},
-        proof = proof ?? [],
-        termsOfUse = termsOfUse ?? [],
-        verifiableCredential = verifiableCredential ?? [];
+  }) : type = type ?? {},
+       proof = proof ?? [],
+       termsOfUse = termsOfUse ?? [],
+       verifiableCredential = verifiableCredential ?? [];
 
   /// Creates a [VpDataModelV2] from JSON input.
   ///
@@ -98,28 +99,36 @@ class MutableVpDataModelV2 {
 
     final holder = MutableHolder.fromJson(json[_P.holder.key]);
 
-    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
-        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+    final proof = parseListOrSingleItem<EmbeddedProof>(
+      json,
+      _P.proof.key,
+      (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final credentials = parseListOrSingleItem<ParsedVerifiableCredential>(
-        json, _P.verifiableCredential.key, parseVC,
-        allowSingleValue: true);
+      json,
+      _P.verifiableCredential.key,
+      parseVC,
+      allowSingleValue: true,
+    );
 
     final termsOfUse = parseListOrSingleItem<TermsOfUse>(
-        json,
-        _P.termsOfUse.key,
-        (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.termsOfUse.key,
+      (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     return MutableVpDataModelV2(
-        context: context,
-        id: id,
-        type: type,
-        proof: proof,
-        holder: holder,
-        verifiableCredential: credentials,
-        termsOfUse: termsOfUse);
+      context: context,
+      id: id,
+      type: type,
+      proof: proof,
+      holder: holder,
+      verifiableCredential: credentials,
+      termsOfUse: termsOfUse,
+    );
   }
 }
 

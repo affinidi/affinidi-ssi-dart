@@ -52,8 +52,10 @@ void main() {
 
       test('fromSeed should throw on invalid seed length', () {
         final badSeed = Uint8List.fromList(List.generate(20, (i) => i));
-        expect(() => Secp256k1KeyPair.fromSeed(badSeed),
-            throwsA(isA<ArgumentError>()));
+        expect(
+          () => Secp256k1KeyPair.fromSeed(badSeed),
+          throwsA(isA<ArgumentError>()),
+        );
       });
     });
 
@@ -70,26 +72,32 @@ void main() {
       });
 
       test('Compute ECDH shared secret for encryption', () async {
-        final secretAlice =
-            await keyPairAlice.computeEcdhSecret(keyPairBob.publicKey.bytes);
-        final secretBob =
-            await keyPairBob.computeEcdhSecret(keyPairAlice.publicKey.bytes);
+        final secretAlice = await keyPairAlice.computeEcdhSecret(
+          keyPairBob.publicKey.bytes,
+        );
+        final secretBob = await keyPairBob.computeEcdhSecret(
+          keyPairAlice.publicKey.bytes,
+        );
 
         expect(secretAlice, equals(secretBob));
         expect(secretAlice.length, 32); // Secp256k1 ECDH secret length
         expect(
-            secretAlice, isNot(equals(Uint8List(32)))); // Ensure not all zeros
+          secretAlice,
+          isNot(equals(Uint8List(32))),
+        ); // Ensure not all zeros
       });
     });
 
     group('Signing and Verification', () {
-      test('sign and verify should succeed with correct data and signature',
-          () async {
-        final signature = await keyPair.sign(dataToSign);
-        expect(signature, isA<Uint8List>());
-        final isValid = await keyPair.verify(dataToSign, signature);
-        expect(isValid, isTrue);
-      });
+      test(
+        'sign and verify should succeed with correct data and signature',
+        () async {
+          final signature = await keyPair.sign(dataToSign);
+          expect(signature, isA<Uint8List>());
+          final isValid = await keyPair.verify(dataToSign, signature);
+          expect(isValid, isTrue);
+        },
+      );
 
       test('verify should fail with incorrect signature', () async {
         final signature = await keyPair.sign(dataToSign);
@@ -116,26 +124,35 @@ void main() {
 
       test('sign should throw for unsupported signature scheme', () async {
         expect(
-          () async => await keyPair.sign(dataToSign,
-              signatureScheme: SignatureScheme.ecdsa_p256_sha256),
-          throwsA(isA<SsiException>().having(
-            (e) => e.code,
-            'code',
-            SsiExceptionType.unsupportedSignatureScheme.code,
-          )),
+          () async => await keyPair.sign(
+            dataToSign,
+            signatureScheme: SignatureScheme.ecdsa_p256_sha256,
+          ),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.code,
+              'code',
+              SsiExceptionType.unsupportedSignatureScheme.code,
+            ),
+          ),
         );
       });
 
       test('verify should throw for unsupported signature scheme', () async {
         final signature = await keyPair.sign(dataToSign);
         expect(
-          () async => await keyPair.verify(dataToSign, signature,
-              signatureScheme: SignatureScheme.ecdsa_p256_sha256),
-          throwsA(isA<SsiException>().having(
-            (e) => e.code,
-            'code',
-            SsiExceptionType.unsupportedSignatureScheme.code,
-          )),
+          () async => await keyPair.verify(
+            dataToSign,
+            signature,
+            signatureScheme: SignatureScheme.ecdsa_p256_sha256,
+          ),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.code,
+              'code',
+              SsiExceptionType.unsupportedSignatureScheme.code,
+            ),
+          ),
         );
       });
     });
@@ -172,67 +189,83 @@ void main() {
         expect(decryptedData, equals(plainText));
       });
 
-      test('encrypt and decrypt should succeed for single party (ephemeral)',
-          () async {
-        // Alice encrypts for herself (implicitly using an ephemeral key)
-        final encryptedData = await keyPairAlice.encrypt(plainText);
+      test(
+        'encrypt and decrypt should succeed for single party (ephemeral)',
+        () async {
+          // Alice encrypts for herself (implicitly using an ephemeral key)
+          final encryptedData = await keyPairAlice.encrypt(plainText);
 
-        // Alice decrypts using only her key
-        final decryptedData = await keyPairAlice.decrypt(encryptedData);
+          // Alice decrypts using only her key
+          final decryptedData = await keyPairAlice.decrypt(encryptedData);
 
-        expect(decryptedData, equals(plainText));
-      });
+          expect(decryptedData, equals(plainText));
+        },
+      );
 
-      test('decrypt should fail if wrong public key is provided (two-party)',
-          () async {
-        final bobPublicKey = keyPairBob.publicKey;
-        // Create a third party (Eve)
-        final eveNode = rootNode.derivePath("m/44'/60'/3'/0/0");
-        final keyPairEve = Secp256k1KeyPair(node: eveNode);
-        final evePublicKey = keyPairEve.publicKey;
+      test(
+        'decrypt should fail if wrong public key is provided (two-party)',
+        () async {
+          final bobPublicKey = keyPairBob.publicKey;
+          // Create a third party (Eve)
+          final eveNode = rootNode.derivePath("m/44'/60'/3'/0/0");
+          final keyPairEve = Secp256k1KeyPair(node: eveNode);
+          final evePublicKey = keyPairEve.publicKey;
 
-        // Alice encrypts for Bob
-        final encryptedData = await keyPairAlice.encrypt(
-          plainText,
-          publicKey: bobPublicKey.bytes,
-        );
+          // Alice encrypts for Bob
+          final encryptedData = await keyPairAlice.encrypt(
+            plainText,
+            publicKey: bobPublicKey.bytes,
+          );
 
-        // Bob tries to decrypt using Eve's public key instead of Alice's
-        expect(
-          () async => await keyPairBob.decrypt(
-            encryptedData,
-            publicKey: evePublicKey.bytes, // Wrong sender public key
-          ),
-          throwsA(isA<SsiException>().having((error) => error.code, 'code',
-              SsiExceptionType.unableToDecrypt.code)),
-        );
-      });
+          // Bob tries to decrypt using Eve's public key instead of Alice's
+          expect(
+            () async => await keyPairBob.decrypt(
+              encryptedData,
+              publicKey: evePublicKey.bytes, // Wrong sender public key
+            ),
+            throwsA(
+              isA<SsiException>().having(
+                (error) => error.code,
+                'code',
+                SsiExceptionType.unableToDecrypt.code,
+              ),
+            ),
+          );
+        },
+      );
 
-      test('decrypt should fail if wrong private key is used (two-party)',
-          () async {
-        final alicePublicKey = keyPairAlice.publicKey;
-        final bobPublicKey = keyPairBob.publicKey;
-        // Create a third party (Eve)
-        final eveNode = rootNode.derivePath("m/44'/60'/3'/0/0");
-        final keyPairEve = Secp256k1KeyPair(node: eveNode);
+      test(
+        'decrypt should fail if wrong private key is used (two-party)',
+        () async {
+          final alicePublicKey = keyPairAlice.publicKey;
+          final bobPublicKey = keyPairBob.publicKey;
+          // Create a third party (Eve)
+          final eveNode = rootNode.derivePath("m/44'/60'/3'/0/0");
+          final keyPairEve = Secp256k1KeyPair(node: eveNode);
 
-        // Alice encrypts for Bob
-        final encryptedData = await keyPairAlice.encrypt(
-          plainText,
-          publicKey: bobPublicKey.bytes,
-        );
+          // Alice encrypts for Bob
+          final encryptedData = await keyPairAlice.encrypt(
+            plainText,
+            publicKey: bobPublicKey.bytes,
+          );
 
-        // Eve tries to decrypt using her private key and Alice's public key
-        expect(
-          () async => await keyPairEve.decrypt(
-            // Eve decrypting
-            encryptedData,
-            publicKey: alicePublicKey.bytes,
-          ),
-          throwsA(isA<SsiException>().having((error) => error.code, 'code',
-              SsiExceptionType.unableToDecrypt.code)),
-        );
-      });
+          // Eve tries to decrypt using her private key and Alice's public key
+          expect(
+            () async => await keyPairEve.decrypt(
+              // Eve decrypting
+              encryptedData,
+              publicKey: alicePublicKey.bytes,
+            ),
+            throwsA(
+              isA<SsiException>().having(
+                (error) => error.code,
+                'code',
+                SsiExceptionType.unableToDecrypt.code,
+              ),
+            ),
+          );
+        },
+      );
     });
   });
 }

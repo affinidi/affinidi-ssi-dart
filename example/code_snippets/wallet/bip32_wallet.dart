@@ -28,8 +28,11 @@ void main() async {
   final signature = await wallet.sign(data, keyId: key0.id);
   print('Key 0 signature: ${signature.sublist(1, 9)}...');
   print('Verifying key 0 signature...');
-  final isRootSignatureValid =
-      await wallet.verify(data, signature: signature, keyId: key0.id);
+  final isRootSignatureValid = await wallet.verify(
+    data,
+    signature: signature,
+    keyId: key0.id,
+  );
   print('Key 0 signature verification result: $isRootSignatureValid');
   assert(isRootSignatureValid, 'Key 0 verification failed');
 
@@ -46,8 +49,11 @@ void main() async {
   final key1Signature = await wallet.sign(data, keyId: key1DerivationPath);
   print('Key 1 signature: ${key1Signature.sublist(1, 9)}...');
   print('Verifying key 1 signature...');
-  final isProfileSignatureValid = await wallet.verify(data,
-      signature: key1Signature, keyId: key1DerivationPath);
+  final isProfileSignatureValid = await wallet.verify(
+    data,
+    signature: key1Signature,
+    keyId: key1DerivationPath,
+  );
   print('Key 1 signature verification result: $isProfileSignatureValid');
   assert(isProfileSignatureValid, 'Key 1 verification failed');
   final key1DidKey = DidKey.generateDocument(key1.publicKey);
@@ -66,7 +72,8 @@ void main() async {
     keyId: key1DerivationPath,
   );
   print(
-      'Encrypted data (single-party): ${encryptedSingleParty.sublist(1, 9)}...');
+    'Encrypted data (single-party): ${encryptedSingleParty.sublist(1, 9)}...',
+  );
 
   // Decrypt using the same profile key
   // The wallet extracts the ephemeral public key from the ciphertext.
@@ -91,11 +98,13 @@ void main() async {
   const bobDerivationPath = "m/44'/0'/0'/0/0";
   final bobKey = await bobWallet.generateKey(keyId: bobDerivationPath);
   print(
-      'Bob key pair created. Public key: ${bobKey.publicKey.bytes.sublist(1, 9)}...');
+    'Bob key pair created. Public key: ${bobKey.publicKey.bytes.sublist(1, 9)}...',
+  );
 
   // Alice (using 'wallet' and 'account0Key1Id') encrypts data for Bob
   print(
-      'Alice encrypting for Bob using her key $key1DerivationPath and Bob\'s public key...');
+    'Alice encrypting for Bob using her key $key1DerivationPath and Bob\'s public key...',
+  );
   final encryptedForBob = await wallet.encrypt(
     plainText,
     keyId: key1DerivationPath, // Alice's key ID
@@ -106,7 +115,8 @@ void main() async {
   // Bob decrypts the data using Alice's public key
   // Retrieve Alice's public key first (we already have 'account0Key1' from earlier)
   print(
-      'Bob decrypting using his key $bobDerivationPath and Alice\'s public key ($key1DerivationPath)...');
+    'Bob decrypting using his key $bobDerivationPath and Alice\'s public key ($key1DerivationPath)...',
+  );
   final decryptedByBob = await bobWallet.decrypt(
     encryptedForBob,
     keyId: bobDerivationPath, // Bob's key ID
