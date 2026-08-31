@@ -8,14 +8,6 @@ import 'package:pinenacl/tweetnacl.dart';
 /// Returns a X25519 public key as a Uint8List.
 /// Ported from https://github.com/oasisprotocol/ed25519/blob/master/extra/x25519/x25519.go
 Uint8List ed25519PublicToX25519Public(List<int> ed25519Public) {
-  if (ed25519Public.length != 32) {
-    throw ArgumentError.value(
-      ed25519Public,
-      'ed25519Public',
-      'Ed25519 public keys must contain 32 bytes',
-    );
-  }
-
   final x25519Public = Uint8List(32);
   final result = TweetNaClExt.crypto_sign_ed25519_pk_to_x25519_pk(
     x25519Public,
