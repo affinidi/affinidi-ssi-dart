@@ -114,7 +114,7 @@ class Ed25519KeyPair extends KeyPair {
   List<int> generateEphemeralPubKey() {
     // Generate a completely new ephemeral X25519 key pair
     final privateKey = x25519.PrivateKey.generate();
-    return privateKey.publicKey.toList();
+    return Uint8List.fromList(privateKey.publicKey);
   }
 
   /// Computes the ECDH shared secret using the provided public key.
