@@ -116,6 +116,14 @@ void main() {
       expect(keyPair.id, equals(publicKey.id));
     });
 
+    test('it generates a 32-byte ephemeral X25519 public key', () {
+      final keyPair = Ed25519KeyPair.fromSeed(seed);
+      final ephemeralPublicKey = keyPair.generateEphemeralPubKey();
+
+      expect(ephemeralPublicKey, isA<Uint8List>());
+      expect(ephemeralPublicKey, hasLength(32));
+    });
+
     test('supportedSignatureSchemes should return correct schemes', () {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final schemes = edKey.supportedSignatureSchemes;
