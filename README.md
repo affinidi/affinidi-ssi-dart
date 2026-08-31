@@ -115,11 +115,9 @@ Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/mai
 
 ## WebAssembly Compatibility
 
-Most package operations support WebAssembly through `dart2wasm`. Ed25519 key
-generation, signing, verification, and Ed25519/X25519 encryption are not
-supported in WebAssembly because their current cryptographic dependencies do
-not provide a `dart2wasm` implementation. These operations remain supported on
-native platforms and web builds compiled to JavaScript.
+Package operations support WebAssembly through `dart2wasm`, including Ed25519
+key generation, signing and verification, SLIP-0010 key derivation, and
+Ed25519/X25519 encryption.
 
 ## Installation
 
