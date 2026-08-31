@@ -1,11 +1,8 @@
-// ignore_for_file: implementation_imports
-
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart' as pce;
 import 'package:pointycastle/pointycastle.dart' as pc;
-import 'package:pointycastle/src/utils.dart' as p_utils;
 
 /// Utility class for encryption operations.
 class EncryptionUtils {
@@ -171,13 +168,4 @@ class EncryptionUtils {
         padded.sublist(0, padded.length - pce.PKCS7Padding().padCount(padded));
     return unpadded;
   }
-
-  /// Converts an unsigned [BigInt] to bytes.
-  Uint8List unsignedIntToBytes(BigInt number) {
-    assert(!number.isNegative);
-    return p_utils.encodeBigIntAsUnsigned(number);
-  }
-
-  /// Converts a [BigInt] to bytes.
-  Uint8List intToBytes(BigInt number) => p_utils.encodeBigInt(number);
 }
