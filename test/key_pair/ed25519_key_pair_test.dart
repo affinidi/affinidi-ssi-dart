@@ -54,6 +54,14 @@ void main() {
       expect(actual, isFalse);
     });
 
+    test('it rejects a signature with a non-canonical scalar', () async {
+      final edKey = Ed25519KeyPair.fromSeed(seed);
+      final signature = await edKey.sign(dataToSign);
+      final nonCanonicalSignature = _addGroupOrderToScalar(signature);
+
+      expect(await edKey.verify(dataToSign, nonCanonicalSignature), isFalse);
+    });
+
     test('Verification works across different supported schemes', () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final sigSha = await edKey.sign(dataToSign,
@@ -89,4 +97,49 @@ void main() {
       expect(schemes, contains(SignatureScheme.ed25519));
     });
   });
+}
+
+Uint8List _addGroupOrderToScalar(Uint8List signature) {
+  const groupOrder = <int>[
+    0xed,
+    0xd3,
+    0xf5,
+    0x5c,
+    0x1a,
+    0x63,
+    0x12,
+    0x58,
+    0xd6,
+    0x9c,
+    0xf7,
+    0xa2,
+    0xde,
+    0xf9,
+    0xde,
+    0x14,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x10,
+  ];
+  final result = Uint8List.fromList(signature);
+  var carry = 0;
+  for (var index = 0; index < groupOrder.length; index++) {
+    final sum = result[index + 32] + groupOrder[index] + carry;
+    result[index + 32] = sum & 0xff;
+    carry = sum >> 8;
+  }
+  return result;
 }
