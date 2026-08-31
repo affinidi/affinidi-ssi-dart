@@ -124,6 +124,36 @@ void main() {
       expect(ephemeralPublicKey, hasLength(32));
     });
 
+    test('it rejects an X25519 public key that is not 32 bytes', () async {
+      final keyPair = Ed25519KeyPair.fromSeed(seed);
+
+      await expectLater(
+        keyPair.computeEcdhSecret(Uint8List(33)),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            'bad scalar length: 33, expected 32',
+          ),
+        ),
+      );
+    });
+
+    test('it rejects a low-order X25519 public key', () async {
+      final keyPair = Ed25519KeyPair.fromSeed(seed);
+
+      await expectLater(
+        keyPair.computeEcdhSecret(Uint8List(32)),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            'bad input point: low order point',
+          ),
+        ),
+      );
+    });
+
     test('supportedSignatureSchemes should return correct schemes', () {
       final edKey = Ed25519KeyPair.fromSeed(seed);
       final schemes = edKey.supportedSignatureSchemes;

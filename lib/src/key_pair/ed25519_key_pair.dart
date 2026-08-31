@@ -124,6 +124,12 @@ class Ed25519KeyPair extends KeyPair {
   /// Returns a [Future] that completes with the shared secret as a [Uint8List].
   @override
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
+    if (publicKey.length != 32) {
+      throw ArgumentError(
+        'bad scalar length: ${publicKey.length}, expected 32',
+      );
+    }
+
     // Convert Ed25519 private key to X25519 private key
     // Ed25519 uses SHA-512 to derive the scalar and prefix from the seed
     // We need to use the same process to get the correct X25519 private key
@@ -141,6 +147,9 @@ class Ed25519KeyPair extends KeyPair {
       clamped,
       publicKey,
     );
+    if (secret.every((byte) => byte == 0)) {
+      throw ArgumentError('bad input point: low order point');
+    }
     return Future.value(Uint8List.fromList(secret));
   }
 
