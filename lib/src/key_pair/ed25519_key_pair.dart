@@ -12,6 +12,7 @@ import '../types.dart';
 import '../utility.dart';
 import './_encryption_utils.dart';
 import '_ecdh_utils.dart';
+import 'ed25519_verifier.dart';
 import 'key_pair.dart';
 import 'public_key.dart';
 
@@ -96,15 +97,11 @@ class Ed25519KeyPair extends KeyPair {
   @override
   Future<bool> internalVerify(Uint8List data, Uint8List signature,
       SignatureScheme signatureScheme) async {
-    // For Ed25519, the library handles hashing internally
-    try {
-      return _privateKey.verifyKey.verify(
-        signature: ed.Signature(signature),
-        message: data,
-      );
-    } catch (_) {
-      return false;
-    }
+    return verifyEd25519Signature(
+      Uint8List.fromList(_privateKey.verifyKey),
+      data,
+      signature,
+    );
   }
 
   /// Returns the original seed used to derive the Ed25519 key pair.
