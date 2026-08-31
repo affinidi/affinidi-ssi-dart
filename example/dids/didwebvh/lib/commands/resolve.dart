@@ -22,8 +22,10 @@ Future<void> resolveDid(String didString, {bool verify = true}) async {
       print('Verification passed');
     }
     printDidDocument(doc);
-    printJson('Document Metadata',
-        (docMetadata as DidWebVhDocumentMetadata).toJson());
+    printJson(
+      'Document Metadata',
+      (docMetadata as DidWebVhDocumentMetadata).toJson(),
+    );
   } on SsiException catch (e) {
     print('Resolution failed');
     printSsiException(e);
@@ -47,8 +49,8 @@ Future<void> resolveLocalFile(String path, {bool verify = true}) async {
     final log = DidWebVhLog.fromJsonLines(content);
 
     await log.verify(
-        options:
-            verify ? DidWebVhResolutionOptions() : _skipVerificationOptions);
+      options: verify ? DidWebVhResolutionOptions() : _skipVerificationOptions,
+    );
     if (!verify) {
       print('Verification skipped');
     } else {
