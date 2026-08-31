@@ -13,6 +13,32 @@ void main() {
   final dataToSign = Uint8List.fromList([1, 2, 3]);
 
   group('Test Ed25519 Key Pair', () {
+    test('it matches the RFC 8032 empty-message signature vector', () async {
+      final keyPair = Ed25519KeyPair.fromSeed(
+        _decodeHex(
+          '9d61b19deffd5a60ba844af492ec2cc4'
+          '4449c5697b326919703bac031cae7f60',
+        ),
+      );
+
+      expect(
+        keyPair.publicKey.bytes,
+        _decodeHex(
+          'd75a980182b10ab7d54bfed3c964073a'
+          '0ee172f3daa62325af021a68f707511a',
+        ),
+      );
+      expect(
+        await keyPair.sign(Uint8List(0)),
+        _decodeHex(
+          'e5564300c360ac729086e2cc806e828a'
+          '84877f1eb8e5d974d873e06522490155'
+          '5fb8821590a33bacc61e39701cf9b46b'
+          'd25bf5f0595bbe24655141438e7a100b',
+        ),
+      );
+    });
+
     test('Ed25519 key pair should sign data and verify signature (default)',
         () async {
       final edKey = Ed25519KeyPair.fromSeed(seed);
@@ -98,6 +124,11 @@ void main() {
     });
   });
 }
+
+Uint8List _decodeHex(String value) => Uint8List.fromList([
+      for (var offset = 0; offset < value.length; offset += 2)
+        int.parse(value.substring(offset, offset + 2), radix: 16),
+    ]);
 
 Uint8List _addGroupOrderToScalar(Uint8List signature) {
   const groupOrder = <int>[
