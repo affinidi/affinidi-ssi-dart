@@ -65,6 +65,20 @@ void main() {
         ),
       );
     });
+
+    test('it rejects a path without the master prefix', () async {
+      expect(
+        () => wallet.getPublicKey("1'/2'"),
+        throwsArgumentError,
+      );
+    });
+
+    test('it rejects a child segment without a hardening apostrophe', () async {
+      expect(
+        () => wallet.getPublicKey('m/12'),
+        throwsArgumentError,
+      );
+    });
   });
 
   group('Bip32Ed25519Wallet', () {
