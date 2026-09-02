@@ -52,6 +52,19 @@ void main() {
         ),
       );
     });
+
+    test('it rejects a child index longer than 10 digits', () async {
+      expect(
+        () => wallet.getPublicKey("m/21474836470'"),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            contains('Expected BIP32 path format'),
+          ),
+        ),
+      );
+    });
   });
 
   group('Bip32Ed25519Wallet', () {
