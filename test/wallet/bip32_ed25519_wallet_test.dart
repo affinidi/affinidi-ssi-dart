@@ -39,6 +39,19 @@ void main() {
         expect(publicKey.bytes, hexDecode(expectedPublicKey));
       });
     }
+
+    test('it rejects a child index outside the 31-bit range', () async {
+      expect(
+        () => wallet.getPublicKey("m/2147483648'"),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            contains('Child index must be between 0 and 2147483647'),
+          ),
+        ),
+      );
+    });
   });
 
   group('Bip32Ed25519Wallet', () {
