@@ -158,7 +158,12 @@ class Bip32Ed25519Wallet implements Wallet {
     var chainCode = digest.sublist(32);
 
     for (final segment in path.split('/').skip(1)) {
-      final index = int.parse(segment.substring(0, segment.length - 1));
+      final index = int.tryParse(segment.substring(0, segment.length - 1));
+      if (index == null || index >= _hardenedOffset) {
+        throw ArgumentError(
+          'Invalid derivation path. Child index must be between 0 and ${_hardenedOffset - 1}',
+        );
+      }
       final data = Uint8List(37)..setRange(1, 33, key);
       data.buffer.asByteData().setUint32(33, index + _hardenedOffset);
       digest = Hmac(sha512, chainCode).convert(data).bytes;
