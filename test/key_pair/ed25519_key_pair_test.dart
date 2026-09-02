@@ -139,19 +139,32 @@ void main() {
       );
     });
 
-    test('it rejects a low-order X25519 public key', () async {
+    test('it rejects all known low-order X25519 public keys', () async {
       final keyPair = Ed25519KeyPair.fromSeed(seed);
 
-      await expectLater(
-        keyPair.computeEcdhSecret(Uint8List(32)),
-        throwsA(
-          isA<ArgumentError>().having(
-            (error) => error.message,
-            'message',
-            'bad input point: low order point',
+      const lowOrderPublicKeys = [
+        '0000000000000000000000000000000000000000000000000000000000000000',
+        '0100000000000000000000000000000000000000000000000000000000000000',
+        'e0eb7a7c3b41b8ae1656e3faf19fc46ada098deb9c32b1fd866205165f49b800',
+        '5f9c95bca3508c24b1d0b1559c83ef5b04445cc4581c8e86d8224eddd09f1157',
+        'ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f',
+        'edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f',
+        'eeffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f',
+      ];
+
+      for (final publicKey in lowOrderPublicKeys) {
+        await expectLater(
+          keyPair.computeEcdhSecret(_decodeHex(publicKey)),
+          throwsA(
+            isA<ArgumentError>().having(
+              (error) => error.message,
+              'message',
+              'bad input point: low order point',
+            ),
           ),
-        ),
-      );
+          reason: 'low-order public key $publicKey was accepted',
+        );
+      }
     });
 
     test('supportedSignatureSchemes should return correct schemes', () {
