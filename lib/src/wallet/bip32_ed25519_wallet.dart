@@ -17,7 +17,7 @@ import 'wallet.dart';
 /// It supports signing and verifying messages using Ed25519 signature scheme,
 /// and ecrypting/decrypting payloads.
 class Bip32Ed25519Wallet implements Wallet {
-  static final _pathRegex = RegExp(r"^(m\/)?(\d{1,10}'?\/)*\d{1,10}'?$");
+  static final _pathRegex = RegExp(r"^m\/(\d{1,10}'\/)*\d{1,10}'$");
   static const _hardenedOffset = 0x80000000;
 
   // Runtime cache for derived KeyPair objects
