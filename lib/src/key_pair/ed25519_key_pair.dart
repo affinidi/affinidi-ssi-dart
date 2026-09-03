@@ -2,8 +2,9 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as dart_crypto;
 import 'package:cryptography/cryptography.dart' as crypto;
-import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
-import 'package:x25519/x25519.dart' as x25519;
+import 'package:pinenacl/ed25519.dart' as ed;
+import 'package:pinenacl/tweetnacl.dart';
+import 'package:pinenacl/x25519.dart' as x25519;
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -11,6 +12,7 @@ import '../types.dart';
 import '../utility.dart';
 import './_encryption_utils.dart';
 import '_ecdh_utils.dart';
+import 'ed25519_verifier.dart';
 import 'key_pair.dart';
 import 'public_key.dart';
 
@@ -19,7 +21,7 @@ import 'public_key.dart';
 /// This key pair supports signing and verifying data using Ed25519.
 /// It does not support any other signature schemes.
 class Ed25519KeyPair extends KeyPair {
-  final ed.PrivateKey _privateKey;
+  final ed.SigningKey _privateKey;
   final _encryptionUtils = EncryptionUtils();
   @override
   final String id;
@@ -30,10 +32,13 @@ class Ed25519KeyPair extends KeyPair {
   /// Returns the KeyPair instance and its private key bytes.
   /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
   static (Ed25519KeyPair, Uint8List) generate({String? id}) {
-    final keyPair = ed.generateKey();
+    final privateKey = ed.SigningKey.generate();
     final effectiveId = id ?? randomId();
-    final instance = Ed25519KeyPair._(keyPair.privateKey, effectiveId);
-    final privateKeyBytes = Uint8List.fromList(keyPair.privateKey.bytes);
+    final instance = Ed25519KeyPair._(privateKey, effectiveId);
+    final privateKeyBytes = Uint8List.fromList([
+      ...privateKey.seed,
+      ...privateKey.verifyKey,
+    ]);
     return (instance, privateKeyBytes);
   }
 
@@ -42,7 +47,7 @@ class Ed25519KeyPair extends KeyPair {
   /// [seed] - The seed as a 32 byte [Uint8List].
   /// [id] - Optional identifier for the key pair. If not provided, a random ID is generated.
   factory Ed25519KeyPair.fromSeed(Uint8List seed, {String? id}) {
-    final privateKey = ed.newKeyFromSeed(seed);
+    final privateKey = ed.SigningKey.fromSeed(seed);
     final effectiveId = id ?? randomId();
     return Ed25519KeyPair._(privateKey, effectiveId);
   }
@@ -56,7 +61,10 @@ class Ed25519KeyPair extends KeyPair {
     String? id,
   }) {
     final effectiveId = id ?? randomId();
-    return Ed25519KeyPair._(ed.PrivateKey(privateKeyBytes), effectiveId);
+    return Ed25519KeyPair._(
+      ed.SigningKey.fromSeed(privateKeyBytes.sublist(0, 32)),
+      effectiveId,
+    );
   }
 
   /// Retrieves the public key.
@@ -65,7 +73,7 @@ class Ed25519KeyPair extends KeyPair {
   @override
   PublicKey get publicKey => PublicKey(
         id,
-        Uint8List.fromList(ed.public(_privateKey).bytes),
+        Uint8List.fromList(_privateKey.verifyKey),
         KeyType.ed25519,
       );
 
@@ -73,7 +81,7 @@ class Ed25519KeyPair extends KeyPair {
   Future<Uint8List> internalSign(
       Uint8List data, SignatureScheme signatureScheme) async {
     // For Ed25519, the library handles hashing internally
-    return ed.sign(_privateKey, data);
+    return Uint8List.fromList(_privateKey.sign(data).signature);
   }
 
   /// Verifies a signature using Ed25519.
@@ -89,12 +97,15 @@ class Ed25519KeyPair extends KeyPair {
   @override
   Future<bool> internalVerify(Uint8List data, Uint8List signature,
       SignatureScheme signatureScheme) async {
-    // For Ed25519, the library handles hashing internally
-    return ed.verify(ed.public(_privateKey), data, signature);
+    return verifyEd25519Signature(
+      Uint8List.fromList(_privateKey.verifyKey),
+      data,
+      signature,
+    );
   }
 
   /// Returns the original seed used to derive the Ed25519 key pair.
-  Uint8List getSeed() => ed.seed(_privateKey);
+  Uint8List getSeed() => Uint8List.fromList(_privateKey.seed);
 
   @override
   SignatureScheme get defaultSignatureScheme => SignatureScheme.ed25519;
@@ -102,8 +113,8 @@ class Ed25519KeyPair extends KeyPair {
   /// Generates a new ephemeral X25519 public key.
   List<int> generateEphemeralPubKey() {
     // Generate a completely new ephemeral X25519 key pair
-    final eKeyPair = x25519.generateKeyPair();
-    return eKeyPair.publicKey;
+    final privateKey = x25519.PrivateKey.generate();
+    return Uint8List.fromList(privateKey.publicKey);
   }
 
   /// Computes the ECDH shared secret using the provided public key.
@@ -113,10 +124,16 @@ class Ed25519KeyPair extends KeyPair {
   /// Returns a [Future] that completes with the shared secret as a [Uint8List].
   @override
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey) async {
+    if (publicKey.length != 32) {
+      throw ArgumentError(
+        'bad scalar length: ${publicKey.length}, expected 32',
+      );
+    }
+
     // Convert Ed25519 private key to X25519 private key
     // Ed25519 uses SHA-512 to derive the scalar and prefix from the seed
     // We need to use the same process to get the correct X25519 private key
-    final seed = ed.seed(_privateKey);
+    final seed = _privateKey.seed;
     // Hash the seed with SHA-512
     final hash = dart_crypto.sha512.convert(seed).bytes;
     // Clamp the first 32 bytes
@@ -125,7 +142,14 @@ class Ed25519KeyPair extends KeyPair {
     clamped[31] &= 127;
     clamped[31] |= 64;
     // Use the clamped value as the X25519 private key
-    final secret = x25519.X25519(clamped, publicKey);
+    final secret = TweetNaCl.crypto_scalarmult(
+      Uint8List(32),
+      clamped,
+      publicKey,
+    );
+    if (secret.every((byte) => byte == 0)) {
+      throw ArgumentError('bad input point: low order point');
+    }
     return Future.value(Uint8List.fromList(secret));
   }
 
@@ -212,9 +236,8 @@ class Ed25519KeyPair extends KeyPair {
   /// Converts the Ed25519 key to an X25519 public key.
   /// Returns a [Future] that completes with the X25519 [PublicKey].
   Future<PublicKey> ed25519KeyToX25519PublicKey() async {
-    final ed25519PublicKey = ed.public(_privateKey);
     final x25519PublicKeyBytes =
-        ed25519PublicToX25519Public(ed25519PublicKey.bytes);
+        ed25519PublicToX25519Public(_privateKey.verifyKey);
     return PublicKey(id, x25519PublicKeyBytes, KeyType.x25519);
   }
 }

@@ -14,16 +14,14 @@ dependencies:
   cryptography: ^2.7.0
   dart_jsonwebtoken: ^3.2.0
   ecdsa: ^0.1.2
-  ed25519_edwards: ^0.3.1
-  ed25519_hd_key: ^2.3.0
   elliptic: ^0.3.11
   http: ^1.4.0
   json_ld_processor: ^1.0.4
   meta: ^1.15.0
+  pinenacl: ^0.6.0
   pointycastle: ^4.0.0
   pqcrypto: ^0.3.1
   selective_disclosure_jwt: ^1.1.0
-  x25519: ^0.1.2
 
 workspace:
   - example/dids/didwebvh

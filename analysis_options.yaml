@@ -6,6 +6,8 @@ linter:
 analyzer:
   exclude:
     - tool/*
+  cannot-ignore:
+    - implementation_imports
   errors:
     lines_longer_than_80_chars: ignore
     avoid_print: error
@@ -15,4 +17,5 @@ analyzer:
     argument_type_not_assignable: ignore
     return_of_invalid_type: ignore
     omit_local_variable_types: false
-
+    implementation_imports: error
+  
