@@ -81,6 +81,38 @@ void main() {
     });
   });
 
+  // SLIP-0010 official test vector 2 for ed25519. Exercises a second seed and
+  // near-2^31 indices to further guard against endianness/offset regressions.
+  group('When deriving Ed25519 keys from SLIP-0010 test vector 2 seed', () {
+    final wallet = Bip32Ed25519Wallet.fromSeed(
+      hexDecode(
+        'fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a2'
+        '9f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542',
+      ),
+    );
+    const expectedPublicKeys = {
+      "m/0'":
+          '86fab68dcb57aa196c77c5f264f215a112c22a912c10d123b0d03c3c28ef1037',
+      "m/0'/2147483647'":
+          '5ba3b9ac6e90e83effcd25ac4e58a1365a9e35a3d3ae5eb07b9e4d90bcf7506d',
+      "m/0'/2147483647'/1'":
+          '2e66aa57069c86cc18249aecf5cb5a9cebbfd6fadeab056254763874a9352b45',
+      "m/0'/2147483647'/1'/2147483646'":
+          'e33c0f7d81d843c572275f287498e8d408654fdf0d1e065b84e2e6f157aab09b',
+      "m/0'/2147483647'/1'/2147483646'/2'":
+          '47150c75db263559a70d5778bf36abbab30fb061ad69f69ece61a72b0cfa4fc0',
+    };
+
+    for (final MapEntry(key: path, value: expectedPublicKey)
+        in expectedPublicKeys.entries) {
+      test('it matches the official public key for $path', () async {
+        final publicKey = await wallet.getPublicKey(path);
+
+        expect(publicKey.bytes, hexDecode(expectedPublicKey));
+      });
+    }
+  });
+
   group('Bip32Ed25519Wallet', () {
     late Bip32Ed25519Wallet wallet;
 
