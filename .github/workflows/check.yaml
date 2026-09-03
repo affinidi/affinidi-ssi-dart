@@ -6,7 +6,9 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
+    # Pinned to a commit SHA (not @main) to avoid running unreviewed changes
+    # from the external workflow with inherited secrets and PR write access.
+    uses: affinidi/pipeline-dart/.github/workflows/check.yaml@cfc8a62e63efd4678f84421311b389cf9023e501
     with:
       flutter-version: "3.41.2"
     secrets: inherit
