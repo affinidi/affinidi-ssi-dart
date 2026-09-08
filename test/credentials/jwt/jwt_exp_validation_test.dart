@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 import '../../test_utils.dart';
 
 void main() {
-  group('JWT VC Data Model V1 - exp validation', () {
+  group('When verifying a JWT VC expiration', () {
     final testSeed =
         Uint8List.fromList(List.generate(32, (index) => index + 1));
 
@@ -18,8 +18,7 @@ void main() {
       suite = JwtDm1Suite();
     });
 
-    test('verifyIntegrity should return true when exp is not present',
-        () async {
+    test('it permits a missing exp by default', () async {
       final credential = MutableVcDataModelV1.fromJson({
         '@context': [dmV1ContextUrl],
         'id': 'urn:uuid:test-credential-no-exp',
@@ -33,9 +32,29 @@ void main() {
       final issuedCredential = await suite.issue(
           unsignedData: VcDataModelV1.fromMutable(credential), signer: signer);
 
-      // Verify with current time - should be valid since no exp
       final isValid = await suite.verifyIntegrity(issuedCredential);
       expect(isValid, isTrue);
+    });
+
+    test('it rejects a missing exp when explicitly required', () async {
+      final credential = MutableVcDataModelV1.fromJson({
+        '@context': [dmV1ContextUrl],
+        'id': 'urn:uuid:test-credential-no-exp-opt-out',
+        'type': ['VerifiableCredential', 'TestCredential'],
+        'holder': {'id': signer.did},
+        'issuanceDate': '2023-01-01T12:00:00Z',
+        'credentialSubject': {'email': 'test@example.com'},
+      })
+        ..issuer = MutableIssuer.uri(signer.did);
+
+      final issuedCredential = await suite.issue(
+          unsignedData: VcDataModelV1.fromMutable(credential), signer: signer);
+
+      final isValid = await suite.verifyIntegrity(
+        issuedCredential,
+        allowMissingExpiry: false,
+      );
+      expect(isValid, isFalse);
     });
 
     test('verifyIntegrity should return true when current time is before exp',

@@ -281,7 +281,7 @@ void main() {
       );
 
       test(
-        'it passes integrity check',
+        'it passes integrity check when expiry is missing',
         () async {
           var actualIntegrity = await JwtDm1Suite()
               .verifyIntegrity(verifiableCredential as JwtVcDataModelV1);
