@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-09-08
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v4.0.3`](#ssi---v403)
+
+---
+
+#### `ssi` - `v4.0.3`
+
+ - **FIX**: upgrade ecdsa, elliptic, and pqcrypto to latest major versions ([#301](https://github.com/affinidi/affinidi-ssi-dart/issues/301)).
+
+## 4.0.3
+
+ - **FIX**: upgrade ecdsa, elliptic, and pqcrypto to latest major versions ([#301](https://github.com/affinidi/affinidi-ssi-dart/issues/301)).
+
+
 ## 2026-08-28
 
 ### Changes
