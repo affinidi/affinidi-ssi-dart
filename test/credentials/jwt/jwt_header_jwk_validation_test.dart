@@ -220,6 +220,37 @@ void main() {
               contains(
                   'Header JWK does not match the public key from DID document'))));
     });
+
+    test(
+        'verifyIntegrity should reject malformed serialized JWT input with a typed exception',
+        () async {
+      final credential = MutableVcDataModelV1.fromJson({
+        '@context': [dmV1ContextUrl],
+        'id': 'urn:uuid:test-credential-malformed-jwt',
+        'type': ['VerifiableCredential', 'TestCredential'],
+        'holder': {'id': signer.did},
+        'issuanceDate': '2023-01-01T12:00:00Z',
+        'credentialSubject': {'email': 'test@example.com'},
+      })
+        ..issuer = MutableIssuer.uri(signer.did);
+      final issuedCredential = await suite.issue(
+        unsignedData: VcDataModelV1.fromMutable(credential),
+        signer: signer,
+      );
+      final segments = issuedCredential.serialized.split('.');
+      issuedCredential.jws.serialized = '!!!.${segments[1]}.${segments[2]}';
+
+      expect(
+        () => suite.verifyIntegrity(issuedCredential),
+        throwsA(
+          isA<SsiException>().having(
+            (error) => error.code,
+            'code',
+            SsiExceptionType.invalidEncoding.code,
+          ),
+        ),
+      );
+    });
   });
 }
 

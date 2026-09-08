@@ -54,17 +54,8 @@ mixin JwtParser implements VerifiableDataParser<String, Jws> {
       );
     }
 
-    final header = jsonDecode(
-      utf8.decode(
-        base64UrlNoPadDecode(segments[0]),
-      ),
-    ) as Map<String, dynamic>;
-
-    final payload = jsonDecode(
-      utf8.decode(
-        base64UrlNoPadDecode(segments[1]),
-      ),
-    ) as Map<String, dynamic>;
+    final header = _decodeJsonSegment(segments[0], 'header');
+    final payload = _decodeJsonSegment(segments[1], 'payload');
 
     return Jws(
         header: header,
@@ -72,4 +63,26 @@ mixin JwtParser implements VerifiableDataParser<String, Jws> {
         signature: segments[2],
         serialized: input);
   }
+}
+
+Map<String, dynamic> _decodeJsonSegment(String segment, String name) {
+  Object? decoded;
+  try {
+    decoded = jsonDecode(utf8.decode(base64UrlNoPadDecode(segment)));
+  } catch (error) {
+    throw SsiException(
+      message: 'Invalid JWT $name encoding',
+      code: SsiExceptionType.invalidEncoding.code,
+      originalMessage: error.toString(),
+    );
+  }
+
+  if (decoded is! Map<String, dynamic>) {
+    throw SsiException(
+      message: 'Invalid JWT $name: expected a JSON object',
+      code: SsiExceptionType.invalidEncoding.code,
+    );
+  }
+
+  return decoded;
 }
