@@ -40,9 +40,9 @@ const _fieldModulus = <int>[
 ];
 
 // Canonical compressed encodings of the 8 points in the edwards25519 torsion
-// subgroup E[8] (points P with 8P = identity, including the identity itself).
-// Independently derived and verified (8P == identity, on-curve) from the
-// curve equation rather than copied from an external source.
+// subgroup E[8] (points P with 8P = identity, including the identity itself),
+// cross-checked against the libsodium/ref10 low-order blacklist and its
+// canonical sign variants.
 final _smallOrderPoints = <String>[
   '0100000000000000000000000000000000000000000000000000000000000000',
   'c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a',
@@ -52,7 +52,15 @@ final _smallOrderPoints = <String>[
   '26e8958fc2b227b045c3f489f2ef98f0d5dfac05d3c63339b13802886d53fc85',
   '0000000000000000000000000000000000000000000000000000000000000000',
   'c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa',
-].map(hexDecode).toList();
+].map(_decodeSmallOrderPoint).toList(growable: false);
+
+Uint8List _decodeSmallOrderPoint(String encodedPoint) {
+  final point = hexDecode(encodedPoint);
+  if (point.length != ed.VerifyKey.keyLength) {
+    throw StateError('Invalid Ed25519 small-order point length');
+  }
+  return point;
+}
 
 const _ed25519GroupOrder = <int>[
   0xed,
@@ -120,19 +128,15 @@ bool verifyEd25519Signature(
 }
 
 bool _isSmallOrderPoint(Uint8List point) {
+  var matchingCandidates = 0;
   for (final candidate in _smallOrderPoints) {
-    var matches = true;
-    for (var index = 0; index < 32; index++) {
-      if (point[index] != candidate[index]) {
-        matches = false;
-        break;
-      }
+    var difference = 0;
+    for (var index = 0; index < ed.VerifyKey.keyLength; index++) {
+      difference |= point[index] ^ candidate[index];
     }
-    if (matches) {
-      return true;
-    }
+    matchingCandidates |= difference == 0 ? 1 : 0;
   }
-  return false;
+  return matchingCandidates != 0;
 }
 
 bool _isCanonicalPoint(Uint8List point) {
