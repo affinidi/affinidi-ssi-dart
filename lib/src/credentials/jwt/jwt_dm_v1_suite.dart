@@ -124,6 +124,12 @@ final class JwtDm1Suite
     final toSign = ascii.encode('$encodedHeader.$encodedPayload');
 
     final did = Uri.parse(decodedHeader['kid'] as String).removeFragment();
+    if (did != input.issuer.id) {
+      throw SsiException(
+        message: 'Issuer mismatch',
+        code: SsiExceptionType.invalidJson.code,
+      );
+    }
 
     //TODO(FTL-20735) add discovery
     final algorithm =
