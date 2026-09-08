@@ -171,10 +171,28 @@ class VerifiableCredentialDataFixtures {
       };
 
   static String get jwtCredentialDataModelV11 =>
-      'eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6a2V5OnpRM3NodDFaODU4d2hwVlFCdzJjSFBXZ3F2UzhNeHlSS05zZGpvWlJGWjJZM2hyVGgjelEzc2h0MVo4NTh3aHBWUUJ3MmNIUFdncXZTOE14eVJLTnNkam9aUkZaMlkzaHJUaCIsInR5cCI6IkpXVCJ9.eyJuYmYiOjEyNjIzMDQwMDAsImlzcyI6Imh0dHBzOi8vZXhhbXBsZS5lZHUvaXNzdWVycy81NjUwNDkiLCJqdGkiOiJodHRwOi8vZXhhbXBsZS5lZHUvY3JlZGVudGlhbHMvMzczMiIsInN1YiI6ImRpZDpleGFtcGxlOmViZmViMWY3MTJlYmM2ZjFjMjc2ZTEyZWMyMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvZXhhbXBsZXMvdjEiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlVuaXZlcnNpdHlEZWdyZWVDcmVkZW50aWFsIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoiZGlkOmV4YW1wbGU6ZWJmZWIxZjcxMmViYzZmMWMyNzZlMTJlYzIxIiwiZGVncmVlIjp7InR5cGUiOiJCYWNoZWxvckRlZ3JlZSIsIm5hbWUiOiJCYWNoZWxvciBvZiBTY2llbmNlIGFuZCBBcnRzIn19fX0.1oRBHqDYPJuaCKAZntxUBO13N6GDr4N2tInO9hnLgdMkREc7FVT5sOewkpMjbbK6G5wJa9FiCyLkpM1GyGw8_g';
+      'eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6a2V5OnpRM3NoYTU2amdMMzM3NXV0dnVtVG'
+      'FmQ0ZlTE1NQ1JtdnNnZ3k2TFlkYVlzejFRSjEjelEzc2hhNTZqZ0wzMzc1dXR2dW1UYWZD'
+      'RmVMTU1DUm12c2dneTZMWWRhWXN6MVFKMSIsInR5cCI6IkpXVCJ9.eyJuYmYiOjEyNjIzM'
+      'DQwMDAsImlzcyI6ImRpZDprZXk6elEzc2hhNTZqZ0wzMzc1dXR2dW1UYWZDRmVMTU1DUm1'
+      '2c2dneTZMWWRhWXN6MVFKMSIsImp0aSI6Imh0dHA6Ly9leGFtcGxlLmVkdS9jcmVkZW50a'
+      'WFscy8zNzMyIiwic3ViIjoiZGlkOmV4YW1wbGU6ZWJmZWIxZjcxMmViYzZmMWMyNzZlMTJ'
+      'lYzIxIiwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZ'
+      'GVudGlhbHMvdjEiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy9leGF'
+      'tcGxlcy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiVW5pdmVyc2l0e'
+      'URlZ3JlZUNyZWRlbnRpYWwiXSwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZXh'
+      'hbXBsZTplYmZlYjFmNzEyZWJjNmYxYzI3NmUxMmVjMjEiLCJkZWdyZWUiOnsidHlwZSI6I'
+      'kJhY2hlbG9yRGVncmVlIiwibmFtZSI6IkJhY2hlbG9yIG9mIFNjaWVuY2UgYW5kIEFydHM'
+      'ifX19fQ.4JXySkuwd6W33I90a_U5-9X1_zMZ40UCSWZYdXXNnz0LuM2vKGzpjYpakx-zSV'
+      'FrNBcjALc_vkuk3P5-tudpDQ';
 
-  static String get jwtCredentialDataModelV11InvalidSig =>
-      'eyJhbGciOiJFUzI1NksiLCJraWQiOiJkaWQ6a2V5OnpRM3NodDFaODU4d2hwVlFCdzJjSFBXZ3F2UzhNeHlSS05zZGpvWlJGWjJZM2hyVGgjelEzc2h0MVo4NTh3aHBWUUJ3MmNIUFdncXZTOE14eVJLTnNkam9aUkZaMlkzaHJUaCIsInR5cCI6IkpXVCJ9.eyJuYmYiOjEyNjIzMDQwMDAsImlzcyI6Imh0dHBzOi8vZXhhbXBsZS5lZHUvaXNzdWVycy81NjUwNDkiLCJqdGkiOiJodHRwOi8vZXhhbXBsZS5lZHUvY3JlZGVudGlhbHMvMzczMiIsInN1YiI6ImRpZDpleGFtcGxlOmViZmViMWY3MTJlYmM2ZjFjMjc2ZTEyZWMyMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvZXhhbXBsZXMvdjEiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlVuaXZlcnNpdHlEZWdyZWVDcmVkZW50aWFsIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoiZGlkOmV4YW1wbGU6ZWJmZWIxZjcxMmViYzZmMWMyNzZlMTJlYzIxIiwiZGVncmVlIjp7InR5cGUiOiJCYWNoZWxvckRlZ3JlZSIsIm5hbWUiOiJCYWNoZWxvciBvZiBTY2llbmNlIGFuZCBBcnRzIn19fX0.1oRBHqDYPJuaCKAZntxUBO13N6GDr4N2tInO9hnLgdMkREc7FVT5sOewkpMjbbK6G5wJa9FiCyLkpM1GyGw7_g';
+  static String get jwtCredentialDataModelV11InvalidSig {
+    final segments = jwtCredentialDataModelV11.split('.');
+    final signature = segments[2];
+    final invalidSignature =
+        '${signature.startsWith('A') ? 'B' : 'A'}${signature.substring(1)}';
+    return '${segments[0]}.${segments[1]}.$invalidSignature';
+  }
 
   static String get jwtCredentialDataModelV11WithEd25519Alg =>
       'eyJhbGciOiJFZDI1NTE5Iiwia2lkIjoiZGlkOmtleTp6Nk1rcDdHellVZ0F6YXgxVlpkUjhvNThUN0JCUHNZb203Z0U4Vzh3M01Ddkx6OFIjejZNa3A3R3pZVWdBemF4MVZaZFI4bzU4VDdCQlBzWW9tN2dFOFc4dzNNQ3ZMejhSIiwidHlwIjoiSldUIn0.eyJuYmYiOjE3NjUzNjM5NjgsImlzcyI6eyJpZCI6ImRpZDprZXk6ejZNa3A3R3pZVWdBemF4MVZaZFI4bzU4VDdCQlBzWW9tN2dFOFc4dzNNQ3ZMejhSIn0sImp0aSI6InV1aWQ6MTIzNDU2YWJjZCIsInN1YiI6ImRpZDpleGFtcGxlOmhvbGRlcjEyMyIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIiwiaHR0cHM6Ly9zY2hlbWEuYWZmaW5pZGkuY29tL1VzZXJQcm9maWxlVjEtMC5qc29ubGQiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlVzZXJQcm9maWxlIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoiZGlkOmV4YW1wbGU6aG9sZGVyMTIzIiwiRm5hbWUiOiJGbmFtZSIsIkxuYW1lIjoiTGFtZSIsIkFnZSI6IjIyIiwiQWRkcmVzcyI6IkVpaGhvcm5zdHIifX19.LlgHBkKb6OF7rhNawDMyPhwnM2SzAcYF0flzhCxp2YRMUpEUZ3XlkKrtnddRkRilLDJZJ0NZhd1-MiE4ULnFDQ';
@@ -189,7 +207,7 @@ class VerifiableCredentialDataFixtures {
         ],
         'id': 'http://example.edu/credentials/3732',
         'type': ['VerifiableCredential', 'UniversityDegreeCredential'],
-        'issuer': 'https://example.edu/issuers/565049',
+        'issuer': 'did:key:zQ3sha56jgL3375utvumTafCFeLMMCRmvsggy6LYdaYsz1QJ1',
         'issuanceDate': '2010-01-01T00:00:00.000Z',
         'credentialSubject': {
           'id': 'did:example:ebfeb1f712ebc6f1c276e12ec21',
