@@ -90,6 +90,51 @@ void main() {
     });
 
     group('with custom DidResolver', () {
+      group('and assertionMethod authorization is required', () {
+        test('it accepts a key authorized for assertions', () async {
+          final didDocument = DidDocument.fromJson(
+            jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey)
+                as Map<String, dynamic>,
+          );
+
+          final verifier = await DidVerifier.create(
+            algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
+            kid: didDocument.assertionMethod.single.id,
+            issuerDid: didDocument.id.toString(),
+            didResolver: MockDidResolver(didDocument),
+            verificationRelationship: VerificationRelationship.assertionMethod,
+          );
+
+          expect(verifier.isAllowedAlgorithm('ES256K'), isTrue);
+        });
+
+        test('it rejects a key that is only a verification method', () async {
+          final documentJson = jsonDecode(
+            DidDocumentFixtures.didDocumentWithControllerKey,
+          ) as Map<String, dynamic>
+            ..remove('assertionMethod');
+          final didDocument = DidDocument.fromJson(documentJson);
+
+          expect(
+            () => DidVerifier.create(
+              algorithm: SignatureScheme.ecdsa_secp256k1_sha256,
+              kid: didDocument.verificationMethod.single.id,
+              issuerDid: didDocument.id.toString(),
+              didResolver: MockDidResolver(didDocument),
+              verificationRelationship:
+                  VerificationRelationship.assertionMethod,
+            ),
+            throwsA(
+              isA<SsiException>().having(
+                (exception) => exception.code,
+                'code',
+                SsiExceptionType.invalidDidDocument.code,
+              ),
+            ),
+          );
+        });
+      });
+
       test('should use provided resolver instead of default', () async {
         final didDocument = DidDocument.fromJson(
           jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey)

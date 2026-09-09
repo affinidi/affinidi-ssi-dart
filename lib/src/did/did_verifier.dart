@@ -7,7 +7,9 @@ import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
 import '../types.dart';
 import '../util/base64_util.dart';
+import 'did.dart';
 import 'did_document/index.dart';
+import 'did_manager/verification_relationship.dart';
 import 'did_resolver.dart';
 import 'universal_did_resolver.dart';
 import 'verifier.dart';
@@ -40,6 +42,8 @@ class DidVerifier implements Verifier {
   /// [issuerDid] - The DID of the issuer.
   /// [kid] - The key ID to use for verification.
   /// [didResolver] - Optional DID resolver instance. If not provided, uses the default UniversalDIDResolver.
+  /// [requireDocumentIdentity] - Whether the resolved document must identify [issuerDid].
+  /// [verificationRelationship] - Optional DID relationship that must authorize the key.
   ///
   /// Returns a new [DidVerifier] instance.
   ///
@@ -49,9 +53,20 @@ class DidVerifier implements Verifier {
     required String issuerDid,
     String? kid,
     DidResolver? didResolver,
+    bool requireDocumentIdentity = false,
+    VerificationRelationship? verificationRelationship,
   }) async {
     final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
     final didDocument = await resolver.resolveDid(issuerDid);
+
+    if ((requireDocumentIdentity || verificationRelationship != null) &&
+        !_identifiesDidDocument(issuerDid, didDocument)) {
+      throw SsiException(
+        message: 'Resolved DID Document does not identify issuer $issuerDid',
+        code: SsiExceptionType.invalidDidDocument.code,
+      );
+    }
+
     final kidToUse = kid ?? didDocument.assertionMethod.firstOrNull?.id;
 
     if (kidToUse == null) {
@@ -62,14 +77,23 @@ class DidVerifier implements Verifier {
       );
     }
 
-    VerificationMethod? verificationMethod;
-    final fragment =
-        kidToUse.contains('#') ? kidToUse.split('#').last : kidToUse;
-    verificationMethod = didDocument.verificationMethod.firstWhere(
-      (method) => method.id == kidToUse || method.id.endsWith('#$fragment'),
+    final verificationMethods = switch (verificationRelationship) {
+      VerificationRelationship.authentication => didDocument.authentication,
+      VerificationRelationship.assertionMethod => didDocument.assertionMethod,
+      VerificationRelationship.capabilityInvocation =>
+        didDocument.capabilityInvocation,
+      VerificationRelationship.capabilityDelegation =>
+        didDocument.capabilityDelegation,
+      VerificationRelationship.keyAgreement => didDocument.keyAgreement,
+      null => didDocument.verificationMethod,
+    };
+    final isFullyQualifiedKid = kidToUse.contains('#');
+    final fragment = isFullyQualifiedKid ? kidToUse.split('#').last : kidToUse;
+    final verificationMethod = verificationMethods.firstWhere(
+      (method) => _matchesKid(method.id, kidToUse, fragment),
       orElse: () => throw SsiException(
         message:
-            'Verification method with id $kidToUse not found in DID Document for $issuerDid',
+            'Verification method with id $kidToUse is not authorized by ${verificationRelationship?.name ?? 'verificationMethod'} in DID Document for $issuerDid',
         code: SsiExceptionType.invalidDidDocument.code,
       ),
     );
@@ -86,6 +110,32 @@ class DidVerifier implements Verifier {
     }
 
     return DidVerifier._(algorithm, kidToUse, jwkMap);
+  }
+
+  static bool _identifiesDidDocument(
+    String issuerDid,
+    DidDocument didDocument,
+  ) {
+    final issuerIdentity = _didIdentity(issuerDid);
+    return _didIdentity(didDocument.id.toString()) == issuerIdentity;
+  }
+
+  static String _didIdentity(String didUrl) {
+    final parts = DidUrl.fromUrlString(didUrl);
+    return '${parts.scheme}:${parts.method}:${parts.methodSpecificId}';
+  }
+
+  static bool _matchesKid(
+    String methodId,
+    String kid,
+    String fragment,
+  ) {
+    if (methodId == kid) return true;
+    if (!kid.contains('#')) return methodId.endsWith('#$fragment');
+    if (!methodId.contains('#')) return false;
+
+    return _didIdentity(methodId) == _didIdentity(kid) &&
+        methodId.split('#').last == fragment;
   }
 
   @override
