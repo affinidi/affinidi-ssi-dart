@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:base_codecs/base_codecs.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -12,6 +13,105 @@ void main() {
       "m/44'/1'/0'/0'/0'"; // Using 1' for Ed25519 coin type example
   const derivationPath2 = "m/44'/1'/0'/0'/1'";
   const invalidDerivationPath = 'invalid-path';
+
+  group('When deriving Ed25519 keys from a SLIP-0010 seed', () {
+    final wallet = Bip32Ed25519Wallet.fromSeed(
+      hexDecode('000102030405060708090a0b0c0d0e0f'),
+    );
+    const expectedPublicKeys = {
+      "m/0'":
+          '8c8a13df77a28f3445213a0f432fde644acaa215fc72dcdf300d5efaa85d350c',
+      "m/0'/1'":
+          '1932a5270f335bed617d5b935c80aedb1a35bd9fc1e31acafd5372c30f5c1187',
+      "m/0'/1'/2'":
+          'ae98736566d30ed0e9d2f4486a64bc95740d89c7db33f52121f8ea8f76ff0fc1',
+      "m/0'/1'/2'/2'":
+          '8abae2d66361c879b900d204ad2cc4984fa2aa344dd7ddc46007329ac76c429c',
+      "m/0'/1'/2'/2'/1000000000'":
+          '3c24da049451555d51a7014a37337aa4e12d41e485abccfa46b47dfb2af54b7a',
+    };
+
+    for (final MapEntry(key: path, value: expectedPublicKey)
+        in expectedPublicKeys.entries) {
+      test('it matches the official public key for $path', () async {
+        final publicKey = await wallet.getPublicKey(path);
+
+        expect(publicKey.bytes, hexDecode(expectedPublicKey));
+      });
+    }
+
+    test('it rejects a child index outside the 31-bit range', () async {
+      expect(
+        () => wallet.getPublicKey("m/2147483648'"),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            contains('Child index must be between 0 and 2147483647'),
+          ),
+        ),
+      );
+    });
+
+    test('it rejects a child index longer than 10 digits', () async {
+      expect(
+        () => wallet.getPublicKey("m/21474836470'"),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            contains('Expected BIP32 path format'),
+          ),
+        ),
+      );
+    });
+
+    test('it rejects a path without the master prefix', () async {
+      expect(
+        () => wallet.getPublicKey("1'/2'"),
+        throwsArgumentError,
+      );
+    });
+
+    test('it rejects a child segment without a hardening apostrophe', () async {
+      expect(
+        () => wallet.getPublicKey('m/12'),
+        throwsArgumentError,
+      );
+    });
+  });
+
+  // SLIP-0010 official test vector 2 for ed25519. Exercises a second seed and
+  // near-2^31 indices to further guard against endianness/offset regressions.
+  group('When deriving Ed25519 keys from SLIP-0010 test vector 2 seed', () {
+    final wallet = Bip32Ed25519Wallet.fromSeed(
+      hexDecode(
+        'fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a2'
+        '9f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542',
+      ),
+    );
+    const expectedPublicKeys = {
+      "m/0'":
+          '86fab68dcb57aa196c77c5f264f215a112c22a912c10d123b0d03c3c28ef1037',
+      "m/0'/2147483647'":
+          '5ba3b9ac6e90e83effcd25ac4e58a1365a9e35a3d3ae5eb07b9e4d90bcf7506d',
+      "m/0'/2147483647'/1'":
+          '2e66aa57069c86cc18249aecf5cb5a9cebbfd6fadeab056254763874a9352b45',
+      "m/0'/2147483647'/1'/2147483646'":
+          'e33c0f7d81d843c572275f287498e8d408654fdf0d1e065b84e2e6f157aab09b',
+      "m/0'/2147483647'/1'/2147483646'/2'":
+          '47150c75db263559a70d5778bf36abbab30fb061ad69f69ece61a72b0cfa4fc0',
+    };
+
+    for (final MapEntry(key: path, value: expectedPublicKey)
+        in expectedPublicKeys.entries) {
+      test('it matches the official public key for $path', () async {
+        final publicKey = await wallet.getPublicKey(path);
+
+        expect(publicKey.bytes, hexDecode(expectedPublicKey));
+      });
+    }
+  });
 
   group('Bip32Ed25519Wallet', () {
     late Bip32Ed25519Wallet wallet;

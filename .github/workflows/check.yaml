@@ -3,7 +3,25 @@ on:
   pull_request:
 jobs:
   dart-pipeline:
-    uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
+    permissions:
+      contents: read
+      pull-requests: write
+    # Pinned to a commit SHA (not @main) to avoid running unreviewed changes
+    # from the external workflow with inherited secrets and PR write access.
+    uses: affinidi/pipeline-dart/.github/workflows/check.yaml@cfc8a62e63efd4678f84421311b389cf9023e501
     with:
       flutter-version: "3.41.2"
     secrets: inherit
+  wasm:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.11.0"
+      - run: dart pub get
+      - run: >-
+          dart test --platform chrome --compiler dart2wasm
+          test/wasm/wasm_compatibility_test.dart

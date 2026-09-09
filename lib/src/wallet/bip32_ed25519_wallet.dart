@@ -16,6 +16,9 @@ import 'wallet.dart';
 /// It supports signing and verifying messages using Ed25519 signature scheme,
 /// and ecrypting/decrypting payloads.
 class Bip32Ed25519Wallet implements Wallet {
+  static final _pathRegex = RegExp(r"^m\/(\d{1,10}'\/)*\d{1,10}'$");
+  static const _hardenedOffset = 0x80000000;
+
   // Runtime cache for derived KeyPair objects
   final Map<String, Ed25519KeyPair> _runtimeCache =
       {}; // Keyed by keyId which is equivalent to derivation path
@@ -136,12 +139,29 @@ class Bip32Ed25519Wallet implements Wallet {
       return _runtimeCache[keyId]!;
     }
 
+    _validateDerivationPath(keyId);
     final derivedData = await ED25519_HD_KEY.derivePath(keyId, _seed);
     final keyPair =
         Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
 
     _runtimeCache[keyId] = keyPair;
     return keyPair;
+  }
+
+  void _validateDerivationPath(String path) {
+    if (!_pathRegex.hasMatch(path)) {
+      throw ArgumentError(
+          'Invalid derivation path. Expected BIP32 path format');
+    }
+
+    for (final segment in path.split('/').skip(1)) {
+      final index = int.tryParse(segment.substring(0, segment.length - 1));
+      if (index == null || index >= _hardenedOffset) {
+        throw ArgumentError(
+          'Invalid derivation path. Child index must be between 0 and ${_hardenedOffset - 1}',
+        );
+      }
+    }
   }
 
   /// Clears the runtime cache.

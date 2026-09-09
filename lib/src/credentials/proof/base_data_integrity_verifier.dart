@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:http/http.dart' show ClientException;
 import 'package:json_ld_processor/json_ld_processor.dart';
 
 import '../../did/did_resolver.dart';
@@ -341,15 +341,10 @@ LibDocumentLoader _cacheLoadDocument(
 
       try {
         return await loadDocument(url, options);
-      } on SocketException catch (e) {
+      } on ClientException catch (e) {
         throw RemoteContextLoadException(
           uri: url,
           cause: 'Network error: ${e.message}',
-        );
-      } on HttpException catch (e) {
-        throw RemoteContextLoadException(
-          uri: url,
-          cause: 'HTTP error: ${e.message}',
         );
       } on TimeoutException catch (e) {
         throw RemoteContextLoadException(

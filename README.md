@@ -14,6 +14,7 @@ It supports various [Decentralised Identifier (DID)](https://www.w3.org/TR/did-1
 - [Supported Key Management](#supported-key-management)
 - [Credential Data Models](#credential-data-models)
 - [Requirements](#requirements)
+- [WebAssembly Compatibility](#webassembly-compatibility)
 - [Installation](#installation)
 - [Usage](#usage)
 - [DID Manager](#did-manager)
@@ -111,6 +112,12 @@ Refer to [these examples](https://github.com/affinidi/affinidi-ssi-dart/tree/mai
 ## Requirements
 
 - Dart SDK version ^3.6.0
+
+## WebAssembly Compatibility
+
+Package operations support WebAssembly through `dart2wasm`, including Ed25519
+key generation, signing and verification, SLIP-0010 key derivation, and
+Ed25519/X25519 encryption.
 
 ## Installation
 
