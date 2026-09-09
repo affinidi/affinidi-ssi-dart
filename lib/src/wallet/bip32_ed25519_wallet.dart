@@ -140,14 +140,17 @@ class Bip32Ed25519Wallet implements Wallet {
       return _runtimeCache[keyId]!;
     }
 
-    final derivedSeed = _deriveSeed(keyId);
+    final derivedSeed = _deriveSlip10Ed25519Seed(keyId);
     final keyPair = Ed25519KeyPair.fromSeed(derivedSeed, id: keyId);
 
     _runtimeCache[keyId] = keyPair;
     return keyPair;
   }
 
-  Uint8List _deriveSeed(String path) {
+  /// Derives a hardened Ed25519 child seed as specified by SLIP-0010.
+  ///
+  /// See https://github.com/satoshilabs/slips/blob/master/slip-0010.md.
+  Uint8List _deriveSlip10Ed25519Seed(String path) {
     if (!_pathRegex.hasMatch(path)) {
       throw ArgumentError(
           'Invalid derivation path. Expected BIP32 path format');
