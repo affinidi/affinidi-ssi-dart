@@ -90,10 +90,15 @@ final class JwtDm1Suite
     return JwtVcDataModelV1.fromJws(jws);
   }
 
+  /// Verifies the signature and expiry of [input].
+  ///
+  /// Set [allowMissingExpiry] to false when the relying party's trust policy
+  /// requires every credential to have an expiry.
   @override
   Future<bool> verifyIntegrity(JwtVcDataModelV1 input,
       {DateTime Function() getNow = DateTime.now,
-      DidResolver? didResolver}) async {
+      DidResolver? didResolver,
+      bool allowMissingExpiry = true}) async {
     final segments = input.serialized.split('.');
 
     if (segments.length != 3) {
@@ -105,6 +110,7 @@ final class JwtDm1Suite
 
     var now = getNow();
     final exp = input.jws.payload['exp'];
+    if (exp == null && !allowMissingExpiry) return false;
     if (exp != null &&
         now.isAfter(DateTime.fromMillisecondsSinceEpoch((exp as int) * 1000,
             isUtc: true))) {
