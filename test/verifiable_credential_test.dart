@@ -199,8 +199,7 @@ void main() {
       test(
         'it retrieves the correct issuer',
         () {
-          expect(verifiableCredential.issuer.id.toString(),
-              'https://example.edu/issuers/565049');
+          expect(verifiableCredential.issuer.id.toString(), signer.did);
         },
       );
 
