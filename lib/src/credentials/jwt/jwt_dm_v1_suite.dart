@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:typed_data';
 
 import '../../did/did_resolver.dart';
 import '../../did/did_signer.dart';
@@ -111,15 +112,11 @@ final class JwtDm1Suite
       return false;
     }
 
+    final jws = decode(input.serialized);
     final encodedHeader = segments[0];
     final encodedPayload = segments[1];
     final encodedSignature = segments[2];
-
-    final decodedHeader = jsonDecode(
-      utf8.decode(
-        base64UrlNoPadDecode(encodedHeader),
-      ),
-    ) as Map<String, dynamic>;
+    final decodedHeader = jws.header;
 
     final toSign = ascii.encode('$encodedHeader.$encodedPayload');
 
@@ -147,7 +144,18 @@ final class JwtDm1Suite
       }
     }
 
-    return verifier.verify(toSign, base64UrlNoPadDecode(encodedSignature));
+    late final Uint8List signature;
+    try {
+      signature = base64UrlNoPadDecode(encodedSignature);
+    } catch (error) {
+      throw SsiException(
+        message: 'Invalid JWT signature encoding',
+        code: SsiExceptionType.invalidEncoding.code,
+        originalMessage: error.toString(),
+      );
+    }
+
+    return verifier.verify(toSign, signature);
   }
 
   @override
