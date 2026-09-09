@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
+import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 
 import '../exceptions/ssi_exception.dart';
 import '../exceptions/ssi_exception_type.dart';
@@ -140,25 +139,20 @@ class Bip32Ed25519Wallet implements Wallet {
       return _runtimeCache[keyId]!;
     }
 
-    final derivedSeed = _deriveSlip10Ed25519Seed(keyId);
-    final keyPair = Ed25519KeyPair.fromSeed(derivedSeed, id: keyId);
+    _validateDerivationPath(keyId);
+    final derivedData = await ED25519_HD_KEY.derivePath(keyId, _seed);
+    final keyPair =
+        Ed25519KeyPair.fromSeed(Uint8List.fromList(derivedData.key), id: keyId);
 
     _runtimeCache[keyId] = keyPair;
     return keyPair;
   }
 
-  /// Derives a hardened Ed25519 child seed as specified by SLIP-0010.
-  ///
-  /// See https://github.com/satoshilabs/slips/blob/master/slip-0010.md.
-  Uint8List _deriveSlip10Ed25519Seed(String path) {
+  void _validateDerivationPath(String path) {
     if (!_pathRegex.hasMatch(path)) {
       throw ArgumentError(
           'Invalid derivation path. Expected BIP32 path format');
     }
-
-    var digest = Hmac(sha512, utf8.encode('ed25519 seed')).convert(_seed).bytes;
-    var key = digest.sublist(0, 32);
-    var chainCode = digest.sublist(32);
 
     for (final segment in path.split('/').skip(1)) {
       final index = int.tryParse(segment.substring(0, segment.length - 1));
@@ -167,14 +161,7 @@ class Bip32Ed25519Wallet implements Wallet {
           'Invalid derivation path. Child index must be between 0 and ${_hardenedOffset - 1}',
         );
       }
-      final data = Uint8List(37)..setRange(1, 33, key);
-      data.buffer.asByteData().setUint32(33, index + _hardenedOffset);
-      digest = Hmac(sha512, chainCode).convert(data).bytes;
-      key = digest.sublist(0, 32);
-      chainCode = digest.sublist(32);
     }
-
-    return Uint8List.fromList(key);
   }
 
   /// Clears the runtime cache.
