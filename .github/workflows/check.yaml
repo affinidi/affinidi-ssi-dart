@@ -1,9 +1,6 @@
 name: check
 on:
   pull_request:
-permissions:
-   contents: read
-   pull-requests: write
 jobs:
   dart-pipeline:
     permissions:
