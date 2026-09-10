@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-09-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`ssi` - `v4.2.0`](#ssi---v420)
+
+---
+
+#### `ssi` - `v4.2.0`
+
+ - **FIX**: upgrade minimum sdk version from 3.6.0 to 3.10.0 ([#299](https://github.com/affinidi/affinidi-ssi-dart/issues/299)).
+ - **FIX**: upgrade ecdsa, elliptic, and pqcrypto to latest major versions ([#301](https://github.com/affinidi/affinidi-ssi-dart/issues/301)).
+ - **FEAT**: support Ed25519 key generation and verification in WebAssembly environments. ([#300](https://github.com/affinidi/affinidi-ssi-dart/issues/300)).
+
+## 4.2.0
+
+ - **FIX**: upgrade minimum sdk version from 3.6.0 to 3.10.0 ([#299](https://github.com/affinidi/affinidi-ssi-dart/issues/299)).
+ - **FIX**: upgrade ecdsa, elliptic, and pqcrypto to latest major versions ([#301](https://github.com/affinidi/affinidi-ssi-dart/issues/301)).
+ - **FEAT**: support Ed25519 key generation and verification in WebAssembly environments. ([#300](https://github.com/affinidi/affinidi-ssi-dart/issues/300)).
+
+
 ## 2026-09-09
 
 ### Changes
