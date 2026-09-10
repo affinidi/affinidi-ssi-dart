@@ -66,15 +66,18 @@ class DidPeerManager extends DidManager {
         );
       }
     }
-    return super
-        .addVerificationMethod(walletKeyId, relationships: relationships);
+    return super.addVerificationMethod(
+      walletKeyId,
+      relationships: relationships,
+    );
   }
 
   @override
   Future<void> addServiceEndpoint(ServiceEndpoint endpoint) async {
     if (preferredNumalgo == DidPeerType.peer0) {
       throw SsiException(
-        message: 'Adding service endpoints is not supported for did:peer:0. '
+        message:
+            'Adding service endpoints is not supported for did:peer:0. '
             'Use DidPeerType.peer2 to attach services.',
         code: SsiExceptionType.unsupportedDidOperation.code,
       );
@@ -112,18 +115,23 @@ class DidPeerManager extends DidManager {
       VerificationRelationship.assertionMethod,
     ];
 
-    final orderedRelationships =
-        processingOrder.where((r) => relationships.contains(r));
+    final orderedRelationships = processingOrder.where(
+      (r) => relationships.contains(r),
+    );
 
     for (final relationship in orderedRelationships) {
       final String vmId;
       // Special handling for keyAgreement with Ed25519 keys
       if (relationship == VerificationRelationship.keyAgreement &&
           publicKey.type == KeyType.ed25519) {
-        final x25519PublicKeyBytes =
-            ed25519PublicToX25519Public(publicKey.bytes);
-        final keyAgreementPublicKey =
-            PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
+        final x25519PublicKeyBytes = ed25519PublicToX25519Public(
+          publicKey.bytes,
+        );
+        final keyAgreementPublicKey = PublicKey(
+          publicKey.id,
+          x25519PublicKeyBytes,
+          KeyType.x25519,
+        );
         vmId = await buildVerificationMethodId(keyAgreementPublicKey);
       } else {
         vmId = await buildVerificationMethodId(publicKey);
@@ -184,16 +192,21 @@ class DidPeerManager extends DidManager {
       final walletKeyId = await getWalletKeyId(vmId);
       if (walletKeyId == null) {
         throw SsiException(
-            message: 'Could not find wallet key for $vmId',
-            code: SsiExceptionType.keyNotFound.code);
+          message: 'Could not find wallet key for $vmId',
+          code: SsiExceptionType.keyNotFound.code,
+        );
       }
 
       var publicKey = await wallet.getPublicKey(walletKeyId);
       if (keyAgreement.contains(vmId) && publicKey.type == KeyType.ed25519) {
-        final x25519PublicKeyBytes =
-            ed25519PublicToX25519Public(publicKey.bytes);
-        publicKey =
-            PublicKey(publicKey.id, x25519PublicKeyBytes, KeyType.x25519);
+        final x25519PublicKeyBytes = ed25519PublicToX25519Public(
+          publicKey.bytes,
+        );
+        publicKey = PublicKey(
+          publicKey.id,
+          x25519PublicKeyBytes,
+          KeyType.x25519,
+        );
       }
       verificationMethodsPubKeys.add(publicKey);
     }
@@ -209,9 +222,7 @@ class DidPeerManager extends DidManager {
     // `did:key` does.
     if (preferredNumalgo == DidPeerType.peer0 && service.isEmpty) {
       final walletKeyToVm = <String, String>{};
-      final walletKeyIds = await Future.wait(
-        uniqueVmIds.map(getWalletKeyId),
-      );
+      final walletKeyIds = await Future.wait(uniqueVmIds.map(getWalletKeyId));
       for (var i = 0; i < uniqueVmIds.length; i++) {
         final wid = walletKeyIds[i];
         if (wid != null) {
@@ -234,7 +245,7 @@ class DidPeerManager extends DidManager {
 
     // Create a map from verification method ID to its index in the list.
     final vmIdToIndex = <String, int>{
-      for (var i = 0; i < uniqueVmIds.length; i++) uniqueVmIds[i]: i
+      for (var i = 0; i < uniqueVmIds.length; i++) uniqueVmIds[i]: i,
     };
 
     // For each relationship, create a list of key indices.
@@ -246,10 +257,12 @@ class DidPeerManager extends DidManager {
       VerificationRelationship.authentication: getIndexes(authentication),
       VerificationRelationship.keyAgreement: getIndexes(keyAgreement),
       VerificationRelationship.assertionMethod: getIndexes(assertionMethod),
-      VerificationRelationship.capabilityInvocation:
-          getIndexes(capabilityInvocation),
-      VerificationRelationship.capabilityDelegation:
-          getIndexes(capabilityDelegation),
+      VerificationRelationship.capabilityInvocation: getIndexes(
+        capabilityInvocation,
+      ),
+      VerificationRelationship.capabilityDelegation: getIndexes(
+        capabilityDelegation,
+      ),
     };
 
     final did = DidPeer.getDid(
@@ -269,10 +282,10 @@ class DidPeerManager extends DidManager {
       VerificationRelationship.authentication: authentication.toList(),
       VerificationRelationship.keyAgreement: keyAgreement.toList(),
       VerificationRelationship.assertionMethod: assertionMethod.toList(),
-      VerificationRelationship.capabilityInvocation:
-          capabilityInvocation.toList(),
-      VerificationRelationship.capabilityDelegation:
-          capabilityDelegation.toList(),
+      VerificationRelationship.capabilityInvocation: capabilityInvocation
+          .toList(),
+      VerificationRelationship.capabilityDelegation: capabilityDelegation
+          .toList(),
     };
 
     return DidPeer.generateDocument(

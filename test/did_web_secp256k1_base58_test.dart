@@ -17,7 +17,7 @@ void main() {
     final didDocument = DidDocument.fromJson({
       '@context': [
         'https://www.w3.org/ns/did/v1',
-        'https://w3id.org/security/suites/secp256k1-2019/v1'
+        'https://w3id.org/security/suites/secp256k1-2019/v1',
       ],
       'id': did,
       'verificationMethod': [
@@ -26,10 +26,10 @@ void main() {
           'type': 'EcdsaSecp256k1VerificationKey2019',
           'controller': did,
           'publicKeyBase58': publicKeyBase58,
-        }
+        },
       ],
       'authentication': [vmId],
-      'assertionMethod': [vmId]
+      'assertionMethod': [vmId],
     });
 
     // Verify the verification method was parsed correctly
@@ -42,12 +42,12 @@ void main() {
     final unsignedVC = MutableVcDataModelV1(
       context: MutableJsonLdContext.fromJson([
         'https://www.w3.org/2018/credentials/v1',
-        'https://www.w3.org/2018/credentials/examples/v1'
+        'https://www.w3.org/2018/credentials/examples/v1',
       ]),
       id: Uri.parse('uuid:123456abcd'),
       type: {'VerifiableCredential'},
       credentialSubject: [
-        MutableCredentialSubject({'id': did, 'name': 'Test User'})
+        MutableCredentialSubject({'id': did, 'name': 'Test User'}),
       ],
       issuanceDate: DateTime.parse('2020-01-01T00:00:00Z'),
       issuer: Issuer.uri(did),
@@ -61,9 +61,7 @@ void main() {
       signatureScheme: SignatureScheme.ecdsa_secp256k1_sha256,
     );
 
-    final generator = Secp256k1Signature2019Generator(
-      signer: signer,
-    );
+    final generator = Secp256k1Signature2019Generator(signer: signer);
 
     final issuedVC = await LdVcDm1Suite().issue(
       unsignedData: VcDataModelV1.fromMutable(unsignedVC),

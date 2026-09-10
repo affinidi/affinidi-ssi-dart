@@ -19,9 +19,11 @@ final class UniversalPresentationParser {
     }
 
     Error.throwWithStackTrace(
-        SsiException(
-            message: 'Unknown VC Data Model',
-            code: SsiExceptionType.unableToParseVerifiablePresentation.code),
-        StackTrace.current);
+      SsiException(
+        message: 'Unknown VC Data Model',
+        code: SsiExceptionType.unableToParseVerifiablePresentation.code,
+      ),
+      StackTrace.current,
+    );
   }
 }

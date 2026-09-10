@@ -47,120 +47,115 @@ void main() {
     });
   });
 
-  group(
-    'when parsing DidDocument from json',
-    () {
-      group('and receiving a valid json,', () {
-        final didDoc =
-            DidDocument.fromJson(DidDocumentFixtures.didDocumentValid);
+  group('when parsing DidDocument from json', () {
+    group('and receiving a valid json,', () {
+      final didDoc = DidDocument.fromJson(DidDocumentFixtures.didDocumentValid);
 
-        test('it retrieves correct id', () {
-          expect(didDoc.id, 'did:web:example.com');
-        });
-
-        test('it retrieves correct authentication', () {
-          expect(didDoc.authentication[0].id, 'did:web:example.com#key-0');
-          expect(didDoc.authentication[1], isA<EmbeddedVerificationMethod>());
-          expect(didDoc.authentication[1].id, 'did:web:example.com#key-2');
-        });
-
-        test('it retrieves correct also know as', () {
-          expect(didDoc.alsoKnownAs, ['did:web:alias.example.com']);
-        });
-
-        test('it retrieves correct capability invacation', () {
-          expect(
-            didDoc.capabilityInvocation[0].id,
-            'did:web:example.com#key-0',
-          );
-          expect(didDoc.capabilityInvocation[1],
-              isA<EmbeddedVerificationMethod>());
-          expect(
-              didDoc.capabilityInvocation[1].id, 'did:web:example.com#key-2');
-        });
-
-        test('it retrieves correct capability delegation', () {
-          expect(
-            didDoc.capabilityDelegation[0].id,
-            'did:web:example.com#key-1',
-          );
-          expect(didDoc.capabilityDelegation[1],
-              isA<EmbeddedVerificationMethod>());
-          expect(
-              didDoc.capabilityDelegation[1].id, 'did:web:example.com#key-2');
-        });
-
-        test('it retrieves correct assertion method', () {
-          expect(didDoc.assertionMethod[0].id, 'did:web:example.com#key-0');
-          expect(didDoc.assertionMethod[1], isA<EmbeddedVerificationMethod>());
-          expect(didDoc.assertionMethod[1].id, 'did:web:example.com#key-2');
-        });
-
-        test('it retrieves correct verification methods', () {
-          expect(
-            didDoc.verificationMethod[0].id,
-            'did:web:example.com#key-0',
-          );
-          expect(
-            didDoc.verificationMethod[1].id,
-            'did:web:example.com#key-1',
-          );
-          expect(
-            didDoc.verificationMethod[2].id,
-            'did:web:example.com#key-2',
-          );
-          expect(didDoc.verificationMethod[0].type, 'JsonWebKey2020');
-          expect(didDoc.verificationMethod[1].type, 'JsonWebKey2020');
-          expect(didDoc.verificationMethod[2].type, 'JsonWebKey2020');
-        });
-
-        test('it retrieves correct service', () {
-          expect(didDoc.service[0].id, 'did:web:example.com#service');
-          expect(didDoc.service[0].type,
-              const StringServiceType('GenericService'));
-        });
-
-        test('it retrieves correct context', () {
-          expect(
-            didDoc.context
-                .hasUrlContext(Uri.parse('https://www.w3.org/ns/did/v1')),
-            true,
-          );
-        });
+      test('it retrieves correct id', () {
+        expect(didDoc.id, 'did:web:example.com');
       });
 
-      group('and receiving invalid json,', () {
-        test('it throws format exception that ID is required', () {
-          expect(
-            () => DidDocument.fromJson(
-                DidDocumentFixtures.didDocumentInvalidWithoutId),
-            throwsA(
-              isA<FormatException>().having((e) => e.message, 'message',
-                  'id property needed in did document'),
+      test('it retrieves correct authentication', () {
+        expect(didDoc.authentication[0].id, 'did:web:example.com#key-0');
+        expect(didDoc.authentication[1], isA<EmbeddedVerificationMethod>());
+        expect(didDoc.authentication[1].id, 'did:web:example.com#key-2');
+      });
+
+      test('it retrieves correct also know as', () {
+        expect(didDoc.alsoKnownAs, ['did:web:alias.example.com']);
+      });
+
+      test('it retrieves correct capability invacation', () {
+        expect(didDoc.capabilityInvocation[0].id, 'did:web:example.com#key-0');
+        expect(
+          didDoc.capabilityInvocation[1],
+          isA<EmbeddedVerificationMethod>(),
+        );
+        expect(didDoc.capabilityInvocation[1].id, 'did:web:example.com#key-2');
+      });
+
+      test('it retrieves correct capability delegation', () {
+        expect(didDoc.capabilityDelegation[0].id, 'did:web:example.com#key-1');
+        expect(
+          didDoc.capabilityDelegation[1],
+          isA<EmbeddedVerificationMethod>(),
+        );
+        expect(didDoc.capabilityDelegation[1].id, 'did:web:example.com#key-2');
+      });
+
+      test('it retrieves correct assertion method', () {
+        expect(didDoc.assertionMethod[0].id, 'did:web:example.com#key-0');
+        expect(didDoc.assertionMethod[1], isA<EmbeddedVerificationMethod>());
+        expect(didDoc.assertionMethod[1].id, 'did:web:example.com#key-2');
+      });
+
+      test('it retrieves correct verification methods', () {
+        expect(didDoc.verificationMethod[0].id, 'did:web:example.com#key-0');
+        expect(didDoc.verificationMethod[1].id, 'did:web:example.com#key-1');
+        expect(didDoc.verificationMethod[2].id, 'did:web:example.com#key-2');
+        expect(didDoc.verificationMethod[0].type, 'JsonWebKey2020');
+        expect(didDoc.verificationMethod[1].type, 'JsonWebKey2020');
+        expect(didDoc.verificationMethod[2].type, 'JsonWebKey2020');
+      });
+
+      test('it retrieves correct service', () {
+        expect(didDoc.service[0].id, 'did:web:example.com#service');
+        expect(
+          didDoc.service[0].type,
+          const StringServiceType('GenericService'),
+        );
+      });
+
+      test('it retrieves correct context', () {
+        expect(
+          didDoc.context.hasUrlContext(
+            Uri.parse('https://www.w3.org/ns/did/v1'),
+          ),
+          true,
+        );
+      });
+    });
+
+    group('and receiving invalid json,', () {
+      test('it throws format exception that ID is required', () {
+        expect(
+          () => DidDocument.fromJson(
+            DidDocumentFixtures.didDocumentInvalidWithoutId,
+          ),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              'id property needed in did document',
             ),
-          );
-        });
+          ),
+        );
       });
+    });
 
-      group('and receiving invalid json,', () {
-        test('it throws exception that context cannot be null', () {
-          expect(
-            () => DidDocument.fromJson(
-                DidDocumentFixtures.didDocumentInvalidWithoutContext),
-            throwsA(
-              isA<SsiException>().having((e) => e.code, 'code',
-                  SsiExceptionType.invalidDidDocument.code),
+    group('and receiving invalid json,', () {
+      test('it throws exception that context cannot be null', () {
+        expect(
+          () => DidDocument.fromJson(
+            DidDocumentFixtures.didDocumentInvalidWithoutContext,
+          ),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.code,
+              'code',
+              SsiExceptionType.invalidDidDocument.code,
             ),
-          );
-        });
+          ),
+        );
       });
-    },
-  );
+    });
+  });
 
   group('When parsing service endpoint from json', () {
     group('and receiving valid json,', () {
-      final serviceEndpoint =
-          ServiceEndpoint.fromJson(DidDocumentFixtures.serviceEndpointValid);
+      final serviceEndpoint = ServiceEndpoint.fromJson(
+        DidDocumentFixtures.serviceEndpointValid,
+      );
       test('it retrieves correct id', () {
         expect(serviceEndpoint.id, 'did:web:example.com#service');
       });
@@ -171,18 +166,24 @@ void main() {
 
       test('it handles lists with one element for type', () {
         final serviceEndpoint = ServiceEndpoint.fromJson(
-            DidDocumentFixtures.serviceEndpointTypeListOneElement);
+          DidDocumentFixtures.serviceEndpointTypeListOneElement,
+        );
 
         expect(
-            serviceEndpoint.type, const StringServiceType('DIDCommMessaging'));
+          serviceEndpoint.type,
+          const StringServiceType('DIDCommMessaging'),
+        );
       });
 
       test('it handles lists with two elements for type', () {
         final serviceEndpoint = ServiceEndpoint.fromJson(
-            DidDocumentFixtures.serviceEndpointTypeListTwoElement);
+          DidDocumentFixtures.serviceEndpointTypeListTwoElement,
+        );
 
-        expect(serviceEndpoint.type,
-            const SetServiceType(['DIDCommMessaging', 'two']));
+        expect(
+          serviceEndpoint.type,
+          const SetServiceType(['DIDCommMessaging', 'two']),
+        );
       });
 
       test('it retrieves correct service endpoint', () {
@@ -208,17 +209,24 @@ void main() {
   group('VerificationMethod', () {
     test('fromJson throws if no key material', () {
       expect(
-          () => EmbeddedVerificationMethod.fromJson(
-              {'id': 'id', 'type': 'type', 'controller': 'controller'}),
-          throwsA(isA<SsiException>()));
+        () => EmbeddedVerificationMethod.fromJson({
+          'id': 'id',
+          'type': 'type',
+          'controller': 'controller',
+        }),
+        throwsA(isA<SsiException>()),
+      );
     });
     test('toJson roundtrip for Jwk', () {
       final orig = VerificationMethodJwk(
         id: 'id',
         controller: 'controller',
         type: 'JsonWebKey2020',
-        publicKeyJwk:
-            Jwk.fromJson({'kty': 'OKP', 'crv': 'Ed25519', 'x': 'abc'}),
+        publicKeyJwk: Jwk.fromJson({
+          'kty': 'OKP',
+          'crv': 'Ed25519',
+          'x': 'abc',
+        }),
       );
       final json = orig.toJson();
       final parsed = EmbeddedVerificationMethod.fromJson(json);
@@ -267,8 +275,11 @@ void main() {
         id: 'id',
         controller: 'controller',
         type: 'JsonWebKey2020',
-        publicKeyJwk:
-            Jwk.fromJson({'kty': 'OKP', 'crv': 'Ed25519', 'x': 'abc'}),
+        publicKeyJwk: Jwk.fromJson({
+          'kty': 'OKP',
+          'crv': 'Ed25519',
+          'x': 'abc',
+        }),
       );
 
       final didDoc = DidDocument.create(
@@ -298,27 +309,33 @@ void main() {
   group('ServiceEndpoint', () {
     test('throws if id missing', () {
       expect(
-          () => ServiceEndpoint.fromJson(
-              {'type': 't', 'serviceEndpoint': <dynamic>[]}),
-          throwsFormatException);
+        () => ServiceEndpoint.fromJson({
+          'type': 't',
+          'serviceEndpoint': <dynamic>[],
+        }),
+        throwsFormatException,
+      );
     });
     test('throws if type missing', () {
       expect(
-          () => ServiceEndpoint.fromJson(
-              {'id': 'i', 'serviceEndpoint': <dynamic>[]}),
-          throwsFormatException);
+        () => ServiceEndpoint.fromJson({
+          'id': 'i',
+          'serviceEndpoint': <dynamic>[],
+        }),
+        throwsFormatException,
+      );
     });
     test('throws if serviceEndpoint missing', () {
-      expect(() => ServiceEndpoint.fromJson({'id': 'i', 'type': 't'}),
-          throwsFormatException);
+      expect(
+        () => ServiceEndpoint.fromJson({'id': 'i', 'type': 't'}),
+        throwsFormatException,
+      );
     });
     test('accepts map for serviceEndpoint', () {
       final se = ServiceEndpoint.fromJson({
         'id': 'i',
         'type': 't',
-        'serviceEndpoint': <String, dynamic>{
-          'uri': 'https://example.com',
-        },
+        'serviceEndpoint': <String, dynamic>{'uri': 'https://example.com'},
       });
       expect(se.id, 'i');
       expect(se.type, const StringServiceType('t'));
@@ -384,11 +401,15 @@ void main() {
       });
 
       expect(
-          se.type,
-          const StringServiceType(
-              'https://social.example/ExampleSocialMediaService'));
-      expect((se.serviceEndpoint as StringEndpoint).url,
-          'https://warbler.example/sal674');
+        se.type,
+        const StringServiceType(
+          'https://social.example/ExampleSocialMediaService',
+        ),
+      );
+      expect(
+        (se.serviceEndpoint as StringEndpoint).url,
+        'https://warbler.example/sal674',
+      );
     });
 
     test('accepts list of strings for type', () {
@@ -398,8 +419,10 @@ void main() {
         'serviceEndpoint': 'https://example.com',
       });
 
-      expect(se.type,
-          const SetServiceType(['LinkedDomains', 'CredentialRegistry']));
+      expect(
+        se.type,
+        const SetServiceType(['LinkedDomains', 'CredentialRegistry']),
+      );
       expect(se.serviceEndpoint, isA<StringEndpoint>());
     });
 

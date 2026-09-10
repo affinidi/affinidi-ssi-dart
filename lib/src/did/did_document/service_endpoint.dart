@@ -50,11 +50,13 @@ class ServiceEndpoint implements JsonObject {
     }
 
     if (se.containsKey('serviceEndpoint')) {
-      serviceEndpoint =
-          ServiceEndpointValueParser.fromJson(se['serviceEndpoint']);
+      serviceEndpoint = ServiceEndpointValueParser.fromJson(
+        se['serviceEndpoint'],
+      );
     } else {
       throw const FormatException(
-          'serviceEndpoint property is needed in serviceEndpoint');
+        'serviceEndpoint property is needed in serviceEndpoint',
+      );
     }
   }
 
@@ -80,11 +82,7 @@ class ServiceEndpoint implements JsonObject {
         }).toList();
     }
 
-    return {
-      'id': id,
-      'type': type.toJson(),
-      'serviceEndpoint': jsonValue,
-    };
+    return {'id': id, 'type': type.toJson(), 'serviceEndpoint': jsonValue};
   }
 
   /// Returns the JSON string representation of the service endpoint.

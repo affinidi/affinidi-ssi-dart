@@ -81,8 +81,11 @@ class MlDsa44KeyPair extends KeyPair {
       ..setRange(mlDsa44SecretKeyBytes, mlDsa44KeyBlobBytes, pk);
     return (
       MlDsa44KeyPair._(
-          Uint8List.fromList(sk), Uint8List.fromList(pk), effectiveId),
-      keyBlob
+        Uint8List.fromList(sk),
+        Uint8List.fromList(pk),
+        effectiveId,
+      ),
+      keyBlob,
     );
   }
 
@@ -90,10 +93,7 @@ class MlDsa44KeyPair extends KeyPair {
   ///
   /// [keyBlob] must be the 3872-byte `[sk || pk]` blob produced by [generate]
   /// or [fromSeed] (via their `privateKeyBytes` return value / helper).
-  factory MlDsa44KeyPair.fromPrivateKey(
-    Uint8List keyBlob, {
-    String? id,
-  }) {
+  factory MlDsa44KeyPair.fromPrivateKey(Uint8List keyBlob, {String? id}) {
     if (keyBlob.length != mlDsa44KeyBlobBytes) {
       throw SsiException(
         message:
@@ -105,7 +105,10 @@ class MlDsa44KeyPair extends KeyPair {
     final sk = keyBlob.sublist(0, mlDsa44SecretKeyBytes);
     final pk = keyBlob.sublist(mlDsa44SecretKeyBytes);
     return MlDsa44KeyPair._(
-        Uint8List.fromList(sk), Uint8List.fromList(pk), effectiveId);
+      Uint8List.fromList(sk),
+      Uint8List.fromList(pk),
+      effectiveId,
+    );
   }
 
   /// Derives a deterministic ML-DSA-44 keypair from arbitrary input key
@@ -156,18 +159,18 @@ class MlDsa44KeyPair extends KeyPair {
       ..setRange(mlDsa44SecretKeyBytes, mlDsa44KeyBlobBytes, pk);
     return (
       MlDsa44KeyPair._(
-          Uint8List.fromList(sk), Uint8List.fromList(pk), effectiveId),
-      keyBlob
+        Uint8List.fromList(sk),
+        Uint8List.fromList(pk),
+        effectiveId,
+      ),
+      keyBlob,
     );
   }
 
   /// Derives the 32-byte ML-DSA-44 seed (xi) from arbitrary input key material
   /// via HKDF-SHA256.
   static Future<Uint8List> _deriveXi(Uint8List ikm) async {
-    final algorithm = crypto.Hkdf(
-      hmac: crypto.Hmac.sha256(),
-      outputLength: 32,
-    );
+    final algorithm = crypto.Hkdf(hmac: crypto.Hmac.sha256(), outputLength: 32);
     final derivedKey = await algorithm.deriveKey(
       secretKey: crypto.SecretKey(ikm),
       nonce: _hkdfSalt.codeUnits,
@@ -180,8 +183,9 @@ class MlDsa44KeyPair extends KeyPair {
   PublicKey get publicKey => PublicKey(id, _publicKey, KeyType.mldsa44);
 
   @override
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      [SignatureScheme.mldsa44];
+  List<SignatureScheme> get supportedSignatureSchemes => [
+    SignatureScheme.mldsa44,
+  ];
 
   @override
   SignatureScheme get defaultSignatureScheme => SignatureScheme.mldsa44;

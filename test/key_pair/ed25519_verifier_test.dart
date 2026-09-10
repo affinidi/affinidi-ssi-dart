@@ -59,7 +59,10 @@ void main() {
         ]);
         expect(
           verifyEd25519Signature(
-              keyPair.publicKey.bytes, data, forgedSignature),
+            keyPair.publicKey.bytes,
+            data,
+            forgedSignature,
+          ),
           isFalse,
           reason: 'small-order R value $pointHex was accepted',
         );
@@ -76,20 +79,14 @@ void main() {
         'edffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f',
       );
 
-      expect(
-        verifyEd25519Signature(nonCanonicalKey, data, signature),
-        isFalse,
-      );
+      expect(verifyEd25519Signature(nonCanonicalKey, data, signature), isFalse);
     });
 
     test('it rejects an invalid public key length', () async {
       final keyPair = Ed25519KeyPair.fromSeed(seed);
       final signature = await keyPair.sign(data);
 
-      expect(
-        verifyEd25519Signature(Uint8List(31), data, signature),
-        isFalse,
-      );
+      expect(verifyEd25519Signature(Uint8List(31), data, signature), isFalse);
     });
 
     test('it rejects an invalid signature length', () async {

@@ -11,7 +11,8 @@ void main() {
   // Access the credential data (as JwtVcDataModelV1)
   if (parsedJwtVc is JwtVcDataModelV1) {
     print(
-        'Parsed JWT VC Payload (vc field):\n${jsonEncode(parsedJwtVc.toJson())}');
+      'Parsed JWT VC Payload (vc field):\n${jsonEncode(parsedJwtVc.toJson())}',
+    );
     print('\nComplete JWS Payload:\n${jsonEncode(parsedJwtVc.jws.payload)}');
     print('\nSerialized JWT:\n${parsedJwtVc.serialized}');
   } else {

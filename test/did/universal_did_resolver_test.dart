@@ -13,11 +13,12 @@ void main() {
       test('it resolves successfully', () async {
         final did = 'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
 
-        final expectedDidDoc =
-            jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
+        final expectedDidDoc = jsonDecode(
+          DidDocumentFixtures.didDocumentWithControllerKey,
+        );
 
-        final resolvedDidDocument =
-            await UniversalDIDResolver.defaultResolver.resolveDid(did);
+        final resolvedDidDocument = await UniversalDIDResolver.defaultResolver
+            .resolveDid(did);
         expect(resolvedDidDocument.toJson(), expectedDidDoc);
       });
     });
@@ -65,13 +66,15 @@ void main() {
         final did =
             'did:webvh:QmRcnRLQ5GGA3JUtCMyEdMEkssSg8Hkvjj9EfKaRQw4YbZ:raw.githubusercontent.com:affinidi:affinidi-ssi-dart:refs:heads:main:example:dids:didwebvh:bob';
 
-        final expectedDidDocCanon =
-            JcsUtil.canonicalize(jsonDecode(expectedDidDocAsString));
+        final expectedDidDocCanon = JcsUtil.canonicalize(
+          jsonDecode(expectedDidDocAsString),
+        );
 
-        final resolvedDidDoc =
-            await UniversalDIDResolver.defaultResolver.resolveDid(did);
-        final resolvedDidDocCanon =
-            JcsUtil.canonicalize(resolvedDidDoc.toJson());
+        final resolvedDidDoc = await UniversalDIDResolver.defaultResolver
+            .resolveDid(did);
+        final resolvedDidDocCanon = JcsUtil.canonicalize(
+          resolvedDidDoc.toJson(),
+        );
 
         expect(resolvedDidDocCanon, expectedDidDocCanon);
       });
@@ -82,11 +85,12 @@ void main() {
         final did =
             'did:peer:0z6MkiGLyAzSR45X3UovkdGnpH2TixJcYznTLqQ3ZLFkv91Ka';
 
-        final expectedDidDoc =
-            jsonDecode(DidDocumentFixtures.didDocumentWithControllerPeer);
+        final expectedDidDoc = jsonDecode(
+          DidDocumentFixtures.didDocumentWithControllerPeer,
+        );
 
-        final resolvedDidDoc =
-            await UniversalDIDResolver.defaultResolver.resolveDid(did);
+        final resolvedDidDoc = await UniversalDIDResolver.defaultResolver
+            .resolveDid(did);
 
         expect(resolvedDidDoc.toJson(), expectedDidDoc);
       });
@@ -99,23 +103,35 @@ void main() {
 
         await expectLater(
           UniversalDIDResolver.defaultResolver.resolveDid(did),
-          throwsA(isA<SsiException>().having(
-              (e) => e.code, 'code', SsiExceptionType.invalidDidWeb.code)),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.code,
+              'code',
+              SsiExceptionType.invalidDidWeb.code,
+            ),
+          ),
         );
       });
     });
 
     group('using resolver address', () {
-      test('it throws unable to resolve did when resolverAddress null',
-          () async {
-        final did = 'did:test';
+      test(
+        'it throws unable to resolve did when resolverAddress null',
+        () async {
+          final did = 'did:test';
 
-        await expectLater(
-          UniversalDIDResolver.defaultResolver.resolveDid(did),
-          throwsA(isA<SsiException>().having(
-              (e) => e.code, 'code', SsiExceptionType.unableToResolveDid.code)),
-        );
-      });
+          await expectLater(
+            UniversalDIDResolver.defaultResolver.resolveDid(did),
+            throwsA(
+              isA<SsiException>().having(
+                (e) => e.code,
+                'code',
+                SsiExceptionType.unableToResolveDid.code,
+              ),
+            ),
+          );
+        },
+      );
 
       test('it throws exception on non-200 responses', () async {
         final did = 'did:test';
@@ -125,8 +141,13 @@ void main() {
 
         await expectLater(
           resolver.resolveDid(did),
-          throwsA(isA<SsiException>().having(
-              (e) => e.code, 'code', SsiExceptionType.unableToResolveDid.code)),
+          throwsA(
+            isA<SsiException>().having(
+              (e) => e.code,
+              'code',
+              SsiExceptionType.unableToResolveDid.code,
+            ),
+          ),
         );
       });
     });
@@ -139,11 +160,12 @@ void main() {
 
     test('defaultResolver should resolve DIDs using instance method', () async {
       final did = 'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
-      final expectedDidDoc =
-          jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
+      final expectedDidDoc = jsonDecode(
+        DidDocumentFixtures.didDocumentWithControllerKey,
+      );
 
-      final resolvedDidDocument =
-          await UniversalDIDResolver.defaultResolver.resolveDid(did);
+      final resolvedDidDocument = await UniversalDIDResolver.defaultResolver
+          .resolveDid(did);
       expect(resolvedDidDocument.toJson(), expectedDidDoc);
     });
 
@@ -155,28 +177,35 @@ void main() {
 
       await expectLater(
         resolver.resolveDid(did),
-        throwsA(isA<SsiException>().having(
-            (e) => e.code, 'code', SsiExceptionType.unableToResolveDid.code)),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.code,
+            'code',
+            SsiExceptionType.unableToResolveDid.code,
+          ),
+        ),
       );
     });
 
     test('defaultResolver maintains backward compatibility', () async {
       final did = 'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
-      final expectedDidDoc =
-          jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
+      final expectedDidDoc = jsonDecode(
+        DidDocumentFixtures.didDocumentWithControllerKey,
+      );
 
-      final resolvedDidDocument =
-          await UniversalDIDResolver.defaultResolver.resolveDid(did);
+      final resolvedDidDocument = await UniversalDIDResolver.defaultResolver
+          .resolveDid(did);
       expect(resolvedDidDocument.toJson(), expectedDidDoc);
     });
 
     test('defaultResolver can be used directly', () async {
       final did = 'did:key:zQ3shZpqW9nCcCo9Lz74rG4vYXra1fVDYCzyomC2zNZhaDa7R';
-      final expectedDidDoc =
-          jsonDecode(DidDocumentFixtures.didDocumentWithControllerKey);
+      final expectedDidDoc = jsonDecode(
+        DidDocumentFixtures.didDocumentWithControllerKey,
+      );
 
-      final resolvedDidDocument =
-          await UniversalDIDResolver.defaultResolver.resolveDid(did);
+      final resolvedDidDocument = await UniversalDIDResolver.defaultResolver
+          .resolveDid(did);
       expect(resolvedDidDocument.toJson(), expectedDidDoc);
     });
   });

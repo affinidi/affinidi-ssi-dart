@@ -18,7 +18,7 @@ void main() {
       final unsignedCredential = MutableVcDataModelV2(
         context: MutableJsonLdContext.fromJson([
           dmV2ContextUrl,
-          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld',
         ]),
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
@@ -27,28 +27,29 @@ void main() {
             'Fname': 'Fname',
             'Lname': 'Lame',
             'Age': '22',
-            'Address': 'Eihhornstr'
-          })
+            'Address': 'Eihhornstr',
+          }),
         ],
         credentialSchema: [
           MutableCredentialSchema(
-              id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
-              type: 'JsonSchemaValidator2018')
+            id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+            type: 'JsonSchemaValidator2018',
+          ),
         ],
         validFrom: DateTime.now(),
         validUntil: DateTime.now().add(const Duration(days: 365)),
         issuer: Issuer.uri(signer.did),
       );
 
-      final proofGenerator = Secp256k1Signature2019Generator(
-        signer: signer,
-      );
+      final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
       final issuedCredential = await LdVcDm2Suite().issue(
-          unsignedData: VcDataModelV2.fromMutable(unsignedCredential),
-          proofGenerator: proofGenerator);
+        unsignedData: VcDataModelV2.fromMutable(unsignedCredential),
+        proofGenerator: proofGenerator,
+      );
 
-      final verificationResult =
-          await UniversalVerifier().verify(issuedCredential);
+      final verificationResult = await UniversalVerifier().verify(
+        issuedCredential,
+      );
 
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
@@ -56,8 +57,10 @@ void main() {
     });
 
     test('V2 fixture verify', () async {
-      final unsigned = LdVcDm2Suite().parse(VerifiableCredentialDataFixtures
-          .credentialWithValidProofDataModelV20String);
+      final unsigned = LdVcDm2Suite().parse(
+        VerifiableCredentialDataFixtures
+            .credentialWithValidProofDataModelV20String,
+      );
       // final issuedCredential = await LdVcDm1Suite().issue(unsigned, signer);
 
       final validationResult = await LdVcDm2Suite().verifyIntegrity(unsigned);
@@ -67,69 +70,71 @@ void main() {
   });
 
   group('Issuer/proof DID cross-check (LdBaseSuite VC DM2)', () {
-    test('issue() throws when unsigned issuer DID differs from signer DID',
-        () async {
-      final signer = await initSigner(seed);
+    test(
+      'issue() throws when unsigned issuer DID differs from signer DID',
+      () async {
+        final signer = await initSigner(seed);
 
-      final unsignedCredential = MutableVcDataModelV2(
-        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-        id: Uri.parse('uuid:issuer-mismatch'),
-        type: {'VerifiableCredential'},
-        credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subject'})
-        ],
-        // mismatch - issuer DID != signer DID
-        issuer: Issuer.uri('did:example:not-${signer.did}'),
-      );
+        final unsignedCredential = MutableVcDataModelV2(
+          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+          id: Uri.parse('uuid:issuer-mismatch'),
+          type: {'VerifiableCredential'},
+          credentialSubject: [
+            MutableCredentialSubject({'id': 'did:example:subject'}),
+          ],
+          // mismatch - issuer DID != signer DID
+          issuer: Issuer.uri('did:example:not-${signer.did}'),
+        );
 
-      final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
+        final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
 
-      expect(
-        () async => LdVcDm2Suite().issue(
-          unsignedData: VcDataModelV2.fromMutable(unsignedCredential),
-          proofGenerator: proofGenerator,
-        ),
-        throwsA(
-          predicate((e) =>
-              e is SsiException &&
-              e.code == SsiExceptionType.invalidJson.code &&
-              e.message.toLowerCase().contains('issuer mismatch')),
-        ),
-      );
-    });
+        expect(
+          () async => LdVcDm2Suite().issue(
+            unsignedData: VcDataModelV2.fromMutable(unsignedCredential),
+            proofGenerator: proofGenerator,
+          ),
+          throwsA(
+            predicate(
+              (e) =>
+                  e is SsiException &&
+                  e.code == SsiExceptionType.invalidJson.code &&
+                  e.message.toLowerCase().contains('issuer mismatch'),
+            ),
+          ),
+        );
+      },
+    );
 
     test(
-        'verifyIntegrity() throws when issuer DID mutated to not match proof VM DID',
-        () async {
-      final signer = await initSigner(seed);
+      'verifyIntegrity() throws when issuer DID mutated to not match proof VM DID',
+      () async {
+        final signer = await initSigner(seed);
 
-      // issue a valid credential first (issuer == signer DID)
-      final unsignedCredential = MutableVcDataModelV2(
-        context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-        id: Uri.parse('uuid:will-mutate'),
-        type: {'VerifiableCredential'},
-        credentialSubject: [
-          MutableCredentialSubject({'id': 'did:example:subject'})
-        ],
-        issuer: Issuer.uri(signer.did),
-      );
-      final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
-      final issuedCredential = await LdVcDm2Suite().issue(
-        unsignedData: VcDataModelV2.fromMutable(unsignedCredential),
-        proofGenerator: proofGenerator,
-      );
+        // issue a valid credential first (issuer == signer DID)
+        final unsignedCredential = MutableVcDataModelV2(
+          context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+          id: Uri.parse('uuid:will-mutate'),
+          type: {'VerifiableCredential'},
+          credentialSubject: [
+            MutableCredentialSubject({'id': 'did:example:subject'}),
+          ],
+          issuer: Issuer.uri(signer.did),
+        );
+        final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
+        final issuedCredential = await LdVcDm2Suite().issue(
+          unsignedData: VcDataModelV2.fromMutable(unsignedCredential),
+          proofGenerator: proofGenerator,
+        );
 
-      // mutate issuer DID in the serialized form
-      final mutated = issuedCredential.toJson();
-      mutated['issuer'] = 'did:example:malicious';
+        // mutate issuer DID in the serialized form
+        final mutated = issuedCredential.toJson();
+        mutated['issuer'] = 'did:example:malicious';
 
-      expect(
-        () async {
+        expect(() async {
           final parsed = LdVcDm2Suite().parse(jsonEncode(mutated));
           return LdVcDm2Suite().verifyIntegrity(parsed);
-        },
-        throwsA(isA<SsiException>()),
-      );
-    });
+        }, throwsA(isA<SsiException>()));
+      },
+    );
   });
 }

@@ -26,25 +26,22 @@ class StoredKey {
   final String? derivationPath;
 
   /// Creates a StoredKey instance for raw private key bytes.
-  StoredKey.fromPrivateKey({
-    required this.keyType,
-    required Uint8List keyBytes,
-  })  : representation = StoredKeyRepresentation.privateKeyBytes,
-        privateKeyBytes = keyBytes,
-        derivationPath = null;
+  StoredKey.fromPrivateKey({required this.keyType, required Uint8List keyBytes})
+    : representation = StoredKeyRepresentation.privateKeyBytes,
+      privateKeyBytes = keyBytes,
+      derivationPath = null;
 
   /// Creates a StoredKey instance for a derivation path.
-  StoredKey.fromDerivationPath({
-    required this.keyType,
-    required String path,
-  })  : representation = StoredKeyRepresentation.derivationPath,
-        privateKeyBytes = null,
-        derivationPath = path;
+  StoredKey.fromDerivationPath({required this.keyType, required String path})
+    : representation = StoredKeyRepresentation.derivationPath,
+      privateKeyBytes = null,
+      derivationPath = path;
 
   /// Creates a StoredKey from a JSON map (for persistence).
   factory StoredKey.fromJson(Map<String, dynamic> json) {
-    final representation =
-        StoredKeyRepresentation.values.byName(json['representation'] as String);
+    final representation = StoredKeyRepresentation.values.byName(
+      json['representation'] as String,
+    );
     final keyType = KeyType.values.byName(json['keyType'] as String);
 
     if (representation == StoredKeyRepresentation.privateKeyBytes) {
@@ -53,7 +50,8 @@ class StoredKey {
           .toList();
       if (keyBytesList == null) {
         throw ArgumentError(
-            'Missing privateKeyBytes for privateKeyBytes representation');
+          'Missing privateKeyBytes for privateKeyBytes representation',
+        );
       }
       return StoredKey.fromPrivateKey(
         keyType: keyType,
@@ -63,12 +61,10 @@ class StoredKey {
       final path = json['derivationPath'] as String?;
       if (path == null) {
         throw ArgumentError(
-            'Missing derivationPath for derivationPath representation');
+          'Missing derivationPath for derivationPath representation',
+        );
       }
-      return StoredKey.fromDerivationPath(
-        keyType: keyType,
-        path: path,
-      );
+      return StoredKey.fromDerivationPath(keyType: keyType, path: path);
     } else {
       throw ArgumentError('Invalid StoredKey representation in JSON');
     }

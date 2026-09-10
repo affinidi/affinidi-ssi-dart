@@ -6,40 +6,47 @@ import '../../../fixtures/verifiable_presentations_fixtures.dart';
 
 void main() async {
   final v2Vp = UniversalPresentationParser.parse(
-      VerifiablePresentationDataFixtures.v2VpWithExpiringVCString);
+    VerifiablePresentationDataFixtures.v2VpWithExpiringVCString,
+  );
 
   group('VP LD V1 Expiry Verification', () {
     test(
-        'should be able to verify the time validity of VCs embedded within a V1 presentation',
-        () async {
-      final verificationStatus =
-          await VpExpiryVerifier(getNow: _getNow).verify(v2Vp);
-      expect(verificationStatus.errors.length, 0);
-      expect(verificationStatus.warnings.length, 0);
-      expect(verificationStatus.isValid, true);
-    });
+      'should be able to verify the time validity of VCs embedded within a V1 presentation',
+      () async {
+        final verificationStatus = await VpExpiryVerifier(
+          getNow: _getNow,
+        ).verify(v2Vp);
+        expect(verificationStatus.errors.length, 0);
+        expect(verificationStatus.warnings.length, 0);
+        expect(verificationStatus.isValid, true);
+      },
+    );
 
     test(
-        'should be able to verify the time validity of an expired VC embedded within a V1 presentation',
-        () async {
-      final verificationStatus =
-          await VpExpiryVerifier(getNow: _getFuture).verify(v2Vp);
+      'should be able to verify the time validity of an expired VC embedded within a V1 presentation',
+      () async {
+        final verificationStatus = await VpExpiryVerifier(
+          getNow: _getFuture,
+        ).verify(v2Vp);
 
-      expect(verificationStatus.isValid, false);
-      expect(verificationStatus.errors.length, 1);
-      expect(verificationStatus.warnings.length, 0);
-    });
+        expect(verificationStatus.isValid, false);
+        expect(verificationStatus.errors.length, 1);
+        expect(verificationStatus.warnings.length, 0);
+      },
+    );
 
     test(
-        'should be able to verify the time validity of a future valid VC embedded within a V1 presentation',
-        () async {
-      final verificationStatus =
-          await VpExpiryVerifier(getNow: _getPast).verify(v2Vp);
+      'should be able to verify the time validity of a future valid VC embedded within a V1 presentation',
+      () async {
+        final verificationStatus = await VpExpiryVerifier(
+          getNow: _getPast,
+        ).verify(v2Vp);
 
-      expect(verificationStatus.isValid, false);
-      expect(verificationStatus.errors.length, 1);
-      expect(verificationStatus.warnings.length, 0);
-    });
+        expect(verificationStatus.isValid, false);
+        expect(verificationStatus.errors.length, 1);
+        expect(verificationStatus.warnings.length, 0);
+      },
+    );
   });
 }
 

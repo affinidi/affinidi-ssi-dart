@@ -20,9 +20,8 @@ class VpExpiryVerifier implements VpVerifier {
   final VcExpiryVerifier _vcExpiryVerifier;
 
   /// Creates a [VpExpiryVerifier].
-  VpExpiryVerifier({
-    DateTime Function() getNow = DateTime.now,
-  }) : _vcExpiryVerifier = VcExpiryVerifier(getNow: getNow);
+  VpExpiryVerifier({DateTime Function() getNow = DateTime.now})
+    : _vcExpiryVerifier = VcExpiryVerifier(getNow: getNow);
 
   @override
   Future<VerificationResult> verify(ParsedVerifiablePresentation data) async {
@@ -34,8 +33,6 @@ class VpExpiryVerifier implements VpVerifier {
       }
     }
 
-    return Future.value(
-      VerificationResult.ok(),
-    );
+    return Future.value(VerificationResult.ok());
   }
 }

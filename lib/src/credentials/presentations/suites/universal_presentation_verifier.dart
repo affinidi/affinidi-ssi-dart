@@ -42,17 +42,15 @@ final class UniversalPresentationVerifier {
   final DidResolver? didResolver;
 
   /// The default set of verifiers applied to every presentation.
-  List<VpVerifier> get defaultVerifiers => List.unmodifiable(
-        <VpVerifier>[
-          VpExpiryVerifier(),
-          VpIntegrityVerifier(
-            customDocumentLoader: customDocumentLoader,
-            didResolver: didResolver,
-          ),
-          DelegationVcVerifier(),
-          HolderBindingVerifier(),
-        ],
-      );
+  List<VpVerifier> get defaultVerifiers => List.unmodifiable(<VpVerifier>[
+    VpExpiryVerifier(),
+    VpIntegrityVerifier(
+      customDocumentLoader: customDocumentLoader,
+      didResolver: didResolver,
+    ),
+    DelegationVcVerifier(),
+    HolderBindingVerifier(),
+  ]);
 
   /// Creates a new [UniversalPresentationVerifier].
   ///
@@ -86,8 +84,8 @@ final class UniversalPresentationVerifier {
     List<VcVerifier>? customVclVerifiers,
     this.customDocumentLoader,
     this.didResolver,
-  })  : customVerifiers = customVerifiers ?? [],
-        customVclVerifiers = customVclVerifiers ?? [];
+  }) : customVerifiers = customVerifiers ?? [],
+       customVclVerifiers = customVclVerifiers ?? [];
 
   /// Verifies the given [ParsedVerifiablePresentation] using all registered verifiers.
   ///
@@ -111,9 +109,10 @@ final class UniversalPresentationVerifier {
     // Verify VCs only if VP verified successfully
     if (errors.isEmpty) {
       final vcVerifier = UniversalVerifier(
-          customDocumentLoader: customDocumentLoader,
-          didResolver: didResolver,
-          customVerifiers: customVclVerifiers);
+        customDocumentLoader: customDocumentLoader,
+        didResolver: didResolver,
+        customVerifiers: customVclVerifiers,
+      );
 
       // Verify each credential using the UniversalVerifier
       for (final credential in vp.verifiableCredential) {
@@ -123,9 +122,6 @@ final class UniversalPresentationVerifier {
       }
     }
 
-    return VerificationResult.fromFindings(
-      errors: errors,
-      warnings: warnings,
-    );
+    return VerificationResult.fromFindings(errors: errors, warnings: warnings);
   }
 }

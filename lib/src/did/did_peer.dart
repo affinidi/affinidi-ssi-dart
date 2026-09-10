@@ -21,14 +21,14 @@ const _serviceKeyAbbreviations = {
   'accept': 'a',
 };
 
-const _serviceTypeAbbreviations = {
-  'DIDCommMessaging': 'dm',
-};
+const _serviceTypeAbbreviations = {'DIDCommMessaging': 'dm'};
 
-final _serviceKeyDeabbreviations =
-    _serviceKeyAbbreviations.map((k, v) => MapEntry(v, k));
-final _serviceTypeDeabbreviations =
-    _serviceTypeAbbreviations.map((k, v) => MapEntry(v, k));
+final _serviceKeyDeabbreviations = _serviceKeyAbbreviations.map(
+  (k, v) => MapEntry(v, k),
+);
+final _serviceTypeDeabbreviations = _serviceTypeAbbreviations.map(
+  (k, v) => MapEntry(v, k),
+);
 
 dynamic _abbreviateService(dynamic json) {
   if (json is Map<String, dynamic>) {
@@ -121,7 +121,8 @@ enum Numalgo2Prefix {
 
 /// Regular expression pattern for matching peer DIDs.
 final RegExp peerDIDPattern = RegExp(
-    r'^did:peer:((0(z)[1-9a-km-zA-HJ-NP-Z]+)|(2(\.[AEVID](z)[1-9a-km-zA-HJ-NP-Z]+)+)+(\.(S)[0-9a-zA-Z]*)?)');
+  r'^did:peer:((0(z)[1-9a-km-zA-HJ-NP-Z]+)|(2(\.[AEVID](z)[1-9a-km-zA-HJ-NP-Z]+)+)+(\.(S)[0-9a-zA-Z]*)?)',
+);
 
 /// Validates if a given string matches the peer DID pattern.
 ///
@@ -147,7 +148,7 @@ DidDocument _resolveDidPeer0(String did) {
 
   const multikeyContext = [
     'https://www.w3.org/ns/did/v1',
-    'https://w3id.org/security/multikey/v1'
+    'https://w3id.org/security/multikey/v1',
   ];
 
   var keyPart = did.substring(11);
@@ -157,13 +158,15 @@ DidDocument _resolveDidPeer0(String did) {
     return _buildEDDoc(multikeyContext, did, keyPart);
   }
 
-  final forSigning = keyPart.startsWith('Dn') || // p256
+  final forSigning =
+      keyPart.startsWith('Dn') || // p256
       keyPart.startsWith('Q3s') || // secp256k1
       keyPart.startsWith('82') || // p384
       keyPart.startsWith('2J9'); // p521
 
   // x25519
-  final forKeyAgreement = keyPart.startsWith('6LS') || // x25519
+  final forKeyAgreement =
+      keyPart.startsWith('6LS') || // x25519
       keyPart.startsWith('Dn') || // p256
       keyPart.startsWith('82') || // p384
       keyPart.startsWith('2J9'); // p521
@@ -190,7 +193,7 @@ DidDocument _resolveDidPeer2(String did) {
 
   final context = [
     'https://www.w3.org/ns/did/v1',
-    'https://w3id.org/security/multikey/v1'
+    'https://w3id.org/security/multikey/v1',
   ];
 
   final verificationMethods = <EmbeddedVerificationMethod>[];
@@ -275,13 +278,10 @@ DidDocument _resolveDidPeer2(String did) {
 }
 
 /// Builds a DID Document for ED25519 keys.
-DidDocument _buildEDDoc(
-  List<String> context,
-  String id,
-  String keyPart,
-) {
-  final x25519PubKey =
-      ed25519PublicToX25519Public(base58Bitcoin.decode(keyPart).sublist(2));
+DidDocument _buildEDDoc(List<String> context, String id, String keyPart) {
+  final x25519PubKey = ed25519PublicToX25519Public(
+    base58Bitcoin.decode(keyPart).sublist(2),
+  );
   final x25519PubKeyMultiBase = toMultiBase(
     toMultikey(x25519PubKey, KeyType.x25519),
   );
@@ -371,14 +371,18 @@ class DidPeer {
       return '';
     }
 
-    return services.map((service) {
-      final serviceJson = service.toJson();
-      final abbreviatedJson = _abbreviateService(serviceJson);
+    return services
+        .map((service) {
+          final serviceJson = service.toJson();
+          final abbreviatedJson = _abbreviateService(serviceJson);
 
-      final jsonToEncode = json.encode(abbreviatedJson);
-      final encodedService = base64UrlNoPadEncode(utf8.encode(jsonToEncode));
-      return '.${Numalgo2Prefix.service.value}$encodedService';
-    }).join('');
+          final jsonToEncode = json.encode(abbreviatedJson);
+          final encodedService = base64UrlNoPadEncode(
+            utf8.encode(jsonToEncode),
+          );
+          return '.${Numalgo2Prefix.service.value}$encodedService';
+        })
+        .join('');
   }
 
   /// This method derives the peer DID from the given public keys
@@ -410,7 +414,8 @@ class DidPeer {
 
     // did:peer:0 is for a single key (equivalent to did:key).
     // Only used when explicitly preferred AND conditions are met.
-    final isDid0 = preferredNumalgo == DidPeerType.peer0 &&
+    final isDid0 =
+        preferredNumalgo == DidPeerType.peer0 &&
         verificationMethods.length == 1 &&
         (serviceEndpoints == null || serviceEndpoints.isEmpty);
 
@@ -447,8 +452,9 @@ class DidPeer {
       final purpose = indexToPurpose[i];
       if (purpose != null) {
         final prefix = getPrefixForRelationship(purpose);
-        final keyMultibase = toMultiBase(toMultikey(
-            verificationMethods[i].bytes, verificationMethods[i].type));
+        final keyMultibase = toMultiBase(
+          toMultikey(verificationMethods[i].bytes, verificationMethods[i].type),
+        );
         keyStr += '.${prefix.value}$keyMultibase';
       }
     }
@@ -472,7 +478,7 @@ class DidPeer {
   }) {
     final context = [
       'https://www.w3.org/ns/did/v1',
-      'https://w3id.org/security/multikey/v1'
+      'https://w3id.org/security/multikey/v1',
     ];
 
     // Expands a fragment-only ID (e.g. '#key-1') to fully-qualified form
@@ -484,28 +490,37 @@ class DidPeer {
     final vms = <EmbeddedVerificationMethod>[];
     for (var i = 0; i < verificationMethodIds.length; i++) {
       final pubKey = publicKeys[i];
-      vms.add(VerificationMethodMultibase(
-        id: toFullId(verificationMethodIds[i]),
-        controller: did,
-        type: 'Multikey',
-        publicKeyMultibase: toMultiBase(toMultikey(pubKey.bytes, pubKey.type)),
-      ));
+      vms.add(
+        VerificationMethodMultibase(
+          id: toFullId(verificationMethodIds[i]),
+          controller: did,
+          type: 'Multikey',
+          publicKeyMultibase: toMultiBase(
+            toMultikey(pubKey.bytes, pubKey.type),
+          ),
+        ),
+      );
     }
 
     return DidDocument.create(
       context: JsonLdContext.fromJson(context),
       id: did,
       verificationMethod: vms,
-      authentication:
-          toFullIds(relationships[VerificationRelationship.authentication]),
-      keyAgreement:
-          toFullIds(relationships[VerificationRelationship.keyAgreement]),
-      assertionMethod:
-          toFullIds(relationships[VerificationRelationship.assertionMethod]),
+      authentication: toFullIds(
+        relationships[VerificationRelationship.authentication],
+      ),
+      keyAgreement: toFullIds(
+        relationships[VerificationRelationship.keyAgreement],
+      ),
+      assertionMethod: toFullIds(
+        relationships[VerificationRelationship.assertionMethod],
+      ),
       capabilityInvocation: toFullIds(
-          relationships[VerificationRelationship.capabilityInvocation]),
+        relationships[VerificationRelationship.capabilityInvocation],
+      ),
       capabilityDelegation: toFullIds(
-          relationships[VerificationRelationship.capabilityDelegation]),
+        relationships[VerificationRelationship.capabilityDelegation],
+      ),
       service: serviceEndpoints,
     );
   }

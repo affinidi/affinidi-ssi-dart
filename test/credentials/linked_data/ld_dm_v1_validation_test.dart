@@ -13,7 +13,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
       );
 
@@ -25,8 +25,9 @@ void main() {
 
     test('Throws when context does not include required URL', () {
       final credentialWithWrongContext = MutableVcDataModelV1(
-        context: MutableJsonLdContext.fromJson(
-            ['https://www.w3.org/ns/credentials/v2']),
+        context: MutableJsonLdContext.fromJson([
+          'https://www.w3.org/ns/credentials/v2',
+        ]),
         // Wrong context URL
         id: Uri.parse('urn:uuid:1234abcd-1234-abcd-1234-abcd1234abcd'),
         issuer: MutableIssuer.uri('did:example:issuer'),
@@ -35,7 +36,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
       );
 
@@ -55,7 +56,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
       );
 
@@ -76,7 +77,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
       );
 
@@ -96,7 +97,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
       );
 
@@ -146,7 +147,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
         proof: [
           EmbeddedProof(
@@ -162,11 +163,13 @@ void main() {
 
       expect(
         () => VcDataModelV1.fromMutable(credentialWithEmptyProofId),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('Proof id cannot be empty'),
-        )),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Proof id cannot be empty'),
+          ),
+        ),
       );
     });
 
@@ -182,7 +185,7 @@ void main() {
           MutableCredentialSubject({
             'id': 'did:example:subject',
             'name': 'John Doe',
-          })
+          }),
         ],
         proof: [
           EmbeddedProof(
@@ -206,11 +209,13 @@ void main() {
 
       expect(
         () => VcDataModelV1.fromMutable(credentialWithDuplicateProofIds),
-        throwsA(isA<SsiException>().having(
-          (e) => e.message,
-          'message',
-          contains('Multiple proofs are not supported'),
-        )),
+        throwsA(
+          isA<SsiException>().having(
+            (e) => e.message,
+            'message',
+            contains('Multiple proofs are not supported'),
+          ),
+        ),
       );
     });
   });

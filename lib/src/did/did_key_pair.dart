@@ -66,10 +66,7 @@ class DidKeyPair {
   /// [signatureScheme] - Optional signature scheme to use.
   ///
   /// Returns a [Future] that completes with the signature as a [Uint8List].
-  Future<Uint8List> sign(
-    Uint8List data, {
-    SignatureScheme? signatureScheme,
-  }) =>
+  Future<Uint8List> sign(Uint8List data, {SignatureScheme? signatureScheme}) =>
       keyPair.sign(data, signatureScheme: signatureScheme);
 
   /// Verifies a signature using the underlying key pair.
@@ -83,8 +80,7 @@ class DidKeyPair {
     Uint8List data,
     Uint8List signature, {
     SignatureScheme? signatureScheme,
-  }) =>
-      keyPair.verify(data, signature, signatureScheme: signatureScheme);
+  }) => keyPair.verify(data, signature, signatureScheme: signatureScheme);
 
   /// Encrypts data using the underlying key pair.
   ///

@@ -27,14 +27,15 @@ Map<String, dynamic> createRevocationListCredential({
       'id': '$listCredentialId#list',
       'type': 'RevocationList2020',
       'encodedList': encodedList,
-    }
+    },
   };
 }
 
 Future<void> main() async {
   // Deterministic seed (replace with secure random generation for real usage)
   final seed = hexDecode(
-      'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd');
+    'a1772b144344781f2a55fc4d5e49f3767bb0967205ad08454a09c76d96fd2ccd',
+  );
   final signer = await initSigner(seed);
 
   // Build (mock) revocation list credential you would host at the referenced URL
@@ -89,7 +90,8 @@ Future<void> main() async {
     proofGenerator: ldProofGenerator,
   );
   print(
-      'Issued Linked Data VC (revocable):\n${jsonEncode(issuedLdVc.toJson())}\n');
+    'Issued Linked Data VC (revocable):\n${jsonEncode(issuedLdVc.toJson())}\n',
+  );
 
   // Issue JWT VC with same credentialStatus
   final jwtSuite = JwtDm1Suite();

@@ -13,11 +13,11 @@ abstract interface class _RevocationList2020StatusInterface
 
   @override
   Iterable<String> get keys => const [
-        'id',
-        'type',
-        'revocationListIndex',
-        'revocationListCredential',
-      ];
+    'id',
+    'type',
+    'revocationListIndex',
+    'revocationListCredential',
+  ];
 
   Map<String, dynamic> toJson() {
     return cleanEmpty({
@@ -147,25 +147,31 @@ class RevocationList2020Status extends _RevocationList2020StatusInterface
   final String revocationListCredential;
 
   /// Constructs RevocationList2020Status
-  RevocationList2020Status(
-      {required this.id,
-      required this.type,
-      required this.revocationListIndex,
-      required this.revocationListCredential});
+  RevocationList2020Status({
+    required this.id,
+    required this.type,
+    required this.revocationListIndex,
+    required this.revocationListCredential,
+  });
 
   /// Constructs from a JSON object.
   factory RevocationList2020Status.fromJson(Map<String, dynamic> json) {
     final id = getMandatoryUri(json, 'id');
     final type = getMandatoryString(json, 'type');
-    final revocationListIndex =
-        getMandatoryStringOrNumber(json, 'revocationListIndex');
-    final revocationListCredential =
-        getMandatoryString(json, 'revocationListCredential');
+    final revocationListIndex = getMandatoryStringOrNumber(
+      json,
+      'revocationListIndex',
+    );
+    final revocationListCredential = getMandatoryString(
+      json,
+      'revocationListCredential',
+    );
     return RevocationList2020Status(
-        id: id,
-        type: type,
-        revocationListIndex: revocationListIndex,
-        revocationListCredential: revocationListCredential);
+      id: id,
+      type: type,
+      revocationListIndex: revocationListIndex,
+      revocationListCredential: revocationListCredential,
+    );
   }
 
   @override

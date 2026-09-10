@@ -7,10 +7,8 @@ abstract interface class _EvidenceInterface {
   /// Converts this status to a JSON-serializable map.
   ///
   /// Returns a map containing the 'type' field and 'id' field if present.
-  Map<String, dynamic> toJson() => cleanEmpty({
-        'id': id?.toString(),
-        'type': type,
-      });
+  Map<String, dynamic> toJson() =>
+      cleanEmpty({'id': id?.toString(), 'type': type});
 }
 
 /// Represents a Mutable Evidence for verifiable credentials following W3C standards.
@@ -39,10 +37,7 @@ class MutableEvidence extends _EvidenceInterface {
   ///
   /// The [id] - is id for the evidence object.
   /// The [type]- is type of evidence information.
-  MutableEvidence({
-    this.id,
-    this.type,
-  });
+  MutableEvidence({this.id, this.type});
 
   /// Creates a [MutableEvidence] from JSON data.
   ///
@@ -84,9 +79,7 @@ class Evidence extends _EvidenceInterface {
   ///
   /// The [id] - is id for the evidence object.
   /// The [type]- is type of evidence information.
-  Evidence({Uri? id, required String type})
-      : _id = id,
-        _type = type;
+  Evidence({Uri? id, required String type}) : _id = id, _type = type;
 
   /// Creates an [Evidence] from JSON data.
   ///

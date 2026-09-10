@@ -32,8 +32,8 @@ class KmsKeyPair implements KeyPair {
 
   @override
   List<SignatureScheme> get supportedSignatureSchemes => [
-        SignatureScheme.rsa_pkcs1_sha256,
-      ];
+    SignatureScheme.rsa_pkcs1_sha256,
+  ];
 
   @override
   SignatureScheme get defaultSignatureScheme =>
@@ -45,8 +45,10 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
-  Future<Uint8List> sign(Uint8List data,
-      {SignatureScheme? signatureScheme}) async {
+  Future<Uint8List> sign(
+    Uint8List data, {
+    SignatureScheme? signatureScheme,
+  }) async {
     signatureScheme ??= SignatureScheme.rsa_pkcs1_sha256;
 
     if (signatureScheme != SignatureScheme.rsa_pkcs1_sha256) {
@@ -67,8 +69,11 @@ class KmsKeyPair implements KeyPair {
   }
 
   @override
-  Future<bool> verify(Uint8List data, Uint8List signature,
-      {SignatureScheme? signatureScheme}) async {
+  Future<bool> verify(
+    Uint8List data,
+    Uint8List signature, {
+    SignatureScheme? signatureScheme,
+  }) async {
     signatureScheme ??= SignatureScheme.rsa_pkcs1_sha256;
 
     try {

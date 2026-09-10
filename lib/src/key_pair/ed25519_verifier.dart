@@ -118,10 +118,9 @@ bool verifyEd25519Signature(
   }
 
   try {
-    return ed.VerifyKey(publicKey).verify(
-      signature: ed.Signature(signature),
-      message: message,
-    );
+    return ed.VerifyKey(
+      publicKey,
+    ).verify(signature: ed.Signature(signature), message: message);
   } catch (_) {
     return false;
   }

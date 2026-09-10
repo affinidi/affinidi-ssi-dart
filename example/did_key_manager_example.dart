@@ -11,10 +11,7 @@ Future<void> main() async {
   final store = InMemoryDidStore();
 
   // Create a DID Key manager
-  final manager = DidKeyManager(
-    store: store,
-    wallet: wallet,
-  );
+  final manager = DidKeyManager(store: store, wallet: wallet);
 
   // Generate a new key in the wallet
   final walletKeyId = 'my-signing-key';
@@ -32,8 +29,10 @@ Future<void> main() async {
 
   // Sign data using the DID manager
   final dataToSign = Uint8List.fromList('Hello, DID Key!'.codeUnits);
-  final signature =
-      await manager.sign(dataToSign, verificationMethodId.verificationMethodId);
+  final signature = await manager.sign(
+    dataToSign,
+    verificationMethodId.verificationMethodId,
+  );
   print('Signature: ${base64.encode(signature)}');
 
   // Verify the signature
@@ -45,7 +44,8 @@ Future<void> main() async {
   print('Signature valid: $isValid');
 
   // Get a DID signer for credential operations
-  final signer =
-      await manager.getSigner(verificationMethodId.verificationMethodId);
+  final signer = await manager.getSigner(
+    verificationMethodId.verificationMethodId,
+  );
   print('Signer DID Key ID: ${signer.keyId}');
 }

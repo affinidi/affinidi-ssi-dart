@@ -88,7 +88,7 @@ MutableVcDataModelV1 _buildUnsignedVc(String issuerDid) {
     id: Uri.parse('uuid:mldsa-test-123'),
     type: {'VerifiableCredential', 'UserProfile'},
     credentialSubject: [
-      MutableCredentialSubject({'Fname': 'Alice', 'Lname': 'Smith'})
+      MutableCredentialSubject({'Fname': 'Alice', 'Lname': 'Smith'}),
     ],
     issuanceDate: DateTime.parse('2024-01-01T00:00:00Z'),
     issuer: Issuer.uri(issuerDid),
@@ -106,7 +106,10 @@ void main() {
       const did = 'did:example:x';
       final vmId = '$did#k1';
       final doc = _buildMlDsaDidDocument(
-          did: did, vmId: vmId, publicKeyBytes: kp.publicKey.bytes);
+        did: did,
+        vmId: vmId,
+        publicKeyBytes: kp.publicKey.bytes,
+      );
 
       final resolver = _MockDidResolver(doc);
       final result = await verifyMldsa44DataIntegritySignature(
@@ -124,7 +127,10 @@ void main() {
       const did = 'did:example:x';
       final vmId = '$did#k1';
       final doc = _buildMlDsaDidDocument(
-          did: did, vmId: vmId, publicKeyBytes: kp.publicKey.bytes);
+        did: did,
+        vmId: vmId,
+        publicKeyBytes: kp.publicKey.bytes,
+      );
       final resolver = _MockDidResolver(doc);
 
       final hashData = Uint8List.fromList(List.generate(64, (i) => i));
@@ -146,7 +152,10 @@ void main() {
       const did = 'did:example:x';
       final vmId = '$did#k1';
       final doc = _buildMlDsaDidDocument(
-          did: did, vmId: vmId, publicKeyBytes: kp.publicKey.bytes);
+        did: did,
+        vmId: vmId,
+        publicKeyBytes: kp.publicKey.bytes,
+      );
       final resolver = _MockDidResolver(doc);
 
       final hashData = Uint8List.fromList(List.generate(64, (i) => i));
@@ -188,22 +197,27 @@ void main() {
       );
     });
 
-    test('issues a VC with mldsa44-rdfc-2024 proof (base64url-no-pad default)',
-        () async {
-      final vc = _buildUnsignedVc(signer.did);
-      final generator = DataIntegrityMldsaRdfcGenerator(signer: signer);
+    test(
+      'issues a VC with mldsa44-rdfc-2024 proof (base64url-no-pad default)',
+      () async {
+        final vc = _buildUnsignedVc(signer.did);
+        final generator = DataIntegrityMldsaRdfcGenerator(signer: signer);
 
-      final issued = await LdVcDm1Suite().issue(
-        unsignedData: VcDataModelV1.fromMutable(vc),
-        proofGenerator: generator,
-      );
+        final issued = await LdVcDm1Suite().issue(
+          unsignedData: VcDataModelV1.fromMutable(vc),
+          proofGenerator: generator,
+        );
 
-      final proof = issued.toJson()['proof'] as Map<String, dynamic>;
-      expect(proof['type'], 'DataIntegrityProof');
-      expect(proof['cryptosuite'], 'mldsa44-rdfc-2024');
-      expect(proof['proofValue'], startsWith('u'),
-          reason: 'should use base64url-no-pad by default');
-    });
+        final proof = issued.toJson()['proof'] as Map<String, dynamic>;
+        expect(proof['type'], 'DataIntegrityProof');
+        expect(proof['cryptosuite'], 'mldsa44-rdfc-2024');
+        expect(
+          proof['proofValue'],
+          startsWith('u'),
+          reason: 'should use base64url-no-pad by default',
+        );
+      },
+    );
 
     test('verifier validates an issued credential', () async {
       final vc = _buildUnsignedVc(signer.did);
@@ -273,21 +287,23 @@ void main() {
       (signer, resolver) = await _makeMldsaSigner(seed: seed);
     });
 
-    test('issues a VC with mldsa44-jcs-2024 proof (base64url-no-pad default)',
-        () async {
-      final vc = _buildUnsignedVc(signer.did);
-      final generator = DataIntegrityMldsaJcsGenerator(signer: signer);
+    test(
+      'issues a VC with mldsa44-jcs-2024 proof (base64url-no-pad default)',
+      () async {
+        final vc = _buildUnsignedVc(signer.did);
+        final generator = DataIntegrityMldsaJcsGenerator(signer: signer);
 
-      final issued = await LdVcDm1Suite().issue(
-        unsignedData: VcDataModelV1.fromMutable(vc),
-        proofGenerator: generator,
-      );
+        final issued = await LdVcDm1Suite().issue(
+          unsignedData: VcDataModelV1.fromMutable(vc),
+          proofGenerator: generator,
+        );
 
-      final proof = issued.toJson()['proof'] as Map<String, dynamic>;
-      expect(proof['type'], 'DataIntegrityProof');
-      expect(proof['cryptosuite'], 'mldsa44-jcs-2024');
-      expect(proof['proofValue'], startsWith('u'));
-    });
+        final proof = issued.toJson()['proof'] as Map<String, dynamic>;
+        expect(proof['type'], 'DataIntegrityProof');
+        expect(proof['cryptosuite'], 'mldsa44-jcs-2024');
+        expect(proof['proofValue'], startsWith('u'));
+      },
+    );
 
     test('verifier validates an issued credential', () async {
       final vc = _buildUnsignedVc(signer.did);
@@ -366,7 +382,8 @@ void main() {
     test('ML-DSA JCS verifier rejects EdDSA-JCS signed credential', () async {
       // Create an EdDSA key pair and sign a credential with the EdDSA JCS suite.
       final edSeed = Uint8List.fromList(
-          List.generate(32, (i) => i)); // 32-byte seed for Ed25519
+        List.generate(32, (i) => i),
+      ); // 32-byte seed for Ed25519
       final edKp = Ed25519KeyPair.fromSeed(edSeed);
       final edDoc = DidKey.generateDocument(edKp.publicKey);
       final edSigner = DidSigner(
@@ -385,7 +402,7 @@ void main() {
         id: Uri.parse('uuid:ed-vc-1'),
         type: {'VerifiableCredential', 'UserProfile'},
         credentialSubject: [
-          MutableCredentialSubject({'Fname': 'Bob', 'Lname': 'Jones'})
+          MutableCredentialSubject({'Fname': 'Bob', 'Lname': 'Jones'}),
         ],
         issuanceDate: DateTime.parse('2024-01-01T00:00:00Z'),
         issuer: Issuer.uri(edSigner.did),
@@ -403,8 +420,11 @@ void main() {
         didResolver: resolver, // resolver returns ML-DSA doc — mismatch is fine
       );
       final result = await mldsaVerifier.verify(edIssued.toJson());
-      expect(result.isValid, isFalse,
-          reason: 'ML-DSA verifier should reject EdDSA-signed credentials');
+      expect(
+        result.isValid,
+        isFalse,
+        reason: 'ML-DSA verifier should reject EdDSA-signed credentials',
+      );
     });
   });
 }

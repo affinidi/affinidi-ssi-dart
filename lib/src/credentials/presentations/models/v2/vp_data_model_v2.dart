@@ -67,8 +67,9 @@ class VpDataModelV2 implements VerifiablePresentation {
     json[_P.holder.key] = holder.toJson();
     json[_P.proof.key] = encodeListToSingleOrArray(proof);
     json[_P.termsOfUse.key] = encodeListToSingleOrArray(termsOfUse);
-    json[_P.verifiableCredential.key] =
-        verifiableCredential.map(presentVC).toList();
+    json[_P.verifiableCredential.key] = verifiableCredential
+        .map(presentVC)
+        .toList();
 
     return cleanEmpty(json);
   }
@@ -157,18 +158,18 @@ class VpDataModelV2 implements VerifiablePresentation {
   /// The [holder] is an identifier for the presenter (optional).
   /// The [verifiableCredential] is a list of embedded credentials (optional).
   /// The [proof] is a cryptographic proof (optional).
-  VpDataModelV2(
-      {required this.context,
-      this.id,
-      required Set<String> type,
-      required this.holder,
-      required List<ParsedVerifiableCredential> verifiableCredential,
-      required List<EmbeddedProof> proof,
-      List<TermsOfUse>? termsOfUse})
-      : type = UnmodifiableSetView(type),
-        verifiableCredential = UnmodifiableListView(verifiableCredential),
-        proof = UnmodifiableListView(proof),
-        termsOfUse = UnmodifiableListView(termsOfUse ?? []) {
+  VpDataModelV2({
+    required this.context,
+    this.id,
+    required Set<String> type,
+    required this.holder,
+    required List<ParsedVerifiableCredential> verifiableCredential,
+    required List<EmbeddedProof> proof,
+    List<TermsOfUse>? termsOfUse,
+  }) : type = UnmodifiableSetView(type),
+       verifiableCredential = UnmodifiableListView(verifiableCredential),
+       proof = UnmodifiableListView(proof),
+       termsOfUse = UnmodifiableListView(termsOfUse ?? []) {
     validate();
   }
 
@@ -191,28 +192,36 @@ class VpDataModelV2 implements VerifiablePresentation {
 
     final holder = Holder.fromJson(json[_P.holder.key]);
 
-    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
-        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+    final proof = parseListOrSingleItem<EmbeddedProof>(
+      json,
+      _P.proof.key,
+      (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final credentials = parseListOrSingleItem<ParsedVerifiableCredential>(
-        json, _P.verifiableCredential.key, parseVC,
-        allowSingleValue: true);
+      json,
+      _P.verifiableCredential.key,
+      parseVC,
+      allowSingleValue: true,
+    );
 
     final termsOfUse = parseListOrSingleItem<TermsOfUse>(
-        json,
-        _P.termsOfUse.key,
-        (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.termsOfUse.key,
+      (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     return VpDataModelV2(
-        context: context,
-        id: id,
-        type: type,
-        proof: proof,
-        holder: holder,
-        verifiableCredential: credentials,
-        termsOfUse: termsOfUse);
+      context: context,
+      id: id,
+      type: type,
+      proof: proof,
+      holder: holder,
+      verifiableCredential: credentials,
+      termsOfUse: termsOfUse,
+    );
   }
 
   /// Creates a new [VpDataModelV2] instance as a deep copy of the provided [input].
@@ -220,14 +229,15 @@ class VpDataModelV2 implements VerifiablePresentation {
   /// This constructor initializes a new object with the same values as the
   /// properties of the [input] `VpDataModelV2` instance.
   VpDataModelV2.clone(VpDataModelV2 input)
-      : this(
-            context: input.context,
-            id: input.id,
-            type: input.type,
-            holder: input.holder,
-            verifiableCredential: input.verifiableCredential,
-            proof: input.proof,
-            termsOfUse: input.termsOfUse);
+    : this(
+        context: input.context,
+        id: input.id,
+        type: input.type,
+        holder: input.holder,
+        verifiableCredential: input.verifiableCredential,
+        proof: input.proof,
+        termsOfUse: input.termsOfUse,
+      );
 
   /// Creates a [VpDataModelV2] instance from a mutable model.
   ///

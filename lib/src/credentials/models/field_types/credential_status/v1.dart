@@ -12,7 +12,7 @@ abstract interface class _CredentialStatusV1Interface
     return cleanEmpty({
       'id': id?.toString(),
       'type': type,
-      ...Map<String, dynamic>.fromEntries(entries)
+      ...Map<String, dynamic>.fromEntries(entries),
     });
   }
 }
@@ -49,12 +49,13 @@ class MutableCredentialStatusV1 extends _CredentialStatusV1Interface {
   /// The 'id' is validated and converted to a [Uri] using [getUri], and 'type' is validated
   /// as a [String] using [getString].
   MutableCredentialStatusV1(Map<String, dynamic>? revocationFields)
-      : id = getUri(revocationFields ?? {}, 'id'),
-        type = getString(revocationFields ?? {}, 'type'),
-        _revocationFields = UnmodifiableMapView(
-            Map<String, dynamic>.from(revocationFields ?? {})
-              ..remove('id')
-              ..remove('type'));
+    : id = getUri(revocationFields ?? {}, 'id'),
+      type = getString(revocationFields ?? {}, 'type'),
+      _revocationFields = UnmodifiableMapView(
+        Map<String, dynamic>.from(revocationFields ?? {})
+          ..remove('id')
+          ..remove('type'),
+      );
 
   /// Creates a [MutableCredentialStatusV1] from JSON data.
   factory MutableCredentialStatusV1.fromJson(Map<String, dynamic> json) {
@@ -122,12 +123,13 @@ interface class CredentialStatusV1 extends _CredentialStatusV1Interface {
   /// The 'id' is required and validated as a [Uri] using [getMandatoryUri], and 'type' is
   /// required and validated using [getMandatoryString]. Other fields are stored in an unmodifiable map.
   CredentialStatusV1(Map<String, dynamic> revocationFields)
-      : id = getMandatoryUri(revocationFields, 'id'),
-        type = getMandatoryString(revocationFields, 'type'),
-        _revocationFields =
-            UnmodifiableMapView(Map<String, dynamic>.from(revocationFields)
-              ..remove('id')
-              ..remove('type'));
+    : id = getMandatoryUri(revocationFields, 'id'),
+      type = getMandatoryString(revocationFields, 'type'),
+      _revocationFields = UnmodifiableMapView(
+        Map<String, dynamic>.from(revocationFields)
+          ..remove('id')
+          ..remove('type'),
+      );
 
   /// Creates a [CredentialStatusV1] from JSON data.
   /// Throws an exception if 'id' or 'type' is missing or invalid.

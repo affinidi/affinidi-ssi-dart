@@ -3,7 +3,7 @@ final context1 = [
   {
     'NameCredentialPersonV1': {
       '@id': 'https://schema.affinity-project.org/NameCredentialPersonV1',
-      '@context': {'@version': 1.1, '@protected': true}
+      '@context': {'@version': 1.1, '@protected': true},
     },
     'data': {
       '@id': 'https://schema.affinity-project.org/data',
@@ -21,16 +21,16 @@ final context1 = [
               '@vocab': 'https://schema.org/',
               'name': 'https://schema.org/name',
               'givenName': 'https://schema.org/givenName',
-              'fullName': 'https://schema.org/fullName'
-            }
+              'fullName': 'https://schema.org/fullName',
+            },
           },
           'PersonE': {
             '@id': 'https://schema.affinity-project.org/PersonE',
             '@context': {
               '@version': 1.1,
               '@protected': true,
-              '@vocab': 'https://schema.org/'
-            }
+              '@vocab': 'https://schema.org/',
+            },
           },
           'OrganizationE': {
             '@id': 'https://schema.affinity-project.org/OrganizationE',
@@ -40,8 +40,8 @@ final context1 = [
               '@vocab': 'https://schema.org/',
               'hasCredential': 'https://schema.org/hasCredential',
               'industry': 'https://schema.affinity-project.org/industry',
-              'identifiers': 'https://schema.affinity-project.org/identifiers'
-            }
+              'identifiers': 'https://schema.affinity-project.org/identifiers',
+            },
           },
           'Credential': {
             '@id': 'https://schema.affinity-project.org/Credential',
@@ -50,8 +50,9 @@ final context1 = [
               '@protected': true,
               '@vocab': 'https://schema.org/',
               'dateRevoked': 'https://schema.affinity-project.org/dateRevoked',
-              'recognizedBy': 'https://schema.affinity-project.org/recognizedBy'
-            }
+              'recognizedBy':
+                  'https://schema.affinity-project.org/recognizedBy',
+            },
           },
           'OrganizationalCredential': {
             '@id':
@@ -69,13 +70,13 @@ final context1 = [
               'active': 'https://schema.affinity-project.org/active',
               'primaryJurisdiction':
                   'https://schema.affinity-project.org/primaryJurisdiction',
-              'identifier': 'https://schema.org/identifier'
-            }
-          }
-        }
-      ]
-    }
-  }
+              'identifier': 'https://schema.org/identifier',
+            },
+          },
+        },
+      ],
+    },
+  },
 ];
 
 final context2 = [
@@ -83,8 +84,8 @@ final context2 = [
   {
     'name': 'http://schema.org/name',
     'degree': 'https://schema.org/educationalCredentialAwarded',
-    'university': 'https://schemas.org/educationalInstitution'
-  }
+    'university': 'https://schemas.org/educationalInstitution',
+  },
 ];
 
 final context3 = [
@@ -93,13 +94,13 @@ final context3 = [
     'schema': 'http://schema.org/',
     'ex': 'https://example.org/terms/',
     'person': {
-      '@context': {'name': 'schema:name', 'birthDate': 'schema:birthDate'}
+      '@context': {'name': 'schema:name', 'birthDate': 'schema:birthDate'},
     },
     'education': {
       '@context': {
         'degree': 'schema:educationalCredentialAwarded',
-        'alumniOf': 'schema:alumniOf'
-      }
-    }
-  }
+        'alumniOf': 'schema:alumniOf',
+      },
+    },
+  },
 ];

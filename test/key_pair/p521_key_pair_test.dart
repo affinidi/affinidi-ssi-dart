@@ -10,30 +10,45 @@ void main() {
     test('P-521 key pair should sign data and verify signature', () async {
       final (p521key, privateKeyBytes) = P521KeyPair.generate();
       final signature = await p521key.internalSign(
-          dataToSign, SignatureScheme.ecdsa_p521_sha512);
+        dataToSign,
+        SignatureScheme.ecdsa_p521_sha512,
+      );
       final actual = await p521key.internalVerify(
-          dataToSign, signature, SignatureScheme.ecdsa_p521_sha512);
+        dataToSign,
+        signature,
+        SignatureScheme.ecdsa_p521_sha512,
+      );
       expect(actual, isTrue);
     });
 
     test('Verification should fail if signature is invalid', () async {
       final (p521key, privateKeyBytes) = P521KeyPair.generate();
       final signature = await p521key.internalSign(
-          dataToSign, SignatureScheme.ecdsa_p521_sha512);
+        dataToSign,
+        SignatureScheme.ecdsa_p521_sha512,
+      );
       final invalidSignature = Uint8List.fromList(signature);
       invalidSignature[0]++;
       final actual = await p521key.internalVerify(
-          dataToSign, invalidSignature, SignatureScheme.ecdsa_p521_sha512);
+        dataToSign,
+        invalidSignature,
+        SignatureScheme.ecdsa_p521_sha512,
+      );
       expect(actual, isFalse);
     });
 
     test('Verification should fail if data is different', () async {
       final (p521key, privateKeyBytes) = P521KeyPair.generate();
       final signature = await p521key.internalSign(
-          dataToSign, SignatureScheme.ecdsa_p521_sha512);
+        dataToSign,
+        SignatureScheme.ecdsa_p521_sha512,
+      );
       final differentData = Uint8List.fromList([3, 2, 1]);
       final actual = await p521key.internalVerify(
-          differentData, signature, SignatureScheme.ecdsa_p521_sha512);
+        differentData,
+        signature,
+        SignatureScheme.ecdsa_p521_sha512,
+      );
       expect(actual, isFalse);
     });
 
@@ -55,10 +70,12 @@ void main() {
     test('Compute ECDH shared secret for encryption', () async {
       final (keyPairAlice, aliceKeyBytes) = P521KeyPair.generate();
       final (keyPairBob, bobKeyBytes) = P521KeyPair.generate();
-      final secretAlice =
-          await keyPairAlice.computeEcdhSecret(keyPairBob.publicKey.bytes);
-      final secretBob =
-          await keyPairBob.computeEcdhSecret(keyPairAlice.publicKey.bytes);
+      final secretAlice = await keyPairAlice.computeEcdhSecret(
+        keyPairBob.publicKey.bytes,
+      );
+      final secretBob = await keyPairBob.computeEcdhSecret(
+        keyPairAlice.publicKey.bytes,
+      );
 
       expect(secretAlice, equals(secretBob));
       expect(secretAlice.length, 66); // P-521 ECDH secret length

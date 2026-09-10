@@ -19,7 +19,7 @@ void main() async {
       final unsignedCredential = MutableVcDataModelV1(
         context: MutableJsonLdContext.fromJson([
           'https://www.w3.org/2018/credentials/v1',
-          'https://schema.affinidi.com/UserProfileV1-0.jsonld'
+          'https://schema.affinidi.com/UserProfileV1-0.jsonld',
         ]),
         id: Uri.parse('uuid:123456abcd'),
         type: {'VerifiableCredential', 'UserProfile'},
@@ -28,33 +28,34 @@ void main() async {
             'Fname': 'Fname',
             'Lname': 'Lame',
             'Age': '22',
-            'Address': 'Eihhornstr'
-          })
+            'Address': 'Eihhornstr',
+          }),
         ],
         holder: MutableHolder.uri('did:example:1'),
         credentialSchema: [
           MutableCredentialSchema(
-              id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
-              type: 'JsonSchemaValidator2018')
+            id: Uri.parse('https://schema.affinidi.com/UserProfileV1-0.json'),
+            type: 'JsonSchemaValidator2018',
+          ),
         ],
         issuanceDate: DateTime.now(),
         issuer: Issuer.uri(signer.did),
       );
 
-      final proofGenerator = Secp256k1Signature2019Generator(
-        signer: signer,
-      );
+      final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
 
       final issuedCredential = await LdVcDm1Suite().issue(
         unsignedData: VcDataModelV1.fromMutable(unsignedCredential),
         proofGenerator: proofGenerator,
       );
 
-      final proofVerifier =
-          Secp256k1Signature2019Verifier(issuerDid: signer.did);
+      final proofVerifier = Secp256k1Signature2019Verifier(
+        issuerDid: signer.did,
+      );
 
-      final verificationResult =
-          await proofVerifier.verify(issuedCredential.toJson());
+      final verificationResult = await proofVerifier.verify(
+        issuedCredential.toJson(),
+      );
 
       expect(verificationResult.isValid, true);
       expect(verificationResult.errors, isEmpty);
@@ -64,7 +65,8 @@ void main() async {
 
     test('CWE issued must verify', () async {
       final proofVerifier = Secp256k1Signature2019Verifier(
-          issuerDid: cweResponse['issuer'] as String);
+        issuerDid: cweResponse['issuer'] as String,
+      );
       final verificationResult = await proofVerifier.verify(cweResponse);
 
       expect(verificationResult.isValid, true);
@@ -73,8 +75,10 @@ void main() async {
     });
 
     test('LdVCDM1 fixture VC verify', () async {
-      final unsigned = LdVcDm1Suite().parse(VerifiableCredentialDataFixtures
-          .credentialWithValidProofDataModelV11JsonEncoded);
+      final unsigned = LdVcDm1Suite().parse(
+        VerifiableCredentialDataFixtures
+            .credentialWithValidProofDataModelV11JsonEncoded,
+      );
       // final issuedCredential = await LdVcDm1Suite().issue(unsigned, signer);
 
       final validationResult = await LdVcDm1Suite().verifyIntegrity(unsigned);
@@ -83,31 +87,34 @@ void main() async {
     });
 
     test('LdVCDM1 fixture VC verify', () async {
-      final unsigned = MutableVcDataModelV1.fromJson(LdVcDm1Suite()
-          .parse(VerifiableCredentialDataFixtures
-              .credentialWithValidProofDataModelV11JsonEncoded)
-          .toJson());
+      final unsigned = MutableVcDataModelV1.fromJson(
+        LdVcDm1Suite()
+            .parse(
+              VerifiableCredentialDataFixtures
+                  .credentialWithValidProofDataModelV11JsonEncoded,
+            )
+            .toJson(),
+      );
 
       unsigned.issuer = MutableIssuer.uri(signer.did);
       unsigned.proof = [];
 
-      final proofGenerator = Secp256k1Signature2019Generator(
-        signer: signer,
-      );
+      final proofGenerator = Secp256k1Signature2019Generator(signer: signer);
 
       final issuedCredential = await LdVcDm1Suite().issue(
         unsignedData: VcDataModelV1.fromMutable(unsigned),
         proofGenerator: proofGenerator,
       );
 
-      final validationResult =
-          await LdVcDm1Suite().verifyIntegrity(issuedCredential);
+      final validationResult = await LdVcDm1Suite().verifyIntegrity(
+        issuedCredential,
+      );
 
       expect(validationResult, true);
     });
   });
 }
 
-final cweResponse = jsonDecode(
-  VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe,
-) as Map<String, dynamic>;
+final cweResponse =
+    jsonDecode(VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe)
+        as Map<String, dynamic>;

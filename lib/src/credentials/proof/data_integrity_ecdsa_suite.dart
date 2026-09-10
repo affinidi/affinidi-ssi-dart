@@ -83,8 +83,11 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
     document.remove('proof');
 
     final cacheLoadDocument = createCacheDocumentLoader(customDocumentLoader);
-    final hash =
-        await computeDataIntegrityHash(proof, document, cacheLoadDocument);
+    final hash = await computeDataIntegrityHash(
+      proof,
+      document,
+      cacheLoadDocument,
+    );
     final proofValue = await _computeProofValue(hash, signer);
 
     proof.remove('@context');
@@ -104,15 +107,9 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
     );
   }
 
-  Future<String> _computeProofValue(
-    Uint8List hash,
-    DidSigner signer,
-  ) async {
+  Future<String> _computeProofValue(Uint8List hash, DidSigner signer) async {
     final signature = await signer.sign(hash);
-    return toMultiBase(
-      signature,
-      base: proofValueMultiBase,
-    );
+    return toMultiBase(signature, base: proofValueMultiBase);
   }
 }
 
@@ -123,7 +120,8 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
 ///
 /// @deprecated Use [DataIntegrityEcdsaRdfcGenerator] instead for consistent naming.
 @Deprecated(
-    'Use DataIntegrityEcdsaRdfcGenerator instead for consistent naming.')
+  'Use DataIntegrityEcdsaRdfcGenerator instead for consistent naming.',
+)
 typedef DataIntegrityEcdsaGenerator = DataIntegrityEcdsaRdfcGenerator;
 
 /// Verifies Data Integrity Proofs signed with the ecdsa-rdfc-2019 cryptosuite.
@@ -131,7 +129,8 @@ typedef DataIntegrityEcdsaGenerator = DataIntegrityEcdsaRdfcGenerator;
 /// Normalizes and hashes the credential and proof separately, then verifies
 /// the combined hash against the provided proof signature using the issuer's DID key.
 @Deprecated(
-    'Use DataIntegrityEcdsaRdfcVerifier for ecdsa-rdfc-2019 cryptosuite instead')
+  'Use DataIntegrityEcdsaRdfcVerifier for ecdsa-rdfc-2019 cryptosuite instead',
+)
 class DataIntegrityEcdsaVerifier extends BaseDataIntegrityVerifier {
   /// Constructs a new [DataIntegrityEcdsaVerifier].
   ///
@@ -166,7 +165,7 @@ class DataIntegrityEcdsaVerifier extends BaseDataIntegrityVerifier {
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   ) async {
     return computeDataIntegrityHash(proof, unsignedCredential, documentLoader);
   }
@@ -226,7 +225,7 @@ class DataIntegrityEcdsaRdfcVerifier extends BaseDataIntegrityVerifier {
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   ) async {
     return computeDataIntegrityHash(proof, unsignedCredential, documentLoader);
   }
@@ -240,8 +239,9 @@ class DataIntegrityEcdsaRdfcVerifier extends BaseDataIntegrityVerifier {
   ) async {
     // For ecdsa-rdfc-2019, we need to dynamically determine the signature scheme
     // by examining the verification method since it supports both P-256 and P-384
-    final signatureScheme =
-        await _getSignatureSchemeFromDid(verificationMethod);
+    final signatureScheme = await _getSignatureSchemeFromDid(
+      verificationMethod,
+    );
 
     final signature = multiBaseToUint8List(proofValue);
 
@@ -256,16 +256,21 @@ class DataIntegrityEcdsaRdfcVerifier extends BaseDataIntegrityVerifier {
 
   /// Determines the signature scheme from the verification method.
   Future<SignatureScheme> _getSignatureSchemeFromDid(
-      Uri verificationMethod) async {
+    Uri verificationMethod,
+  ) async {
     // Resolve the DID to get the verification method
     final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
     final didDocument = await resolver.resolveDid(issuerDid);
 
     // Find the verification method in the DID document
     final vm = didDocument.verificationMethod
-        .where((vm) =>
-            vm.id == verificationMethod.toString() ||
-            vm.id.endsWith('#${verificationMethod.toString().split('#').last}'))
+        .where(
+          (vm) =>
+              vm.id == verificationMethod.toString() ||
+              vm.id.endsWith(
+                '#${verificationMethod.toString().split('#').last}',
+              ),
+        )
         .firstOrNull;
 
     if (vm == null) {
@@ -353,7 +358,8 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
     // since it supports both P-256 (SHA-256) and P-384 (SHA-384).
     // The actual algorithm is determined dynamically in computeSignatureHash.
     throw UnsupportedError(
-        'ECDSA JCS requires dynamic hash algorithm determination');
+      'ECDSA JCS requires dynamic hash algorithm determination',
+    );
   }
 
   @override
@@ -361,14 +367,18 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
     Map<String, dynamic> proof,
     Map<String, dynamic> unsignedCredential,
     Future<RemoteDocument?> Function(Uri url, LoadDocumentOptions? options)
-        documentLoader,
+    documentLoader,
   ) async {
     // For ecdsa-jcs-2019, we need to dynamically determine the signature scheme
     // by examining the verification method since it supports both P-256 and P-384
-    final signatureScheme =
-        await _getSignatureSchemeFromVerificationMethod(proof);
+    final signatureScheme = await _getSignatureSchemeFromVerificationMethod(
+      proof,
+    );
     return JcsUtils.computeDataIntegrityJcsHash(
-        proof, unsignedCredential, signatureScheme.hashingAlgorithm);
+      proof,
+      unsignedCredential,
+      signatureScheme.hashingAlgorithm,
+    );
   }
 
   @override
@@ -378,7 +388,8 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
 
   /// Determines the signature scheme from the verification method.
   Future<SignatureScheme> _getSignatureSchemeFromVerificationMethod(
-      Map<String, dynamic> proof) async {
+    Map<String, dynamic> proof,
+  ) async {
     final verificationMethodUri = proof['verificationMethod'] as String?;
     if (verificationMethodUri == null) {
       throw SsiException(
@@ -392,16 +403,21 @@ class DataIntegrityEcdsaJcsVerifier extends BaseJcsVerifier {
 
   /// Determines the signature scheme from the verification method.
   Future<SignatureScheme> _getSignatureSchemeFromDid(
-      Uri verificationMethod) async {
+    Uri verificationMethod,
+  ) async {
     // Resolve the DID to get the verification method
     final resolver = didResolver ?? UniversalDIDResolver.defaultResolver;
     final didDocument = await resolver.resolveDid(issuerDid);
 
     // Find the verification method in the DID document
     final vm = didDocument.verificationMethod
-        .where((vm) =>
-            vm.id == verificationMethod.toString() ||
-            vm.id.endsWith('#${verificationMethod.toString().split('#').last}'))
+        .where(
+          (vm) =>
+              vm.id == verificationMethod.toString() ||
+              vm.id.endsWith(
+                '#${verificationMethod.toString().split('#').last}',
+              ),
+        )
         .firstOrNull;
 
     if (vm == null) {

@@ -3,9 +3,7 @@ import 'dart:typed_data';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-final _seed = Uint8List.fromList(
-  List<int>.generate(32, (index) => index + 1),
-);
+final _seed = Uint8List.fromList(List<int>.generate(32, (index) => index + 1));
 final _payload = Uint8List.fromList([1, 2, 3, 4]);
 final _profileContextUri = Uri.parse('https://example.com/profile/v1');
 final _unreachableContextUri = Uri.parse('http://127.0.0.1:1/context');
@@ -14,10 +12,7 @@ Future<Map<String, dynamic>?> _loadDocument(Uri uri) async {
   if (uri != _profileContextUri && uri != _unreachableContextUri) return null;
 
   return {
-    '@context': {
-      '@version': 1.1,
-      'name': 'https://schema.org/name',
-    },
+    '@context': {'@version': 1.1, 'name': 'https://schema.org/name'},
   };
 }
 
@@ -53,8 +48,7 @@ void main() {
           'id': 'did:example:holder',
           'name': 'Wasm Holder',
         },
-      })
-        ..issuer = MutableIssuer.uri(signer.did);
+      })..issuer = MutableIssuer.uri(signer.did);
       final suite = JwtDm1Suite();
 
       final issued = await suite.issue(
@@ -145,10 +139,7 @@ void main() {
       ).verify(issued.toJson());
 
       expect(result.isValid, isFalse);
-      expect(
-        result.errors,
-        contains(startsWith('JSON-LD processing failed')),
-      );
+      expect(result.errors, contains(startsWith('JSON-LD processing failed')));
       expect(
         result.errors,
         contains(contains(_unreachableContextUri.toString())),
@@ -211,11 +202,7 @@ void main() {
       expect(await wallet.hasKey(keyId), isTrue);
       expect(restored.publicKey.bytes, generated.publicKey.bytes);
       expect(
-        await wallet.verify(
-          _payload,
-          signature: signature,
-          keyId: keyId,
-        ),
+        await wallet.verify(_payload, signature: signature, keyId: keyId),
         isTrue,
       );
     });
@@ -276,8 +263,8 @@ void main() {
 
     for (final MapEntry(key: algorithm, value: generateKeyPair)
         in generatedKeyPairs.entries.where(
-      (entry) => entry.key != 'ML-DSA-44',
-    )) {
+          (entry) => entry.key != 'ML-DSA-44',
+        )) {
       test('it encrypts and decrypts with $algorithm', () async {
         final keyPair = generateKeyPair();
 
@@ -290,10 +277,7 @@ void main() {
     test('it explicitly rejects encryption with ML-DSA-44', () {
       final keyPair = MlDsa44KeyPair.generate().$1;
 
-      expect(
-        () => keyPair.encrypt(_payload),
-        throwsA(isA<SsiException>()),
-      );
+      expect(() => keyPair.encrypt(_payload), throwsA(isA<SsiException>()));
     });
   });
 }

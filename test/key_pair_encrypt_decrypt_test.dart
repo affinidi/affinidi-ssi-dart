@@ -38,7 +38,7 @@ void main() {
     91,
     83,
     88,
-    177
+    177,
   ]);
   final privateKeyBob = Uint8List.fromList([
     227,
@@ -72,7 +72,7 @@ void main() {
     91,
     83,
     88,
-    177
+    177,
   ]);
   // final Uint8List publicKey = Uint8List.fromList([154, 91, 111, 200, 105, 249, 92, 207, 158, 65, 234, 210, 123, 83, 171, 151, 40, 204, 225, 21, 100, 80, 98, 246, 210, 65, 29, 151, 214, 17, 13, 132]);
 
@@ -108,7 +108,7 @@ void main() {
     30,
     171,
     64,
-    18
+    18,
   ]);
   final edSeedBob = Uint8List.fromList([
     13,
@@ -142,7 +142,7 @@ void main() {
     89,
     176,
     187,
-    129
+    129,
   ]);
 
   group('Test key pair encrypt decrypt', () {
@@ -161,12 +161,16 @@ void main() {
       var (p256KeyBob, bobKeyBytes) = P256KeyPair.generate();
 
       var bobPubKey = p256KeyBob.publicKey;
-      var encryptedByAlice =
-          await p256KeyAlice.encrypt(data, publicKey: bobPubKey.bytes);
+      var encryptedByAlice = await p256KeyAlice.encrypt(
+        data,
+        publicKey: bobPubKey.bytes,
+      );
 
       var alicePubKey = p256KeyAlice.publicKey;
-      var decryptedByBob = await p256KeyBob.decrypt(encryptedByAlice,
-          publicKey: alicePubKey.bytes);
+      var decryptedByBob = await p256KeyBob.decrypt(
+        encryptedByAlice,
+        publicKey: alicePubKey.bytes,
+      );
 
       expect(decryptedByBob, data);
     });
@@ -186,20 +190,25 @@ void main() {
       var edBob = Ed25519KeyPair.fromSeed(edSeedBob);
 
       var bobPubKey = await edBob.ed25519KeyToX25519PublicKey();
-      var encryptedByAlice =
-          await edAlice.encrypt(data, publicKey: bobPubKey.bytes);
+      var encryptedByAlice = await edAlice.encrypt(
+        data,
+        publicKey: bobPubKey.bytes,
+      );
 
       var alicePubKey = await edAlice.ed25519KeyToX25519PublicKey();
-      var decryptedByBob =
-          await edBob.decrypt(encryptedByAlice, publicKey: alicePubKey.bytes);
+      var decryptedByBob = await edBob.decrypt(
+        encryptedByAlice,
+        publicKey: alicePubKey.bytes,
+      );
 
       expect(decryptedByBob, data);
     });
 
     test('Secp256k1 without pub key', () async {
       var chainCode = Uint8List(32); // Empty chain code (32 bytes)
-      var secp =
-          Secp256k1KeyPair(node: BIP32.fromPrivateKey(privateKey, chainCode));
+      var secp = Secp256k1KeyPair(
+        node: BIP32.fromPrivateKey(privateKey, chainCode),
+      );
 
       var encrypted = await secp.encrypt(data);
 
@@ -210,19 +219,25 @@ void main() {
 
     test('Secp256k1 with pub key parameter', () async {
       var chainCode = Uint8List(32); // Empty chain code (32 bytes)
-      var secpAlice =
-          Secp256k1KeyPair(node: BIP32.fromPrivateKey(privateKey, chainCode));
+      var secpAlice = Secp256k1KeyPair(
+        node: BIP32.fromPrivateKey(privateKey, chainCode),
+      );
 
       var secpBob = Secp256k1KeyPair(
-          node: BIP32.fromPrivateKey(privateKeyBob, chainCode));
+        node: BIP32.fromPrivateKey(privateKeyBob, chainCode),
+      );
 
       var bobPubKey = secpBob.publicKey;
-      var encryptedByAlice =
-          await secpAlice.encrypt(data, publicKey: bobPubKey.bytes);
+      var encryptedByAlice = await secpAlice.encrypt(
+        data,
+        publicKey: bobPubKey.bytes,
+      );
 
       var alicePubKey = secpAlice.publicKey;
-      var decryptedByBob =
-          await secpBob.decrypt(encryptedByAlice, publicKey: alicePubKey.bytes);
+      var decryptedByBob = await secpBob.decrypt(
+        encryptedByAlice,
+        publicKey: alicePubKey.bytes,
+      );
 
       expect(decryptedByBob, data);
     });
@@ -243,12 +258,16 @@ void main() {
 
       var bobPubKey = p384KeyBob.publicKey;
 
-      var encryptedByAlice =
-          await p384KeyAlice.encrypt(data, publicKey: bobPubKey.bytes);
+      var encryptedByAlice = await p384KeyAlice.encrypt(
+        data,
+        publicKey: bobPubKey.bytes,
+      );
 
       var alicePubKey = p384KeyAlice.publicKey;
-      var decryptedByBob = await p384KeyBob.decrypt(encryptedByAlice,
-          publicKey: alicePubKey.bytes);
+      var decryptedByBob = await p384KeyBob.decrypt(
+        encryptedByAlice,
+        publicKey: alicePubKey.bytes,
+      );
 
       expect(decryptedByBob, data);
     });
@@ -268,12 +287,16 @@ void main() {
       var (p521KeyBob, privateKeyBytesBob) = P521KeyPair.generate();
 
       var bobPubKey = p521KeyBob.publicKey;
-      var encryptedByAlice =
-          await p521KeyAlice.encrypt(data, publicKey: bobPubKey.bytes);
+      var encryptedByAlice = await p521KeyAlice.encrypt(
+        data,
+        publicKey: bobPubKey.bytes,
+      );
 
       var alicePubKey = p521KeyAlice.publicKey;
-      var decryptedByBob = await p521KeyBob.decrypt(encryptedByAlice,
-          publicKey: alicePubKey.bytes);
+      var decryptedByBob = await p521KeyBob.decrypt(
+        encryptedByAlice,
+        publicKey: alicePubKey.bytes,
+      );
 
       expect(decryptedByBob, data);
     });

@@ -22,8 +22,9 @@ class PersistentDidManagerStore extends DidStore {
   Future<String?> getWalletKeyId(String didKeyId) async {
     final walletKeyId = _storage[didKeyId];
     if (walletKeyId != null) {
-      _metadata[didKeyId]?['lastUsed'] =
-          DateTime.now().toUtc().toIso8601String();
+      _metadata[didKeyId]?['lastUsed'] = DateTime.now()
+          .toUtc()
+          .toIso8601String();
     }
     return walletKeyId;
   }
@@ -136,10 +137,7 @@ void main() async {
   // 1. Multiple verification methods with different purposes
   print('1. Creating did:peer manager with multiple verification methods...\n');
 
-  final peerManager = DidPeerManager(
-    store: persistentStore,
-    wallet: wallet,
-  );
+  final peerManager = DidPeerManager(store: persistentStore, wallet: wallet);
 
   // Generate keys for different purposes
   final authKey1 = await wallet.generateKey(
@@ -187,7 +185,7 @@ void main() async {
       'uri': 'https://example.com/didcomm',
       'accept': ['didcomm/v2', 'application/json'],
       'routingKeys': [
-        'did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH'
+        'did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH',
       ],
     }),
   );
@@ -199,7 +197,8 @@ void main() async {
   final peerDocument = await peerManager.getDidDocument();
   print('\nCreated did:peer DID: ${peerDocument.id}');
   print(
-      'Total verification methods: ${peerDocument.verificationMethod.length}');
+    'Total verification methods: ${peerDocument.verificationMethod.length}',
+  );
   print('Service endpoints: ${peerDocument.service.length}');
 
   // 3. Key purpose management
@@ -221,22 +220,34 @@ void main() async {
   final message = Uint8List.fromList('Important document'.codeUnits);
 
   // Sign with primary auth key
-  final primarySignature =
-      await peerManager.sign(message, authVmId1.verificationMethodId);
+  final primarySignature = await peerManager.sign(
+    message,
+    authVmId1.verificationMethodId,
+  );
   print(
-      'Primary auth signature: ${hexEncode(primarySignature.sublist(0, 8))}...');
+    'Primary auth signature: ${hexEncode(primarySignature.sublist(0, 8))}...',
+  );
 
   // Sign with backup auth key
-  final backupSignature =
-      await peerManager.sign(message, authVmId2.verificationMethodId);
+  final backupSignature = await peerManager.sign(
+    message,
+    authVmId2.verificationMethodId,
+  );
   print(
-      'Backup auth signature: ${hexEncode(backupSignature.sublist(0, 8))}...');
+    'Backup auth signature: ${hexEncode(backupSignature.sublist(0, 8))}...',
+  );
 
   // Verify both signatures
   final primaryValid = await peerManager.verify(
-      message, primarySignature, authVmId1.verificationMethodId);
+    message,
+    primarySignature,
+    authVmId1.verificationMethodId,
+  );
   final backupValid = await peerManager.verify(
-      message, backupSignature, authVmId2.verificationMethodId);
+    message,
+    backupSignature,
+    authVmId2.verificationMethodId,
+  );
   print('\nPrimary signature valid: $primaryValid');
   print('Backup signature valid: $backupValid');
 
@@ -258,9 +269,11 @@ void main() async {
   // Update document to reflect changes
   final updatedDocument = await peerManager.getDidDocument();
   print(
-      'Updated verification methods: ${updatedDocument.verificationMethod.length}');
+    'Updated verification methods: ${updatedDocument.verificationMethod.length}',
+  );
   print(
-      'Capability delegation methods: ${updatedDocument.capabilityDelegation.length}');
+    'Capability delegation methods: ${updatedDocument.capabilityDelegation.length}',
+  );
 
   // 6. Custom DiDManagerStore features
   print('\n6. Using custom store features...\n');
@@ -288,7 +301,8 @@ void main() async {
 
   // Example: Sign a credential (simplified)
   print(
-      '\nExample credential data prepared for signing with DID: ${peerDocument.id}');
+    '\nExample credential data prepared for signing with DID: ${peerDocument.id}',
+  );
 
   // 8. Key rotation scenario
   print('\n8. Simulating key rotation...\n');
@@ -307,11 +321,13 @@ void main() async {
   await peerManager.addAuthentication(rotatedVmId.verificationMethodId);
 
   print(
-      'Added new rotated authentication key: ${rotatedVmId.verificationMethodId}');
+    'Added new rotated authentication key: ${rotatedVmId.verificationMethodId}',
+  );
 
   final finalDocument = await peerManager.getDidDocument();
   print(
-      '\nFinal authentication methods: ${finalDocument.authentication.length}');
+    '\nFinal authentication methods: ${finalDocument.authentication.length}',
+  );
 
   print('\n=== Advanced Example Complete ===');
 

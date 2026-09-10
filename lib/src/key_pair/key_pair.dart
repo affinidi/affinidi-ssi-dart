@@ -19,8 +19,9 @@ abstract class KeyPair {
   String get id;
 
   /// Returns a list of [SignatureScheme]s supported by this key pair.
-  List<SignatureScheme> get supportedSignatureSchemes =>
-      [defaultSignatureScheme];
+  List<SignatureScheme> get supportedSignatureSchemes => [
+    defaultSignatureScheme,
+  ];
 
   /// Returns the default signature scheme that is used if none is provided.
   SignatureScheme get defaultSignatureScheme;
@@ -31,7 +32,9 @@ abstract class KeyPair {
   ///
   @protected
   Future<Uint8List> internalSign(
-      Uint8List data, SignatureScheme signatureScheme);
+    Uint8List data,
+    SignatureScheme signatureScheme,
+  );
 
   /// Signs the provided data using P-256 with SHA-256 hashing (ecdsa_p256_sha256).
   ///
@@ -43,19 +46,20 @@ abstract class KeyPair {
   ///
   /// Throws [SsiException] if an unsupported [signatureScheme] is passed.
   @nonVirtual
-  Future<Uint8List> sign(
-    Uint8List data, {
-    SignatureScheme? signatureScheme,
-  }) {
-    signatureScheme =
-        _validateSignatureScheme(signatureScheme: signatureScheme);
+  Future<Uint8List> sign(Uint8List data, {SignatureScheme? signatureScheme}) {
+    signatureScheme = _validateSignatureScheme(
+      signatureScheme: signatureScheme,
+    );
     return internalSign(data, signatureScheme);
   }
 
   ///
   @protected
   Future<bool> internalVerify(
-      Uint8List data, Uint8List signature, SignatureScheme signatureScheme);
+    Uint8List data,
+    Uint8List signature,
+    SignatureScheme signatureScheme,
+  );
 
   /// Verifies a signature for the given [data] using the public key and optionally a [signatureScheme].
   ///
@@ -72,8 +76,9 @@ abstract class KeyPair {
     Uint8List signature, {
     SignatureScheme? signatureScheme,
   }) {
-    signatureScheme =
-        _validateSignatureScheme(signatureScheme: signatureScheme);
+    signatureScheme = _validateSignatureScheme(
+      signatureScheme: signatureScheme,
+    );
     return internalVerify(data, signature, signatureScheme);
   }
 
@@ -90,9 +95,7 @@ abstract class KeyPair {
   /// Returns the computed shared secret as a [Uint8List].
   Future<Uint8List> computeEcdhSecret(Uint8List publicKey);
 
-  SignatureScheme _validateSignatureScheme({
-    SignatureScheme? signatureScheme,
-  }) {
+  SignatureScheme _validateSignatureScheme({SignatureScheme? signatureScheme}) {
     signatureScheme ??= defaultSignatureScheme;
     if (!supportedSignatureSchemes.contains(signatureScheme)) {
       throw SsiException(

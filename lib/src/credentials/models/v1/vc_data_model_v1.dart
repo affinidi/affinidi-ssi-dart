@@ -137,8 +137,9 @@ class VcDataModelV1 implements VerifiableCredential {
     json[_P.holder.key] = holder?.toJson();
     json[_P.issuanceDate.key] = issuanceDate.toIso8601String();
     json[_P.expirationDate.key] = expirationDate?.toIso8601String();
-    json[_P.credentialSubject.key] =
-        encodeListToSingleOrArray(credentialSubject);
+    json[_P.credentialSubject.key] = encodeListToSingleOrArray(
+      credentialSubject,
+    );
     json[_P.proof.key] = encodeListToSingleOrArray(proof);
     json[_P.credentialStatus.key] = credentialStatus?.toJson();
     json[_P.refreshService.key] = encodeListToSingleOrArray(refreshService);
@@ -252,13 +253,13 @@ class VcDataModelV1 implements VerifiableCredential {
     List<RefreshServiceV1>? refreshService,
     List<TermsOfUse>? termsOfUse,
     List<Evidence>? evidence,
-  })  : credentialSubject = UnmodifiableListView(credentialSubject),
-        type = UnmodifiableSetView(type),
-        proof = UnmodifiableListView(proof ?? []),
-        credentialSchema = UnmodifiableListView(credentialSchema ?? []),
-        refreshService = UnmodifiableListView(refreshService ?? []),
-        termsOfUse = UnmodifiableListView(termsOfUse ?? []),
-        evidence = UnmodifiableListView(evidence ?? []) {
+  }) : credentialSubject = UnmodifiableListView(credentialSubject),
+       type = UnmodifiableSetView(type),
+       proof = UnmodifiableListView(proof ?? []),
+       credentialSchema = UnmodifiableListView(credentialSchema ?? []),
+       refreshService = UnmodifiableListView(refreshService ?? []),
+       termsOfUse = UnmodifiableListView(termsOfUse ?? []),
+       evidence = UnmodifiableListView(evidence ?? []) {
     validate();
   }
 
@@ -305,24 +306,32 @@ class VcDataModelV1 implements VerifiableCredential {
     }
 
     final credentialSubject = parseListOrSingleItem<CredentialSubject>(
-        json,
-        _P.credentialSubject.key,
-        (item) => CredentialSubject.fromJson(item as Map<String, dynamic>),
-        mandatory: true,
-        allowSingleValue: true);
+      json,
+      _P.credentialSubject.key,
+      (item) => CredentialSubject.fromJson(item as Map<String, dynamic>),
+      mandatory: true,
+      allowSingleValue: true,
+    );
 
-    final proof = parseListOrSingleItem<EmbeddedProof>(json, _P.proof.key,
-        (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+    final proof = parseListOrSingleItem<EmbeddedProof>(
+      json,
+      _P.proof.key,
+      (item) => EmbeddedProof.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final credentialSchema = parseListOrSingleItem<CredentialSchema>(
-        json,
-        _P.credentialSchema.key,
-        (item) => CredentialSchema.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.credentialSchema.key,
+      (item) => CredentialSchema.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
-    final issuanceDate =
-        getDateTime(json, _P.issuanceDate.key, mandatory: true)!;
+    final issuanceDate = getDateTime(
+      json,
+      _P.issuanceDate.key,
+      mandatory: true,
+    )!;
 
     final expirationDate = getDateTime(json, _P.expirationDate.key);
 
@@ -334,40 +343,47 @@ class VcDataModelV1 implements VerifiableCredential {
     CredentialStatusV1? credentialStatus;
     if (json.containsKey(_P.credentialStatus.key)) {
       credentialStatus = CredentialStatusV1.fromJson(
-          json[_P.credentialStatus.key] as Map<String, dynamic>);
+        json[_P.credentialStatus.key] as Map<String, dynamic>,
+      );
     }
 
     final refreshService = parseListOrSingleItem<RefreshServiceV1>(
-        json,
-        _P.refreshService.key,
-        (item) => RefreshServiceV1.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.refreshService.key,
+      (item) => RefreshServiceV1.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     final termsOfUse = parseListOrSingleItem<TermsOfUse>(
-        json,
-        _P.termsOfUse.key,
-        (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+      json,
+      _P.termsOfUse.key,
+      (item) => TermsOfUse.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
-    final evidence = parseListOrSingleItem<Evidence>(json, _P.evidence.key,
-        (item) => Evidence.fromJson(item as Map<String, dynamic>),
-        allowSingleValue: true);
+    final evidence = parseListOrSingleItem<Evidence>(
+      json,
+      _P.evidence.key,
+      (item) => Evidence.fromJson(item as Map<String, dynamic>),
+      allowSingleValue: true,
+    );
 
     return VcDataModelV1(
-        context: context,
-        id: id,
-        credentialSubject: credentialSubject,
-        issuer: issuer,
-        type: type,
-        issuanceDate: issuanceDate,
-        credentialSchema: credentialSchema,
-        expirationDate: expirationDate,
-        holder: holder,
-        proof: proof,
-        credentialStatus: credentialStatus,
-        refreshService: refreshService,
-        termsOfUse: termsOfUse,
-        evidence: evidence);
+      context: context,
+      id: id,
+      credentialSubject: credentialSubject,
+      issuer: issuer,
+      type: type,
+      issuanceDate: issuanceDate,
+      credentialSchema: credentialSchema,
+      expirationDate: expirationDate,
+      holder: holder,
+      proof: proof,
+      credentialStatus: credentialStatus,
+      refreshService: refreshService,
+      termsOfUse: termsOfUse,
+      evidence: evidence,
+    );
   }
 
   /// Creates a new [VcDataModelV1] instance as a deep copy of the provided [input].
@@ -375,21 +391,22 @@ class VcDataModelV1 implements VerifiableCredential {
   /// This constructor initializes a new object with the same values as the
   /// properties of the [input] `VcDataModelV1` instance.
   VcDataModelV1.clone(VcDataModelV1 input)
-      : this(
-            context: input.context,
-            id: input.id,
-            credentialSubject: input.credentialSubject,
-            issuer: input.issuer,
-            type: input.type,
-            issuanceDate: input.issuanceDate,
-            credentialSchema: input.credentialSchema,
-            expirationDate: input.expirationDate,
-            holder: input.holder,
-            proof: input.proof,
-            credentialStatus: input.credentialStatus,
-            refreshService: input.refreshService,
-            termsOfUse: input.termsOfUse,
-            evidence: input.evidence);
+    : this(
+        context: input.context,
+        id: input.id,
+        credentialSubject: input.credentialSubject,
+        issuer: input.issuer,
+        type: input.type,
+        issuanceDate: input.issuanceDate,
+        credentialSchema: input.credentialSchema,
+        expirationDate: input.expirationDate,
+        holder: input.holder,
+        proof: input.proof,
+        credentialStatus: input.credentialStatus,
+        refreshService: input.refreshService,
+        termsOfUse: input.termsOfUse,
+        evidence: input.evidence,
+      );
 
   /// Factory constructor to create a [VcDataModelV1] instance from a mutable [MutableVcDataModelV1]
   ///

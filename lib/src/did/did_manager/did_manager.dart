@@ -101,10 +101,7 @@ abstract class DidManager {
   ///
   /// [store] - The key mapping store to use for managing key relationships.
   /// [wallet] - The wallet to use for key operations.
-  DidManager({
-    required this.store,
-    required this.wallet,
-  });
+  DidManager({required this.store, required this.wallet});
 
   /// Creates and initializes a new DID manager instance.
   ///
@@ -114,9 +111,7 @@ abstract class DidManager {
   /// [factory] - A function that creates the manager instance.
   ///
   /// Returns a fully initialized manager instance.
-  static Future<T> create<T extends DidManager>(
-    T Function() factory,
-  ) async {
+  static Future<T> create<T extends DidManager>(T Function() factory) async {
     final manager = factory();
     await manager.init();
     return manager;
@@ -240,23 +235,29 @@ abstract class DidManager {
 
     // If we only need key agreement for an ed25519 key, we don't create a
     // primary VM for the ed25519 key itself, only for the derived x25519 key.
-    final onlyKeyAgreementForEd25519 = relationships.length == 1 &&
+    final onlyKeyAgreementForEd25519 =
+        relationships.length == 1 &&
         relationships.first == VerificationRelationship.keyAgreement &&
         publicKey.type == KeyType.ed25519;
 
     if (!onlyKeyAgreementForEd25519) {
-      verificationMethodId =
-          await addVerificationMethodFromPublicKey(publicKey);
+      verificationMethodId = await addVerificationMethodFromPublicKey(
+        publicKey,
+      );
     }
 
     for (final relationship in relationships) {
       switch (relationship) {
         case VerificationRelationship.keyAgreement:
           if (publicKey.type == KeyType.ed25519) {
-            final x25519PublicKeyBytes =
-                ed25519PublicToX25519Public(publicKey.bytes);
-            final x25519PublicKey =
-                PublicKey(walletKeyId, x25519PublicKeyBytes, KeyType.x25519);
+            final x25519PublicKeyBytes = ed25519PublicToX25519Public(
+              publicKey.bytes,
+            );
+            final x25519PublicKey = PublicKey(
+              walletKeyId,
+              x25519PublicKeyBytes,
+              KeyType.x25519,
+            );
             final keyAgreementId = await addVerificationMethodFromPublicKey(
               x25519PublicKey,
             );
@@ -289,8 +290,9 @@ abstract class DidManager {
 
     // If relationships was an empty set, a VM should have been created.
     if (relationships.isEmpty) {
-      verificationMethodId ??=
-          await addVerificationMethodFromPublicKey(publicKey);
+      verificationMethodId ??= await addVerificationMethodFromPublicKey(
+        publicKey,
+      );
     }
 
     return AddVerificationMethodResult(
@@ -335,18 +337,22 @@ abstract class DidManager {
   // TODO: Update after the did_store is refactored, so only the fragment is used
   /// Gets the stored wallet key ID that corresponds to the provided verification method ID
   Future<String?> getWalletKeyId(String verificationMethodId) async {
-    if (_cacheVerificationMethodIdToWalletKeyId
-        .containsKey(verificationMethodId)) {
+    if (_cacheVerificationMethodIdToWalletKeyId.containsKey(
+      verificationMethodId,
+    )) {
       return _cacheVerificationMethodIdToWalletKeyId[verificationMethodId];
     }
 
-    if (_cacheVerificationMethodIdToWalletKeyId
-        .containsKey(getKeyIdFromId(verificationMethodId))) {
-      return _cacheVerificationMethodIdToWalletKeyId[
-          getKeyIdFromId(verificationMethodId)];
+    if (_cacheVerificationMethodIdToWalletKeyId.containsKey(
+      getKeyIdFromId(verificationMethodId),
+    )) {
+      return _cacheVerificationMethodIdToWalletKeyId[getKeyIdFromId(
+        verificationMethodId,
+      )];
     }
 
-    final walletKeyId = await store.getWalletKeyId(verificationMethodId) ??
+    final walletKeyId =
+        await store.getWalletKeyId(verificationMethodId) ??
         await store.getWalletKeyId(getKeyIdFromId(verificationMethodId));
     if (walletKeyId != null) {
       _cacheVerificationMethodIdToWalletKeyId[verificationMethodId] =
@@ -580,7 +586,8 @@ abstract class DidManager {
   /// Throws [SsiException] if:
   /// - verificationMethodId is empty
   Future<void> removeAllVerificationMethodReferences(
-      String verificationMethodId) async {
+    String verificationMethodId,
+  ) async {
     if (verificationMethodId.isEmpty) {
       throw SsiException(
         message: 'Verification method ID cannot be empty',

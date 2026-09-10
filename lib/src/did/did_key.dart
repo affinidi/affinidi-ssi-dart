@@ -21,11 +21,7 @@ import 'public_key_utils.dart';
 /// Returns a [DidDocument]
 ///
 /// Throws [SsiException] if the conversion fails.
-DidDocument _buildEDDoc(
-  List<String> context,
-  String id,
-  String keyPart,
-) {
+DidDocument _buildEDDoc(List<String> context, String id, String keyPart) {
   final x25519PubKey = ed25519PublicToX25519Public(
     base58Bitcoin.decode(keyPart).sublist(2),
   );
@@ -71,11 +67,7 @@ DidDocument _buildEDDoc(
 /// [keyPart] - The key part of the DID
 ///
 /// Returns a [DidDocument].
-DidDocument _buildXDoc(
-  List<String> context,
-  String id,
-  String keyPart,
-) {
+DidDocument _buildXDoc(List<String> context, String id, String keyPart) {
   var verificationKeyId = '$id#z$keyPart';
   final verification = VerificationMethodMultibase(
     id: verificationKeyId,
@@ -136,12 +128,12 @@ class DidKey {
   static const _context = [
     'https://www.w3.org/ns/did/v1',
     'https://w3id.org/security/suites/ed25519-2020/v1',
-    'https://w3id.org/security/suites/x25519-2020/v1'
+    'https://w3id.org/security/suites/x25519-2020/v1',
   ];
 
   static const _context2 = [
     'https://www.w3.org/ns/did/v1',
-    'https://ns.did.ai/suites/multikey-2021/v1/'
+    'https://ns.did.ai/suites/multikey-2021/v1/',
   ];
 
   /// This method derives a key DID from a given public key

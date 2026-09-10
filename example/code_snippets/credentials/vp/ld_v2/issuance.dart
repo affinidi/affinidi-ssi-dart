@@ -37,11 +37,12 @@ Future<void> main() async {
   // ✗ NOT Supported: JWT VCs (JwtVcDataModelV1) - causes JSON-LD context conflicts
   //                  Use V1 presentations (VpDataModelV1) for JWT VCs instead
   final v2Vp = MutableVpDataModelV2(
-      context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
-      id: Uri.parse('testVpV2'),
-      type: {'VerifiablePresentation'},
-      holder: MutableHolder.uri(signer.did),
-      verifiableCredential: [ldV1VC, ldV2VC, sdjwtV2VC]);
+    context: MutableJsonLdContext.fromJson([dmV2ContextUrl]),
+    id: Uri.parse('testVpV2'),
+    type: {'VerifiablePresentation'},
+    holder: MutableHolder.uri(signer.did),
+    verifiableCredential: [ldV1VC, ldV2VC, sdjwtV2VC],
+  );
 
   // create a proof Generator
   final proofGenerator = Secp256k1Signature2019Generator(
@@ -51,8 +52,10 @@ Future<void> main() async {
 
   // Issue the VP using the V2 suite
   final vpToSign = VpDataModelV2.fromMutable(v2Vp);
-  final issuedVp = await LdVpDm2Suite()
-      .issue(unsignedData: vpToSign, proofGenerator: proofGenerator);
+  final issuedVp = await LdVpDm2Suite().issue(
+    unsignedData: vpToSign,
+    proofGenerator: proofGenerator,
+  );
 
   // Output result
   print('Serialized VP:\n${issuedVp.serialized}');

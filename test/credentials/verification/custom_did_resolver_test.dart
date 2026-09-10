@@ -24,22 +24,24 @@ void main() {
       expect(result.isValid, true);
     });
 
-    test('Should use default resolver when custom resolver is not provided',
-        () async {
-      // Parse a valid credential
-      final vc = UniversalParser.parse(
-        VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe,
-      );
+    test(
+      'Should use default resolver when custom resolver is not provided',
+      () async {
+        // Parse a valid credential
+        final vc = UniversalParser.parse(
+          VerifiableCredentialDataFixtures.ldVcDm1ValidStringFromCwe,
+        );
 
-      // Create verifier without custom resolver
-      final verifier = VcIntegrityVerifier();
+        // Create verifier without custom resolver
+        final verifier = VcIntegrityVerifier();
 
-      // Verify the credential
-      final result = await verifier.verify(vc);
+        // Verify the credential
+        final result = await verifier.verify(vc);
 
-      // Should successfully verify using default resolver
-      expect(result.isValid, true);
-    });
+        // Should successfully verify using default resolver
+        expect(result.isValid, true);
+      },
+    );
 
     test('Should handle custom resolver that throws exceptions', () async {
       // Create a resolver that always throws
@@ -85,37 +87,41 @@ void main() {
 
       // Caching should work (if DID resolution was needed)
       // We can't assert cache hits without knowing if resolution happened
-      expect(cachingResolver.cacheHits + cachingResolver.cacheMisses,
-          greaterThanOrEqualTo(0));
+      expect(
+        cachingResolver.cacheHits + cachingResolver.cacheMisses,
+        greaterThanOrEqualTo(0),
+      );
     });
 
-    test('Should work with both custom document loader and custom DID resolver',
-        () async {
-      // Create custom implementations
-      final customResolver = TrackingDidResolver();
+    test(
+      'Should work with both custom document loader and custom DID resolver',
+      () async {
+        // Create custom implementations
+        final customResolver = TrackingDidResolver();
 
-      Future<Map<String, dynamic>?> customDocumentLoader(Uri url) async {
-        return null; // Use default behavior
-      }
+        Future<Map<String, dynamic>?> customDocumentLoader(Uri url) async {
+          return null; // Use default behavior
+        }
 
-      // Parse a valid credential
-      final vc = UniversalParser.parse(
-        VerifiableCredentialDataFixtures
-            .credentialWithEcdsaRdfc2019ByDigitalBazaar,
-      );
+        // Parse a valid credential
+        final vc = UniversalParser.parse(
+          VerifiableCredentialDataFixtures
+              .credentialWithEcdsaRdfc2019ByDigitalBazaar,
+        );
 
-      // Create verifier with both custom resolver and document loader
-      final verifier = VcIntegrityVerifier(
-        didResolver: customResolver,
-        customDocumentLoader: customDocumentLoader,
-      );
+        // Create verifier with both custom resolver and document loader
+        final verifier = VcIntegrityVerifier(
+          didResolver: customResolver,
+          customDocumentLoader: customDocumentLoader,
+        );
 
-      // Verify the credential
-      final result = await verifier.verify(vc);
+        // Verify the credential
+        final result = await verifier.verify(vc);
 
-      // Should successfully verify
-      expect(result.isValid, true);
-    });
+        // Should successfully verify
+        expect(result.isValid, true);
+      },
+    );
 
     test('Custom resolver can intercept and modify resolution', () async {
       // Create a resolver that logs what it resolves

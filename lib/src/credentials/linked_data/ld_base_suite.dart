@@ -131,9 +131,11 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
   ///
   /// Optionally accepts [getNow] to provide a custom "now" time for expiry and validity
   /// and [didResolver] for custom DID resolution.
-  Future<bool> verifyIntegrity(Model input,
-      {DateTime Function() getNow = DateTime.now,
-      DidResolver? didResolver}) async {
+  Future<bool> verifyIntegrity(
+    Model input, {
+    DateTime Function() getNow = DateTime.now,
+    DidResolver? didResolver,
+  }) async {
     final document = input.toJson();
     final proofSuite = _getDocumentProofVerifier(document, didResolver);
 
@@ -141,13 +143,17 @@ abstract class LdBaseSuite<VC extends DocWithEmbeddedProof, Model extends VC>
       return false;
     }
 
-    final verificationResult =
-        await proofSuite.verify(document, getNow: getNow);
+    final verificationResult = await proofSuite.verify(
+      document,
+      getNow: getNow,
+    );
     return verificationResult.isValid;
   }
 
   EmbeddedProofVerifier? _getDocumentProofVerifier(
-      Map<String, dynamic> document, DidResolver? didResolver) {
+    Map<String, dynamic> document,
+    DidResolver? didResolver,
+  ) {
     final proof = document[proofKey];
     if (proof == null || proof is! Map<String, dynamic>) {
       return null;
