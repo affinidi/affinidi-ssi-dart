@@ -57,7 +57,7 @@ class DataIntegrityEddsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
   /// Generates an [EmbeddedProof] for the given [document].
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
-    final created = DateTime.now();
+    final created = DateTime.now().toUtc();
     final nonce = randomId();
     // Validate credential @context contains Data Integrity or VC v2 context
     DataIntegrityContextUtil.validate(document);

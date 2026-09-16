@@ -216,6 +216,14 @@ void main() {
           startsWith('u'),
           reason: 'should use base64url-no-pad by default',
         );
+        // VC Data Integrity §2.1: `created` MUST be a UTC dateTimeStamp. The
+        // other suites are covered in proof_created_timestamp_test.dart; this
+        // one lives here because it needs this file's ML-DSA DID resolver.
+        expect(
+          proof['created'],
+          endsWith('Z'),
+          reason: 'created must be a UTC dateTimeStamp (VC-DI §2.1)',
+        );
       },
     );
 
