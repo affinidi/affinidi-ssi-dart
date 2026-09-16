@@ -42,7 +42,7 @@ class Secp256k1Signature2019Generator extends EmbeddedProofSuiteCreateOptions
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
     try {
-      final created = DateTime.now();
+      final created = DateTime.now().toUtc();
       final proof = {
         '@context': _securityContext,
         'type': _signatureType,

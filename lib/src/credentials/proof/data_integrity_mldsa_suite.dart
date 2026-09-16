@@ -136,7 +136,7 @@ class DataIntegrityMldsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
 
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
-    final created = DateTime.now();
+    final created = DateTime.now().toUtc();
     final nonce = randomId();
     DataIntegrityContextUtil.validate(document);
     final proof = {

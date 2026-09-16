@@ -62,7 +62,7 @@ class DataIntegrityEcdsaRdfcGenerator extends EmbeddedProofSuiteCreateOptions
   /// A unique nonce is automatically generated for each proof.
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
-    final created = DateTime.now();
+    final created = DateTime.now().toUtc();
     final nonce = randomId();
 
     // Validate credential @context contains Data Integrity or VC v2 context

@@ -53,7 +53,7 @@ abstract class BaseJcsGenerator extends EmbeddedProofSuiteCreateOptions
   /// A unique nonce is automatically generated for each proof.
   @override
   Future<EmbeddedProof> generate(Map<String, dynamic> document) async {
-    final created = DateTime.now();
+    final created = DateTime.now().toUtc();
     final nonce = randomId();
     final proof = JcsUtils.createBaseProofConfiguration(
       cryptosuite: cryptosuite,
